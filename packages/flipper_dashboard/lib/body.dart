@@ -1,3 +1,4 @@
+import 'package:flipper_data_table/widget/scrollable_widget.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_rw/bottom_sheets/general_bottom_sheet.dart';
 import 'package:flipper_dashboard/keypad_head_view.dart';
@@ -10,6 +11,8 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flipper_data_table/page/sortable_page.dart';
+import 'package:flipper_data_table/data/users.dart';
 
 class BodyWidget extends StatefulWidget {
   const BodyWidget(
@@ -91,9 +94,18 @@ class _BodyWidgetState extends State<BodyWidget> {
           controller: widget.controller,
           amount: double.parse(widget.model.key),
         ),
-        widget.model.tab == 0
-            ? KeyPadView(model: widget.model)
-            : const Flexible(child: ProductView(userId: '1', items: true)),
+        if (widget.model.tab == 0) KeyPadView(model: widget.model),
+        if (widget.model.tab == 1)
+          Flexible(
+            child: ScrollableWidget(
+              child: SortablePage(
+                columns: const ['First Name', 'Last Name', 'Age'],
+                data: List.of(allUsers),
+              ),
+            ),
+          )
+        else if (widget.model.tab == 2)
+          const Flexible(child: ProductView(userId: '1', items: true))
       ],
     );
   }

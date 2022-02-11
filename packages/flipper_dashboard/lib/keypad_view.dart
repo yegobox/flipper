@@ -13,98 +13,25 @@ class AlwaysDisabledFocusNode extends FocusNode {
   bool get hasFocus => false;
 }
 
+// ignore: must_be_immutable
 class KeyPadView extends StatelessWidget {
   const KeyPadView({Key? key, required this.model}) : super(key: key);
   final BusinessHomeViewModel model;
-  // final TextEditingController controller;
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: SafeArea(
-        child: Column(
-          children: [Keyboard(model: model)],
-        ),
-      ),
-    );
-  }
-}
-
-// ignore: must_be_immutable
-class Keyboard extends StatelessWidget {
-  const Keyboard({Key? key, required this.model}) : super(key: key);
-  final BusinessHomeViewModel model;
 
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: Padding(
-        padding: (isWindows || isMacOs)
-            ? const EdgeInsets.all(0)
-            : const EdgeInsets.all(0),
-        child: Column(
-          children: [
-            Expanded(
-              child: Row(
-                children: [
-                  Expanded(
-                    child: InkWell(
-                      onTap: () {
-                        model.addKey('1');
-                      },
-                      child: Container(
-                          height: MediaQuery.of(context).size.height,
-                          width: MediaQuery.of(context).size.width,
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: Theme.of(context).canvasColor,
-                            ),
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            '1',
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyText1!
-                                .copyWith(
-                                    fontSize: 30,
-                                    color: const Color(0xff3d454c),
-                                    fontWeight: FontWeight.normal),
-                          )),
-                    ),
-                  ),
-                  Expanded(
-                    child: InkWell(
-                      onTap: () {
-                        model.addKey('2');
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: Theme.of(context).canvasColor,
-                          ),
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          '2',
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyText1!
-                              .copyWith(
-                                  fontSize: 30,
-                                  color: const Color(0xff3d454c),
-                                  fontWeight: FontWeight.normal),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: InkWell(
-                      onTap: () {
-                        model.addKey('3');
-                      },
-                      child: Container(
+      child: Column(
+        children: [
+          Expanded(
+            child: Row(
+              children: [
+                Expanded(
+                  child: InkWell(
+                    onTap: () {
+                      model.addKey('1');
+                    },
+                    child: Container(
                         height: MediaQuery.of(context).size.height,
                         width: MediaQuery.of(context).size.width,
                         decoration: BoxDecoration(
@@ -114,7 +41,7 @@ class Keyboard extends StatelessWidget {
                         ),
                         alignment: Alignment.center,
                         child: Text(
-                          '3',
+                          '1',
                           textAlign: TextAlign.center,
                           style: Theme.of(context)
                               .textTheme
@@ -123,76 +50,69 @@ class Keyboard extends StatelessWidget {
                                   fontSize: 30,
                                   color: const Color(0xff3d454c),
                                   fontWeight: FontWeight.normal),
+                        )),
+                  ),
+                ),
+                Expanded(
+                  child: InkWell(
+                    onTap: () {
+                      model.addKey('2');
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Theme.of(context).canvasColor,
                         ),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        '2',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodyText1!.copyWith(
+                            fontSize: 30,
+                            color: const Color(0xff3d454c),
+                            fontWeight: FontWeight.normal),
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+                Expanded(
+                  child: InkWell(
+                    onTap: () {
+                      model.addKey('3');
+                    },
+                    child: Container(
+                      height: MediaQuery.of(context).size.height,
+                      width: MediaQuery.of(context).size.width,
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Theme.of(context).canvasColor,
+                        ),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        '3',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodyText1!.copyWith(
+                            fontSize: 30,
+                            color: const Color(0xff3d454c),
+                            fontWeight: FontWeight.normal),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            Expanded(
-              child: Row(
-                children: [
-                  Expanded(
-                    child: InkWell(
-                      onTap: () {
-                        model.addKey('4');
-                      },
-                      child: Container(
-                          height: MediaQuery.of(context).size.height,
-                          width: MediaQuery.of(context).size.width,
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: Theme.of(context).canvasColor,
-                            ),
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            '4',
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyText1!
-                                .copyWith(
-                                    fontSize: 30,
-                                    color: const Color(0xff3d454c),
-                                    fontWeight: FontWeight.normal),
-                          )),
-                    ),
-                  ),
-                  Expanded(
-                    child: InkWell(
-                      onTap: () {
-                        model.addKey('5');
-                      },
-                      child: Container(
-                          height: MediaQuery.of(context).size.height,
-                          width: MediaQuery.of(context).size.width,
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: Theme.of(context).canvasColor,
-                            ),
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            '5',
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyText1!
-                                .copyWith(
-                                    fontSize: 30,
-                                    color: const Color(0xff3d454c),
-                                    fontWeight: FontWeight.normal),
-                          )),
-                    ),
-                  ),
-                  Expanded(
-                    child: InkWell(
-                      onTap: () {
-                        model.addKey('6');
-                      },
-                      child: Container(
+          ),
+          Expanded(
+            child: Row(
+              children: [
+                Expanded(
+                  child: InkWell(
+                    onTap: () {
+                      model.addKey('4');
+                    },
+                    child: Container(
                         height: MediaQuery.of(context).size.height,
                         width: MediaQuery.of(context).size.width,
                         decoration: BoxDecoration(
@@ -202,7 +122,7 @@ class Keyboard extends StatelessWidget {
                         ),
                         alignment: Alignment.center,
                         child: Text(
-                          '6',
+                          '4',
                           textAlign: TextAlign.center,
                           style: Theme.of(context)
                               .textTheme
@@ -211,22 +131,15 @@ class Keyboard extends StatelessWidget {
                                   fontSize: 30,
                                   color: const Color(0xff3d454c),
                                   fontWeight: FontWeight.normal),
-                        ),
-                      ),
-                    ),
+                        )),
                   ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: Row(
-                children: [
-                  Expanded(
-                    child: InkWell(
-                      onTap: () {
-                        model.addKey('7');
-                      },
-                      child: Container(
+                ),
+                Expanded(
+                  child: InkWell(
+                    onTap: () {
+                      model.addKey('5');
+                    },
+                    child: Container(
                         height: MediaQuery.of(context).size.height,
                         width: MediaQuery.of(context).size.width,
                         decoration: BoxDecoration(
@@ -236,7 +149,7 @@ class Keyboard extends StatelessWidget {
                         ),
                         alignment: Alignment.center,
                         child: Text(
-                          '7',
+                          '5',
                           textAlign: TextAlign.center,
                           style: Theme.of(context)
                               .textTheme
@@ -245,43 +158,71 @@ class Keyboard extends StatelessWidget {
                                   fontSize: 30,
                                   color: const Color(0xff3d454c),
                                   fontWeight: FontWeight.normal),
+                        )),
+                  ),
+                ),
+                Expanded(
+                  child: InkWell(
+                    onTap: () {
+                      model.addKey('6');
+                    },
+                    child: Container(
+                      height: MediaQuery.of(context).size.height,
+                      width: MediaQuery.of(context).size.width,
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Theme.of(context).canvasColor,
                         ),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        '6',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodyText1!.copyWith(
+                            fontSize: 30,
+                            color: const Color(0xff3d454c),
+                            fontWeight: FontWeight.normal),
                       ),
                     ),
                   ),
-                  Expanded(
-                    child: InkWell(
-                      onTap: () {
-                        model.addKey('8');
-                      },
-                      child: Container(
-                          height: MediaQuery.of(context).size.height,
-                          width: MediaQuery.of(context).size.width,
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: Theme.of(context).canvasColor,
-                            ),
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            '8',
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyText1!
-                                .copyWith(
-                                    fontSize: 30,
-                                    color: const Color(0xff3d454c),
-                                    fontWeight: FontWeight.normal),
-                          )),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Row(
+              children: [
+                Expanded(
+                  child: InkWell(
+                    onTap: () {
+                      model.addKey('7');
+                    },
+                    child: Container(
+                      height: MediaQuery.of(context).size.height,
+                      width: MediaQuery.of(context).size.width,
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Theme.of(context).canvasColor,
+                        ),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        '7',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodyText1!.copyWith(
+                            fontSize: 30,
+                            color: const Color(0xff3d454c),
+                            fontWeight: FontWeight.normal),
+                      ),
                     ),
                   ),
-                  Expanded(
-                    child: InkWell(
-                      onTap: () {
-                        model.addKey('9');
-                      },
-                      child: Container(
+                ),
+                Expanded(
+                  child: InkWell(
+                    onTap: () {
+                      model.addKey('8');
+                    },
+                    child: Container(
                         height: MediaQuery.of(context).size.height,
                         width: MediaQuery.of(context).size.width,
                         decoration: BoxDecoration(
@@ -291,7 +232,7 @@ class Keyboard extends StatelessWidget {
                         ),
                         alignment: Alignment.center,
                         child: Text(
-                          '9',
+                          '8',
                           textAlign: TextAlign.center,
                           style: Theme.of(context)
                               .textTheme
@@ -300,76 +241,46 @@ class Keyboard extends StatelessWidget {
                                   fontSize: 30,
                                   color: const Color(0xff3d454c),
                                   fontWeight: FontWeight.normal),
+                        )),
+                  ),
+                ),
+                Expanded(
+                  child: InkWell(
+                    onTap: () {
+                      model.addKey('9');
+                    },
+                    child: Container(
+                      height: MediaQuery.of(context).size.height,
+                      width: MediaQuery.of(context).size.width,
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Theme.of(context).canvasColor,
                         ),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        '9',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodyText1!.copyWith(
+                            fontSize: 30,
+                            color: const Color(0xff3d454c),
+                            fontWeight: FontWeight.normal),
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-            Expanded(
-              child: Row(
-                children: [
-                  Expanded(
-                    child: InkWell(
-                      onTap: () {
-                        model.addKey('C');
-                      },
-                      child: Container(
-                          height: MediaQuery.of(context).size.height,
-                          width: MediaQuery.of(context).size.width,
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: Theme.of(context).canvasColor,
-                            ),
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            'C',
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyText1!
-                                .copyWith(
-                                    fontSize: 30,
-                                    color: const Color(0xff3d454c),
-                                    fontWeight: FontWeight.normal),
-                          )),
-                    ),
-                  ),
-                  Expanded(
-                    child: InkWell(
-                      onTap: () {
-                        model.addKey('0');
-                      },
-                      child: Container(
-                          height: MediaQuery.of(context).size.height,
-                          width: MediaQuery.of(context).size.width,
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: Theme.of(context).canvasColor,
-                            ),
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            '0',
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyText1!
-                                .copyWith(
-                                    fontSize: 30,
-                                    color: const Color(0xff3d454c),
-                                    fontWeight: FontWeight.normal),
-                          )),
-                    ),
-                  ),
-                  Expanded(
-                    child: InkWell(
-                      onTap: () {
-                        model.addKey('+');
-                      },
-                      child: Container(
+          ),
+          Expanded(
+            child: Row(
+              children: [
+                Expanded(
+                  child: InkWell(
+                    onTap: () {
+                      model.addKey('C');
+                    },
+                    child: Container(
                         height: MediaQuery.of(context).size.height,
                         width: MediaQuery.of(context).size.width,
                         decoration: BoxDecoration(
@@ -379,24 +290,74 @@ class Keyboard extends StatelessWidget {
                         ),
                         alignment: Alignment.center,
                         child: Text(
-                          '+',
+                          'C',
                           textAlign: TextAlign.center,
                           style: Theme.of(context)
                               .textTheme
                               .bodyText1!
                               .copyWith(
-                                  fontSize: 40,
-                                  color: const Color(0xff2996cc),
+                                  fontSize: 30,
+                                  color: const Color(0xff3d454c),
                                   fontWeight: FontWeight.normal),
+                        )),
+                  ),
+                ),
+                Expanded(
+                  child: InkWell(
+                    onTap: () {
+                      model.addKey('0');
+                    },
+                    child: Container(
+                        height: MediaQuery.of(context).size.height,
+                        width: MediaQuery.of(context).size.width,
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Theme.of(context).canvasColor,
+                          ),
                         ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          '0',
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyText1!
+                              .copyWith(
+                                  fontSize: 30,
+                                  color: const Color(0xff3d454c),
+                                  fontWeight: FontWeight.normal),
+                        )),
+                  ),
+                ),
+                Expanded(
+                  child: InkWell(
+                    onTap: () {
+                      model.addKey('+');
+                    },
+                    child: Container(
+                      height: MediaQuery.of(context).size.height,
+                      width: MediaQuery.of(context).size.width,
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Theme.of(context).canvasColor,
+                        ),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        '+',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodyText1!.copyWith(
+                            fontSize: 40,
+                            color: const Color(0xff2996cc),
+                            fontWeight: FontWeight.normal),
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -406,9 +367,9 @@ class KeyboardKey extends StatelessWidget {
   const KeyboardKey({
     Key? key,
     required this.model,
-    this.keyValue,
+    required this.value,
   }) : super(key: key);
-  final keyValue;
+  final String value;
   final BusinessHomeViewModel model;
 
   @override
@@ -417,7 +378,7 @@ class KeyboardKey extends StatelessWidget {
       width: 100,
       height: MediaQuery.of(context).size.height,
       child: InkWell(
-        onTap: () => {model.addKey(keyValue)},
+        onTap: () => {model.addKey(value)},
         child: Container(
           decoration: BoxDecoration(
             border: Border.all(
@@ -427,7 +388,7 @@ class KeyboardKey extends StatelessWidget {
           ),
           child: Center(
             child: Text(
-              keyValue,
+              value,
               style: Theme.of(context)
                   .textTheme
                   .bodyText1!

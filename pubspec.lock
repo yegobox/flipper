@@ -757,6 +757,13 @@ packages:
       relative: true
     source: path
     version: "0.0.1-dev.5"
+  flipper_data_table:
+    dependency: "direct overridden"
+    description:
+      path: "packages/flipper_data_table"
+      relative: true
+    source: path
+    version: "0.0.1"
   flipper_finance:
     dependency: "direct overridden"
     description:
@@ -813,6 +820,13 @@ packages:
       relative: true
     source: path
     version: "1.0.3"
+  fluent_ui:
+    dependency: transitive
+    description:
+      name: fluent_ui
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.9.0"
   flutter:
     dependency: "direct main"
     description: flutter
@@ -1870,6 +1884,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.27.3"
+  scroll_pos:
+    dependency: transitive
+    description:
+      name: scroll_pos
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.3.0"
   scrollable_positioned_list:
     dependency: transitive
     description:

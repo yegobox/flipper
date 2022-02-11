@@ -13,7 +13,7 @@ dependencies:
   flipper_ui: ^1.0.3
   get: ^4.6.1
   flipper_localize: ^0.0.2
-  flipper_models: ^0.0.1-dev.4
+  flipper_models: ^0.0.1-dev.5
   flipper_rw: ^1.0.1-dev.3
   flipper_routing: ^0.0.1-dev.3
   flutter_chat_ui: ^1.5.5
@@ -63,6 +63,7 @@ dependencies:
   flutter_riverpod: ^0.14.0+3
   google_ui: ^2.7.0
   connectivity_plus: ^2.2.0
+  flipper_data_table: 0.0.1
 flutter:
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

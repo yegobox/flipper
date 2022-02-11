@@ -97,17 +97,17 @@ class CronService {
       ProxyService.billing.monitorSubscription(userId: int.parse(userId));
       ProxyService.box.remove(key: 'checkIn');
       if (settingService.isDailyReportEnabled()) {
-        List<OrderFSync> completed_orders =
+        List<OrderFSync> completedOrders =
             await ProxyService.api.getOrderByStatus(status: completeStatus);
 
-        for (OrderFSync completed_order in completed_orders) {
-          completed_order.reported = true;
+        for (OrderFSync completedOrder in completedOrders) {
+          completedOrder.reported = true;
           log.i('now sending the report to mail...');
           final response = await ProxyService.api
-              .sendReport(orderItems: completed_order.orderItems);
+              .sendReport(orderItems: completedOrder.orderItems);
           if (response == 200) {
             ProxyService.api
-                .update(data: completed_order.toJson(), endPoint: 'order');
+                .update(data: completedOrder.toJson(), endPoint: 'order');
           }
         }
       }

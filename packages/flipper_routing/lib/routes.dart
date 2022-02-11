@@ -493,3 +493,7 @@ class AppSetup {
 // https://github.com/thon-ju/bluetooth_print
 // wifi printer
 // https://pub.dev/packages/esc_pos_printer
+
+//  build better docs:
+// https://docs.page/homepage
+// https://github.com/csells/go_router/issues/356#event-6045944024

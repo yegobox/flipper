@@ -34,9 +34,9 @@ class KeyPadHead extends StatelessWidget {
                 },
                 child: IgnorePointer(
                   child: Container(
-                    padding:const EdgeInsets.only(
+                    padding: const EdgeInsets.only(
                       right: 10,
-                      top: 30,
+                      top: 10,
                       left: 10,
                       bottom: 15,
                     ),
