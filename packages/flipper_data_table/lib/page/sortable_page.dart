@@ -1,12 +1,12 @@
-import 'package:flipper_data_table/model/user.dart';
 import 'package:flipper_data_table/widget/scrollable_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flipper_models/models/models.dart';
 
 class SortablePage extends StatefulWidget {
   const SortablePage({Key? key, required this.columns, required this.data})
       : super(key: key);
   final List<String> columns;
-  final List<User> data;
+  final List<OrderItemSync> data;
 
   @override
   _SortablePageState createState() => _SortablePageState();
@@ -46,8 +46,16 @@ class _SortablePageState extends State<SortablePage> {
       )
       .toList();
 
-  List<DataRow> getRows(List<User> users) => users.map((User user) {
-        final cells = [user.firstName, user.lastName, user.age];
+  List<DataRow> getRows(List<OrderItemSync> users) =>
+      users.map((OrderItemSync user) {
+        final cells = [
+          user.name,
+          user.price,
+          user.discount,
+          user.remainingStock,
+          user.type,
+          user.createdAt
+        ];
 
         return DataRow(
           cells: getCells(cells),
@@ -59,14 +67,14 @@ class _SortablePageState extends State<SortablePage> {
 
   void onSort(int columnIndex, bool ascending) {
     if (columnIndex == 0) {
-      widget.data.sort((user1, user2) =>
-          compareString(ascending, user1.firstName, user2.firstName));
+      widget.data.sort(
+          (user1, user2) => compareString(ascending, user1.name, user2.name));
     } else if (columnIndex == 1) {
-      widget.data.sort((user1, user2) =>
-          compareString(ascending, user1.lastName, user2.lastName));
+      widget.data.sort((user1, user2) => compareString(
+          ascending, user1.price.toString(), user2.price.toString()));
     } else if (columnIndex == 2) {
       widget.data.sort((user1, user2) =>
-          compareString(ascending, '${user1.age}', '${user2.age}'));
+          compareString(ascending, '${user1.discount}', '${user2.discount}'));
     }
 
     setState(() {

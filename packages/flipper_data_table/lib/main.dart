@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_ui/google_ui.dart';
 
 import 'custom_tab.dart';
+import 'data/report_mock.dart';
+import 'page/sortable_page.dart';
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,8 +40,8 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  @override
-  Widget build(BuildContext context) => Scaffold(body: CustomTabs());
+  // @override
+  // Widget build(BuildContext context) => Scaffold(body: CustomTabs());
   // @override
   // Widget build(BuildContext context) => TabBarWidget(
   //       title: MyApp.title,
@@ -50,8 +52,18 @@ class _MainPageState extends State<MainPage> {
   //         SortablePage(),
   //       ],
   //     );
-
-  // Widget build(BuildContext context) => SortablePage();
+  @override
+  Widget build(BuildContext context) => SortablePage(
+        columns: const [
+          'Item',
+          'price',
+          'Discount',
+          'Stock',
+          'Payment',
+          'Date'
+        ],
+        data: List.of(reports),
+      );
   // Widget build(BuildContext context) => GErrorMessage(
   //       icon: const Icon(Icons.wifi_off_outlined),
   //       title: "No internet",

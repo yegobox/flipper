@@ -12,7 +12,7 @@ import 'package:flipper_routing/routes.router.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flipper_data_table/page/sortable_page.dart';
-import 'package:flipper_data_table/data/users.dart';
+import 'package:flipper_data_table/data/report_mock.dart';
 
 class BodyWidget extends StatefulWidget {
   const BodyWidget(
@@ -99,8 +99,15 @@ class _BodyWidgetState extends State<BodyWidget> {
           Flexible(
             child: ScrollableWidget(
               child: SortablePage(
-                columns: const ['First Name', 'Last Name', 'Age'],
-                data: List.of(allUsers),
+                columns: const [
+                  'Item',
+                  'price',
+                  'Discount',
+                  'Stock',
+                  'Payment',
+                  'Date'
+                ],
+                data: List.of(reports),
               ),
             ),
           )

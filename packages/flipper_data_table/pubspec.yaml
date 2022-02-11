@@ -1,6 +1,8 @@
 name: flipper_data_table
 description: A new Flutter package project.
-version: 0.0.1
+version: 1.0.0-dev.1
+
+repository: https://github.com/yegobox/packages
 
 environment:
   sdk: ">=2.16.0 <3.0.0"
@@ -9,7 +11,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  # flipper_models: ^0.0.1-dev.5
+  flipper_models: ^0.0.1-dev.5
   flutter_riverpod: ^0.14.0+3
   google_ui: ^2.7.0
   fluent_ui: ^3.8.0
