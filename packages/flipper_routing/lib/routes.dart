@@ -137,7 +137,7 @@ final router = GoRouter(
       name: 'colors',
       pageBuilder: (context, state) => MaterialPage(
         key: state.pageKey,
-        child: ColorTile(),
+        child: const ColorTile(),
       ),
     ),
     GoRoute(

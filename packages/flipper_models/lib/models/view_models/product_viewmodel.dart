@@ -286,7 +286,7 @@ class ProductViewModel extends BusinessHomeViewModel {
 
   void navigateAddVariation(
       {required int productId, required BuildContext context}) {
-    GoRouter.of(context).go(Routes.sell + "/$productId");
+    GoRouter.of(context).push("/variation/$productId");
   }
 
   /// When called should check the related product's variant and set the retail and or supply price

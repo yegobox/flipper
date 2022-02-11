@@ -3,13 +3,13 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_dashboard/create/section_select_unit.dart';
 import 'package:flipper_dashboard/customappbar.dart';
-import 'package:flipper_rw/helpers/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/models/models.dart';
 import 'package:stacked/stacked.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 import 'divider.dart';
+import 'package:google_ui/google_ui.dart';
 
 class AddVariation extends StatefulWidget {
   const AddVariation({Key? key, required this.productId}) : super(key: key);
@@ -51,7 +51,7 @@ class _AddVariationState extends State<AddVariation> {
                 if (AddVariation._formKey.currentState!.validate()) {
                   final variantId = DateTime.now().millisecondsSinceEpoch;
                   List<VariantSync> variations = [];
-                  VariantSync data = new VariantSync(
+                  VariantSync data = VariantSync(
                     name: nameController.text,
                     sku: sku,
                     retailPrice: double.parse(retailController.text),
@@ -95,40 +95,23 @@ class _AddVariationState extends State<AddVariation> {
                             product: model.product, type: 'variation'),
                         Padding(
                           padding: const EdgeInsets.only(left: 18, right: 18),
-                          child: Container(
+                          child: SizedBox(
                             width: double.infinity,
-                            child: TextFormField(
+                            child: GTextFormField(
                               controller: nameController,
-                              style: const TextStyle(color: Colors.black),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return 'Name required';
                                 }
                                 return null;
                               },
-                              onEditingComplete: () {
-                                log.i('hello');
-                              },
                               onChanged: (String _name) {
                                 if (_name.isEmpty) {
-                                  log.i('error is thrown');
                                   return;
-                                  // nameController.safeClear();
                                 }
                                 model.lock;
                               },
-                              decoration: InputDecoration(
-                                hintText: FLocalization.of(context).productName,
-                                fillColor: Theme.of(context)
-                                    .copyWith(canvasColor: Colors.white)
-                                    .canvasColor,
-                                filled: true,
-                                border: OutlineInputBorder(
-                                  borderSide:
-                                      BorderSide(color: HexColor('#D0D7E3')),
-                                  borderRadius: BorderRadius.circular(5),
-                                ),
-                              ),
+                              hintText: FLocalization.of(context).productName,
                             ),
                           ),
                         ),
@@ -145,42 +128,32 @@ class _AddVariationState extends State<AddVariation> {
                         ),
                         Padding(
                           padding: const EdgeInsets.only(left: 18, right: 18),
-                          child: Container(
+                          child: SizedBox(
                             width: double.infinity,
-                            child: TextFormField(
-                                style: TextStyle(color: HexColor('#2d3436')),
-                                onChanged: (String value) {
-                                  if (value == '') {
-                                    sku = DateTime.now().year.toString() +
-                                        Uuid().v1().substring(0, 4);
-                                  } else {
-                                    sku = DateTime.now().year.toString() + sku;
-                                  }
-                                },
-                                decoration: InputDecoration(
-                                  hintText: 'SKU',
-                                  fillColor: Theme.of(context)
-                                      .copyWith(canvasColor: Colors.white)
-                                      .canvasColor,
-                                  filled: true,
-                                  border: OutlineInputBorder(
-                                    borderSide:
-                                        BorderSide(color: HexColor('#D0D7E3')),
-                                    borderRadius: BorderRadius.circular(5),
-                                  ),
-                                )),
+                            child: GTextFormField(
+                              onChanged: (String value) {
+                                if (value == '') {
+                                  sku = DateTime.now().year.toString() +
+                                      const Uuid().v1().substring(0, 4);
+                                } else {
+                                  sku = DateTime.now().year.toString() + sku;
+                                }
+                              },
+                              hintText: 'SKU',
+                            ),
                           ),
                         ),
-                        const CenterDivider(
-                          width: double.infinity,
-                        ),
-                        Text(
-                          'Leave the price blank to enter at the time of sale.',
-                          style:
-                              Theme.of(context).textTheme.bodyText1!.copyWith(
-                                    color: Colors.black,
-                                    height: 1.37,
-                                  ),
+                        const Divider(),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            'Leave the price blank to enter at the time of sale.',
+                            style:
+                                Theme.of(context).textTheme.bodyText1!.copyWith(
+                                      color: Colors.black,
+                                      height: 1.37,
+                                    ),
+                          ),
                         )
                       ],
                     )
@@ -196,11 +169,10 @@ class _AddVariationState extends State<AddVariation> {
   Widget buildCostPriceWidget({required BuildContext context}) {
     return Padding(
       padding: const EdgeInsets.only(left: 18, right: 18),
-      child: Container(
+      child: SizedBox(
         width: double.infinity,
-        child: TextFormField(
+        child: GTextFormField(
           keyboardType: TextInputType.number,
-          style: const TextStyle(color: Colors.black),
           validator: (value) {
             if (value == null || value.isEmpty) {
               return 'Cost price required';
@@ -211,17 +183,7 @@ class _AddVariationState extends State<AddVariation> {
             return null;
           },
           controller: costController,
-          decoration: InputDecoration(
-            hintText: FLocalization.of(context).supplyPrice,
-            fillColor: Theme.of(context)
-                .copyWith(canvasColor: Colors.white)
-                .canvasColor,
-            filled: true,
-            border: OutlineInputBorder(
-              borderSide: BorderSide(color: HexColor('#D0D7E3')),
-              borderRadius: BorderRadius.circular(5),
-            ),
-          ),
+          hintText: FLocalization.of(context).supplyPrice,
         ),
       ),
     );
@@ -230,11 +192,10 @@ class _AddVariationState extends State<AddVariation> {
   Widget buildRetailPriceWidget({required BuildContext context}) {
     return Padding(
       padding: const EdgeInsets.only(left: 18, right: 18),
-      child: Container(
+      child: SizedBox(
         width: double.infinity,
-        child: TextFormField(
+        child: GTextFormField(
           keyboardType: TextInputType.number,
-          style: const TextStyle(color: Colors.black),
           validator: (value) {
             if (value == null || value.isEmpty) {
               return 'Retail price required';
@@ -245,17 +206,7 @@ class _AddVariationState extends State<AddVariation> {
             return null;
           },
           controller: retailController,
-          decoration: InputDecoration(
-            hintText: FLocalization.of(context).retailPrice,
-            fillColor: Theme.of(context)
-                .copyWith(canvasColor: Colors.white)
-                .canvasColor,
-            filled: true,
-            border: OutlineInputBorder(
-              borderSide: BorderSide(color: HexColor('#D0D7E3')),
-              borderRadius: BorderRadius.circular(5),
-            ),
-          ),
+          hintText: FLocalization.of(context).retailPrice,
         ),
       ),
     );
