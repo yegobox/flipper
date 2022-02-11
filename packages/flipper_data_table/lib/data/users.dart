@@ -1,5 +1,7 @@
-import 'package:flipper_models/models/models.dart';
+// import 'package:flipper_models/models/models.dart';
 
-final allUsers = <OrderFSync>[
-  OrderFSync(),
-];
+// final allUsers = <User>[
+//   OrderFSync(),
+// ];
+
+final allUsers = [];

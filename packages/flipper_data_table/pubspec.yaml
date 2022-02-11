@@ -1,0 +1,38 @@
+name: flipper_data_table
+description: A new Flutter package project.
+version: 0.0.1
+
+environment:
+  sdk: ">=2.16.0 <3.0.0"
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # flipper_models: ^0.0.1-dev.5
+  flutter_riverpod: ^0.14.0+3
+  google_ui: ^2.7.0
+  fluent_ui: ^3.8.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^1.0.0
+
+flutter:
+  # The following line ensures that the Material Icons font is
+  # included with your application, so that you can use the icons in
+  # the material Icons class.
+  uses-material-design: true
+  fonts:
+    - family: Poppins
+      fonts:
+        - asset: ../../assets/fonts/Poppins/Poppins-Light.ttf
+        - asset: ../../assets/fonts/Poppins/Poppins-LightItalic.ttf
+          weight: 300
+        - asset: ../../assets/fonts/Poppins/Poppins-Regular.ttf
+        - asset: ../../assets/fonts/Poppins/Poppins-Italic.ttf
+          weight: 400
+        - asset: ../../assets/fonts/Poppins/Poppins-Medium.ttf
+        - asset: ../../assets/fonts/Poppins/Poppins-MediumItalic.ttf
+          weight: 500
