@@ -9,6 +9,8 @@ import 'package:flutter_settings_ui/flutter_settings_ui.dart';
 final isWindows = UniversalPlatform.isWindows;
 
 class UpdatePrinterSetting extends StatefulWidget {
+  const UpdatePrinterSetting({Key? key}) : super(key: key);
+
   @override
   _UpdatePrinterSettingState createState() => _UpdatePrinterSettingState();
 }

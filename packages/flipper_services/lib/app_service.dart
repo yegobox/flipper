@@ -62,7 +62,6 @@ class AppService with ReactiveServiceMixin {
 
     for (PColor color in _colors.value) {
       if (color.active) {
-        print(color.name);
         setCurrentColor(color: color.name!);
       }
     }

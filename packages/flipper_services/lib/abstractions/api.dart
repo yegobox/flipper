@@ -159,4 +159,5 @@ abstract class Api<T> {
   Subscription? getSubscription({required int userId});
   Points? getPoints({required int userId});
   void consumePoints({required int userId, required int points});
+  Future<Pin?> createPin();
 }

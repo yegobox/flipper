@@ -2376,9 +2376,49 @@
         }
       ],
       "relations": []
+    },
+    {
+      "id": "50:3477829046138614560",
+      "lastPropertyId": "6:3828547559957129386",
+      "name": "Pin",
+      "flags": 2,
+      "properties": [
+        {
+          "id": "1:4855774802137203577",
+          "name": "id",
+          "type": 6,
+          "flags": 129
+        },
+        {
+          "id": "2:6552040256902345783",
+          "name": "userId",
+          "type": 9
+        },
+        {
+          "id": "3:7912655389950570302",
+          "name": "phoneNumber",
+          "type": 9
+        },
+        {
+          "id": "4:7405949584687227581",
+          "name": "pin",
+          "type": 6
+        },
+        {
+          "id": "5:4245716154146849944",
+          "name": "branchId",
+          "type": 6
+        },
+        {
+          "id": "6:3828547559957129386",
+          "name": "businessId",
+          "type": 6
+        }
+      ],
+      "relations": []
     }
   ],
-  "lastEntityId": "49:4976542386476964811",
+  "lastEntityId": "50:3477829046138614560",
   "lastIndexId": "21:6996790652084639492",
   "lastRelationId": "1:7692477632100059163",
   "lastSequenceId": "0:0",

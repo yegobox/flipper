@@ -1,13 +1,14 @@
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_settings_ui/flutter_settings_ui.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_dashboard/setting_view_model.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:go_router/go_router.dart';
 
 class LanguagesScreen extends StatefulWidget {
+  const LanguagesScreen({Key? key}) : super(key: key);
+
   @override
   _LanguagesScreenState createState() => _LanguagesScreenState();
 }
@@ -74,6 +75,8 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
   }
 
   Widget trailingWidget(bool checked) {
-    return (checked) ? Icon(Icons.check, color: Colors.blue) : Icon(null);
+    return (checked)
+        ? const Icon(Icons.check, color: Colors.blue)
+        : const Icon(null);
   }
 }

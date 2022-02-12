@@ -55,17 +55,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
             SettingsTile(
               title: 'Language',
               subtitle: 'English',
-              leading: Icon(Icons.language),
+              leading: const Icon(Icons.language),
               onPressed: (context) {
                 Navigator.of(context).push(MaterialPageRoute(
-                  builder: (_) => LanguagesScreen(),
+                  builder: (_) => const LanguagesScreen(),
                 ));
               },
             ),
             SettingsTile(
               title: 'Environment',
               subtitle: 'Local',
-              leading: Icon(Icons.cloud_queue),
+              leading: const Icon(Icons.cloud_queue),
             ),
           ],
         ),
@@ -74,7 +74,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           tiles: [
             SettingsTile(
               title: 'Email',
-              leading: Icon(Icons.email),
+              leading: const Icon(Icons.email),
               onPressed: (context) {
                 showEmailModal();
               },
@@ -86,7 +86,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           tiles: [
             SettingsTile.switchTile(
               title: 'Send daily report',
-              leading: Icon(Icons.analytics),
+              leading: const Icon(Icons.analytics),
               switchValue: model.kSetting.sendDailReport,
               onToggle: (bool value) {
                 model.enableDailyReport((message) {
@@ -112,7 +112,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         return Padding(
           padding: MediaQuery.of(context).viewInsets,
           child: Container(
-            child: UpdatePrinterSetting(),
+            child: const UpdatePrinterSetting(),
             decoration: const BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.only(

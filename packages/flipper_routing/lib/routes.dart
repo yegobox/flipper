@@ -4,6 +4,7 @@ import 'package:flipper_chat/omni/omni_contacts.dart';
 import 'package:flipper_chat/omni_chat.dart';
 import 'package:flipper_dashboard/add_discount.dart';
 import 'package:flipper_dashboard/add_product_view.dart';
+import 'package:flipper_dashboard/devices.dart';
 import 'package:flipper_dashboard/no_net.dart';
 import 'package:flipper_dashboard/after_sale.dart';
 import 'package:flipper_dashboard/analytic.dart';
@@ -25,6 +26,7 @@ import 'package:flipper_dashboard/sell.dart';
 import 'package:flipper_dashboard/setting_secreen.dart';
 import 'package:flipper_dashboard/startup_view.dart';
 import 'package:flipper_dashboard/switch_branch_view.dart';
+import 'package:flipper_login/pin_login.dart';
 import 'package:flipper_login/signup_form_view.dart';
 import 'package:flipper_routing/finance_app.dart';
 import 'package:flipper_models/models/models.dart';
@@ -297,9 +299,17 @@ final router = GoRouter(
       name: 'nonetwork',
       pageBuilder: (context, state) => MaterialPage(
         key: state.pageKey,
-        child: NoNet(),
+        child: const NoNet(),
       ),
     ),
+    GoRoute(
+      path: '/devices/:pin',
+      name: 'devices',
+      pageBuilder: (context, state) => MaterialPage(
+        key: state.pageKey,
+        child: Devices(pin: int.parse(state.params['pin']!)),
+      ),
+    )
   ],
 );
 

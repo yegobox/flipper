@@ -2256,4 +2256,43 @@ class ObjectBoxApi extends MobileUpload implements Api {
       store.box<Points>().put(po);
     }
   }
+
+  /// Check if pin exists in store
+  /// if it exists return it
+  /// if it does not exist create it on server and return it
+  @override
+  Future<Pin?> createPin() async {
+    // only debug
+    // store.box<Pin>().removeAll();
+
+    Pin? pin = store
+        .box<Pin>()
+        .query(Pin_.userId.equals(ProxyService.box.getUserId() ?? '1'))
+        .build()
+        .findFirst();
+    if (pin != null) {
+      return pin;
+    }
+    String id = ProxyService.box.getUserId() ??
+        '1' + ProxyService.box.getBusinessId().toString();
+
+    final http.Response response =
+        await client.post(Uri.parse("$apihub/v2/api/pin"),
+            body: jsonEncode(
+              <String, String>{
+                'userId': ProxyService.box.getUserId() ?? '1',
+                'branchId': ProxyService.box.getBranchId().toString(),
+                'businessId': ProxyService.box.getBusinessId().toString(),
+                'phoneNumber': ProxyService.box.getUserPhone() ?? '',
+                'pin': id
+              },
+            ),
+            headers: {'Content-Type': 'application/json'});
+    if (response.statusCode == 200) {
+      Pin pin = pinFromMap(response.body);
+      store.box<Pin>().put(pin);
+      return pin;
+    }
+    return null;
+  }
 }

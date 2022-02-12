@@ -463,29 +463,36 @@ class _ResponsiveScaffoldState extends State<ResponsiveScaffold> {
         // in the 2nd part of the Row.
         Expanded(
           child: Scaffold(
-            appBar: AppBar(
-              // systemOverlayStyle: SystemUiOverlayStyle.light,
-              title: SaleIndicator(
-                counts: widget.model.countedOrderItems,
-                onClick: () {
-                  if (widget.model.countedOrderItems > 0) {
-                    // ProxyService.nav.navigateTo(Routes.summary);
-                    GoRouter.of(context).push(Routes.summary);
-                  }
-                },
-                onLogout: () async {
-                  await ProxyService.api.logOut();
+            appBar: (widget.model.tab != 1 && widget.model.tab != 3)
+                ? AppBar(
+                    // systemOverlayStyle: SystemUiOverlayStyle.light,
+                    title: SaleIndicator(
+                      counts: widget.model.countedOrderItems,
+                      onClick: () {
+                        if (widget.model.countedOrderItems > 0) {
+                          // ProxyService.nav.navigateTo(Routes.summary);
+                          GoRouter.of(context).push(Routes.summary);
+                        }
+                      },
+                      onLogout: () async {
+                        await ProxyService.api.logOut();
 
-                  // ProxyService.nav.navigateTo(Routes.initial);
-                },
-              ),
+                        // ProxyService.nav.navigateTo(Routes.initial);
+                      },
+                    ),
 
-              actions: const <Widget>[AboutIconButton()],
-              // Some logic to show the implicit menu button on AppBar when
-              // there is no rail or menu.
-              automaticallyImplyLeading:
-                  !isDesktop && isMenuClosed && menuDoneClosing,
-            ),
+                    actions: const <Widget>[AboutIconButton()],
+                    // Some logic to show the implicit menu button on AppBar when
+                    // there is no rail or menu.
+                    automaticallyImplyLeading:
+                        !isDesktop && isMenuClosed && menuDoneClosing,
+                  )
+                : PreferredSize(
+                    preferredSize: const Size.fromHeight(0.0),
+                    child: AppBar(
+                      automaticallyImplyLeading: false, // hides leading widget
+                      flexibleSpace: const SizedBox.shrink(),
+                    )),
             // The menu content when used in the Drawer.
             drawer: ConstrainedBox(
               // We use the same size on the drawer that we have on our menu.

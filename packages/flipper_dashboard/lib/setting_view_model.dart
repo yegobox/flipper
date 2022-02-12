@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flipper_routing/routes.locator.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:stacked/stacked.dart';
@@ -158,6 +160,12 @@ class SettingViewModel extends ReactiveViewModel {
     } else {
       callback(2);
     }
+  }
+
+  Pin? pin;
+  Future<void> createPin() async {
+    pin = await ProxyService.api.createPin();
+    notifyListeners();
   }
 
   /// if the callback return with 1 that is a failure

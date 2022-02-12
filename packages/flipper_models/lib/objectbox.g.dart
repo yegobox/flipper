@@ -29,6 +29,7 @@ import 'models/io/messages/unsupported_message.dart';
 import 'models/io/order.dart';
 import 'models/io/order_item.dart';
 import 'models/io/permission.dart';
+import 'models/io/pin.dart';
 import 'models/io/points.dart';
 import 'models/io/preview_data.dart';
 import 'models/io/product.dart';
@@ -2400,6 +2401,45 @@ final _entities = <ModelEntity>[
             flags: 0)
       ],
       relations: <ModelRelation>[],
+      backlinks: <ModelBacklink>[]),
+  ModelEntity(
+      id: const IdUid(50, 3477829046138614560),
+      name: 'Pin',
+      lastPropertyId: const IdUid(6, 3828547559957129386),
+      flags: 2,
+      properties: <ModelProperty>[
+        ModelProperty(
+            id: const IdUid(1, 4855774802137203577),
+            name: 'id',
+            type: 6,
+            flags: 129),
+        ModelProperty(
+            id: const IdUid(2, 6552040256902345783),
+            name: 'userId',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(3, 7912655389950570302),
+            name: 'phoneNumber',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(4, 7405949584687227581),
+            name: 'pin',
+            type: 6,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(5, 4245716154146849944),
+            name: 'branchId',
+            type: 6,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(6, 3828547559957129386),
+            name: 'businessId',
+            type: 6,
+            flags: 0)
+      ],
+      relations: <ModelRelation>[],
       backlinks: <ModelBacklink>[])
 ];
 
@@ -2423,7 +2463,7 @@ Future<Store> openStore(
 ModelDefinition getObjectBoxModel() {
   final model = ModelInfo(
       entities: _entities,
-      lastEntityId: const IdUid(49, 4976542386476964811),
+      lastEntityId: const IdUid(50, 3477829046138614560),
       lastIndexId: const IdUid(21, 6996790652084639492),
       lastRelationId: const IdUid(1, 7692477632100059163),
       lastSequenceId: const IdUid(0, 0),
@@ -4923,6 +4963,45 @@ ModelDefinition getObjectBoxModel() {
             ..createdAt = const fb.StringReader().vTableGetNullable(buffer, rootOffset, 48);
 
           return object;
+        }),
+    Pin: EntityDefinition<Pin>(
+        model: _entities[38],
+        toOneRelations: (Pin object) => [],
+        toManyRelations: (Pin object) => {},
+        getId: (Pin object) => object.id,
+        setId: (Pin object, int id) {
+          object.id = id;
+        },
+        objectToFB: (Pin object, fb.Builder fbb) {
+          final userIdOffset = fbb.writeString(object.userId);
+          final phoneNumberOffset = fbb.writeString(object.phoneNumber);
+          fbb.startTable(7);
+          fbb.addInt64(0, object.id);
+          fbb.addOffset(1, userIdOffset);
+          fbb.addOffset(2, phoneNumberOffset);
+          fbb.addInt64(3, object.pin);
+          fbb.addInt64(4, object.branchId);
+          fbb.addInt64(5, object.businessId);
+          fbb.finish(fbb.endTable());
+          return object.id;
+        },
+        objectFromFB: (Store store, ByteData fbData) {
+          final buffer = fb.BufferContext(fbData);
+          final rootOffset = buffer.derefObject(0);
+
+          final object = Pin(
+              id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0),
+              userId:
+                  const fb.StringReader().vTableGet(buffer, rootOffset, 6, ''),
+              phoneNumber:
+                  const fb.StringReader().vTableGet(buffer, rootOffset, 8, ''),
+              pin: const fb.Int64Reader().vTableGet(buffer, rootOffset, 10, 0),
+              branchId:
+                  const fb.Int64Reader().vTableGet(buffer, rootOffset, 12, 0),
+              businessId:
+                  const fb.Int64Reader().vTableGet(buffer, rootOffset, 14, 0));
+
+          return object;
         })
   };
 
@@ -6572,4 +6651,28 @@ class Business_ {
   /// see [Business.fullName]
   static final fullName =
       QueryStringProperty<Business>(_entities[37].properties[32]);
+}
+
+/// [Pin] entity fields to define ObjectBox queries.
+class Pin_ {
+  /// see [Pin.id]
+  static final id = QueryIntegerProperty<Pin>(_entities[38].properties[0]);
+
+  /// see [Pin.userId]
+  static final userId = QueryStringProperty<Pin>(_entities[38].properties[1]);
+
+  /// see [Pin.phoneNumber]
+  static final phoneNumber =
+      QueryStringProperty<Pin>(_entities[38].properties[2]);
+
+  /// see [Pin.pin]
+  static final pin = QueryIntegerProperty<Pin>(_entities[38].properties[3]);
+
+  /// see [Pin.branchId]
+  static final branchId =
+      QueryIntegerProperty<Pin>(_entities[38].properties[4]);
+
+  /// see [Pin.businessId]
+  static final businessId =
+      QueryIntegerProperty<Pin>(_entities[38].properties[5]);
 }

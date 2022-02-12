@@ -412,9 +412,7 @@ void addWorkSpace({required BuildContext context}) {
               leading: const Icon(Ionicons.keypad),
               title: const Text('Enable report'),
               trailing: const Icon(Icons.arrow_forward_ios),
-              onTap: () {
-                print('here');
-              },
+              onTap: () {},
             ),
           ]);
         }),
