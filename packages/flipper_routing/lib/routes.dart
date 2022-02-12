@@ -303,6 +303,14 @@ final router = GoRouter(
       ),
     ),
     GoRoute(
+      path: '/pin',
+      name: 'pin',
+      pageBuilder: (context, state) => MaterialPage(
+        key: state.pageKey,
+        child: PinLogin(),
+      ),
+    ),
+    GoRoute(
       path: '/devices/:pin',
       name: 'devices',
       pageBuilder: (context, state) => MaterialPage(

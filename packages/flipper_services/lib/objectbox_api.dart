@@ -2295,4 +2295,16 @@ class ObjectBoxApi extends MobileUpload implements Api {
     }
     return null;
   }
+
+  /// get a pin object given pin
+  ///fetch it from server using get
+  @override
+  Future<Pin?> getPin({required String pin}) async {
+    final http.Response response =
+        await client.get(Uri.parse("$apihub/v2/api/pin/$pin"));
+    if (response.statusCode == 200) {
+      return pinFromMap(response.body);
+    }
+    throw Exception('Failed to load pin');
+  }
 }

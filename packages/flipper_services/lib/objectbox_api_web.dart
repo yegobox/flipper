@@ -567,4 +567,10 @@ class ObjectBoxApi extends MobileUpload implements Api {
     // TODO: implement createPin
     throw UnimplementedError();
   }
+
+  @override
+  Future<Pin?> getPin({required String pin}) {
+    // TODO: implement getPin
+    throw UnimplementedError();
+  }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/models/view_models/login_viewmodel.dart';
@@ -59,7 +60,7 @@ class _DesktopLoginViewState extends State<DesktopLoginView> {
                   : GOutlinedButton(
                       'Switch to PIN login',
                       onPressed: () {
-                        Navigator.maybePop(context);
+                        GoRouter.of(context).push("/pin");
                       },
                     ),
             ],
