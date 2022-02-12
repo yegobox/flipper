@@ -227,6 +227,7 @@ class SettingViewModel extends ReactiveViewModel {
           await ProxyService.api.login(
             userPhone: pin.phoneNumber,
           );
+
           GoRouter.of(context).go(Routes.boot);
         }
       }

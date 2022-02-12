@@ -16,6 +16,7 @@ class SettingPage extends StatelessWidget {
       onModelReady: (model) async => await model.createPin(),
       builder: (context, model, child) {
         return Scaffold(
+          backgroundColor: Theme.of(context).canvasColor,
           body: SafeArea(
             child: Center(
               child: Column(

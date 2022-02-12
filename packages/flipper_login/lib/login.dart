@@ -77,8 +77,7 @@ class _LoginViewState extends State<LoginView> {
           );
         } else {
           return isWindows
-              ? const Scaffold(
-                  body: SingleChildScrollView(child: DesktopLoginView()))
+              ? const Scaffold(body: DesktopLoginView())
               : Scaffold(
                   body: Theme(
                     data: ThemeData(

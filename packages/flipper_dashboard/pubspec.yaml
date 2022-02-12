@@ -64,6 +64,7 @@ dependencies:
   google_ui: ^2.7.0
   connectivity_plus: ^2.2.0
   flipper_data_table: ^1.0.0-dev.2
+  device_info_plus: ^3.2.1
 flutter:
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
