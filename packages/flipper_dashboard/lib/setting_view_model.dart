@@ -228,6 +228,10 @@ class SettingViewModel extends ReactiveViewModel {
             userPhone: pin.phoneNumber,
           );
 
+          /// TODOSubmit this data in Device model to know which device is logged in
+          /// final deviceInfoPlugin = DeviceInfoPlugin();
+          /// final deviceInfo = await deviceInfoPlugin.deviceInfo;
+          /// deviceInfo.toMap();
           GoRouter.of(context).go(Routes.boot);
         }
       }
