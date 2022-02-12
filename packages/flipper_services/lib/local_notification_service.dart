@@ -1,5 +1,8 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flipper_rw/bottom_sheets/activate_subscription.dart';
+import 'package:flipper_rw/bottom_sheets/subscription_widget.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flipper_dashboard/bottom_sheet.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flutter_firebase_chat_core/flutter_firebase_chat_core.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -7,6 +10,9 @@ import 'package:go_router/go_router.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:universal_platform/universal_platform.dart';
+
+final isWindows = UniversalPlatform.isWindows;
 
 abstract class LNotification {
   void initialize(BuildContext context);
@@ -55,7 +61,6 @@ class LocalNotificationService implements LNotification {
       android: AndroidNotificationDetails(
     "flipper",
     "channel",
-    "channel",
     // icon: "ic_launcher",
     importance: Importance.max,
     priority: Priority.high,
@@ -75,9 +80,7 @@ class LocalNotificationService implements LNotification {
         notificationDetails,
         payload: action,
       );
-    } on Exception catch (e) {
-      print(e);
-    }
+    } on Exception catch (e) {}
   }
 
   @override
@@ -135,10 +138,10 @@ class LocalNotificationService implements LNotification {
   }
 
   Future<void> navigationLogic(
-      String action, String Id, BuildContext context) async {
+      String action, String kId, BuildContext context) async {
     switch (action) {
       case 'chat':
-        types.Room? room = await FirebaseChatCore.instance.roomFromId(Id);
+        types.Room? room = await FirebaseChatCore.instance.roomFromId(kId);
         GoRouter.of(context).go(Routes.convo + '/' + room!.id);
 
         break;
@@ -152,6 +155,13 @@ class LocalNotificationService implements LNotification {
         // ProxyService.nav.navigateTo(Routes.order);
         GoRouter.of(context).go(Routes.order);
 
+        break;
+      case 'payment':
+        activateSubscription(
+          context: context,
+          body: <Widget>[const SubscriptionWidget()],
+          header: header(title: 'Renew flipper subscription', context: context),
+        );
         break;
       default:
     }
@@ -185,8 +195,8 @@ class LocalNotificationService implements LNotification {
         String id = message.data['action'] + '_' + message.data['id'];
         final List<String> split = id.split('_');
         final String action = split[0];
-        final String Id = split[1];
-        await navigationLogic(action, Id, context);
+        final String kId = split[1];
+        await navigationLogic(action, kId, context);
       });
     }
   }

@@ -78,8 +78,10 @@ class BillingService {
             features: [],
           );
         } else {
-          ProxyService.notification.onDidReceiveLocalNotification(1,
-              'Need to make Payment', 'Please pay to continue using flipper', {
+          ProxyService.notification.onDidReceiveLocalNotification(
+              1,
+              'Renew flipper subscription',
+              'To continue using flipper,you need to renew your subscription', {
             'route': 'payment',
           });
         }
