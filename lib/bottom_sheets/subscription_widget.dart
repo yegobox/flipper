@@ -16,15 +16,16 @@ class SubscriptionWidget extends StatefulWidget {
 
 class _SubscriptionWidgetState extends State<SubscriptionWidget> {
   final TextEditingController _phoneNumber = TextEditingController();
-  static final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _sub = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<SettingViewModel>.reactive(
+      key: const Key('subscription'),
       viewModelBuilder: () => SettingViewModel(),
       builder: (context, model, child) {
         return Form(
-          key: _formKey,
+          key: _sub,
           child: Column(
             children: [
               Padding(
@@ -64,7 +65,7 @@ class _SubscriptionWidgetState extends State<SubscriptionWidget> {
                           height: 60,
                           child: BoxButton(
                             onTap: () {
-                              if (_formKey.currentState!.validate()) {
+                              if (_sub.currentState!.validate()) {
                                 model.activateFlipperPro(
                                   _phoneNumber.text,
                                   (success) {

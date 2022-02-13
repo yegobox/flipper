@@ -22,4 +22,5 @@ abstract class Remote {
   bool isSyncAvailable();
   bool isGoogleLoginAvailable();
   bool isResetSettingEnabled();
+  bool isLinkedDeviceAvailable();
 }

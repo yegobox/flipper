@@ -205,23 +205,24 @@ class _FlipperAppState extends State<FlipperApp> {
                   });
                 },
                 currentIndex: model.tab,
-                items: const <BottomNavigationBarItem>[
-                  BottomNavigationBarItem(
+                items: <BottomNavigationBarItem>[
+                  const BottomNavigationBarItem(
                     icon: Icon(Icons.calculate),
                     label: 'KeyPad',
                   ),
-                  BottomNavigationBarItem(
+                  const BottomNavigationBarItem(
                     icon: Icon(Icons.analytics),
                     label: 'Analytics',
                   ),
-                  BottomNavigationBarItem(
+                  const BottomNavigationBarItem(
                     icon: Icon(Icons.store),
                     label: 'Store',
                   ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.settings),
-                    label: 'Settings',
-                  ),
+                  if (ProxyService.remoteConfig.isLinkedDeviceAvailable())
+                    const BottomNavigationBarItem(
+                      icon: Icon(Icons.settings),
+                      label: 'Settings',
+                    ),
                 ],
               ),
             ),

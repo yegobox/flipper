@@ -30,6 +30,7 @@ class RemoteConfigService implements Remote {
       'isChatAvailable': false,
       'isGoogleLoginAvailable': true,
       'isResetSettingEnabled': false,
+      'isLinkedDeviceAvailable': true
     });
   }
 
@@ -191,6 +192,11 @@ class RemoteConfigService implements Remote {
     }
     return remoteConfig.getBool('isResetSettingEnabled');
   }
+
+  @override
+  bool isLinkedDeviceAvailable() {
+    return remoteConfig.getBool('isLinkedDeviceAvailable');
+  }
 }
 
 class RemoteConfigWindows implements Remote {
@@ -312,6 +318,11 @@ class RemoteConfigWindows implements Remote {
 
   @override
   bool isResetSettingEnabled() {
+    return false;
+  }
+
+  @override
+  bool isLinkedDeviceAvailable() {
     return false;
   }
 }

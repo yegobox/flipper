@@ -178,22 +178,6 @@ class StartUpViewModel extends BaseViewModel {
     businesses =
         await ProxyService.api.getLocalOrOnlineBusiness(userId: userId);
 
-    if (businesses.isNotEmpty) {
-      List<BranchSync> branches = [];
-      branches =
-          await ProxyService.api.getLocalBranches(businessId: businesses[0].id);
-      if (branches.isEmpty) {
-        ProxyService.box.write(key: 'businessId', value: businesses[0].id);
-        try {
-          // TODOcheck why some time it goes on internet to fetch.
-          branches =
-              await ProxyService.api.branches(businessId: businesses[0].id);
-          ProxyService.box.write(key: 'branchId', value: branches[0].id);
-        } catch (e) {
-          log.d('did not get branches but we are okay');
-        }
-      }
-    }
     return businesses;
   }
 }

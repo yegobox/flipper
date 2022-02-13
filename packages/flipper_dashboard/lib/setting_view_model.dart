@@ -1,14 +1,11 @@
-import 'package:go_router/go_router.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_routing/routes.locator.dart';
-import 'package:flipper_routing/routes.router.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_services/language_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/models/models.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class SettingViewModel extends ReactiveViewModel {
   ThemeMode themeMode = ThemeMode.system;
@@ -204,39 +201,6 @@ class SettingViewModel extends ReactiveViewModel {
       _isProceeding = false;
       notifyListeners();
       success(1);
-    }
-  }
-
-  void desktopLogin(
-      {required String pinCode,
-      required BuildContext context,
-      required Function call}) async {
-    _isProceeding = true;
-    notifyListeners();
-
-    try {
-      Pin? pin = await ProxyService.api.getPin(pin: pinCode);
-      if (pin != null) {
-        await FirebaseAuth.instance.signInAnonymously();
-        final auth = FirebaseAuth.instance;
-        if (auth.currentUser != null) {
-          ProxyService.box.write(key: 'businessId', value: pin.businessId);
-          ProxyService.box.write(key: 'branchId', value: pin.branchId);
-          ProxyService.box.write(key: 'userId', value: pin.userId);
-          ProxyService.box.write(key: 'userPhone', value: pin.phoneNumber);
-          await ProxyService.api.login(
-            userPhone: pin.phoneNumber,
-          );
-
-          /// TODOSubmit this data in Device model to know which device is logged in
-          /// final deviceInfoPlugin = DeviceInfoPlugin();
-          /// final deviceInfo = await deviceInfoPlugin.deviceInfo;
-          /// deviceInfo.toMap();
-          GoRouter.of(context).go(Routes.boot);
-        }
-      }
-    } catch (e) {
-      call(1);
     }
   }
 

@@ -406,11 +406,16 @@ class ObjectBoxApi extends MobileUpload implements Api {
   Future<List<BranchSync>> branches({required int businessId}) async {
     final response =
         await client.get(Uri.parse("$apihub/v2/api/branches/$businessId"));
-    for (BranchSync branch in branchFromJson(response.body)) {
-      final box = store.box<BranchSync>();
-      box.put(branch, mode: PutMode.put);
+    log.i(businessId);
+    log.d(response.statusCode);
+    if (response.statusCode == 200) {
+      for (BranchSync branch in branchFromJson(response.body)) {
+        final box = store.box<BranchSync>();
+        box.put(branch, mode: PutMode.put);
+      }
+      return branchFromJson(response.body);
     }
-    return branchFromJson(response.body);
+    throw Exception('Failed to load branch');
   }
 
   @override
@@ -1159,6 +1164,9 @@ class ObjectBoxApi extends MobileUpload implements Api {
         key: 'userPhone',
         value: userPhone,
       );
+      // get some data required by the app
+      getLocalBranches(businessId: ProxyService.box.getBranchId()!);
+      getLocalOrOnlineBusiness(userId: ProxyService.box.getUserId()!);
       return syncFromJson(response.body);
     } else {
       throw InternalServerError(term: 'HTTP Error ${response.statusCode}');
@@ -1714,13 +1722,10 @@ class ObjectBoxApi extends MobileUpload implements Api {
     if (response.statusCode == 401) {
       throw SessionException(term: "session expired");
     }
-    final syncBusinessBox = store.box<Business>();
-    final localBusinessBox = store.box<LBusiness>();
-    Business? business =
-        syncBusinessBox.get(sbusinessFromJson(response.body).id);
-    localBusinessBox.put(lbusinessFromJson(response.body), mode: PutMode.put);
+    final box = store.box<Business>();
+    Business? business = box.get(sbusinessFromJson(response.body).id);
     if (business == null) {
-      syncBusinessBox.put(fromJson(response.body), mode: PutMode.put);
+      box.put(fromJson(response.body), mode: PutMode.put);
 
       return store
           .box<Business>()
@@ -1741,7 +1746,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
         .getAll()
         .where((business) => business.userId == userId)
         .toList();
-    businesses = syncLocalWithSyncedModel(businesses, userId);
+    // businesses = syncLocalWithSyncedModel(businesses, userId);
 
     if (businesses.isEmpty) {
       return await getOnlineBusiness(userId: userId);
@@ -1787,11 +1792,15 @@ class ObjectBoxApi extends MobileUpload implements Api {
 
   @override
   Future<List<BranchSync>> getLocalBranches({required int businessId}) async {
-    return store
+    List<BranchSync> kBranches = store
         .box<BranchSync>()
         .getAll()
         .where((unit) => unit.fbusinessId == businessId)
         .toList();
+    if (kBranches.isEmpty) {
+      return await branches(businessId: businessId);
+    }
+    return kBranches;
   }
 
   @override
