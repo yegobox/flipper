@@ -60,7 +60,7 @@ dependencies:
   uuid: ^3.0.5
   flipper_login: ^0.0.1-dev.5
   intl: ^0.17.0
-  flutter_riverpod: ^0.14.0+3
+  flutter_riverpod: ^1.0.1
   google_ui: ^2.7.0
   connectivity_plus: ^2.2.0
   flipper_data_table: ^1.0.0-dev.2

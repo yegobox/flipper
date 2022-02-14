@@ -49,7 +49,7 @@ google-services.json
 index.html
 
 # file containg sensitive information
-config.dart
+# config.dart
 firebase_options.dart
 runner/**
 # runner
