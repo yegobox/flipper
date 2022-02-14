@@ -5,6 +5,10 @@ library flipper_models;
 
 import 'dart:convert';
 
+import 'package:isar/isar.dart';
+
+// part 'business.dart';
+
 BusinessSync businessFromJson(String str) =>
     BusinessSync.fromJson(json.decode(str));
 String sbusinessToJson(BusinessSync data) => json.encode(data.toJson());
@@ -26,6 +30,7 @@ String businessToJson(List<BusinessSync> data) =>
 /// and a contact at the same time i.e. a person then it make sense to add bellow fields too!
 /// All possible roles user can have.
 
+// @Collection()
 class BusinessSync {
   BusinessSync(
       {this.id = 0,

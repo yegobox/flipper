@@ -1,3 +1,8 @@
+import 'package:isar/isar.dart';
+
+part 'discount.g.dart';
+
+@Collection()
 class DiscountSync {
   DiscountSync(
       {this.id = 0, required this.name, this.amount, required this.branchId});

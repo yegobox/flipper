@@ -1,5 +1,6 @@
 import 'order.dart';
 
+// ignore: unnecessary_new
 OrderFSync? orderMock = new OrderFSync(
   id: DateTime.now().millisecondsSinceEpoch,
   reference: 'caa5cbf1-b3c3-11',
@@ -16,5 +17,5 @@ OrderFSync? orderMock = new OrderFSync(
   channels: ['300'],
   createdAt: DateTime.now().toIso8601String(),
   paymentType: 'Cash',
-  orderItems: [],
+  // orderItems: [],
 );

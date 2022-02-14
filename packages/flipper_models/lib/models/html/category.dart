@@ -5,6 +5,9 @@ library flipper_models;
 
 import 'dart:convert';
 
+import 'package:isar/isar.dart';
+// part 'category.dart';
+
 Category categoryFromJson(String str) => Category.fromJson(json.decode(str));
 String scategoryToJson(Category data) => json.encode(data.toJson());
 
@@ -14,6 +17,7 @@ List<Category> categoriesFromJson(String str) =>
 String categoryToJson(List<Category> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
+// @Collection()
 class Category {
   Category({
     this.id = 0,

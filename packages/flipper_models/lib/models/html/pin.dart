@@ -2,13 +2,16 @@
 //
 //     final pin = pinFromMap(jsonString);
 
-import 'package:meta/meta.dart';
+import 'package:isar/isar.dart';
 import 'dart:convert';
+
+part 'pin.g.dart';
 
 Pin pinFromMap(String str) => Pin.fromMap(json.decode(str));
 
 String pinToMap(Pin data) => json.encode(data.toMap());
 
+@Collection()
 class Pin {
   Pin({
     required this.userId,
@@ -17,7 +20,7 @@ class Pin {
     required this.branchId,
     required this.businessId,
   });
-
+  int id = Isar.autoIncrement;
   String userId;
   String phoneNumber;
   int pin;

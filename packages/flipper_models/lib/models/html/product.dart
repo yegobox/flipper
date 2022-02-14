@@ -5,6 +5,10 @@ library flipper_models;
 
 import 'dart:convert';
 
+import 'package:isar/isar.dart';
+
+part 'product.g.dart';
+
 Product productFromJson(String str) => Product.fromJson(json.decode(str));
 
 String productToJson(Product data) => json.encode(data.toJson());
@@ -15,6 +19,7 @@ List<Product> productsFromJson(String str) =>
 // String productToJson(List<Product> data) =>
 //     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
+@Collection()
 class Product {
   Product(
       {this.id = 0,

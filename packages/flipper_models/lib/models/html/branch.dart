@@ -40,25 +40,25 @@ class BranchSync {
 
   factory BranchSync.fromJson(Map<String, dynamic> json) => BranchSync(
         id: json["id"],
-        active: json["active"] == null ? false : json["active"],
-        description: json["description"] == null ? '' : json["description"],
+        active: json["active"] ?? false,
+        description: json["description"] ?? '',
         name: json["name"],
         fbusinessId:
             json["fbusinessId"] == null ? 0 : int.parse(json["fbusinessId"]),
-        longitude: json["longitude"] == null ? '' : json["longitude"],
+        longitude: json["longitude"] ?? '',
         latitude: json["latitude"],
         table: json["table"],
       );
 
   Map<String, dynamic> toJson() => {
         "id": id.toString(),
-        "active": active == null ? false : active,
-        "description": description == null ? '' : description,
+        "active": active ?? false,
+        "description": description ?? '',
         "name": name,
         "fbusinessId":
             fbusinessId == null ? 0 : int.parse(fbusinessId.toString()),
-        "longitude": longitude == null ? '0' : longitude,
-        "latitude": latitude == null ? '0' : latitude,
+        "longitude": longitude ?? '0',
+        "latitude": latitude ?? '0',
         "table": table,
       };
 }

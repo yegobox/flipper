@@ -1,5 +1,9 @@
 library flipper_models;
 
+import 'package:isar/isar.dart';
+part 'points.g.dart';
+
+@Collection()
 class Points {
   Points({this.id = 0, required this.value});
 

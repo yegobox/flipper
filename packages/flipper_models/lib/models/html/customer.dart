@@ -1,8 +1,13 @@
 import 'dart:convert';
 
+import 'package:isar/isar.dart';
+
+part 'customer.g.dart';
+
 CustomerSync CustomerJson(String str) =>
     CustomerSync.fromJson(json.decode(str));
 
+@Collection()
 class CustomerSync {
   int id;
   String name;

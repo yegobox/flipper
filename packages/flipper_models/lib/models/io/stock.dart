@@ -16,23 +16,23 @@ String stocksToJsonSync(List<Stock> data) =>
 
 @Entity()
 class Stock {
-  Stock({
-    this.id = 0,
-    this.fbranchId,
-    required this.fvariantId,
-    required this.lowStock,
-    required this.currentStock,
-    required this.supplyPrice,
-    required this.retailPrice,
-    required this.canTrackingStock,
-    required this.showLowStockAlert,
-    this.channels,
-    required this.table,
-    required this.fproductId,
-    this.active,
-    required this.value,
-    this.migrated = false,
-  });
+  Stock(
+      {this.id = 0,
+      this.fbranchId,
+      required this.fvariantId,
+      required this.lowStock,
+      required this.currentStock,
+      required this.supplyPrice,
+      required this.retailPrice,
+      required this.canTrackingStock,
+      required this.showLowStockAlert,
+      this.channels,
+      required this.table,
+      required this.fproductId,
+      this.active,
+      required this.value,
+      this.migrated = false,
+      this.test = 0.0});
   @Id(assignable: true)
   int id;
   int? fbranchId;
@@ -50,7 +50,7 @@ class Stock {
   bool? active;
   bool? migrated;
   double value; // the value of stock items ie. count * retailPrice
-
+  double? test;
   factory Stock.fromJson(Map<dynamic, dynamic> json) => Stock(
         id: json["id"],
         fbranchId: json["fbranchId"],
@@ -67,9 +67,9 @@ class Stock {
         showLowStockAlert: json["showLowStockAlert"],
         table: json["table"],
         fproductId: json["fproductId"],
-        active: json["active"] == null ? false : json["active"],
+        active: json["active"] ?? false,
         value: json["value"],
-        migrated: json["migrated"] == null ? false : json["migrated"],
+        migrated: json["migrated"] ?? false,
       );
 
   Map<String, dynamic> toJson() => {
@@ -84,8 +84,8 @@ class Stock {
         "showLowStockAlert": showLowStockAlert,
         "table": table,
         "fproductId": fproductId,
-        "active": active == null ? false : active,
+        "active": active ?? false,
         "value": value,
-        "migrated": migrated == null ? false : migrated,
+        "migrated": migrated ?? false,
       };
 }

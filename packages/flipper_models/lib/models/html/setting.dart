@@ -1,3 +1,7 @@
+import 'package:isar/isar.dart';
+part 'setting.g.dart';
+
+@Collection()
 class Setting {
   Setting({
     this.id = 0,

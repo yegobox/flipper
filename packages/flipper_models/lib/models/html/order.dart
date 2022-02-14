@@ -4,6 +4,10 @@
 import 'package:flipper_models/models/models.dart';
 import 'dart:convert';
 
+import 'package:isar/isar.dart';
+
+part 'order.g.dart';
+
 OrderFSync orderFromJsonSync(String str) =>
     OrderFSync.fromJson(json.decode(str));
 
@@ -15,29 +19,31 @@ List<OrderFSync> ordersFromJsonSync(String str) =>
 String orderToJson(List<OrderFSync> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
+@Collection()
 class OrderFSync {
-  OrderFSync(
-      {this.id = 0,
-      required this.reference,
-      required this.orderNumber,
-      required this.fbranchId,
-      required this.status,
-      required this.orderType,
-      required this.active,
-      required this.draft,
-      required this.subTotal,
-      required this.paymentType,
-      required this.cashReceived,
-      required this.customerChangeDue,
-      required this.createdAt,
-      this.updatedAt,
-      this.reported,
-      // required this.orderItems,
-      required this.table,
-      this.channels,
-      this.note,
-      this.customerId,
-      required this.orderItems});
+  OrderFSync({
+    this.id = 0,
+    required this.reference,
+    required this.orderNumber,
+    required this.fbranchId,
+    required this.status,
+    required this.orderType,
+    required this.active,
+    required this.draft,
+    required this.subTotal,
+    required this.paymentType,
+    required this.cashReceived,
+    required this.customerChangeDue,
+    required this.createdAt,
+    this.updatedAt,
+    this.reported,
+    // required this.orderItems,
+    required this.table,
+    this.channels,
+    this.note,
+    this.customerId,
+    // required this.orderItems,
+  });
   int id;
   String reference;
   String orderNumber;
@@ -62,7 +68,7 @@ class OrderFSync {
   int? customerId;
 
   String? note;
-  List<OrderItemSync> orderItems;
+  // List<OrderItemSync> orderItems;
 
   factory OrderFSync.fromJson(Map<String, dynamic> json) => OrderFSync(
         id: int.parse(json["id"]),
@@ -84,8 +90,8 @@ class OrderFSync {
         table: json["table"],
         customerId: json["customerId"],
         channels: List<String>.from(json["channels"].map((x) => x)),
-        orderItems: List<OrderItemSync>.from(
-            json["orderItems"].map((x) => OrderItemSync.fromJson(x))),
+        // orderItems: List<OrderItemSync>.from(
+        // json["orderItems"].map((x) => OrderItemSync.fromJson(x))),
       );
 
   Map<String, dynamic> toJson() => {

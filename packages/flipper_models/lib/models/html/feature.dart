@@ -1,3 +1,8 @@
+import 'package:isar/isar.dart';
+
+// part 'feed.g.dart';
+
+// @Collection()
 class Feature {
   Feature({this.id = 0, required this.name});
 
