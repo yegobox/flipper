@@ -1,6 +1,6 @@
 library flipper_dashboard;
 
-import 'package:flipper_models/models/view_models/startup_viewmodel.dart';
+import 'package:flipper_models/models/models.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:stacked/stacked.dart';

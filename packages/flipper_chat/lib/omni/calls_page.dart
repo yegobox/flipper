@@ -1,6 +1,6 @@
 // import 'package:flipper_chat/lite/helpers.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/models/view_models/message_view_model.dart';
+import 'package:flipper_models/models/models.dart';
 
 class CallsPage extends StatelessWidget {
   CallsPage({Key? key, required this.model}) : super(key: key);

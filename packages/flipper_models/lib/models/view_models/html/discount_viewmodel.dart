@@ -1,6 +1,6 @@
 library flipper_models;
 
-import './product_viewmodel.dart';
+import 'package:flipper_models/models/models.dart';
 import 'package:flipper_services/proxy.dart';
 
 class DiscountViewModel extends ProductViewModel {

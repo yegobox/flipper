@@ -4,7 +4,6 @@ import 'package:flipper_models/models/models.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flipper_routing/routes.logger.dart';
-import 'package:flipper_routing/routes.router.dart';
 
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
@@ -16,7 +15,10 @@ import 'package:flipper_services/constants.dart';
 
 class ProductViewModel extends BusinessHomeViewModel {
   final AppService _appService = locator<AppService>();
+  // ignore: annotate_overrides, overridden_fields
   final log = getLogger('ProductViewModel');
+  @override
+  // ignore: overridden_fields
   final ProductService productService = locator<ProductService>();
 
   List<PColor> get colors => _appService.colors;
@@ -33,6 +35,7 @@ class ProductViewModel extends BusinessHomeViewModel {
 
   get currentColor => _appService.currentColor;
 
+  @override
   List<VariantSync>? get variants => productService.variants;
 
   Stream<String> getBarCode() async* {

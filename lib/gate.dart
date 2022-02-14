@@ -2,7 +2,7 @@ import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flipper_routing/routes.dart';
 // import 'package:flipper_rw/flipper_options.dart';
 import 'package:flutterfire_ui/i10n.dart';
-import 'package:flipper_models/models/view_models/business_home_viewmodel.dart';
+import 'package:flipper_models/models/models.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -274,7 +274,7 @@ class _GateState extends State<Gate> {
             title: 'flipper',
             // Define the light theme for the app, based on defined colors and
             // properties above.
-             theme: GThemeGenerator.generate(),
+            theme: GThemeGenerator.generate(),
             // theme: FlexThemeData.light(
             //   // Want to use a built in scheme? Don't assign any value to colors.
             //   // We just use the _useScheme bool toggle here from above, only for easy
