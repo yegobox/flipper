@@ -1,9 +1,6 @@
 name: flipper_charts
 description: flipper charts scaffold.
 version: 0.0.1
-# author:
-# homepage:
-# publish_to: "none"
 repository: https://github.com/yegobox/packages
 
 environment:

@@ -54,7 +54,7 @@ dependencies:
   logger: ^1.1.0
   firebase_crashlytics: ^2.5.0
   path: ^1.8.0
-  flutter_riverpod: ^0.14.0+3
+  flutter_riverpod: any
   google_ui: ^2.7.0
   flipper_data_table: 1.0.0-dev.2
 
@@ -85,7 +85,7 @@ msix_config:
   display_name: flipperApp
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
-  msix_version: 1.30.0.0
+  msix_version: 1.32.0.0
   publisher: CN=B0F98A1E-8AE8-4B2B-BD1B-F494D4F791AE
   logo_path: "./assets/icon/icon.png"
   start_menu_icon_path: "/assets/icon/icon.png"
