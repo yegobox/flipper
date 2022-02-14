@@ -1,5 +1,9 @@
 import 'dart:convert';
+import 'package:isar/isar.dart';
 
+part 'conversation.g.dart';
+
+@Collection()
 class Conversation {
   Conversation(
       {this.id = 0,
@@ -12,27 +16,27 @@ class Conversation {
       required this.status,
       this.delivered = false,
       required this.createdAt});
-  int id;
+  late int id = Isar.autoIncrement;
 
-  Map<String, dynamic>? avatars;
+   Map<String, dynamic>? avatars;
 
   ///  a list of the names initials of the people in the conversation
-  Map<String, dynamic>? initials;
+   Map<String, dynamic>? initials;
 
-  String? lastMessage;
+   String? lastMessage;
 
-  int receiverId;
-  int senderId;
+   int receiverId;
+ int senderId;
 
-  String senderName;
+   String senderName;
 
-  String status;
+   String status;
 
-  int createdAt;
+   int createdAt;
 
-  bool delivered;
+   bool delivered;
 
-  String? get dbAvatars => avatars == null ? null : json.encode(avatars);
+   String? get dbAvatars => avatars == null ? null : json.encode(avatars);
   set dbAvatars(String? value) {
     if (value == null) {
       avatars = null;

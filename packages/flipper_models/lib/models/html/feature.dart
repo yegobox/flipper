@@ -1,13 +1,13 @@
 import 'package:isar/isar.dart';
 
-// part 'feed.g.dart';
+part 'feature.g.dart';
 
-// @Collection()
+@Collection()
 class Feature {
   Feature({this.id = 0, required this.name});
 
-  int id;
-  String name;
+  late int id = Isar.autoIncrement;
+  late String name;
 
   factory Feature.fromMap(Map<String, dynamic> json) => Feature(
         id: json["id"],

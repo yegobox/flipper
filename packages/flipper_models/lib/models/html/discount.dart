@@ -7,12 +7,12 @@ class DiscountSync {
   DiscountSync(
       {this.id = 0, required this.name, this.amount, required this.branchId});
 
-  int id;
-  String name;
+  late int id = Isar.autoIncrement;
+  late String name;
 
   /// this is to get ready when there will be option for percentage instead of amount!
-  int? amount;
-  int branchId;
+  late int? amount;
+  late int branchId;
 
   factory DiscountSync.fromJson(Map<String, dynamic> json) => DiscountSync(
       id: json['id'],

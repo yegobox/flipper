@@ -1,7 +1,3 @@
-// To parse this JSON data, do
-//
-//     final order = orderFromJsonSync(jsonString);
-import 'package:flipper_models/models/models.dart';
 import 'dart:convert';
 
 import 'package:isar/isar.dart';
@@ -44,30 +40,30 @@ class OrderFSync {
     this.customerId,
     // required this.orderItems,
   });
-  int id;
-  String reference;
-  String orderNumber;
-  int fbranchId;
-  String status;
-  String orderType;
-  bool active;
-  bool draft;
-  double subTotal;
-  String paymentType;
-  double cashReceived;
-  double customerChangeDue;
-  String createdAt;
-  String? updatedAt;
-  bool? reported;
+  late int id = Isar.autoIncrement;
+  late String reference;
+  late String orderNumber;
+  late int fbranchId;
+  late String status;
+  late String orderType;
+  late bool active;
+  late bool draft;
+  late double subTotal;
+  late String paymentType;
+  late double cashReceived;
+  late double customerChangeDue;
+  late String createdAt;
+  late String? updatedAt;
+  late bool? reported;
 
-  String table;
+  late String table;
 
-  List<String>? channels;
+  late List<String>? channels;
 
   // now add a customer to an order
-  int? customerId;
+  late int? customerId;
 
-  String? note;
+  late String? note;
   // List<OrderItemSync> orderItems;
 
   factory OrderFSync.fromJson(Map<String, dynamic> json) => OrderFSync(

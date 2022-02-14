@@ -2,18 +2,18 @@ library flipper_models;
 
 import 'package:isar/isar.dart';
 
-// part 'permission.dart';
+part 'permission.g.dart';
 
-// @Collection()
+@Collection()
 class Permissionsync {
   Permissionsync({
     this.id = 0,
     required this.name,
   });
-  int id;
-  String name;
+  late int id = Isar.autoIncrement;
+  late String name;
 
-  factory Permissionsync.fromJson(Map<String, dynamic> json) =>
+  static fromJson(Map<String, dynamic> json) =>
       Permissionsync(id: json["id"], name: json["name"]);
 
   Map<String, dynamic> toJson() => {
