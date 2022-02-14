@@ -71,7 +71,7 @@ class StartUpViewModel extends BaseViewModel {
           // if (tenant != null &&
           //     tenant.permissions.where((e) => e.name == "admin").isNotEmpty) {
           /// if we only have one branch no need to switch from branches go straight to business.
-          ///TODOfix this
+          ///TODOfix this work on this
           // if (tenant.branches.length == 1) {
           if (0 == 1) {
             // Business business = await ProxyService.api
