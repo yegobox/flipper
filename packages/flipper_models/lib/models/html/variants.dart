@@ -5,6 +5,9 @@ library flipper_models;
 
 import 'dart:convert';
 
+import 'package:isar/isar.dart';
+part 'variants.g.dart';
+
 Variant svariationFromJsone(String str) => Variant.fromJson(json.decode(str));
 
 String svariationToJsone(Variant data) => json.encode(data.toJson());
@@ -15,6 +18,7 @@ List<Variant> variationFromJsone(String str) =>
 String variationToJsone(List<Variant> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
+@Collection()
 class Variant {
   Variant({
     this.id = 0,
@@ -34,21 +38,21 @@ class Variant {
     this.taxPercentage,
   });
 
-  int id;
-  String name;
-  String sku;
-  int fproductId;
-  String unit;
-  String table;
-  List<String>? channels;
-  String productName;
-  int fbranchId;
-  String? taxName;
-  double? taxPercentage;
-  double supplyPrice;
-  double retailPrice;
-  bool? synced;
-  bool? migrated;
+  late int id = Isar.autoIncrement;
+  late String name;
+  late String sku;
+  late int fproductId;
+  late String unit;
+  late String table;
+  late List<String>? channels;
+  late String productName;
+  late int fbranchId;
+  late String? taxName;
+  late double? taxPercentage;
+  late double supplyPrice;
+  late double retailPrice;
+  late bool? synced;
+  late bool? migrated;
 
   factory Variant.fromJson(Map<dynamic, dynamic> json) => Variant(
         id: json["id"],
@@ -59,7 +63,7 @@ class Variant {
         unit: json["unit"],
         supplyPrice: json["supplyPrice"],
         retailPrice: json["retailPrice"],
-        synced: json["synced"] == null ? false : json["synced"],
+        synced: json["synced"] ?? false,
         table: json["table"],
         productName: json["productName"],
         fbranchId: json["fbranchId"],
@@ -79,7 +83,7 @@ class Variant {
         "migrated": migrated,
         "supplyPrice": supplyPrice,
         "retailPrice": retailPrice,
-        "synced": synced == null ? false : synced,
+        "synced": synced ?? false,
         "productName": productName,
         "fbranchId": int.parse(fbranchId.toString()),
         "taxName": taxName ?? '',

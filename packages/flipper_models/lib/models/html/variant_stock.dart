@@ -5,6 +5,9 @@ library flipper_models;
 
 import 'dart:convert';
 
+import 'package:isar/isar.dart';
+part 'variant_stock.g.dart';
+
 VariantStock svariantStockFromJson(String str) =>
     VariantStock.fromJson(json.decode(str));
 String svariantStockToJson(VariantStock data) => json.encode(data.toJson());
@@ -15,6 +18,7 @@ List<VariantStock> variantStockFromJson(String str) => List<VariantStock>.from(
 String variantStockToJson(List<VariantStock> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
+@Collection()
 class VariantStock {
   VariantStock({
     this.id = 0,
@@ -33,20 +37,20 @@ class VariantStock {
     required this.value,
   });
 
-  int id;
-  bool canTrackingStock;
-  double retailPrice;
-  String productName;
-  String variantName;
-  String unit;
-  String sku;
-  String fbranchId;
-  double? lowStock;
-  double currentStock;
-  String fvariantId;
-  String? taxName;
-  double? taxPercentage;
-  double value;
+  late int id = Isar.autoIncrement;
+  late bool canTrackingStock;
+  late double retailPrice;
+  late String productName;
+  late String variantName;
+  late String unit;
+  late String sku;
+  late String fbranchId;
+  late double? lowStock;
+  late double currentStock;
+  late String fvariantId;
+  late String? taxName;
+  late double? taxPercentage;
+  late double value;
 
   factory VariantStock.fromJson(Map<String, dynamic> json) => VariantStock(
         id: int.parse(json["id"]),

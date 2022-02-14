@@ -1,4 +1,7 @@
 import 'dart:convert';
+import 'package:isar/isar.dart';
+
+part 'unit.g.dart';
 
 Unit sunitFromJson(String str) => Unit.fromJson(json.decode(str));
 String sunitToJson(Unit data) => json.encode(data.toJson());
@@ -9,16 +12,17 @@ List<Unit> unitFromJson(String str) =>
 String unitToJson(List<Unit> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
+@Collection()
 class Unit {
-  int id;
-  int? fbranchId;
-  String name;
-  String value;
-  String table;
-  bool active;
-  List<String>? channels;
+  late int id = Isar.autoIncrement;
+  late int? fbranchId;
+  late String name;
+  late String value;
+  late String table;
+  late bool active;
+  late List<String>? channels;
 
-  List<Map<String, dynamic>>? units;
+  late List<Map<String, dynamic>>? units;
 
   Unit({
     this.id = 0,

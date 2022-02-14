@@ -1,13 +1,10 @@
-// To parse this JSON data, do
-//
-//     final business = businessFromJson(jsonString);
 library flipper_models;
 
 import 'dart:convert';
 
 import 'package:isar/isar.dart';
 
-// part 'business.dart';
+part 'business.g.dart';
 
 BusinessSync businessFromJson(String str) =>
     BusinessSync.fromJson(json.decode(str));
@@ -30,7 +27,7 @@ String businessToJson(List<BusinessSync> data) =>
 /// and a contact at the same time i.e. a person then it make sense to add bellow fields too!
 /// All possible roles user can have.
 
-// @Collection()
+@Collection()
 class BusinessSync {
   BusinessSync(
       {this.id = 0,
@@ -67,58 +64,58 @@ class BusinessSync {
       this.fullName,
       this.role});
 
-  int id;
-  String name;
-  String? currency;
-  int? fcategoryId;
-  String latitude;
-  String longitude;
-  String? userId;
-  String? typeId;
-  String? timeZone;
+  late int id = Isar.autoIncrement;
+  late String name;
+  late String? currency;
+  late int? fcategoryId;
+  late String latitude;
+  late String longitude;
+  late String? userId;
+  late String? typeId;
+  late String? timeZone;
 
   List<String>? channels;
-  String? table;
-  String country;
-  String? businessUrl;
-  String? hexColor;
-  String? imageUrl;
-  String type;
-  bool? active;
-  String? chatUid;
+  late String? table;
+  late String country;
+  late String? businessUrl;
+  late String? hexColor;
+  late String? imageUrl;
+  late String type;
+  late bool? active;
+  late String? chatUid;
 
   //@Transient() //even though this is needed for chat purpose, the objectbox db does not allow this type of data type
   /// Additional custom metadata or attributes related to the user
   /// Map<String, dynamic>? metadata;
   /// as objectbox does not allow Map it will be required to convert the string to map before and after saving
-  String? metadata;
+  late String? metadata;
 
   /// User [Role]
   // Role? role;
   /// as objectbox does not allow enum type it will be required to convert the string to enum before and after saving
-  String? role;
+  late String? role;
 
   /// Timestamp when user was last visible, in ms
-  int? lastSeen;
+  late int? lastSeen;
 
   /// First name of the user
-  String? firstName;
+  late String? firstName;
 
   /// Remote image URL representing user's avatar
   // String? imageUrl;
   /// Last name of the user
-  String? lastName;
-  String? createdAt;
-  String? deviceToken;
-  bool? backUpEnabled;
-  String? subscriptionPlan;
-  String? nextBillingDate;
-  String? previousBillingDate;
-  bool? isLastSubscriptionPaymentSucceeded;
-  String? backupFileId;
-  String? email;
-  String? lastDbBackup;
-  String? fullName;
+  late String? lastName;
+  late String? createdAt;
+  late String? deviceToken;
+  late bool? backUpEnabled;
+  late String? subscriptionPlan;
+  late String? nextBillingDate;
+  late String? previousBillingDate;
+  late bool? isLastSubscriptionPaymentSucceeded;
+  late String? backupFileId;
+  late String? email;
+  late String? lastDbBackup;
+  late String? fullName;
   BusinessSync.fromJson(Map<String, dynamic> json)
       : id = json["id"],
         name = json["name"],

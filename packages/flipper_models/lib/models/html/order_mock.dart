@@ -16,6 +16,6 @@ OrderFSync? orderMock = new OrderFSync(
   table: 'orders',
   channels: ['300'],
   createdAt: DateTime.now().toIso8601String(),
-  paymentType: 'Cash',
+  paymentType: 'Cash', orderItems: [],
   // orderItems: [],
 );

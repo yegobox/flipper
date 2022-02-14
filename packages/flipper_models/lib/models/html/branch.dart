@@ -5,6 +5,9 @@ library flipper_models;
 
 import 'dart:convert';
 
+import 'package:isar/isar.dart';
+part 'branch.g.dart';
+
 BranchSync branchFromJson(String str) => BranchSync.fromJson(json.decode(str));
 String sbranchToJson(BranchSync data) => json.encode(data.toJson());
 
@@ -14,6 +17,7 @@ List<BranchSync> branchsFromJson(String str) =>
 String branchToJson(List<BranchSync> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
+@Collection()
 class BranchSync {
   BranchSync({
     this.id = 0,
@@ -27,16 +31,16 @@ class BranchSync {
     required this.table,
   });
 
-  int id;
-  bool? active;
+  late int id = Isar.autoIncrement;
+  late bool? active;
 
-  List<String>? channels;
-  String? description;
-  String name;
-  int? fbusinessId;
-  String? longitude;
-  String? latitude;
-  String table;
+  late List<String>? channels;
+  late String? description;
+  late String name;
+  late int? fbusinessId;
+  late String? longitude;
+  late String? latitude;
+  late String table;
 
   factory BranchSync.fromJson(Map<String, dynamic> json) => BranchSync(
         id: json["id"],

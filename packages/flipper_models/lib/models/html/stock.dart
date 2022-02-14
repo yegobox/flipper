@@ -4,6 +4,8 @@
 library flipper_models;
 
 import 'dart:convert';
+import 'package:isar/isar.dart';
+part 'stock.g.dart';
 
 Stock stockFromJson(String str) => Stock.fromJson(json.decode(str));
 
@@ -15,6 +17,7 @@ List<Stock> stocksFromJson(String str) =>
 String stockToJson(List<Stock> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
+@Collection()
 class Stock {
   Stock(
       {this.id = 0,
@@ -32,22 +35,22 @@ class Stock {
       this.active,
       required this.value,
       this.migrated = false,
-      this.target = null});
-  int id;
-  int? fbranchId;
-  int fvariantId;
-  double lowStock;
-  double currentStock;
-  double supplyPrice;
-  double retailPrice;
-  bool canTrackingStock;
-  bool showLowStockAlert;
-  List<String>? channels;
-  String table;
-  int fproductId;
-  bool? active;
-  bool? migrated;
-  double value; // the value of stock items ie. count * retailPrice
+      this.target});
+  late int id = Isar.autoIncrement;
+  late int? fbranchId;
+  late int fvariantId;
+  late double lowStock;
+  late double currentStock;
+  late double supplyPrice;
+  late double retailPrice;
+  late bool canTrackingStock;
+  late bool showLowStockAlert;
+  late List<String>? channels;
+  late String table;
+  late int fproductId;
+  late bool? active;
+  late bool? migrated;
+  late double value; // the value of stock items ie. count * retailPrice
   dynamic target;
   factory Stock.fromJson(Map<dynamic, dynamic> json) => Stock(
       id: json["id"],
@@ -64,9 +67,9 @@ class Stock {
       showLowStockAlert: json["showLowStockAlert"],
       table: json["table"],
       fproductId: json["fproductId"],
-      active: json["active"] == null ? false : json["active"],
+      active: json["active"] ?? false,
       value: json["value"],
-      migrated: json["migrated"] == null ? false : json["migrated"],
+      migrated: json["migrated"] ?? false,
       target: json["target"]);
 
   Map<String, dynamic> toJson() => {
@@ -81,8 +84,8 @@ class Stock {
         "showLowStockAlert": showLowStockAlert,
         "table": table,
         "fproductId": fproductId,
-        "active": active == null ? false : active,
+        "active": active ?? false,
         "value": value,
-        "migrated": migrated == null ? false : migrated,
+        "migrated": migrated ?? false,
       };
 }

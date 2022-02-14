@@ -4,10 +4,14 @@
 
 import 'dart:convert';
 
+import 'package:isar/isar.dart';
+part 'payment.g.dart';
+
 Payment paymentFromMap(String str) => Payment.fromMap(json.decode(str));
 
 String paymentToMap(Payment data) => json.encode(data.toMap());
 
+@Collection()
 class Payment {
   Payment({
     required this.id,
@@ -22,16 +26,16 @@ class Payment {
     required this.phoneNumber,
   });
 
-  int id;
-  int amount;
-  int interval;
-  int userId;
-  int createdAt;
-  String paymentType;
-  String requestGuid;
-  String note;
-  String itemName;
-  String phoneNumber;
+  late int id = Isar.autoIncrement;
+  late int amount;
+  late int interval;
+  late int userId;
+  late int createdAt;
+  late String paymentType;
+  late String requestGuid;
+  late String note;
+  late String itemName;
+  late String phoneNumber;
 
   factory Payment.fromMap(Map<String, dynamic> json) => Payment(
         id: json["id"],

@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:isar/isar.dart';
 
+import 'order_item.dart';
+
 part 'order.g.dart';
 
 OrderFSync orderFromJsonSync(String str) =>
@@ -33,7 +35,7 @@ class OrderFSync {
     required this.createdAt,
     this.updatedAt,
     this.reported,
-    // required this.orderItems,
+    required this.orderItems,
     required this.table,
     this.channels,
     this.note,
@@ -64,7 +66,7 @@ class OrderFSync {
   late int? customerId;
 
   late String? note;
-  // List<OrderItemSync> orderItems;
+  List<OrderItemSync> orderItems;
 
   factory OrderFSync.fromJson(Map<String, dynamic> json) => OrderFSync(
         id: int.parse(json["id"]),
@@ -86,6 +88,7 @@ class OrderFSync {
         table: json["table"],
         customerId: json["customerId"],
         channels: List<String>.from(json["channels"].map((x) => x)),
+        orderItems: [],
         // orderItems: List<OrderItemSync>.from(
         // json["orderItems"].map((x) => OrderItemSync.fromJson(x))),
       );

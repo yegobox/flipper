@@ -1,19 +1,9 @@
-// To parse this JSON data, do
-//
-//     final pColor = PColorFromJson(jsonString);
 library flipper_models;
 
-import 'dart:convert';
+import 'package:isar/isar.dart';
+part 'color.g.dart';
 
-PColor PColorFromJson(String str) => PColor.fromJson(json.decode(str));
-String PColorToJson(PColor data) => json.encode(data.toJson());
-
-List<PColor> PColorsFromJson(String str) =>
-    List<PColor>.from(json.decode(str).map((x) => PColor.fromJson(x)));
-
-String pColorToJson(List<PColor> data) =>
-    json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
-
+@Collection()
 class PColor {
   PColor({
     this.id = 0,
@@ -24,19 +14,18 @@ class PColor {
     this.fbranchId,
     required this.active,
   });
-
-  int id;
-  String? name;
+  late int id = Isar.autoIncrement;
+  late String? name;
   List<String>? channels;
 
   List<String>? colors;
-  String table;
-  int? fbranchId;
-  bool active;
+  late String table;
+  late int? fbranchId;
+  late bool active;
 
   factory PColor.fromJson(Map<String, dynamic> json) => PColor(
         id: int.parse(json["id"]),
-        name: json["name"] == null ? '#ee5253' : json["name"],
+        name: json["name"] ?? '#ee5253',
         colors: json["colors"] == null
             ? []
             : List<String>.from(json["colors"].map((x) => x)),
@@ -47,7 +36,7 @@ class PColor {
 
   Map<String, dynamic> toJson() => {
         "id": int.parse(id.toString()),
-        "name": name == null ? '#ee5253' : name,
+        "name": name ?? '#ee5253',
         "colors":
             colors == null ? [] : List<dynamic>.from(colors!.map((x) => x)),
         "table": table,

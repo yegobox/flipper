@@ -5,52 +5,25 @@ part 'conversation.g.dart';
 
 @Collection()
 class Conversation {
-  Conversation(
-      {this.id = 0,
-      this.avatars,
-      this.initials,
-      this.lastMessage,
-      required this.receiverId,
-      required this.senderId,
-      required this.senderName,
-      required this.status,
-      this.delivered = false,
-      required this.createdAt});
   late int id = Isar.autoIncrement;
 
-   Map<String, dynamic>? avatars;
+  Map<String, dynamic>? avatars;
 
   ///  a list of the names initials of the people in the conversation
-   Map<String, dynamic>? initials;
+  Map<String, dynamic>? initials;
 
-   String? lastMessage;
+  late String? lastMessage;
 
-   int receiverId;
- int senderId;
+  late int receiverId;
+  late int senderId;
 
-   String senderName;
+  late String senderName;
 
-   String status;
+  late String status;
 
-   int createdAt;
+  late int createdAt;
 
-   bool delivered;
+  late bool delivered;
 
-   String? get dbAvatars => avatars == null ? null : json.encode(avatars);
-  set dbAvatars(String? value) {
-    if (value == null) {
-      avatars = null;
-    } else {
-      avatars = Map.from(json.decode(value).map((k, v) => MapEntry(k, v)));
-    }
-  }
-
-  String? get dbInitials => initials == null ? null : json.encode(initials);
-  set dbInitials(String? value) {
-    if (value == null) {
-      initials = null;
-    } else {
-      initials = Map.from(json.decode(value).map((k, v) => MapEntry(k, v)));
-    }
-  }
+  String? get dbAvatars => avatars == null ? null : json.encode(avatars);
 }

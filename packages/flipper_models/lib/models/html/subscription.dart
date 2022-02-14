@@ -1,5 +1,9 @@
 library flipper_models;
 
+import 'package:isar/isar.dart';
+part 'subscription.g.dart';
+
+@Collection()
 class Subscription {
   Subscription({
     this.id = 0,
@@ -11,14 +15,14 @@ class Subscription {
     required this.descriptor,
   });
 
-  int id;
-  int interval;
-  String lastBillingDate;
-  String nextBillingDate;
-  int userId;
-  double recurring;
+  late int id = Isar.autoIncrement;
+  late int interval;
+  late String lastBillingDate;
+  late String nextBillingDate;
+  late int userId;
+  late double recurring;
 
-  String descriptor;
+  late String descriptor;
 
   factory Subscription.fromJson(Map<String, dynamic> json) => Subscription(
         id: json["id"],

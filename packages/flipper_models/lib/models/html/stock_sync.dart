@@ -5,6 +5,9 @@ library flipper_models;
 
 import 'dart:convert';
 
+import 'package:isar/isar.dart';
+part 'stock_sync.g.dart';
+
 StockSync sstockFromJsonSync(String str) =>
     StockSync.fromJson(json.decode(str));
 
@@ -16,6 +19,7 @@ List<StockSync> stocksFromJsonSync(String str) =>
 String stockToJsonSync(List<StockSync> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
+@Collection()
 class StockSync {
   StockSync({
     this.id = 0,
@@ -34,20 +38,20 @@ class StockSync {
     required this.value,
     this.target,
   });
-  int id;
-  int? fbranchId;
-  int fvariantId;
-  double lowStock;
-  double currentStock;
-  double supplyPrice;
-  double retailPrice;
-  bool canTrackingStock;
-  bool showLowStockAlert;
-  List<String>? channels;
-  String table;
-  int fproductId;
-  bool? active;
-  double value; // the value of stock items ie. count * retailPrice
+  late int id = Isar.autoIncrement;
+  late int? fbranchId;
+  late int fvariantId;
+  late double lowStock;
+  late double currentStock;
+  late double supplyPrice;
+  late double retailPrice;
+  late bool canTrackingStock;
+  late bool showLowStockAlert;
+  late List<String>? channels;
+  late String table;
+  late int fproductId;
+  late bool? active;
+  late double value; // the value of stock items ie. count * retailPrice
   dynamic target;
   factory StockSync.fromJson(Map<dynamic, dynamic> json) => StockSync(
         id: json["id"],
