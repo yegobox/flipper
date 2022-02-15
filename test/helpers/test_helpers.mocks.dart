@@ -461,9 +461,11 @@ class MockApi<T> extends _i1.Mock implements _i9.Api<T> {
       Invocation.method(#userNameAvailable, [], {#name: name}),
       returnValue: Future<int>.value(0)) as _i10.Future<int>);
   @override
-  _i2.TenantSync? isTenant({String? phoneNumber}) => (super.noSuchMethod(
-          Invocation.method(#isTenant, [], {#phoneNumber: phoneNumber}))
-      as _i2.TenantSync?);
+  _i10.Future<_i2.TenantSync?> isTenant({String? phoneNumber}) =>
+      (super.noSuchMethod(
+              Invocation.method(#isTenant, [], {#phoneNumber: phoneNumber}),
+              returnValue: Future<_i2.TenantSync?>.value())
+          as _i10.Future<_i2.TenantSync?>);
   @override
   _i10.Future<_i2.Business> getBusinessFromOnlineGivenId({int? id}) =>
       (super.noSuchMethod(
