@@ -553,6 +553,14 @@ class MockApi<T> extends _i1.Mock implements _i9.Api<T> {
   void consumePoints({int? userId, int? points}) => super.noSuchMethod(
       Invocation.method(#consumePoints, [], {#userId: userId, #points: points}),
       returnValueForMissingStub: null);
+  @override
+  _i10.Future<_i2.Pin?> createPin() =>
+      (super.noSuchMethod(Invocation.method(#createPin, []),
+          returnValue: Future<_i2.Pin?>.value()) as _i10.Future<_i2.Pin?>);
+  @override
+  _i10.Future<_i2.Pin?> getPin({String? pin}) =>
+      (super.noSuchMethod(Invocation.method(#getPin, [], {#pin: pin}),
+          returnValue: Future<_i2.Pin?>.value()) as _i10.Future<_i2.Pin?>);
 }
 
 /// A class which mocks [Language].
@@ -687,6 +695,10 @@ class MockRemote extends _i1.Mock implements _i12.Remote {
   @override
   bool isResetSettingEnabled() =>
       (super.noSuchMethod(Invocation.method(#isResetSettingEnabled, []),
+          returnValue: false) as bool);
+  @override
+  bool isLinkedDeviceAvailable() =>
+      (super.noSuchMethod(Invocation.method(#isLinkedDeviceAvailable, []),
           returnValue: false) as bool);
 }
 

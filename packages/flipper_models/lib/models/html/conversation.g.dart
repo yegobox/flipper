@@ -17,20 +17,19 @@ extension GetConversationCollection on Isar {
 final ConversationSchema = CollectionSchema(
   name: 'Conversation',
   schema:
-      '{"name":"Conversation","idName":"id","properties":[{"name":"createdAt","type":"Long"},{"name":"dbAvatars","type":"String"},{"name":"dbInitials","type":"String"},{"name":"delivered","type":"Bool"},{"name":"lastMessage","type":"String"},{"name":"receiverId","type":"Long"},{"name":"senderId","type":"Long"},{"name":"senderName","type":"String"},{"name":"status","type":"String"}],"indexes":[],"links":[]}',
+      '{"name":"Conversation","idName":"id","properties":[{"name":"createdAt","type":"Long"},{"name":"dbAvatars","type":"String"},{"name":"delivered","type":"Bool"},{"name":"lastMessage","type":"String"},{"name":"receiverId","type":"Long"},{"name":"senderId","type":"Long"},{"name":"senderName","type":"String"},{"name":"status","type":"String"}],"indexes":[],"links":[]}',
   nativeAdapter: const _ConversationNativeAdapter(),
   webAdapter: const _ConversationWebAdapter(),
   idName: 'id',
   propertyIds: {
     'createdAt': 0,
     'dbAvatars': 1,
-    'dbInitials': 2,
-    'delivered': 3,
-    'lastMessage': 4,
-    'receiverId': 5,
-    'senderId': 6,
-    'senderName': 7,
-    'status': 8
+    'delivered': 2,
+    'lastMessage': 3,
+    'receiverId': 4,
+    'senderId': 5,
+    'senderName': 6,
+    'status': 7
   },
   listProperties: {},
   indexIds: {},
@@ -59,7 +58,6 @@ class _ConversationWebAdapter extends IsarWebTypeAdapter<Conversation> {
     final jsObj = IsarNative.newJsObject();
     IsarNative.jsObjectSet(jsObj, 'createdAt', object.createdAt);
     IsarNative.jsObjectSet(jsObj, 'dbAvatars', object.dbAvatars);
-    IsarNative.jsObjectSet(jsObj, 'dbInitials', object.dbInitials);
     IsarNative.jsObjectSet(jsObj, 'delivered', object.delivered);
     IsarNative.jsObjectSet(jsObj, 'id', object.id);
     IsarNative.jsObjectSet(jsObj, 'lastMessage', object.lastMessage);
@@ -73,21 +71,18 @@ class _ConversationWebAdapter extends IsarWebTypeAdapter<Conversation> {
   @override
   Conversation deserialize(
       IsarCollection<Conversation> collection, dynamic jsObj) {
-    final object = Conversation(
-      createdAt:
-          IsarNative.jsObjectGet(jsObj, 'createdAt') ?? double.negativeInfinity,
-      delivered: IsarNative.jsObjectGet(jsObj, 'delivered') ?? false,
-      id: IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity,
-      lastMessage: IsarNative.jsObjectGet(jsObj, 'lastMessage'),
-      receiverId: IsarNative.jsObjectGet(jsObj, 'receiverId') ??
-          double.negativeInfinity,
-      senderId:
-          IsarNative.jsObjectGet(jsObj, 'senderId') ?? double.negativeInfinity,
-      senderName: IsarNative.jsObjectGet(jsObj, 'senderName') ?? '',
-      status: IsarNative.jsObjectGet(jsObj, 'status') ?? '',
-    );
-    object.dbAvatars = IsarNative.jsObjectGet(jsObj, 'dbAvatars');
-    object.dbInitials = IsarNative.jsObjectGet(jsObj, 'dbInitials');
+    final object = Conversation();
+    object.createdAt =
+        IsarNative.jsObjectGet(jsObj, 'createdAt') ?? double.negativeInfinity;
+    object.delivered = IsarNative.jsObjectGet(jsObj, 'delivered') ?? false;
+    object.id = IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity;
+    object.lastMessage = IsarNative.jsObjectGet(jsObj, 'lastMessage');
+    object.receiverId =
+        IsarNative.jsObjectGet(jsObj, 'receiverId') ?? double.negativeInfinity;
+    object.senderId =
+        IsarNative.jsObjectGet(jsObj, 'senderId') ?? double.negativeInfinity;
+    object.senderName = IsarNative.jsObjectGet(jsObj, 'senderName') ?? '';
+    object.status = IsarNative.jsObjectGet(jsObj, 'status') ?? '';
     return object;
   }
 
@@ -99,8 +94,6 @@ class _ConversationWebAdapter extends IsarWebTypeAdapter<Conversation> {
             double.negativeInfinity) as P;
       case 'dbAvatars':
         return (IsarNative.jsObjectGet(jsObj, 'dbAvatars')) as P;
-      case 'dbInitials':
-        return (IsarNative.jsObjectGet(jsObj, 'dbInitials')) as P;
       case 'delivered':
         return (IsarNative.jsObjectGet(jsObj, 'delivered') ?? false) as P;
       case 'id':
@@ -147,29 +140,23 @@ class _ConversationNativeAdapter extends IsarNativeTypeAdapter<Conversation> {
       _dbAvatars = IsarBinaryWriter.utf8Encoder.convert(value1);
     }
     dynamicSize += (_dbAvatars?.length ?? 0) as int;
-    final value2 = object.dbInitials;
-    IsarUint8List? _dbInitials;
-    if (value2 != null) {
-      _dbInitials = IsarBinaryWriter.utf8Encoder.convert(value2);
-    }
-    dynamicSize += (_dbInitials?.length ?? 0) as int;
-    final value3 = object.delivered;
-    final _delivered = value3;
-    final value4 = object.lastMessage;
+    final value2 = object.delivered;
+    final _delivered = value2;
+    final value3 = object.lastMessage;
     IsarUint8List? _lastMessage;
-    if (value4 != null) {
-      _lastMessage = IsarBinaryWriter.utf8Encoder.convert(value4);
+    if (value3 != null) {
+      _lastMessage = IsarBinaryWriter.utf8Encoder.convert(value3);
     }
     dynamicSize += (_lastMessage?.length ?? 0) as int;
-    final value5 = object.receiverId;
-    final _receiverId = value5;
-    final value6 = object.senderId;
-    final _senderId = value6;
-    final value7 = object.senderName;
-    final _senderName = IsarBinaryWriter.utf8Encoder.convert(value7);
+    final value4 = object.receiverId;
+    final _receiverId = value4;
+    final value5 = object.senderId;
+    final _senderId = value5;
+    final value6 = object.senderName;
+    final _senderName = IsarBinaryWriter.utf8Encoder.convert(value6);
     dynamicSize += (_senderName.length) as int;
-    final value8 = object.status;
-    final _status = IsarBinaryWriter.utf8Encoder.convert(value8);
+    final value7 = object.status;
+    final _status = IsarBinaryWriter.utf8Encoder.convert(value7);
     dynamicSize += (_status.length) as int;
     final size = staticSize + dynamicSize;
 
@@ -179,30 +166,26 @@ class _ConversationNativeAdapter extends IsarNativeTypeAdapter<Conversation> {
     final writer = IsarBinaryWriter(buffer, staticSize);
     writer.writeLong(offsets[0], _createdAt);
     writer.writeBytes(offsets[1], _dbAvatars);
-    writer.writeBytes(offsets[2], _dbInitials);
-    writer.writeBool(offsets[3], _delivered);
-    writer.writeBytes(offsets[4], _lastMessage);
-    writer.writeLong(offsets[5], _receiverId);
-    writer.writeLong(offsets[6], _senderId);
-    writer.writeBytes(offsets[7], _senderName);
-    writer.writeBytes(offsets[8], _status);
+    writer.writeBool(offsets[2], _delivered);
+    writer.writeBytes(offsets[3], _lastMessage);
+    writer.writeLong(offsets[4], _receiverId);
+    writer.writeLong(offsets[5], _senderId);
+    writer.writeBytes(offsets[6], _senderName);
+    writer.writeBytes(offsets[7], _status);
   }
 
   @override
   Conversation deserialize(IsarCollection<Conversation> collection, int id,
       IsarBinaryReader reader, List<int> offsets) {
-    final object = Conversation(
-      createdAt: reader.readLong(offsets[0]),
-      delivered: reader.readBool(offsets[3]),
-      id: id,
-      lastMessage: reader.readStringOrNull(offsets[4]),
-      receiverId: reader.readLong(offsets[5]),
-      senderId: reader.readLong(offsets[6]),
-      senderName: reader.readString(offsets[7]),
-      status: reader.readString(offsets[8]),
-    );
-    object.dbAvatars = reader.readStringOrNull(offsets[1]);
-    object.dbInitials = reader.readStringOrNull(offsets[2]);
+    final object = Conversation();
+    object.createdAt = reader.readLong(offsets[0]);
+    object.delivered = reader.readBool(offsets[2]);
+    object.id = id;
+    object.lastMessage = reader.readStringOrNull(offsets[3]);
+    object.receiverId = reader.readLong(offsets[4]);
+    object.senderId = reader.readLong(offsets[5]);
+    object.senderName = reader.readString(offsets[6]);
+    object.status = reader.readString(offsets[7]);
     return object;
   }
 
@@ -217,18 +200,16 @@ class _ConversationNativeAdapter extends IsarNativeTypeAdapter<Conversation> {
       case 1:
         return (reader.readStringOrNull(offset)) as P;
       case 2:
-        return (reader.readStringOrNull(offset)) as P;
-      case 3:
         return (reader.readBool(offset)) as P;
-      case 4:
+      case 3:
         return (reader.readStringOrNull(offset)) as P;
+      case 4:
+        return (reader.readLong(offset)) as P;
       case 5:
         return (reader.readLong(offset)) as P;
       case 6:
-        return (reader.readLong(offset)) as P;
-      case 7:
         return (reader.readString(offset)) as P;
-      case 8:
+      case 7:
         return (reader.readString(offset)) as P;
       default:
         throw 'Illegal propertyIndex';
@@ -486,122 +467,6 @@ extension ConversationQueryFilter
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.matches,
       property: 'dbAvatars',
-      value: pattern,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      dbInitialsIsNull() {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.isNull,
-      property: 'dbInitials',
-      value: null,
-    ));
-  }
-
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      dbInitialsEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'dbInitials',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      dbInitialsGreaterThan(
-    String? value, {
-    bool caseSensitive = true,
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'dbInitials',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      dbInitialsLessThan(
-    String? value, {
-    bool caseSensitive = true,
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'dbInitials',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      dbInitialsBetween(
-    String? lower,
-    String? upper, {
-    bool caseSensitive = true,
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'dbInitials',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      dbInitialsStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.startsWith,
-      property: 'dbInitials',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      dbInitialsEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.endsWith,
-      property: 'dbInitials',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      dbInitialsContains(String value, {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.contains,
-      property: 'dbInitials',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      dbInitialsMatches(String pattern, {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.matches,
-      property: 'dbInitials',
       value: pattern,
       caseSensitive: caseSensitive,
     ));
@@ -1114,15 +979,6 @@ extension ConversationQueryWhereSortBy
     return addSortByInternal('dbAvatars', Sort.desc);
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByDbInitials() {
-    return addSortByInternal('dbInitials', Sort.asc);
-  }
-
-  QueryBuilder<Conversation, Conversation, QAfterSortBy>
-      sortByDbInitialsDesc() {
-    return addSortByInternal('dbInitials', Sort.desc);
-  }
-
   QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByDelivered() {
     return addSortByInternal('delivered', Sort.asc);
   }
@@ -1201,15 +1057,6 @@ extension ConversationQueryWhereSortThenBy
     return addSortByInternal('dbAvatars', Sort.desc);
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByDbInitials() {
-    return addSortByInternal('dbInitials', Sort.asc);
-  }
-
-  QueryBuilder<Conversation, Conversation, QAfterSortBy>
-      thenByDbInitialsDesc() {
-    return addSortByInternal('dbInitials', Sort.desc);
-  }
-
   QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByDelivered() {
     return addSortByInternal('delivered', Sort.asc);
   }
@@ -1281,11 +1128,6 @@ extension ConversationQueryWhereDistinct
     return addDistinctByInternal('dbAvatars', caseSensitive: caseSensitive);
   }
 
-  QueryBuilder<Conversation, Conversation, QDistinct> distinctByDbInitials(
-      {bool caseSensitive = true}) {
-    return addDistinctByInternal('dbInitials', caseSensitive: caseSensitive);
-  }
-
   QueryBuilder<Conversation, Conversation, QDistinct> distinctByDelivered() {
     return addDistinctByInternal('delivered');
   }
@@ -1326,10 +1168,6 @@ extension ConversationQueryProperty
 
   QueryBuilder<Conversation, String?, QQueryOperations> dbAvatarsProperty() {
     return addPropertyNameInternal('dbAvatars');
-  }
-
-  QueryBuilder<Conversation, String?, QQueryOperations> dbInitialsProperty() {
-    return addPropertyNameInternal('dbInitials');
   }
 
   QueryBuilder<Conversation, bool, QQueryOperations> deliveredProperty() {

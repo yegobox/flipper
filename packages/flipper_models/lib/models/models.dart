@@ -120,13 +120,20 @@ export 'package:flipper_models/models/io/stock_mock.dart'
 export 'package:flipper_models/models/io/product_mock_io.dart'
     if (dart.library.html) 'package:flipper_models/models/html/product_mock_web.dart';
 
-export 'package:flipper_models/models/view_models/business_home_viewmodel.dart';
-export 'package:flipper_models/models/view_models/product_viewmodel.dart';
-export 'package:flipper_models/models/view_models/signup_viewmodel.dart';
-export 'package:flipper_models/models/view_models/startup_viewmodel.dart';
-export 'package:flipper_models/models/view_models/message_view_model.dart';
-export 'package:flipper_models/models/view_models/discount_viewmodel.dart';
-export 'package:flipper_models/models/view_models/analytic_viewmodel.dart';
+export 'package:flipper_models/models/view_models/io/business_home_viewmodel.dart'
+    if (dart.library.html) 'package:flipper_models/models/view_models/html/business_home_viewmodel.dart';
+export 'package:flipper_models/models/view_models/io/product_viewmodel.dart'
+    if (dart.library.html) 'package:flipper_models/models/view_models/html/product_viewmodel.dart';
+export 'package:flipper_models/models/view_models/io/signup_viewmodel.dart'
+    if (dart.library.html) 'package:flipper_models/models/view_models/html/signup_viewmodel.dart';
+export 'package:flipper_models/models/view_models/io/startup_viewmodel.dart'
+    if (dart.library.html) 'package:flipper_models/models/view_models/html/startup_viewmodel.dart';
+export 'package:flipper_models/models/view_models/io/message_view_model.dart'
+    if (dart.library.html) 'package:flipper_models/models/view_models/html/message_view_model.dart';
+export 'package:flipper_models/models/view_models/io/discount_viewmodel.dart'
+    if (dart.library.html) 'package:flipper_models/models/view_models/html/discount_viewmodel.dart';
+export 'package:flipper_models/models/view_models/io/analytic_viewmodel.dart'
+    if (dart.library.html) 'package:flipper_models/models/view_models/html/analytic_viewmodel.dart';
 export 'package:flipper_models/models/view_models/drawer_viewmodel.dart';
 
 export 'package:flipper_services/objectbox_api.dart'
@@ -148,10 +155,3 @@ export 'exceptions.dart';
 
 export 'package:flipper_models/models/io/pin.dart'
     if (dart.library.html) 'package:flipper_models/models/html/pin.dart';
-
-// 
-// export 'package:flipper_models/models/view_models/analytic_viewmodel.dart';
-
-// export 'package:flipper_models/models/view_models/message_view_model.dart';
-
-// message_view_model

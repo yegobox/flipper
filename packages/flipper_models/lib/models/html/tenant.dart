@@ -1,7 +1,12 @@
 library flipper_models;
 
-import 'package:flipper_models/models/models.dart';
 import 'dart:convert';
+
+import 'package:isar/isar.dart';
+
+import 'branch.dart';
+import 'permission.dart';
+part 'tenant.g.dart';
 
 TenantSync stenantFromJson(String str) => TenantSync.fromJson(json.decode(str));
 String stenantToJson(TenantSync data) => json.encode(data.toJson());
@@ -12,31 +17,26 @@ List<TenantSync> tenantFromJson(String str) =>
 String tenantToJson(List<TenantSync> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
+@Collection()
 class TenantSync {
   TenantSync({
     this.id = 0,
     required this.name,
     required this.phoneNumber,
     required this.email,
-    required this.branches,
-    required this.permissions,
   });
-  int id;
-  String name;
-  String phoneNumber;
-  String email;
-  List<BranchSync> branches;
-  List<Permissionsync> permissions;
+  late int id = Isar.autoIncrement;
+  late String name;
+  late String phoneNumber;
+  late String email;
+  final branches = IsarLink<BranchSync>();
+  final permissions = IsarLink<Permissionsync>();
 
   factory TenantSync.fromJson(Map<String, dynamic> json) => TenantSync(
         id: json["id"],
         name: json["name"],
         phoneNumber: json["phoneNumber"],
         email: json["email"],
-        branches: List<BranchSync>.from(
-            json["branches"].map((x) => BranchSync.fromJson(x))),
-        permissions: List<Permissionsync>.from(
-            json["permissions"].map((x) => Permissionsync.fromJson(x))),
       );
 
   Map<String, dynamic> toJson() => {

@@ -124,7 +124,7 @@ abstract class Api<T> {
 
   Future<int> userNameAvailable({required String name});
 
-  TenantSync? isTenant({required String phoneNumber});
+  Future<TenantSync?> isTenant({required String phoneNumber});
   Future<Business> getBusinessFromOnlineGivenId({required int id});
 
   /// sync related methods

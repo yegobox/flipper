@@ -16,17 +16,17 @@ class Setting {
     this.attendnaceDocCreated,
     this.isAttendanceEnabled,
   });
-  int id;
-  String email;
-  String hasPin;
-  int userId;
-  bool? openReceiptFileOSaleComplete;
-  bool? autoPrint;
-  bool? sendDailyReport;
-  String? defaultLanguage;
-  bool? googleSheetDocCreated;
-  bool? attendnaceDocCreated;
-  bool? isAttendanceEnabled;
+  late int id = Isar.autoIncrement;
+  late String email;
+  late String hasPin;
+  late int userId;
+  late bool? openReceiptFileOSaleComplete;
+  late bool? autoPrint;
+  late bool? sendDailyReport;
+  late String? defaultLanguage;
+  late bool? googleSheetDocCreated;
+  late bool? attendnaceDocCreated;
+  late bool? isAttendanceEnabled;
 
   factory Setting.fromJson(Map<String, dynamic> json) => Setting(
         id: json["id"],

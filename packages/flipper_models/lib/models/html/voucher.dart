@@ -5,11 +5,14 @@
 import 'dart:convert';
 
 import 'package:flipper_models/models/models.dart';
+import 'package:isar/isar.dart';
+part 'voucher.g.dart';
 
 Voucher voucherFromMap(String str) => Voucher.fromMap(json.decode(str));
 
 String voucherToMap(Voucher data) => json.encode(data.toMap());
 
+@Collection()
 class Voucher {
   Voucher(
       {required this.id,
@@ -18,36 +21,16 @@ class Voucher {
       required this.used,
       required this.createdAt,
       required this.usedAt,
-      required this.features,
       required this.descriptor});
 
-  int id;
-  int value;
-  int interval;
-  bool used;
-  int createdAt;
-  int usedAt;
-  List<Feature> features;
-  String descriptor;
-
-  // Voucher copyWith({
-  //   required int id,
-  //   required int value,
-  //   required int interval,
-  //   required bool used,
-  //   required int createdAt,
-  //   required int usedAt,
-  //   required List<Feature> features,
-  // }) =>
-  //     Voucher(
-  //       id: id,
-  //       value: value,
-  //       interval: interval,
-  //       used: used,
-  //       createdAt: createdAt,
-  //       usedAt: usedAt,
-  //       features: features,
-  //     );
+  late int id = Isar.autoIncrement;
+  late int value;
+  late int interval;
+  late bool used;
+  late int createdAt;
+  late int usedAt;
+  final features = IsarLinks<Feature>();
+  late String descriptor;
 
   factory Voucher.fromMap(Map<String, dynamic> json) => Voucher(
         id: json["id"],
@@ -56,8 +39,6 @@ class Voucher {
         used: json["used"],
         createdAt: json["createdAt"],
         usedAt: json["usedAt"],
-        features:
-            List<Feature>.from(json["features"].map((x) => Feature.fromMap(x))),
         descriptor: json["descriptor"],
       );
 
@@ -68,7 +49,6 @@ class Voucher {
         "used": used,
         "createdAt": createdAt,
         "usedAt": usedAt,
-        // "features": List<dynamic>.from(features.map((x) => x.toMap())),
         "descriptor": descriptor,
       };
 }

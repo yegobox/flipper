@@ -20,12 +20,12 @@ class Pin {
     required this.branchId,
     required this.businessId,
   });
-  int id = Isar.autoIncrement;
-  String userId;
-  String phoneNumber;
-  int pin;
-  int branchId;
-  int businessId;
+  late int id = Isar.autoIncrement;
+  late String userId;
+  late String phoneNumber;
+  late int pin;
+  late int branchId;
+  late int businessId;
 
   factory Pin.fromMap(Map<String, dynamic> json) => Pin(
         userId: json["userId"],

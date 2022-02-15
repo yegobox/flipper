@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flipper_dashboard/loader.dart';
-import 'package:flipper_models/models/view_models/business_home_viewmodel.dart';
+import 'package:flipper_models/models/models.dart';
 import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';

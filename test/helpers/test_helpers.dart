@@ -93,7 +93,6 @@ Api getAndRegisterApi() {
       used: false,
       createdAt: 111,
       usedAt: 111,
-      features: [],
       descriptor: 'Daily',
     ),
   );
@@ -119,7 +118,6 @@ BillingService getAndRegisterBillingService() {
         used: false,
         createdAt: 111,
         usedAt: 111,
-        features: [],
         descriptor: 'Daily',
       ),
     ),

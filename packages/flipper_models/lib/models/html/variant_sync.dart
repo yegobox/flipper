@@ -6,6 +6,8 @@ library flipper_models;
 import 'dart:convert';
 
 import 'package:flipper_models/models/html/stock_sync.dart';
+import 'package:isar/isar.dart';
+part 'variant_sync.g.dart';
 
 VariantSync svariationFromJson(String str) =>
     VariantSync.fromJson(json.decode(str));
@@ -18,6 +20,7 @@ List<VariantSync> variationFromJson(String str) => List<VariantSync>.from(
 String variationToJson(List<VariantSync> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
+@Collection()
 class VariantSync {
   VariantSync({
     this.id = 0,
@@ -37,21 +40,21 @@ class VariantSync {
     this.stock,
   });
 
-  int id;
-  String name;
-  String sku;
-  int fproductId;
-  String unit;
-  String table;
-  List<String>? channels;
-  String productName;
-  int fbranchId;
-  String? taxName;
-  double? taxPercentage;
-  double supplyPrice;
-  double retailPrice;
-  bool? synced;
-  StockSync? stock;
+  late int id = Isar.autoIncrement;
+  late String name;
+  late String sku;
+  late int fproductId;
+  late String unit;
+  late String table;
+  late List<String>? channels;
+  late String productName;
+  late int fbranchId;
+  late String? taxName;
+  late double? taxPercentage;
+  late double supplyPrice;
+  late double retailPrice;
+  late bool? synced;
+  late StockSync? stock;
 
   factory VariantSync.fromJson(Map<dynamic, dynamic> json) => VariantSync(
         id: json["id"],

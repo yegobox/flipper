@@ -9,17 +9,17 @@ CustomerSync customerJson(String str) =>
 
 @Collection()
 class CustomerSync {
-  int id;
-  String name;
-  String email;
-  String phone;
-  String address;
+  late int id = Isar.autoIncrement;
+  late String name;
+  late String email;
+  late String phone;
+  late String address;
 
-  int orderId;
+  late int orderId;
 
-  int branchId;
+  late int branchId;
 
-  String? updatedAt;
+  late String? updatedAt;
   CustomerSync(
       {this.id = 0,
       required this.orderId,

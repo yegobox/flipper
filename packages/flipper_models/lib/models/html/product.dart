@@ -45,29 +45,29 @@ class Product {
       this.synced = false,
       this.migrated = false,
       this.imageUrl});
-  int id;
-  String name;
-  String? description;
-  List<String>? channels;
-  bool active;
-  String? ftaxId;
-  bool hasPicture;
-  String table;
-  String color;
-  int fbusinessId;
-  int fbranchId;
-  String? fsupplierId;
-  String? fcategoryId;
-  String? createdAt;
-  String unit;
-  bool? draft;
-  bool? imageLocal;
-  bool? currentUpdate;
-  String? imageUrl;
-  String? expiryDate;
-  String? barCode;
-  bool? synced;
-  bool? migrated;
+  late int id = Isar.autoIncrement;
+  late String name;
+  late String? description;
+  late List<String>? channels;
+  late bool active;
+  late String? ftaxId;
+  late bool hasPicture;
+  late String table;
+  late String color;
+  late int fbusinessId;
+  late int fbranchId;
+  late String? fsupplierId;
+  late String? fcategoryId;
+  late String? createdAt;
+  late String unit;
+  late bool? draft;
+  late bool? imageLocal;
+  late bool? currentUpdate;
+  late String? imageUrl;
+  late String? expiryDate;
+  late String? barCode;
+  late bool? synced;
+  late bool? migrated;
 
   // @Transient()
   // List<Variant> variants;

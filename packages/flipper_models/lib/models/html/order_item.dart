@@ -1,35 +1,40 @@
+import 'package:isar/isar.dart';
+
+part 'order_item.g.dart';
+
+@Collection()
 class OrderItemSync {
-  OrderItemSync(
-      {this.id = 0,
-      required this.name,
-      required this.fvariantId,
-      required this.count,
-      required this.price,
-      required this.forderId,
-      this.discount,
-      required this.createdAt,
-      required this.updatedAt,
-      this.reported = false,
-      this.remainingStock = 0,
-      this.type = 'item'});
-  int id;
-  String name;
-  int forderId;
-  int fvariantId;
-  double count;
-  double price;
-  double? discount;
+  OrderItemSync({
+    this.id = 0,
+    required this.name,
+    required this.fvariantId,
+    required this.count,
+    required this.price,
+    required this.forderId,
+    this.discount,
+    required this.createdAt,
+    required this.updatedAt,
+    this.reported = false,
+    this.remainingStock = 0,
+    this.type = 'item',
+  });
+  late int id = Isar.autoIncrement;
+  late String name;
+  late int forderId;
+  late int fvariantId;
+  late double count;
+  late double price;
+  late double? discount;
 
-  /// the type is used to distinguish between different types of items
-  /// (e.g. 'item', 'subscription', 'shipping', 'tax', 'discount')
-  /// @return the type of the item
-  String? type;
-  bool reported;
+  late String? type;
+  late bool reported;
 
-  int remainingStock;
-  String createdAt;
-  String updatedAt;
+  late int remainingStock;
+  late String createdAt;
+  late String updatedAt;
+  // final orderItems = IsarLink<OrderItemSync>();
   List<OrderItemSync>? orderItems;
+
   factory OrderItemSync.fromJson(Map<String, dynamic> json) => OrderItemSync(
         id: int.parse(json["id"]),
         type: json["type"],
@@ -48,7 +53,7 @@ class OrderItemSync {
   Map<String, dynamic> toJson() => {
         "id": int.parse(id.toString()),
         "name": name,
-        "type": type == null ? 'item' : type,
+        "type": type ?? 'item',
         "reported": reported,
         "remainingStock": remainingStock,
         "discount": discount,

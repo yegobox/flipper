@@ -1811,7 +1811,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  TenantSync? isTenant({required String phoneNumber}) {
+  Future<TenantSync?> isTenant({required String phoneNumber}) async {
     // return TenantSync from store where phoneNumber
     return store
         .box<TenantSync>()
