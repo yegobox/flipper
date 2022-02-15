@@ -9,13 +9,18 @@ import 'package:flipper_models/models/models.dart';
 class ForceDataEntryService {
   final log = getLogger('ForceDataEntryService');
   void caller() {
-    // if (ProxyService.remoteConfig.forceDateEntry()) {
-    addData();
-    // }
+    if (ProxyService.remoteConfig.forceDateEntry()) {
+      addData();
+    }
   }
 
   Future<void> addData() async {
     int? branchId = ProxyService.box.read(key: 'branchId');
+
+    if (branchId == null) {
+      log.i('branchId is null');
+      return;
+    }
 
     final String? userId = ProxyService.box.read(key: 'userId');
     final List<String> colors = [
@@ -29,13 +34,13 @@ class ForceDataEntryService {
       '#a29bfe'
     ];
 
-    final PColor color = new PColor(
+    final PColor color = PColor(
       id: DateTime.now().millisecondsSinceEpoch,
       colors: colors,
       table: AppTables.color,
       channels: [userId!],
       active: false,
-      fbranchId: branchId!,
+      fbranchId: branchId,
       name: 'sample',
     );
 
@@ -48,7 +53,7 @@ class ForceDataEntryService {
     List<Unit> kUnits = await ProxyService.api.units(branchId: branchid);
 
     //now create default units for this branch
-    final units = new Unit(
+    final units = Unit(
       name: 'sample',
       value: 'kg',
       active: false,
