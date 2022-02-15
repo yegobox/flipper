@@ -17,10 +17,10 @@ class AppData {
   // When I build new public web versions of the demos, I just make sure to
   // update this info before I trigger GitHub actions CI/CD that builds them.
   static const String appName = 'flipper';
-  static const String version = '1.57.0+111101057';
+  static const String version = '1.58.0+111101058';
   static const String packageVersion = 'flipper package $version';
   static const String packageUrl = 'https://yegobox.com';
-  static const String flutterVersion = 'stable v1.57.0+111101057';
+  static const String flutterVersion = 'stable v1.58.0+111101058';
   static const String copyright = '© 2020, 2021';
   static const String author = 'yegobox ltd';
   static const String license = 'Business License';
