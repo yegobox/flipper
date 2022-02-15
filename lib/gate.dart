@@ -412,8 +412,9 @@ class _GateState extends State<Gate> {
               Locale('en', 'US'), // English
               Locale('es', 'ES'), // Spanish
             ],
-            locale: model
-                .languageService.locale, //french == rwanda language in our app
+            locale: const Locale('en'),
+            // locale: model
+            //     .languageService.locale, //french == rwanda language in our app
             themeMode: model.settingService.themeMode.value,
             routeInformationParser: router.routeInformationParser,
             routerDelegate: router.routerDelegate,

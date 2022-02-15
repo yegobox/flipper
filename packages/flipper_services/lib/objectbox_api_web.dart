@@ -1,13 +1,41 @@
 import 'dart:convert';
+import 'dart:io';
 
+import 'package:flipper_models/models/html/order.dart' as o;
+import 'package:flipper_models/models/html/setting.dart' as s;
+import 'package:flipper_models/models/html/tenant.dart' as t;
 import 'package:flipper_models/models/models.dart';
 import 'package:flipper_services/mobile_upload.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 import 'abstractions/api.dart';
+import 'package:isar/isar.dart';
+
+late Isar isar;
 
 class ObjectBoxApi extends MobileUpload implements Api {
   String apihub = "https://apihub.yegobox.com";
+
+  // final dir = await getApplicationSupportDirectory();
+  static getDir({required String dbName}) async {
+    Directory dir = await getApplicationDocumentsDirectory();
+    isar = isar = await Isar.open(
+      schemas: [
+        s.SettingSchema,
+        o.OrderFSyncSchema,
+        t.TenantSyncSchema,
+      ],
+      directory: dir.path,
+    );
+  }
+
+  ObjectBoxApi({String? dbName, Directory? dir}) {
+    if (dbName != null) {
+      getDir(dbName: dbName);
+    }
+  }
+
   @override
   CustomerSync? addCustomer({required Map customer, required int orderId}) {
     // TODO: implement addCustomer
@@ -293,12 +321,6 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  Setting? getSetting({required int userId}) {
-    // TODO: implement getSetting
-    throw UnimplementedError();
-  }
-
-  @override
   Future<StockSync?> getStock({required int branchId, required int variantId}) {
     // TODO: implement getStock
     throw UnimplementedError();
@@ -323,9 +345,11 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  TenantSync? isTenant({required String phoneNumber}) {
-    // TODO: implement isTenant
-    throw UnimplementedError();
+  Future<TenantSync?> isTenant({required String phoneNumber}) async {
+    return await isar.tenantSyncs
+        .filter()
+        .phoneNumberMatches(phoneNumber, caseSensitive: true)
+        .findFirst() as TenantSync?;
   }
 
   @override
@@ -571,6 +595,12 @@ class ObjectBoxApi extends MobileUpload implements Api {
   @override
   Future<Pin?> getPin({required String pin}) {
     // TODO: implement getPin
+    throw UnimplementedError();
+  }
+
+  @override
+  Setting? getSetting({required int userId}) {
+    // TODO: implement getSetting
     throw UnimplementedError();
   }
 }

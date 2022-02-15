@@ -58,14 +58,14 @@ class StartUpViewModel extends BaseViewModel {
         /// his phone number if has a tenant he can log to
         String phoneNumber = ProxyService.box.getUserPhone()!;
         TenantSync? tenant;
-        tenant = ProxyService.api.isTenant(phoneNumber: phoneNumber);
+        tenant = await ProxyService.api.isTenant(phoneNumber: phoneNumber);
 
         /// instead of going to the network everytime to check if is tenant
         /// load tenant from local storage if not then go to network and save it to local if does not exist local
         if (tenant != null) {
           ProxyService.api.saveTenant(phoneNumber: phoneNumber);
         }
-        tenant = ProxyService.api.isTenant(phoneNumber: phoneNumber);
+        tenant = await ProxyService.api.isTenant(phoneNumber: phoneNumber);
         // FIXMEthis is a hack to get the tenant to work
         if (tenant != null &&
             tenant.permissions.where((e) => e.name == "admin").isNotEmpty) {
