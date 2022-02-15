@@ -344,13 +344,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.2.1"
-  dartx:
-    dependency: transitive
-    description:
-      name: dartx
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.0.0"
   dbus:
     dependency: transitive
     description:
@@ -1101,13 +1094,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.0-nullsafety.1"
-  freezed_annotation:
-    dependency: transitive
-    description:
-      name: freezed_annotation
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.1.0"
   frontend_server_client:
     dependency: transitive
     description:
@@ -1371,13 +1357,6 @@ packages:
     dependency: "direct main"
     description:
       name: isar_flutter_libs
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.2.0+1"
-  isar_generator:
-    dependency: "direct dev"
-    description:
-      name: isar_generator
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.2.0+1"
@@ -2128,13 +2107,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.2.0"
-  time:
-    dependency: transitive
-    description:
-      name: time
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.1.0"
   timeago:
     dependency: transitive
     description:
