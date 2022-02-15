@@ -274,7 +274,7 @@ class _GateState extends State<Gate> {
             title: 'flipper',
             // Define the light theme for the app, based on defined colors and
             // properties above.
-             theme: GThemeGenerator.generate(),
+            theme: GThemeGenerator.generate(),
             // theme: FlexThemeData.light(
             //   // Want to use a built in scheme? Don't assign any value to colors.
             //   // We just use the _useScheme bool toggle here from above, only for easy
@@ -412,8 +412,9 @@ class _GateState extends State<Gate> {
               Locale('en', 'US'), // English
               Locale('es', 'ES'), // Spanish
             ],
-            locale: model
-                .languageService.locale, //french == rwanda language in our app
+            locale: const Locale('en'),
+            // locale: model
+            //     .languageService.locale,
             themeMode: model.settingService.themeMode.value,
             routeInformationParser: router.routeInformationParser,
             routerDelegate: router.routerDelegate,
