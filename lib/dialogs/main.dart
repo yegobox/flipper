@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:overlay_support/overlay_support.dart';
 
 class FlipperDialogs {
-  static showSuccessDialog(BuildContext, String type, String message) {
+  static showSuccessDialog(BuildContext context, String type, String message) {
     showSimpleNotification(
       Text(message),
       background: Colors.green,
@@ -10,7 +10,7 @@ class FlipperDialogs {
     );
   }
 
-  static showErrorDialog(BuildContext, String type, String message) {
+  static showErrorDialog(BuildContext context, String type, String message) {
     showSimpleNotification(
       Text(message),
       background: Colors.red,

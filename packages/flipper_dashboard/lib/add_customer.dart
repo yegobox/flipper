@@ -8,15 +8,14 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:flipper_models/models/models.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:go_router/go_router.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 
 class AddCustomer extends StatefulWidget {
-  AddCustomer({Key? key, required this.orderId, this.searchedKey})
+  const AddCustomer({Key? key, required this.orderId, this.searchedKey})
       : super(key: key);
-  static GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
+  static final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final int orderId;
   final String? searchedKey;
 
@@ -74,42 +73,40 @@ class _AddCustomerState extends State<AddCustomer> {
                         right: 12,
                         bottom: 12,
                       ),
-                      child: Container(
-                        child: Column(
-                          children: [
-                            BoxInputField(
-                              controller: _nameController,
-                              placeholder: 'Name',
+                      child: Column(
+                        children: [
+                          BoxInputField(
+                            controller: _nameController,
+                            placeholder: 'Name',
+                            validatorFunc: (value) {
+                              if (value!.isEmpty) {
+                                return 'Name is required';
+                              }
+                            },
+                          ),
+                          verticalSpaceSmall,
+                          BoxInputField(
+                            controller: _phoneController,
+                            leading: const Icon(Icons.phone),
+                            placeholder: 'Phone Number',
+                            validatorFunc: (value) {
+                              if (value!.isEmpty) {
+                                return 'Phone number is required';
+                              }
+                            },
+                          ),
+                          verticalSpaceSmall,
+                          BoxInputField(
+                              controller: _emailController,
+                              leading: Icon(Icons.email),
+                              placeholder: 'Email',
                               validatorFunc: (value) {
+                                log.i(value);
                                 if (value!.isEmpty) {
-                                  return 'Name is required';
+                                  return 'Email is required';
                                 }
-                              },
-                            ),
-                            verticalSpaceSmall,
-                            BoxInputField(
-                              controller: _phoneController,
-                              leading: const Icon(Icons.phone),
-                              placeholder: 'Phone Number',
-                              validatorFunc: (value) {
-                                if (value!.isEmpty) {
-                                  return 'Phone number is required';
-                                }
-                              },
-                            ),
-                            verticalSpaceSmall,
-                            BoxInputField(
-                                controller: _emailController,
-                                leading: Icon(Icons.email),
-                                placeholder: 'Email',
-                                validatorFunc: (value) {
-                                  log.i(value);
-                                  if (value!.isEmpty) {
-                                    return 'Email is required';
-                                  }
-                                }),
-                          ],
-                        ),
+                              }),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -131,7 +128,7 @@ class _AddCustomerState extends State<AddCustomer> {
                                         name: _nameController.text,
                                         orderId: widget.orderId);
 
-                                    GoRouter.of(context).go(Routes.afterSale);
+                                    Navigator.maybePop(context);
 
                                     /// this update a model when the Order has the customerId in it then will show related data accordingly!
                                     model.getOrderById();

@@ -11,68 +11,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:google_ui/google_ui.dart';
 import 'package:stacked/stacked.dart';
 
-/// DEFAULT EXAMPLE - Hot Reload Playground
-///
-/// This example shows how you can define custom colors, use [FlexColorScheme]
-/// to theme your app with them, or use a predefined theme.
-///
-/// It offers a playground you can use to experiment with all its
-/// theming properties and optional opinionated sub-theming.
-///
-/// It also demonstrates how to use a [GoogleFonts] based font as the default
-/// font for your app theme, and how to customize the used [TextTheme].
-///
-/// To learn more about how to use [FlexColorScheme] and all its features,
-/// please go through the five tutorial examples in the readme documentation.
-
-// This default example contains a long list of const and final property values
-// that are just passed in to the corresponding properties in
-// FlexThemeData.light() and FlexThemeData.dark() convenience extension on
-// ThemeData to FlexColorScheme.light().toTheme and
-// FlexColorScheme.dark().toTheme.
-//
-// The purpose is to provide any easy to use in-code based playground that
-// you can experiment with and use as quick starter template to start using
-// FlexColorScheme to make beautiful Flutter themes for your applications.
-// It is also a code and comment based quick guide for devs that don't read
-// long documentation.
-//
-// This setup is convenient since you can edit the values for both the light
-// and dark theme mode via shared property values on observer the changes
-// in the built via hot reload.
-// In a real app you might tuck away your color definitions and FlexColorScheme
-// settings in a static class with const and final values and static functions
-// as required. The other tutorials show one possible example of this as well.
-//
-// To learn more about using FlexColorScheme, it is recommended to go through
-// the step-by-step tutorial that uses examples 1 to 5 to explain and
-// demonstrate the features with increasing complexity. Example 5 represents
-// the full bonanza where pretty much everything can be changed dynamically
-// while running the app.
-
-// For our custom color scheme we define primary and secondary colors,
-// but no variant or other colors.
-final FlexSchemeColor _schemeLight = FlexSchemeColor.from(
-  primary: const Color(0xFF00296B),
-  // If you do not want to define secondary, primaryVariant and
-  // secondaryVariant, error and appBar colors you do not have to,
-  // they will get defined automatically when using the FlexSchemeColor.from()
-  // factory. When using FlexSchemeColor.from() you only have to define the
-  // primary color, anything not defined will get derived automatically from
-  // the primary color and you get a theme that is based just on shades of
-  // the provided primary color.
-  //
-  // With the default constructor FlexSchemeColor() you have to define
-  // all 4 main color properties required for a complete color scheme. If you
-  // do define them all, then prefer using it, since it can be const.
-  //
-  // Here we define a secondary color, but if you don't it will get a
-  // default shade based on the primary color. When you do define a secondary
-  // color, but not a secondaryVariant color, the secondary variant will get
-  // derived from the secondary color, instead of from the primary color.
-  secondary: const Color(0xFFFF7B00),
-);
-
 // These are custom defined matching dark mode colors. Further below we show
 // how to compute them based on the light color scheme. You can swap them in the
 // code example further below and compare the result of these manually defined

@@ -34,7 +34,7 @@ class _SortablePageState extends State<SortablePage> {
         sortColumnIndex: sortColumnIndex,
         columns: getColumns(widget.columns),
         rows: getRows(widget.data),
-        columnSpacing: 30,
+        // columnSpacing: 30,
       ),
     );
   }

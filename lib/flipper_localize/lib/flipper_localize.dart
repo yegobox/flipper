@@ -120,14 +120,7 @@ class FLocalization {
       'saveTicket': 'Save Ticket',
     },
   };
-  static const _productNotFound = <String, Map<String, String>>{
-    'en': {
-      'productNotFound': 'Product not found',
-    },
-    'es': {
-      'productNotFound': 'Product not found',
-    },
-  };
+
   static const _noPayable = <String, Map<String, String>>{
     'en': {
       'noPayable': 'No payable',

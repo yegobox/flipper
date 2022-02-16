@@ -108,10 +108,12 @@ class _BodyWidgetState extends State<BodyWidget> {
                     onPressed: () {},
                   )
                 : Flexible(
-                    child: ScrollableWidget(
-                      child: SortablePage(
-                        columns: const ['Item', 'price', 'Stock', 'Discount'],
-                        data: widget.model.orderItems,
+                    child: Center(
+                      child: ScrollableWidget(
+                        child: SortablePage(
+                          columns: const ['Item', 'price', 'Stock', 'Discount'],
+                          data: widget.model.orderItems,
+                        ),
                       ),
                     ),
                   )

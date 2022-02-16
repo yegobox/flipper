@@ -50,9 +50,8 @@ class _AfterSaleState extends State<AfterSale> {
                 showActionButton: true,
                 onPressedCallback: () async {
                   await model.getOrderById();
-                  log.i(model.kOrder!.id);
-                  GoRouter.of(context)
-                      .go(Routes.customers + '/' + model.kOrder!.id.toString());
+                  GoRouter.of(context).push(
+                      Routes.customers + '/' + model.kOrder!.id.toString());
                 },
                 leftActionButtonName:
                     model.kOrder != null && model.kOrder!.customerId != null
@@ -137,7 +136,7 @@ class _AfterSaleState extends State<AfterSale> {
                                               // refresh orders
                                               model.currentOrder();
                                               GoRouter.of(context)
-                                                  .pushNamed(Routes.home);
+                                                  .push(Routes.home);
                                             },
                                           ),
                                         ),

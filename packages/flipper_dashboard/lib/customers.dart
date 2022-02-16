@@ -43,7 +43,7 @@ class Customers extends StatelessWidget {
                     padding: const EdgeInsets.only(left: 18, right: 18),
                     child: BoxInputField(
                       controller: _seach,
-                      trailing: Icon(Icons.clear_outlined),
+                      trailing: const Icon(Icons.clear_outlined),
                       placeholder: 'Search for a customer',
                       onChanged: (value) {
                         model.setSearch(value);
@@ -71,8 +71,7 @@ class Customers extends StatelessWidget {
 
                                       /// this update a model when the Order has the customerId in it then will show related data accordingly!
                                       model.getOrderById();
-                                      GoRouter.of(context)
-                                          .pushNamed(Routes.afterSale);
+                                      GoRouter.of(context).pop();
                                     },
                                     onLongPress: () {},
                                     child: Column(children: <Widget>[
@@ -113,10 +112,10 @@ class Customers extends StatelessWidget {
                                       onTap: () {},
                                     ),
                                   ],
-                                  actionPane: SlidableDrawerActionPane(),
+                                  actionPane: const SlidableDrawerActionPane(),
                                 ),
                               )
-                            : SizedBox.shrink();
+                            : const SizedBox.shrink();
                       }),
                   verticalSpaceSmall,
                   Padding(
@@ -124,8 +123,7 @@ class Customers extends StatelessWidget {
                         const EdgeInsets.only(left: 18.0, right: 18.0, top: 0),
                     child: BoxButton(
                       title: model.searchCustomerkey.isNotEmpty
-                          ? 'Create Customer ' +
-                              '"' +
+                          ? 'Create Customer ' '"' +
                               model.searchCustomerkey +
                               '"'
                           : 'Add Customer',
@@ -145,18 +143,16 @@ class Customers extends StatelessWidget {
   void _showModalBottomSheet(BuildContext context, int orderId, searchedKey) {
     showModalBottomSheet(
       context: context,
-      shape: RoundedRectangleBorder(
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
       ),
       isScrollControlled: true,
       builder: (BuildContext context) {
         return Padding(
           padding: MediaQuery.of(context).viewInsets,
-          child: Container(
-            child: AddCustomer(
-              orderId: orderId,
-              searchedKey: searchedKey,
-            ),
+          child: AddCustomer(
+            orderId: orderId,
+            searchedKey: searchedKey,
           ),
         );
       },

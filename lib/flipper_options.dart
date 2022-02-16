@@ -3,10 +3,11 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+
+import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart' show timeDilation;
 import 'package:flutter/services.dart' show SystemUiOverlayStyle;
-import 'package:flipper_services/constants.dart';
 
 enum CustomTextDirection {
   localeBased,
@@ -168,7 +169,10 @@ class FlipperOptions {
 
 // Applies text FlipperOptions to a widget
 class ApplyTextOptions extends StatelessWidget {
-  const ApplyTextOptions({required this.child});
+  const ApplyTextOptions({
+    Key? key,
+    required this.child,
+  }) : super(key: key);
 
   final Widget child;
 
