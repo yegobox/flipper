@@ -57,6 +57,7 @@ dependencies:
   flutter_riverpod: any
   google_ui: ^2.7.0
   flipper_data_table: 1.0.0-dev.2
+  provider: ^6.0.2
 
 dev_dependencies:
   flutter_test:

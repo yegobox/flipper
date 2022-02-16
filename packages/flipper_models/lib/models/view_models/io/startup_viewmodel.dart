@@ -1,17 +1,15 @@
 library flipper_models;
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flipper_rw/gate.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_routing/routes.locator.dart';
 import 'package:flipper_routing/routes.logger.dart';
-import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_models/models/models.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:universal_platform/universal_platform.dart';
-import 'package:go_router/go_router.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
 final isWeb = UniversalPlatform.isWeb;
@@ -22,7 +20,7 @@ class StartUpViewModel extends BaseViewModel {
   final log = getLogger('StartUpViewModel');
 
   Future<void> runStartupLogic(
-      {bool? invokeLogin, required BuildContext context}) async {
+      {bool? invokeLogin, required LoginInfo loginInfo}) async {
     if (!appService.isLoggedIn()) {
       await login(invokeLogin);
     }
@@ -45,7 +43,8 @@ class StartUpViewModel extends BaseViewModel {
           );
         } catch (e) {
           if (e is InternalServerError) {
-            GoRouter.of(context).go(Routes.login);
+            // GoRouter.of(context).go(Routes.login);
+            loginInfo.isLoggedIn = false;
           }
         }
       }
@@ -75,13 +74,15 @@ class StartUpViewModel extends BaseViewModel {
                 .getBusinessFromOnlineGivenId(
                     id: tenant.branches[0].fbusinessId!);
             navigateToDashboard(
-                business: business,
-                branch: tenant.branches[0],
-                context: context);
+              business: business,
+              branch: tenant.branches[0],
+              loginInfo: loginInfo,
+            );
             return;
           } else if (tenant.branches.length > 1) {
             /// TODOwhen we support multiple branches we need to add this logic
-            GoRouter.of(context).go(Routes.switchBranch);
+            // GoRouter.of(context).go(Routes.switchBranch);
+            loginInfo.switchBranch = true;
           }
         }
 
@@ -92,8 +93,9 @@ class StartUpViewModel extends BaseViewModel {
         /// in local storage.
         /// first get the location
         String? countryName = await ProxyService.country.getCountryName();
-        GoRouter.of(context).go(Routes.signup + "/$countryName");
-
+        // GoRouter.of(context).go(Routes.signup + "/$countryName");
+        loginInfo.needSignUp = true;
+        loginInfo.country = countryName!;
         return;
       }
 
@@ -109,7 +111,10 @@ class StartUpViewModel extends BaseViewModel {
       /// follow algorithm there
       try {
         Business business = ProxyService.api.getBusiness();
-        navigateToDashboard(business: business, context: context);
+        navigateToDashboard(
+          business: business,
+          loginInfo: loginInfo,
+        );
       } catch (e) {
         log.e(e);
       }
@@ -118,9 +123,11 @@ class StartUpViewModel extends BaseViewModel {
           await (Connectivity().checkConnectivity());
       if (connectivityResult == ConnectivityResult.mobile ||
           connectivityResult == ConnectivityResult.wifi) {
-        GoRouter.of(context).pushNamed('login');
+        // GoRouter.of(context).pushNamed('login');
+        loginInfo.isLoggedIn = false;
       } else {
-        GoRouter.of(context).pushNamed('nonetwork');
+        // GoRouter.of(context).pushNamed('nonetwork');
+        loginInfo.noNetwrok = true;
       }
     }
   }
@@ -143,7 +150,7 @@ class StartUpViewModel extends BaseViewModel {
   void navigateToDashboard(
       {required Business business,
       BranchSync? branch,
-      required BuildContext context}) {
+      required LoginInfo loginInfo}) {
     if (branch != null) {
       ProxyService.box.write(key: 'branchId', value: branch.id);
     }
@@ -161,11 +168,11 @@ class StartUpViewModel extends BaseViewModel {
       case 'social':
         //_navigationService.replaceWith(Routes.chat);
         // _navigationService.replaceWith(Routes.home);
-        GoRouter.of(context).pushNamed('home');
+        loginInfo.isLoggedIn = true;
         break;
       default:
         // _navigationService.replaceWith(Routes.home);
-        GoRouter.of(context).pushNamed('home');
+        loginInfo.isLoggedIn = true;
     }
   }
 

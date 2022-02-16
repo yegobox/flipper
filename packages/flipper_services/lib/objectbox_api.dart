@@ -1165,7 +1165,6 @@ class ObjectBoxApi extends MobileUpload implements Api {
         value: userPhone,
       );
       // get some data required by the app
-      getLocalBranches(businessId: ProxyService.box.getBranchId()!);
       getLocalOrOnlineBusiness(userId: ProxyService.box.getUserId()!);
       return syncFromJson(response.body);
     } else {

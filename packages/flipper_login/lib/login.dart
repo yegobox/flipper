@@ -2,7 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_login/config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterfire_ui/auth.dart';
-import 'package:flutterfire_ui/i10n.dart';
 import 'package:flipper_dashboard/startup_view.dart';
 import 'decorations.dart';
 import 'package:flipper_services/proxy.dart';
@@ -16,12 +15,6 @@ final isWeb = UniversalPlatform.isWeb;
 // Overrides a label for en locale
 // To add localization for a custom language follow the guide here:
 // https://flutter.dev/docs/development/accessibility-and-localization/internationalization#an-alternative-class-for-the-apps-localized-resources
-class LabelOverrides extends DefaultLocalizations {
-  const LabelOverrides();
-
-  @override
-  String get emailInputLabel => 'Enter your email';
-}
 
 final emailLinkProviderConfig = EmailLinkProviderConfiguration(
   actionCodeSettings: ActionCodeSettings(
