@@ -97,7 +97,7 @@ class _GateState extends State<Gate> {
         final bool needSwitchBranch = loginInfo.switchBranch;
 
         final bool isLogging = state.location == '/login';
-        if (noNetwrok && state.location != '/boot') {
+        if (noNetwrok && !isLogging) {
           return "/nonetwork";
         }
         if (needSwitchBranch && loggedIn) {
