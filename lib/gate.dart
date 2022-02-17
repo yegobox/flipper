@@ -45,14 +45,12 @@ class LoginInfo extends ChangeNotifier {
   set isLoggedIn(bool value) {
     _isLoggedIn = value;
     notifyListeners();
-    notifyListeners();
   }
 
   var _needSignUp = false;
   bool get needSignUp => _needSignUp;
   set needSignUp(bool value) {
     _needSignUp = value;
-    notifyListeners();
     notifyListeners();
   }
 
@@ -61,7 +59,6 @@ class LoginInfo extends ChangeNotifier {
   set switchBranch(bool value) {
     _switchBranch = value;
     notifyListeners();
-    notifyListeners();
   }
 
   var _country = "";
@@ -69,14 +66,12 @@ class LoginInfo extends ChangeNotifier {
   set country(String value) {
     _country = value;
     notifyListeners();
-    notifyListeners();
   }
 
   var _noNet = false;
   bool get noNet => _noNet;
   set noNet(bool value) {
     _noNet = value;
-    notifyListeners();
     notifyListeners();
   }
 }
