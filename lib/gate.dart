@@ -99,19 +99,26 @@ class _GateState extends State<Gate> {
       redirect: (state) {
         final bool loggedIn = loginInfo.isLoggedIn;
         final bool needSignUp = loginInfo.needSignUp;
+        final String country = loginInfo.country;
         final bool noNet = loginInfo.noNet;
         final bool needSwitchBranch = loginInfo.switchBranch;
         final bool isLogging = state.subloc == '/login';
         final bool isArleadyHome = state.subloc == '/home';
         final bool isArleadyNoNet = state.subloc == '/nonetwork';
+        final bool isArleadySignup =
+            state.subloc == Routes.signup + "/$country";
         if (noNet && isLogging) {
           return "/nonetwork";
         }
         if (needSwitchBranch && loggedIn) {
           return "/switchbranch";
         }
-        if (loggedIn && needSignUp) {
-          return Routes.signup;
+        if (loggedIn &&
+            needSignUp &&
+            !isArleadySignup &&
+            !isArleadyHome &&
+            !isLogging) {
+          return Routes.signup + "/$country";
         }
         if (!loggedIn && !isLogging && !isArleadyNoNet) {
           return Routes.login;
@@ -119,10 +126,10 @@ class _GateState extends State<Gate> {
         // TODOif we don't check if we are aready on home page, the goRouter
         // will throw a loop error since we may push the page to the stack
         // more than once https://github.com/csells/go_router/discussions/364
-        if (loggedIn && !isArleadyHome) {
+        if (loggedIn && !isArleadyHome && !needSignUp) {
           return Routes.home;
         }
-        if (loggedIn && !isLogging && !isArleadyHome) {
+        if (loggedIn && !isLogging && !isArleadyHome && !needSignUp) {
           return Routes.home;
         }
         return null;

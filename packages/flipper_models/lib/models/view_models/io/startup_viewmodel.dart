@@ -21,6 +21,7 @@ class StartUpViewModel extends BaseViewModel {
 
   Future<void> runStartupLogic(
       {bool? invokeLogin, required LoginInfo loginInfo}) async {
+    String? countryName = await ProxyService.country.getCountryName();
     if (!appService.isLoggedIn()) {
       await login(invokeLogin);
     }
@@ -43,10 +44,14 @@ class StartUpViewModel extends BaseViewModel {
           );
         } catch (e) {
           if (e is InternalServerError) {
-            // GoRouter.of(context).go(Routes.login);
             loginInfo.isLoggedIn = false;
           }
         }
+      } else if (e is NotFoundException) {
+        loginInfo.needSignUp = true;
+        loginInfo.country = countryName!;
+        loginInfo.isLoggedIn = true;
+        return;
       }
     }
 
@@ -93,7 +98,7 @@ class StartUpViewModel extends BaseViewModel {
         /// first fetch related business and update all related fields such us, userid,businessid,branchId
         /// in local storage.
         /// first get the location
-        String? countryName = await ProxyService.country.getCountryName();
+
         // GoRouter.of(context).go(Routes.signup + "/$countryName");
         loginInfo.needSignUp = true;
         loginInfo.country = countryName!;
@@ -111,7 +116,11 @@ class StartUpViewModel extends BaseViewModel {
       /// but backing up the database will be suggested,
       /// follow algorithm there
       try {
-        Business business = ProxyService.api.getBusiness();
+        Business? business = ProxyService.api.getBusiness();
+        if (business == null) {
+          loginInfo.needSignUp = true;
+          return;
+        }
         navigateToDashboard(
           business: business,
           loginInfo: loginInfo,

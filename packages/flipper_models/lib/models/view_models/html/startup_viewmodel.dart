@@ -113,8 +113,8 @@ class StartUpViewModel extends BaseViewModel {
       /// but backing up the database will be suggested,
       /// follow algorithm there
       try {
-        Business business = ProxyService.api.getBusiness();
-        navigateToDashboard(business: business, context: context);
+        Business? business = ProxyService.api.getBusiness();
+        navigateToDashboard(business: business!, context: context);
       } catch (e) {
         log.e(e);
       }

@@ -206,7 +206,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  Business getBusiness() {
+  Business? getBusiness() {
     // TODO: implement getBusiness
     throw UnimplementedError();
   }

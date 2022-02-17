@@ -123,8 +123,8 @@ class SettingViewModel extends ReactiveViewModel {
         await ProxyService.api
             .createGoogleSheetDoc(email: kSetting.settings!.email);
 
-        Business business = ProxyService.api.getBusiness();
-        business.email = kSetting.settings!.email;
+        Business? business = ProxyService.api.getBusiness();
+        business!.email = kSetting.settings!.email;
         await ProxyService.api.updateBusiness(
           id: business.id,
           business: business.toJson(),
@@ -151,9 +151,9 @@ class SettingViewModel extends ReactiveViewModel {
         callback(1);
       } else {
         /// the
-        Business business = ProxyService.api.getBusiness();
+        Business? business = ProxyService.api.getBusiness();
         ProxyService.api.enableAttendance(
-            businessId: business.id, email: kSetting.settings!.email);
+            businessId: business!.id, email: kSetting.settings!.email);
       }
     } else {
       callback(2);
