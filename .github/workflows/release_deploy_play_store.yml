@@ -29,9 +29,9 @@ jobs:
           channel: "stable"
       # pause test on server for now
       - run: git submodule update --init
-      - run: dart pub global activate melos
-      - name: "Run Melos bootstrap"
-        run: melos bootstrap
+      # - run: dart pub global activate melos
+      # - name: "Run Melos bootstrap"
+      #   run: melos bootstrap
       # - name: Configure Missing files
       #   run: |
       #     echo "$INDEX" >> web/index.html
@@ -88,18 +88,12 @@ jobs:
           echo "keyAlias=$KEYSTORE_KEY_ALIAS" >> key.properties
           echo "storePassword=$KEYSTORE_STORE_PASSWORD" >> key.properties
           echo "keyPassword=$KEYSTORE_KEY_PASSWORD" >> key.properties
-          echo "$INDEX" > web/index.html
-          echo "$CONFIGDART" > packages/flipper_login/config.dart
-          echo "$FIREBASEOPTIONS" > lib/firebase_options.dart
         env:
           PLAY_STORE_UPLOAD_KEY: ${{ secrets.PLAY_STORE_UPLOAD_KEY }}
           KEYSTORE_KEY_ALIAS: ${{ secrets.KEYSTORE_KEY_ALIAS }}
           KEYSTORE_KEY_PASSWORD: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
           KEYSTORE_STORE_PASSWORD: ${{ secrets.KEYSTORE_STORE_PASSWORD }}
           GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
-          INDEX: ${{ secrets.INDEX }}
-          CONFIGDART: ${{ secrets.CONFIGDART }}
-          FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
         working-directory: android
 
       # Build and deploy with Fastlane (by default, to beta track) 🚀.
