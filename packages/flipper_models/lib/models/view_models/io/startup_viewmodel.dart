@@ -73,6 +73,7 @@ class StartUpViewModel extends BaseViewModel {
             Business business = await ProxyService.api
                 .getBusinessFromOnlineGivenId(
                     id: tenant.branches[0].fbusinessId!);
+
             navigateToDashboard(
               business: business,
               branch: tenant.branches[0],
@@ -123,11 +124,9 @@ class StartUpViewModel extends BaseViewModel {
           await (Connectivity().checkConnectivity());
       if (connectivityResult == ConnectivityResult.mobile ||
           connectivityResult == ConnectivityResult.wifi) {
-        // GoRouter.of(context).pushNamed('login');
-        loginInfo.isLoggedIn = false;
+        loginInfo.noNet = false;
       } else {
-        // GoRouter.of(context).pushNamed('nonetwork');
-        loginInfo.noNetwrok = true;
+        loginInfo.noNet = true;
       }
     }
   }
@@ -184,6 +183,13 @@ class StartUpViewModel extends BaseViewModel {
 
     businesses =
         await ProxyService.api.getLocalOrOnlineBusiness(userId: userId);
+    if (businesses.isNotEmpty) {
+      ProxyService.appService.setBusiness(businesses: businesses);
+      // get local or online branches
+      List<BranchSync> branches =
+          await ProxyService.api.getLocalBranches(businessId: businesses[0].id);
+      ProxyService.box.write(key: 'branchId', value: branches[0].id);
+    }
 
     return businesses;
   }

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flipper_rw/gate.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'package:flipper_models/models/models.dart';
@@ -262,7 +263,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
     ProxyService.box.remove(key: 'businessId');
 
     FirebaseAuth.instance.signOut();
-
+    loginInfo.isLoggedIn = false;
     return true;
   }
 

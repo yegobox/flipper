@@ -40,10 +40,11 @@ import 'package:flipper_routing/finance_app.dart';
 import 'package:go_router/go_router.dart';
 
 class LoginInfo extends ChangeNotifier {
-  var _isLoggedIn = true;
+  var _isLoggedIn = false;
   bool get isLoggedIn => _isLoggedIn;
   set isLoggedIn(bool value) {
     _isLoggedIn = value;
+    notifyListeners();
     notifyListeners();
   }
 
@@ -52,12 +53,14 @@ class LoginInfo extends ChangeNotifier {
   set needSignUp(bool value) {
     _needSignUp = value;
     notifyListeners();
+    notifyListeners();
   }
 
   var _switchBranch = false;
   bool get switchBranch => _switchBranch;
   set switchBranch(bool value) {
     _switchBranch = value;
+    notifyListeners();
     notifyListeners();
   }
 
@@ -66,15 +69,19 @@ class LoginInfo extends ChangeNotifier {
   set country(String value) {
     _country = value;
     notifyListeners();
+    notifyListeners();
   }
 
-  var _noNetwrok = false;
-  bool get noNetwrok => _noNetwrok;
-  set noNetwrok(bool value) {
-    _noNetwrok = value;
+  var _noNet = false;
+  bool get noNet => _noNet;
+  set noNet(bool value) {
+    _noNet = value;
+    notifyListeners();
     notifyListeners();
   }
 }
+
+final loginInfo = LoginInfo();
 
 class Gate extends StatefulWidget {
   const Gate({Key? key}) : super(key: key);
@@ -86,18 +93,18 @@ class Gate extends StatefulWidget {
 class _GateState extends State<Gate> {
   @override
   Widget build(BuildContext context) {
-    final loginInfo = LoginInfo();
     final router = GoRouter(
       initialLocation: Routes.boot,
       refreshListenable: loginInfo,
       redirect: (state) {
         final bool loggedIn = loginInfo.isLoggedIn;
         final bool needSignUp = loginInfo.needSignUp;
-        final bool noNetwrok = loginInfo.noNetwrok;
+        final bool noNet = loginInfo.noNet;
         final bool needSwitchBranch = loginInfo.switchBranch;
-
-        final bool isLogging = state.location == '/login';
-        if (noNetwrok && !isLogging) {
+        final bool isLogging = state.subloc == '/login';
+        final bool isArleadyHome = state.subloc == '/home';
+        final bool isArleadyNoNet = state.subloc == '/nonetwork';
+        if (noNet && isLogging) {
           return "/nonetwork";
         }
         if (needSwitchBranch && loggedIn) {
@@ -106,13 +113,18 @@ class _GateState extends State<Gate> {
         if (loggedIn && needSignUp) {
           return Routes.signup;
         }
-        if (loggedIn && !isLogging) {
-          return Routes.home;
-        }
-        if (!loggedIn && !isLogging) {
+        if (!loggedIn && !isLogging && !isArleadyNoNet) {
           return Routes.login;
         }
-
+        // TODOif we don't check if we are aready on home page, the goRouter
+        // will throw a loop error since we may push the page to the stack
+        // more than once https://github.com/csells/go_router/discussions/364
+        if (loggedIn && !isArleadyHome) {
+          return Routes.home;
+        }
+        if (loggedIn && !isLogging && !isArleadyHome) {
+          return Routes.home;
+        }
         return null;
       },
       routes: [

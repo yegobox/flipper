@@ -12,7 +12,6 @@ class StartUpView extends StatelessWidget {
   final bool? invokeLogin;
   @override
   Widget build(BuildContext context) {
-    final loginInfo = LoginInfo();
     return ViewModelBuilder<StartUpViewModel>.reactive(
       fireOnModelReadyOnce: true,
       onModelReady: (model) =>
@@ -22,12 +21,13 @@ class StartUpView extends StatelessWidget {
       viewModelBuilder: () => StartUpViewModel(),
       builder: (context, model, child) {
         return ChangeNotifierProvider<LoginInfo>.value(
-            value: loginInfo,
-            child: const Scaffold(
-              body: Center(
-                child: CircularProgressIndicator(),
-              ),
-            ));
+          value: loginInfo,
+          child: const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          ),
+        );
       },
     );
   }
