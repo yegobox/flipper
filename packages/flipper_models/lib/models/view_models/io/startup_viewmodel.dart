@@ -1,17 +1,15 @@
 library flipper_models;
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flipper_rw/gate.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_routing/routes.locator.dart';
 import 'package:flipper_routing/routes.logger.dart';
-import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_models/models/models.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:universal_platform/universal_platform.dart';
-import 'package:go_router/go_router.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
 final isWeb = UniversalPlatform.isWeb;
@@ -22,7 +20,8 @@ class StartUpViewModel extends BaseViewModel {
   final log = getLogger('StartUpViewModel');
 
   Future<void> runStartupLogic(
-      {bool? invokeLogin, required BuildContext context}) async {
+      {bool? invokeLogin, required LoginInfo loginInfo}) async {
+    String? countryName = await ProxyService.country.getCountryName();
     if (!appService.isLoggedIn()) {
       await login(invokeLogin);
     }
@@ -45,9 +44,14 @@ class StartUpViewModel extends BaseViewModel {
           );
         } catch (e) {
           if (e is InternalServerError) {
-            GoRouter.of(context).go(Routes.login);
+            loginInfo.isLoggedIn = false;
           }
         }
+      } else if (e is NotFoundException) {
+        loginInfo.needSignUp = true;
+        loginInfo.country = countryName!;
+        loginInfo.isLoggedIn = true;
+        return;
       }
     }
 
@@ -74,14 +78,17 @@ class StartUpViewModel extends BaseViewModel {
             Business business = await ProxyService.api
                 .getBusinessFromOnlineGivenId(
                     id: tenant.branches[0].fbusinessId!);
+
             navigateToDashboard(
-                business: business,
-                branch: tenant.branches[0],
-                context: context);
+              business: business,
+              branch: tenant.branches[0],
+              loginInfo: loginInfo,
+            );
             return;
           } else if (tenant.branches.length > 1) {
             /// TODOwhen we support multiple branches we need to add this logic
-            GoRouter.of(context).go(Routes.switchBranch);
+            // GoRouter.of(context).go(Routes.switchBranch);
+            loginInfo.switchBranch = true;
           }
         }
 
@@ -91,9 +98,10 @@ class StartUpViewModel extends BaseViewModel {
         /// first fetch related business and update all related fields such us, userid,businessid,branchId
         /// in local storage.
         /// first get the location
-        String? countryName = await ProxyService.country.getCountryName();
-        GoRouter.of(context).go(Routes.signup + "/$countryName");
 
+        // GoRouter.of(context).go(Routes.signup + "/$countryName");
+        loginInfo.needSignUp = true;
+        loginInfo.country = countryName!;
         return;
       }
 
@@ -108,8 +116,15 @@ class StartUpViewModel extends BaseViewModel {
       /// but backing up the database will be suggested,
       /// follow algorithm there
       try {
-        Business business = ProxyService.api.getBusiness();
-        navigateToDashboard(business: business, context: context);
+        Business? business = ProxyService.api.getBusiness();
+        if (business == null) {
+          loginInfo.needSignUp = true;
+          return;
+        }
+        navigateToDashboard(
+          business: business,
+          loginInfo: loginInfo,
+        );
       } catch (e) {
         log.e(e);
       }
@@ -118,9 +133,9 @@ class StartUpViewModel extends BaseViewModel {
           await (Connectivity().checkConnectivity());
       if (connectivityResult == ConnectivityResult.mobile ||
           connectivityResult == ConnectivityResult.wifi) {
-        GoRouter.of(context).pushNamed('login');
+        loginInfo.noNet = false;
       } else {
-        GoRouter.of(context).pushNamed('nonetwork');
+        loginInfo.noNet = true;
       }
     }
   }
@@ -143,7 +158,7 @@ class StartUpViewModel extends BaseViewModel {
   void navigateToDashboard(
       {required Business business,
       BranchSync? branch,
-      required BuildContext context}) {
+      required LoginInfo loginInfo}) {
     if (branch != null) {
       ProxyService.box.write(key: 'branchId', value: branch.id);
     }
@@ -161,11 +176,11 @@ class StartUpViewModel extends BaseViewModel {
       case 'social':
         //_navigationService.replaceWith(Routes.chat);
         // _navigationService.replaceWith(Routes.home);
-        GoRouter.of(context).pushNamed('home');
+        loginInfo.isLoggedIn = true;
         break;
       default:
         // _navigationService.replaceWith(Routes.home);
-        GoRouter.of(context).pushNamed('home');
+        loginInfo.isLoggedIn = true;
     }
   }
 
@@ -177,6 +192,13 @@ class StartUpViewModel extends BaseViewModel {
 
     businesses =
         await ProxyService.api.getLocalOrOnlineBusiness(userId: userId);
+    if (businesses.isNotEmpty) {
+      ProxyService.appService.setBusiness(businesses: businesses);
+      // get local or online branches
+      List<BranchSync> branches =
+          await ProxyService.api.getLocalBranches(businessId: businesses[0].id);
+      ProxyService.box.write(key: 'branchId', value: branches[0].id);
+    }
 
     return businesses;
   }

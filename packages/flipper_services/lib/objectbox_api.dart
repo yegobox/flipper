@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flipper_rw/gate.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'package:flipper_models/models/models.dart';
@@ -262,7 +263,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
     ProxyService.box.remove(key: 'businessId');
 
     FirebaseAuth.instance.signOut();
-
+    loginInfo.isLoggedIn = false;
     return true;
   }
 
@@ -768,7 +769,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
       {required double amount, required phoneNumber}) async {
     String userId = ProxyService.box.read(key: 'userId');
     var headers = {'Content-Type': 'application/x-www-form-urlencoded'};
-    String businessName = getBusiness().name;
+    String businessName = getBusiness()!.name;
     var request =
         http.Request('POST', Uri.parse('https://flipper.yegobox.com/pay'));
     request.bodyFields = {
@@ -1165,7 +1166,6 @@ class ObjectBoxApi extends MobileUpload implements Api {
         value: userPhone,
       );
       // get some data required by the app
-      getLocalBranches(businessId: ProxyService.box.getBranchId()!);
       getLocalOrOnlineBusiness(userId: ProxyService.box.getUserId()!);
       return syncFromJson(response.body);
     } else {
@@ -1195,12 +1195,13 @@ class ObjectBoxApi extends MobileUpload implements Api {
   late StreamSubscription<Message> messageSubscription;
 
   @override
-  Business getBusiness() {
+  Business? getBusiness() {
     String? userId = ProxyService.box.read(key: 'userId');
     return store
         .box<Business>()
-        .getAll()
-        .firstWhere((unit) => unit.userId == userId);
+        .query(Business_.userId.equals(userId!))
+        .build()
+        .findFirst();
   }
 
   late StreamSubscription<Business> userSubs;
@@ -1376,7 +1377,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
   Future<void> createGoogleSheetDoc({required String email}) async {
     // TODOre-work on this until it work 100%;
     Business? business = getBusiness();
-    String docName = business.name + '- Report';
+    String docName = business!.name + '- Report';
 
     final response = await client.post(
         Uri.parse("$apihub/v2/api/createSheetDocument"),
@@ -1722,6 +1723,9 @@ class ObjectBoxApi extends MobileUpload implements Api {
     if (response.statusCode == 401) {
       throw SessionException(term: "session expired");
     }
+    if (response.statusCode == 404) {
+      throw NotFoundException(term: "Business not found");
+    }
     final box = store.box<Business>();
     Business? business = box.get(sbusinessFromJson(response.body).id);
     if (business == null) {
@@ -1746,10 +1750,13 @@ class ObjectBoxApi extends MobileUpload implements Api {
         .getAll()
         .where((business) => business.userId == userId)
         .toList();
-    // businesses = syncLocalWithSyncedModel(businesses, userId);
 
     if (businesses.isEmpty) {
-      return await getOnlineBusiness(userId: userId);
+      try {
+        return await getOnlineBusiness(userId: userId);
+      } catch (e) {
+        rethrow;
+      }
     } else {
       return businesses;
     }

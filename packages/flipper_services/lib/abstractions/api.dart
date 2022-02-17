@@ -83,7 +83,7 @@ abstract class Api<T> {
   Stream<List<Business>> contacts();
   Future<List<Business>> getContacts();
 
-  Business getBusiness();
+  Business? getBusiness();
   CustomerSync? addCustomer({required Map customer, required int orderId});
   Future assingOrderToCustomer({required int customerId, required int orderId});
   Stream<CustomerSync?> getCustomer({required String key});

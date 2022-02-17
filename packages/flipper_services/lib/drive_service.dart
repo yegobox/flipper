@@ -98,8 +98,8 @@ class GoogleDrive {
   Future<http.Client> backUpNow() async {
     Directory dir = await getApplicationDocumentsDirectory();
     File file = File(path.context.canonicalize(dir.path + '/db_1/data.mdb'));
-    Business business = ProxyService.api.getBusiness();
-    if (business.backUpEnabled!) {
+    Business? business = ProxyService.api.getBusiness();
+    if (business!.backUpEnabled!) {
       final http = await silentLogin();
       await upload(file);
       await updateBusiness(business);
@@ -157,8 +157,8 @@ class GoogleDrive {
     log.w("Result ${response.toJson()}");
     FileUploaded fileUploaded = FileUploaded.fromJson(response.toJson());
     //patch a business with lst backup fileId.
-    Business business = ProxyService.api.getBusiness();
-    business.backupFileId = fileUploaded.id;
+    Business? business = ProxyService.api.getBusiness();
+    business!.backupFileId = fileUploaded.id;
     await ProxyService.api
         .updateBusiness(id: business.id, business: business.toJson());
     ProxyService.api.update(

@@ -21,3 +21,11 @@ class InternalServerError implements Exception {
 
   InternalServerError({required this.term});
 }
+
+class NotFoundException implements Exception {
+  String term;
+
+  String errMsg() => 'SessionException: $term';
+
+  NotFoundException({required this.term});
+}

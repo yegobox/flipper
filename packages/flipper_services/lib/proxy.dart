@@ -1,3 +1,4 @@
+import 'package:flipper_rw/gate.dart';
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
 import 'package:flipper_services/abstractions/analytic.dart';
 import 'package:flipper_services/abstractions/printer.dart';
@@ -93,5 +94,6 @@ abstract class ProxyService {
   static SyncApiInterface get syncApi => _syncApi;
   static SystemTime get systemTime => _systemTime;
   static BillingService get billing => _billingService;
+  // static LoginInfo get login => locator<LoginInfo>();
   // _analytic
 }

@@ -1,3 +1,5 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flipper_rw/gate.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_ui/google_ui.dart';
@@ -13,8 +15,8 @@ class NoNet extends StatelessWidget {
         title: "No internet",
         subtitle:
             "Can't connect to the internet.\nPlease check your internet connection",
-        onPressed: () {
-          GoRouter.of(context).pushNamed("boot");
+        onPressed: () async {
+          GoRouter.of(context).go("/login");
         },
       ),
     );

@@ -63,7 +63,7 @@ class CronService {
       token = await FirebaseMessaging.instance.getToken();
       log.e("DeviceToken:" + token!);
 
-      Map updatedBusiness = business.toJson();
+      Map updatedBusiness = business!.toJson();
       updatedBusiness['deviceToken'] = token.toString();
       ProxyService.firestore
           .saveTokenToDatabase(token: token, business: updatedBusiness);
@@ -79,9 +79,9 @@ class CronService {
     // });
 
     /// backup the user db every day
-    cron.schedule(Schedule.parse('0 0 * * *'), () async {
-      Business business = await ProxyService.api.getBusiness();
-      if (business.backUpEnabled!) {
+    cron.schedule(Schedule.parse('0 0 * * *'), () {
+      Business? business = ProxyService.api.getBusiness();
+      if (business!.backUpEnabled!) {
         final drive = GoogleDrive();
         drive.backUpNow();
       }

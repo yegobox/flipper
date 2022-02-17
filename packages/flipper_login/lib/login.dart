@@ -1,8 +1,9 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_login/config.dart';
+import 'package:flipper_rw/gate.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterfire_ui/auth.dart';
-import 'package:flutterfire_ui/i10n.dart';
 import 'package:flipper_dashboard/startup_view.dart';
 import 'decorations.dart';
 import 'package:flipper_services/proxy.dart';
@@ -16,12 +17,6 @@ final isWeb = UniversalPlatform.isWeb;
 // Overrides a label for en locale
 // To add localization for a custom language follow the guide here:
 // https://flutter.dev/docs/development/accessibility-and-localization/internationalization#an-alternative-class-for-the-apps-localized-resources
-class LabelOverrides extends DefaultLocalizations {
-  const LabelOverrides();
-
-  @override
-  String get emailInputLabel => 'Enter your email';
-}
 
 final emailLinkProviderConfig = EmailLinkProviderConfiguration(
   actionCodeSettings: ActionCodeSettings(
@@ -58,11 +53,33 @@ class LoginView extends StatefulWidget {
 class _LoginViewState extends State<LoginView> {
   final log = getLogger('LoginView');
 
+  Future<void> isNetAvailable() async {
+    ConnectivityResult connectivityResult =
+        await (Connectivity().checkConnectivity());
+    if (connectivityResult == ConnectivityResult.mobile ||
+        connectivityResult == ConnectivityResult.wifi) {
+      // GoRouter.of(context).pushNamed('login');
+      loginInfo.noNet = false;
+    } else {
+      loginInfo.noNet = true;
+    }
+  }
+
   @override
   void initState() {
     ProxyService.remoteConfig.config();
     ProxyService.remoteConfig.setDefault();
     ProxyService.remoteConfig.fetch();
+    isNetAvailable();
+    Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
+      // Got a new connectivity status!
+      if (result == ConnectivityResult.mobile ||
+          result == ConnectivityResult.wifi) {
+        loginInfo.noNet = false;
+      } else {
+        loginInfo.noNet = true;
+      }
+    });
     super.initState();
   }
 

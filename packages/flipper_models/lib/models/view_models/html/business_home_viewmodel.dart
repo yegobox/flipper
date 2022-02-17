@@ -471,9 +471,9 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   /// the UI can notify the user based on the return value
   void restoreBackUp(Function callback) async {
     if (ProxyService.remoteConfig.isBackupAvailable()) {
-      Business business = ProxyService.api.getBusiness();
+      Business? business = ProxyService.api.getBusiness();
       final drive = GoogleDrive();
-      if (business.backupFileId != null) {
+      if (business!.backupFileId != null) {
         await drive.downloadGoogleDriveFile('data', business.backupFileId!);
         callback(1);
       } else {
