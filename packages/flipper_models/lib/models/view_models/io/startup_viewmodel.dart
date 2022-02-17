@@ -20,7 +20,7 @@ class StartUpViewModel extends BaseViewModel {
   final log = getLogger('StartUpViewModel');
 
   Future<void> runStartupLogic(
-      {bool? invokeLogin, required LoginInfo loginInfo}) async {
+      {required bool invokeLogin, required LoginInfo loginInfo}) async {
     String? countryName = await ProxyService.country.getCountryName();
     if (!appService.isLoggedIn()) {
       await login(invokeLogin);
