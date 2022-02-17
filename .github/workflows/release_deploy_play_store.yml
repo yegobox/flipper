@@ -16,8 +16,9 @@ on:
 jobs:
   testing:
     name: Unit Testing
+    runs-on: ubuntu-18.04
     # needs: [integrationTest]
-    runs-on: windows-latest
+    # runs-on: windows-latest
     steps:
       - uses: actions/checkout@v1
       - uses: actions/setup-java@v1
