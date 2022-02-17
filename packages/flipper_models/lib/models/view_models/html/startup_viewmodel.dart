@@ -4,7 +4,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_routing/routes.locator.dart';
 import 'package:flipper_routing/routes.logger.dart';
-import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_models/models/models.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/cupertino.dart';
@@ -13,6 +12,7 @@ import 'package:flipper_services/app_service.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:go_router/go_router.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flipper_rw/gate.dart';
 
 final isWeb = UniversalPlatform.isWeb;
 
@@ -22,7 +22,7 @@ class StartUpViewModel extends BaseViewModel {
   final log = getLogger('StartUpViewModel');
 
   Future<void> runStartupLogic(
-      {bool? invokeLogin, required BuildContext context}) async {
+      {required bool invokeLogin, required LoginInfo loginInfo}) async {
     if (!appService.isLoggedIn()) {
       await login(invokeLogin);
     }
@@ -45,7 +45,7 @@ class StartUpViewModel extends BaseViewModel {
           );
         } catch (e) {
           if (e is InternalServerError) {
-            GoRouter.of(context).go(Routes.login);
+            // GoRouter.of(context).go(Routes.login);
           }
         }
       }
@@ -86,7 +86,7 @@ class StartUpViewModel extends BaseViewModel {
             // } else if (tenant.branches.length > 1) {
           } else if (0 > 1) {
             /// TODOwhen we support multiple branches we need to add this logic
-            GoRouter.of(context).go(Routes.switchBranch);
+            // GoRouter.of(context).go(Routes.switchBranch);
           }
         }
 
@@ -97,7 +97,7 @@ class StartUpViewModel extends BaseViewModel {
         /// in local storage.
         /// first get the location
         String? countryName = await ProxyService.country.getCountryName();
-        GoRouter.of(context).go(Routes.signup + "/$countryName");
+        // GoRouter.of(context).go(Routes.signup + "/$countryName");
 
         return;
       }
@@ -114,7 +114,7 @@ class StartUpViewModel extends BaseViewModel {
       /// follow algorithm there
       try {
         Business? business = ProxyService.api.getBusiness();
-        navigateToDashboard(business: business!, context: context);
+        // navigateToDashboard(business: business!, context: context);
       } catch (e) {
         log.e(e);
       }
@@ -123,9 +123,9 @@ class StartUpViewModel extends BaseViewModel {
           await (Connectivity().checkConnectivity());
       if (connectivityResult == ConnectivityResult.mobile ||
           connectivityResult == ConnectivityResult.wifi) {
-        GoRouter.of(context).pushNamed('login');
+        // GoRouter.of(context).pushNamed('login');
       } else {
-        GoRouter.of(context).pushNamed('nonetwork');
+        // GoRouter.of(context).pushNamed('nonetwork');
       }
     }
   }
