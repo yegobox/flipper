@@ -124,7 +124,7 @@ class _GateState extends State<Gate> {
             !isRedirecting) {
           return Routes.signup + "/$country";
         }
-        if (!loggedIn && !isLogging && !isArleadyNoNet && isRedirecting) {
+        if (!loggedIn && !isLogging && !isArleadyNoNet && !isRedirecting) {
           return Routes.login;
         }
         // TODOif we don't check if we are aready on home page, the goRouter
