@@ -30,7 +30,9 @@ class RemoteConfigService implements Remote {
       'isChatAvailable': false,
       'isGoogleLoginAvailable': true,
       'isResetSettingEnabled': false,
-      'isLinkedDeviceAvailable': true
+      'isLinkedDeviceAvailable': true,
+      'isTwitterLoginAvailable': false,
+      'isFacebookLoginAvailable': false,
     });
   }
 
@@ -197,6 +199,16 @@ class RemoteConfigService implements Remote {
   bool isLinkedDeviceAvailable() {
     return remoteConfig.getBool('isLinkedDeviceAvailable');
   }
+
+  @override
+  bool isFacebookLoginAvailable() {
+    return remoteConfig.getBool('isFacebookLoginAvailable');
+  }
+
+  @override
+  bool isTwitterLoginAvailable() {
+    return remoteConfig.getBool('isTwitterLoginAvailable');
+  }
 }
 
 class RemoteConfigWindows implements Remote {
@@ -323,6 +335,16 @@ class RemoteConfigWindows implements Remote {
 
   @override
   bool isLinkedDeviceAvailable() {
+    return false;
+  }
+
+  @override
+  bool isFacebookLoginAvailable() {
+    return false;
+  }
+
+  @override
+  bool isTwitterLoginAvailable() {
     return false;
   }
 }

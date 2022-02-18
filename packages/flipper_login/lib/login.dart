@@ -140,7 +140,9 @@ class _LoginViewState extends State<LoginView> {
   }
 
   List<ProviderConfiguration> providers() {
-    if (ProxyService.remoteConfig.isGoogleLoginAvailable()) {
+    if (ProxyService.remoteConfig.isGoogleLoginAvailable() &&
+        ProxyService.remoteConfig.isFacebookLoginAvailable() &&
+        ProxyService.remoteConfig.isTwitterLoginAvailable()) {
       return const [
         PhoneProviderConfiguration(),
         // EmailProviderConfiguration(),
@@ -151,6 +153,12 @@ class _LoginViewState extends State<LoginView> {
           apiSecretKey: TWITTER_API_SECRET_KEY,
           redirectUri: TWITTER_REDIRECT_URI,
         ),
+      ];
+    } else if (ProxyService.remoteConfig.isGoogleLoginAvailable()) {
+      return const [
+        PhoneProviderConfiguration(),
+        // EmailProviderConfiguration(),
+        GoogleProviderConfiguration(clientId: GOOGLE_CLIENT_ID),
       ];
     } else {
       return const [
