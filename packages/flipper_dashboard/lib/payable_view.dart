@@ -42,6 +42,7 @@ class PayableView extends StatelessWidget {
               ),
             ),
           ),
+          
           Expanded(
             child: InkWell(
               onTap: () {

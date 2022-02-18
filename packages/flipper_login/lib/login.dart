@@ -145,6 +145,12 @@ class _LoginViewState extends State<LoginView> {
         PhoneProviderConfiguration(),
         // EmailProviderConfiguration(),
         GoogleProviderConfiguration(clientId: GOOGLE_CLIENT_ID),
+        FacebookProviderConfiguration(clientId: FACEBOOK_CLIENT_ID),
+        TwitterProviderConfiguration(
+          apiKey: TWITTER_API_KEY,
+          apiSecretKey: TWITTER_API_SECRET_KEY,
+          redirectUri: TWITTER_REDIRECT_URI,
+        ),
       ];
     } else {
       return const [

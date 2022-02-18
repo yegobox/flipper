@@ -21,6 +21,8 @@ class StartUpViewModel extends BaseViewModel {
 
   Future<void> runStartupLogic(
       {required bool invokeLogin, required LoginInfo loginInfo}) async {
+    // start by allowing app to redirect
+    loginInfo.redirecting = true;
     String? countryName = await ProxyService.country.getCountryName();
     if (!appService.isLoggedIn()) {
       await login(invokeLogin);
@@ -177,10 +179,12 @@ class StartUpViewModel extends BaseViewModel {
         //_navigationService.replaceWith(Routes.chat);
         // _navigationService.replaceWith(Routes.home);
         loginInfo.isLoggedIn = true;
+        loginInfo.redirecting = false;
         break;
       default:
         // _navigationService.replaceWith(Routes.home);
         loginInfo.isLoggedIn = true;
+        loginInfo.redirecting = false;
     }
   }
 
