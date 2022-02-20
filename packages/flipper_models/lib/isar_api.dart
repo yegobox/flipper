@@ -68,9 +68,8 @@ class IsarAPI implements Api {
   ExtendedClient client = ExtendedClient(http.Client());
   String apihub = "https://apihub.yegobox.com";
   static getDir({required String dbName}) async {
-    Directory dir = await getApplicationDocumentsDirectory();
     isar = isar = await Isar.open(
-      directory: false ? '' : dir.path,
+      directory: dbName,
       schemas: [
         OrderFSyncSchema,
       ],
@@ -78,10 +77,9 @@ class IsarAPI implements Api {
     );
   }
 
-  ObjectBoxApi({String? dbName, Directory? dir}) {
-    if (dbName != null) {
-      getDir(dbName: dbName);
-    }
+  IsarAPI({String? dbName, Directory? dir}) {
+    getDir(dbName: dbName!);
+    log.d('dbName: $dbName');
   }
 
   @override

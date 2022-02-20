@@ -1,7 +1,8 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flipper_models/isar_api.dart';
 
-// import 'package:flipper_models/models/models.dart';
 Future<void> initDb() async {
+  await IsarAPI.getDir(dbName: 'db');
   await Firebase.initializeApp();
 }
 

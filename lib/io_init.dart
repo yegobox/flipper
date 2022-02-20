@@ -1,12 +1,17 @@
 import 'dart:io';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flipper_models/isar_api.dart';
 import 'package:flipper_models/models/models.dart';
 import 'package:flutter/foundation.dart';
+import 'package:path_provider/path_provider.dart';
 import 'firebase_options.dart';
 
 Future<void> initDb() async {
   await ObjectBoxApi.getDir(dbName: 'db_1');
+  Directory dir = await getApplicationDocumentsDirectory();
+
+  await IsarAPI.getDir(dbName: dir.path);
   if (Platform.isIOS || Platform.isMacOS || Platform.isAndroid) {
     await Firebase.initializeApp();
   } else {
