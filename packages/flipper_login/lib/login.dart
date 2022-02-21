@@ -2,6 +2,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_login/config.dart';
 import 'package:flipper_rw/gate.dart';
+import 'package:flipper_services/app_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterfire_ui/auth.dart';
 import 'package:flipper_dashboard/startup_view.dart';
@@ -10,6 +11,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'desktop_login_view.dart';
+import 'package:flipper_routing/routes.locator.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 final isWeb = UniversalPlatform.isWeb;
@@ -23,15 +25,17 @@ class LoginView extends StatefulWidget {
 
 class _LoginViewState extends State<LoginView> {
   final log = getLogger('LoginView');
-
+  final appService = locator<AppService>();
   Future<void> isNetAvailable() async {
-    ConnectivityResult connectivityResult =
-        await (Connectivity().checkConnectivity());
-    if (connectivityResult == ConnectivityResult.mobile ||
-        connectivityResult == ConnectivityResult.wifi) {
-      loginInfo.noNet = false;
-    } else {
-      loginInfo.noNet = true;
+    if (!appService.isLoggedIn()) {
+      ConnectivityResult connectivityResult =
+          await (Connectivity().checkConnectivity());
+      if (connectivityResult == ConnectivityResult.mobile ||
+          connectivityResult == ConnectivityResult.wifi) {
+        loginInfo.noNet = false;
+      } else {
+        loginInfo.noNet = true;
+      }
     }
   }
 
@@ -41,15 +45,17 @@ class _LoginViewState extends State<LoginView> {
     ProxyService.remoteConfig.setDefault();
     ProxyService.remoteConfig.fetch();
     isNetAvailable();
-    Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
-      // Got a new connectivity status!
-      if (result == ConnectivityResult.mobile ||
-          result == ConnectivityResult.wifi) {
-        loginInfo.noNet = false;
-      } else {
-        loginInfo.noNet = true;
-      }
-    });
+    if (!appService.isLoggedIn()) {
+      Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
+        // Got a new connectivity status!
+        if (result == ConnectivityResult.mobile ||
+            result == ConnectivityResult.wifi) {
+          loginInfo.noNet = false;
+        } else {
+          loginInfo.noNet = true;
+        }
+      });
+    }
     super.initState();
   }
 
