@@ -13,7 +13,7 @@ dependencies:
   flutter:
     sdk: flutter
   flipper_rw: ^1.0.1-dev.3
-  flutterfire_ui: ^0.3.3
+  flutterfire_ui: ^0.3.4
   flutter_form_bloc: ^0.29.3
   firebase_auth_desktop: ^0.1.1-dev.0
   firebase_core: ^1.9.0

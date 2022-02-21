@@ -3,12 +3,15 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  bitsdojo_window_windows
   connectivity_plus_windows
+  flutter_acrylic
   flutter_secure_storage_windows
   geolocator_windows
   isar_flutter_libs
   objectbox_sync_flutter_libs
   sentry_flutter
+  system_theme
   url_launcher_windows
 )
 
