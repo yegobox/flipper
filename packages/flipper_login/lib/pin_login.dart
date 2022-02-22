@@ -14,6 +14,7 @@ class PinLogin extends StatelessWidget {
       viewModelBuilder: () => LoginViewModel(),
       builder: (context, model, child) {
         return Scaffold(
+          appBar: AppBar(title: const Text("Login With Pin")),
           body: Center(
             child: Form(
               key: _form,
@@ -40,21 +41,20 @@ class PinLogin extends StatelessWidget {
                       child: BoxButton(
                         onTap: () {
                           if (_form.currentState!.validate()) {
-                            model.desktopLogin(
+                            try {
+                              model.desktopLogin(
                                 pinCode: _pin.text,
                                 context: context,
-                                call: (e) {
-                                  if (e == 1) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        backgroundColor: Colors.red,
-                                        content:
-                                            Text("Failed to log in try again"),
-                                      ),
-                                    );
-                                    model.setIsprocessing(value: false);
-                                  }
-                                });
+                              );
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  backgroundColor: Colors.red,
+                                  content: Text("Failed to log in try again"),
+                                ),
+                              );
+                              model.setIsprocessing(value: false);
+                            }
                           }
                         },
                         title: 'Log in',

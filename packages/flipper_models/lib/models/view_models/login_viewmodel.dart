@@ -50,10 +50,10 @@ class LoginViewModel extends FormViewModel {
   bool _isProceeding = false;
 
   get isProcessing => _isProceeding;
-  void desktopLogin(
-      {required String pinCode,
-      required BuildContext context,
-      required Function call}) async {
+  void desktopLogin({
+    required String pinCode,
+    required BuildContext context,
+  }) async {
     _isProceeding = true;
     notifyListeners();
 
@@ -78,7 +78,7 @@ class LoginViewModel extends FormViewModel {
         }
       }
     } catch (e) {
-      call(1);
+      rethrow;
     }
   }
 

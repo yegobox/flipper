@@ -62,113 +62,27 @@
     <list default="true" id="130b61e7-9be8-4adb-878b-9d0f09c30571" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.packages" beforeDir="false" afterPath="$PROJECT_DIR$/.packages" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/melos.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/melos.yaml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/open-sources/flutter_firebase_chat_core" beforeDir="false" afterPath="$PROJECT_DIR$/open-sources/flutter_firebase_chat_core" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/open-sources/flutter_firebase_chat_core/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/open-sources/flutter_firebase_chat_core/pubspec.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/open-sources/flutter_firebase_chat_core/lib/src/firebase_chat_core.dart" beforeDir="false" afterPath="$PROJECT_DIR$/open-sources/flutter_firebase_chat_core/lib/src/firebase_chat_core.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/open-sources/flutter_list_drag_and_drop" beforeDir="false" afterPath="$PROJECT_DIR$/open-sources/flutter_list_drag_and_drop" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/open-sources/flutter_list_drag_and_drop/.dart_tool/package_config.json" beforeDir="false" afterPath="$PROJECT_DIR$/open-sources/flutter_list_drag_and_drop/.dart_tool/package_config.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/open-sources/flutter_list_drag_and_drop/melos_flutter_list_drag_and_drop.iml" beforeDir="false" afterPath="$PROJECT_DIR$/open-sources/flutter_list_drag_and_drop/melos_flutter_list_drag_and_drop.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_chat/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_chat/pubspec.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_dashboard/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_dashboard/pubspec.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_dashboard/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_dashboard/pubspec.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/CHANGELOG.md" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_data_table/CHANGELOG.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/.metadata" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/README.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/analysis_options.yaml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/android/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/android/app/build.gradle" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/android/app/src/debug/AndroidManifest.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/android/app/src/main/AndroidManifest.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/android/app/src/main/kotlin/com/example/flipper_data_table_demo/MainActivity.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/android/app/src/main/res/drawable-v21/launch_background.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/android/app/src/main/res/drawable/launch_background.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/android/app/src/main/res/mipmap-hdpi/ic_launcher.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/android/app/src/main/res/mipmap-mdpi/ic_launcher.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/android/app/src/main/res/mipmap-xhdpi/ic_launcher.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/android/app/src/main/res/values-night/styles.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/android/app/src/main/res/values/styles.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/android/app/src/profile/AndroidManifest.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/android/build.gradle" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/android/gradle.properties" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/android/gradle/wrapper/gradle-wrapper.properties" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/android/settings.gradle" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/ios/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/ios/Flutter/AppFrameworkInfo.plist" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/ios/Flutter/Debug.xcconfig" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/ios/Flutter/Release.xcconfig" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/ios/Runner.xcodeproj/project.pbxproj" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/ios/Runner.xcodeproj/project.xcworkspace/contents.xcworkspacedata" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/ios/Runner.xcodeproj/xcshareddata/xcschemes/Runner.xcscheme" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/ios/Runner.xcworkspace/contents.xcworkspacedata" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/ios/Runner.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/ios/Runner.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/ios/Runner/AppDelegate.swift" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/ios/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-1024x1024@1x.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-20x20@1x.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-20x20@2x.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-20x20@3x.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-29x29@1x.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-29x29@2x.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-29x29@3x.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-40x40@1x.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-40x40@2x.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-40x40@3x.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-60x60@2x.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-60x60@3x.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-76x76@1x.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-76x76@2x.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-83.5x83.5@2x.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/ios/Runner/Assets.xcassets/LaunchImage.imageset/Contents.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage@2x.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage@3x.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/ios/Runner/Assets.xcassets/LaunchImage.imageset/README.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/ios/Runner/Base.lproj/LaunchScreen.storyboard" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/ios/Runner/Base.lproj/Main.storyboard" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/ios/Runner/Info.plist" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/ios/Runner/Runner-Bridging-Header.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/lib/main.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/pubspec.lock" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/pubspec.yaml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/test/widget_test.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/web/favicon.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/web/icons/Icon-192.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/web/icons/Icon-512.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/web/icons/Icon-maskable-192.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/web/icons/Icon-maskable-512.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/web/manifest.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/windows/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/windows/CMakeLists.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/windows/flutter/CMakeLists.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/windows/flutter/generated_plugin_registrant.cc" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/windows/flutter/generated_plugin_registrant.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/windows/flutter/generated_plugins.cmake" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/windows/runner/CMakeLists.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/windows/runner/Runner.rc" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/windows/runner/flutter_window.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/windows/runner/flutter_window.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/windows/runner/main.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/windows/runner/resource.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/windows/runner/resources/app_icon.ico" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/windows/runner/runner.exe.manifest" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/windows/runner/utils.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/windows/runner/utils.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/windows/runner/win32_window.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/flipper_data_table_demo/windows/runner/win32_window.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_data_table/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_data_table/pubspec.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_login/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_login/pubspec.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_models/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/pubspec.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_routing/lib/routes.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_routing/lib/routes.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_routing/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_routing/pubspec.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_services/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/pubspec.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_dashboard/lib/startup_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_dashboard/lib/startup_view.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_login/lib/desktop_login_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_login/lib/desktop_login_view.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_login/lib/login.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_login/lib/login.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_login/lib/pin_login.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_login/lib/pin_login.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/exceptions.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/exceptions.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/view_models/io/startup_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/view_models/io/startup_viewmodel.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/view_models/login_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/view_models/login_viewmodel.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/pubspec.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/app_service.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/app_service.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/event_service.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/event_service.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/objectbox_api.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/objectbox_api.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/generator/.packages" beforeDir="false" afterPath="$PROJECT_DIR$/packages/generator/.packages" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/pubspec.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pubspec.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/windows/flutter/generated_plugin_registrant.cc" beforeDir="false" afterPath="$PROJECT_DIR$/windows/flutter/generated_plugin_registrant.cc" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/windows/flutter/generated_plugins.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/windows/flutter/generated_plugins.cmake" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -194,6 +108,7 @@
   <component name="PropertiesComponent">
     <property name="dart.analysis.tool.window.force.activate" value="true" />
     <property name="dart.analysis.tool.window.visible" value="false" />
+    <property name="io.flutter.reload.alreadyRun" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="show.migrate.to.gradle.popup" value="false" />
   </component>
@@ -222,9 +137,70 @@
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="431" y="145" width="672" height="678" key="search.everywhere.popup" timestamp="1644430646974">
+    <state x="100" y="100" width="1336" height="624" key="AVDManager" timestamp="1645469212484">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state x="431" y="145" width="672" height="678" key="search.everywhere.popup/0.0.1536.824@0.0.1536.824" timestamp="1644430646974" />
+    <state x="100" y="100" width="1336" height="624" key="AVDManager/0.0.1536.824@0.0.1536.824" timestamp="1645469212484" />
+    <state width="1478" height="397" key="GridCell.Tab.0.bottom" timestamp="1645473038480">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state width="1478" height="397" key="GridCell.Tab.0.bottom/0.0.1536.824@0.0.1536.824" timestamp="1645473038480" />
+    <state width="1478" height="397" key="GridCell.Tab.0.center" timestamp="1645473038479">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state width="1478" height="397" key="GridCell.Tab.0.center/0.0.1536.824@0.0.1536.824" timestamp="1645473038479" />
+    <state width="1478" height="397" key="GridCell.Tab.0.left" timestamp="1645473038479">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state width="1478" height="397" key="GridCell.Tab.0.left/0.0.1536.824@0.0.1536.824" timestamp="1645473038479" />
+    <state width="1478" height="397" key="GridCell.Tab.0.right" timestamp="1645473038480">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state width="1478" height="397" key="GridCell.Tab.0.right/0.0.1536.824@0.0.1536.824" timestamp="1645473038480" />
+    <state width="1478" height="397" key="GridCell.Tab.1.bottom" timestamp="1645473038480">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state width="1478" height="397" key="GridCell.Tab.1.bottom/0.0.1536.824@0.0.1536.824" timestamp="1645473038480" />
+    <state width="1478" height="397" key="GridCell.Tab.1.center" timestamp="1645473038480">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state width="1478" height="397" key="GridCell.Tab.1.center/0.0.1536.824@0.0.1536.824" timestamp="1645473038480" />
+    <state width="1478" height="397" key="GridCell.Tab.1.left" timestamp="1645473038480">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state width="1478" height="397" key="GridCell.Tab.1.left/0.0.1536.824@0.0.1536.824" timestamp="1645473038480" />
+    <state width="1478" height="397" key="GridCell.Tab.1.right" timestamp="1645473038480">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state width="1478" height="397" key="GridCell.Tab.1.right/0.0.1536.824@0.0.1536.824" timestamp="1645473038480" />
+    <state x="277" y="57" key="SettingsEditor" timestamp="1645453989094">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state x="277" y="57" key="SettingsEditor/0.0.1536.824@0.0.1536.824" timestamp="1645453989094" />
+    <state x="431" y="145" width="672" height="678" key="search.everywhere.popup" timestamp="1645472168573">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state x="431" y="145" width="672" height="678" key="search.everywhere.popup/0.0.1536.824@0.0.1536.824" timestamp="1645472168573" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="Dart">
+          <url>file://$PROJECT_DIR$/packages/flipper_services/lib/objectbox_api.dart</url>
+          <line>71</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="Dart">
+          <url>file://$PROJECT_DIR$/packages/flipper_services/lib/objectbox_api.dart</url>
+          <line>1763</line>
+          <option name="timeStamp" value="4" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="Dart">
+          <url>file://$PROJECT_DIR$/packages/flipper_services/lib/objectbox_api.dart</url>
+          <line>1768</line>
+          <option name="timeStamp" value="5" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

@@ -19,24 +19,25 @@ class StartUpViewModel extends BaseViewModel {
   bool isBusinessSet = false;
   final log = getLogger('StartUpViewModel');
 
-  Future<void> runStartupLogic(
-      {required bool invokeLogin, required LoginInfo loginInfo}) async {
+  Future<void> runStartupLogic({
+    required bool invokeLogin,
+    required LoginInfo loginInfo,
+  }) async {
     // start by allowing app to redirect
     loginInfo.redirecting = true;
-    String? countryName = await ProxyService.country.getCountryName();
+
     if (!appService.isLoggedIn()) {
-      await login(invokeLogin);
+      try {
+        await login(invokeLogin);
+      } catch (e) {
+        rethrow;
+      }
     }
 
-    // ProxyService.api.logOut();
-    // fake login
-    // ProxyService.box.write(key: 'userId', value: "300");
-    // ProxyService.box.write(key: 'chatUid', value: "300");
-    // await ProxyService.api.login(userPhone: '+250783054874');
-    // fake login
     List<Business> businesses = [];
     try {
       businesses = await appInit();
+      notifyListeners();
     } catch (e) {
       if (e is SessionException) {
         String? userPhone = ProxyService.box.getUserPhone();
@@ -47,17 +48,21 @@ class StartUpViewModel extends BaseViewModel {
         } catch (e) {
           if (e is InternalServerError) {
             loginInfo.isLoggedIn = false;
+            rethrow;
           }
         }
       } else if (e is NotFoundException) {
+        String? countryName = await ProxyService.country.getCountryName();
         loginInfo.needSignUp = true;
         loginInfo.country = countryName!;
         loginInfo.isLoggedIn = true;
         return;
+      } else {
+        rethrow;
       }
     }
 
-    // if we are logged in, go to home we have business locally arleady!
+    // if we are logged in, go to home we have business locally already!
     if (appService.isLoggedIn()) {
       if (businesses.isEmpty) {
         /// a user has logged in but has no business, so first check using
@@ -100,7 +105,7 @@ class StartUpViewModel extends BaseViewModel {
         /// first fetch related business and update all related fields such us, userid,businessid,branchId
         /// in local storage.
         /// first get the location
-
+        String? countryName = await ProxyService.country.getCountryName();
         // GoRouter.of(context).go(Routes.signup + "/$countryName");
         loginInfo.needSignUp = true;
         loginInfo.country = countryName!;
@@ -144,16 +149,20 @@ class StartUpViewModel extends BaseViewModel {
 
   Future<void> login(bool? invokeLogin) async {
     if (invokeLogin != null && invokeLogin == true) {
-      User? user = FirebaseAuth.instance.currentUser;
+      try {
+        User? user = FirebaseAuth.instance.currentUser;
 
-      String? phone = user?.phoneNumber;
-      if (phone == null && user?.email != null) {
-        ProxyService.box.write(key: 'needLinkPhoneNumber', value: true);
-        phone = user?.email;
+        String? phone = user?.phoneNumber;
+        if (phone == null && user?.email != null) {
+          ProxyService.box.write(key: 'needLinkPhoneNumber', value: true);
+          phone = user?.email;
+        }
+        await ProxyService.api.login(
+          userPhone: phone!,
+        );
+      } catch (e) {
+        rethrow;
       }
-      await ProxyService.api.login(
-        userPhone: phone!,
-      );
     }
   }
 
@@ -190,20 +199,24 @@ class StartUpViewModel extends BaseViewModel {
 
   /// get IDS to use along the way in the app
   Future<List<Business>> appInit() async {
-    List<Business> businesses = [];
+    try {
+      List<Business> businesses = [];
 
-    String userId = ProxyService.box.read(key: 'userId');
+      String userId = ProxyService.box.read(key: 'userId');
 
-    businesses =
-        await ProxyService.api.getLocalOrOnlineBusiness(userId: userId);
-    if (businesses.isNotEmpty) {
-      ProxyService.appService.setBusiness(businesses: businesses);
-      // get local or online branches
-      List<BranchSync> branches =
-          await ProxyService.api.getLocalBranches(businessId: businesses[0].id);
-      ProxyService.box.write(key: 'branchId', value: branches[0].id);
+      businesses =
+          await ProxyService.api.getLocalOrOnlineBusiness(userId: userId);
+      if (businesses.isNotEmpty) {
+        ProxyService.appService.setBusiness(businesses: businesses);
+        // get local or online branches
+        List<BranchSync> branches = await ProxyService.api
+            .getLocalBranches(businessId: businesses[0].id);
+        ProxyService.box.write(key: 'branchId', value: branches[0].id);
+      }
+
+      return businesses;
+    } catch (e) {
+      rethrow;
     }
-
-    return businesses;
   }
 }

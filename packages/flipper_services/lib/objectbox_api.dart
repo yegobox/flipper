@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_rw/gate.dart';
+import 'package:flutter/foundation.dart' as f;
 import 'package:path_provider/path_provider.dart';
 
 import 'package:flipper_models/models/models.dart';
@@ -67,11 +68,16 @@ class ObjectBoxApi extends MobileUpload implements Api {
     ProxyService.api.migrateToSync();
     if (!Platform.isWindows) {
       // this is to say that we are on a device mobile then where all subs are activated
-      if (Sync.isAvailable() && ProxyService.billing.activeSubscription()) {
-        sync();
-      } else {
+      if(f.kDebugMode){
         partial();
+      }else{
+        if (Sync.isAvailable() && ProxyService.billing.activeSubscription()) {
+          sync();
+        } else {
+          partial();
+        }
       }
+
     } else {
       // on desktop sync should be activated by default.
       sync();
@@ -88,8 +94,8 @@ class ObjectBoxApi extends MobileUpload implements Api {
     /// if a user is paying then use this config or otherwise
     syncClient.requestUpdates(subscribeForFuturePushes: true);
 
-    /// set sync to manual for now until futher notice!
-    syncClient.setRequestUpdatesMode(SyncRequestUpdatesMode.manual);
+    /// set sync to manual for now until further notice!
+    syncClient.setRequestUpdatesMode(SyncRequestUpdatesMode.autoNoPushes);
 
     syncClient.start();
     syncClient.loginEvents.listen((event) {
@@ -1725,6 +1731,8 @@ class ObjectBoxApi extends MobileUpload implements Api {
     }
     if (response.statusCode == 404) {
       throw NotFoundException(term: "Business not found");
+    } else if (response.statusCode == 500) {
+      throw InternalServerException(term: "Business not found");
     }
     final box = store.box<Business>();
     Business? business = box.get(sbusinessFromJson(response.body).id);

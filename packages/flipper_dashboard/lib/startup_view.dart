@@ -14,11 +14,23 @@ class StartUpView extends StatelessWidget {
   Widget build(BuildContext context) {
     return ViewModelBuilder<StartUpViewModel>.reactive(
       fireOnModelReadyOnce: true,
-      onModelReady: (model) =>
-          SchedulerBinding.instance?.addPostFrameCallback((timeStamp) {
-        model.runStartupLogic(
-            invokeLogin: invokeLogin ?? false, loginInfo: loginInfo);
-      }),
+      onModelReady: (model) => SchedulerBinding.instance?.addPostFrameCallback(
+        (timeStamp) {
+          try {
+            model.runStartupLogic(
+              invokeLogin: invokeLogin ?? false,
+              loginInfo: loginInfo,
+            );
+          } catch (e) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                backgroundColor: Colors.red,
+                content: Text("Error happened on our end, please try again"),
+              ),
+            );
+          }
+        },
+      ),
       viewModelBuilder: () => StartUpViewModel(),
       builder: (context, model, child) {
         return ChangeNotifierProvider<LoginInfo>.value(

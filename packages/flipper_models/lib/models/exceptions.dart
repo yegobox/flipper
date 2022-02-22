@@ -6,6 +6,14 @@ class VoucherException implements Exception {
   VoucherException({required this.term});
 }
 
+class InternalServerException implements Exception {
+  String term;
+
+  String errMsg() => 'InternalServerException: $term';
+
+  InternalServerException({required this.term});
+}
+
 class SessionException implements Exception {
   String term;
 

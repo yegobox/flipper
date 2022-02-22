@@ -12,6 +12,7 @@ import 'package:flipper_routing/routes.logger.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'desktop_login_view.dart';
 import 'package:flipper_routing/routes.locator.dart';
+import 'package:flutter/scheduler.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 final isWeb = UniversalPlatform.isWeb;
@@ -26,6 +27,7 @@ class LoginView extends StatefulWidget {
 class _LoginViewState extends State<LoginView> {
   final log = getLogger('LoginView');
   final appService = locator<AppService>();
+
   Future<void> isNetAvailable() async {
     if (!appService.isLoggedIn()) {
       ConnectivityResult connectivityResult =
@@ -44,16 +46,22 @@ class _LoginViewState extends State<LoginView> {
     ProxyService.remoteConfig.config();
     ProxyService.remoteConfig.setDefault();
     ProxyService.remoteConfig.fetch();
-    isNetAvailable();
+    SchedulerBinding.instance?.addPostFrameCallback((timeStamp) {
+      isNetAvailable();
+    });
     if (!appService.isLoggedIn()) {
-      Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
-        // Got a new connectivity status!
-        if (result == ConnectivityResult.mobile ||
-            result == ConnectivityResult.wifi) {
-          loginInfo.noNet = false;
-        } else {
-          loginInfo.noNet = true;
-        }
+      SchedulerBinding.instance?.addPostFrameCallback((timeStamp) {
+        Connectivity()
+            .onConnectivityChanged
+            .listen((ConnectivityResult result) {
+          // Got a new connectivity status!
+          if (result == ConnectivityResult.mobile ||
+              result == ConnectivityResult.wifi) {
+            loginInfo.noNet = false;
+          } else {
+            loginInfo.noNet = true;
+          }
+        });
       });
     }
     super.initState();

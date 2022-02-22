@@ -1,4 +1,3 @@
-import 'package:flipper_rw/gate.dart';
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
 import 'package:flipper_services/abstractions/analytic.dart';
 import 'package:flipper_services/abstractions/printer.dart';
@@ -27,6 +26,7 @@ import 'abstractions/upload.dart';
 import 'country_service.dart';
 import 'locator.dart';
 import 'product_service.dart';
+import 'package:flipper_models/interface.dart' as isar;
 
 final isWindows = UniversalPlatform.isWindows;
 
@@ -62,9 +62,11 @@ final SyncApiInterface _syncApi = locator<SyncApiInterface>();
 final SystemTime _systemTime = locator<SystemTime>();
 final EventService _event = locator<EventService>();
 final BillingService _billingService = locator<BillingService>();
+final isar.Api _isarApi = locator<isar.Api>();
 
 abstract class ProxyService {
   static Api get api => _apiService;
+  static isar.Api get isarApi => _isarApi;
   static EventService get event => _event;
   static Crash get crash => _crash;
   static Shareble get share => _share;

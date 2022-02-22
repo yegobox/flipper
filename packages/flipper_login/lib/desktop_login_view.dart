@@ -41,9 +41,18 @@ class _DesktopLoginViewState extends State<DesktopLoginView> {
       onModelReady: (model) {
         if (loginCode != null) {
           ProxyService.event.connect();
+          try {
+            ProxyService.event.subscribeLoginEvent(
+                channel: loginCode!.split('-')[1], context: context);
+          } catch (e) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                backgroundColor: Colors.red,
+                content: Text("Failed to log in try again"),
+              ),
+            );
+          }
 
-          ProxyService.event.subscribeLoginEvent(
-              channel: loginCode!.split('-')[1], context: context);
           Future.delayed(const Duration(seconds: 10)).then((_) {
             setState(() {
               switchToPinLogin = true;

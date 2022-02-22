@@ -1,5 +1,6 @@
 // Import all PubNub objects into your namespace
 // import 'package:pubnub/core.dart';
+import 'package:flipper_models/models/models.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flutter/cupertino.dart';
 // Or import PubNub into a named namespace
@@ -72,15 +73,11 @@ class EventService {
 
   void subscribeLoginEvent(
       {required String channel, required BuildContext context}) {
-    nub.Subscription subscription = pubnub.subscribe(channels: {channel});
-    subscription.messages.listen((envelope) async {
-      LoginData loginData = LoginData.fromMap(envelope.payload);
-      // save login keys for logged in user
-      await FirebaseAuth.instance.signInAnonymously();
-      final auth = FirebaseAuth.instance;
+    try {
+      nub.Subscription subscription = pubnub.subscribe(channels: {channel});
+      subscription.messages.listen((envelope) async {
+        LoginData loginData = LoginData.fromMap(envelope.payload);
 
-      /// login anonymous user so we know this desktop! come online.
-      if (auth.currentUser != null) {
         ProxyService.box.write(key: 'businessId', value: loginData.businessId);
         ProxyService.box.write(key: 'branchId', value: loginData.branchId);
         ProxyService.box.write(key: 'userId', value: loginData.userId);
@@ -88,8 +85,10 @@ class EventService {
         await ProxyService.api.login(
           userPhone: loginData.phone,
         );
-        GoRouter.of(context).go(Routes.home);
-      }
-    });
+        await FirebaseAuth.instance.signInAnonymously();
+      });
+    } catch (e) {
+      rethrow;
+    }
   }
 }
