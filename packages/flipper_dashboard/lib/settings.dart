@@ -1,14 +1,14 @@
 import 'package:flipper_dashboard/setting_view_model.dart';
-import 'package:flipper_models/models/models.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_settings_ui/flutter_settings_ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_ui/google_ui.dart';
 import 'package:stacked/stacked.dart';
+import 'package:flipper_models/isar_models.dart' as isar;
 
 class SettingPage extends StatelessWidget {
   const SettingPage({Key? key, this.business}) : super(key: key);
-  final Business? business;
+  final isar.Business? business;
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<SettingViewModel>.reactive(

@@ -1,4 +1,4 @@
-import 'package:flipper_rw/gate.dart';
+import 'package:flipper_models/isar_models.dart' as isar;
 import 'package:stacked/stacked.dart';
 
 import 'package:flipper_models/models/models.dart';
@@ -18,8 +18,8 @@ class AppService with ReactiveServiceMixin {
   final _categories = ReactiveValue<List<Category>>([]);
   List<Category> get categories => _categories.value;
 
-  final _businesses = ReactiveValue<List<Business>>([]);
-  List<Business> get businesses => _businesses.value;
+  final _businesses = ReactiveValue<List<isar.Business>>([]);
+  List<isar.Business> get businesses => _businesses.value;
 
   final _units = ReactiveValue<List<Unit>>([]);
   List<Unit> get units => _units.value;
@@ -34,7 +34,7 @@ class AppService with ReactiveServiceMixin {
     _currentColor.value = color;
   }
 
-  setBusiness({required List<Business> businesses}) {
+  setBusiness({required List<isar.Business> businesses}) {
     _businesses.value = businesses;
   }
 

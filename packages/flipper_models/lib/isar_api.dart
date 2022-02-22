@@ -10,12 +10,12 @@ import 'dart:io';
 // ->right now ditch is comlicated bcs isar still need some feature required for this easy migration
 // ->migrating slowly on web will give more insight as we wait for the feature to be omplemented on isar side
 // ->isar won't need to use same interface as objectbox since isar support all platforms
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_services/proxy.dart';
 
 import 'interface.dart';
 import 'package:isar/isar.dart';
-import 'package:path_provider/path_provider.dart';
 import 'isar/points.dart';
 import 'isar/pin.dart';
 import 'isar/order_item.dart';
@@ -612,10 +612,17 @@ class IsarAPI implements Api {
     return kBranches;
   }
 
+  // get list of Business from isar where userId = userId
+  // if list is empty then get list from online
   @override
-  Future<List<Business>> getLocalOrOnlineBusiness({required String userId}) {
-    // TODO: implement getLocalOrOnlineBusiness
-    throw UnimplementedError();
+  Future<List<Business>> getLocalOrOnlineBusiness(
+      {required String userId}) async {
+    List<Business> kBusiness =
+        await isar.businesss.filter().userIdEqualTo(userId).findAll();
+    if (kBusiness.isEmpty) {
+      return await getOnlineBusiness(userId: userId);
+    }
+    return kBusiness;
   }
 
   @override
@@ -741,9 +748,16 @@ class IsarAPI implements Api {
   }
 
   @override
-  Future<bool> logOut() {
-    // TODO: implement logOut
-    throw UnimplementedError();
+  Future<bool> logOut() async {
+    ProxyService.box.remove(key: 'userId');
+    ProxyService.box.remove(key: 'bearerToken');
+    ProxyService.box.remove(key: 'branchId');
+    ProxyService.box.remove(key: 'userPhone');
+    ProxyService.box.remove(key: 'UToken');
+    ProxyService.box.remove(key: 'businessId');
+
+    FirebaseAuth.instance.signOut();
+    return await Future.value(true);
   }
 
   @override

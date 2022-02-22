@@ -101,7 +101,8 @@ class _GateState extends State<Gate> {
       redirect: (state) {
         final bool loggedIn = loginInfo.isLoggedIn;
         final bool needSignUp = loginInfo.needSignUp;
-        final String country = loginInfo.country;
+        // when a country is for example United state with space in it will cause a loop so replace space init
+        final String country = loginInfo.country.replaceAll(" ", "");
         final bool noNet = loginInfo.noNet;
         final bool needSwitchBranch = loginInfo.switchBranch;
         final bool isLogging = state.subloc == '/login';
@@ -120,7 +121,6 @@ class _GateState extends State<Gate> {
             needSignUp &&
             !isArleadySignup &&
             !isArleadyHome &&
-            !isLogging &&
             !isRedirecting) {
           return Routes.signup + "/$country";
         }

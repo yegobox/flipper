@@ -16,19 +16,21 @@ class StartUpView extends StatelessWidget {
       fireOnModelReadyOnce: true,
       onModelReady: (model) => SchedulerBinding.instance?.addPostFrameCallback(
         (timeStamp) {
-          try {
-            model.runStartupLogic(
-              invokeLogin: invokeLogin ?? false,
-              loginInfo: loginInfo,
-            );
-          } catch (e) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                backgroundColor: Colors.red,
-                content: Text("Error happened on our end, please try again"),
-              ),
-            );
-          }
+          model.runStartupLogic(
+            invokeLogin: invokeLogin ?? false,
+            loginInfo: loginInfo,
+            errorCallback: (e) {
+              if (e == 1) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    backgroundColor: Colors.red,
+                    content:
+                        Text("Error happened on our end, please try again"),
+                  ),
+                );
+              }
+            },
+          );
         },
       ),
       viewModelBuilder: () => StartUpViewModel(),

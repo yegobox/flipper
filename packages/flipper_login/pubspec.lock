@@ -1160,7 +1160,7 @@ packages:
     source: hosted
     version: "0.10.0+4"
   google_ui:
-    dependency: "direct overridden"
+    dependency: "direct main"
     description:
       path: "../../open-sources/google_ui"
       relative: true

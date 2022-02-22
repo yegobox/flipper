@@ -9,14 +9,15 @@ import 'package:firebase_core/firebase_core.dart' as _i4;
 import 'package:firebase_messaging/firebase_messaging.dart' as _i13;
 import 'package:firebase_messaging_platform_interface/firebase_messaging_platform_interface.dart'
     as _i5;
+import 'package:flipper_models/isar_models.dart' as _i20;
 import 'package:flipper_models/models/models.dart' as _i2;
 import 'package:flipper_rw/stack.dart' as _i7;
 import 'package:flipper_services/abstractions/api.dart' as _i9;
-import 'package:flipper_services/abstractions/location.dart' as _i20;
+import 'package:flipper_services/abstractions/location.dart' as _i21;
 import 'package:flipper_services/abstractions/remote.dart' as _i12;
 import 'package:flipper_services/abstractions/storage.dart' as _i18;
 import 'package:flipper_services/app_service.dart' as _i19;
-import 'package:flipper_services/billing_service.dart' as _i21;
+import 'package:flipper_services/billing_service.dart' as _i22;
 import 'package:flipper_services/keypad_service.dart' as _i15;
 import 'package:flipper_services/language_service.dart' as _i11;
 import 'package:flipper_services/product_service.dart' as _i14;
@@ -335,10 +336,6 @@ class MockApi<T> extends _i1.Mock implements _i9.Api<T> {
       (super.noSuchMethod(Invocation.method(#getContacts, []),
               returnValue: Future<List<_i2.Business>>.value(<_i2.Business>[]))
           as _i10.Future<List<_i2.Business>>);
-  @override
-  _i2.Business getBusiness() =>
-      (super.noSuchMethod(Invocation.method(#getBusiness, []),
-          returnValue: _FakeBusiness_5()) as _i2.Business);
   @override
   _i2.CustomerSync? addCustomer(
           {Map<dynamic, dynamic>? customer, int? orderId}) =>
@@ -693,6 +690,14 @@ class MockRemote extends _i1.Mock implements _i12.Remote {
   @override
   bool isGoogleLoginAvailable() =>
       (super.noSuchMethod(Invocation.method(#isGoogleLoginAvailable, []),
+          returnValue: false) as bool);
+  @override
+  bool isTwitterLoginAvailable() =>
+      (super.noSuchMethod(Invocation.method(#isTwitterLoginAvailable, []),
+          returnValue: false) as bool);
+  @override
+  bool isFacebookLoginAvailable() =>
+      (super.noSuchMethod(Invocation.method(#isFacebookLoginAvailable, []),
           returnValue: false) as bool);
   @override
   bool isResetSettingEnabled() =>
@@ -1142,9 +1147,9 @@ class MockAppService extends _i1.Mock implements _i19.AppService {
       (super.noSuchMethod(Invocation.getter(#categories),
           returnValue: <_i2.Category>[]) as List<_i2.Category>);
   @override
-  List<_i2.Business> get businesses =>
+  List<_i20.Business> get businesses =>
       (super.noSuchMethod(Invocation.getter(#businesses),
-          returnValue: <_i2.Business>[]) as List<_i2.Business>);
+          returnValue: <_i20.Business>[]) as List<_i20.Business>);
   @override
   List<_i2.Unit> get units =>
       (super.noSuchMethod(Invocation.getter(#units), returnValue: <_i2.Unit>[])
@@ -1168,7 +1173,7 @@ class MockAppService extends _i1.Mock implements _i19.AppService {
   dynamic setCurrentColor({String? color}) => super
       .noSuchMethod(Invocation.method(#setCurrentColor, [], {#color: color}));
   @override
-  dynamic setBusiness({List<_i2.Business>? businesses}) => super.noSuchMethod(
+  dynamic setBusiness({List<_i20.Business>? businesses}) => super.noSuchMethod(
       Invocation.method(#setBusiness, [], {#businesses: businesses}));
   @override
   void loadCategories() =>
@@ -1214,7 +1219,7 @@ class MockAppService extends _i1.Mock implements _i19.AppService {
 /// A class which mocks [FlipperLocation].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockFlipperLocation extends _i1.Mock implements _i20.FlipperLocation {
+class MockFlipperLocation extends _i1.Mock implements _i21.FlipperLocation {
   @override
   _i10.Future<Map<String, String>> getLocation() => (super.noSuchMethod(
           Invocation.method(#getLocation, []),
@@ -1229,7 +1234,7 @@ class MockFlipperLocation extends _i1.Mock implements _i20.FlipperLocation {
 /// A class which mocks [BillingService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockBillingService extends _i1.Mock implements _i21.BillingService {
+class MockBillingService extends _i1.Mock implements _i22.BillingService {
   @override
   _i6.Logger get log => (super.noSuchMethod(Invocation.getter(#log),
       returnValue: _FakeLogger_11()) as _i6.Logger);

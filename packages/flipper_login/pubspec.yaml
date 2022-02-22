@@ -32,6 +32,7 @@ dependencies:
   go_router: ^3.0.1
   flipper_routing: ^0.0.1-dev.3
   connectivity_plus: ^2.2.0
+  google_ui: ^2.7.0
 flutter:
   uses-material-design: true
   assets:

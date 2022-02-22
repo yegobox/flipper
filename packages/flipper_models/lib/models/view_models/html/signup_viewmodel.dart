@@ -10,6 +10,7 @@ import 'package:universal_platform/universal_platform.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flipper_models/isar_models.dart' as isar;
 
 final isWindows = UniversalPlatform.isWindows;
 
@@ -93,8 +94,8 @@ class SignupViewModel extends FormViewModel {
     if (okStatus == 200) {
       final String userId = ProxyService.box.getUserId()!;
       //get businesses's id then look for related branch [0] create the default category
-      List<Business> businesses =
-          await ProxyService.api.getOnlineBusiness(userId: userId);
+      List<isar.Business> businesses =
+          await ProxyService.isarApi.getOnlineBusiness(userId: userId);
       if (businesses.isEmpty) return;
       ProxyService.box.write(key: 'businessId', value: businesses[0].id);
       ProxyService.appService.setBusiness(businesses: businesses);

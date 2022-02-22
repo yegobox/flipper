@@ -1,4 +1,5 @@
 import 'package:flipper_models/models/models.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:stacked/stacked.dart';
@@ -9,6 +10,7 @@ import 'package:flipper_ui/flipper_ui.dart';
 
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:google_ui/google_ui.dart';
 
 class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
   final username = TextFieldBloc(
@@ -94,25 +96,17 @@ class SignUpFormView extends StatelessWidget with $SignUpFormView {
         model.context = context;
         listenToFormUpdated(model);
         model.registerLocation();
-        SchedulerBinding.instance?.addPostFrameCallback((_) {
-          // if (ProxyService.box.getNeedAccountLinkWithPhone()) {
-          //   bottomSheetBuilderProfile(
-          //     isDismissible: false,
-          //     context: context,
-          //     body: <Widget>[const LinkPhone()],
-          //     header: header(title: 'Link your phone'),
-          //   );
-          // }
-        });
       },
       viewModelBuilder: () => SignupViewModel(),
       builder: (context, model, child) {
         /// for debugging purpose add this here to refer to when debugging in prod
         SchedulerBinding.instance?.addPostFrameCallback((_) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            duration: const Duration(minutes: 1),
-            content: Text(ProxyService.box.getUserId() ?? ''),
-          ));
+          if (kDebugMode) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              duration: const Duration(minutes: 1),
+              content: Text(ProxyService.box.getUserId() ?? ''),
+            ));
+          }
         });
         return BlocProvider(
           create: (context) => AsyncFieldValidationFormBloc(
@@ -173,34 +167,57 @@ class SignUpFormView extends StatelessWidget with $SignUpFormView {
                           ),
                         ),
                         const Text('How do you want to use flipper?'),
-                        DropdownButton<String>(
+                        DropdownButtonFormField<String>(
                           value: model.businessType,
-                          icon: const Icon(Icons.arrow_downward),
+                          icon: const Icon(
+                            Icons.arrow_downward,
+                            color: Colors.white,
+                          ),
                           iconSize: 24,
                           elevation: 16,
                           style: const TextStyle(color: Colors.deepPurple),
-                          underline: Container(
-                            height: 2,
-                            color: Colors.deepPurpleAccent,
+                          decoration: InputDecoration(
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Theme.of(context).primaryColor,
+                                width: 2,
+                              ),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            border: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: Theme.of(context).primaryColor,
+                                  width: 4),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            filled: true,
+                            fillColor: Theme.of(context).primaryColor,
                           ),
                           onChanged: (String? style) {
                             model.setBuinessType(type: style!);
                           },
-                          items: <String>['social', 'business']
+                          items: <String>['Social', 'Business']
                               .map<DropdownMenuItem<String>>((String value) {
                             return DropdownMenuItem<String>(
                               value: value,
-                              child: Text(value),
+                              child: Text(
+                                value,
+                                style: const TextStyle(color: Colors.white),
+                              ),
                             );
                           }).toList(),
                         ),
                         !model.registerStart
                             ? Padding(
-                                padding:
-                                    const EdgeInsets.only(left: 0, right: 0),
-                                child: BoxButton(
-                                  onTap: formBloc.submit,
-                                  title: 'Register',
+                                padding: const EdgeInsets.only(
+                                    left: 0, right: 0, top: 20),
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  height: 50,
+                                  child: GElevatedButton(
+                                    'Register',
+                                    onPressed: formBloc.submit,
+                                  ),
                                 ),
                               )
                             : const Padding(
@@ -208,7 +225,7 @@ class SignUpFormView extends StatelessWidget with $SignUpFormView {
                                 padding: EdgeInsets.only(left: 0, right: 0),
                                 child: SizedBox(
                                   width: double.infinity,
-                                  height: 60,
+                                  height: 50,
                                   child: BoxButton(
                                     title: 'SIGN IN',
                                     busy: true,

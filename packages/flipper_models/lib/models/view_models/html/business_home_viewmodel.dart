@@ -14,8 +14,8 @@ import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_services/language_service.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flipper_models/isar_models.dart' as isar;
 
-// import './view_models/business.dart';
 class BusinessHomeViewModel extends ReactiveViewModel {
   // Services
   // ThemeMode themeMode = ThemeMode.system;
@@ -159,7 +159,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     return await ProxyService.api.products(branchId: branchId);
   }
 
-  List<Business> get businesses => _app.businesses;
+  List<isar.Business> get businesses => _app.businesses;
 
   void pop() {
     ProxyService.keypad.pop();
