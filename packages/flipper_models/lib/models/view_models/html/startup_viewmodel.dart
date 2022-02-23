@@ -23,7 +23,9 @@ class StartUpViewModel extends BaseViewModel {
   final log = getLogger('StartUpViewModel');
 
   Future<void> runStartupLogic(
-      {required bool invokeLogin, required LoginInfo loginInfo}) async {
+      {required bool invokeLogin,
+      required LoginInfo loginInfo,
+      required Function errorCallback}) async {
     if (!appService.isLoggedIn()) {
       await login(invokeLogin);
     }

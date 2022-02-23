@@ -4,8 +4,6 @@ import 'package:isar/isar.dart';
 
 import 'order_item.dart';
 
-part 'order.g.dart';
-
 OrderFSync orderFromJsonSync(String str) =>
     OrderFSync.fromJson(json.decode(str));
 
@@ -17,7 +15,6 @@ List<OrderFSync> ordersFromJsonSync(String str) =>
 String orderToJson(List<OrderFSync> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
-@Collection()
 class OrderFSync {
   OrderFSync({
     this.id = 0,
@@ -35,7 +32,7 @@ class OrderFSync {
     required this.createdAt,
     this.updatedAt,
     this.reported,
-    // required this.orderItems,
+    required this.orderItems,
     required this.table,
     this.channels,
     this.note,
@@ -65,9 +62,10 @@ class OrderFSync {
   late int? customerId;
 
   late String? note;
-  // List<OrderItemSync>? orderItems;
+  List<OrderItemSync> orderItems;
 
   factory OrderFSync.fromJson(Map<String, dynamic> json) => OrderFSync(
+        orderItems: [],
         id: int.parse(json["id"]),
         reference: json["reference"],
         orderNumber: json["orderNumber"],
