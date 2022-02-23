@@ -26,7 +26,7 @@ import 'abstractions/upload.dart';
 import 'country_service.dart';
 import 'locator.dart';
 import 'product_service.dart';
-import 'package:flipper_models/interface.dart' as isar;
+import 'package:flipper_models/interface.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 
@@ -62,11 +62,11 @@ final SyncApiInterface _syncApi = locator<SyncApiInterface>();
 final SystemTime _systemTime = locator<SystemTime>();
 final EventService _event = locator<EventService>();
 final BillingService _billingService = locator<BillingService>();
-final isar.Api _isarApi = locator<isar.Api>();
+final IsarApiInterface _isarApi = locator<IsarApiInterface>();
 
 abstract class ProxyService {
   static Api get api => _apiService;
-  static isar.Api get isarApi => _isarApi;
+  static IsarApiInterface get isarApi => _isarApi;
   static EventService get event => _event;
   static Crash get crash => _crash;
   static Shareble get share => _share;

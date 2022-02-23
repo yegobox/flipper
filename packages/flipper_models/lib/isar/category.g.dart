@@ -720,9 +720,6 @@ extension CategoryQueryFilter
   }
 }
 
-extension CategoryQueryLinks
-    on QueryBuilder<Category, Category, QFilterCondition> {}
-
 extension CategoryQueryWhereSortBy
     on QueryBuilder<Category, Category, QSortBy> {
   QueryBuilder<Category, Category, QAfterSortBy> sortByActive() {

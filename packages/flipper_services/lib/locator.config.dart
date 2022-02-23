@@ -4,14 +4,14 @@
 // InjectableConfigGenerator
 // **************************************************************************
 
-import 'package:flipper_models/interface.dart' as _i6;
+import 'package:flipper_models/interface.dart' as _i16;
 import 'package:get_it/get_it.dart' as _i1;
 import 'package:injectable/injectable.dart' as _i2;
 
 import 'abstractions/analytic.dart' as _i3;
 import 'abstractions/api.dart' as _i5;
-import 'abstractions/dynamic_link.dart' as _i12;
-import 'abstractions/location.dart' as _i15;
+import 'abstractions/dynamic_link.dart' as _i11;
+import 'abstractions/location.dart' as _i14;
 import 'abstractions/printer.dart' as _i21;
 import 'abstractions/remote.dart' as _i23;
 import 'abstractions/share.dart' as _i26;
@@ -20,14 +20,14 @@ import 'abstractions/sync.dart' as _i27;
 import 'abstractions/system_time.dart' as _i28;
 import 'abstractions/upload.dart' as _i29;
 import 'analytic_service.dart' as _i4;
-import 'app_service.dart' as _i7;
-import 'billing_service.dart' as _i8;
-import 'country_service.dart' as _i9;
-import 'cron_service.dart' as _i11;
-import 'event_service.dart' as _i13;
-import 'FirebaseCrashlyticService.dart' as _i10;
-import 'firestore_api.dart' as _i14;
-import 'force_data_service.dart' as _i16;
+import 'app_service.dart' as _i6;
+import 'billing_service.dart' as _i7;
+import 'country_service.dart' as _i8;
+import 'cron_service.dart' as _i10;
+import 'event_service.dart' as _i12;
+import 'FirebaseCrashlyticService.dart' as _i9;
+import 'firestore_api.dart' as _i13;
+import 'force_data_service.dart' as _i15;
 import 'in_app_review.dart' as _i24;
 import 'keypad_service.dart' as _i17;
 import 'language_service.dart' as _i19;
@@ -47,22 +47,23 @@ _i1.GetIt $initGetIt(_i1.GetIt get,
   gh.lazySingleton<_i4.AnalyticService>(
       () => thirdPartyServicesModule.analytic);
   gh.lazySingleton<_i5.Api<dynamic>>(() => thirdPartyServicesModule.apiService);
-  gh.lazySingleton<_i6.Api<dynamic>>(() => thirdPartyServicesModule.isarApi);
-  gh.lazySingleton<_i7.AppService>(() => thirdPartyServicesModule.appService);
-  gh.lazySingleton<_i8.BillingService>(() => thirdPartyServicesModule.billing);
-  gh.lazySingleton<_i9.Country>(() => thirdPartyServicesModule.country);
-  gh.lazySingleton<_i10.Crash>(() => thirdPartyServicesModule.crash);
-  gh.lazySingleton<_i11.CronService>(() => thirdPartyServicesModule.cron);
-  gh.lazySingleton<_i12.DynamicLink>(
+  gh.lazySingleton<_i6.AppService>(() => thirdPartyServicesModule.appService);
+  gh.lazySingleton<_i7.BillingService>(() => thirdPartyServicesModule.billing);
+  gh.lazySingleton<_i8.Country>(() => thirdPartyServicesModule.country);
+  gh.lazySingleton<_i9.Crash>(() => thirdPartyServicesModule.crash);
+  gh.lazySingleton<_i10.CronService>(() => thirdPartyServicesModule.cron);
+  gh.lazySingleton<_i11.DynamicLink>(
       () => thirdPartyServicesModule.dynamicLink);
-  gh.lazySingleton<_i13.EventService>(
+  gh.lazySingleton<_i12.EventService>(
       () => thirdPartyServicesModule.loginService);
-  gh.lazySingleton<_i14.FlipperFirestore>(
+  gh.lazySingleton<_i13.FlipperFirestore>(
       () => thirdPartyServicesModule.firestore);
-  gh.lazySingleton<_i15.FlipperLocation>(
+  gh.lazySingleton<_i14.FlipperLocation>(
       () => thirdPartyServicesModule.location);
-  gh.lazySingleton<_i16.ForceDataEntryService>(
+  gh.lazySingleton<_i15.ForceDataEntryService>(
       () => thirdPartyServicesModule.forcedataEntry);
+  gh.lazySingleton<_i16.IsarApiInterface>(
+      () => thirdPartyServicesModule.isarApi);
   gh.lazySingleton<_i17.KeyPadService>(
       () => thirdPartyServicesModule.keypadService);
   gh.lazySingleton<_i18.LNotification>(
@@ -89,15 +90,15 @@ class _$ThirdPartyServicesModule extends _i30.ThirdPartyServicesModule {
   @override
   _i4.AnalyticService get analytic => _i4.AnalyticService();
   @override
-  _i7.AppService get appService => _i7.AppService();
+  _i6.AppService get appService => _i6.AppService();
   @override
-  _i8.BillingService get billing => _i8.BillingService();
+  _i7.BillingService get billing => _i7.BillingService();
   @override
-  _i11.CronService get cron => _i11.CronService();
+  _i10.CronService get cron => _i10.CronService();
   @override
-  _i13.EventService get loginService => _i13.EventService();
+  _i12.EventService get loginService => _i12.EventService();
   @override
-  _i16.ForceDataEntryService get forcedataEntry => _i16.ForceDataEntryService();
+  _i15.ForceDataEntryService get forcedataEntry => _i15.ForceDataEntryService();
   @override
   _i17.KeyPadService get keypadService => _i17.KeyPadService();
   @override

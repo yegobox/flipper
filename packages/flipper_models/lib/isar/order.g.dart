@@ -17,7 +17,7 @@ extension GetOrderFSyncCollection on Isar {
 final OrderFSyncSchema = CollectionSchema(
   name: 'OrderFSync',
   schema:
-      '{"name":"OrderFSync","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"cashReceived","type":"Double"},{"name":"channels","type":"StringList"},{"name":"createdAt","type":"String"},{"name":"customerChangeDue","type":"Double"},{"name":"customerId","type":"Long"},{"name":"draft","type":"Bool"},{"name":"fbranchId","type":"Long"},{"name":"note","type":"String"},{"name":"orderNumber","type":"String"},{"name":"orderType","type":"String"},{"name":"paymentType","type":"String"},{"name":"reference","type":"String"},{"name":"reported","type":"Bool"},{"name":"status","type":"String"},{"name":"subTotal","type":"Double"},{"name":"table","type":"String"},{"name":"updatedAt","type":"String"}],"indexes":[],"links":[]}',
+      '{"name":"OrderFSync","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"cashReceived","type":"Double"},{"name":"channels","type":"StringList"},{"name":"createdAt","type":"String"},{"name":"customerChangeDue","type":"Double"},{"name":"customerId","type":"Long"},{"name":"draft","type":"Bool"},{"name":"fbranchId","type":"Long"},{"name":"note","type":"String"},{"name":"orderNumber","type":"String"},{"name":"orderType","type":"String"},{"name":"paymentType","type":"String"},{"name":"reference","type":"String"},{"name":"reported","type":"Bool"},{"name":"status","type":"String"},{"name":"subTotal","type":"Double"},{"name":"table","type":"String"},{"name":"updatedAt","type":"String"}],"indexes":[],"links":[{"name":"orderItems","target":"OrderItemSync"}]}',
   nativeAdapter: const _OrderFSyncNativeAdapter(),
   webAdapter: const _OrderFSyncWebAdapter(),
   idName: 'id',
@@ -44,9 +44,9 @@ final OrderFSyncSchema = CollectionSchema(
   listProperties: {'channels'},
   indexIds: {},
   indexTypes: {},
-  linkIds: {},
+  linkIds: {'orderItems': 0},
   backlinkIds: {},
-  linkedCollections: [],
+  linkedCollections: ['OrderItemSync'],
   getId: (obj) {
     if (obj.id == Isar.autoIncrement) {
       return null;
@@ -55,7 +55,7 @@ final OrderFSyncSchema = CollectionSchema(
     }
   },
   setId: (obj, id) => obj.id = id,
-  getLinks: (obj) => [],
+  getLinks: (obj) => [obj.orderItems],
   version: 2,
 );
 
@@ -118,6 +118,8 @@ class _OrderFSyncWebAdapter extends IsarWebTypeAdapter<OrderFSync> {
       table: IsarNative.jsObjectGet(jsObj, 'table') ?? '',
       updatedAt: IsarNative.jsObjectGet(jsObj, 'updatedAt'),
     );
+    attachLinks(collection.isar,
+        IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity, object);
     return object;
   }
 
@@ -176,7 +178,15 @@ class _OrderFSyncWebAdapter extends IsarWebTypeAdapter<OrderFSync> {
   }
 
   @override
-  void attachLinks(Isar isar, int id, OrderFSync object) {}
+  void attachLinks(Isar isar, int id, OrderFSync object) {
+    object.orderItems.attach(
+      id,
+      isar.orderFSyncs,
+      isar.getCollection<OrderItemSync>('OrderItemSync'),
+      'orderItems',
+      false,
+    );
+  }
 }
 
 class _OrderFSyncNativeAdapter extends IsarNativeTypeAdapter<OrderFSync> {
@@ -302,6 +312,7 @@ class _OrderFSyncNativeAdapter extends IsarNativeTypeAdapter<OrderFSync> {
       table: reader.readString(offsets[16]),
       updatedAt: reader.readStringOrNull(offsets[17]),
     );
+    attachLinks(collection.isar, id, object);
     return object;
   }
 
@@ -353,7 +364,15 @@ class _OrderFSyncNativeAdapter extends IsarNativeTypeAdapter<OrderFSync> {
   }
 
   @override
-  void attachLinks(Isar isar, int id, OrderFSync object) {}
+  void attachLinks(Isar isar, int id, OrderFSync object) {
+    object.orderItems.attach(
+      id,
+      isar.orderFSyncs,
+      isar.getCollection<OrderItemSync>('OrderItemSync'),
+      'orderItems',
+      false,
+    );
+  }
 }
 
 extension OrderFSyncQueryWhereSort

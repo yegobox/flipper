@@ -22,12 +22,12 @@ import 'isar/setting.dart';
 import 'isar/profile.dart';
 import 'isar/product_sync.dart';
 
-abstract class Api<T> {
+abstract class IsarApiInterface {
   Future<List<ProductSync>> products({required int branchId});
   Future<int> signup({required Map business});
   Future<SyncF> login({required String userPhone});
-  Future<List<Business>> getOnlineBusiness({required String userId});
-  Future<List<Business>> getLocalOrOnlineBusiness({required String userId});
+  Future<Business> getOnlineBusiness({required String userId});
+  Future<Business> getLocalOrOnlineBusiness({required String userId});
   Future<List<BranchSync>> branches({required int businessId});
   Future<List<BranchSync>> getLocalBranches({required int businessId});
   List<StockSync> stocks({required int productId});
@@ -63,7 +63,7 @@ abstract class Api<T> {
   Future<List<ProductSync>> isTempProductExist({required int branchId});
   Future<bool> logOut();
 
-  Future<Voucher?> consumeVoucher({required int voucherCode});
+  Future<VoucherM?> consumeVoucher({required int voucherCode});
 
   ///create an order if no pending order exist should create a new one
   ///then if it exist should return the existing one!

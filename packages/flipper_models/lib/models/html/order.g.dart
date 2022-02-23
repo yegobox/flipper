@@ -117,7 +117,6 @@ class _OrderFSyncWebAdapter extends IsarWebTypeAdapter<OrderFSync> {
           IsarNative.jsObjectGet(jsObj, 'subTotal') ?? double.negativeInfinity,
       table: IsarNative.jsObjectGet(jsObj, 'table') ?? '',
       updatedAt: IsarNative.jsObjectGet(jsObj, 'updatedAt'),
-      orderItems: [],
     );
     return object;
   }
@@ -302,7 +301,6 @@ class _OrderFSyncNativeAdapter extends IsarNativeTypeAdapter<OrderFSync> {
       subTotal: reader.readDouble(offsets[15]),
       table: reader.readString(offsets[16]),
       updatedAt: reader.readStringOrNull(offsets[17]),
-      orderItems: [],
     );
     return object;
   }

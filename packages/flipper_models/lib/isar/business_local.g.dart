@@ -2,7 +2,6 @@
 
 part of flipper_models;
 
-
 // **************************************************************************
 // IsarCollectionGenerator
 // **************************************************************************
@@ -140,7 +139,6 @@ class _BusinessWebAdapter extends IsarWebTypeAdapter<Business> {
       firstName: IsarNative.jsObjectGet(jsObj, 'firstName'),
       fullName: IsarNative.jsObjectGet(jsObj, 'fullName'),
       hexColor: IsarNative.jsObjectGet(jsObj, 'hexColor'),
-      id: IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity,
       imageUrl: IsarNative.jsObjectGet(jsObj, 'imageUrl'),
       isLastSubscriptionPaymentSucceeded:
           IsarNative.jsObjectGet(jsObj, 'isLastSubscriptionPaymentSucceeded'),
@@ -162,6 +160,7 @@ class _BusinessWebAdapter extends IsarWebTypeAdapter<Business> {
       userId: IsarNative.jsObjectGet(jsObj, 'userId'),
     );
     object.createdAt = IsarNative.jsObjectGet(jsObj, 'createdAt');
+    object.id = IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity;
     return object;
   }
 
@@ -485,7 +484,6 @@ class _BusinessNativeAdapter extends IsarNativeTypeAdapter<Business> {
       firstName: reader.readStringOrNull(offsets[12]),
       fullName: reader.readStringOrNull(offsets[13]),
       hexColor: reader.readStringOrNull(offsets[14]),
-      id: id,
       imageUrl: reader.readStringOrNull(offsets[15]),
       isLastSubscriptionPaymentSucceeded: reader.readBoolOrNull(offsets[16]),
       lastDbBackup: reader.readStringOrNull(offsets[17]),
@@ -506,6 +504,7 @@ class _BusinessNativeAdapter extends IsarNativeTypeAdapter<Business> {
       userId: reader.readStringOrNull(offsets[32]),
     );
     object.createdAt = reader.readStringOrNull(offsets[7]);
+    object.id = id;
     return object;
   }
 
@@ -3982,9 +3981,6 @@ extension BusinessQueryFilter
     ));
   }
 }
-
-extension BusinessQueryLinks
-    on QueryBuilder<Business, Business, QFilterCondition> {}
 
 extension BusinessQueryWhereSortBy
     on QueryBuilder<Business, Business, QSortBy> {

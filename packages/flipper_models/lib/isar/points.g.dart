@@ -357,8 +357,6 @@ extension PointsQueryFilter on QueryBuilder<Points, Points, QFilterCondition> {
   }
 }
 
-extension PointsQueryLinks on QueryBuilder<Points, Points, QFilterCondition> {}
-
 extension PointsQueryWhereSortBy on QueryBuilder<Points, Points, QSortBy> {
   QueryBuilder<Points, Points, QAfterSortBy> sortById() {
     return addSortByInternal('id', Sort.asc);

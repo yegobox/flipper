@@ -18,8 +18,8 @@ class AppService with ReactiveServiceMixin {
   final _categories = ReactiveValue<List<Category>>([]);
   List<Category> get categories => _categories.value;
 
-  final _businesses = ReactiveValue<List<isar.Business>>([]);
-  List<isar.Business> get businesses => _businesses.value;
+  final _business = ReactiveValue<isar.Business>(isar.Business());
+  isar.Business get businesses => _business.value;
 
   final _units = ReactiveValue<List<Unit>>([]);
   List<Unit> get units => _units.value;
@@ -34,8 +34,8 @@ class AppService with ReactiveServiceMixin {
     _currentColor.value = color;
   }
 
-  setBusiness({required List<isar.Business> businesses}) {
-    _businesses.value = businesses;
+  setBusiness({required isar.Business business}) {
+    _business.value = business;
   }
 
   void loadCategories() async {
@@ -90,6 +90,6 @@ class AppService with ReactiveServiceMixin {
 
   AppService() {
     listenToReactiveValues(
-        [_categories, _units, _colors, _currentColor, _businesses, _contacts]);
+        [_categories, _units, _colors, _currentColor, _business, _contacts]);
   }
 }

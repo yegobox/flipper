@@ -4,7 +4,7 @@
 
 import 'dart:typed_data';
 
-import 'package:objectbox/flatbuffers/flat_buffers.dart' as fb;
+import 'package:flat_buffers/flat_buffers.dart' as fb;
 import 'package:objectbox/internal.dart'; // generated code can access "internal" functionality
 import 'package:objectbox/objectbox.dart';
 import 'package:objectbox_sync_flutter_libs/objectbox_sync_flutter_libs.dart';
@@ -16,6 +16,7 @@ import 'models/io/business_local.dart';
 import 'models/io/category.dart';
 import 'models/io/color.dart';
 import 'models/io/customer.dart';
+import 'models/io/device.dart';
 import 'models/io/discount.dart';
 import 'models/io/feature.dart';
 import 'models/io/l_business.dart';
@@ -249,7 +250,7 @@ final _entities = <ModelEntity>[
   ModelEntity(
       id: const IdUid(8, 3913061828474354395),
       name: 'Stock',
-      lastPropertyId: const IdUid(14, 4271932446860601576),
+      lastPropertyId: const IdUid(15, 6804958401678772498),
       flags: 0,
       properties: <ModelProperty>[
         ModelProperty(
@@ -321,6 +322,11 @@ final _entities = <ModelEntity>[
             id: const IdUid(14, 4271932446860601576),
             name: 'migrated',
             type: 1,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(15, 6804958401678772498),
+            name: 'test',
+            type: 8,
             flags: 0)
       ],
       relations: <ModelRelation>[],
@@ -2440,6 +2446,40 @@ final _entities = <ModelEntity>[
             flags: 0)
       ],
       relations: <ModelRelation>[],
+      backlinks: <ModelBacklink>[]),
+  ModelEntity(
+      id: const IdUid(51, 225078142579568100),
+      name: 'Device',
+      lastPropertyId: const IdUid(5, 2356258901673920184),
+      flags: 2,
+      properties: <ModelProperty>[
+        ModelProperty(
+            id: const IdUid(1, 447216824063087841),
+            name: 'id',
+            type: 6,
+            flags: 129),
+        ModelProperty(
+            id: const IdUid(2, 8069333398247914824),
+            name: 'userId',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(3, 8876325847686016491),
+            name: 'name',
+            type: 9,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(4, 2597242973408084507),
+            name: 'branchId',
+            type: 6,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(5, 2356258901673920184),
+            name: 'businessId',
+            type: 6,
+            flags: 0)
+      ],
+      relations: <ModelRelation>[],
       backlinks: <ModelBacklink>[])
 ];
 
@@ -2463,7 +2503,7 @@ Future<Store> openStore(
 ModelDefinition getObjectBoxModel() {
   final model = ModelInfo(
       entities: _entities,
-      lastEntityId: const IdUid(50, 3477829046138614560),
+      lastEntityId: const IdUid(51, 225078142579568100),
       lastIndexId: const IdUid(21, 6996790652084639492),
       lastRelationId: const IdUid(1, 7692477632100059163),
       lastSequenceId: const IdUid(0, 0),
@@ -2671,11 +2711,11 @@ ModelDefinition getObjectBoxModel() {
                   const fb.BoolReader().vTableGet(buffer, rootOffset, 6, false),
               focused:
                   const fb.BoolReader().vTableGet(buffer, rootOffset, 8, false),
-              name:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 10, ''),
+              name: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 10, ''),
               fbranchId:
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 12, 0),
-              table: const fb.StringReader()
+              table: const fb.StringReader(asciiOptimization: true)
                   .vTableGet(buffer, rootOffset, 14, ''));
 
           return object;
@@ -2707,10 +2747,10 @@ ModelDefinition getObjectBoxModel() {
 
           final object = PColor(
               id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0),
-              name: const fb.StringReader()
+              name: const fb.StringReader(asciiOptimization: true)
                   .vTableGetNullable(buffer, rootOffset, 6),
-              table:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 8, ''),
+              table: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 8, ''),
               fbranchId: const fb.Int64Reader()
                   .vTableGetNullable(buffer, rootOffset, 10),
               active: const fb.BoolReader()
@@ -2789,42 +2829,35 @@ ModelDefinition getObjectBoxModel() {
 
           final object = Product(
               id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0),
-              name:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 6, ''),
-              description: const fb.StringReader()
+              name: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 6, ''),
+              description: const fb.StringReader(asciiOptimization: true)
                   .vTableGetNullable(buffer, rootOffset, 8),
               active: const fb.BoolReader()
                   .vTableGet(buffer, rootOffset, 10, false),
-              ftaxId: const fb.StringReader()
+              ftaxId: const fb.StringReader(asciiOptimization: true)
                   .vTableGetNullable(buffer, rootOffset, 12),
               hasPicture: const fb.BoolReader()
                   .vTableGet(buffer, rootOffset, 14, false),
-              table:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 16, ''),
-              color:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 18, ''),
+              table: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 16, ''),
+              color: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 18, ''),
               fbusinessId:
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 20, 0),
-              fbranchId:
-                  const fb.Int64Reader().vTableGet(buffer, rootOffset, 22, 0),
-              fsupplierId: const fb.StringReader()
-                  .vTableGetNullable(buffer, rootOffset, 24),
-              fcategoryId: const fb.StringReader()
-                  .vTableGetNullable(buffer, rootOffset, 26),
-              createdAt: const fb.StringReader()
-                  .vTableGetNullable(buffer, rootOffset, 28),
-              unit:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 30, ''),
-              draft: const fb.BoolReader()
-                  .vTableGetNullable(buffer, rootOffset, 32),
-              imageLocal:
-                  const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 34),
+              fbranchId: const fb.Int64Reader().vTableGet(buffer, rootOffset, 22, 0),
+              fsupplierId: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 24),
+              fcategoryId: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 26),
+              createdAt: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 28),
+              unit: const fb.StringReader(asciiOptimization: true).vTableGet(buffer, rootOffset, 30, ''),
+              draft: const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 32),
+              imageLocal: const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 34),
               currentUpdate: const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 36),
-              expiryDate: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 40),
-              barCode: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 42),
+              expiryDate: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 40),
+              barCode: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 42),
               synced: const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 44),
               migrated: const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 46),
-              imageUrl: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 38));
+              imageUrl: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 38));
           InternalToManyAccess.setRelInfo(
               object.variations,
               store,
@@ -2843,7 +2876,7 @@ ModelDefinition getObjectBoxModel() {
         },
         objectToFB: (Stock object, fb.Builder fbb) {
           final tableOffset = fbb.writeString(object.table);
-          fbb.startTable(15);
+          fbb.startTable(16);
           fbb.addInt64(0, object.id);
           fbb.addInt64(1, object.fbranchId);
           fbb.addInt64(2, object.fvariantId);
@@ -2858,6 +2891,7 @@ ModelDefinition getObjectBoxModel() {
           fbb.addBool(11, object.active);
           fbb.addFloat64(12, object.value);
           fbb.addBool(13, object.migrated);
+          fbb.addFloat64(14, object.test);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -2883,8 +2917,8 @@ ModelDefinition getObjectBoxModel() {
                   .vTableGet(buffer, rootOffset, 18, false),
               showLowStockAlert: const fb.BoolReader()
                   .vTableGet(buffer, rootOffset, 20, false),
-              table:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 22, ''),
+              table: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 22, ''),
               fproductId:
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 24, 0),
               active: const fb.BoolReader()
@@ -2892,7 +2926,8 @@ ModelDefinition getObjectBoxModel() {
               value:
                   const fb.Float64Reader().vTableGet(buffer, rootOffset, 28, 0),
               migrated: const fb.BoolReader()
-                  .vTableGetNullable(buffer, rootOffset, 30));
+                  .vTableGetNullable(buffer, rootOffset, 30),
+              test: const fb.Float64Reader().vTableGetNullable(buffer, rootOffset, 32));
 
           return object;
         }),
@@ -2926,12 +2961,12 @@ ModelDefinition getObjectBoxModel() {
               id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0),
               fbranchId: const fb.Int64Reader()
                   .vTableGetNullable(buffer, rootOffset, 6),
-              name:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 8, ''),
-              value:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 10, ''),
-              table:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 12, ''),
+              name: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 8, ''),
+              value: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 10, ''),
+              table: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 12, ''),
               active: const fb.BoolReader()
                   .vTableGet(buffer, rootOffset, 14, false));
 
@@ -2979,31 +3014,29 @@ ModelDefinition getObjectBoxModel() {
 
           final object = Variant(
               id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0),
-              name:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 6, ''),
-              sku: const fb.StringReader().vTableGet(buffer, rootOffset, 8, ''),
+              name: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 6, ''),
+              sku: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 8, ''),
               fproductId:
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 10, 0),
-              unit:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 12, ''),
-              table:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 14, ''),
+              unit: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 12, ''),
+              table: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 14, ''),
               supplyPrice:
                   const fb.Float64Reader().vTableGet(buffer, rootOffset, 26, 0),
               retailPrice:
                   const fb.Float64Reader().vTableGet(buffer, rootOffset, 28, 0),
-              productName:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 16, ''),
+              productName: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 16, ''),
               fbranchId:
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 18, 0),
-              synced: const fb.BoolReader()
-                  .vTableGetNullable(buffer, rootOffset, 30),
-              migrated: const fb.BoolReader()
-                  .vTableGetNullable(buffer, rootOffset, 34),
-              taxName: const fb.StringReader()
-                  .vTableGetNullable(buffer, rootOffset, 20),
-              taxPercentage: const fb.Float64Reader()
-                  .vTableGetNullable(buffer, rootOffset, 22));
+              synced:
+                  const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 30),
+              migrated: const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 34),
+              taxName: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 20),
+              taxPercentage: const fb.Float64Reader().vTableGetNullable(buffer, rootOffset, 22));
           object.product.targetId =
               const fb.Int64Reader().vTableGet(buffer, rootOffset, 24, 0);
           object.product.attach(store);
@@ -3057,28 +3090,24 @@ ModelDefinition getObjectBoxModel() {
                   const fb.BoolReader().vTableGet(buffer, rootOffset, 6, false),
               retailPrice:
                   const fb.Float64Reader().vTableGet(buffer, rootOffset, 8, 0),
-              productName:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 10, ''),
-              variantName:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 12, ''),
-              unit:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 14, ''),
-              sku:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 16, ''),
-              fbranchId:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 18, ''),
+              productName: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 10, ''),
+              variantName: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 12, ''),
+              unit: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 14, ''),
+              sku: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 16, ''),
+              fbranchId: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 18, ''),
               lowStock: const fb.Float64Reader()
                   .vTableGetNullable(buffer, rootOffset, 20),
               currentStock:
                   const fb.Float64Reader().vTableGet(buffer, rootOffset, 22, 0),
-              fvariantId:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 24, ''),
-              taxName: const fb.StringReader()
-                  .vTableGetNullable(buffer, rootOffset, 26),
-              taxPercentage: const fb.Float64Reader()
-                  .vTableGetNullable(buffer, rootOffset, 28),
-              value: const fb.Float64Reader()
-                  .vTableGet(buffer, rootOffset, 30, 0));
+              fvariantId: const fb.StringReader(asciiOptimization: true).vTableGet(buffer, rootOffset, 24, ''),
+              taxName: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 26),
+              taxPercentage: const fb.Float64Reader().vTableGetNullable(buffer, rootOffset, 28),
+              value: const fb.Float64Reader().vTableGet(buffer, rootOffset, 30, 0));
 
           return object;
         }),
@@ -3117,17 +3146,17 @@ ModelDefinition getObjectBoxModel() {
 
           final object = Setting(
               id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0),
-              email:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 6, ''),
-              hasPin:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 8, ''),
+              email: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 6, ''),
+              hasPin: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 8, ''),
               autoPrint: const fb.BoolReader()
                   .vTableGetNullable(buffer, rootOffset, 14),
               openReceiptFileOSaleComplete: const fb.BoolReader()
                   .vTableGetNullable(buffer, rootOffset, 12),
               sendDailyReport: const fb.BoolReader()
                   .vTableGetNullable(buffer, rootOffset, 18),
-              defaultLanguage: const fb.StringReader()
+              defaultLanguage: const fb.StringReader(asciiOptimization: true)
                   .vTableGetNullable(buffer, rootOffset, 16),
               googleSheetDocCreated: const fb.BoolReader()
                   .vTableGetNullable(buffer, rootOffset, 20),
@@ -3135,8 +3164,7 @@ ModelDefinition getObjectBoxModel() {
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 10, 0),
               attendnaceDocCreated: const fb.BoolReader()
                   .vTableGetNullable(buffer, rootOffset, 22),
-              isAttendanceEnabled: const fb.BoolReader()
-                  .vTableGetNullable(buffer, rootOffset, 24));
+              isAttendanceEnabled: const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 24));
 
           return object;
         }),
@@ -3186,8 +3214,8 @@ ModelDefinition getObjectBoxModel() {
 
           final object = Menu(
               id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0),
-              name:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 6, ''),
+              name: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 6, ''),
               branchId:
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 8, 0));
 
@@ -3289,41 +3317,34 @@ ModelDefinition getObjectBoxModel() {
 
           final object = ProductSync(
               id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0),
-              name:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 6, ''),
-              description: const fb.StringReader()
+              name: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 6, ''),
+              description: const fb.StringReader(asciiOptimization: true)
                   .vTableGetNullable(buffer, rootOffset, 8),
               active: const fb.BoolReader()
                   .vTableGet(buffer, rootOffset, 10, false),
-              ftaxId: const fb.StringReader()
+              ftaxId: const fb.StringReader(asciiOptimization: true)
                   .vTableGetNullable(buffer, rootOffset, 12),
               hasPicture: const fb.BoolReader()
                   .vTableGet(buffer, rootOffset, 14, false),
-              table:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 16, ''),
-              color:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 18, ''),
+              table: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 16, ''),
+              color: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 18, ''),
               fbusinessId:
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 20, 0),
-              fbranchId:
-                  const fb.Int64Reader().vTableGet(buffer, rootOffset, 22, 0),
-              fsupplierId: const fb.StringReader()
-                  .vTableGetNullable(buffer, rootOffset, 24),
-              fcategoryId: const fb.StringReader()
-                  .vTableGetNullable(buffer, rootOffset, 26),
-              createdAt: const fb.StringReader()
-                  .vTableGetNullable(buffer, rootOffset, 28),
-              unit:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 30, ''),
-              draft: const fb.BoolReader()
-                  .vTableGetNullable(buffer, rootOffset, 32),
-              imageLocal:
-                  const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 34),
+              fbranchId: const fb.Int64Reader().vTableGet(buffer, rootOffset, 22, 0),
+              fsupplierId: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 24),
+              fcategoryId: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 26),
+              createdAt: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 28),
+              unit: const fb.StringReader(asciiOptimization: true).vTableGet(buffer, rootOffset, 30, ''),
+              draft: const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 32),
+              imageLocal: const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 34),
               currentUpdate: const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 36),
-              expiryDate: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 40),
-              barCode: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 42),
+              expiryDate: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 40),
+              barCode: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 42),
               synced: const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 44),
-              imageUrl: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 38));
+              imageUrl: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 38));
           InternalToManyAccess.setRelInfo(
               object.variations,
               store,
@@ -3381,8 +3402,8 @@ ModelDefinition getObjectBoxModel() {
                   .vTableGet(buffer, rootOffset, 18, false),
               showLowStockAlert: const fb.BoolReader()
                   .vTableGet(buffer, rootOffset, 20, false),
-              table:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 22, ''),
+              table: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 22, ''),
               fproductId:
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 24, 0),
               active: const fb.BoolReader()
@@ -3433,29 +3454,28 @@ ModelDefinition getObjectBoxModel() {
 
           final object = VariantSync(
               id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0),
-              name:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 6, ''),
-              sku: const fb.StringReader().vTableGet(buffer, rootOffset, 8, ''),
+              name: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 6, ''),
+              sku: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 8, ''),
               fproductId:
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 10, 0),
-              unit:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 12, ''),
-              table:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 14, ''),
+              unit: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 12, ''),
+              table: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 14, ''),
               supplyPrice:
                   const fb.Float64Reader().vTableGet(buffer, rootOffset, 24, 0),
               retailPrice:
                   const fb.Float64Reader().vTableGet(buffer, rootOffset, 26, 0),
-              productName:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 16, ''),
+              productName: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 16, ''),
               fbranchId:
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 18, 0),
-              synced: const fb.BoolReader()
-                  .vTableGetNullable(buffer, rootOffset, 28),
-              taxName: const fb.StringReader()
-                  .vTableGetNullable(buffer, rootOffset, 20),
-              taxPercentage: const fb.Float64Reader()
-                  .vTableGetNullable(buffer, rootOffset, 22));
+              synced:
+                  const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 28),
+              taxName: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 20),
+              taxPercentage: const fb.Float64Reader().vTableGetNullable(buffer, rootOffset, 22));
           object.product.targetId =
               const fb.Int64Reader().vTableGet(buffer, rootOffset, 30, 0);
           object.product.attach(store);
@@ -3487,8 +3507,8 @@ ModelDefinition getObjectBoxModel() {
 
           final object = Feature(
               id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0),
-              name:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 6, ''));
+              name: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 6, ''));
           object.subscription.targetId =
               const fb.Int64Reader().vTableGet(buffer, rootOffset, 8, 0);
           object.subscription.attach(store);
@@ -3532,15 +3552,15 @@ ModelDefinition getObjectBoxModel() {
               id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0),
               interval:
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 22, 0),
-              lastBillingDate:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 24, ''),
-              nextBillingDate:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 26, ''),
+              lastBillingDate: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 24, ''),
+              nextBillingDate: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 26, ''),
               userId:
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 28, 0),
               recurring:
                   const fb.Float64Reader().vTableGet(buffer, rootOffset, 34, 0),
-              descriptor: const fb.StringReader()
+              descriptor: const fb.StringReader(asciiOptimization: true)
                   .vTableGet(buffer, rootOffset, 32, ''));
           InternalToManyAccess.setRelInfo(
               object.branches,
@@ -3599,17 +3619,17 @@ ModelDefinition getObjectBoxModel() {
               id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0),
               active: const fb.BoolReader()
                   .vTableGetNullable(buffer, rootOffset, 6),
-              description: const fb.StringReader()
+              description: const fb.StringReader(asciiOptimization: true)
                   .vTableGetNullable(buffer, rootOffset, 8),
-              name:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 10, ''),
+              name: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 10, ''),
               fbusinessId: const fb.Int64Reader()
                   .vTableGetNullable(buffer, rootOffset, 12),
-              longitude: const fb.StringReader()
+              longitude: const fb.StringReader(asciiOptimization: true)
                   .vTableGetNullable(buffer, rootOffset, 14),
-              latitude: const fb.StringReader()
+              latitude: const fb.StringReader(asciiOptimization: true)
                   .vTableGetNullable(buffer, rootOffset, 16),
-              table: const fb.StringReader()
+              table: const fb.StringReader(asciiOptimization: true)
                   .vTableGet(buffer, rootOffset, 18, ''));
           object.product.targetId =
               const fb.Int64Reader().vTableGet(buffer, rootOffset, 20, 0);
@@ -3642,8 +3662,8 @@ ModelDefinition getObjectBoxModel() {
 
           final object = Permissionsync(
               id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0),
-              name:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 6, ''));
+              name: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 6, ''));
           object.product.targetId =
               const fb.Int64Reader().vTableGet(buffer, rootOffset, 8, 0);
           object.product.attach(store);
@@ -3681,11 +3701,11 @@ ModelDefinition getObjectBoxModel() {
 
           final object = TenantSync(
               id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0),
-              name:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 6, ''),
-              phoneNumber:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 8, ''),
-              email: const fb.StringReader()
+              name: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 6, ''),
+              phoneNumber: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 8, ''),
+              email: const fb.StringReader(asciiOptimization: true)
                   .vTableGet(buffer, rootOffset, 10, ''));
           InternalToManyAccess.setRelInfo(
               object.branches,
@@ -3742,24 +3762,22 @@ ModelDefinition getObjectBoxModel() {
               id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0),
               businessId:
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 6, 0),
-              businessName:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 8, ''),
-              fullName:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 10, ''),
-              phoneNumber:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 12, ''),
-              checkInDate:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 14, ''),
-              checkInTime:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 16, ''),
-              vaccinationCode:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 18, ''),
-              livingAt:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 20, ''),
-              cell:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 22, ''),
-              district: const fb.StringReader()
-                  .vTableGet(buffer, rootOffset, 24, ''));
+              businessName: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 8, ''),
+              fullName: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 10, ''),
+              phoneNumber: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 12, ''),
+              checkInDate: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 14, ''),
+              checkInTime: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 16, ''),
+              vaccinationCode: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 18, ''),
+              livingAt: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 20, ''),
+              cell: const fb.StringReader(asciiOptimization: true).vTableGet(buffer, rootOffset, 22, ''),
+              district: const fb.StringReader(asciiOptimization: true).vTableGet(buffer, rootOffset, 24, ''));
 
           return object;
         }),
@@ -3825,39 +3843,31 @@ ModelDefinition getObjectBoxModel() {
 
           final object = Profile(
               id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0),
-              name:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 6, ''),
-              email:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 8, ''),
-              phone:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 10, ''),
-              address: const fb.StringReader()
+              name: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 6, ''),
+              email: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 8, ''),
+              phone: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 10, ''),
+              address: const fb.StringReader(asciiOptimization: true)
                   .vTableGetNullable(buffer, rootOffset, 12),
-              city: const fb.StringReader()
+              city: const fb.StringReader(asciiOptimization: true)
                   .vTableGetNullable(buffer, rootOffset, 14),
-              state: const fb.StringReader()
+              state: const fb.StringReader(asciiOptimization: true)
                   .vTableGetNullable(buffer, rootOffset, 16),
-              country:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 18, ''),
-              pincode: const fb.StringReader()
-                  .vTableGetNullable(buffer, rootOffset, 20),
-              profilePic: const fb.StringReader()
-                  .vTableGetNullable(buffer, rootOffset, 22),
-              coverPic: const fb.StringReader()
-                  .vTableGetNullable(buffer, rootOffset, 24),
-              about: const fb.StringReader()
-                  .vTableGetNullable(buffer, rootOffset, 26),
-              vaccinationCode:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 28, ''),
-              livingAt:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 30, ''),
-              cell:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 32, ''),
-              district:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 34, ''),
-              businessId:
-                  const fb.Int64Reader().vTableGet(buffer, rootOffset, 36, 0),
-              nationalId: const fb.StringReader().vTableGet(buffer, rootOffset, 38, ''));
+              country: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 18, ''),
+              pincode:
+                  const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 20),
+              profilePic: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 22),
+              coverPic: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 24),
+              about: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 26),
+              vaccinationCode: const fb.StringReader(asciiOptimization: true).vTableGet(buffer, rootOffset, 28, ''),
+              livingAt: const fb.StringReader(asciiOptimization: true).vTableGet(buffer, rootOffset, 30, ''),
+              cell: const fb.StringReader(asciiOptimization: true).vTableGet(buffer, rootOffset, 32, ''),
+              district: const fb.StringReader(asciiOptimization: true).vTableGet(buffer, rootOffset, 34, ''),
+              businessId: const fb.Int64Reader().vTableGet(buffer, rootOffset, 36, 0),
+              nationalId: const fb.StringReader(asciiOptimization: true).vTableGet(buffer, rootOffset, 38, ''));
 
           return object;
         }),
@@ -3978,51 +3988,46 @@ ModelDefinition getObjectBoxModel() {
 
           final object = BusinessSync(
               id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0),
-              name:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 6, ''),
-              currency: const fb.StringReader()
+              name: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 6, ''),
+              currency: const fb.StringReader(asciiOptimization: true)
                   .vTableGetNullable(buffer, rootOffset, 8),
               fcategoryId: const fb.Int64Reader()
                   .vTableGetNullable(buffer, rootOffset, 10),
-              latitude:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 12, ''),
-              longitude:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 14, ''),
-              userId: const fb.StringReader()
+              latitude: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 12, ''),
+              longitude: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 14, ''),
+              userId: const fb.StringReader(asciiOptimization: true)
                   .vTableGetNullable(buffer, rootOffset, 16),
-              typeId: const fb.StringReader()
+              typeId: const fb.StringReader(asciiOptimization: true)
                   .vTableGetNullable(buffer, rootOffset, 18),
-              timeZone: const fb.StringReader()
+              timeZone: const fb.StringReader(asciiOptimization: true)
                   .vTableGetNullable(buffer, rootOffset, 20),
-              table: const fb.StringReader()
-                  .vTableGetNullable(buffer, rootOffset, 22),
-              country:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 24, ''),
-              businessUrl: const fb.StringReader()
-                  .vTableGetNullable(buffer, rootOffset, 26),
-              hexColor: const fb.StringReader()
-                  .vTableGetNullable(buffer, rootOffset, 28),
-              imageUrl: const fb.StringReader()
-                  .vTableGetNullable(buffer, rootOffset, 30),
-              type: const fb.StringReader().vTableGet(buffer, rootOffset, 32, ''),
+              table: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 22),
+              country: const fb.StringReader(asciiOptimization: true).vTableGet(buffer, rootOffset, 24, ''),
+              businessUrl: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 26),
+              hexColor: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 28),
+              imageUrl: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 30),
+              type: const fb.StringReader(asciiOptimization: true).vTableGet(buffer, rootOffset, 32, ''),
               active: const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 34),
-              metadata: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 38),
+              metadata: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 38),
               lastSeen: const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 42),
-              firstName: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 44),
-              lastName: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 46),
-              deviceToken: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 50),
-              chatUid: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 36),
+              firstName: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 44),
+              lastName: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 46),
+              deviceToken: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 50),
+              chatUid: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 36),
               backUpEnabled: const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 52),
-              subscriptionPlan: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 54),
-              nextBillingDate: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 56),
-              previousBillingDate: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 58),
+              subscriptionPlan: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 54),
+              nextBillingDate: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 56),
+              previousBillingDate: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 58),
               isLastSubscriptionPaymentSucceeded: const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 60),
-              backupFileId: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 62),
-              email: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 64),
-              lastDbBackup: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 66),
-              fullName: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 68),
-              role: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 40))
-            ..createdAt = const fb.StringReader().vTableGetNullable(buffer, rootOffset, 48);
+              backupFileId: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 62),
+              email: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 64),
+              lastDbBackup: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 66),
+              fullName: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 68),
+              role: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 40))
+            ..createdAt = const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 48);
 
           return object;
         }),
@@ -4064,15 +4069,15 @@ ModelDefinition getObjectBoxModel() {
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 14, 0),
               branchId:
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 16, 0),
-              name:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 6, ''),
-              address:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 12, ''),
-              phone:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 10, ''),
-              email:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 8, ''),
-              updatedAt: const fb.StringReader()
+              name: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 6, ''),
+              address: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 12, ''),
+              phone: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 10, ''),
+              email: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 8, ''),
+              updatedAt: const fb.StringReader(asciiOptimization: true)
                   .vTableGetNullable(buffer, rootOffset, 18));
 
           return object;
@@ -4101,8 +4106,8 @@ ModelDefinition getObjectBoxModel() {
 
           final object = DiscountSync(
               id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0),
-              name:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 6, ''),
+              name: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 6, ''),
               amount: const fb.Int64Reader()
                   .vTableGetNullable(buffer, rootOffset, 8),
               branchId:
@@ -4163,37 +4168,30 @@ ModelDefinition getObjectBoxModel() {
 
           final object = OrderFSync(
               id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0),
-              reference:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 6, ''),
-              orderNumber:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 8, ''),
+              reference: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 6, ''),
+              orderNumber: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 8, ''),
               fbranchId:
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 10, 0),
-              status:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 12, ''),
-              orderType:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 14, ''),
+              status: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 12, ''),
+              orderType: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 14, ''),
               active: const fb.BoolReader()
                   .vTableGet(buffer, rootOffset, 16, false),
               draft: const fb.BoolReader()
                   .vTableGet(buffer, rootOffset, 18, false),
               subTotal:
                   const fb.Float64Reader().vTableGet(buffer, rootOffset, 20, 0),
-              paymentType:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 22, ''),
-              cashReceived:
-                  const fb.Float64Reader().vTableGet(buffer, rootOffset, 24, 0),
-              customerChangeDue:
-                  const fb.Float64Reader().vTableGet(buffer, rootOffset, 26, 0),
-              createdAt:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 28, ''),
-              updatedAt: const fb.StringReader()
-                  .vTableGetNullable(buffer, rootOffset, 30),
-              reported: const fb.BoolReader()
-                  .vTableGetNullable(buffer, rootOffset, 32),
-              table:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 34, ''),
-              note: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 38),
+              paymentType: const fb.StringReader(asciiOptimization: true).vTableGet(buffer, rootOffset, 22, ''),
+              cashReceived: const fb.Float64Reader().vTableGet(buffer, rootOffset, 24, 0),
+              customerChangeDue: const fb.Float64Reader().vTableGet(buffer, rootOffset, 26, 0),
+              createdAt: const fb.StringReader(asciiOptimization: true).vTableGet(buffer, rootOffset, 28, ''),
+              updatedAt: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 30),
+              reported: const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 32),
+              table: const fb.StringReader(asciiOptimization: true).vTableGet(buffer, rootOffset, 34, ''),
+              note: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 38),
               customerId: const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 36));
           InternalToManyAccess.setRelInfo(
               object.orderItems,
@@ -4240,8 +4238,8 @@ ModelDefinition getObjectBoxModel() {
 
           final object = OrderItemSync(
               id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0),
-              name:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 6, ''),
+              name: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 6, ''),
               fvariantId:
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 10, 0),
               count:
@@ -4252,15 +4250,15 @@ ModelDefinition getObjectBoxModel() {
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 8, 0),
               discount: const fb.Float64Reader()
                   .vTableGetNullable(buffer, rootOffset, 16),
-              createdAt:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 24, ''),
-              updatedAt:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 26, ''),
+              createdAt: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 24, ''),
+              updatedAt: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 26, ''),
               reported: const fb.BoolReader()
                   .vTableGet(buffer, rootOffset, 20, false),
               remainingStock:
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 22, 0),
-              type: const fb.StringReader()
+              type: const fb.StringReader(asciiOptimization: true)
                   .vTableGetNullable(buffer, rootOffset, 18));
           object.order.targetId =
               const fb.Int64Reader().vTableGet(buffer, rootOffset, 28, 0);
@@ -4296,11 +4294,11 @@ ModelDefinition getObjectBoxModel() {
           final rootOffset = buffer.derefObject(0);
 
           final object = PreviewData(
-              description: const fb.StringReader()
+              description: const fb.StringReader(asciiOptimization: true)
                   .vTableGetNullable(buffer, rootOffset, 6),
-              link: const fb.StringReader()
+              link: const fb.StringReader(asciiOptimization: true)
                   .vTableGetNullable(buffer, rootOffset, 8),
-              title: const fb.StringReader()
+              title: const fb.StringReader(asciiOptimization: true)
                   .vTableGetNullable(buffer, rootOffset, 10),
               id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0));
 
@@ -4331,7 +4329,8 @@ ModelDefinition getObjectBoxModel() {
           final object = PreviewDataImage(
               height:
                   const fb.Float64Reader().vTableGet(buffer, rootOffset, 4, 0),
-              url: const fb.StringReader().vTableGet(buffer, rootOffset, 8, ''),
+              url: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 8, ''),
               width:
                   const fb.Float64Reader().vTableGet(buffer, rootOffset, 10, 0),
               id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 6, 0));
@@ -4361,8 +4360,8 @@ ModelDefinition getObjectBoxModel() {
 
           final object = TextMessage(
               id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0),
-              text:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 6, ''));
+              text: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 6, ''));
           object.author.targetId =
               const fb.Int64Reader().vTableGet(buffer, rootOffset, 8, 0);
           object.author.attach(store);
@@ -4407,18 +4406,18 @@ ModelDefinition getObjectBoxModel() {
           final object = User(
               createdAt: const fb.Int64Reader()
                   .vTableGetNullable(buffer, rootOffset, 4),
-              firstName: const fb.StringReader()
+              firstName: const fb.StringReader(asciiOptimization: true)
                   .vTableGetNullable(buffer, rootOffset, 6),
               id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 8, 0),
-              imageUrl: const fb.StringReader()
+              imageUrl: const fb.StringReader(asciiOptimization: true)
                   .vTableGetNullable(buffer, rootOffset, 10),
-              lastName: const fb.StringReader()
+              lastName: const fb.StringReader(asciiOptimization: true)
                   .vTableGetNullable(buffer, rootOffset, 12),
               lastSeen: const fb.Int64Reader()
                   .vTableGetNullable(buffer, rootOffset, 14),
               updatedAt: const fb.Int64Reader()
                   .vTableGetNullable(buffer, rootOffset, 16))
-            ..roleOB = const fb.StringReader()
+            ..roleOB = const fb.StringReader(asciiOptimization: true)
                 .vTableGetNullable(buffer, rootOffset, 18);
 
           return object;
@@ -4479,11 +4478,11 @@ ModelDefinition getObjectBoxModel() {
               height: const fb.Float64Reader()
                   .vTableGetNullable(buffer, rootOffset, 8),
               id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0),
-              name:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 10, ''),
+              name: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 10, ''),
               size: const fb.Int64Reader().vTableGet(buffer, rootOffset, 16, 0),
-              uri:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 12, ''),
+              uri: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 12, ''),
               width: const fb.Float64Reader()
                   .vTableGetNullable(buffer, rootOffset, 14));
           object.author.targetId =
@@ -4546,13 +4545,13 @@ ModelDefinition getObjectBoxModel() {
           final rootOffset = buffer.derefObject(0);
 
           final object = FileMessage(
-              mimeType: const fb.StringReader()
+              mimeType: const fb.StringReader(asciiOptimization: true)
                   .vTableGetNullable(buffer, rootOffset, 8),
-              name:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 10, ''),
+              name: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 10, ''),
               size: const fb.Int64Reader().vTableGet(buffer, rootOffset, 14, 0),
-              uri:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 12, ''),
+              uri: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 12, ''),
               id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0));
           object.author.targetId =
               const fb.Int64Reader().vTableGet(buffer, rootOffset, 6, 0);
@@ -4594,13 +4593,13 @@ ModelDefinition getObjectBoxModel() {
               createdAt: const fb.Int64Reader()
                   .vTableGetNullable(buffer, rootOffset, 4),
               id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 6, 0),
-              imageUrl: const fb.StringReader()
+              imageUrl: const fb.StringReader(asciiOptimization: true)
                   .vTableGetNullable(buffer, rootOffset, 8),
-              name: const fb.StringReader()
+              name: const fb.StringReader(asciiOptimization: true)
                   .vTableGetNullable(buffer, rootOffset, 10),
               updatedAt: const fb.Int64Reader()
                   .vTableGetNullable(buffer, rootOffset, 12))
-            ..roleOB = const fb.StringReader()
+            ..roleOB = const fb.StringReader(asciiOptimization: true)
                 .vTableGetNullable(buffer, rootOffset, 14);
           InternalToManyAccess.setRelInfo(object.users, store,
               RelInfo<Room>.toMany(1, object.id), store.box<Room>());
@@ -4751,51 +4750,46 @@ ModelDefinition getObjectBoxModel() {
 
           final object = LBusiness(
               id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0),
-              name:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 6, ''),
-              currency: const fb.StringReader()
+              name: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 6, ''),
+              currency: const fb.StringReader(asciiOptimization: true)
                   .vTableGetNullable(buffer, rootOffset, 8),
               fcategoryId: const fb.Int64Reader()
                   .vTableGetNullable(buffer, rootOffset, 10),
-              latitude:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 12, ''),
-              longitude:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 14, ''),
-              userId: const fb.StringReader()
+              latitude: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 12, ''),
+              longitude: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 14, ''),
+              userId: const fb.StringReader(asciiOptimization: true)
                   .vTableGetNullable(buffer, rootOffset, 16),
-              typeId: const fb.StringReader()
+              typeId: const fb.StringReader(asciiOptimization: true)
                   .vTableGetNullable(buffer, rootOffset, 18),
-              timeZone: const fb.StringReader()
+              timeZone: const fb.StringReader(asciiOptimization: true)
                   .vTableGetNullable(buffer, rootOffset, 20),
-              table: const fb.StringReader()
-                  .vTableGetNullable(buffer, rootOffset, 22),
-              country:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 24, ''),
-              businessUrl: const fb.StringReader()
-                  .vTableGetNullable(buffer, rootOffset, 26),
-              hexColor: const fb.StringReader()
-                  .vTableGetNullable(buffer, rootOffset, 28),
-              imageUrl: const fb.StringReader()
-                  .vTableGetNullable(buffer, rootOffset, 30),
-              type: const fb.StringReader().vTableGet(buffer, rootOffset, 32, ''),
+              table: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 22),
+              country: const fb.StringReader(asciiOptimization: true).vTableGet(buffer, rootOffset, 24, ''),
+              businessUrl: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 26),
+              hexColor: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 28),
+              imageUrl: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 30),
+              type: const fb.StringReader(asciiOptimization: true).vTableGet(buffer, rootOffset, 32, ''),
               active: const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 34),
-              metadata: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 38),
+              metadata: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 38),
               lastSeen: const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 42),
-              firstName: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 44),
-              lastName: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 46),
-              deviceToken: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 50),
-              chatUid: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 36),
+              firstName: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 44),
+              lastName: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 46),
+              deviceToken: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 50),
+              chatUid: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 36),
               backUpEnabled: const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 52),
-              subscriptionPlan: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 54),
-              nextBillingDate: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 56),
-              previousBillingDate: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 58),
+              subscriptionPlan: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 54),
+              nextBillingDate: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 56),
+              previousBillingDate: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 58),
               isLastSubscriptionPaymentSucceeded: const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 60),
-              backupFileId: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 62),
-              email: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 64),
-              lastDbBackup: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 66),
-              fullName: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 68),
-              role: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 40))
-            ..createdAt = const fb.StringReader().vTableGetNullable(buffer, rootOffset, 48);
+              backupFileId: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 62),
+              email: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 64),
+              lastDbBackup: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 66),
+              fullName: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 68),
+              role: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 40))
+            ..createdAt = const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 48);
 
           return object;
         }),
@@ -4916,51 +4910,46 @@ ModelDefinition getObjectBoxModel() {
 
           final object = Business(
               id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0),
-              name:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 6, ''),
-              currency: const fb.StringReader()
+              name: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 6, ''),
+              currency: const fb.StringReader(asciiOptimization: true)
                   .vTableGetNullable(buffer, rootOffset, 8),
               fcategoryId: const fb.Int64Reader()
                   .vTableGetNullable(buffer, rootOffset, 10),
-              latitude:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 12, ''),
-              longitude:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 14, ''),
-              userId: const fb.StringReader()
+              latitude: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 12, ''),
+              longitude: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 14, ''),
+              userId: const fb.StringReader(asciiOptimization: true)
                   .vTableGetNullable(buffer, rootOffset, 16),
-              typeId: const fb.StringReader()
+              typeId: const fb.StringReader(asciiOptimization: true)
                   .vTableGetNullable(buffer, rootOffset, 18),
-              timeZone: const fb.StringReader()
+              timeZone: const fb.StringReader(asciiOptimization: true)
                   .vTableGetNullable(buffer, rootOffset, 20),
-              table: const fb.StringReader()
-                  .vTableGetNullable(buffer, rootOffset, 22),
-              country:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 24, ''),
-              businessUrl: const fb.StringReader()
-                  .vTableGetNullable(buffer, rootOffset, 26),
-              hexColor: const fb.StringReader()
-                  .vTableGetNullable(buffer, rootOffset, 28),
-              imageUrl: const fb.StringReader()
-                  .vTableGetNullable(buffer, rootOffset, 30),
-              type: const fb.StringReader().vTableGet(buffer, rootOffset, 32, ''),
+              table: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 22),
+              country: const fb.StringReader(asciiOptimization: true).vTableGet(buffer, rootOffset, 24, ''),
+              businessUrl: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 26),
+              hexColor: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 28),
+              imageUrl: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 30),
+              type: const fb.StringReader(asciiOptimization: true).vTableGet(buffer, rootOffset, 32, ''),
               active: const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 34),
-              metadata: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 38),
+              metadata: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 38),
               lastSeen: const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 42),
-              firstName: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 44),
-              lastName: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 46),
-              deviceToken: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 50),
-              chatUid: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 36),
+              firstName: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 44),
+              lastName: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 46),
+              deviceToken: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 50),
+              chatUid: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 36),
               backUpEnabled: const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 52),
-              subscriptionPlan: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 54),
-              nextBillingDate: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 56),
-              previousBillingDate: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 58),
+              subscriptionPlan: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 54),
+              nextBillingDate: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 56),
+              previousBillingDate: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 58),
               isLastSubscriptionPaymentSucceeded: const fb.BoolReader().vTableGetNullable(buffer, rootOffset, 60),
-              backupFileId: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 62),
-              email: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 64),
-              lastDbBackup: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 66),
-              fullName: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 68),
-              role: const fb.StringReader().vTableGetNullable(buffer, rootOffset, 40))
-            ..createdAt = const fb.StringReader().vTableGetNullable(buffer, rootOffset, 48);
+              backupFileId: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 62),
+              email: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 64),
+              lastDbBackup: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 66),
+              fullName: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 68),
+              role: const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 40))
+            ..createdAt = const fb.StringReader(asciiOptimization: true).vTableGetNullable(buffer, rootOffset, 48);
 
           return object;
         }),
@@ -4991,15 +4980,52 @@ ModelDefinition getObjectBoxModel() {
 
           final object = Pin(
               id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0),
-              userId:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 6, ''),
-              phoneNumber:
-                  const fb.StringReader().vTableGet(buffer, rootOffset, 8, ''),
+              userId: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 6, ''),
+              phoneNumber: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 8, ''),
               pin: const fb.Int64Reader().vTableGet(buffer, rootOffset, 10, 0),
               branchId:
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 12, 0),
               businessId:
                   const fb.Int64Reader().vTableGet(buffer, rootOffset, 14, 0));
+
+          return object;
+        }),
+    Device: EntityDefinition<Device>(
+        model: _entities[39],
+        toOneRelations: (Device object) => [],
+        toManyRelations: (Device object) => {},
+        getId: (Device object) => object.id,
+        setId: (Device object, int id) {
+          object.id = id;
+        },
+        objectToFB: (Device object, fb.Builder fbb) {
+          final userIdOffset = fbb.writeString(object.userId);
+          final nameOffset = fbb.writeString(object.name);
+          fbb.startTable(6);
+          fbb.addInt64(0, object.id);
+          fbb.addOffset(1, userIdOffset);
+          fbb.addOffset(2, nameOffset);
+          fbb.addInt64(3, object.branchId);
+          fbb.addInt64(4, object.businessId);
+          fbb.finish(fbb.endTable());
+          return object.id;
+        },
+        objectFromFB: (Store store, ByteData fbData) {
+          final buffer = fb.BufferContext(fbData);
+          final rootOffset = buffer.derefObject(0);
+
+          final object = Device(
+              id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0),
+              userId: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 6, ''),
+              name: const fb.StringReader(asciiOptimization: true)
+                  .vTableGet(buffer, rootOffset, 8, ''),
+              branchId:
+                  const fb.Int64Reader().vTableGet(buffer, rootOffset, 10, 0),
+              businessId:
+                  const fb.Int64Reader().vTableGet(buffer, rootOffset, 12, 0));
 
           return object;
         })
@@ -5193,6 +5219,9 @@ class Stock_ {
   /// see [Stock.migrated]
   static final migrated =
       QueryBooleanProperty<Stock>(_entities[3].properties[13]);
+
+  /// see [Stock.test]
+  static final test = QueryDoubleProperty<Stock>(_entities[3].properties[14]);
 }
 
 /// [Unit] entity fields to define ObjectBox queries.
@@ -6675,4 +6704,25 @@ class Pin_ {
   /// see [Pin.businessId]
   static final businessId =
       QueryIntegerProperty<Pin>(_entities[38].properties[5]);
+}
+
+/// [Device] entity fields to define ObjectBox queries.
+class Device_ {
+  /// see [Device.id]
+  static final id = QueryIntegerProperty<Device>(_entities[39].properties[0]);
+
+  /// see [Device.userId]
+  static final userId =
+      QueryStringProperty<Device>(_entities[39].properties[1]);
+
+  /// see [Device.name]
+  static final name = QueryStringProperty<Device>(_entities[39].properties[2]);
+
+  /// see [Device.branchId]
+  static final branchId =
+      QueryIntegerProperty<Device>(_entities[39].properties[3]);
+
+  /// see [Device.businessId]
+  static final businessId =
+      QueryIntegerProperty<Device>(_entities[39].properties[4]);
 }

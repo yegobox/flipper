@@ -60,29 +60,116 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="130b61e7-9be8-4adb-878b-9d0f09c30571" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.packages" beforeDir="false" afterPath="$PROJECT_DIR$/.packages" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/open-sources/flutter_firebase_chat_core" beforeDir="false" afterPath="$PROJECT_DIR$/open-sources/flutter_firebase_chat_core" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/open-sources/flutter_firebase_chat_core/lib/src/firebase_chat_core.dart" beforeDir="false" afterPath="$PROJECT_DIR$/open-sources/flutter_firebase_chat_core/lib/src/firebase_chat_core.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/open-sources/flutter_list_drag_and_drop" beforeDir="false" afterPath="$PROJECT_DIR$/open-sources/flutter_list_drag_and_drop" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/open-sources/flutter_list_drag_and_drop/.dart_tool/package_config.json" beforeDir="false" afterPath="$PROJECT_DIR$/open-sources/flutter_list_drag_and_drop/.dart_tool/package_config.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/open-sources/flutter_list_drag_and_drop/melos_flutter_list_drag_and_drop.iml" beforeDir="false" afterPath="$PROJECT_DIR$/open-sources/flutter_list_drag_and_drop/melos_flutter_list_drag_and_drop.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_dashboard/lib/startup_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_dashboard/lib/startup_view.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_login/lib/desktop_login_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_login/lib/desktop_login_view.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_login/lib/login.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_login/lib/login.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_login/lib/pin_login.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_login/lib/pin_login.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/exceptions.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/exceptions.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/interface.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/interface.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar/branch.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar/branch.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar/business.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar/business.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar/business.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar/business.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar/business_local.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar/business_local.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar/business_local.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar/business_local.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar/category.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar/category.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar/color.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar/color.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar/conversation.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar/conversation.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar/customer.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar/customer.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar/discount.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar/discount.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar/feature.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar/feature.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar/fuser.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar/fuser.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar/messages/custom_message.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar/messages/custom_message.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar/messages/file_message.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar/messages/file_message.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar/messages/image_message.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar/messages/image_message.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar/messages/partial_custom.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar/messages/partial_custom.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar/messages/partial_file.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar/messages/partial_file.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar/messages/partial_image.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar/messages/partial_image.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar/messages/partial_text.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar/messages/partial_text.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar/messages/text_message.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar/messages/text_message.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar/messages/unsupported_message.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar/messages/unsupported_message.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar/order.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar/order.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar/order_item.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar/order_item.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar/payment.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar/payment.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar/permission.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar/permission.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar/pin.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar/pin.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar/points.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar/points.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar/preview_data.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar/preview_data.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar/product.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar/product.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar/room.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar/room.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar/setting.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar/setting.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar/stock.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar/stock.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar/stock_sync.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar/stock_sync.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar/subscription.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar/subscription.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar/tenant.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar/tenant.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar/unit.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar/unit.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar/user.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar/user.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar/variant_stock.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar/variant_stock.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar/variant_sync.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar/variant_sync.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar/variants.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar/variants.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar/voucher.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar/voucher.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/isar_api.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/isar_api.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/branch.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/branch.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/business.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/business.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/color.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/color.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/conversation.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/conversation.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/customer.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/customer.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/discount.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/discount.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/feature.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/feature.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/fuser.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/fuser.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/messages/custom_message.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/messages/custom_message.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/messages/file_message.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/messages/file_message.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/messages/image_message.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/messages/image_message.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/messages/partial_custom.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/messages/partial_custom.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/messages/partial_file.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/messages/partial_file.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/messages/partial_image.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/messages/partial_image.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/messages/partial_text.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/messages/partial_text.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/messages/text_message.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/messages/text_message.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/messages/unsupported_message.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/messages/unsupported_message.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/order.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/order.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/order.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/order.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/order_item.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/order_item.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/order_mock.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/order_mock.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/payment.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/payment.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/permission.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/permission.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/pin.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/pin.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/points.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/points.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/preview_data.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/preview_data.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/product.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/product.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/room.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/room.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/setting.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/setting.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/stock.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/stock.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/stock_sync.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/stock_sync.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/subscription.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/subscription.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/tenant.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/tenant.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/unit.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/unit.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/user.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/user.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/variant_stock.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/variant_stock.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/variant_sync.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/variant_sync.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/variants.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/variants.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/voucher.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/html/voucher.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/io/converters/serializers.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/io/converters/serializers.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/io/fuser.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/io/fuser.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/io/messages/custom_message.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/io/messages/custom_message.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/io/messages/file_message.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/io/messages/file_message.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/io/messages/image_message.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/io/messages/image_message.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/io/messages/partial_custom.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/io/messages/partial_custom.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/io/messages/partial_file.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/io/messages/partial_file.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/io/messages/partial_image.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/io/messages/partial_image.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/io/messages/partial_text.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/io/messages/partial_text.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/io/messages/text_message.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/io/messages/text_message.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/io/messages/unsupported_message.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/io/messages/unsupported_message.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/io/preview_data.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/io/preview_data.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/io/room.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/io/room.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/io/user.g.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/io/user.g.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/view_models/html/signup_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/view_models/html/signup_viewmodel.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/view_models/io/signup_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/view_models/io/signup_viewmodel.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/view_models/io/startup_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/view_models/io/startup_viewmodel.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/view_models/login_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/view_models/login_viewmodel.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/pubspec.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/packages/flipper_models/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/pubspec.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/app_service.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/app_service.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/event_service.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/event_service.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/objectbox_api.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/objectbox_api.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/locator.config.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/locator.config.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/proxy.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/proxy.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_services/lib/third_party_services_module.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_services/lib/third_party_services_module.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/packages/generator/.packages" beforeDir="false" afterPath="$PROJECT_DIR$/packages/generator/.packages" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/pubspec.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pubspec.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/windows/flutter/generated_plugin_registrant.cc" beforeDir="false" afterPath="$PROJECT_DIR$/windows/flutter/generated_plugin_registrant.cc" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/windows/flutter/generated_plugins.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/windows/flutter/generated_plugins.cmake" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -137,10 +224,10 @@
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="100" y="100" width="1336" height="624" key="AVDManager" timestamp="1645469212484">
+    <state x="100" y="100" width="1336" height="624" key="AVDManager" timestamp="1645534074349">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state x="100" y="100" width="1336" height="624" key="AVDManager/0.0.1536.824@0.0.1536.824" timestamp="1645469212484" />
+    <state x="100" y="100" width="1336" height="624" key="AVDManager/0.0.1536.824@0.0.1536.824" timestamp="1645534074349" />
     <state width="1478" height="397" key="GridCell.Tab.0.bottom" timestamp="1645473038480">
       <screen x="0" y="0" width="1536" height="824" />
     </state>

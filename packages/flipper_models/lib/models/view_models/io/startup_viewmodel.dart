@@ -2,7 +2,6 @@ library flipper_models;
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_rw/gate.dart';
-import 'package:flipper_services/constants.dart';
 import 'package:flipper_routing/routes.locator.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_models/models/models.dart';
@@ -36,24 +35,35 @@ class StartUpViewModel extends BaseViewModel {
       }
     }
 
-    List<isar.Business> businesses = [];
     try {
-      businesses = await appInit();
+      await appInit();
       notifyListeners();
     } catch (e) {
       if (e is SessionException) {
         String? userPhone = ProxyService.box.getUserPhone();
         try {
           await ProxyService.api.login(
-            userPhone: userPhone ?? '',
+            userPhone: userPhone!,
           );
+          await appInit();
         } catch (e) {
           if (e is InternalServerError) {
             loginInfo.isLoggedIn = false;
             rethrow;
           }
         }
+
+        /// a business not found either locally or online
+        /// then go so signup page, it is important that from login page
+        /// we checked if a user is logged in, if not then we check if a user
+        /// has internet because it will be used either to login again or to fetch
+        /// business from the server.
       } else if (e is NotFoundException) {
+        String? countryName = await ProxyService.country.getCountryName();
+        loginInfo.country = countryName!;
+        loginInfo.isLoggedIn = true;
+        loginInfo.redirecting = false;
+        loginInfo.needSignUp = true;
         rethrow;
       } else {
         errorCallback(1);
@@ -61,63 +71,57 @@ class StartUpViewModel extends BaseViewModel {
         rethrow;
       }
     }
-    String? countryName = await ProxyService.country.getCountryName();
-    if (businesses.isEmpty) {
-      loginInfo.needSignUp = true;
-      loginInfo.isLoggedIn = true;
 
-      /// a user has logged in but has no business, so first check using
-      /// his phone number if has a tenant he can log to
-      /// FIXMEpause working on tenants
-      // String phoneNumber = ProxyService.box.getUserPhone()!;
-      // TenantSync? tenant;
-      // tenant = await ProxyService.api.isTenant(phoneNumber: phoneNumber);
+    /// if no exception is thrown, then we are logged in
+    /// proceed with going to home of the app.
 
-      /// instead of going to the network everytime to check if is tenant
-      /// load tenant from local storage if not then go to network and save it to local if does not exist local
+    loginInfo.isLoggedIn = true;
 
-      // if (tenant != null) {
-      //   ProxyService.api.saveTenant(phoneNumber: phoneNumber);
-      // }
-      // tenant = await ProxyService.api.isTenant(phoneNumber: phoneNumber);
-      // // FIXMEthis is a hack to get the tenant to work
-      // if (tenant != null &&
-      //     tenant.permissions.where((e) => e.name == "admin").isNotEmpty) {
-      //   /// if we only have one branch no need to switch from branches go straight to business.
-      //   if (tenant.branches.length == 1) {
-      //     isar.Business business = await ProxyService.isarApi
-      //         .getBusinessFromOnlineGivenId(
-      //             id: tenant.branches[0].fbusinessId!);
+    /// a user has logged in but has no business, so first check using
+    /// his phone number if has a tenant he can log to
+    /// FIXMEpause working on tenants
+    // String phoneNumber = ProxyService.box.getUserPhone()!;
+    // TenantSync? tenant;
+    // tenant = await ProxyService.api.isTenant(phoneNumber: phoneNumber);
 
-      //     navigateToDashboard(
-      //       business: business,
-      //       branch: tenant.branches[0],
-      //       loginInfo: loginInfo,
-      //     );
-      //     return;
-      //   } else if (tenant.branches.length > 1) {
-      //     /// TODOwhen we support multiple branches we need to add this logic
-      //     // GoRouter.of(context).go(Routes.switchBranch);
-      //     loginInfo.switchBranch = true;
-      //   }
-      // }
-      /// unpause working on tenants
+    /// instead of going to the network everytime to check if is tenant
+    /// load tenant from local storage if not then go to network and save it to local if does not exist local
 
-      /// if not, then go to the business creation page
-      /// if has a tenant, then go to the tenant page to chose a branch he is logging to
-      /// by getting tenant's branch when click on branch to log to
-      /// first fetch related business and update all related fields such us, userid,businessid,branchId
-      /// in local storage.
-      /// first get the location
+    // if (tenant != null) {
+    //   ProxyService.api.saveTenant(phoneNumber: phoneNumber);
+    // }
+    // tenant = await ProxyService.api.isTenant(phoneNumber: phoneNumber);
+    // // FIXMEthis is a hack to get the tenant to work
+    // if (tenant != null &&
+    //     tenant.permissions.where((e) => e.name == "admin").isNotEmpty) {
+    //   /// if we only have one branch no need to switch from branches go straight to business.
+    //   if (tenant.branches.length == 1) {
+    //     isar.Business business = await ProxyService.isarApi
+    //         .getBusinessFromOnlineGivenId(
+    //             id: tenant.branches[0].fbusinessId!);
 
-      loginInfo.country = countryName!;
-      loginInfo.redirecting = false;
-      return;
-    } else {
-      loginInfo.isLoggedIn = true;
-      loginInfo.redirecting = false;
-      loginInfo.needSignUp = false;
-    }
+    //     navigateToDashboard(
+    //       business: business,
+    //       branch: tenant.branches[0],
+    //       loginInfo: loginInfo,
+    //     );
+    //     return;
+    //   } else if (tenant.branches.length > 1) {
+    //     /// TODOwhen we support multiple branches we need to add this logic
+    //     // GoRouter.of(context).go(Routes.switchBranch);
+    //     loginInfo.switchBranch = true;
+    //   }
+    // }
+    /// unpause working on tenants
+
+    /// if not, then go to the business creation page
+    /// if has a tenant, then go to the tenant page to chose a branch he is logging to
+    /// by getting tenant's branch when click on branch to log to
+    /// first fetch related business and update all related fields such us, userid,businessid,branchId
+    /// in local storage.
+    /// first get the location
+
+    loginInfo.redirecting = false;
 
     /// you added me to a business and I have not yet signed up to flipper
     /// on signup the app need to check if there is an exisiting business that I am attached to
@@ -152,25 +156,22 @@ class StartUpViewModel extends BaseViewModel {
 
   /// get IDS to use along the way in t
   /// he app
-  Future<List<isar.Business>> appInit() async {
-    // try {
-    List<isar.Business> businesses = [];
+  Future<isar.Business> appInit() async {
+    try {
+      String? userId = ProxyService.box.getUserId();
+      log.e("here::$userId");
+      isar.Business business =
+          await ProxyService.isarApi.getLocalOrOnlineBusiness(userId: userId!);
 
-    String? userId = ProxyService.box.getUserId();
-    log.e("here::$userId");
-    // businesses = await ProxyService.isarApi
-    //     .getLocalOrOnlineBusiness(userId: userId ?? '');
-    // if (businesses.isNotEmpty) {
-    //   ProxyService.appService.setBusiness(businesses: businesses);
-    //   // get local or online branches
-    //   List<isar.BranchSync> branches = await ProxyService.isarApi
-    //       .getLocalBranches(businessId: businesses[0].id);
-    //   ProxyService.box.write(key: 'branchId', value: branches[0].id);
-    // }
+      ProxyService.appService.setBusiness(business: business);
+      // get local or online branches
+      List<isar.BranchSync> branches =
+          await ProxyService.isarApi.getLocalBranches(businessId: business.id);
+      ProxyService.box.write(key: 'branchId', value: branches[0].id);
 
-    return businesses;
-    // } catch (e) {
-    //   rethrow;
-    // }
+      return business;
+    } catch (e) {
+      rethrow;
+    }
   }
 }

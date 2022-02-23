@@ -141,7 +141,6 @@ class _BusinessSyncWebAdapter extends IsarWebTypeAdapter<BusinessSync> {
       firstName: IsarNative.jsObjectGet(jsObj, 'firstName'),
       fullName: IsarNative.jsObjectGet(jsObj, 'fullName'),
       hexColor: IsarNative.jsObjectGet(jsObj, 'hexColor'),
-      id: IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity,
       imageUrl: IsarNative.jsObjectGet(jsObj, 'imageUrl'),
       isLastSubscriptionPaymentSucceeded:
           IsarNative.jsObjectGet(jsObj, 'isLastSubscriptionPaymentSucceeded'),
@@ -163,6 +162,7 @@ class _BusinessSyncWebAdapter extends IsarWebTypeAdapter<BusinessSync> {
       userId: IsarNative.jsObjectGet(jsObj, 'userId'),
     );
     object.createdAt = IsarNative.jsObjectGet(jsObj, 'createdAt');
+    object.id = IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity;
     return object;
   }
 
@@ -491,7 +491,6 @@ class _BusinessSyncNativeAdapter extends IsarNativeTypeAdapter<BusinessSync> {
       firstName: reader.readStringOrNull(offsets[12]),
       fullName: reader.readStringOrNull(offsets[13]),
       hexColor: reader.readStringOrNull(offsets[14]),
-      id: id,
       imageUrl: reader.readStringOrNull(offsets[15]),
       isLastSubscriptionPaymentSucceeded: reader.readBoolOrNull(offsets[16]),
       lastDbBackup: reader.readStringOrNull(offsets[17]),
@@ -512,6 +511,7 @@ class _BusinessSyncNativeAdapter extends IsarNativeTypeAdapter<BusinessSync> {
       userId: reader.readStringOrNull(offsets[32]),
     );
     object.createdAt = reader.readStringOrNull(offsets[7]);
+    object.id = id;
     return object;
   }
 

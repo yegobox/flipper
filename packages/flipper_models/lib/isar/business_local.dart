@@ -10,13 +10,9 @@ import 'package:isar/isar.dart';
 part 'business_local.g.dart';
 
 Business fromJson(String str) => Business.fromJson(json.decode(str));
-String toJson(Business data) => json.encode(data.toJson());
 
 List<Business> listFromJson(String str) =>
     List<Business>.from(json.decode(str).map((x) => Business.fromJson(x)));
-
-String listToJson(List<Business> data) =>
-    json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
 /// A business object. which in some case act as contact
 /// in flipper we believe that to talk to business should be as easy as walk to the business to shop
@@ -32,22 +28,21 @@ String listToJson(List<Business> data) =>
 @Collection()
 class Business {
   Business(
-      {this.id = 0,
-      required this.name,
+      {this.name,
       this.currency,
       this.fcategoryId = 1,
-      required this.latitude,
-      required this.longitude,
+      this.latitude,
+      this.longitude,
       this.userId,
       this.typeId,
       this.timeZone,
       this.channels,
       this.table = "businesses",
-      required this.country,
+      this.country,
       this.businessUrl,
       this.hexColor,
       this.imageUrl,
-      required this.type,
+      this.type,
       this.active = false,
       this.metadata,
       this.lastSeen,
@@ -65,36 +60,35 @@ class Business {
       this.lastDbBackup,
       this.fullName,
       this.role});
-
-  late int id = Isar.autoIncrement;
-  String name;
+  int id = Isar.autoIncrement;
+  String? name;
   String? currency;
   int? fcategoryId;
-  String latitude;
-  String longitude;
+  String? latitude;
+  String? longitude;
   String? userId;
   String? typeId;
   String? timeZone;
 
   List<String>? channels;
   String? table;
-  String country;
+  String? country;
   String? businessUrl;
   String? hexColor;
   String? imageUrl;
-  String type;
+  String? type;
   bool? active;
   String? chatUid;
 
   //@Transient() //even though this is needed for chat purpose, the objectbox db does not allow this type of data type
-  /// Additional custom metadata or attributes related to the user
+  /// Additional custom metadata or attributes red to the user
   /// Map<String, dynamic>? metadata;
-  /// as objectbox does not allow Map it will be required to convert the string to map before and after saving
+  /// as objectbox does not allow Map it will be  to convert the string to map before and after saving
   String? metadata;
 
   /// User [Role]
   // Role? role;
-  /// as objectbox does not allow enum type it will be required to convert the string to enum before and after saving
+  /// as objectbox does not allow enum type it will be  to convert the string to enum before and after saving
   String? role;
 
   /// Timestamp when user was last visible, in ms
@@ -134,8 +128,6 @@ class Business {
         deviceToken = json["deviceToken"],
         currency = json["currency"],
         backUpEnabled = json["backUpEnabled"],
-        // TODOwhen loading the fcategoryId it seems somehow fcategoryId is a string and we are expecting an int or maybe there is null returned!
-        // fcategoryId = json["fcategoryId"],
         latitude = json["latitude"] ?? '1',
         longitude = json["longitude"] ?? '1',
         userId = json["userId"].toString(),
@@ -153,40 +145,4 @@ class Business {
         firstName = json["name"],
         lastSeen = json["lastSeen"],
         active = json["active"];
-
-  Map<String, dynamic> toJson() => {
-        "id": int.parse(id.toString()),
-        "name": name,
-        "deviceToken": deviceToken,
-        "backUpEnabled": backUpEnabled,
-        "subscriptionPlan": subscriptionPlan,
-        "nextBillingDate": nextBillingDate,
-        "previousBillingDate": previousBillingDate,
-        "isLastSubscriptionPaymentSucceeded":
-            isLastSubscriptionPaymentSucceeded,
-        "backupFileId": backupFileId,
-        "email": email,
-        "lastDbBackup": lastDbBackup,
-        "fullName": fullName,
-        "currency": currency,
-        "chatUid": chatUid,
-        "fcategoryId": fcategoryId.toString(),
-        "latitude": latitude,
-        "longitude": longitude,
-        "userId": userId.toString(),
-        "typeId": typeId,
-        "timeZone": timeZone,
-        "metadata": metadata,
-        "lastName": name,
-        "firstName": name,
-        "imageUrl": imageUrl,
-        "role": role,
-        "lastSeen": lastSeen,
-        "table": table,
-        "country": country,
-        "businessUrl": businessUrl,
-        "hexColor": hexColor,
-        "type": type,
-        "active": active,
-      };
 }

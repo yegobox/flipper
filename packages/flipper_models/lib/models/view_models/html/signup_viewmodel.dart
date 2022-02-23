@@ -105,7 +105,7 @@ class SignupViewModel extends FormViewModel {
       //     .saveTokenToDatabase(token: token!, business: businesses[0].toJson());
       // // }
       List<BranchSync> branches =
-          await ProxyService.api.branches(businessId: businesses[0].id);
+          await ProxyService.api.branches(businessId: businesses[0].id!);
 
       ProxyService.box.write(key: 'branchId', value: branches[0].id);
 

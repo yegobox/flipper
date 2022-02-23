@@ -801,18 +801,6 @@ extension SubscriptionQueryFilter
   }
 }
 
-extension SubscriptionQueryLinks
-    on QueryBuilder<Subscription, Subscription, QFilterCondition> {
-  QueryBuilder<Subscription, Subscription, QAfterFilterCondition> features(
-      FilterQuery<Feature> q) {
-    return linkInternal(
-      isar.features,
-      q,
-      'features',
-    );
-  }
-}
-
 extension SubscriptionQueryWhereSortBy
     on QueryBuilder<Subscription, Subscription, QSortBy> {
   QueryBuilder<Subscription, Subscription, QAfterSortBy> sortByDescriptor() {

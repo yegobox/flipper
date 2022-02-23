@@ -6,15 +6,15 @@ import 'dart:convert';
 
 import 'package:flipper_models/models/models.dart';
 import 'package:isar/isar.dart';
-// part 'voucher.g.dart';
+part 'voucher.g.dart';
 
-Voucher voucherFromMap(String str) => Voucher.fromMap(json.decode(str));
+VoucherM voucherFromMap(String str) => VoucherM.fromMap(json.decode(str));
 
-String voucherToMap(Voucher data) => json.encode(data.toMap());
+String voucherToMap(VoucherM data) => json.encode(data.toMap());
 
 @Collection()
-class Voucher {
-  Voucher(
+class VoucherM {
+  VoucherM(
       {required this.id,
       required this.value,
       required this.interval,
@@ -32,7 +32,7 @@ class Voucher {
   final features = IsarLinks<Feature>();
   late String descriptor;
 
-  factory Voucher.fromMap(Map<String, dynamic> json) => Voucher(
+  factory VoucherM.fromMap(Map<String, dynamic> json) => VoucherM(
         id: json["id"],
         value: json["value"],
         interval: json["interval"],

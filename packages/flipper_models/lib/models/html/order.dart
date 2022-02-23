@@ -35,12 +35,11 @@ class OrderFSync {
     required this.createdAt,
     this.updatedAt,
     this.reported,
-    required this.orderItems,
+    // required this.orderItems,
     required this.table,
     this.channels,
     this.note,
     this.customerId,
-    // required this.orderItems,
   });
   late int id = Isar.autoIncrement;
   late String reference;
@@ -60,13 +59,13 @@ class OrderFSync {
 
   late String table;
 
-  late List<String>? channels;
+  List<String>? channels;
 
   // now add a customer to an order
   late int? customerId;
 
   late String? note;
-  List<OrderItemSync> orderItems;
+  // List<OrderItemSync>? orderItems;
 
   factory OrderFSync.fromJson(Map<String, dynamic> json) => OrderFSync(
         id: int.parse(json["id"]),
@@ -88,7 +87,7 @@ class OrderFSync {
         table: json["table"],
         customerId: json["customerId"],
         channels: List<String>.from(json["channels"].map((x) => x)),
-        orderItems: [],
+
         // orderItems: List<OrderItemSync>.from(
         // json["orderItems"].map((x) => OrderItemSync.fromJson(x))),
       );
