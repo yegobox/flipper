@@ -20,31 +20,29 @@ String branchToJson(List<BranchSync> data) =>
 @Collection()
 class BranchSync {
   BranchSync({
-    this.id = 0,
-    required this.active,
-    this.channels,
-    required this.description,
-    required this.name,
-    required this.fbusinessId,
-    required this.longitude,
-    required this.latitude,
-    required this.table,
+    this.active,
+    // this.channels,
+    this.description,
+    this.name,
+    this.fbusinessId,
+    this.longitude,
+    this.latitude,
+    this.table,
   });
 
-  late int id = Isar.autoIncrement;
-  late bool? active;
+  int id = Isar.autoIncrement;
+  bool? active;
 
-  late List<String>? channels;
-  late String? description;
-  late String name;
-  late int? fbusinessId;
-  late String? longitude;
-  late String? latitude;
-  late String table;
+  //  List<String>? channels;
+  String? description;
+  String? name;
+  int? fbusinessId;
+  String? longitude;
+  String? latitude;
+  String? table;
 
   factory BranchSync.fromJson(Map<String, dynamic> json) => BranchSync(
-        id: json["id"],
-        active: json["active"] ?? false,
+        active: json["active"],
         description: json["description"] ?? '',
         name: json["name"],
         fbusinessId:

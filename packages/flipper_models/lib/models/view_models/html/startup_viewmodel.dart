@@ -155,9 +155,9 @@ class StartUpViewModel extends BaseViewModel {
     }
     ProxyService.box.write(key: 'businessId', value: business.id);
 
-    ProxyService.appService.setBusiness(businesses: [business]);
+    ProxyService.appService.setBusiness(business: business);
     ProxyService.box.write(key: 'userName', value: business.name);
-    String name = business.name;
+    String name = business.name!;
     ProxyService.box.write(
         key: 'businessUrl',
         value: business.businessUrl ??

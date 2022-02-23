@@ -131,7 +131,7 @@ class _BusinessWebAdapter extends IsarWebTypeAdapter<Business> {
           .toList()
           .cast<String>(),
       chatUid: IsarNative.jsObjectGet(jsObj, 'chatUid'),
-      country: IsarNative.jsObjectGet(jsObj, 'country') ?? '',
+      country: IsarNative.jsObjectGet(jsObj, 'country'),
       currency: IsarNative.jsObjectGet(jsObj, 'currency'),
       deviceToken: IsarNative.jsObjectGet(jsObj, 'deviceToken'),
       email: IsarNative.jsObjectGet(jsObj, 'email'),
@@ -145,17 +145,17 @@ class _BusinessWebAdapter extends IsarWebTypeAdapter<Business> {
       lastDbBackup: IsarNative.jsObjectGet(jsObj, 'lastDbBackup'),
       lastName: IsarNative.jsObjectGet(jsObj, 'lastName'),
       lastSeen: IsarNative.jsObjectGet(jsObj, 'lastSeen'),
-      latitude: IsarNative.jsObjectGet(jsObj, 'latitude') ?? '',
-      longitude: IsarNative.jsObjectGet(jsObj, 'longitude') ?? '',
+      latitude: IsarNative.jsObjectGet(jsObj, 'latitude'),
+      longitude: IsarNative.jsObjectGet(jsObj, 'longitude'),
       metadata: IsarNative.jsObjectGet(jsObj, 'metadata'),
-      name: IsarNative.jsObjectGet(jsObj, 'name') ?? '',
+      name: IsarNative.jsObjectGet(jsObj, 'name'),
       nextBillingDate: IsarNative.jsObjectGet(jsObj, 'nextBillingDate'),
       previousBillingDate: IsarNative.jsObjectGet(jsObj, 'previousBillingDate'),
       role: IsarNative.jsObjectGet(jsObj, 'role'),
       subscriptionPlan: IsarNative.jsObjectGet(jsObj, 'subscriptionPlan'),
       table: IsarNative.jsObjectGet(jsObj, 'table'),
       timeZone: IsarNative.jsObjectGet(jsObj, 'timeZone'),
-      type: IsarNative.jsObjectGet(jsObj, 'type') ?? '',
+      type: IsarNative.jsObjectGet(jsObj, 'type'),
       typeId: IsarNative.jsObjectGet(jsObj, 'typeId'),
       userId: IsarNative.jsObjectGet(jsObj, 'userId'),
     );
@@ -183,7 +183,7 @@ class _BusinessWebAdapter extends IsarWebTypeAdapter<Business> {
       case 'chatUid':
         return (IsarNative.jsObjectGet(jsObj, 'chatUid')) as P;
       case 'country':
-        return (IsarNative.jsObjectGet(jsObj, 'country') ?? '') as P;
+        return (IsarNative.jsObjectGet(jsObj, 'country')) as P;
       case 'createdAt':
         return (IsarNative.jsObjectGet(jsObj, 'createdAt')) as P;
       case 'currency':
@@ -215,13 +215,13 @@ class _BusinessWebAdapter extends IsarWebTypeAdapter<Business> {
       case 'lastSeen':
         return (IsarNative.jsObjectGet(jsObj, 'lastSeen')) as P;
       case 'latitude':
-        return (IsarNative.jsObjectGet(jsObj, 'latitude') ?? '') as P;
+        return (IsarNative.jsObjectGet(jsObj, 'latitude')) as P;
       case 'longitude':
-        return (IsarNative.jsObjectGet(jsObj, 'longitude') ?? '') as P;
+        return (IsarNative.jsObjectGet(jsObj, 'longitude')) as P;
       case 'metadata':
         return (IsarNative.jsObjectGet(jsObj, 'metadata')) as P;
       case 'name':
-        return (IsarNative.jsObjectGet(jsObj, 'name') ?? '') as P;
+        return (IsarNative.jsObjectGet(jsObj, 'name')) as P;
       case 'nextBillingDate':
         return (IsarNative.jsObjectGet(jsObj, 'nextBillingDate')) as P;
       case 'previousBillingDate':
@@ -235,7 +235,7 @@ class _BusinessWebAdapter extends IsarWebTypeAdapter<Business> {
       case 'timeZone':
         return (IsarNative.jsObjectGet(jsObj, 'timeZone')) as P;
       case 'type':
-        return (IsarNative.jsObjectGet(jsObj, 'type') ?? '') as P;
+        return (IsarNative.jsObjectGet(jsObj, 'type')) as P;
       case 'typeId':
         return (IsarNative.jsObjectGet(jsObj, 'typeId')) as P;
       case 'userId':
@@ -291,8 +291,11 @@ class _BusinessNativeAdapter extends IsarNativeTypeAdapter<Business> {
     }
     dynamicSize += (_chatUid?.length ?? 0) as int;
     final value6 = object.country;
-    final _country = IsarBinaryWriter.utf8Encoder.convert(value6);
-    dynamicSize += (_country.length) as int;
+    IsarUint8List? _country;
+    if (value6 != null) {
+      _country = IsarBinaryWriter.utf8Encoder.convert(value6);
+    }
+    dynamicSize += (_country?.length ?? 0) as int;
     final value7 = object.createdAt;
     IsarUint8List? _createdAt;
     if (value7 != null) {
@@ -360,11 +363,17 @@ class _BusinessNativeAdapter extends IsarNativeTypeAdapter<Business> {
     final value19 = object.lastSeen;
     final _lastSeen = value19;
     final value20 = object.latitude;
-    final _latitude = IsarBinaryWriter.utf8Encoder.convert(value20);
-    dynamicSize += (_latitude.length) as int;
+    IsarUint8List? _latitude;
+    if (value20 != null) {
+      _latitude = IsarBinaryWriter.utf8Encoder.convert(value20);
+    }
+    dynamicSize += (_latitude?.length ?? 0) as int;
     final value21 = object.longitude;
-    final _longitude = IsarBinaryWriter.utf8Encoder.convert(value21);
-    dynamicSize += (_longitude.length) as int;
+    IsarUint8List? _longitude;
+    if (value21 != null) {
+      _longitude = IsarBinaryWriter.utf8Encoder.convert(value21);
+    }
+    dynamicSize += (_longitude?.length ?? 0) as int;
     final value22 = object.metadata;
     IsarUint8List? _metadata;
     if (value22 != null) {
@@ -372,8 +381,11 @@ class _BusinessNativeAdapter extends IsarNativeTypeAdapter<Business> {
     }
     dynamicSize += (_metadata?.length ?? 0) as int;
     final value23 = object.name;
-    final _name = IsarBinaryWriter.utf8Encoder.convert(value23);
-    dynamicSize += (_name.length) as int;
+    IsarUint8List? _name;
+    if (value23 != null) {
+      _name = IsarBinaryWriter.utf8Encoder.convert(value23);
+    }
+    dynamicSize += (_name?.length ?? 0) as int;
     final value24 = object.nextBillingDate;
     IsarUint8List? _nextBillingDate;
     if (value24 != null) {
@@ -411,8 +423,11 @@ class _BusinessNativeAdapter extends IsarNativeTypeAdapter<Business> {
     }
     dynamicSize += (_timeZone?.length ?? 0) as int;
     final value30 = object.type;
-    final _type = IsarBinaryWriter.utf8Encoder.convert(value30);
-    dynamicSize += (_type.length) as int;
+    IsarUint8List? _type;
+    if (value30 != null) {
+      _type = IsarBinaryWriter.utf8Encoder.convert(value30);
+    }
+    dynamicSize += (_type?.length ?? 0) as int;
     final value31 = object.typeId;
     IsarUint8List? _typeId;
     if (value31 != null) {
@@ -476,7 +491,7 @@ class _BusinessNativeAdapter extends IsarNativeTypeAdapter<Business> {
       businessUrl: reader.readStringOrNull(offsets[3]),
       channels: reader.readStringList(offsets[4]),
       chatUid: reader.readStringOrNull(offsets[5]),
-      country: reader.readString(offsets[6]),
+      country: reader.readStringOrNull(offsets[6]),
       currency: reader.readStringOrNull(offsets[8]),
       deviceToken: reader.readStringOrNull(offsets[9]),
       email: reader.readStringOrNull(offsets[10]),
@@ -489,17 +504,17 @@ class _BusinessNativeAdapter extends IsarNativeTypeAdapter<Business> {
       lastDbBackup: reader.readStringOrNull(offsets[17]),
       lastName: reader.readStringOrNull(offsets[18]),
       lastSeen: reader.readLongOrNull(offsets[19]),
-      latitude: reader.readString(offsets[20]),
-      longitude: reader.readString(offsets[21]),
+      latitude: reader.readStringOrNull(offsets[20]),
+      longitude: reader.readStringOrNull(offsets[21]),
       metadata: reader.readStringOrNull(offsets[22]),
-      name: reader.readString(offsets[23]),
+      name: reader.readStringOrNull(offsets[23]),
       nextBillingDate: reader.readStringOrNull(offsets[24]),
       previousBillingDate: reader.readStringOrNull(offsets[25]),
       role: reader.readStringOrNull(offsets[26]),
       subscriptionPlan: reader.readStringOrNull(offsets[27]),
       table: reader.readStringOrNull(offsets[28]),
       timeZone: reader.readStringOrNull(offsets[29]),
-      type: reader.readString(offsets[30]),
+      type: reader.readStringOrNull(offsets[30]),
       typeId: reader.readStringOrNull(offsets[31]),
       userId: reader.readStringOrNull(offsets[32]),
     );
@@ -527,7 +542,7 @@ class _BusinessNativeAdapter extends IsarNativeTypeAdapter<Business> {
       case 5:
         return (reader.readStringOrNull(offset)) as P;
       case 6:
-        return (reader.readString(offset)) as P;
+        return (reader.readStringOrNull(offset)) as P;
       case 7:
         return (reader.readStringOrNull(offset)) as P;
       case 8:
@@ -555,13 +570,13 @@ class _BusinessNativeAdapter extends IsarNativeTypeAdapter<Business> {
       case 19:
         return (reader.readLongOrNull(offset)) as P;
       case 20:
-        return (reader.readString(offset)) as P;
+        return (reader.readStringOrNull(offset)) as P;
       case 21:
-        return (reader.readString(offset)) as P;
+        return (reader.readStringOrNull(offset)) as P;
       case 22:
         return (reader.readStringOrNull(offset)) as P;
       case 23:
-        return (reader.readString(offset)) as P;
+        return (reader.readStringOrNull(offset)) as P;
       case 24:
         return (reader.readStringOrNull(offset)) as P;
       case 25:
@@ -575,7 +590,7 @@ class _BusinessNativeAdapter extends IsarNativeTypeAdapter<Business> {
       case 29:
         return (reader.readStringOrNull(offset)) as P;
       case 30:
-        return (reader.readString(offset)) as P;
+        return (reader.readStringOrNull(offset)) as P;
       case 31:
         return (reader.readStringOrNull(offset)) as P;
       case 32:
@@ -1161,8 +1176,16 @@ extension BusinessQueryFilter
     ));
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition> countryIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'country',
+      value: null,
+    ));
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition> countryEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return addFilterConditionInternal(FilterCondition(
@@ -1174,7 +1197,7 @@ extension BusinessQueryFilter
   }
 
   QueryBuilder<Business, Business, QAfterFilterCondition> countryGreaterThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
     bool include = false,
   }) {
@@ -1188,7 +1211,7 @@ extension BusinessQueryFilter
   }
 
   QueryBuilder<Business, Business, QAfterFilterCondition> countryLessThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
     bool include = false,
   }) {
@@ -1202,8 +1225,8 @@ extension BusinessQueryFilter
   }
 
   QueryBuilder<Business, Business, QAfterFilterCondition> countryBetween(
-    String lower,
-    String upper, {
+    String? lower,
+    String? upper, {
     bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
@@ -2555,8 +2578,16 @@ extension BusinessQueryFilter
     ));
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition> latitudeIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'latitude',
+      value: null,
+    ));
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition> latitudeEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return addFilterConditionInternal(FilterCondition(
@@ -2568,7 +2599,7 @@ extension BusinessQueryFilter
   }
 
   QueryBuilder<Business, Business, QAfterFilterCondition> latitudeGreaterThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
     bool include = false,
   }) {
@@ -2582,7 +2613,7 @@ extension BusinessQueryFilter
   }
 
   QueryBuilder<Business, Business, QAfterFilterCondition> latitudeLessThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
     bool include = false,
   }) {
@@ -2596,8 +2627,8 @@ extension BusinessQueryFilter
   }
 
   QueryBuilder<Business, Business, QAfterFilterCondition> latitudeBetween(
-    String lower,
-    String upper, {
+    String? lower,
+    String? upper, {
     bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
@@ -2658,8 +2689,16 @@ extension BusinessQueryFilter
     ));
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition> longitudeIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'longitude',
+      value: null,
+    ));
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition> longitudeEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return addFilterConditionInternal(FilterCondition(
@@ -2671,7 +2710,7 @@ extension BusinessQueryFilter
   }
 
   QueryBuilder<Business, Business, QAfterFilterCondition> longitudeGreaterThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
     bool include = false,
   }) {
@@ -2685,7 +2724,7 @@ extension BusinessQueryFilter
   }
 
   QueryBuilder<Business, Business, QAfterFilterCondition> longitudeLessThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
     bool include = false,
   }) {
@@ -2699,8 +2738,8 @@ extension BusinessQueryFilter
   }
 
   QueryBuilder<Business, Business, QAfterFilterCondition> longitudeBetween(
-    String lower,
-    String upper, {
+    String? lower,
+    String? upper, {
     bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
@@ -2872,8 +2911,16 @@ extension BusinessQueryFilter
     ));
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition> nameIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'name',
+      value: null,
+    ));
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition> nameEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return addFilterConditionInternal(FilterCondition(
@@ -2885,7 +2932,7 @@ extension BusinessQueryFilter
   }
 
   QueryBuilder<Business, Business, QAfterFilterCondition> nameGreaterThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
     bool include = false,
   }) {
@@ -2899,7 +2946,7 @@ extension BusinessQueryFilter
   }
 
   QueryBuilder<Business, Business, QAfterFilterCondition> nameLessThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
     bool include = false,
   }) {
@@ -2913,8 +2960,8 @@ extension BusinessQueryFilter
   }
 
   QueryBuilder<Business, Business, QAfterFilterCondition> nameBetween(
-    String lower,
-    String upper, {
+    String? lower,
+    String? upper, {
     bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
@@ -3656,8 +3703,16 @@ extension BusinessQueryFilter
     ));
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition> typeIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'type',
+      value: null,
+    ));
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition> typeEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return addFilterConditionInternal(FilterCondition(
@@ -3669,7 +3724,7 @@ extension BusinessQueryFilter
   }
 
   QueryBuilder<Business, Business, QAfterFilterCondition> typeGreaterThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
     bool include = false,
   }) {
@@ -3683,7 +3738,7 @@ extension BusinessQueryFilter
   }
 
   QueryBuilder<Business, Business, QAfterFilterCondition> typeLessThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
     bool include = false,
   }) {
@@ -3697,8 +3752,8 @@ extension BusinessQueryFilter
   }
 
   QueryBuilder<Business, Business, QAfterFilterCondition> typeBetween(
-    String lower,
-    String upper, {
+    String? lower,
+    String? upper, {
     bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
@@ -4714,7 +4769,7 @@ extension BusinessQueryProperty
     return addPropertyNameInternal('chatUid');
   }
 
-  QueryBuilder<Business, String, QQueryOperations> countryProperty() {
+  QueryBuilder<Business, String?, QQueryOperations> countryProperty() {
     return addPropertyNameInternal('country');
   }
 
@@ -4775,11 +4830,11 @@ extension BusinessQueryProperty
     return addPropertyNameInternal('lastSeen');
   }
 
-  QueryBuilder<Business, String, QQueryOperations> latitudeProperty() {
+  QueryBuilder<Business, String?, QQueryOperations> latitudeProperty() {
     return addPropertyNameInternal('latitude');
   }
 
-  QueryBuilder<Business, String, QQueryOperations> longitudeProperty() {
+  QueryBuilder<Business, String?, QQueryOperations> longitudeProperty() {
     return addPropertyNameInternal('longitude');
   }
 
@@ -4787,7 +4842,7 @@ extension BusinessQueryProperty
     return addPropertyNameInternal('metadata');
   }
 
-  QueryBuilder<Business, String, QQueryOperations> nameProperty() {
+  QueryBuilder<Business, String?, QQueryOperations> nameProperty() {
     return addPropertyNameInternal('name');
   }
 
@@ -4816,7 +4871,7 @@ extension BusinessQueryProperty
     return addPropertyNameInternal('timeZone');
   }
 
-  QueryBuilder<Business, String, QQueryOperations> typeProperty() {
+  QueryBuilder<Business, String?, QQueryOperations> typeProperty() {
     return addPropertyNameInternal('type');
   }
 

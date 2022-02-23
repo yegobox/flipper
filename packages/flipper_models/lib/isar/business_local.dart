@@ -10,7 +10,7 @@ import 'package:isar/isar.dart';
 part 'business_local.g.dart';
 
 Business fromJson(String str) => Business.fromJson(json.decode(str));
-
+String toJson(Business data) => json.encode(data.toJson());
 List<Business> listFromJson(String str) =>
     List<Business>.from(json.decode(str).map((x) => Business.fromJson(x)));
 
@@ -112,6 +112,41 @@ class Business {
   String? email;
   String? lastDbBackup;
   String? fullName;
+  Map<String, dynamic> toJson() => {
+        "id": int.parse(id.toString()),
+        "name": name,
+        "deviceToken": deviceToken,
+        "backUpEnabled": backUpEnabled,
+        "subscriptionPlan": subscriptionPlan,
+        "nextBillingDate": nextBillingDate,
+        "previousBillingDate": previousBillingDate,
+        "isLastSubscriptionPaymentSucceeded":
+            isLastSubscriptionPaymentSucceeded,
+        "backupFileId": backupFileId,
+        "email": email,
+        "lastDbBackup": lastDbBackup,
+        "fullName": fullName,
+        "currency": currency,
+        "chatUid": chatUid,
+        "fcategoryId": fcategoryId.toString(),
+        "latitude": latitude,
+        "longitude": longitude,
+        "userId": userId.toString(),
+        "typeId": typeId,
+        "timeZone": timeZone,
+        "metadata": metadata,
+        "lastName": name,
+        "firstName": name,
+        "imageUrl": imageUrl,
+        "role": role,
+        "lastSeen": lastSeen,
+        "table": table,
+        "country": country,
+        "businessUrl": businessUrl,
+        "hexColor": hexColor,
+        "type": type,
+        "active": active,
+      };
   Business.fromJson(Map<String, dynamic> json)
       : id = json["id"],
         name = json["name"],

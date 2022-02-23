@@ -949,19 +949,19 @@ class _UserProfileState extends State<_UserProfile> {
               backgroundColor: theme.colorScheme.primary,
               radius: widget.railWidth / 2 - hPadding,
               child: Text(
-                widget.model.businesses[0].name.length >= 2
-                    ? widget.model.businesses[0].name.substring(0, 2)
-                    : widget.model.businesses[0].name,
+                widget.model.businesses.name!.length >= 2
+                    ? widget.model.businesses.name!.substring(0, 2)
+                    : widget.model.businesses.name!,
                 style: primaryTextTheme.subtitle1!.copyWith(
                     color: theme.colorScheme.onPrimary,
                     fontWeight: FontWeight.w600),
               ),
             ),
             title: Text(
-              widget.model.businesses[0].name,
+              widget.model.businesses.name!,
               style: textTheme.subtitle1!.copyWith(fontWeight: FontWeight.w600),
             ),
-            subtitle: Text(widget.model.businesses[0].fullName ?? ''),
+            subtitle: Text(widget.model.businesses.fullName ?? ''),
             trailing: ExpandIcon(
               isExpanded: !_collapsed,
               size: 32,

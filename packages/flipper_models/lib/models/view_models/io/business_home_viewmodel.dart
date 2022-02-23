@@ -160,7 +160,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     return await ProxyService.api.products(branchId: branchId);
   }
 
-  List<isar.Business> get businesses => _app.businesses;
+  isar.Business get businesses => _app.business;
 
   void pop() {
     ProxyService.keypad.pop();

@@ -17,21 +17,20 @@ extension GetBranchSyncCollection on Isar {
 final BranchSyncSchema = CollectionSchema(
   name: 'BranchSync',
   schema:
-      '{"name":"BranchSync","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"channels","type":"StringList"},{"name":"description","type":"String"},{"name":"fbusinessId","type":"Long"},{"name":"latitude","type":"String"},{"name":"longitude","type":"String"},{"name":"name","type":"String"},{"name":"table","type":"String"}],"indexes":[],"links":[]}',
+      '{"name":"BranchSync","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"description","type":"String"},{"name":"fbusinessId","type":"Long"},{"name":"latitude","type":"String"},{"name":"longitude","type":"String"},{"name":"name","type":"String"},{"name":"table","type":"String"}],"indexes":[],"links":[]}',
   nativeAdapter: const _BranchSyncNativeAdapter(),
   webAdapter: const _BranchSyncWebAdapter(),
   idName: 'id',
   propertyIds: {
     'active': 0,
-    'channels': 1,
-    'description': 2,
-    'fbusinessId': 3,
-    'latitude': 4,
-    'longitude': 5,
-    'name': 6,
-    'table': 7
+    'description': 1,
+    'fbusinessId': 2,
+    'latitude': 3,
+    'longitude': 4,
+    'name': 5,
+    'table': 6
   },
-  listProperties: {'channels'},
+  listProperties: {},
   indexIds: {},
   indexTypes: {},
   linkIds: {},
@@ -56,7 +55,6 @@ class _BranchSyncWebAdapter extends IsarWebTypeAdapter<BranchSync> {
   Object serialize(IsarCollection<BranchSync> collection, BranchSync object) {
     final jsObj = IsarNative.newJsObject();
     IsarNative.jsObjectSet(jsObj, 'active', object.active);
-    IsarNative.jsObjectSet(jsObj, 'channels', object.channels);
     IsarNative.jsObjectSet(jsObj, 'description', object.description);
     IsarNative.jsObjectSet(jsObj, 'fbusinessId', object.fbusinessId);
     IsarNative.jsObjectSet(jsObj, 'id', object.id);
@@ -71,18 +69,14 @@ class _BranchSyncWebAdapter extends IsarWebTypeAdapter<BranchSync> {
   BranchSync deserialize(IsarCollection<BranchSync> collection, dynamic jsObj) {
     final object = BranchSync(
       active: IsarNative.jsObjectGet(jsObj, 'active'),
-      channels: (IsarNative.jsObjectGet(jsObj, 'channels') as List?)
-          ?.map((e) => e ?? '')
-          .toList()
-          .cast<String>(),
       description: IsarNative.jsObjectGet(jsObj, 'description'),
       fbusinessId: IsarNative.jsObjectGet(jsObj, 'fbusinessId'),
-      id: IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity,
       latitude: IsarNative.jsObjectGet(jsObj, 'latitude'),
       longitude: IsarNative.jsObjectGet(jsObj, 'longitude'),
-      name: IsarNative.jsObjectGet(jsObj, 'name') ?? '',
-      table: IsarNative.jsObjectGet(jsObj, 'table') ?? '',
+      name: IsarNative.jsObjectGet(jsObj, 'name'),
+      table: IsarNative.jsObjectGet(jsObj, 'table'),
     );
+    object.id = IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity;
     return object;
   }
 
@@ -91,11 +85,6 @@ class _BranchSyncWebAdapter extends IsarWebTypeAdapter<BranchSync> {
     switch (propertyName) {
       case 'active':
         return (IsarNative.jsObjectGet(jsObj, 'active')) as P;
-      case 'channels':
-        return ((IsarNative.jsObjectGet(jsObj, 'channels') as List?)
-            ?.map((e) => e ?? '')
-            .toList()
-            .cast<String>()) as P;
       case 'description':
         return (IsarNative.jsObjectGet(jsObj, 'description')) as P;
       case 'fbusinessId':
@@ -108,9 +97,9 @@ class _BranchSyncWebAdapter extends IsarWebTypeAdapter<BranchSync> {
       case 'longitude':
         return (IsarNative.jsObjectGet(jsObj, 'longitude')) as P;
       case 'name':
-        return (IsarNative.jsObjectGet(jsObj, 'name') ?? '') as P;
+        return (IsarNative.jsObjectGet(jsObj, 'name')) as P;
       case 'table':
-        return (IsarNative.jsObjectGet(jsObj, 'table') ?? '') as P;
+        return (IsarNative.jsObjectGet(jsObj, 'table')) as P;
       default:
         throw 'Illegal propertyName';
     }
@@ -134,44 +123,38 @@ class _BranchSyncNativeAdapter extends IsarNativeTypeAdapter<BranchSync> {
     var dynamicSize = 0;
     final value0 = object.active;
     final _active = value0;
-    final value1 = object.channels;
-    dynamicSize += (value1?.length ?? 0) * 8;
-    List<IsarUint8List?>? bytesList1;
-    if (value1 != null) {
-      bytesList1 = [];
-      for (var str in value1) {
-        final bytes = IsarBinaryWriter.utf8Encoder.convert(str);
-        bytesList1.add(bytes);
-        dynamicSize += bytes.length as int;
-      }
-    }
-    final _channels = bytesList1;
-    final value2 = object.description;
+    final value1 = object.description;
     IsarUint8List? _description;
-    if (value2 != null) {
-      _description = IsarBinaryWriter.utf8Encoder.convert(value2);
+    if (value1 != null) {
+      _description = IsarBinaryWriter.utf8Encoder.convert(value1);
     }
     dynamicSize += (_description?.length ?? 0) as int;
-    final value3 = object.fbusinessId;
-    final _fbusinessId = value3;
-    final value4 = object.latitude;
+    final value2 = object.fbusinessId;
+    final _fbusinessId = value2;
+    final value3 = object.latitude;
     IsarUint8List? _latitude;
-    if (value4 != null) {
-      _latitude = IsarBinaryWriter.utf8Encoder.convert(value4);
+    if (value3 != null) {
+      _latitude = IsarBinaryWriter.utf8Encoder.convert(value3);
     }
     dynamicSize += (_latitude?.length ?? 0) as int;
-    final value5 = object.longitude;
+    final value4 = object.longitude;
     IsarUint8List? _longitude;
-    if (value5 != null) {
-      _longitude = IsarBinaryWriter.utf8Encoder.convert(value5);
+    if (value4 != null) {
+      _longitude = IsarBinaryWriter.utf8Encoder.convert(value4);
     }
     dynamicSize += (_longitude?.length ?? 0) as int;
-    final value6 = object.name;
-    final _name = IsarBinaryWriter.utf8Encoder.convert(value6);
-    dynamicSize += (_name.length) as int;
-    final value7 = object.table;
-    final _table = IsarBinaryWriter.utf8Encoder.convert(value7);
-    dynamicSize += (_table.length) as int;
+    final value5 = object.name;
+    IsarUint8List? _name;
+    if (value5 != null) {
+      _name = IsarBinaryWriter.utf8Encoder.convert(value5);
+    }
+    dynamicSize += (_name?.length ?? 0) as int;
+    final value6 = object.table;
+    IsarUint8List? _table;
+    if (value6 != null) {
+      _table = IsarBinaryWriter.utf8Encoder.convert(value6);
+    }
+    dynamicSize += (_table?.length ?? 0) as int;
     final size = staticSize + dynamicSize;
 
     rawObj.buffer = alloc(size);
@@ -179,13 +162,12 @@ class _BranchSyncNativeAdapter extends IsarNativeTypeAdapter<BranchSync> {
     final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
     final writer = IsarBinaryWriter(buffer, staticSize);
     writer.writeBool(offsets[0], _active);
-    writer.writeStringList(offsets[1], _channels);
-    writer.writeBytes(offsets[2], _description);
-    writer.writeLong(offsets[3], _fbusinessId);
-    writer.writeBytes(offsets[4], _latitude);
-    writer.writeBytes(offsets[5], _longitude);
-    writer.writeBytes(offsets[6], _name);
-    writer.writeBytes(offsets[7], _table);
+    writer.writeBytes(offsets[1], _description);
+    writer.writeLong(offsets[2], _fbusinessId);
+    writer.writeBytes(offsets[3], _latitude);
+    writer.writeBytes(offsets[4], _longitude);
+    writer.writeBytes(offsets[5], _name);
+    writer.writeBytes(offsets[6], _table);
   }
 
   @override
@@ -193,15 +175,14 @@ class _BranchSyncNativeAdapter extends IsarNativeTypeAdapter<BranchSync> {
       IsarBinaryReader reader, List<int> offsets) {
     final object = BranchSync(
       active: reader.readBoolOrNull(offsets[0]),
-      channels: reader.readStringList(offsets[1]),
-      description: reader.readStringOrNull(offsets[2]),
-      fbusinessId: reader.readLongOrNull(offsets[3]),
-      id: id,
-      latitude: reader.readStringOrNull(offsets[4]),
-      longitude: reader.readStringOrNull(offsets[5]),
-      name: reader.readString(offsets[6]),
-      table: reader.readString(offsets[7]),
+      description: reader.readStringOrNull(offsets[1]),
+      fbusinessId: reader.readLongOrNull(offsets[2]),
+      latitude: reader.readStringOrNull(offsets[3]),
+      longitude: reader.readStringOrNull(offsets[4]),
+      name: reader.readStringOrNull(offsets[5]),
+      table: reader.readStringOrNull(offsets[6]),
     );
+    object.id = id;
     return object;
   }
 
@@ -214,19 +195,17 @@ class _BranchSyncNativeAdapter extends IsarNativeTypeAdapter<BranchSync> {
       case 0:
         return (reader.readBoolOrNull(offset)) as P;
       case 1:
-        return (reader.readStringList(offset)) as P;
-      case 2:
         return (reader.readStringOrNull(offset)) as P;
-      case 3:
+      case 2:
         return (reader.readLongOrNull(offset)) as P;
+      case 3:
+        return (reader.readStringOrNull(offset)) as P;
       case 4:
         return (reader.readStringOrNull(offset)) as P;
       case 5:
         return (reader.readStringOrNull(offset)) as P;
       case 6:
-        return (reader.readString(offset)) as P;
-      case 7:
-        return (reader.readString(offset)) as P;
+        return (reader.readStringOrNull(offset)) as P;
       default:
         throw 'Illegal propertyIndex';
     }
@@ -333,130 +312,6 @@ extension BranchSyncQueryFilter
       type: ConditionType.eq,
       property: 'active',
       value: value,
-    ));
-  }
-
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> channelsIsNull() {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.isNull,
-      property: 'channels',
-      value: null,
-    ));
-  }
-
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition>
-      channelsAnyIsNull() {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'channels',
-      value: null,
-    ));
-  }
-
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition>
-      channelsAnyEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'channels',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition>
-      channelsAnyGreaterThan(
-    String? value, {
-    bool caseSensitive = true,
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'channels',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition>
-      channelsAnyLessThan(
-    String? value, {
-    bool caseSensitive = true,
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'channels',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition>
-      channelsAnyBetween(
-    String? lower,
-    String? upper, {
-    bool caseSensitive = true,
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'channels',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition>
-      channelsAnyStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.startsWith,
-      property: 'channels',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition>
-      channelsAnyEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.endsWith,
-      property: 'channels',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition>
-      channelsAnyContains(String value, {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.contains,
-      property: 'channels',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition>
-      channelsAnyMatches(String pattern, {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.matches,
-      property: 'channels',
-      value: pattern,
-      caseSensitive: caseSensitive,
     ));
   }
 
@@ -911,8 +766,16 @@ extension BranchSyncQueryFilter
     ));
   }
 
+  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> nameIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'name',
+      value: null,
+    ));
+  }
+
   QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> nameEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return addFilterConditionInternal(FilterCondition(
@@ -924,7 +787,7 @@ extension BranchSyncQueryFilter
   }
 
   QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> nameGreaterThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
     bool include = false,
   }) {
@@ -938,7 +801,7 @@ extension BranchSyncQueryFilter
   }
 
   QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> nameLessThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
     bool include = false,
   }) {
@@ -952,8 +815,8 @@ extension BranchSyncQueryFilter
   }
 
   QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> nameBetween(
-    String lower,
-    String upper, {
+    String? lower,
+    String? upper, {
     bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
@@ -1014,8 +877,16 @@ extension BranchSyncQueryFilter
     ));
   }
 
+  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> tableIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'table',
+      value: null,
+    ));
+  }
+
   QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> tableEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return addFilterConditionInternal(FilterCondition(
@@ -1027,7 +898,7 @@ extension BranchSyncQueryFilter
   }
 
   QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> tableGreaterThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
     bool include = false,
   }) {
@@ -1041,7 +912,7 @@ extension BranchSyncQueryFilter
   }
 
   QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> tableLessThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
     bool include = false,
   }) {
@@ -1055,8 +926,8 @@ extension BranchSyncQueryFilter
   }
 
   QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> tableBetween(
-    String lower,
-    String upper, {
+    String? lower,
+    String? upper, {
     bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
@@ -1298,10 +1169,6 @@ extension BranchSyncQueryProperty
     return addPropertyNameInternal('active');
   }
 
-  QueryBuilder<BranchSync, List<String>?, QQueryOperations> channelsProperty() {
-    return addPropertyNameInternal('channels');
-  }
-
   QueryBuilder<BranchSync, String?, QQueryOperations> descriptionProperty() {
     return addPropertyNameInternal('description');
   }
@@ -1322,11 +1189,11 @@ extension BranchSyncQueryProperty
     return addPropertyNameInternal('longitude');
   }
 
-  QueryBuilder<BranchSync, String, QQueryOperations> nameProperty() {
+  QueryBuilder<BranchSync, String?, QQueryOperations> nameProperty() {
     return addPropertyNameInternal('name');
   }
 
-  QueryBuilder<BranchSync, String, QQueryOperations> tableProperty() {
+  QueryBuilder<BranchSync, String?, QQueryOperations> tableProperty() {
     return addPropertyNameInternal('table');
   }
 }

@@ -363,11 +363,26 @@ class IsarAPI implements IsarApiInterface {
       await isar.writeTxn((isar) async {
         for (BranchSync branch in branchsFromJson(response.body)) {
           // save branch in db
-          await isar.branchSyncs.put(branch);
+          final b = BranchSync()
+            ..active = branch.active
+            ..description = branch.description
+            ..latitude = branch.latitude.toString()
+            ..name = branch.name
+            ..table = 'banches'
+            ..longitude = branch.longitude.toString()
+            ..description = branch.description
+            ..fbusinessId = branch.fbusinessId;
+          log.d(b);
+          await isar.branchSyncs.put(b);
         }
       });
       // return all branches from db
-      return isar.branchSyncs.filter().fbusinessIdEqualTo(businessId).findAll();
+      /// right now the the branch business Id is empty return here id is in this range
+      /// instead, will fix later.
+      List<BranchSync> bb =
+          await isar.branchSyncs.filter().tableEqualTo('banches').findAll();
+
+      return bb;
     }
     throw Exception('Failed to load branch');
   }
@@ -486,7 +501,7 @@ class IsarAPI implements IsarApiInterface {
   Future<void> createGoogleSheetDoc({required String email}) async {
     // TODOre-work on this until it work 100%;
     Business? business = getBusiness();
-    String docName = business!.name + '- Report';
+    String docName = business!.name! + '- Report';
 
     await client.post(Uri.parse("$apihub/v2/api/createSheetDocument"),
         body: jsonEncode({"title": docName, "shareToEmail": email}),
@@ -554,8 +569,8 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Business? getBusiness() {
-    // TODO: implement getBusiness
-    throw UnimplementedError();
+    String? userId = ProxyService.box.getUserId();
+    return isar.businesss.filter().userIdEqualTo(userId!).findFirstSync();
   }
 
   @override
@@ -609,10 +624,8 @@ class IsarAPI implements IsarApiInterface {
   @override
   Future<List<BranchSync>> getLocalBranches({required int businessId}) async {
     // get all branch from isar db
-    List<BranchSync> kBranches = await isar.branchSyncs
-        .filter()
-        .fbusinessIdEqualTo(businessId)
-        .findAll();
+    List<BranchSync> kBranches =
+        await isar.branchSyncs.filter().tableEqualTo('banches').findAll();
     if (kBranches.isEmpty) {
       return await branches(businessId: businessId);
     }
@@ -646,7 +659,7 @@ class IsarAPI implements IsarApiInterface {
     log.d(response.body);
     Business? business = isar.businesss.getSync(fromJson(response.body).id);
     if (business == null) {
-      await isar.writeTxnSync((isar) async {
+      await isar.writeTxn((isar) async {
         isar.businesss.put(fromJson(response.body));
       });
       business =

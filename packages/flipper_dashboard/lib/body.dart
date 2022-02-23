@@ -122,7 +122,7 @@ class _BodyWidgetState extends State<BodyWidget> {
           else if (widget.model.tab == 3)
             Flexible(
                 child: SettingPage(
-              business: widget.model.businesses[0],
+              business: widget.model.businesses,
             ))
         ],
       ),

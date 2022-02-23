@@ -19,7 +19,7 @@ class AppService with ReactiveServiceMixin {
   List<Category> get categories => _categories.value;
 
   final _business = ReactiveValue<isar.Business>(isar.Business());
-  isar.Business get businesses => _business.value;
+  isar.Business get business => _business.value;
 
   final _units = ReactiveValue<List<Unit>>([]);
   List<Unit> get units => _units.value;
