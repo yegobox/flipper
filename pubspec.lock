@@ -99,6 +99,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.0-nullsafety.0"
+  barcode:
+    dependency: transitive
+    description:
+      name: barcode
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.2.0"
   bloc:
     dependency: transitive
     description:
@@ -1774,6 +1781,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.4.0"
+  pdf:
+    dependency: transitive
+    description:
+      name: pdf
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.7.1"
   pedantic:
     dependency: transitive
     description:
@@ -1823,6 +1837,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.5.0"
+  printing:
+    dependency: transitive
+    description:
+      name: printing
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "5.7.2"
   process:
     dependency: transitive
     description:
@@ -1864,7 +1885,7 @@ packages:
       name: qr
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.1.0"
+    version: "3.0.0"
   qr_code_scanner:
     dependency: transitive
     description:
@@ -1873,12 +1894,12 @@ packages:
     source: hosted
     version: "0.6.1"
   qr_flutter:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: qr_flutter
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "4.0.0"
+      path: "open-sources/qr.flutter"
+      relative: true
+    source: path
+    version: "4.0.1"
   quiver:
     dependency: transitive
     description:

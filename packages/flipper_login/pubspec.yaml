@@ -25,7 +25,6 @@ dependencies:
   overlay_support: ^1.2.1
   flutter_settings_ui: ^2.0.1
   stacked: ^2.2.8
-  qr_flutter: ^4.0.0
   google_fonts: ^2.1.0
   flipper_ui: ^1.0.3
   firebase_auth: ^3.3.5
@@ -35,6 +34,8 @@ dependencies:
   google_ui: ^2.7.0
   flutter_svg: ^1.0.3
   gap: ^2.0.0
+  qr_flutter: ^4.0.1
+
 flutter:
   uses-material-design: true
   assets:

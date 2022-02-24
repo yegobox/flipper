@@ -30,7 +30,6 @@ dependencies:
     git:
       url: git://github.com/Realank/flutter_datetime_picker.git
       ref: eb66486c47d50bf550950c196486121ffcea8885
-  qr_flutter: ^4.0.0
   flex_color_scheme: ^4.2.0
   image_picker: ^0.8.0+4
   firebase_storage: ^10.2.5
@@ -70,6 +69,8 @@ dependencies:
   device_info_plus: ^3.2.1
   provider: ^6.0.2
   gap: ^2.0.0
+  barcode: ^2.2.0
+  printing: ^5.3.0
 flutter:
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

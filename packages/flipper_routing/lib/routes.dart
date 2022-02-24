@@ -73,7 +73,7 @@ class AppSetup {
 // test pin:085214
 
 // when adding new repo with other submodules
-// git submodule add https://github.com/yegobox/google_ui.git open-sources/google_ui
+// git submodule add https://github.com/yegobox/qr.flutter.git open-sources/qr.flutter
 // https://gist.github.com/myusuf3/7f645819ded92bda6677
 
 // %AppData%

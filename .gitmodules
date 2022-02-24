@@ -36,3 +36,6 @@
 [submodule "open-sources/google_ui"]
 	path = open-sources/google_ui
 	url = https://github.com/yegobox/google_ui.git
+[submodule "open-sources/qr.flutter"]
+	path = open-sources/qr.flutter
+	url = https://github.com/yegobox/qr.flutter.git
