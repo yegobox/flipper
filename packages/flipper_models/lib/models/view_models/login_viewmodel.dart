@@ -7,8 +7,6 @@ import 'package:flipper_models/models/models.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-final isWindows = UniversalPlatform.isWindows;
-
 class LoginViewModel extends FormViewModel {
   LoginViewModel();
   final log = getLogger('LoginViewModel');

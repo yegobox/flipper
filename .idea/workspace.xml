@@ -61,11 +61,11 @@
   <component name="ChangeListManager">
     <list default="true" id="130b61e7-9be8-4adb-878b-9d0f09c30571" name="Default Changelist" comment="syncing with local flipper repo.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.packages" beforeDir="false" afterPath="$PROJECT_DIR$/.packages" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/open-sources/flutter_list_drag_and_drop" beforeDir="false" afterPath="$PROJECT_DIR$/open-sources/flutter_list_drag_and_drop" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/open-sources/flutter_list_drag_and_drop/.dart_tool/package_config.json" beforeDir="false" afterPath="$PROJECT_DIR$/open-sources/flutter_list_drag_and_drop/.dart_tool/package_config.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/open-sources/flutter_list_drag_and_drop/melos_flutter_list_drag_and_drop.iml" beforeDir="false" afterPath="$PROJECT_DIR$/open-sources/flutter_list_drag_and_drop/melos_flutter_list_drag_and_drop.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/open-sources/qr.flutter" beforeDir="false" afterPath="$PROJECT_DIR$/open-sources/qr.flutter" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_login/lib/desktop_login_view.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_login/lib/desktop_login_view.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/models.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/models.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/flipper_models/lib/models/view_models/login_viewmodel.dart" beforeDir="false" afterPath="$PROJECT_DIR$/packages/flipper_models/lib/models/view_models/login_viewmodel.dart" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
