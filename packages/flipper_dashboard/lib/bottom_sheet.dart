@@ -323,7 +323,7 @@ void preferences(
                       },
                     ),
                     model.kSetting.isAttendanceEnabled
-                        ? QrImage(
+                        ? QrImageView(
                             data: model.business.name +
                                 '-' +
                                 model.business.id.toString() +

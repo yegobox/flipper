@@ -2,6 +2,7 @@ import 'package:flipper_dashboard/no_net.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+// import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/models/view_models/login_viewmodel.dart';
 import 'package:flipper_services/proxy.dart';
@@ -72,7 +73,7 @@ class _DesktopLoginViewState extends State<DesktopLoginView> {
                     SizedBox(
                       height: 400.0,
                       width: 400.0,
-                      child: QrImage(
+                      child: QrImageView(
                         data: loginCode ?? '000',
                         version: QrVersions.auto,
                         size: 200.0,
