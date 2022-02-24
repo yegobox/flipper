@@ -7,6 +7,7 @@ import 'package:flipper_models/models/view_models/login_viewmodel.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:google_ui/google_ui.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flipper_rw/gate.dart';
 
 class DesktopLoginView extends StatefulWidget {
   const DesktopLoginView({Key? key}) : super(key: key);
@@ -82,6 +83,7 @@ class _DesktopLoginViewState extends State<DesktopLoginView> {
                         : GOutlinedButton(
                             'Switch to PIN login',
                             onPressed: () {
+                              loginInfo.redirecting = true;
                               GoRouter.of(context).push("/pin");
                             },
                           ),

@@ -4,6 +4,7 @@ import 'package:flipper_models/models/models.dart';
 import 'package:flipper_rw/gate.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:go_router/go_router.dart';
 import 'package:stacked/stacked.dart';
 import 'package:provider/provider.dart';
 
@@ -25,9 +26,10 @@ class StartUpView extends StatelessWidget {
                   const SnackBar(
                     backgroundColor: Colors.red,
                     content:
-                        Text("Error happened on our end, please try again"),
+                        Text("Error happened in our end, please try again!"),
                   ),
                 );
+                GoRouter.of(context).go("/login");
               }
             },
           );

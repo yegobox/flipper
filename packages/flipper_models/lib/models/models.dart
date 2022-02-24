@@ -127,7 +127,7 @@ export 'package:flipper_models/models/view_models/io/product_viewmodel.dart'
 export 'package:flipper_models/models/view_models/io/signup_viewmodel.dart'
     if (dart.library.html) 'package:flipper_models/models/view_models/html/signup_viewmodel.dart';
 export 'package:flipper_models/models/view_models/io/startup_viewmodel.dart'
-    if (dart.library.html) 'package:flipper_models/models/view_models/html/startup_viewmodel.dart';
+    if (dart.library.html) 'package:flipper_models/models/view_models/io/startup_viewmodel.dart';
 export 'package:flipper_models/models/view_models/io/message_view_model.dart'
     if (dart.library.html) 'package:flipper_models/models/view_models/html/message_view_model.dart';
 export 'package:flipper_models/models/view_models/io/discount_viewmodel.dart'
