@@ -95,7 +95,7 @@ class _FlipperAppState extends State<FlipperApp> {
 
         int today = DateTime.now().day;
         // if today is tuesday for example and other even days
-        if (profile == null && today % 2 == 0) {
+        if (profile == null && today % 2 == 0 && !isWindows) {
           bottomSheetBuilderProfile(
             context: context,
             body: <Widget>[const UpdateProfile()],
@@ -103,7 +103,7 @@ class _FlipperAppState extends State<FlipperApp> {
           );
         }
         // if to day is monday or wednesday and other odd days
-        if (today % 2 == 1 && !ProxyService.billing.activeSubscription()) {
+        if (today % 2 == 1 && !ProxyService.billing.activeSubscription() && !isWindows) {
           activateSubscription(
             context: context,
             body: <Widget>[const SubscriptionWidget()],
