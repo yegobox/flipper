@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flipper_models/models/models.dart';
 import 'package:stacked/stacked.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flipper_routing/routes.router.dart';
 
 class ReceiveStock extends StatefulWidget {
   const ReceiveStock({Key? key, required this.variantId}) : super(key: key);

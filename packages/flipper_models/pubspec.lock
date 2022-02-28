@@ -1536,21 +1536,21 @@ packages:
       name: objectbox
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.4.0"
+    version: "1.4.1-dev.0"
   objectbox_generator:
     dependency: "direct dev"
     description:
       name: objectbox_generator
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.4.0"
+    version: "1.4.1-dev.0"
   objectbox_sync_flutter_libs:
     dependency: "direct main"
     description:
       name: objectbox_sync_flutter_libs
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.4.0"
+    version: "1.4.1-dev.0"
   octo_image:
     dependency: transitive
     description:

@@ -103,7 +103,9 @@ class _FlipperAppState extends State<FlipperApp> {
           );
         }
         // if to day is monday or wednesday and other odd days
-        if (today % 2 == 1 && !ProxyService.billing.activeSubscription() && !isWindows) {
+        if (today % 2 == 1 &&
+            !ProxyService.billing.activeSubscription() &&
+            !isWindows) {
           activateSubscription(
             context: context,
             body: <Widget>[const SubscriptionWidget()],
@@ -140,13 +142,12 @@ class _FlipperAppState extends State<FlipperApp> {
     // In dark mode?
     final bool isDark = theme.brightness == Brightness.dark;
 
-    return ViewModelBuilder<BusinessHomeViewModel>.reactive(
+    return ViewModelBuilder<BusinessHomeViewModel>.nonReactive(
       viewModelBuilder: () => BusinessHomeViewModel(),
       onModelReady: (model) {
         ProxyService.notification.initialize(context);
         ProxyService.notification.listen(context);
         ProxyService.dynamicLink.handleDynamicLink(context);
-        // load data for report
         model.loadReport();
       },
       builder: (context, model, child) {
@@ -189,13 +190,11 @@ class _FlipperAppState extends State<FlipperApp> {
                       dialogStyle: UpgradeDialogStyle.cupertino,
                       child: BodyWidget(
                         model: model,
-                        sideOpenController: _sideOpenController,
                         controller: controller,
                       ),
                     )
                   : BodyWidget(
                       model: model,
-                      sideOpenController: _sideOpenController,
                       controller: controller,
                     ),
               bottomNavigationBar: BottomNavigationBar(

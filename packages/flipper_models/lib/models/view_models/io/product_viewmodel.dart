@@ -13,12 +13,12 @@ import 'package:flipper_services/product_service.dart';
 
 import 'package:flipper_services/constants.dart';
 
-class ProductViewModel extends BusinessHomeViewModel {
+// class ProductViewModel extends BusinessHomeViewModel {
+class ProductViewModel extends ReactiveViewModel {
+  // extends ReactiveViewModel
   final AppService _appService = locator<AppService>();
   // ignore: annotate_overrides, overridden_fields
   final log = getLogger('ProductViewModel');
-  @override
-  // ignore: overridden_fields
   final ProductService productService = locator<ProductService>();
 
   List<PColor> get colors => _appService.colors;
@@ -93,7 +93,7 @@ class ProductViewModel extends BusinessHomeViewModel {
   void setName({String? name}) {
     _name = name;
     final cleaned = name?.trim();
-    _lock = cleaned?.length == null || cleaned?.length == 0 || !_price;
+    _lock = cleaned?.length == null || !_price;
     notifyListeners();
   }
 
@@ -426,7 +426,8 @@ class ProductViewModel extends BusinessHomeViewModel {
               .update(data: item.toJson(), endPoint: 'orderItem/$id');
         }
       }
-      updatePayable();
+      // TODOD: update the order commented this may cause issue. as I no longer extends businessHomeViewmodel
+      // updatePayable();
       return true;
     }
     return false;

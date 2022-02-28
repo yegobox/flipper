@@ -17,14 +17,9 @@ import 'package:google_ui/google_ui.dart';
 import 'settings.dart';
 
 class BodyWidget extends StatefulWidget {
-  const BodyWidget(
-      {Key? key,
-      required this.model,
-      required this.sideOpenController,
-      required this.controller})
+  const BodyWidget({Key? key, required this.model, required this.controller})
       : super(key: key);
   final BusinessHomeViewModel model;
-  final ValueNotifier<bool> sideOpenController;
   final TextEditingController controller;
   @override
   _BodyWidgetState createState() => _BodyWidgetState();
@@ -116,14 +111,15 @@ class _BodyWidgetState extends State<BodyWidget> {
                         ),
                       ),
                     ),
-                  )
-          else if (widget.model.tab == 2)
-            const Flexible(child: ProductView(userId: '1', items: true))
-          else if (widget.model.tab == 3)
+                  ),
+          if (widget.model.tab == 2)
+            const Flexible(child: ProductView(userId: '1', items: true)),
+          if (widget.model.tab == 3)
             Flexible(
-                child: SettingPage(
-              business: widget.model.businesses,
-            ))
+              child: SettingPage(
+                business: widget.model.businesses,
+              ),
+            )
         ],
       ),
     );

@@ -13,8 +13,8 @@ class WebDesktopLogin extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('Scan to log in v2'),
-            QrImage(
+            const Text('Scan to log in v2'),
+            QrImageView(
               data: "1234567890",
               version: QrVersions.auto,
               size: 200.0,

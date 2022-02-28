@@ -9,16 +9,13 @@ import 'package:flipper_models/models/models.dart';
 class ForceDataEntryService {
   final log = getLogger('ForceDataEntryService');
   void caller() {
-    if (ProxyService.remoteConfig.forceDateEntry()) {
-      addData();
-    }
+    addData();
   }
 
   Future<void> addData() async {
     int? branchId = ProxyService.box.read(key: 'branchId');
 
     if (branchId == null) {
-      log.i('branchId is null');
       return;
     }
 

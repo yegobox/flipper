@@ -430,36 +430,33 @@ class _GateState extends State<Gate> {
         defaultLanguage == null ? const Locale('en') : Locale(defaultLanguage);
       },
       builder: (context, model, child) {
-        return ChangeNotifierProvider<LoginInfo>.value(
-          value: loginInfo,
-          child: OverlaySupport.global(
-            child: MaterialApp.router(
-              debugShowCheckedModeBanner: false,
-              title: 'flipper',
-              // Define the light theme for the app, based on defined colors and
-              // properties above.
-              theme: GThemeGenerator.generate(),
+        return OverlaySupport.global(
+          child: MaterialApp.router(
+            debugShowCheckedModeBanner: false,
+            title: 'flipper',
+            // Define the light theme for the app, based on defined colors and
+            // properties above.
+            theme: GThemeGenerator.generate(),
 
-              darkTheme: GThemeGenerator.generateDark(),
+            darkTheme: GThemeGenerator.generateDark(),
 
-              localizationsDelegates: [
-                FlutterFireUILocalizations.withDefaultOverrides(
-                    const LabelOverrides()),
-                const FlipperLocalizationsDelegate(),
-                GlobalMaterialLocalizations.delegate,
-                GlobalWidgetsLocalizations.delegate,
-              ],
-              supportedLocales: const [
-                Locale('en', 'US'), // English
-                Locale('es', 'ES'), // Spanish
-              ],
-              locale: const Locale('en'),
-              // locale: model
-              //     .languageService.locale,
-              themeMode: model.settingService.themeMode.value,
-              routeInformationParser: router.routeInformationParser,
-              routerDelegate: router.routerDelegate,
-            ),
+            localizationsDelegates: [
+              FlutterFireUILocalizations.withDefaultOverrides(
+                  const LabelOverrides()),
+              const FlipperLocalizationsDelegate(),
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+            ],
+            supportedLocales: const [
+              Locale('en', 'US'), // English
+              Locale('es', 'ES'), // Spanish
+            ],
+            locale: const Locale('en'),
+            // locale: model
+            //     .languageService.locale,
+            themeMode: model.settingService.themeMode.value,
+            routeInformationParser: router.routeInformationParser,
+            routerDelegate: router.routerDelegate,
           ),
         );
       },
