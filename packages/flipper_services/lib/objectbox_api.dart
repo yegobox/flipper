@@ -68,16 +68,15 @@ class ObjectBoxApi extends MobileUpload implements Api {
     ProxyService.api.migrateToSync();
     if (!Platform.isWindows) {
       // this is to say that we are on a device mobile then where all subs are activated
-      if(f.kDebugMode){
+      if (f.kDebugMode) {
         partial();
-      }else{
+      } else {
         if (Sync.isAvailable() && ProxyService.billing.activeSubscription()) {
           sync();
         } else {
           partial();
         }
       }
-
     } else {
       // on desktop sync should be activated by default.
       sync();
@@ -328,13 +327,13 @@ class ObjectBoxApi extends MobileUpload implements Api {
   @override
   Future<StockSync?> getStock(
       {required int branchId, required int variantId}) async {
-    List<StockSync> stocks = store
+    StockSync? stock = store
         .box<StockSync>()
-        .getAll()
-        .where((v) => v.fvariantId == variantId)
-        .toList();
-    if (stocks.length > 0) {
-      return stocks[0];
+        .query(StockSync_.fvariantId.equals(variantId))
+        .build()
+        .findFirst();
+    if (stock != null) {
+      return stock;
     }
     return null;
   }
@@ -428,107 +427,26 @@ class ObjectBoxApi extends MobileUpload implements Api {
   @override
   Future<void> collectCashPayment(
       {required double cashReceived, required OrderFSync order}) async {
-    Map data = order.toJson();
-    data['cashReceived'] = cashReceived;
-    data['status'] = completeStatus;
-    data['reported'] = false;
-    data['draft'] = false;
-    final date = DateTime.now();
-    final dueDate = date.add(Duration(days: 7));
+    // Map data = order.toJson();
+    // data['cashReceived'] = cashReceived;
+    // data['status'] = completeStatus;
+    // data['reported'] = false;
+    // data['draft'] = false;
+    order.cashReceived = cashReceived;
+    order.status = completeStatus;
+    order.reported = false;
+    order.draft = false;
 
-    final invoice = Invoice(
-      supplier: Supplier(
-        name: 'Sarah Field',
-        address: 'Sarah Street 9, Beijing, China',
-        paymentInfo: 'https://paypal.me/sarahfieldzz',
-      ),
-      customer: CustomerSync(
-        name: 'Apple Inc.',
-        branchId: ProxyService.box.read(key: 'branchId'),
-        address: 'Apple Street, Cupertino, CA 95014',
-        email: '',
-        phone: '',
-        orderId: 0,
-      ),
-      info: InvoiceInfo(
-        date: date,
-        dueDate: dueDate,
-        description: 'My description...',
-        number: '${DateTime.now().year}-9999',
-      ),
-      items: [
-        InvoiceItem(
-          description: 'Coffee',
-          date: DateTime.now(),
-          quantity: 3,
-          vat: 0.19,
-          unitPrice: 5.99,
-        ),
-        InvoiceItem(
-          description: 'Water',
-          date: DateTime.now(),
-          quantity: 8,
-          vat: 0.19,
-          unitPrice: 0.99,
-        ),
-        InvoiceItem(
-          description: 'Orange',
-          date: DateTime.now(),
-          quantity: 3,
-          vat: 0.19,
-          unitPrice: 2.99,
-        ),
-        InvoiceItem(
-          description: 'Apple',
-          date: DateTime.now(),
-          quantity: 8,
-          vat: 0.19,
-          unitPrice: 3.99,
-        ),
-        InvoiceItem(
-          description: 'Mango',
-          date: DateTime.now(),
-          quantity: 1,
-          vat: 0.19,
-          unitPrice: 1.59,
-        ),
-        InvoiceItem(
-          description: 'Blue Berries',
-          date: DateTime.now(),
-          quantity: 5,
-          vat: 0.19,
-          unitPrice: 0.99,
-        ),
-        InvoiceItem(
-          description: 'Lemon',
-          date: DateTime.now(),
-          quantity: 4,
-          vat: 0.19,
-          unitPrice: 1.29,
-        ),
-      ],
-    );
-
-    update(data: data, endPoint: 'order');
-
-    if (ProxyService.remoteConfig.isPrinterAvailable()) {
-      // final pdfFile =
-      //     await ProxyService.pdfInvoice.generate(invoice, order.id.toString());
-
-      /// read user setting and see if he choose to open a receipt file on complete of a sale.
-      /// this is handy in case a client want to print on his machine directly
-      String userId = ProxyService.box.read(key: 'userId');
-      Setting? setting = await getSetting(userId: int.parse(userId));
-      if (setting != null &&
-          setting.openReceiptFileOSaleComplete != null &&
-          setting.openReceiptFileOSaleComplete == true) {
-        // ProxyService.pdfApi.openFile(pdfFile);
-      }
-      if (setting != null &&
-          setting.autoPrint != null &&
-          setting.autoPrint == true) {
-        // ProxyService.pdfApi.openFile(pdfFile);
-        // TODOnow call the printing service
+    update(data: order.toJson(), endPoint: 'order');
+    // update order's orderItems
+    for (OrderItemSync item in order.orderItems) {
+      // each item.variantId should have new stock value
+      StockSync? stock =
+          await getStock(branchId: order.fbranchId, variantId: item.fvariantId);
+      if (stock != null) {
+        stock.currentStock = stock.currentStock - item.count;
+        stock.lowStock = stock.lowStock - item.count;
+        update(data: stock.toJson(), endPoint: 'stock/${stock.id}');
       }
     }
   }
@@ -863,7 +781,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
           ftaxId: map['ftaxId'],
         );
         List<VariantSync> variants =
-            await ProxyService.api.getVariantByProductId(productId: map['id']);
+            ProxyService.api.getVariantByProductId(productId: map['id']);
         final box = store.box<ProductSync>();
         product.variations.addAll(variants);
 
@@ -1058,7 +976,6 @@ class ObjectBoxApi extends MobileUpload implements Api {
             item.forderId = data['id'];
             item.fvariantId = data['fvariantId'];
             updatedOrderItem.add(item);
-            log.i(item);
             store.box<OrderItemSync>().put(item, mode: PutMode.update);
           }
         }
@@ -1608,7 +1525,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
               DateTime.parse(order.createdAt).difference(date).inDays >= -7 &&
               order.fbranchId == branchId)
           .toList();
-      if (orders.length > 0) {
+      if (orders.isNotEmpty) {
         //if in pastOrders there is no object orders[0] that exist then we add it in the list
         for (var i = 0; i < orders.length; i++) {
           //is orders[i] does not exist in pastOrders then we add it in the list
