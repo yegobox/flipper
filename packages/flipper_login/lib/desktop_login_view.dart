@@ -37,6 +37,12 @@ class _DesktopLoginViewState extends State<DesktopLoginView> {
   }
 
   @override
+  void dispose() {
+    loginCode = null;
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<LoginViewModel>.reactive(
       viewModelBuilder: () => LoginViewModel(),
