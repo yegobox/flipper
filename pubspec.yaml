@@ -21,10 +21,10 @@ environment:
   sdk: ">=2.16.0 <3.0.0"
 
 dependencies:
-  objectbox: ^1.4.1-dev.0
+  objectbox: ^1.4.1
   flutter:
     sdk: flutter
-  objectbox_sync_flutter_libs: ^1.4.1-dev.0
+  objectbox_sync_flutter_libs: ^1.4.1
   isar: ^2.2.0+1
   isar_flutter_libs: ^2.2.0+1
   flutter_lints: ^1.0.0
