@@ -1,4 +1,4 @@
-import 'package:flipper_routing/routes.logger.dart';
+// import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_rw/helpers/utils.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_localize/flipper_localize.dart';
@@ -38,8 +38,8 @@ class ProductRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final log = getLogger('ProductRow');
-    log.e(stocks.map((e) => e.toJson()).toList());
+    // final log = getLogger('ProductRow');
+    // log.e(stocks.map((e) => e.toJson()).toList());
     return Slidable(
       child: GestureDetector(
         onTap: () {
@@ -85,7 +85,7 @@ class ProductRow extends StatelessWidget {
             subtitle: Text(
               stocks.isNotEmpty
                   ? 'In stock ' + stocks[0].currentStock.toString()
-                  : '0',
+                  : 'In stock 0.0',
               style: const TextStyle(color: Colors.black),
             ),
             trailing: stocks.isEmpty
@@ -93,17 +93,17 @@ class ProductRow extends StatelessWidget {
                     ' Prices',
                     style: TextStyle(color: Colors.black),
                   )
-                : stocks.length > 1
+                : product.variations.isNotEmpty && product.variations.length > 1
                     ? const Text(
                         ' Prices',
                         style: TextStyle(color: Colors.black),
                       )
                     : Text(
                         'RWF ' +
-                            stocks
-                                .map((stock) => stock.value)
-                                .toList()[0]
-                                .toString(),
+                            (product.variations.isEmpty
+                                ? '0'
+                                : product.variations.first.retailPrice
+                                    .toString()),
                         style: const TextStyle(color: Colors.black),
                       ),
           ),

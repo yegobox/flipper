@@ -69,7 +69,7 @@ class StockSync {
         showLowStockAlert: json["showLowStockAlert"],
         table: json["table"],
         fproductId: json["fproductId"],
-        active: json["active"] == null ? false : json["active"],
+        active: json["active"] ?? false,
         value: json["value"],
       );
 
@@ -85,7 +85,7 @@ class StockSync {
         "showLowStockAlert": showLowStockAlert,
         "table": table,
         "fproductId": fproductId,
-        "active": active == null ? false : active,
+        "active": active ?? false,
         "value": value
       };
 }

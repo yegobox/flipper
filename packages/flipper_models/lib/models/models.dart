@@ -120,9 +120,8 @@ export 'package:flipper_models/models/io/stock_mock.dart'
 export 'package:flipper_models/models/io/product_mock_io.dart'
     if (dart.library.html) 'package:flipper_models/models/html/product_mock_web.dart';
 
-
 export 'package:flipper_models/models/view_models/login_viewmodel.dart'
-if (dart.library.html) 'package:flipper_models/models/view_models/login_viewmodel.dart';
+    if (dart.library.html) 'package:flipper_models/models/view_models/login_viewmodel.dart';
 
 export 'package:flipper_models/models/view_models/io/business_home_viewmodel.dart'
     if (dart.library.html) 'package:flipper_models/models/view_models/html/business_home_viewmodel.dart';

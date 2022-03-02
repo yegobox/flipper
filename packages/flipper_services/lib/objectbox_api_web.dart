@@ -39,7 +39,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  Subscription addUpdateSubscription(
+  Future<Subscription> addUpdateSubscription(
       {required int userId,
       required int interval,
       required double recurringAmount,
@@ -307,7 +307,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  Subscription? getSubscription({required int userId}) {
+  Future<Subscription?> getSubscription({required int userId}) {
     // TODO: implement getSubscription
     throw UnimplementedError();
   }

@@ -23,15 +23,15 @@ class BillingService {
     return ProxyService.api.addPoint(userId: userId!, point: points!);
   }
 
-  Subscription updateSubscription({
+  Future<Subscription> updateSubscription({
     required int userId,
     required int interval,
     required List<Feature> features,
     required String descriptor,
     required double amount,
-  }) {
+  }) async {
     /// update the subscription of the user
-    Subscription sub = ProxyService.api.addUpdateSubscription(
+    Subscription sub = await ProxyService.api.addUpdateSubscription(
       userId: userId,
       interval: interval,
       recurringAmount: amount,
@@ -41,10 +41,10 @@ class BillingService {
     return sub;
   }
 
-  bool activeSubscription() {
+  Future<bool> activeSubscription() async {
     if (ProxyService.box.getUserId() == null) return false;
     int userId = int.parse(ProxyService.box.getUserId()!);
-    Subscription? sub = ProxyService.api.getSubscription(userId: userId);
+    Subscription? sub = await ProxyService.api.getSubscription(userId: userId);
     if (sub != null) {
       String date = sub.nextBillingDate;
       DateTime nextBillingDate = DateTime.parse(date);
@@ -59,7 +59,7 @@ class BillingService {
     /// monitor the subscription of the user
     /// the logic to check if it is a time to take a payment
     /// use points when the subscription is expired
-    Subscription? sub = ProxyService.api.getSubscription(userId: userId);
+    Subscription? sub = await ProxyService.api.getSubscription(userId: userId);
     if (sub != null) {
       String date = sub.nextBillingDate;
       DateTime nextBillingDate = DateTime.parse(date);

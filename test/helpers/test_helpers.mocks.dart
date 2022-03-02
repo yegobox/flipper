@@ -527,25 +527,29 @@ class MockApi<T> extends _i1.Mock implements _i10.Api<T> {
       Invocation.method(#addPoint, [], {#userId: userId, #point: point}),
       returnValue: _FakePoints_6()) as _i2.Points);
   @override
-  _i2.Subscription addUpdateSubscription(
+  _i11.Future<_i2.Subscription> addUpdateSubscription(
           {int? userId,
           int? interval,
           double? recurringAmount,
           String? descriptor,
           List<_i2.Feature>? features}) =>
       (super.noSuchMethod(
-          Invocation.method(#addUpdateSubscription, [], {
-            #userId: userId,
-            #interval: interval,
-            #recurringAmount: recurringAmount,
-            #descriptor: descriptor,
-            #features: features
-          }),
-          returnValue: _FakeSubscription_7()) as _i2.Subscription);
+              Invocation.method(#addUpdateSubscription, [], {
+                #userId: userId,
+                #interval: interval,
+                #recurringAmount: recurringAmount,
+                #descriptor: descriptor,
+                #features: features
+              }),
+              returnValue:
+                  Future<_i2.Subscription>.value(_FakeSubscription_7()))
+          as _i11.Future<_i2.Subscription>);
   @override
-  _i2.Subscription? getSubscription({int? userId}) => (super.noSuchMethod(
-          Invocation.method(#getSubscription, [], {#userId: userId}))
-      as _i2.Subscription?);
+  _i11.Future<_i2.Subscription?> getSubscription({int? userId}) =>
+      (super.noSuchMethod(
+              Invocation.method(#getSubscription, [], {#userId: userId}),
+              returnValue: Future<_i2.Subscription?>.value())
+          as _i11.Future<_i2.Subscription?>);
   @override
   _i2.Points? getPoints({int? userId}) =>
       (super.noSuchMethod(Invocation.method(#getPoints, [], {#userId: userId}))
@@ -1251,25 +1255,27 @@ class MockBillingService extends _i1.Mock implements _i22.BillingService {
       Invocation.method(#addPoints, [], {#points: points, #userId: userId}),
       returnValue: _FakePoints_6()) as _i2.Points);
   @override
-  _i2.Subscription updateSubscription(
+  _i11.Future<_i2.Subscription> updateSubscription(
           {int? userId,
           int? interval,
           List<_i2.Feature>? features,
           String? descriptor,
           double? amount}) =>
       (super.noSuchMethod(
-          Invocation.method(#updateSubscription, [], {
-            #userId: userId,
-            #interval: interval,
-            #features: features,
-            #descriptor: descriptor,
-            #amount: amount
-          }),
-          returnValue: _FakeSubscription_7()) as _i2.Subscription);
+              Invocation.method(#updateSubscription, [], {
+                #userId: userId,
+                #interval: interval,
+                #features: features,
+                #descriptor: descriptor,
+                #amount: amount
+              }),
+              returnValue:
+                  Future<_i2.Subscription>.value(_FakeSubscription_7()))
+          as _i11.Future<_i2.Subscription>);
   @override
-  bool activeSubscription() =>
+  _i11.Future<bool> activeSubscription() =>
       (super.noSuchMethod(Invocation.method(#activeSubscription, []),
-          returnValue: false) as bool);
+          returnValue: Future<bool>.value(false)) as _i11.Future<bool>);
   @override
   void monitorSubscription({int? userId}) => super.noSuchMethod(
       Invocation.method(#monitorSubscription, [], {#userId: userId}),

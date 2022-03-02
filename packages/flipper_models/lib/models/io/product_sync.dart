@@ -76,7 +76,7 @@ class ProductSync {
         id: json["id"],
         name: json["name"],
         barCode: json["barCode"],
-        synced: json["synced"] == null ? false : json["synced"],
+        synced: json["synced"] ?? false,
         description: json["description"],
         active: json["active"],
         ftaxId: json["ftaxId"],
@@ -90,10 +90,9 @@ class ProductSync {
         createdAt: json["createdAt"],
         unit: json["unit"],
         expiryDate: json["expiryDate"],
-        draft: json["draft"] == null ? false : json["draft"],
-        imageLocal: json["imageLocal"] == null ? false : json["imageLocal"],
-        currentUpdate:
-            json["currentUpdate"] == null ? false : json["currentUpdate"],
+        draft: json["draft"] ?? false,
+        imageLocal: json["imageLocal"] ?? false,
+        currentUpdate: json["currentUpdate"] ?? false,
         imageUrl: json["imageUrl"],
       );
 
@@ -101,7 +100,7 @@ class ProductSync {
         "id": id,
         "name": name,
         "barCode": barCode,
-        "synced": synced == null ? false : synced,
+        "synced": synced ?? false,
         "description": description,
         "expiryDate": expiryDate,
         "active": active,
@@ -115,10 +114,9 @@ class ProductSync {
         "fcategoryId": fcategoryId,
         "createdAt": createdAt == null ? '' : createdAt!,
         "unit": unit,
-        "draft": draft == null ? false : draft,
-        "imageLocal": imageLocal == null ? false : imageLocal,
-        "currentUpdate": currentUpdate == null ? false : currentUpdate,
+        "draft": draft ?? false,
+        "imageLocal": imageLocal ?? false,
+        "currentUpdate": currentUpdate ?? false,
         "imageUrl": imageUrl,
-        // "variations": variations
       };
 }

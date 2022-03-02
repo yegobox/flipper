@@ -50,7 +50,7 @@ class _SellState extends State<Sell> {
     return widget.product.name + ' Frw' + model.amountTotal.toInt().toString();
   }
 
-  Widget Quantity(
+  Widget quantity(
       {required BusinessHomeViewModel model, required BuildContext context}) {
     return SingleChildScrollView(
       child: Padding(
@@ -87,7 +87,7 @@ class _SellState extends State<Sell> {
                 Container(
                   child: model.quantity <= 1
                       ? IconButton(
-                          icon: Icon(
+                          icon: const Icon(
                             AntDesign.minus,
                             color: Colors.grey,
                             size: 25,
@@ -100,7 +100,7 @@ class _SellState extends State<Sell> {
                           },
                         )
                       : IconButton(
-                          icon: Icon(
+                          icon: const Icon(
                             AntDesign.minus,
                             color: Color(0xC9000000),
                             size: 25,
@@ -125,7 +125,7 @@ class _SellState extends State<Sell> {
                       child: TextFormField(
                         controller: quantityController,
                         onChanged: (quantity) {
-                          if (!quantity.isEmpty) {
+                          if (quantity.isNotEmpty) {
                             model.customQtyIncrease(int.parse(quantity));
                           }
                         },
@@ -135,7 +135,6 @@ class _SellState extends State<Sell> {
                               .canvasColor,
                         ),
                         key: Key(model.quantity.toInt().toString()),
-                        // initialValue: model.quantity?.toInt().toString(),
                         textAlign: TextAlign.center,
                         cursorColor: Theme.of(context)
                             .copyWith(canvasColor: const Color(0x3B000000))
@@ -147,24 +146,20 @@ class _SellState extends State<Sell> {
                   height: 50,
                   color: Colors.grey[400],
                 ),
-                Container(
-                  child: Container(
-                    child: IconButton(
-                      icon: const Icon(
-                        Icons.add,
-                        color: Color(0xC9000000),
-                        size: 25,
-                      ),
-                      onPressed: () {
-                        model.increaseQty((quantity) {
-                          setState(() {
-                            quantityController.text =
-                                model.quantity!.toInt().toString();
-                          });
-                        });
-                      },
-                    ),
+                IconButton(
+                  icon: const Icon(
+                    Icons.add,
+                    color: Color(0xC9000000),
+                    size: 25,
                   ),
+                  onPressed: () {
+                    model.increaseQty((quantity) {
+                      setState(() {
+                        quantityController.text =
+                            model.quantity!.toInt().toString();
+                      });
+                    });
+                  },
                 ),
               ],
             ),
@@ -177,23 +172,22 @@ class _SellState extends State<Sell> {
     );
   }
 
-  List<Widget> Variants({required BusinessHomeViewModel model}) {
+  List<Widget> variants({required BusinessHomeViewModel model}) {
     final List<Widget> list = <Widget>[];
 
     for (VariantSync variant in model.variants) {
       list.add(SingleChildScrollView(
         child: InkWell(
           onTap: () {
-            //load stock of this variant
             model.loadVariantStock(variantId: variant.id);
             model.handleCustomQtySetBeforeSelectingVariation();
-            log.i(model.quantity);
+
             model.keypad
                 .setAmount(amount: variant.retailPrice * model.quantity);
             model.toggleCheckbox(variantId: variant.id);
           },
           child: Padding(
-            padding: EdgeInsets.only(left: 2, right: 2.0, top: 4),
+            padding: const EdgeInsets.only(left: 2, right: 2.0, top: 4),
             child: Column(
               children: [
                 Divider(
@@ -316,7 +310,7 @@ class _SellState extends State<Sell> {
                                   color: Colors.grey[800]),
                             ),
                           ),
-                          SizedBox(
+                          const SizedBox(
                             height: 4,
                           ),
                           Text(
@@ -328,29 +322,27 @@ class _SellState extends State<Sell> {
                           )
                         ],
                       ),
-                      Container(
+                      SizedBox(
                         height: 410,
                         child: ListView(
                           physics: const BouncingScrollPhysics(
                             parent: AlwaysScrollableScrollPhysics(),
                           ),
                           shrinkWrap: true,
-                          children: Variants(model: model),
+                          children: variants(model: model),
                         ),
                       ),
                     ],
                   )
                 ]),
               ),
-              // endloop  == start/and discounts
-              // Quantity(context: context, model: model),
               SliverFillRemaining(
                 hasScrollBody: false,
                 child: Align(
                   alignment: Alignment.bottomCenter,
-                  child: Container(
+                  child: SizedBox(
                     width: double.infinity,
-                    child: Quantity(context: context, model: model),
+                    child: quantity(context: context, model: model),
                   ),
                 ),
               )

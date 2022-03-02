@@ -6,6 +6,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:stacked_themes/stacked_themes.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_storage/get_storage.dart';

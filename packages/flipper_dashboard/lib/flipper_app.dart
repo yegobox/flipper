@@ -89,7 +89,7 @@ class _FlipperAppState extends State<FlipperApp> {
     super.initState();
     if (SchedulerBinding.instance?.schedulerPhase ==
         SchedulerPhase.persistentCallbacks) {
-      SchedulerBinding.instance?.addPostFrameCallback((_) {
+      SchedulerBinding.instance?.addPostFrameCallback((_) async {
         int businessId = ProxyService.box.read(key: 'businessId');
         Profile? profile = ProxyService.api.profile(businessId: businessId);
 
@@ -104,7 +104,7 @@ class _FlipperAppState extends State<FlipperApp> {
         }
         // if to day is monday or wednesday and other odd days
         if (today % 2 == 1 &&
-            !ProxyService.billing.activeSubscription() &&
+            !await ProxyService.billing.activeSubscription() &&
             !isWindows) {
           activateSubscription(
             context: context,

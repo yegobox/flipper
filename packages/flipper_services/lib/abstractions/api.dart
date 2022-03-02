@@ -149,14 +149,14 @@ abstract class Api<T> {
   Profile? updateProfile({required Profile profile});
   void saveTenant({required String phoneNumber});
   Points addPoint({required int userId, required int point});
-  Subscription addUpdateSubscription({
+  Future<Subscription> addUpdateSubscription({
     required int userId,
     required int interval,
     required double recurringAmount,
     required String descriptor,
     required List<Feature> features,
   });
-  Subscription? getSubscription({required int userId});
+  Future<Subscription?> getSubscription({required int userId});
   Points? getPoints({required int userId});
   void consumePoints({required int userId, required int points});
   Future<Pin?> createPin();

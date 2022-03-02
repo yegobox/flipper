@@ -3,33 +3,22 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flipper_rw/gate.dart';
-import 'package:flutter/foundation.dart' as f;
-import 'package:path_provider/path_provider.dart';
-
 import 'package:flipper_models/models/models.dart';
-import 'package:flipper_services/dio_client.dart';
-import 'package:flipper_services/mobile_upload.dart';
-// import 'package:get_storage/get_storage.dart';
-// import 'package:flipper_services/pdf_api.dart';
 
-import 'package:flipper_services/constants.dart';
-import 'package:flipper_services/proxy.dart';
-
-import 'abstractions/api.dart';
-import 'package:http/http.dart' as http;
-import 'package:uuid/uuid.dart';
-// import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
-
-///
-///final isWeb = UniversalPlatform.isWeb;
-// import 'package:flipper_models/objectbox.g.dart';
 import 'package:flipper_models/models/objectbox.dart';
 import 'package:flipper_routing/routes.logger.dart';
+import 'package:flipper_rw/gate.dart';
+import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/dio_client.dart';
+import 'package:flipper_services/mobile_upload.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flutter/foundation.dart' as f;
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
+import 'package:uuid/uuid.dart';
 
-// import 'api_result.dart';
-// import 'network_exceptions.dart';
-// final socketUrl = 'https://apihub.yegobox.com/stomp';
+import 'abstractions/api.dart';
+
 late Store store;
 
 class ExtendedClient extends http.BaseClient {
@@ -69,9 +58,10 @@ class ObjectBoxApi extends MobileUpload implements Api {
     if (!Platform.isWindows) {
       // this is to say that we are on a device mobile then where all subs are activated
       if (f.kDebugMode) {
-        partial();
+        sync();
       } else {
-        if (Sync.isAvailable() && ProxyService.billing.activeSubscription()) {
+        if (Sync.isAvailable() &&
+            await ProxyService.billing.activeSubscription()) {
           sync();
         } else {
           partial();
@@ -95,10 +85,10 @@ class ObjectBoxApi extends MobileUpload implements Api {
 
     /// set sync to manual for now until further notice!
     syncClient.setRequestUpdatesMode(SyncRequestUpdatesMode.autoNoPushes);
-
+    final print = getLogger('ObjectBoxAPi');
     syncClient.start();
     syncClient.loginEvents.listen((event) {
-      if (event == SyncLoginEvent.loggedIn) print('Logged in successfully');
+      if (event == SyncLoginEvent.loggedIn) print.d('sync partially');
     });
   }
 
@@ -112,72 +102,18 @@ class ObjectBoxApi extends MobileUpload implements Api {
     /// if a user is paying then use this config or otherwise
     syncClient.requestUpdates(subscribeForFuturePushes: true);
 
-    /// set sync to manual for now until futher notice!
+    /// set sync to manual for now until further notice!
     syncClient.setRequestUpdatesMode(SyncRequestUpdatesMode.auto);
-
+    final print = getLogger('ObjectBoxAPi');
     syncClient.start();
     syncClient.loginEvents.listen((event) {
-      if (event == SyncLoginEvent.loggedIn) print('Logged in successfully');
+      if (event == SyncLoginEvent.loggedIn) print.d('sync fully');
     });
   }
 
-  ///FIXMEsocket has some issue now so stoping it now
-  // StompClient? stompMessageClient;
-  // StreamController<Message> messageStreamController =
-  //     StreamController<Message>.broadcast();
-
-  // StompClient? stompUsersClient;
-  // StreamController<Business> usersStreamController =
-  //     StreamController<Business>.broadcast();
-  // void onConnect(StompFrame frame) {
-  //   log.i('onConnect');
-
-  //   /// for message
-  //   stompMessageClient?.subscribe(
-  //       destination: '/topic/messages',
-  //       callback: (StompFrame frame) {
-  //         if (frame.body != null) {
-  //           Message result = sMessageJson(frame.body!);
-  //           messageStreamController.add(result);
-  //         }
-  //       });
-
-  //   /// for users socket listner
-  //   stompUsersClient?.subscribe(
-  //       destination: '/topic/users',
-  //       callback: (StompFrame frame) {
-  //         if (frame.body != null) {
-  //           Business result = sbusinessFromJson(frame.body!);
-  //           usersStreamController.add(result);
-  //         }
-  //       });
-  // }
-
   ObjectBoxApi({String? dbName, Directory? dir}) {
     dioClient = DioClient(apihub, interceptors: []);
-    //connect socket
-    // FIXMEstoped socket
-    // if (stompMessageClient == null && stompUsersClient == null) {
-    //   stompMessageClient = StompClient(
-    //       config: StompConfig.SockJS(
-    //     url: socketUrl,
-    //     onConnect: onConnect,
-    //     onWebSocketError: (dynamic error) => log.i(error.toString()),
-    //   ));
 
-    //   stompMessageClient?.activate();
-
-    //   /// activate the users client
-    //   stompUsersClient = StompClient(
-    //       config: StompConfig.SockJS(
-    //     url: socketUrl,
-    //     onConnect: onConnect,
-    //     onWebSocketError: (dynamic error) => print(error.toString()),
-    //   ));
-
-    //   stompUsersClient?.activate();
-    // }
-    // get store initialized.
     if (dbName != null) {
       getDir(dbName: dbName);
     }
@@ -1545,8 +1481,8 @@ class ObjectBoxApi extends MobileUpload implements Api {
   Future<void> saveDiscount(
       {required int branchId, required name, double? amount}) async {
     // create Discount object and add it to the store
-    var discount = new DiscountSync(
-        name: name, amount: amount!.toInt(), branchId: branchId);
+    var discount =
+        DiscountSync(name: name, amount: amount!.toInt(), branchId: branchId);
     store.box<DiscountSync>().put(discount);
   }
 
@@ -1899,7 +1835,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
 
       /// get old stock
       final stock = store
-          .box<Stock>()
+          .box<StockSync>()
           .getAll()
           .where((v) => v.fvariantId == variantss[0].id)
           .toList()[0];
@@ -2105,13 +2041,13 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  Subscription addUpdateSubscription({
+  Future<Subscription> addUpdateSubscription({
     required int userId,
     required int interval,
     required double recurringAmount,
     required String descriptor,
     required List<Feature> features,
-  }) {
+  }) async {
     Subscription? sub = store
         .box<Subscription>()
         .query(Subscription_.userId.equals(userId))
@@ -2143,10 +2079,46 @@ class ObjectBoxApi extends MobileUpload implements Api {
         descriptor: descriptor,
         userId: userId,
         interval: interval,
-        lastBillingDate: DateTime.now().toIso8601String(),
+        lastBillingDate: DateTime.now().toIso8601String().toString(),
         nextBillingDate: nextBillingDate.toIso8601String(),
         recurring: recurringAmount,
       );
+
+      // get current branch
+      int branchId = ProxyService.box.read(key: 'branchId');
+      int businessId = ProxyService.box.read(key: 'businessId');
+      String a = sub.lastBillingDate.toString();
+      String b = sub.nextBillingDate.toString();
+
+      final response =
+          await client.post(Uri.parse("$apihub/v2/api/subscription"),
+              body: jsonEncode(<String, dynamic>{
+                "lastBillingDate": a,
+                "nextBillingDate": b,
+                "userId": userId,
+                "interval": interval,
+                "descriptor": descriptor,
+                "branches": [
+                  {
+                    "id": branchId,
+                    "active": true,
+                    "description": "desc",
+                    "name": "'$branchId'",
+                    "businessId": businessId,
+                    "longitude": "0",
+                    "latitude": "0",
+                    "table": "branches",
+                    "createdAt": "2/22/2021",
+                    "tenants": []
+                  }
+                ],
+                "features": [
+                  {"name": "chat"},
+                  {"name": "inventory"}
+                ]
+              }),
+              headers: {'Content-Type': 'application/json'});
+      if (response.statusCode != 201) throw Exception(response.body);
       int id = store.box<Subscription>().put(sub);
       Subscription s = store.box<Subscription>().get(id)!;
       for (var feature in features) {
@@ -2166,12 +2138,27 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  Subscription? getSubscription({required int userId}) {
-    return store
+  Future<Subscription?> getSubscription({required int userId}) async {
+    //re-write bellow code in short version of code
+    Subscription? local = store
         .box<Subscription>()
         .query(Subscription_.userId.equals(userId))
         .build()
         .findFirst();
+    if (local == null) {
+      final response =
+          await client.get(Uri.parse("$apihub/v2/api/subscription/$userId"));
+      if (response.statusCode == 200) {
+        Subscription? sub = Subscription.fromJson(json.decode(response.body));
+        log.d(sub.toJson());
+        store.box<Subscription>().put(sub);
+        return sub;
+      } else {
+        return null;
+      }
+    } else {
+      return local;
+    }
   }
 
   @override
