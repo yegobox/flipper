@@ -61,7 +61,7 @@ class _ProductViewState extends State<ProductView> {
 
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<ProductViewModel>.reactive(
+    return ViewModelBuilder<ProductViewModel>.nonReactive(
       viewModelBuilder: () => ProductViewModel(),
       builder: (context, model, child) {
         return ListView(
