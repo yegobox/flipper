@@ -142,7 +142,7 @@ class _FlipperAppState extends State<FlipperApp> {
     // In dark mode?
     final bool isDark = theme.brightness == Brightness.dark;
 
-    return ViewModelBuilder<BusinessHomeViewModel>.nonReactive(
+    return ViewModelBuilder<BusinessHomeViewModel>.reactive(
       viewModelBuilder: () => BusinessHomeViewModel(),
       onModelReady: (model) {
         ProxyService.notification.initialize(context);

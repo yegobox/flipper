@@ -112,8 +112,7 @@ class _BodyWidgetState extends State<BodyWidget> {
                       ),
                     ),
                   ),
-          if (widget.model.tab == 2)
-            const Flexible(child: ProductView(userId: '1', items: true)),
+          if (widget.model.tab == 2) const Flexible(child: ProductView()),
           if (widget.model.tab == 3)
             Flexible(
               child: SettingPage(

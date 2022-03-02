@@ -35,7 +35,6 @@ class ProductViewModel extends ReactiveViewModel {
 
   get currentColor => _appService.currentColor;
 
-  @override
   List<VariantSync>? get variants => productService.variants;
 
   Stream<String> getBarCode() async* {
@@ -378,9 +377,9 @@ class ProductViewModel extends ReactiveViewModel {
     Map kProduct = product.toJson();
     kProduct['expiryDate'] = date.toIso8601String();
     ProxyService.api.update(data: kProduct, endPoint: 'product');
-    ProductSync? Cproduct =
+    ProductSync? cProduct =
         await ProxyService.api.getProduct(id: kProduct['id']);
-    productService.setCurrentProduct(product: Cproduct!);
+    productService.setCurrentProduct(product: cProduct!);
     notifyListeners();
   }
 
