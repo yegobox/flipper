@@ -861,6 +861,10 @@ class MockProductService extends _i1.Mock implements _i15.ProductService {
       (super.noSuchMethod(Invocation.getter(#products),
           returnValue: <_i2.ProductSync>[]) as List<_i2.ProductSync>);
   @override
+  set products(List<_i2.ProductSync>? value) =>
+      super.noSuchMethod(Invocation.setter(#products, value),
+          returnValueForMissingStub: null);
+  @override
   List<_i2.StockSync> get stocks =>
       (super.noSuchMethod(Invocation.getter(#stocks),
           returnValue: <_i2.StockSync>[]) as List<_i2.StockSync>);
@@ -880,11 +884,11 @@ class MockProductService extends _i1.Mock implements _i15.ProductService {
       returnValue: Future<void>.value(),
       returnValueForMissingStub: Future<void>.value()) as _i11.Future<void>);
   @override
-  _i11.Future<List<_i2.ProductSync>> loadProducts({int? branchId}) => (super
-      .noSuchMethod(Invocation.method(#loadProducts, [], {#branchId: branchId}),
-          returnValue:
-              Future<List<_i2.ProductSync>>.value(<_i2.ProductSync>[])) as _i11
-      .Future<List<_i2.ProductSync>>);
+  _i11.Stream<List<_i2.ProductSync>> loadProducts({int? branchId}) =>
+      (super.noSuchMethod(
+              Invocation.method(#loadProducts, [], {#branchId: branchId}),
+              returnValue: Stream<List<_i2.ProductSync>>.empty())
+          as _i11.Stream<List<_i2.ProductSync>>);
   @override
   _i11.Future<void> filtterProduct({String? searchKey, int? branchId}) =>
       (super.noSuchMethod(
