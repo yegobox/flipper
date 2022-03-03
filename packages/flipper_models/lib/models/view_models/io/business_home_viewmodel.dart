@@ -157,7 +157,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   ///list products availabe for sell
   Future<List<ProductSync>> products() async {
     int branchId = ProxyService.box.read(key: 'branchId');
-    return await ProxyService.api.products(branchId: branchId);
+    return await ProxyService.api.productsFuture(branchId: branchId);
   }
 
   isar.Business get businesses => _app.business;

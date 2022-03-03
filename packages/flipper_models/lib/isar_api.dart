@@ -235,7 +235,7 @@ class IsarAPI implements IsarApiInterface {
           table: data['table'],
           value: map['value'],
           name: map['name'],
-          fbranchId: 1,
+          fbranchId: data['fbranchId'],
         );
         // save unit to db
         await isar.units.put(unit);
@@ -362,9 +362,14 @@ class IsarAPI implements IsarApiInterface {
     if (response.statusCode == 200) {
       await isar.writeTxn((isar) async {
         for (BranchSync branch in branchsFromJson(response.body)) {
+          // TODOget back on this know if isar is not auto incrementing the ID
+          // log.d(branch.id);
+
           // save branch in db
           final b = BranchSync()
             ..active = branch.active
+            // do not forget to reassign id as we don't use local ID:
+            ..id = branch.id
             ..description = branch.description
             ..latitude = branch.latitude.toString()
             ..name = branch.name
@@ -372,7 +377,7 @@ class IsarAPI implements IsarApiInterface {
             ..longitude = branch.longitude.toString()
             ..description = branch.description
             ..fbusinessId = branch.fbusinessId;
-          log.d(b);
+
           await isar.branchSyncs.put(b);
         }
       });
@@ -623,6 +628,7 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<List<BranchSync>> getLocalBranches({required int businessId}) async {
+    // clean all branches from db
     // get all branch from isar db
     List<BranchSync> kBranches =
         await isar.branchSyncs.filter().tableEqualTo('banches').findAll();
@@ -656,7 +662,6 @@ class IsarAPI implements IsarApiInterface {
     if (response.statusCode == 404) {
       throw NotFoundException(term: "Business not found");
     }
-    log.d(response.body);
     Business? business = isar.businesss.getSync(fromJson(response.body).id);
     if (business == null) {
       await isar.writeTxn((isar) async {

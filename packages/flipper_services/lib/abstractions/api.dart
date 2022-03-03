@@ -1,7 +1,8 @@
 import 'package:flipper_models/models/models.dart';
 
 abstract class Api<T> {
-  Future<List<ProductSync>> products({required int branchId});
+  Stream<List<ProductSync>> products({required int branchId});
+  Future<List<ProductSync>> productsFuture({required int branchId});
   Future<int> signup({required Map business});
   Future<SyncF> login({required String userPhone});
   Future<List<Business>> getOnlineBusiness({required String userId});

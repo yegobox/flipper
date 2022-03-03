@@ -167,8 +167,8 @@ class AppSetup {
 
 // docker run --rm -it -v $(pwd):/data --publish 0.0.0.0:908:9999  --publish 0.0.0.0:907:9980 --user $UID objectboxio/sync:21.5.14-server --model ./data/objectbox-model.json --unsecured-no-authentication --browser-bind 0.0.0.0:9980
 
-// use config file
-// docker run --rm -it -v $(pwd):/data --publish 0.0.0.0:908:9999  --publish 0.0.0.0:907:9980 -d --user $UID objectboxio/sync:21.5.14-server --model ./data/objectbox-model.json --browser-bind 0.0.0.0:9980
+// use config file, the config file has model and password in it. so no need to add them below.
+// docker run --rm -it -v $(pwd):/data --publish 0.0.0.0:908:9999  --publish 0.0.0.0:907:9980 -d --user $UID objectboxio/sync:21.5.14-server --browser-bind 0.0.0.0:9981
 
 // push all branches to github
 // git push origin --mirror
@@ -205,3 +205,11 @@ class AppSetup {
 // https://birju.dev/posts/burying-the-hatchet-of-build-runner-once-and-for-all/
 
 // flutter run -t lib/demo.dart (run demo when we need to!)
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// !! Irrecoverable memory error detected: store instance is corrupt!!
+// 2
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// !! Irrecoverable memory error detected: store instance is corrupt!!
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+// https://www.sandromaglione.com/dart-flutter-static-metaprogramming-macro-prototype/ learn more about macro

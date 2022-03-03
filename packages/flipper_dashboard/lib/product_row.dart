@@ -40,7 +40,7 @@ class ProductRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final log = getLogger('ProductRow');
-    log.e(stocks.map((e) => e.toJson()).toList());
+    log.e(product.fbranchId);
     return Slidable(
       child: GestureDetector(
         onTap: () {

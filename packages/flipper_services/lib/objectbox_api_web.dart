@@ -1,13 +1,6 @@
-import 'dart:convert';
-import 'dart:io';
-//import 'package:flipper_models/models/html/order.dart';
 import 'package:flipper_models/models/models.dart';
 import 'package:flipper_services/mobile_upload.dart';
-// import 'package:flipper_services/objectbox_api.dart';
-import 'package:flipper_services/proxy.dart';
-import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart';
-import 'package:uuid/uuid.dart';
+
 import 'abstractions/api.dart';
 import 'package:isar/isar.dart';
 
@@ -384,7 +377,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  Future<List<ProductSync>> products({required int branchId}) {
+  Stream<List<ProductSync>> products({required int branchId}) {
     // TODO: implement products
     throw UnimplementedError();
   }
@@ -533,6 +526,12 @@ class ObjectBoxApi extends MobileUpload implements Api {
       required DateTime weekEndDate,
       required int branchId}) {
     // TODO: implement weeklyOrdersReport
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<ProductSync>> productsFuture({required int branchId}) {
+    // TODO: implement productsFuture
     throw UnimplementedError();
   }
 }

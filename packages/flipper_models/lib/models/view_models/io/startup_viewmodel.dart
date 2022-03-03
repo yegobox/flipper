@@ -153,6 +153,7 @@ class StartUpViewModel extends BaseViewModel {
       // get local or online branches
       List<isar.BranchSync> branches =
           await ProxyService.isarApi.getLocalBranches(businessId: business.id);
+
       ProxyService.box.write(key: 'branchId', value: branches[0].id);
       ProxyService.box.write(key: 'businessId', value: business.id);
 

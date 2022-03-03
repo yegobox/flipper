@@ -26,10 +26,15 @@ class ProductService with ReactiveServiceMixin {
   List<DiscountSync> get discounts => _discounts.value;
 
   final _products = ReactiveValue<List<ProductSync>>([]);
+
   List<ProductSync> get products => _products.value
       .where((element) =>
           element.name != 'temp' && element.name != 'Custom Amount')
       .toList();
+  set products(List<ProductSync> value) {
+    _products.value = value;
+    notifyListeners();
+  }
 
   String? get userId => ProxyService.box.read(key: 'userId');
   int? get branchId => ProxyService.box.read(key: 'branchId');
@@ -52,19 +57,15 @@ class ProductService with ReactiveServiceMixin {
         .variants(branchId: branchId!, productId: productId);
   }
 
-  Future<List<ProductSync>> loadProducts({required int branchId}) async {
-    //load discounts  in a list merge them with products make discount be at the top.
+  /// load discounts  in a list merge them with products make discount be at the top.
+  Stream<List<ProductSync>> loadProducts({required int branchId}) async* {
     final List<DiscountSync> _discountss =
         await ProxyService.api.getDiscounts(branchId: branchId);
-    final List<ProductSync> _productss =
-        await ProxyService.api.products(branchId: branchId);
+    final Stream<List<ProductSync>> _productss =
+        ProxyService.api.products(branchId: branchId);
     _discounts.value = _discountss;
-    //merge _discounts with _products
-    // final List _merged = [];
-    // _merged.addAll(_discounts);
-    // _merged.addAll(_productss);
-    _products.value = _productss;
-    return products;
+    // _products.value =  _productss;
+    yield* _productss;
   }
 
   Future<void> filtterProduct(
@@ -86,10 +87,10 @@ class ProductService with ReactiveServiceMixin {
     return await ProxyService.api.getProductByBarCode(barCode: code);
   }
 
-  final _stocks = ReactiveValue<List<StockSync>>([]);
-  List<StockSync> get stocks => _stocks.value;
+  List<StockSync> _stocks = [];
+  List<StockSync> get stocks => _stocks;
   List<StockSync> loadStockByProductId({required int productId}) {
-    _stocks.value = ProxyService.api.stocks(productId: productId);
+    _stocks = ProxyService.api.stocks(productId: productId);
     return stocks;
   }
 

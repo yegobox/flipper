@@ -20,8 +20,8 @@ String branchToJson(List<BranchSync> data) =>
 @Collection()
 class BranchSync {
   BranchSync({
+    this.id,
     this.active,
-    // this.channels,
     this.description,
     this.name,
     this.fbusinessId,
@@ -30,10 +30,9 @@ class BranchSync {
     this.table,
   });
 
-  int id = Isar.autoIncrement;
+  int? id;
   bool? active;
 
-  //  List<String>? channels;
   String? description;
   String? name;
   int? fbusinessId;
@@ -42,6 +41,7 @@ class BranchSync {
   String? table;
 
   factory BranchSync.fromJson(Map<String, dynamic> json) => BranchSync(
+        id: json["id"],
         active: json["active"],
         description: json["description"] ?? '',
         name: json["name"],

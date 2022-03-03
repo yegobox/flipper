@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:google_ui/google_ui.dart';
 import 'package:stacked/stacked.dart';
-import 'package:provider/provider.dart';
 import 'package:flipper_chat/omni/omni_contacts.dart';
 import 'package:flipper_chat/omni_chat.dart';
 import 'package:flipper_dashboard/add_discount.dart';

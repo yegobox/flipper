@@ -71,12 +71,12 @@ class _BranchSyncWebAdapter extends IsarWebTypeAdapter<BranchSync> {
       active: IsarNative.jsObjectGet(jsObj, 'active'),
       description: IsarNative.jsObjectGet(jsObj, 'description'),
       fbusinessId: IsarNative.jsObjectGet(jsObj, 'fbusinessId'),
+      id: IsarNative.jsObjectGet(jsObj, 'id'),
       latitude: IsarNative.jsObjectGet(jsObj, 'latitude'),
       longitude: IsarNative.jsObjectGet(jsObj, 'longitude'),
       name: IsarNative.jsObjectGet(jsObj, 'name'),
       table: IsarNative.jsObjectGet(jsObj, 'table'),
     );
-    object.id = IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity;
     return object;
   }
 
@@ -90,8 +90,7 @@ class _BranchSyncWebAdapter extends IsarWebTypeAdapter<BranchSync> {
       case 'fbusinessId':
         return (IsarNative.jsObjectGet(jsObj, 'fbusinessId')) as P;
       case 'id':
-        return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
-            as P;
+        return (IsarNative.jsObjectGet(jsObj, 'id')) as P;
       case 'latitude':
         return (IsarNative.jsObjectGet(jsObj, 'latitude')) as P;
       case 'longitude':
@@ -177,12 +176,12 @@ class _BranchSyncNativeAdapter extends IsarNativeTypeAdapter<BranchSync> {
       active: reader.readBoolOrNull(offsets[0]),
       description: reader.readStringOrNull(offsets[1]),
       fbusinessId: reader.readLongOrNull(offsets[2]),
+      id: id,
       latitude: reader.readStringOrNull(offsets[3]),
       longitude: reader.readStringOrNull(offsets[4]),
       name: reader.readStringOrNull(offsets[5]),
       table: reader.readStringOrNull(offsets[6]),
     );
-    object.id = id;
     return object;
   }
 
@@ -224,7 +223,7 @@ extension BranchSyncQueryWhereSort
 
 extension BranchSyncQueryWhere
     on QueryBuilder<BranchSync, BranchSync, QWhereClause> {
-  QueryBuilder<BranchSync, BranchSync, QAfterWhereClause> idEqualTo(int id) {
+  QueryBuilder<BranchSync, BranchSync, QAfterWhereClause> idEqualTo(int? id) {
     return addWhereClauseInternal(WhereClause(
       indexName: null,
       lower: [id],
@@ -234,7 +233,8 @@ extension BranchSyncQueryWhere
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterWhereClause> idNotEqualTo(int id) {
+  QueryBuilder<BranchSync, BranchSync, QAfterWhereClause> idNotEqualTo(
+      int? id) {
     if (whereSortInternal == Sort.asc) {
       return addWhereClauseInternal(WhereClause(
         indexName: null,
@@ -259,7 +259,7 @@ extension BranchSyncQueryWhere
   }
 
   QueryBuilder<BranchSync, BranchSync, QAfterWhereClause> idGreaterThan(
-    int id, {
+    int? id, {
     bool include = false,
   }) {
     return addWhereClauseInternal(WhereClause(
@@ -270,7 +270,7 @@ extension BranchSyncQueryWhere
   }
 
   QueryBuilder<BranchSync, BranchSync, QAfterWhereClause> idLessThan(
-    int id, {
+    int? id, {
     bool include = false,
   }) {
     return addWhereClauseInternal(WhereClause(
@@ -281,8 +281,8 @@ extension BranchSyncQueryWhere
   }
 
   QueryBuilder<BranchSync, BranchSync, QAfterWhereClause> idBetween(
-    int lowerId,
-    int upperId, {
+    int? lowerId,
+    int? upperId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -491,8 +491,16 @@ extension BranchSyncQueryFilter
     ));
   }
 
+  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> idIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'id',
+      value: null,
+    ));
+  }
+
   QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> idEqualTo(
-      int value) {
+      int? value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
       property: 'id',
@@ -501,7 +509,7 @@ extension BranchSyncQueryFilter
   }
 
   QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> idGreaterThan(
-    int value, {
+    int? value, {
     bool include = false,
   }) {
     return addFilterConditionInternal(FilterCondition(
@@ -513,7 +521,7 @@ extension BranchSyncQueryFilter
   }
 
   QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> idLessThan(
-    int value, {
+    int? value, {
     bool include = false,
   }) {
     return addFilterConditionInternal(FilterCondition(
@@ -525,8 +533,8 @@ extension BranchSyncQueryFilter
   }
 
   QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> idBetween(
-    int lower,
-    int upper, {
+    int? lower,
+    int? upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -1177,7 +1185,7 @@ extension BranchSyncQueryProperty
     return addPropertyNameInternal('fbusinessId');
   }
 
-  QueryBuilder<BranchSync, int, QQueryOperations> idProperty() {
+  QueryBuilder<BranchSync, int?, QQueryOperations> idProperty() {
     return addPropertyNameInternal('id');
   }
 

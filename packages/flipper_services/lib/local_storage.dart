@@ -21,12 +21,12 @@ class LocalStorageImpl implements LocalStorage {
 
   @override
   int? getBranchId() {
-    return box.read('businessId');
+    return box.read('branchId');
   }
 
   @override
   int? getBusinessId() {
-    return box.read('branchId');
+    return box.read('businessId');
   }
 
   @override
@@ -38,8 +38,9 @@ class LocalStorageImpl implements LocalStorage {
   String? getUserPhone() {
     return box.read('userPhone');
   }
+
   @override
   bool getNeedAccountLinkWithPhone() {
-    return box.read('needLinkPhoneNumber')??false;
+    return box.read('needLinkPhoneNumber') ?? false;
   }
 }

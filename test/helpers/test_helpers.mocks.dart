@@ -73,11 +73,17 @@ class _FakeBusiness_14 extends _i1.Fake implements _i9.Business {}
 /// See the documentation for Mockito's code generation for more information.
 class MockApi<T> extends _i1.Mock implements _i10.Api<T> {
   @override
-  _i11.Future<List<_i2.ProductSync>> products({int? branchId}) => (super
+  _i11.Stream<List<_i2.ProductSync>> products({int? branchId}) => (super
           .noSuchMethod(Invocation.method(#products, [], {#branchId: branchId}),
+              returnValue: Stream<List<_i2.ProductSync>>.empty())
+      as _i11.Stream<List<_i2.ProductSync>>);
+  @override
+  _i11.Future<List<_i2.ProductSync>> productsFuture({int? branchId}) =>
+      (super.noSuchMethod(
+              Invocation.method(#productsFuture, [], {#branchId: branchId}),
               returnValue:
                   Future<List<_i2.ProductSync>>.value(<_i2.ProductSync>[]))
-      as _i11.Future<List<_i2.ProductSync>>);
+          as _i11.Future<List<_i2.ProductSync>>);
   @override
   _i11.Future<int> signup({Map<dynamic, dynamic>? business}) =>
       (super.noSuchMethod(Invocation.method(#signup, [], {#business: business}),

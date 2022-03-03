@@ -39,12 +39,12 @@ class DiscountRow extends StatelessWidget {
         onLongPress: () {},
         child: Column(children: <Widget>[
           ListTile(
-            contentPadding: EdgeInsets.fromLTRB(0, 0, 15, 0),
+            contentPadding: const EdgeInsets.fromLTRB(0, 0, 15, 0),
             leading: SizedBox(
               height: MediaQuery.of(context).size.height,
               width: 58,
-              child: CircleAvatar(
-                child: Container(
+              child: const CircleAvatar(
+                child: SizedBox(
                   height: 10,
                   child: Icon(
                     Ionicons.pricetags_sharp,
@@ -83,7 +83,7 @@ class DiscountRow extends StatelessWidget {
           },
         ),
       ],
-      actionPane: SlidableDrawerActionPane(),
+      actionPane: const SlidableDrawerActionPane(),
     );
   }
 }

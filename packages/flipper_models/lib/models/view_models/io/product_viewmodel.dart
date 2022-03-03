@@ -43,7 +43,7 @@ class ProductViewModel extends ReactiveViewModel {
 
   Future<void> loadProducts() async {
     int branchId = ProxyService.box.read(key: 'branchId');
-    await productService.loadProducts(branchId: branchId);
+    productService.loadProducts(branchId: branchId);
   }
 
   /// Create a temporal product to use during this session of product creation
@@ -336,7 +336,6 @@ class ProductViewModel extends ReactiveViewModel {
   Future<bool> addProduct({required Map mproduct, required String name}) async {
     mproduct['name'] = name;
     mproduct['barCode'] = productService.barCode.toString();
-    log.i(productService.barCode);
     mproduct['color'] = currentColor;
     mproduct['color'] = currentColor;
     mproduct['draft'] = false;

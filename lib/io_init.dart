@@ -8,7 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'firebase_options.dart';
 
 Future<void> initDb() async {
-  await ObjectBoxApi.getDir(dbName: 'db_1');
+  await ObjectBoxApi.getDir(dbName: 'flipper');
   Directory dir = await getApplicationDocumentsDirectory();
 
   await IsarAPI.getDir(dbName: dir.path);

@@ -61,7 +61,15 @@ class _ProductViewState extends State<ProductView> {
 
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<ProductViewModel>.nonReactive(
+    return ViewModelBuilder<ProductViewModel>.reactive(
+      onModelReady: (model) {
+        int branchId = ProxyService.box.getBranchId()!;
+        model.productService
+            .loadProducts(branchId: branchId)
+            .listen((products) {
+          model.productService.products = products;
+        });
+      },
       viewModelBuilder: () => ProductViewModel(),
       builder: (context, model, child) {
         return ListView(
@@ -81,7 +89,7 @@ class _ProductViewState extends State<ProductView> {
                         value: _currentItems,
                         items: _dropDownMenuItems,
                         onChanged: (value) {
-                          model.filterProduct(searchKey: 'value');
+                          model.filterProduct(searchKey: value.toString());
                         },
                       ),
                     ),
