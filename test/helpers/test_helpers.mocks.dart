@@ -235,12 +235,9 @@ class MockApi<T> extends _i1.Mock implements _i10.Api<T> {
               returnValue: Future<_i2.ProductSync>.value(_FakeProductSync_2()))
           as _i11.Future<_i2.ProductSync>);
   @override
-  _i11.Future<List<_i2.ProductSync>> isTempProductExist({int? branchId}) =>
-      (super.noSuchMethod(
-              Invocation.method(#isTempProductExist, [], {#branchId: branchId}),
-              returnValue:
-                  Future<List<_i2.ProductSync>>.value(<_i2.ProductSync>[]))
-          as _i11.Future<List<_i2.ProductSync>>);
+  _i2.ProductSync? isTempProductExist({int? branchId}) => (super.noSuchMethod(
+          Invocation.method(#isTempProductExist, [], {#branchId: branchId}))
+      as _i2.ProductSync?);
   @override
   _i11.Future<bool> logOut() =>
       (super.noSuchMethod(Invocation.method(#logOut, []),

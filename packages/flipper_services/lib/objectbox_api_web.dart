@@ -318,7 +318,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  Future<List<ProductSync>> isTempProductExist({required int branchId}) {
+  ProductSync? isTempProductExist({required int branchId}) {
     // TODO: implement isTempProductExist
     throw UnimplementedError();
   }

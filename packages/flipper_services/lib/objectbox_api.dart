@@ -55,59 +55,38 @@ class ObjectBoxApi extends MobileUpload implements Api {
     // log.i('Path' + dir.path + '/$dbName');
     store = Store(getObjectBoxModel(), directory: dir.path + '/$dbName');
     ProxyService.api.migrateToSync();
-    if (!Platform.isWindows) {
-      // this is to say that we are on a device mobile then where all subs are activated
-      if (f.kDebugMode) {
-        sync();
-      } else {
-        if (Sync.isAvailable() &&
-            await ProxyService.billing.activeSubscription()) {
-          sync();
-        } else {
-          partial();
-        }
-      }
+    SyncClient syncClient = Sync.client(
+      store,
+      'ws://sync.yegobox.com:908', // wss for SSL, ws for unencrypted traffic
+      SyncCredentials.sharedSecretString("!@2022aurora"),
+    );
+    if (!f.kDebugMode &&
+        Sync.isAvailable() &&
+        await ProxyService.billing.activeSubscription()) {
+      syncClient.setRequestUpdatesMode(SyncRequestUpdatesMode.auto);
+      final print = getLogger('ObjectBoxAPi');
+      syncClient.requestUpdates(subscribeForFuturePushes: true);
+      syncClient.start();
+      syncClient.loginEvents.listen((event) {
+        if (event == SyncLoginEvent.loggedIn) print.d('sync fully');
+      });
+    } else if (f.kDebugMode) {
+      syncClient.setRequestUpdatesMode(SyncRequestUpdatesMode.auto);
+      final print = getLogger('ObjectBoxAPi');
+      syncClient.requestUpdates(subscribeForFuturePushes: true);
+      syncClient.start();
+      syncClient.loginEvents.listen((event) {
+        if (event == SyncLoginEvent.loggedIn) print.d('sync fully');
+      });
     } else {
-      // on desktop sync should be activated by default.
-      sync();
+      syncClient.setRequestUpdatesMode(SyncRequestUpdatesMode.auto);
+      final print = getLogger('ObjectBoxAPi');
+      syncClient.requestUpdates(subscribeForFuturePushes: true);
+      syncClient.stop();
+      syncClient.loginEvents.listen((event) {
+        if (event == SyncLoginEvent.loggedIn) print.d('sync fully');
+      });
     }
-  }
-
-  static void partial() {
-    SyncClient syncClient = Sync.client(
-      store,
-      'ws://sync.yegobox.com:908', // wss for SSL, ws for unencrypted traffic
-      SyncCredentials.sharedSecretString("!@2022aurora"),
-    );
-
-    /// if a user is paying then use this config or otherwise
-    syncClient.requestUpdates(subscribeForFuturePushes: true);
-
-    /// set sync to manual for now until further notice!
-    syncClient.setRequestUpdatesMode(SyncRequestUpdatesMode.autoNoPushes);
-    final print = getLogger('ObjectBoxAPi');
-    syncClient.start();
-    syncClient.loginEvents.listen((event) {
-      if (event == SyncLoginEvent.loggedIn) print.d('sync partially');
-    });
-  }
-
-  static void sync() {
-    SyncClient syncClient = Sync.client(
-      store,
-      'ws://sync.yegobox.com:908', // wss for SSL, ws for unencrypted traffic
-      SyncCredentials.sharedSecretString("!@2022aurora"),
-    );
-
-    /// if a user is paying then use this config or otherwise
-    syncClient.requestUpdates(subscribeForFuturePushes: true);
-
-    syncClient.setRequestUpdatesMode(SyncRequestUpdatesMode.auto);
-    final print = getLogger('ObjectBoxAPi');
-    syncClient.start();
-    syncClient.loginEvents.listen((event) {
-      if (event == SyncLoginEvent.loggedIn) print.d('sync fully');
-    });
   }
 
   ObjectBoxApi({String? dbName, Directory? dir}) {
@@ -160,7 +139,6 @@ class ObjectBoxApi extends MobileUpload implements Api {
     }
     if (endPoint == 'category') {
       final category = Category(
-        id: DateTime.now().millisecondsSinceEpoch,
         name: data['name'],
         table: data['table'],
         active: data['active'],
@@ -175,13 +153,14 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  Future<List<ProductSync>> isTempProductExist({required int branchId}) async {
+  ProductSync? isTempProductExist({required int branchId}) {
     return store
         .box<ProductSync>()
-        .getAll()
-        .where((v) => v.fbranchId == branchId)
-        .where((product) => product.name == 'temp')
-        .toList();
+        .query(ProductSync_.fbranchId
+            .equals(branchId)
+            .and(ProductSync_.name.equals('temp')))
+        .build()
+        .findFirst();
   }
 
   /// stream a list of products with synced data
@@ -436,7 +415,6 @@ class ObjectBoxApi extends MobileUpload implements Api {
       final box = store.box<OrderFSync>();
       final id = box.put(
         OrderFSync(
-          id: DateTime.now().microsecondsSinceEpoch,
           reference: ref,
           orderNumber: orderNUmber,
           status: 'pending',
@@ -458,7 +436,6 @@ class ObjectBoxApi extends MobileUpload implements Api {
       OrderFSync ss = store.box<OrderFSync>().get(id)!;
       StockSync stock = await stockByVariantId(variantId: variation.id);
       OrderItemSync orderItems = OrderItemSync(
-        id: DateTime.now().microsecondsSinceEpoch,
         count: quantity,
         // name: useProductName ? variation.productName : variation.name,
         name: name,
@@ -477,7 +454,6 @@ class ObjectBoxApi extends MobileUpload implements Api {
     } else {
       StockSync stock = await stockByVariantId(variantId: variation.id);
       OrderItemSync item = OrderItemSync(
-        id: DateTime.now().microsecondsSinceEpoch,
         count: quantity,
         name: name,
         fvariantId: variation.id,
@@ -511,7 +487,6 @@ class ObjectBoxApi extends MobileUpload implements Api {
     final productId =
         store.box<ProductSync>().put(product, mode: PutMode.insert);
     VariantSync variant = VariantSync(
-      id: DateTime.now().microsecondsSinceEpoch,
       name: 'Regular',
       sku: 'sku',
       fproductId: productId,
@@ -535,7 +510,6 @@ class ObjectBoxApi extends MobileUpload implements Api {
     List<VariantSync> v =
         await variants(branchId: branchId, productId: productId);
     final stock = StockSync(
-      id: DateTime.now().microsecondsSinceEpoch,
       fbranchId: branchId,
       fvariantId: v[0].id,
       lowStock: 0.0,

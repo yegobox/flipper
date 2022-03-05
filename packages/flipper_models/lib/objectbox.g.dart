@@ -378,7 +378,7 @@ final _entities = <ModelEntity>[
             id: const IdUid(1, 6339185210410956371),
             name: 'id',
             type: 6,
-            flags: 129),
+            flags: 1),
         ModelProperty(
             id: const IdUid(2, 107669325564325685),
             name: 'name',
@@ -495,7 +495,7 @@ final _entities = <ModelEntity>[
             id: const IdUid(1, 2697769551434015049),
             name: 'id',
             type: 6,
-            flags: 129),
+            flags: 1),
         ModelProperty(
             id: const IdUid(2, 2074460137377407592),
             name: 'fbranchId',
@@ -569,7 +569,7 @@ final _entities = <ModelEntity>[
             id: const IdUid(1, 5123601892974785376),
             name: 'id',
             type: 6,
-            flags: 129),
+            flags: 1),
         ModelProperty(
             id: const IdUid(2, 5330049888976232370),
             name: 'name',
@@ -1267,7 +1267,7 @@ final _entities = <ModelEntity>[
             id: const IdUid(1, 7171927501030544852),
             name: 'id',
             type: 6,
-            flags: 129),
+            flags: 1),
         ModelProperty(
             id: const IdUid(2, 5293196546757580794),
             name: 'reference',
@@ -1369,7 +1369,7 @@ final _entities = <ModelEntity>[
             id: const IdUid(1, 774243066468700097),
             name: 'id',
             type: 6,
-            flags: 129),
+            flags: 1),
         ModelProperty(
             id: const IdUid(2, 3311259426492842424),
             name: 'name',

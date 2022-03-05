@@ -60,10 +60,12 @@ class ProductViewModel extends ReactiveViewModel {
       notifyListeners();
       return product.id;
     }
-    int branchId = ProxyService.box.read(key: 'branchId');
-    List<ProductSync> isTemp =
-        await ProxyService.api.isTempProductExist(branchId: branchId);
-    if (isTemp.isEmpty) {
+    int branchId = ProxyService.box.getBranchId()!;
+    ProductSync? isTemp =
+        ProxyService.api.isTempProductExist(branchId: branchId);
+    log.d(isTemp);
+    log.d(branchId);
+    if (isTemp == null) {
       ProductSync product =
           await ProxyService.api.createProduct(product: productMock);
       productService.variantsProduct(productId: product.id);
@@ -74,11 +76,11 @@ class ProductViewModel extends ReactiveViewModel {
       return product.id;
     }
 
-    productService.setCurrentProduct(product: isTemp[0]);
-    productService.variantsProduct(productId: isTemp[0].id);
+    productService.setCurrentProduct(product: isTemp);
+    productService.variantsProduct(productId: isTemp.id);
     notifyListeners();
 
-    return isTemp[0].id;
+    return isTemp.id;
   }
 
   void isPriceSet(bool bool) {

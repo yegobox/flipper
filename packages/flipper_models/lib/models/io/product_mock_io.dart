@@ -6,8 +6,7 @@ import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/app_service.dart';
 
 final AppService _appService = locator<AppService>();
-final customProductMock = new ProductSync(
-  id: DateTime.now().millisecondsSinceEpoch,
+final customProductMock = ProductSync(
   draft: true,
   currentUpdate: true,
   ftaxId: "XX",
@@ -27,7 +26,7 @@ final customProductMock = new ProductSync(
   createdAt: DateTime.now().toIso8601String(),
 );
 
-final productMock = new ProductSync(
+final productMock = ProductSync(
   fbranchId: _appService.branchId!,
   draft: true,
   currentUpdate: true,

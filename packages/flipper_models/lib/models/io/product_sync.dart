@@ -44,7 +44,7 @@ class ProductSync {
       this.barCode,
       this.synced = false,
       this.imageUrl});
-  @Id(assignable: true)
+
   int id;
   String name;
   String? description;

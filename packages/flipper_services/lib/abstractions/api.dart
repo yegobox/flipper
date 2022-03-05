@@ -39,7 +39,7 @@ abstract class Api<T> {
   // Future
   //this function for now figure out what is the business id on backend side.
   Future<ProductSync> createProduct({required ProductSync product});
-  Future<List<ProductSync>> isTempProductExist({required int branchId});
+  ProductSync? isTempProductExist({required int branchId});
   Future<bool> logOut();
 
   Future<Voucher?> consumeVoucher({required int voucherCode});

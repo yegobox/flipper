@@ -62,9 +62,9 @@ class ProductViewModel extends BusinessHomeViewModel {
       return product.id;
     }
     int branchId = ProxyService.box.read(key: 'branchId');
-    List<ProductSync> isTemp =
-        await ProxyService.api.isTempProductExist(branchId: branchId);
-    if (isTemp.isEmpty) {
+    ProductSync? isTemp =
+        ProxyService.api.isTempProductExist(branchId: branchId);
+    if (isTemp == null) {
       ProductSync product =
           await ProxyService.api.createProduct(product: productMock);
       productService.variantsProduct(productId: product.id);
@@ -75,11 +75,11 @@ class ProductViewModel extends BusinessHomeViewModel {
       return product.id;
     }
 
-    productService.setCurrentProduct(product: isTemp[0]);
-    productService.variantsProduct(productId: isTemp[0].id);
+    productService.setCurrentProduct(product: isTemp);
+    productService.variantsProduct(productId: isTemp.id);
     notifyListeners();
 
-    return isTemp[0].id;
+    return isTemp.id;
   }
 
   void isPriceSet(bool bool) {
@@ -93,7 +93,7 @@ class ProductViewModel extends BusinessHomeViewModel {
   void setName({String? name}) {
     _name = name;
     final cleaned = name?.trim();
-    _lock = cleaned?.length == null || cleaned?.length == 0 || !_price;
+    _lock = cleaned?.length == null || cleaned!.isEmpty || !_price;
     notifyListeners();
   }
 

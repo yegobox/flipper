@@ -18,7 +18,7 @@ class OrderItemSync {
       this.reported = false,
       this.remainingStock = 0,
       this.type = 'item'});
-  @Id(assignable: true)
+
   int id;
   String name;
   int forderId;

@@ -37,7 +37,6 @@ class VariantSync {
     this.taxPercentage,
   });
 
-  @Id(assignable: true)
   int id;
   String name;
   String sku;

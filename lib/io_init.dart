@@ -8,10 +8,10 @@ import 'package:path_provider/path_provider.dart';
 import 'firebase_options.dart';
 
 Future<void> initDb() async {
-  await ObjectBoxApi.getDir(dbName: 'flipper');
+  await ObjectBoxApi.getDir(dbName: 'omni_sync');
   Directory dir = await getApplicationDocumentsDirectory();
 
-  await IsarAPI.getDir(dbName: dir.path);
+  await IsarAPI.getDir(dbName: dir.path+"/omni_local");
   if (Platform.isIOS || Platform.isMacOS || Platform.isAndroid) {
     await Firebase.initializeApp();
   } else {
