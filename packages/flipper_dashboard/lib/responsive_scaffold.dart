@@ -474,14 +474,11 @@ class _ResponsiveScaffoldState extends State<ResponsiveScaffold> {
                       counts: widget.model.countedOrderItems,
                       onClick: () {
                         if (widget.model.countedOrderItems > 0) {
-                          // ProxyService.nav.navigateTo(Routes.summary);
                           GoRouter.of(context).push(Routes.summary);
                         }
                       },
                       onLogout: () async {
                         await ProxyService.isarApi.logOut();
-
-                        // ProxyService.nav.navigateTo(Routes.initial);
                       },
                     ),
 

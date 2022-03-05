@@ -59,7 +59,7 @@ class _BodyWidgetState extends State<BodyWidget> {
           if (widget.model.tab == 2) const Flexible(child: ProductView()),
           if (!isDesktopOrWeb && widget.model.tab == 1)
             const Flexible(child: ProductView()),
-          if (widget.model.tab == 2)
+          if (widget.model.tab == 2 && !isDesktopOrWeb)
             Flexible(
               child: SettingPage(
                 business: widget.model.businesses,
