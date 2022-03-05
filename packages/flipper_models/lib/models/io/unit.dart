@@ -14,7 +14,7 @@ String unitToJson(List<Unit> data) =>
 @Entity()
 class Unit {
   // Each "Entity" needs a unique integer ID property.
-  @Id(assignable: true)
+
   int id;
   int? fbranchId;
   String name;

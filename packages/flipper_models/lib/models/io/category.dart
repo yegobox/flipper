@@ -23,7 +23,7 @@ class Category {
     required this.fbranchId,
     required this.table,
   });
-  @Id(assignable: true)
+
   int id;
   bool active;
   bool focused;

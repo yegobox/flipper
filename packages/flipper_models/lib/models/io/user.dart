@@ -86,7 +86,7 @@ class User extends Equatable {
   String? firstName;
 
   /// Unique ID of the user
-  @Id(assignable: true)
+
   int id;
 
   /// Remote image URL representing user's avatar

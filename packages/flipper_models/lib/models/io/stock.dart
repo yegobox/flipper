@@ -33,7 +33,7 @@ class Stock {
       required this.value,
       this.migrated = false,
       this.test = 0.0});
-  @Id(assignable: true)
+
   int id;
   int? fbranchId;
   int fvariantId;

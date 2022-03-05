@@ -14,7 +14,7 @@ part 'file_message.g.dart';
 @JsonSerializable(explicitToJson: true)
 class FileMessage extends Message {
   /// Creates a file message.
-  @Id(assignable: true)
+
   int id;
 
   final author = ToOne<User>();

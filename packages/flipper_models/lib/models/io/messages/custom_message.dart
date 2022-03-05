@@ -13,7 +13,6 @@ part 'custom_message.g.dart';
 @Sync()
 @JsonSerializable(explicitToJson: true)
 class CustomMessage extends Message {
-  @Id(assignable: true)
   int id;
 
   final author = ToOne<User>();

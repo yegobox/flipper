@@ -28,7 +28,6 @@ class PColor {
     required this.active,
   });
 
-  @Id(assignable: true)
   int id;
   String? name;
   @Transient()

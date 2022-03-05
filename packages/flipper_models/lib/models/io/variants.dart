@@ -39,7 +39,7 @@ class Variant {
     this.taxPercentage,
   });
 
-  @Id(assignable: true)
+  
   int id;
   String name;
   String sku;

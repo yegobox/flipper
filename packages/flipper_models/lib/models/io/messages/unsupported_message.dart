@@ -14,7 +14,6 @@ part 'unsupported_message.g.dart';
 @Sync()
 @JsonSerializable(explicitToJson: true)
 class UnsupportedMessage extends Message {
-  @Id(assignable: true)
   int id;
 
   final author = ToOne<User>();

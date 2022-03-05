@@ -13,8 +13,11 @@ import 'package:overlay_support/overlay_support.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flipper_data_table/page/sortable_page.dart';
 import 'package:google_ui/google_ui.dart';
+import 'package:universal_platform/universal_platform.dart';
 
 import 'settings.dart';
+
+final isDesktopOrWeb = UniversalPlatform.isDesktopOrWeb;
 
 class BodyWidget extends StatefulWidget {
   const BodyWidget({Key? key, required this.model, required this.controller})
@@ -94,7 +97,7 @@ class _BodyWidgetState extends State<BodyWidget> {
               amount: double.parse(widget.model.key),
             ),
           if (widget.model.tab == 0) KeyPadView(model: widget.model),
-          if (widget.model.tab == 1)
+          if (widget.model.tab == 1 && isDesktopOrWeb)
             widget.model.orderItems.isEmpty
                 ? GErrorMessage(
                     icon: const Icon(Icons.error),

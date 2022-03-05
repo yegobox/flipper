@@ -60,7 +60,7 @@ class LBusiness {
       this.lastDbBackup,
       this.fullName,
       this.role});
-  @Id(assignable: true)
+
   int id;
   String name;
   String? currency;

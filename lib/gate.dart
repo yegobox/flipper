@@ -441,7 +441,8 @@ class _GateState extends State<Gate> {
 
             localizationsDelegates: [
               FlutterFireUILocalizations.withDefaultOverrides(
-                  const LabelOverrides()),
+                const LabelOverrides(),
+              ),
               const FlipperLocalizationsDelegate(),
               GlobalMaterialLocalizations.delegate,
               GlobalWidgetsLocalizations.delegate,

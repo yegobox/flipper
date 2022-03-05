@@ -2,12 +2,12 @@ import 'dart:convert';
 
 import 'package:objectbox/objectbox.dart';
 
-CustomerSync sCustomerJson(String str) => CustomerSync.fromJson(json.decode(str));
+CustomerSync sCustomerJson(String str) =>
+    CustomerSync.fromJson(json.decode(str));
 
 @Entity()
 @Sync()
 class CustomerSync {
-  @Id(assignable: true)
   int id;
   String name;
   String email;

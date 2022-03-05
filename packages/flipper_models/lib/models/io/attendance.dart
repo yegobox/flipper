@@ -34,7 +34,6 @@ class AttendanceSync {
     required this.district,
   });
 
-  @Id(assignable: true)
   int id;
 
   int businessId;

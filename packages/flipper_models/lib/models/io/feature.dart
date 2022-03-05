@@ -6,7 +6,6 @@ import 'package:objectbox/objectbox.dart';
 class Feature {
   Feature({this.id = 0, required this.name});
 
-  @Id(assignable: true)
   int id;
   String name;
 
@@ -16,7 +15,7 @@ class Feature {
         name: json["name"],
       );
 
-factory Feature.fromMap(Map<String, dynamic> json) => Feature(
+  factory Feature.fromMap(Map<String, dynamic> json) => Feature(
         id: json["id"],
         name: json["name"],
       );

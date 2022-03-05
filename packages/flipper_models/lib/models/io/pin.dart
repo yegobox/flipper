@@ -19,7 +19,7 @@ class Pin {
     required this.branchId,
     required this.businessId,
   });
-  @Id(assignable: true)
+
   int id;
   String userId;
   String phoneNumber;

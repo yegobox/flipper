@@ -475,7 +475,7 @@ class _ResponsiveScaffoldState extends State<ResponsiveScaffold> {
                         }
                       },
                       onLogout: () async {
-                        await ProxyService.api.logOut();
+                        await ProxyService.isarApi.logOut();
 
                         // ProxyService.nav.navigateTo(Routes.initial);
                       },
@@ -997,7 +997,7 @@ class _UserProfileState extends State<_UserProfile> {
                         const SizedBox(width: 10),
                         TextButton(
                           onPressed: () async {
-                            await ProxyService.api.logOut();
+                            await ProxyService.isarApi.logOut();
                             GoRouter.of(context).push(Routes.boot);
                           },
                           child: Column(

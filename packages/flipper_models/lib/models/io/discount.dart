@@ -5,7 +5,7 @@ import 'package:objectbox/objectbox.dart';
 class DiscountSync {
   DiscountSync(
       {this.id = 0, required this.name, this.amount, required this.branchId});
-  @Id(assignable: true)
+
   int id;
   String name;
 

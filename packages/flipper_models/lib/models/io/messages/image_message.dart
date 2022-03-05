@@ -14,7 +14,7 @@ part 'image_message.g.dart';
 @JsonSerializable(explicitToJson: true)
 class ImageMessage extends Message {
   /// Creates an image message.
-  @Id(assignable: true)
+
   int id;
 
   final author = ToOne<User>();

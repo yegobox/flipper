@@ -24,7 +24,7 @@ class TenantSync {
     required this.phoneNumber,
     required this.email,
   });
-  @Id(assignable: true)
+
   int id;
   String name;
   String phoneNumber;

@@ -6,7 +6,6 @@ import 'package:objectbox/objectbox.dart';
 class MenuItem {
   MenuItem({this.id = 0, required this.variantId});
 
-  @Id(assignable: true)
   int id;
 
   /// a product can not be added to menu only it's variant.

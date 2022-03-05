@@ -72,7 +72,7 @@ class _LoginViewState extends State<LoginView> {
     return StreamBuilder(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
-        if (snapshot.hasData) {
+        if (snapshot.hasData && FirebaseAuth.instance.currentUser != null) {
           return const StartUpView(
             invokeLogin: true,
           );

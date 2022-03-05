@@ -36,7 +36,6 @@ class VariantStock {
     required this.value,
   });
 
-  @Id(assignable: true)
   int id;
   bool canTrackingStock;
   double retailPrice;

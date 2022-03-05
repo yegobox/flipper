@@ -33,7 +33,6 @@ class BranchSync {
     required this.table,
   });
 
-  @Id(assignable: true)
   int id;
   bool? active;
   @Transient()

@@ -115,7 +115,7 @@ class TextMessage extends Message {
 
   /// See [PreviewData]
   PreviewData? previewData;
-  @Id(assignable: true)
+
   int id;
 
   final author = ToOne<User>();

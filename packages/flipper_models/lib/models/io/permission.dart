@@ -10,7 +10,7 @@ class Permissionsync {
     this.id = 0,
     required this.name,
   });
-  @Id(assignable: true)
+
   int id;
   String name;
 

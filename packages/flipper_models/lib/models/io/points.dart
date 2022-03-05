@@ -11,7 +11,6 @@ class Points {
     required this.userId,
   });
 
-  @Id(assignable: true)
   int id;
   int value;
   int userId;

@@ -20,7 +20,6 @@ class PreviewData extends Equatable {
     this.id = 0,
   });
 
-  @Id(assignable: true)
   int id;
 
   /// Creates preview data from a map (decoded JSON).
@@ -93,7 +92,6 @@ class PreviewDataImage extends Equatable {
   /// Image height in pixels
   double height;
 
-  @Id(assignable: true)
   int id;
 
   /// Remote image URL

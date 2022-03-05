@@ -79,7 +79,7 @@ class Room extends Equatable {
   int? createdAt;
 
   /// Room's unique ID
-  @Id(assignable: true)
+
   int id;
 
   /// Room's image. In case of the [RoomType.direct] - avatar of the second person,

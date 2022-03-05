@@ -44,7 +44,7 @@ class Product {
       this.synced = false,
       this.migrated = false,
       this.imageUrl});
-  @Id(assignable: true)
+
   int id;
   String name;
   String? description;

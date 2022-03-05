@@ -36,7 +36,7 @@ class StockSync {
     this.active,
     required this.value,
   });
-  @Id(assignable: true)
+  //
   int id;
   int? fbranchId;
   int fvariantId;

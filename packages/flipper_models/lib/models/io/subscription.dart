@@ -17,7 +17,6 @@ class Subscription {
     required this.descriptor,
   });
 
-  @Id(assignable: true)
   int id;
   int interval;
   String lastBillingDate;

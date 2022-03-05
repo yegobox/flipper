@@ -13,7 +13,7 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_services/proxy.dart';
-
+import 'package:flipper_rw/gate.dart';
 import 'interface.dart';
 import 'package:isar/isar.dart';
 import 'isar/points.dart';
@@ -774,13 +774,24 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<bool> logOut() async {
+    log.i("logging out");
+
+    /// delete all business and branches from isar db for
+    /// potential next business that can log-in to not mix data.
+    await isar.writeTxn((isar) async {
+      // delete all business
+      await isar.businessSyncs.clear();
+      await isar.businesss.clear();
+      // delete all branches.
+      await isar.branchSyncs.clear();
+    });
     ProxyService.box.remove(key: 'userId');
     ProxyService.box.remove(key: 'bearerToken');
     ProxyService.box.remove(key: 'branchId');
     ProxyService.box.remove(key: 'userPhone');
     ProxyService.box.remove(key: 'UToken');
     ProxyService.box.remove(key: 'businessId');
-
+    loginInfo.isLoggedIn = false;
     FirebaseAuth.instance.signOut();
     return await Future.value(true);
   }

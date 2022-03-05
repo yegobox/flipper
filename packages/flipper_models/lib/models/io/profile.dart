@@ -26,7 +26,6 @@ class Profile {
     required this.nationalId,
   });
 
-  @Id(assignable: true)
   int id;
   String name;
   String email;
