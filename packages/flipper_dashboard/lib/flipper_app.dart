@@ -201,33 +201,9 @@ class _FlipperAppState extends State<FlipperApp> {
                     ),
               bottomNavigationBar: BottomNavigationBar(
                 onTap: (int index) {
-                  /// new key map when is not desktoporWeb
-                  /// basically on mobile we remove analytic tab
-                  /// since it does not make business and design sense to
-                  /// have analytics in form of table displayed within mobile.
-                  if (!isDesktopOrWeb) {
-                    switch (index) {
-                      case 0:
-                        setState(() {
-                          model.setTab(tab: 0);
-                        });
-                        break;
-                      case 1:
-                        setState(() {
-                          model.setTab(tab: 2);
-                        });
-                        break;
-                      case 2:
-                        setState(() {
-                          model.setTab(tab: 3);
-                        });
-                        break;
-                    }
-                  } else {
-                    setState(() {
-                      model.setTab(tab: index);
-                    });
-                  }
+                  setState(() {
+                    model.setTab(tab: index);
+                  });
                 },
                 currentIndex: model.tab,
                 items: <BottomNavigationBarItem>[

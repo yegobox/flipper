@@ -34,70 +34,11 @@ class _BodyWidgetState extends State<BodyWidget> {
     return SafeArea(
       child: Column(
         children: [
-          if (widget.model.tab != 1 && widget.model.tab != 3)
-            KeyPadHead(
-              tab: widget.model.tab,
-              payable: PayableView(
-                onClick: () {
-                  if (widget.model.kOrder != null) {
-                    GoRouter.of(context).push(Routes.pay);
-                  } else {
-                    showSimpleNotification(
-                      Text(FLocalization.of(context).noPayable),
-                      background: Colors.green,
-                      position: NotificationPosition.bottom,
-                    );
-                  }
-                },
-                tickets: widget.model.tickets.isEmpty
-                    ? 0
-                    : widget.model.tickets.length.toDouble(),
-                orders: widget.model.kOrder != null
-                    ? widget.model.kOrder!.orderItems.length
-                    : 0,
-                duePay: widget.model.kOrder != null
-                    ? widget.model.totalPayable.toDouble()
-                    : 0.00,
-                ticketHandler: () async {
-                  await widget.model.keypad.getTickets();
-                  await widget.model.keypad.getOrder(
-                      branchId: ProxyService.box.read(key: 'branchId'));
-                  if (widget.model.kOrder == null &&
-                      widget.model.tickets.isNotEmpty) {
-                    //then we know we need to resume.
-                    //TODOfix this on desktop is not showing.
-                    FlipperBottomSheet.showTicketsToSaleBottomSheet(
-                      model: widget.model,
-                      context: context,
-                    );
-                  }
-                  widget.model.saveTicket((handle) {
-                    if (handle == 'error') {
-                      FlipperBottomSheet.showAddNoteToSaleBottomSheet(
-                        model: widget.model,
-                        context: context,
-                      );
-                    } else if (handle == 'saved') {
-                      showSimpleNotification(
-                        Text('Ticket $handle'),
-                        background: Colors.green,
-                        position: NotificationPosition.bottom,
-                      );
-                    }
-                  });
-                },
-              ),
-              onClick: () {
-                FlipperBottomSheet.showAddNoteToSaleBottomSheet(
-                  model: widget.model,
-                  context: context,
-                );
-              },
-              controller: widget.controller,
-              amount: double.parse(widget.model.key),
-            ),
+          if (widget.model.tab != 1 && widget.model.tab != 3) header(context),
+          if (widget.model.tab == 1 && widget.model.tab != 3 && !isDesktopOrWeb)
+            header(context),
           if (widget.model.tab == 0) KeyPadView(model: widget.model),
-          if (widget.model.tab == 1 && isDesktopOrWeb)
+          if (isDesktopOrWeb && widget.model.tab == 1)
             widget.model.orderItems.isEmpty
                 ? GErrorMessage(
                     icon: const Icon(Icons.error),
@@ -116,6 +57,14 @@ class _BodyWidgetState extends State<BodyWidget> {
                     ),
                   ),
           if (widget.model.tab == 2) const Flexible(child: ProductView()),
+          if (!isDesktopOrWeb && widget.model.tab == 1)
+            const Flexible(child: ProductView()),
+          if (widget.model.tab == 2)
+            Flexible(
+              child: SettingPage(
+                business: widget.model.businesses,
+              ),
+            ),
           if (widget.model.tab == 3)
             Flexible(
               child: SettingPage(
@@ -124,6 +73,69 @@ class _BodyWidgetState extends State<BodyWidget> {
             )
         ],
       ),
+    );
+  }
+
+  Widget header(BuildContext context) {
+    return KeyPadHead(
+      tab: widget.model.tab,
+      payable: PayableView(
+        onClick: () {
+          if (widget.model.kOrder != null) {
+            GoRouter.of(context).push(Routes.pay);
+          } else {
+            showSimpleNotification(
+              Text(FLocalization.of(context).noPayable),
+              background: Colors.green,
+              position: NotificationPosition.bottom,
+            );
+          }
+        },
+        tickets: widget.model.tickets.isEmpty
+            ? 0
+            : widget.model.tickets.length.toDouble(),
+        orders: widget.model.kOrder != null
+            ? widget.model.kOrder!.orderItems.length
+            : 0,
+        duePay: widget.model.kOrder != null
+            ? widget.model.totalPayable.toDouble()
+            : 0.00,
+        ticketHandler: () async {
+          await widget.model.keypad.getTickets();
+          await widget.model.keypad
+              .getOrder(branchId: ProxyService.box.read(key: 'branchId'));
+          if (widget.model.kOrder == null && widget.model.tickets.isNotEmpty) {
+            //then we know we need to resume.
+            //TODOfix this on desktop is not showing.
+            FlipperBottomSheet.showTicketsToSaleBottomSheet(
+              model: widget.model,
+              context: context,
+            );
+          }
+          widget.model.saveTicket((handle) {
+            if (handle == 'error') {
+              FlipperBottomSheet.showAddNoteToSaleBottomSheet(
+                model: widget.model,
+                context: context,
+              );
+            } else if (handle == 'saved') {
+              showSimpleNotification(
+                Text('Ticket $handle'),
+                background: Colors.green,
+                position: NotificationPosition.bottom,
+              );
+            }
+          });
+        },
+      ),
+      onClick: () {
+        FlipperBottomSheet.showAddNoteToSaleBottomSheet(
+          model: widget.model,
+          context: context,
+        );
+      },
+      controller: widget.controller,
+      amount: double.parse(widget.model.key),
     );
   }
 }

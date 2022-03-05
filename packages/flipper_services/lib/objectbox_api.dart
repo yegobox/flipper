@@ -413,8 +413,8 @@ class ObjectBoxApi extends MobileUpload implements Api {
       bool useProductName = false,
       String orderType = 'custom',
       double quantity = 1}) async {
-    final ref = Uuid().v1();
-    final orderNUmber = Uuid().v1();
+    final ref = const Uuid().v1();
+    final orderNUmber = const Uuid().v1();
     String userId = ProxyService.box.read(key: 'userId');
     int branchId = ProxyService.box.read(key: 'branchId');
     OrderFSync? existOrder = await pendingOrderExist(branchId: branchId);
@@ -436,6 +436,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
       final box = store.box<OrderFSync>();
       final id = box.put(
         OrderFSync(
+          id: DateTime.now().microsecondsSinceEpoch,
           reference: ref,
           orderNumber: orderNUmber,
           status: 'pending',
@@ -457,6 +458,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
       OrderFSync ss = store.box<OrderFSync>().get(id)!;
       StockSync stock = await stockByVariantId(variantId: variation.id);
       OrderItemSync orderItems = OrderItemSync(
+        id: DateTime.now().microsecondsSinceEpoch,
         count: quantity,
         // name: useProductName ? variation.productName : variation.name,
         name: name,
@@ -475,6 +477,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
     } else {
       StockSync stock = await stockByVariantId(variantId: variation.id);
       OrderItemSync item = OrderItemSync(
+        id: DateTime.now().microsecondsSinceEpoch,
         count: quantity,
         name: name,
         fvariantId: variation.id,
@@ -496,6 +499,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
   @override
   Future<ProductSync> createProduct({required ProductSync product}) async {
     product.active = false;
+    product.id = DateTime.now().microsecondsSinceEpoch;
     product.description = 'description';
     product.hasPicture = false;
     product.fbusinessId = ProxyService.box.getBusinessId()!;
@@ -507,6 +511,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
     final productId =
         store.box<ProductSync>().put(product, mode: PutMode.insert);
     VariantSync variant = VariantSync(
+      id: DateTime.now().microsecondsSinceEpoch,
       name: 'Regular',
       sku: 'sku',
       fproductId: productId,
@@ -530,6 +535,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
     List<VariantSync> v =
         await variants(branchId: branchId, productId: productId);
     final stock = StockSync(
+      id: DateTime.now().microsecondsSinceEpoch,
       fbranchId: branchId,
       fvariantId: v[0].id,
       lowStock: 0.0,

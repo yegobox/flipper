@@ -42,7 +42,7 @@ class OrderFSync {
       this.channels,
       this.note,
       this.customerId});
-  //
+  @Id(assignable: true)
   int id;
   String reference;
   String orderNumber;
