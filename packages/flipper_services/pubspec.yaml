@@ -18,7 +18,7 @@ dependencies:
   share_plus: ^2.1.4
   system_time_check: ^1.0.0
   in_app_review: ^2.0.4
-  firebase_messaging: ^11.2.3
+  firebase_messaging: ^11.2.8
   flutter_local_notifications: ^9.3.1
   get_storage: ^2.0.3
   image: ^3.0.2
@@ -32,7 +32,7 @@ dependencies:
   cron: ^0.4.0
   dio: ^4.0.4
   extension_google_sign_in_as_googleapis_auth: ^2.0.3
-  firebase_analytics: ^8.0.3
+  firebase_analytics: ^9.1.2
   firebase_crashlytics: ^2.5.0
   location: ^4.3.0
   flutter_luban: ^0.1.13

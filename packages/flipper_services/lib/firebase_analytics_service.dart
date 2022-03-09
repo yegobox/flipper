@@ -12,10 +12,11 @@ class UnSupportedAnalyticPlatform implements Analytic {
 class FirebaseAnalyticsService implements Analytic {
   @override
   void recordUser() {
+     FirebaseAnalytics analytics = FirebaseAnalytics.instance;
     String? userId = ProxyService.box.read(key: 'userId');
-    FirebaseAnalytics().setUserId(userId);
-    FirebaseAnalytics().setUserProperty(name: "user", value: userId);
-    FirebaseAnalytics().logEvent(
+    analytics.setUserId(id:userId);
+    analytics.setUserProperty(name: "user", value: userId);
+    analytics.logEvent(
       name: 'user',
       parameters: <String, dynamic>{
         'UserUsingApp': userId,

@@ -15,9 +15,9 @@ dependencies:
   flipper_rw: ^1.0.1-dev.3
   flutterfire_ui: ^0.3.5+1
   flutter_form_bloc: ^0.29.3
-  firebase_auth_desktop: ^0.1.1-dev.0
+  firebase_auth_desktop: ^0.1.1-dev.6
   firebase_core: ^1.13.1
-  firebase_core_desktop: ^0.1.1-dev.0
+  firebase_core_desktop: ^0.1.1-dev.3
   flipper_services: ^0.0.1-dev.6
   flipper_dashboard: ^0.0.1-dev.5
   universal_platform: ^1.0.0+1
@@ -35,14 +35,7 @@ dependencies:
   flutter_svg: ^1.0.3
   gap: ^2.0.0
   qr_flutter: ^4.0.1
-dependency_overrides:
-  firebase_messaging_platform_interface: 3.1.6
-  firebase_storage_platform_interface: 4.0.14
-  cloud_functions_platform_interface: 5.0.21
-  cloud_firestore_platform_interface: 5.4.13
-  firebase_auth_platform_interface: 6.1.11
-  firebase_database_platform_interface: 0.2.0+5
-  cloud_firestore_web: 2.6.5
+
 flutter:
   uses-material-design: true
   assets:
