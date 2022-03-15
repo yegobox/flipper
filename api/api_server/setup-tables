@@ -4,7 +4,7 @@
 echo "Starting docker"
 docker-compose up --build --detach
 
-while ! netstat -tna | grep 'LISTEN' | grep -q '.8090'; do
+while ! netstat -tna | grep 'LISTEN' | grep -q '.8088'; do
   echo "Waiting for Postgres..."
   sleep 2 # time in seconds, tune it as needed
 done

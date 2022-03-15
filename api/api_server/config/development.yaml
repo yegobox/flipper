@@ -6,22 +6,22 @@
 # Defines public facing access to the server, in development mode this is
 # typically the same as your server setup.
 publicHost: localhost
-publicPort: 8080
+publicPort: 8089
 publicScheme: http
 
 # Main port to run the server on.
-port: 8080
+port: 8089
 # Service port, used for insights from the server while it's running.
 servicePort: 8081
 
 # This is the database setup for your server.
 database:
   host: localhost
-  port: 8090
+  port: 8088
   name: api
   user: postgres
 
 # This is the setup for Redis.
 redis:
   host: localhost
-  port: 8091
+  port: 8087
