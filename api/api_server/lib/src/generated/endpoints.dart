@@ -10,7 +10,7 @@ import 'package:serverpod/serverpod.dart';
 
 import 'protocol.dart';
 
-import '../endpoints/example_endpoint.dart';
+import '../endpoints/all_endpoint.dart';
 
 class Endpoints extends EndpointDispatch {
   @override
