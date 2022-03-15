@@ -15,29 +15,7 @@ import '../endpoints/example_endpoint.dart';
 class Endpoints extends EndpointDispatch {
   @override
   void initializeEndpoints(Server server) {
-    var endpoints = <String, Endpoint>{
-      'example': ExampleEndpoint()..initialize(server, 'example', null),
-    };
-
-    connectors['example'] = EndpointConnector(
-      name: 'example',
-      endpoint: endpoints['example']!,
-      methodConnectors: {
-        'hello': MethodConnector(
-          name: 'hello',
-          params: {
-            'name': ParameterDescription(
-                name: 'name', type: String, nullable: false),
-          },
-          call: (Session session, Map<String, dynamic> params) async {
-            return (endpoints['example'] as ExampleEndpoint).hello(
-              session,
-              params['name'],
-            );
-          },
-        ),
-      },
-    );
+    var endpoints = <String, Endpoint>{};
   }
 
   @override

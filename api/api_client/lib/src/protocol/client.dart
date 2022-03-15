@@ -9,24 +9,7 @@ import 'dart:typed_data' as typed_data;
 import 'package:serverpod_client/serverpod_client.dart';
 import 'protocol.dart';
 
-class _EndpointExample extends EndpointRef {
-  @override
-  String get name => 'example';
-
-  _EndpointExample(EndpointCaller caller) : super(caller);
-
-  Future<String> hello(
-    String name,
-  ) async {
-    return await caller.callServerEndpoint('example', 'hello', 'String', {
-      'name': name,
-    });
-  }
-}
-
 class Client extends ServerpodClient {
-  late final _EndpointExample example;
-
   Client(String host,
       {SecurityContext? context,
       ServerpodClientErrorCallback? errorHandler,
@@ -34,14 +17,10 @@ class Client extends ServerpodClient {
       : super(host, Protocol.instance,
             context: context,
             errorHandler: errorHandler,
-            authenticationKeyManager: authenticationKeyManager) {
-    example = _EndpointExample(this);
-  }
+            authenticationKeyManager: authenticationKeyManager) {}
 
   @override
-  Map<String, EndpointRef> get endpointRefLookup => {
-        'example': example,
-      };
+  Map<String, EndpointRef> get endpointRefLookup => {};
 
   @override
   Map<String, ModuleEndpointCaller> get moduleLookup => {};
