@@ -518,7 +518,7 @@ packages:
       name: firebase_auth
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.3.9"
+    version: "3.3.10"
   firebase_auth_dart:
     dependency: transitive
     description:
@@ -623,14 +623,14 @@ packages:
       name: firebase_dynamic_links
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "4.0.8"
+    version: "4.1.0"
   firebase_dynamic_links_platform_interface:
     dependency: transitive
     description:
       name: firebase_dynamic_links_platform_interface
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.2.1+1"
+    version: "0.2.2"
   firebase_messaging:
     dependency: transitive
     description:
@@ -1102,7 +1102,7 @@ packages:
       name: flutterfire_ui
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.3.5+1"
+    version: "0.3.6"
   font_awesome_flutter:
     dependency: transitive
     description:

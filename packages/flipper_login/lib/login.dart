@@ -24,7 +24,8 @@ class LoginView extends StatefulWidget {
   State<LoginView> createState() => _LoginViewState();
 }
 
-class _LoginViewState extends State<LoginView> {
+class _LoginViewState extends State<LoginView>
+    with AutomaticKeepAliveClientMixin {
   final log = getLogger('LoginView');
   final appService = locator<AppService>();
 
@@ -68,10 +69,18 @@ class _LoginViewState extends State<LoginView> {
   }
 
   @override
+  void didChangeDependencies() {
+    context.dependOnInheritedWidgetOfExactType<FlutterFireUIActions>();
+
+    super.didChangeDependencies();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     return StreamBuilder(
       stream: FirebaseAuth.instance.authStateChanges(),
-      builder: (context, snapshot) {
+      builder: (BuildContext context, snapshot) {
         if (snapshot.hasData && FirebaseAuth.instance.currentUser != null) {
           return const StartUpView(
             invokeLogin: true,
@@ -152,4 +161,8 @@ class _LoginViewState extends State<LoginView> {
       ];
     }
   }
+
+  @override
+  // https://github.com/memspace/zefyr/issues/341#issuecomment-663965567
+  bool get wantKeepAlive => true;
 }

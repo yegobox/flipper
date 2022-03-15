@@ -54,3 +54,4 @@ firebase_options.dart
 runner/**
 # runner
 # windows
+passwords.yaml
