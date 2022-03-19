@@ -210,3 +210,7 @@ class AppSetup {
 // https://www.sandromaglione.com/dart-flutter-static-metaprogramming-macro-prototype/ learn more about macro
 // https://www.vendhq.com/
 
+// C:\Program Files\Microsoft\jdk-11.0.12.7-hotspot\bin
+// C:\Program Files\AdoptOpenJDK\jdk-11.0.9.101-hotspot\bin
+// C:\Program Files\AdoptOpenJDK\jdk-8.0.275.1-hotspot\bin
+
