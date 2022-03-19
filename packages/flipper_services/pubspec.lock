@@ -364,7 +364,7 @@ packages:
       name: device_info_plus
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.2.1"
+    version: "3.2.2"
   device_info_plus_linux:
     dependency: transitive
     description:
@@ -824,7 +824,7 @@ packages:
       name: flutter_blurhash
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.6.0"
+    version: "0.6.4"
   flutter_cache_manager:
     dependency: transitive
     description:
@@ -847,14 +847,12 @@ packages:
     source: path
     version: "1.5.6"
   flutter_datetime_picker:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      path: "."
-      ref: eb66486c47d50bf550950c196486121ffcea8885
-      resolved-ref: eb66486c47d50bf550950c196486121ffcea8885
-      url: "git://github.com/Realank/flutter_datetime_picker.git"
-    source: git
-    version: "1.5.1"
+      path: "../../open-sources/flutter_datetime_picker"
+      relative: true
+    source: path
+    version: "1.5.2"
   flutter_facebook_auth:
     dependency: transitive
     description:
@@ -1690,7 +1688,7 @@ packages:
       name: pdf
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.7.1"
+    version: "3.7.2"
   pedantic:
     dependency: transitive
     description:
@@ -1746,7 +1744,7 @@ packages:
       name: printing
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "5.7.2"
+    version: "5.7.3"
   process:
     dependency: transitive
     description:
@@ -1830,7 +1828,7 @@ packages:
       name: rounded_loading_button
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.9"
+    version: "2.1.0"
   rxdart:
     dependency: transitive
     description:
@@ -2045,7 +2043,7 @@ packages:
       name: sqflite_common
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.2.0"
+    version: "2.2.1"
   stack_trace:
     dependency: transitive
     description:
@@ -2206,7 +2204,7 @@ packages:
       name: upgrader
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.12.1"
+    version: "3.13.0"
   url_launcher:
     dependency: transitive
     description:

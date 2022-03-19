@@ -73,7 +73,7 @@ class AppSetup {
 // test pin:085214
 
 // when adding new repo with other submodules
-// git submodule add https://github.com/yegobox/qr.flutter.git open-sources/qr.flutter
+// git submodule add https://github.com/yegobox/flutter_datetime_picker.git open-sources/flutter_datetime_picker
 // https://gist.github.com/myusuf3/7f645819ded92bda6677
 
 // %AppData%
@@ -205,12 +205,7 @@ class AppSetup {
 // https://birju.dev/posts/burying-the-hatchet-of-build-runner-once-and-for-all/
 
 // flutter run -t lib/demo.dart (run demo when we need to!)
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// !! Irrecoverable memory error detected: store instance is corrupt!!
-// 2
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// !! Irrecoverable memory error detected: store instance is corrupt!!
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 
 // https://www.sandromaglione.com/dart-flutter-static-metaprogramming-macro-prototype/ learn more about macro
 // https://www.vendhq.com/
