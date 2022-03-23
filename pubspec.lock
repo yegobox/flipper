@@ -901,7 +901,7 @@ packages:
       path: "open-sources/flutter_datetime_picker"
       relative: true
     source: path
-    version: "1.5.2"
+    version: "1.5.1"
   flutter_driver:
     dependency: "direct dev"
     description: flutter
