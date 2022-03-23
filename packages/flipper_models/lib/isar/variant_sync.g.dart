@@ -17,31 +17,30 @@ extension GetVariantSyncCollection on Isar {
 final VariantSyncSchema = CollectionSchema(
   name: 'VariantSync',
   schema:
-      '{"name":"VariantSync","idName":"id","properties":[{"name":"channels","type":"StringList"},{"name":"fbranchId","type":"Long"},{"name":"fproductId","type":"Long"},{"name":"name","type":"String"},{"name":"productName","type":"String"},{"name":"retailPrice","type":"Double"},{"name":"sku","type":"String"},{"name":"supplyPrice","type":"Double"},{"name":"synced","type":"Bool"},{"name":"table","type":"String"},{"name":"taxName","type":"String"},{"name":"taxPercentage","type":"Double"},{"name":"unit","type":"String"}],"indexes":[],"links":[]}',
+      '{"name":"VariantSync","idName":"id","properties":[{"name":"branchId","type":"Long"},{"name":"name","type":"String"},{"name":"productId","type":"Long"},{"name":"productName","type":"String"},{"name":"retailPrice","type":"Double"},{"name":"sku","type":"String"},{"name":"supplyPrice","type":"Double"},{"name":"synced","type":"Bool"},{"name":"table","type":"String"},{"name":"taxName","type":"String"},{"name":"taxPercentage","type":"Double"},{"name":"unit","type":"String"}],"indexes":[],"links":[{"name":"stock","target":"StockSync"}]}',
   nativeAdapter: const _VariantSyncNativeAdapter(),
   webAdapter: const _VariantSyncWebAdapter(),
   idName: 'id',
   propertyIds: {
-    'channels': 0,
-    'fbranchId': 1,
-    'fproductId': 2,
-    'name': 3,
-    'productName': 4,
-    'retailPrice': 5,
-    'sku': 6,
-    'supplyPrice': 7,
-    'synced': 8,
-    'table': 9,
-    'taxName': 10,
-    'taxPercentage': 11,
-    'unit': 12
+    'branchId': 0,
+    'name': 1,
+    'productId': 2,
+    'productName': 3,
+    'retailPrice': 4,
+    'sku': 5,
+    'supplyPrice': 6,
+    'synced': 7,
+    'table': 8,
+    'taxName': 9,
+    'taxPercentage': 10,
+    'unit': 11
   },
-  listProperties: {'channels'},
+  listProperties: {},
   indexIds: {},
   indexTypes: {},
-  linkIds: {},
+  linkIds: {'stock': 0},
   backlinkIds: {},
-  linkedCollections: [],
+  linkedCollections: ['StockSync'],
   getId: (obj) {
     if (obj.id == Isar.autoIncrement) {
       return null;
@@ -50,7 +49,7 @@ final VariantSyncSchema = CollectionSchema(
     }
   },
   setId: (obj, id) => obj.id = id,
-  getLinks: (obj) => [],
+  getLinks: (obj) => [obj.stock],
   version: 2,
 );
 
@@ -60,11 +59,10 @@ class _VariantSyncWebAdapter extends IsarWebTypeAdapter<VariantSync> {
   @override
   Object serialize(IsarCollection<VariantSync> collection, VariantSync object) {
     final jsObj = IsarNative.newJsObject();
-    IsarNative.jsObjectSet(jsObj, 'channels', object.channels);
-    IsarNative.jsObjectSet(jsObj, 'fbranchId', object.fbranchId);
-    IsarNative.jsObjectSet(jsObj, 'fproductId', object.fproductId);
+    IsarNative.jsObjectSet(jsObj, 'branchId', object.branchId);
     IsarNative.jsObjectSet(jsObj, 'id', object.id);
     IsarNative.jsObjectSet(jsObj, 'name', object.name);
+    IsarNative.jsObjectSet(jsObj, 'productId', object.productId);
     IsarNative.jsObjectSet(jsObj, 'productName', object.productName);
     IsarNative.jsObjectSet(jsObj, 'retailPrice', object.retailPrice);
     IsarNative.jsObjectSet(jsObj, 'sku', object.sku);
@@ -80,51 +78,43 @@ class _VariantSyncWebAdapter extends IsarWebTypeAdapter<VariantSync> {
   @override
   VariantSync deserialize(
       IsarCollection<VariantSync> collection, dynamic jsObj) {
-    final object = VariantSync(
-      channels: (IsarNative.jsObjectGet(jsObj, 'channels') as List?)
-          ?.map((e) => e ?? '')
-          .toList()
-          .cast<String>(),
-      fbranchId:
-          IsarNative.jsObjectGet(jsObj, 'fbranchId') ?? double.negativeInfinity,
-      fproductId: IsarNative.jsObjectGet(jsObj, 'fproductId') ??
-          double.negativeInfinity,
-      id: IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity,
-      name: IsarNative.jsObjectGet(jsObj, 'name') ?? '',
-      productName: IsarNative.jsObjectGet(jsObj, 'productName') ?? '',
-      retailPrice: IsarNative.jsObjectGet(jsObj, 'retailPrice') ??
-          double.negativeInfinity,
-      sku: IsarNative.jsObjectGet(jsObj, 'sku') ?? '',
-      supplyPrice: IsarNative.jsObjectGet(jsObj, 'supplyPrice') ??
-          double.negativeInfinity,
-      synced: IsarNative.jsObjectGet(jsObj, 'synced'),
-      table: IsarNative.jsObjectGet(jsObj, 'table') ?? '',
-      taxName: IsarNative.jsObjectGet(jsObj, 'taxName'),
-      taxPercentage: IsarNative.jsObjectGet(jsObj, 'taxPercentage'),
-      unit: IsarNative.jsObjectGet(jsObj, 'unit') ?? '',
-    );
+    final object = VariantSync();
+    object.branchId =
+        IsarNative.jsObjectGet(jsObj, 'branchId') ?? double.negativeInfinity;
+    object.id = IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity;
+    object.name = IsarNative.jsObjectGet(jsObj, 'name') ?? '';
+    object.productId =
+        IsarNative.jsObjectGet(jsObj, 'productId') ?? double.negativeInfinity;
+    object.productName = IsarNative.jsObjectGet(jsObj, 'productName') ?? '';
+    object.retailPrice =
+        IsarNative.jsObjectGet(jsObj, 'retailPrice') ?? double.negativeInfinity;
+    object.sku = IsarNative.jsObjectGet(jsObj, 'sku') ?? '';
+    object.supplyPrice =
+        IsarNative.jsObjectGet(jsObj, 'supplyPrice') ?? double.negativeInfinity;
+    object.synced = IsarNative.jsObjectGet(jsObj, 'synced');
+    object.table = IsarNative.jsObjectGet(jsObj, 'table') ?? '';
+    object.taxName = IsarNative.jsObjectGet(jsObj, 'taxName');
+    object.taxPercentage = IsarNative.jsObjectGet(jsObj, 'taxPercentage');
+    object.unit = IsarNative.jsObjectGet(jsObj, 'unit') ?? '';
+    attachLinks(collection.isar,
+        IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity, object);
     return object;
   }
 
   @override
   P deserializeProperty<P>(Object jsObj, String propertyName) {
     switch (propertyName) {
-      case 'channels':
-        return ((IsarNative.jsObjectGet(jsObj, 'channels') as List?)
-            ?.map((e) => e ?? '')
-            .toList()
-            .cast<String>()) as P;
-      case 'fbranchId':
-        return (IsarNative.jsObjectGet(jsObj, 'fbranchId') ??
-            double.negativeInfinity) as P;
-      case 'fproductId':
-        return (IsarNative.jsObjectGet(jsObj, 'fproductId') ??
+      case 'branchId':
+        return (IsarNative.jsObjectGet(jsObj, 'branchId') ??
             double.negativeInfinity) as P;
       case 'id':
         return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
             as P;
       case 'name':
         return (IsarNative.jsObjectGet(jsObj, 'name') ?? '') as P;
+      case 'productId':
+        return (IsarNative.jsObjectGet(jsObj, 'productId') ??
+            double.negativeInfinity) as P;
       case 'productName':
         return (IsarNative.jsObjectGet(jsObj, 'productName') ?? '') as P;
       case 'retailPrice':
@@ -151,7 +141,15 @@ class _VariantSyncWebAdapter extends IsarWebTypeAdapter<VariantSync> {
   }
 
   @override
-  void attachLinks(Isar isar, int id, VariantSync object) {}
+  void attachLinks(Isar isar, int id, VariantSync object) {
+    object.stock.attach(
+      id,
+      isar.variantSyncs,
+      isar.getCollection<StockSync>('StockSync'),
+      'stock',
+      false,
+    );
+  }
 }
 
 class _VariantSyncNativeAdapter extends IsarNativeTypeAdapter<VariantSync> {
@@ -166,50 +164,38 @@ class _VariantSyncNativeAdapter extends IsarNativeTypeAdapter<VariantSync> {
       List<int> offsets,
       AdapterAlloc alloc) {
     var dynamicSize = 0;
-    final value0 = object.channels;
-    dynamicSize += (value0?.length ?? 0) * 8;
-    List<IsarUint8List?>? bytesList0;
-    if (value0 != null) {
-      bytesList0 = [];
-      for (var str in value0) {
-        final bytes = IsarBinaryWriter.utf8Encoder.convert(str);
-        bytesList0.add(bytes);
-        dynamicSize += bytes.length as int;
-      }
-    }
-    final _channels = bytesList0;
-    final value1 = object.fbranchId;
-    final _fbranchId = value1;
-    final value2 = object.fproductId;
-    final _fproductId = value2;
-    final value3 = object.name;
-    final _name = IsarBinaryWriter.utf8Encoder.convert(value3);
+    final value0 = object.branchId;
+    final _branchId = value0;
+    final value1 = object.name;
+    final _name = IsarBinaryWriter.utf8Encoder.convert(value1);
     dynamicSize += (_name.length) as int;
-    final value4 = object.productName;
-    final _productName = IsarBinaryWriter.utf8Encoder.convert(value4);
+    final value2 = object.productId;
+    final _productId = value2;
+    final value3 = object.productName;
+    final _productName = IsarBinaryWriter.utf8Encoder.convert(value3);
     dynamicSize += (_productName.length) as int;
-    final value5 = object.retailPrice;
-    final _retailPrice = value5;
-    final value6 = object.sku;
-    final _sku = IsarBinaryWriter.utf8Encoder.convert(value6);
+    final value4 = object.retailPrice;
+    final _retailPrice = value4;
+    final value5 = object.sku;
+    final _sku = IsarBinaryWriter.utf8Encoder.convert(value5);
     dynamicSize += (_sku.length) as int;
-    final value7 = object.supplyPrice;
-    final _supplyPrice = value7;
-    final value8 = object.synced;
-    final _synced = value8;
-    final value9 = object.table;
-    final _table = IsarBinaryWriter.utf8Encoder.convert(value9);
+    final value6 = object.supplyPrice;
+    final _supplyPrice = value6;
+    final value7 = object.synced;
+    final _synced = value7;
+    final value8 = object.table;
+    final _table = IsarBinaryWriter.utf8Encoder.convert(value8);
     dynamicSize += (_table.length) as int;
-    final value10 = object.taxName;
+    final value9 = object.taxName;
     IsarUint8List? _taxName;
-    if (value10 != null) {
-      _taxName = IsarBinaryWriter.utf8Encoder.convert(value10);
+    if (value9 != null) {
+      _taxName = IsarBinaryWriter.utf8Encoder.convert(value9);
     }
     dynamicSize += (_taxName?.length ?? 0) as int;
-    final value11 = object.taxPercentage;
-    final _taxPercentage = value11;
-    final value12 = object.unit;
-    final _unit = IsarBinaryWriter.utf8Encoder.convert(value12);
+    final value10 = object.taxPercentage;
+    final _taxPercentage = value10;
+    final value11 = object.unit;
+    final _unit = IsarBinaryWriter.utf8Encoder.convert(value11);
     dynamicSize += (_unit.length) as int;
     final size = staticSize + dynamicSize;
 
@@ -217,40 +203,38 @@ class _VariantSyncNativeAdapter extends IsarNativeTypeAdapter<VariantSync> {
     rawObj.buffer_length = size;
     final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
     final writer = IsarBinaryWriter(buffer, staticSize);
-    writer.writeStringList(offsets[0], _channels);
-    writer.writeLong(offsets[1], _fbranchId);
-    writer.writeLong(offsets[2], _fproductId);
-    writer.writeBytes(offsets[3], _name);
-    writer.writeBytes(offsets[4], _productName);
-    writer.writeDouble(offsets[5], _retailPrice);
-    writer.writeBytes(offsets[6], _sku);
-    writer.writeDouble(offsets[7], _supplyPrice);
-    writer.writeBool(offsets[8], _synced);
-    writer.writeBytes(offsets[9], _table);
-    writer.writeBytes(offsets[10], _taxName);
-    writer.writeDouble(offsets[11], _taxPercentage);
-    writer.writeBytes(offsets[12], _unit);
+    writer.writeLong(offsets[0], _branchId);
+    writer.writeBytes(offsets[1], _name);
+    writer.writeLong(offsets[2], _productId);
+    writer.writeBytes(offsets[3], _productName);
+    writer.writeDouble(offsets[4], _retailPrice);
+    writer.writeBytes(offsets[5], _sku);
+    writer.writeDouble(offsets[6], _supplyPrice);
+    writer.writeBool(offsets[7], _synced);
+    writer.writeBytes(offsets[8], _table);
+    writer.writeBytes(offsets[9], _taxName);
+    writer.writeDouble(offsets[10], _taxPercentage);
+    writer.writeBytes(offsets[11], _unit);
   }
 
   @override
   VariantSync deserialize(IsarCollection<VariantSync> collection, int id,
       IsarBinaryReader reader, List<int> offsets) {
-    final object = VariantSync(
-      channels: reader.readStringList(offsets[0]),
-      fbranchId: reader.readLong(offsets[1]),
-      fproductId: reader.readLong(offsets[2]),
-      id: id,
-      name: reader.readString(offsets[3]),
-      productName: reader.readString(offsets[4]),
-      retailPrice: reader.readDouble(offsets[5]),
-      sku: reader.readString(offsets[6]),
-      supplyPrice: reader.readDouble(offsets[7]),
-      synced: reader.readBoolOrNull(offsets[8]),
-      table: reader.readString(offsets[9]),
-      taxName: reader.readStringOrNull(offsets[10]),
-      taxPercentage: reader.readDoubleOrNull(offsets[11]),
-      unit: reader.readString(offsets[12]),
-    );
+    final object = VariantSync();
+    object.branchId = reader.readLong(offsets[0]);
+    object.id = id;
+    object.name = reader.readString(offsets[1]);
+    object.productId = reader.readLong(offsets[2]);
+    object.productName = reader.readString(offsets[3]);
+    object.retailPrice = reader.readDouble(offsets[4]);
+    object.sku = reader.readString(offsets[5]);
+    object.supplyPrice = reader.readDouble(offsets[6]);
+    object.synced = reader.readBoolOrNull(offsets[7]);
+    object.table = reader.readString(offsets[8]);
+    object.taxName = reader.readStringOrNull(offsets[9]);
+    object.taxPercentage = reader.readDoubleOrNull(offsets[10]);
+    object.unit = reader.readString(offsets[11]);
+    attachLinks(collection.isar, id, object);
     return object;
   }
 
@@ -261,30 +245,28 @@ class _VariantSyncNativeAdapter extends IsarNativeTypeAdapter<VariantSync> {
       case -1:
         return id as P;
       case 0:
-        return (reader.readStringList(offset)) as P;
-      case 1:
         return (reader.readLong(offset)) as P;
+      case 1:
+        return (reader.readString(offset)) as P;
       case 2:
         return (reader.readLong(offset)) as P;
       case 3:
         return (reader.readString(offset)) as P;
       case 4:
-        return (reader.readString(offset)) as P;
+        return (reader.readDouble(offset)) as P;
       case 5:
-        return (reader.readDouble(offset)) as P;
+        return (reader.readString(offset)) as P;
       case 6:
-        return (reader.readString(offset)) as P;
-      case 7:
         return (reader.readDouble(offset)) as P;
-      case 8:
+      case 7:
         return (reader.readBoolOrNull(offset)) as P;
-      case 9:
+      case 8:
         return (reader.readString(offset)) as P;
-      case 10:
+      case 9:
         return (reader.readStringOrNull(offset)) as P;
-      case 11:
+      case 10:
         return (reader.readDoubleOrNull(offset)) as P;
-      case 12:
+      case 11:
         return (reader.readString(offset)) as P;
       default:
         throw 'Illegal propertyIndex';
@@ -292,7 +274,15 @@ class _VariantSyncNativeAdapter extends IsarNativeTypeAdapter<VariantSync> {
   }
 
   @override
-  void attachLinks(Isar isar, int id, VariantSync object) {}
+  void attachLinks(Isar isar, int id, VariantSync object) {
+    object.stock.attach(
+      id,
+      isar.variantSyncs,
+      isar.getCollection<StockSync>('StockSync'),
+      'stock',
+      false,
+    );
+  }
 }
 
 extension VariantSyncQueryWhereSort
@@ -379,226 +369,49 @@ extension VariantSyncQueryWhere
 
 extension VariantSyncQueryFilter
     on QueryBuilder<VariantSync, VariantSync, QFilterCondition> {
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      channelsIsNull() {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.isNull,
-      property: 'channels',
-      value: null,
-    ));
-  }
-
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      channelsAnyIsNull() {
+  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> branchIdEqualTo(
+      int value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
-      property: 'channels',
-      value: null,
-    ));
-  }
-
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      channelsAnyEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'channels',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      channelsAnyGreaterThan(
-    String? value, {
-    bool caseSensitive = true,
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'channels',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      channelsAnyLessThan(
-    String? value, {
-    bool caseSensitive = true,
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'channels',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      channelsAnyBetween(
-    String? lower,
-    String? upper, {
-    bool caseSensitive = true,
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'channels',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      channelsAnyStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.startsWith,
-      property: 'channels',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      channelsAnyEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.endsWith,
-      property: 'channels',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      channelsAnyContains(String value, {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.contains,
-      property: 'channels',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      channelsAnyMatches(String pattern, {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.matches,
-      property: 'channels',
-      value: pattern,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      fbranchIdEqualTo(int value) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'fbranchId',
+      property: 'branchId',
       value: value,
     ));
   }
 
   QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      fbranchIdGreaterThan(
+      branchIdGreaterThan(
     int value, {
     bool include = false,
   }) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.gt,
       include: include,
-      property: 'fbranchId',
+      property: 'branchId',
       value: value,
     ));
   }
 
   QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      fbranchIdLessThan(
+      branchIdLessThan(
     int value, {
     bool include = false,
   }) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.lt,
       include: include,
-      property: 'fbranchId',
+      property: 'branchId',
       value: value,
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      fbranchIdBetween(
+  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> branchIdBetween(
     int lower,
     int upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return addFilterConditionInternal(FilterCondition.between(
-      property: 'fbranchId',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-    ));
-  }
-
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      fproductIdEqualTo(int value) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'fproductId',
-      value: value,
-    ));
-  }
-
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      fproductIdGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'fproductId',
-      value: value,
-    ));
-  }
-
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      fproductIdLessThan(
-    int value, {
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'fproductId',
-      value: value,
-    ));
-  }
-
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      fproductIdBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'fproductId',
+      property: 'branchId',
       lower: lower,
       includeLower: includeLower,
       upper: upper,
@@ -754,6 +567,57 @@ extension VariantSyncQueryFilter
       property: 'name',
       value: pattern,
       caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
+      productIdEqualTo(int value) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.eq,
+      property: 'productId',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
+      productIdGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.gt,
+      include: include,
+      property: 'productId',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
+      productIdLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.lt,
+      include: include,
+      property: 'productId',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
+      productIdBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition.between(
+      property: 'productId',
+      lower: lower,
+      includeLower: includeLower,
+      upper: upper,
+      includeUpper: includeUpper,
     ));
   }
 
@@ -1410,20 +1274,12 @@ extension VariantSyncQueryFilter
 
 extension VariantSyncQueryWhereSortBy
     on QueryBuilder<VariantSync, VariantSync, QSortBy> {
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> sortByFbranchId() {
-    return addSortByInternal('fbranchId', Sort.asc);
+  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> sortByBranchId() {
+    return addSortByInternal('branchId', Sort.asc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> sortByFbranchIdDesc() {
-    return addSortByInternal('fbranchId', Sort.desc);
-  }
-
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> sortByFproductId() {
-    return addSortByInternal('fproductId', Sort.asc);
-  }
-
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> sortByFproductIdDesc() {
-    return addSortByInternal('fproductId', Sort.desc);
+  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> sortByBranchIdDesc() {
+    return addSortByInternal('branchId', Sort.desc);
   }
 
   QueryBuilder<VariantSync, VariantSync, QAfterSortBy> sortById() {
@@ -1440,6 +1296,14 @@ extension VariantSyncQueryWhereSortBy
 
   QueryBuilder<VariantSync, VariantSync, QAfterSortBy> sortByNameDesc() {
     return addSortByInternal('name', Sort.desc);
+  }
+
+  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> sortByProductId() {
+    return addSortByInternal('productId', Sort.asc);
+  }
+
+  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> sortByProductIdDesc() {
+    return addSortByInternal('productId', Sort.desc);
   }
 
   QueryBuilder<VariantSync, VariantSync, QAfterSortBy> sortByProductName() {
@@ -1518,20 +1382,12 @@ extension VariantSyncQueryWhereSortBy
 
 extension VariantSyncQueryWhereSortThenBy
     on QueryBuilder<VariantSync, VariantSync, QSortThenBy> {
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> thenByFbranchId() {
-    return addSortByInternal('fbranchId', Sort.asc);
+  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> thenByBranchId() {
+    return addSortByInternal('branchId', Sort.asc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> thenByFbranchIdDesc() {
-    return addSortByInternal('fbranchId', Sort.desc);
-  }
-
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> thenByFproductId() {
-    return addSortByInternal('fproductId', Sort.asc);
-  }
-
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> thenByFproductIdDesc() {
-    return addSortByInternal('fproductId', Sort.desc);
+  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> thenByBranchIdDesc() {
+    return addSortByInternal('branchId', Sort.desc);
   }
 
   QueryBuilder<VariantSync, VariantSync, QAfterSortBy> thenById() {
@@ -1548,6 +1404,14 @@ extension VariantSyncQueryWhereSortThenBy
 
   QueryBuilder<VariantSync, VariantSync, QAfterSortBy> thenByNameDesc() {
     return addSortByInternal('name', Sort.desc);
+  }
+
+  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> thenByProductId() {
+    return addSortByInternal('productId', Sort.asc);
+  }
+
+  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> thenByProductIdDesc() {
+    return addSortByInternal('productId', Sort.desc);
   }
 
   QueryBuilder<VariantSync, VariantSync, QAfterSortBy> thenByProductName() {
@@ -1626,12 +1490,8 @@ extension VariantSyncQueryWhereSortThenBy
 
 extension VariantSyncQueryWhereDistinct
     on QueryBuilder<VariantSync, VariantSync, QDistinct> {
-  QueryBuilder<VariantSync, VariantSync, QDistinct> distinctByFbranchId() {
-    return addDistinctByInternal('fbranchId');
-  }
-
-  QueryBuilder<VariantSync, VariantSync, QDistinct> distinctByFproductId() {
-    return addDistinctByInternal('fproductId');
+  QueryBuilder<VariantSync, VariantSync, QDistinct> distinctByBranchId() {
+    return addDistinctByInternal('branchId');
   }
 
   QueryBuilder<VariantSync, VariantSync, QDistinct> distinctById() {
@@ -1641,6 +1501,10 @@ extension VariantSyncQueryWhereDistinct
   QueryBuilder<VariantSync, VariantSync, QDistinct> distinctByName(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('name', caseSensitive: caseSensitive);
+  }
+
+  QueryBuilder<VariantSync, VariantSync, QDistinct> distinctByProductId() {
+    return addDistinctByInternal('productId');
   }
 
   QueryBuilder<VariantSync, VariantSync, QDistinct> distinctByProductName(
@@ -1687,17 +1551,8 @@ extension VariantSyncQueryWhereDistinct
 
 extension VariantSyncQueryProperty
     on QueryBuilder<VariantSync, VariantSync, QQueryProperty> {
-  QueryBuilder<VariantSync, List<String>?, QQueryOperations>
-      channelsProperty() {
-    return addPropertyNameInternal('channels');
-  }
-
-  QueryBuilder<VariantSync, int, QQueryOperations> fbranchIdProperty() {
-    return addPropertyNameInternal('fbranchId');
-  }
-
-  QueryBuilder<VariantSync, int, QQueryOperations> fproductIdProperty() {
-    return addPropertyNameInternal('fproductId');
+  QueryBuilder<VariantSync, int, QQueryOperations> branchIdProperty() {
+    return addPropertyNameInternal('branchId');
   }
 
   QueryBuilder<VariantSync, int, QQueryOperations> idProperty() {
@@ -1706,6 +1561,10 @@ extension VariantSyncQueryProperty
 
   QueryBuilder<VariantSync, String, QQueryOperations> nameProperty() {
     return addPropertyNameInternal('name');
+  }
+
+  QueryBuilder<VariantSync, int, QQueryOperations> productIdProperty() {
+    return addPropertyNameInternal('productId');
   }
 
   QueryBuilder<VariantSync, String, QQueryOperations> productNameProperty() {

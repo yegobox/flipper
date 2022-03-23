@@ -1,5 +1,10 @@
 library flipper_models;
 
+import 'package:flipper_models/isar_models.dart';
+
+part 'profile.g.dart';
+
+@Collection()
 class Profile {
   Profile({
     this.id = 0,
@@ -22,7 +27,7 @@ class Profile {
     required this.nationalId,
   });
 
-  int id;
+  late int id = Isar.autoIncrement;
   String name;
   String email;
   String phone;

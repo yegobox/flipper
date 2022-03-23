@@ -61,12 +61,10 @@ class OrderFSync {
 
   late List<String>? channels;
 
-  // now add a customer to an order
   late int? customerId;
 
   late String? note;
-  // List<OrderItemSync> orderItems;
-  final orderItems = IsarLink<OrderItemSync>();
+  final orderItems = IsarLinks<OrderItemSync>();
 
   factory OrderFSync.fromJson(Map<String, dynamic> json) => OrderFSync(
         id: int.parse(json["id"]),

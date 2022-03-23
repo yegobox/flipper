@@ -17,19 +17,18 @@ extension GetCategoryCollection on Isar {
 final CategorySchema = CollectionSchema(
   name: 'Category',
   schema:
-      '{"name":"Category","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"channels","type":"StringList"},{"name":"fbranchId","type":"Long"},{"name":"focused","type":"Bool"},{"name":"name","type":"String"},{"name":"table","type":"String"}],"indexes":[],"links":[]}',
+      '{"name":"Category","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"focused","type":"Bool"},{"name":"name","type":"String"},{"name":"table","type":"String"}],"indexes":[],"links":[]}',
   nativeAdapter: const _CategoryNativeAdapter(),
   webAdapter: const _CategoryWebAdapter(),
   idName: 'id',
   propertyIds: {
     'active': 0,
-    'channels': 1,
-    'fbranchId': 2,
-    'focused': 3,
-    'name': 4,
-    'table': 5
+    'branchId': 1,
+    'focused': 2,
+    'name': 3,
+    'table': 4
   },
-  listProperties: {'channels'},
+  listProperties: {},
   indexIds: {},
   indexTypes: {},
   linkIds: {},
@@ -54,8 +53,7 @@ class _CategoryWebAdapter extends IsarWebTypeAdapter<Category> {
   Object serialize(IsarCollection<Category> collection, Category object) {
     final jsObj = IsarNative.newJsObject();
     IsarNative.jsObjectSet(jsObj, 'active', object.active);
-    IsarNative.jsObjectSet(jsObj, 'channels', object.channels);
-    IsarNative.jsObjectSet(jsObj, 'fbranchId', object.fbranchId);
+    IsarNative.jsObjectSet(jsObj, 'branchId', object.branchId);
     IsarNative.jsObjectSet(jsObj, 'focused', object.focused);
     IsarNative.jsObjectSet(jsObj, 'id', object.id);
     IsarNative.jsObjectSet(jsObj, 'name', object.name);
@@ -65,19 +63,14 @@ class _CategoryWebAdapter extends IsarWebTypeAdapter<Category> {
 
   @override
   Category deserialize(IsarCollection<Category> collection, dynamic jsObj) {
-    final object = Category(
-      active: IsarNative.jsObjectGet(jsObj, 'active') ?? false,
-      channels: (IsarNative.jsObjectGet(jsObj, 'channels') as List?)
-          ?.map((e) => e ?? '')
-          .toList()
-          .cast<String>(),
-      fbranchId:
-          IsarNative.jsObjectGet(jsObj, 'fbranchId') ?? double.negativeInfinity,
-      focused: IsarNative.jsObjectGet(jsObj, 'focused') ?? false,
-      id: IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity,
-      name: IsarNative.jsObjectGet(jsObj, 'name') ?? '',
-      table: IsarNative.jsObjectGet(jsObj, 'table') ?? '',
-    );
+    final object = Category();
+    object.active = IsarNative.jsObjectGet(jsObj, 'active') ?? false;
+    object.branchId =
+        IsarNative.jsObjectGet(jsObj, 'branchId') ?? double.negativeInfinity;
+    object.focused = IsarNative.jsObjectGet(jsObj, 'focused') ?? false;
+    object.id = IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity;
+    object.name = IsarNative.jsObjectGet(jsObj, 'name') ?? '';
+    object.table = IsarNative.jsObjectGet(jsObj, 'table') ?? '';
     return object;
   }
 
@@ -86,13 +79,8 @@ class _CategoryWebAdapter extends IsarWebTypeAdapter<Category> {
     switch (propertyName) {
       case 'active':
         return (IsarNative.jsObjectGet(jsObj, 'active') ?? false) as P;
-      case 'channels':
-        return ((IsarNative.jsObjectGet(jsObj, 'channels') as List?)
-            ?.map((e) => e ?? '')
-            .toList()
-            .cast<String>()) as P;
-      case 'fbranchId':
-        return (IsarNative.jsObjectGet(jsObj, 'fbranchId') ??
+      case 'branchId':
+        return (IsarNative.jsObjectGet(jsObj, 'branchId') ??
             double.negativeInfinity) as P;
       case 'focused':
         return (IsarNative.jsObjectGet(jsObj, 'focused') ?? false) as P;
@@ -121,27 +109,15 @@ class _CategoryNativeAdapter extends IsarNativeTypeAdapter<Category> {
     var dynamicSize = 0;
     final value0 = object.active;
     final _active = value0;
-    final value1 = object.channels;
-    dynamicSize += (value1?.length ?? 0) * 8;
-    List<IsarUint8List?>? bytesList1;
-    if (value1 != null) {
-      bytesList1 = [];
-      for (var str in value1) {
-        final bytes = IsarBinaryWriter.utf8Encoder.convert(str);
-        bytesList1.add(bytes);
-        dynamicSize += bytes.length as int;
-      }
-    }
-    final _channels = bytesList1;
-    final value2 = object.fbranchId;
-    final _fbranchId = value2;
-    final value3 = object.focused;
-    final _focused = value3;
-    final value4 = object.name;
-    final _name = IsarBinaryWriter.utf8Encoder.convert(value4);
+    final value1 = object.branchId;
+    final _branchId = value1;
+    final value2 = object.focused;
+    final _focused = value2;
+    final value3 = object.name;
+    final _name = IsarBinaryWriter.utf8Encoder.convert(value3);
     dynamicSize += (_name.length) as int;
-    final value5 = object.table;
-    final _table = IsarBinaryWriter.utf8Encoder.convert(value5);
+    final value4 = object.table;
+    final _table = IsarBinaryWriter.utf8Encoder.convert(value4);
     dynamicSize += (_table.length) as int;
     final size = staticSize + dynamicSize;
 
@@ -150,25 +126,22 @@ class _CategoryNativeAdapter extends IsarNativeTypeAdapter<Category> {
     final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
     final writer = IsarBinaryWriter(buffer, staticSize);
     writer.writeBool(offsets[0], _active);
-    writer.writeStringList(offsets[1], _channels);
-    writer.writeLong(offsets[2], _fbranchId);
-    writer.writeBool(offsets[3], _focused);
-    writer.writeBytes(offsets[4], _name);
-    writer.writeBytes(offsets[5], _table);
+    writer.writeLong(offsets[1], _branchId);
+    writer.writeBool(offsets[2], _focused);
+    writer.writeBytes(offsets[3], _name);
+    writer.writeBytes(offsets[4], _table);
   }
 
   @override
   Category deserialize(IsarCollection<Category> collection, int id,
       IsarBinaryReader reader, List<int> offsets) {
-    final object = Category(
-      active: reader.readBool(offsets[0]),
-      channels: reader.readStringList(offsets[1]),
-      fbranchId: reader.readLong(offsets[2]),
-      focused: reader.readBool(offsets[3]),
-      id: id,
-      name: reader.readString(offsets[4]),
-      table: reader.readString(offsets[5]),
-    );
+    final object = Category();
+    object.active = reader.readBool(offsets[0]);
+    object.branchId = reader.readLong(offsets[1]);
+    object.focused = reader.readBool(offsets[2]);
+    object.id = id;
+    object.name = reader.readString(offsets[3]);
+    object.table = reader.readString(offsets[4]);
     return object;
   }
 
@@ -181,14 +154,12 @@ class _CategoryNativeAdapter extends IsarNativeTypeAdapter<Category> {
       case 0:
         return (reader.readBool(offset)) as P;
       case 1:
-        return (reader.readStringList(offset)) as P;
-      case 2:
         return (reader.readLong(offset)) as P;
-      case 3:
+      case 2:
         return (reader.readBool(offset)) as P;
-      case 4:
+      case 3:
         return (reader.readString(offset)) as P;
-      case 5:
+      case 4:
         return (reader.readString(offset)) as P;
       default:
         throw 'Illegal propertyIndex';
@@ -289,167 +260,47 @@ extension CategoryQueryFilter
     ));
   }
 
-  QueryBuilder<Category, Category, QAfterFilterCondition> channelsIsNull() {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.isNull,
-      property: 'channels',
-      value: null,
-    ));
-  }
-
-  QueryBuilder<Category, Category, QAfterFilterCondition> channelsAnyIsNull() {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'channels',
-      value: null,
-    ));
-  }
-
-  QueryBuilder<Category, Category, QAfterFilterCondition> channelsAnyEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'channels',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Category, Category, QAfterFilterCondition>
-      channelsAnyGreaterThan(
-    String? value, {
-    bool caseSensitive = true,
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'channels',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Category, Category, QAfterFilterCondition> channelsAnyLessThan(
-    String? value, {
-    bool caseSensitive = true,
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'channels',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Category, Category, QAfterFilterCondition> channelsAnyBetween(
-    String? lower,
-    String? upper, {
-    bool caseSensitive = true,
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'channels',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Category, Category, QAfterFilterCondition> channelsAnyStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.startsWith,
-      property: 'channels',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Category, Category, QAfterFilterCondition> channelsAnyEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.endsWith,
-      property: 'channels',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Category, Category, QAfterFilterCondition> channelsAnyContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.contains,
-      property: 'channels',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Category, Category, QAfterFilterCondition> channelsAnyMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.matches,
-      property: 'channels',
-      value: pattern,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Category, Category, QAfterFilterCondition> fbranchIdEqualTo(
+  QueryBuilder<Category, Category, QAfterFilterCondition> branchIdEqualTo(
       int value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
-      property: 'fbranchId',
+      property: 'branchId',
       value: value,
     ));
   }
 
-  QueryBuilder<Category, Category, QAfterFilterCondition> fbranchIdGreaterThan(
+  QueryBuilder<Category, Category, QAfterFilterCondition> branchIdGreaterThan(
     int value, {
     bool include = false,
   }) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.gt,
       include: include,
-      property: 'fbranchId',
+      property: 'branchId',
       value: value,
     ));
   }
 
-  QueryBuilder<Category, Category, QAfterFilterCondition> fbranchIdLessThan(
+  QueryBuilder<Category, Category, QAfterFilterCondition> branchIdLessThan(
     int value, {
     bool include = false,
   }) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.lt,
       include: include,
-      property: 'fbranchId',
+      property: 'branchId',
       value: value,
     ));
   }
 
-  QueryBuilder<Category, Category, QAfterFilterCondition> fbranchIdBetween(
+  QueryBuilder<Category, Category, QAfterFilterCondition> branchIdBetween(
     int lower,
     int upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return addFilterConditionInternal(FilterCondition.between(
-      property: 'fbranchId',
+      property: 'branchId',
       lower: lower,
       includeLower: includeLower,
       upper: upper,
@@ -730,12 +581,12 @@ extension CategoryQueryWhereSortBy
     return addSortByInternal('active', Sort.desc);
   }
 
-  QueryBuilder<Category, Category, QAfterSortBy> sortByFbranchId() {
-    return addSortByInternal('fbranchId', Sort.asc);
+  QueryBuilder<Category, Category, QAfterSortBy> sortByBranchId() {
+    return addSortByInternal('branchId', Sort.asc);
   }
 
-  QueryBuilder<Category, Category, QAfterSortBy> sortByFbranchIdDesc() {
-    return addSortByInternal('fbranchId', Sort.desc);
+  QueryBuilder<Category, Category, QAfterSortBy> sortByBranchIdDesc() {
+    return addSortByInternal('branchId', Sort.desc);
   }
 
   QueryBuilder<Category, Category, QAfterSortBy> sortByFocused() {
@@ -781,12 +632,12 @@ extension CategoryQueryWhereSortThenBy
     return addSortByInternal('active', Sort.desc);
   }
 
-  QueryBuilder<Category, Category, QAfterSortBy> thenByFbranchId() {
-    return addSortByInternal('fbranchId', Sort.asc);
+  QueryBuilder<Category, Category, QAfterSortBy> thenByBranchId() {
+    return addSortByInternal('branchId', Sort.asc);
   }
 
-  QueryBuilder<Category, Category, QAfterSortBy> thenByFbranchIdDesc() {
-    return addSortByInternal('fbranchId', Sort.desc);
+  QueryBuilder<Category, Category, QAfterSortBy> thenByBranchIdDesc() {
+    return addSortByInternal('branchId', Sort.desc);
   }
 
   QueryBuilder<Category, Category, QAfterSortBy> thenByFocused() {
@@ -828,8 +679,8 @@ extension CategoryQueryWhereDistinct
     return addDistinctByInternal('active');
   }
 
-  QueryBuilder<Category, Category, QDistinct> distinctByFbranchId() {
-    return addDistinctByInternal('fbranchId');
+  QueryBuilder<Category, Category, QDistinct> distinctByBranchId() {
+    return addDistinctByInternal('branchId');
   }
 
   QueryBuilder<Category, Category, QDistinct> distinctByFocused() {
@@ -857,12 +708,8 @@ extension CategoryQueryProperty
     return addPropertyNameInternal('active');
   }
 
-  QueryBuilder<Category, List<String>?, QQueryOperations> channelsProperty() {
-    return addPropertyNameInternal('channels');
-  }
-
-  QueryBuilder<Category, int, QQueryOperations> fbranchIdProperty() {
-    return addPropertyNameInternal('fbranchId');
+  QueryBuilder<Category, int, QQueryOperations> branchIdProperty() {
+    return addPropertyNameInternal('branchId');
   }
 
   QueryBuilder<Category, bool, QQueryOperations> focusedProperty() {

@@ -1,26 +1,4 @@
-import 'isar/points.dart';
-import 'isar/pin.dart';
-import 'isar/order_item.dart';
-import 'isar/order.dart';
-import 'isar/message.dart';
-import 'isar/category.dart';
-import 'isar/feature.dart';
-import 'isar/discount.dart';
-import 'isar/customer.dart';
-import 'isar/color.dart';
-import 'isar/business_local.dart';
-import 'isar/branch.dart';
-import 'isar/voucher.dart';
-import 'isar/variant_sync.dart';
-import 'isar/unit.dart';
-import 'isar/tenant.dart';
-import 'isar/sync.dart';
-import 'isar/subscription.dart';
-import 'isar/stock_sync.dart';
-import 'isar/spenn.dart';
-import 'isar/setting.dart';
-import 'isar/profile.dart';
-import 'isar/product_sync.dart';
+import 'package:flipper_models/isar_models.dart';
 
 abstract class IsarApiInterface {
   Future<List<ProductSync>> products({required int branchId});
@@ -30,15 +8,15 @@ abstract class IsarApiInterface {
   Future<Business> getLocalOrOnlineBusiness({required String userId});
   Future<List<BranchSync>> branches({required int businessId});
   Future<List<BranchSync>> getLocalBranches({required int businessId});
-  List<StockSync> stocks({required int productId});
+  List<StockSync?> stocks({required int productId});
   Stream<StockSync> stockByVariantIdStream({required int variantId});
   Stream<List<ProductSync>> productStreams({required int branchId});
-  Future<StockSync> stockByVariantId({required int variantId});
+  Future<StockSync?> stockByVariantId({required int variantId});
   Future<List<PColor>> colors({required int branchId});
   Future<List<Category>> categories({required int branchId});
   Future<List<Unit>> units({required int branchId});
-  Future<int> create<T>({required Map data, required String endPoint});
-  Future<int> update<T>({required Map data, required String endPoint});
+  Future<int> create<T>({required T data, required String endPoint});
+  Future<int> update<T>({required T data, required String endPoint});
   Future<bool> delete({required dynamic id, String? endPoint});
   Future<PColor?> getColor({required int id, String? endPoint});
   Future<StockSync?> getStock({required int branchId, required int variantId});
@@ -60,10 +38,10 @@ abstract class IsarApiInterface {
   // Future
   //this function for now figure out what is the business id on backend side.
   Future<ProductSync> createProduct({required ProductSync product});
-  Future<List<ProductSync>> isTempProductExist({required int branchId});
+  ProductSync? isTempProductExist({required int branchId});
   Future<bool> logOut();
 
-  Future<VoucherM?> consumeVoucher({required int voucherCode});
+  Future<Voucher?> consumeVoucher({required int voucherCode});
 
   ///create an order if no pending order exist should create a new one
   ///then if it exist should return the existing one!
@@ -110,7 +88,7 @@ abstract class IsarApiInterface {
   Future assingOrderToCustomer({required int customerId, required int orderId});
   Stream<CustomerSync?> getCustomer({required String key});
   Stream<CustomerSync?> getCustomerByOrderId({required int id});
-  Future<OrderFSync> getOrderById({required int id});
+  Future<OrderFSync?> getOrderById({required int id});
   Future<List<OrderFSync>> tickets();
   List<VariantSync> getVariantByProductId({required int productId});
   Future<List<OrderFSync>> getOrderByStatus({required String status});
@@ -147,7 +125,7 @@ abstract class IsarApiInterface {
   Future<int> userNameAvailable({required String name});
 
   Future<TenantSync?> isTenant({required String phoneNumber});
-  Future<Business> getBusinessFromOnlineGivenId({required int id});
+  Future<Business?> getBusinessFromOnlineGivenId({required int id});
 
   /// sync related methods
   // Future<void> addAllVariants({required List<VariantSync> variants});
@@ -178,9 +156,11 @@ abstract class IsarApiInterface {
     required String descriptor,
     required List<Feature> features,
   });
-  Subscription? getSubscription({required int userId});
+  Future<Subscription?> getSubscription({required int userId});
   Points? getPoints({required int userId});
   void consumePoints({required int userId, required int points});
   Future<Pin?> createPin();
   Future<Pin?> getPin({required String pin});
+
+  Future<List<ProductSync>> productsFuture({required int branchId});
 }

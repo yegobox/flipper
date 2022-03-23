@@ -8,18 +8,18 @@ part of 'voucher.dart';
 
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast
 
-extension GetVoucherMCollection on Isar {
-  IsarCollection<VoucherM> get voucherMs {
-    return getCollection('VoucherM');
+extension GetVoucherCollection on Isar {
+  IsarCollection<Voucher> get vouchers {
+    return getCollection('Voucher');
   }
 }
 
-final VoucherMSchema = CollectionSchema(
-  name: 'VoucherM',
+final VoucherSchema = CollectionSchema(
+  name: 'Voucher',
   schema:
-      '{"name":"VoucherM","idName":"id","properties":[{"name":"createdAt","type":"Long"},{"name":"descriptor","type":"String"},{"name":"interval","type":"Long"},{"name":"used","type":"Bool"},{"name":"usedAt","type":"Long"},{"name":"value","type":"Long"}],"indexes":[],"links":[{"name":"features","target":"Feature"}]}',
-  nativeAdapter: const _VoucherMNativeAdapter(),
-  webAdapter: const _VoucherMWebAdapter(),
+      '{"name":"Voucher","idName":"id","properties":[{"name":"createdAt","type":"Long"},{"name":"descriptor","type":"String"},{"name":"interval","type":"Long"},{"name":"used","type":"Bool"},{"name":"usedAt","type":"Long"},{"name":"value","type":"Long"}],"indexes":[],"links":[{"name":"features","target":"Feature"}]}',
+  nativeAdapter: const _VoucherNativeAdapter(),
+  webAdapter: const _VoucherWebAdapter(),
   idName: 'id',
   propertyIds: {
     'createdAt': 0,
@@ -47,11 +47,11 @@ final VoucherMSchema = CollectionSchema(
   version: 2,
 );
 
-class _VoucherMWebAdapter extends IsarWebTypeAdapter<VoucherM> {
-  const _VoucherMWebAdapter();
+class _VoucherWebAdapter extends IsarWebTypeAdapter<Voucher> {
+  const _VoucherWebAdapter();
 
   @override
-  Object serialize(IsarCollection<VoucherM> collection, VoucherM object) {
+  Object serialize(IsarCollection<Voucher> collection, Voucher object) {
     final jsObj = IsarNative.newJsObject();
     IsarNative.jsObjectSet(jsObj, 'createdAt', object.createdAt);
     IsarNative.jsObjectSet(jsObj, 'descriptor', object.descriptor);
@@ -64,19 +64,19 @@ class _VoucherMWebAdapter extends IsarWebTypeAdapter<VoucherM> {
   }
 
   @override
-  VoucherM deserialize(IsarCollection<VoucherM> collection, dynamic jsObj) {
-    final object = VoucherM(
-      createdAt:
-          IsarNative.jsObjectGet(jsObj, 'createdAt') ?? double.negativeInfinity,
-      descriptor: IsarNative.jsObjectGet(jsObj, 'descriptor') ?? '',
-      id: IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity,
-      interval:
-          IsarNative.jsObjectGet(jsObj, 'interval') ?? double.negativeInfinity,
-      used: IsarNative.jsObjectGet(jsObj, 'used') ?? false,
-      usedAt:
-          IsarNative.jsObjectGet(jsObj, 'usedAt') ?? double.negativeInfinity,
-      value: IsarNative.jsObjectGet(jsObj, 'value') ?? double.negativeInfinity,
-    );
+  Voucher deserialize(IsarCollection<Voucher> collection, dynamic jsObj) {
+    final object = Voucher();
+    object.createdAt =
+        IsarNative.jsObjectGet(jsObj, 'createdAt') ?? double.negativeInfinity;
+    object.descriptor = IsarNative.jsObjectGet(jsObj, 'descriptor') ?? '';
+    object.id = IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity;
+    object.interval =
+        IsarNative.jsObjectGet(jsObj, 'interval') ?? double.negativeInfinity;
+    object.used = IsarNative.jsObjectGet(jsObj, 'used') ?? false;
+    object.usedAt =
+        IsarNative.jsObjectGet(jsObj, 'usedAt') ?? double.negativeInfinity;
+    object.value =
+        IsarNative.jsObjectGet(jsObj, 'value') ?? double.negativeInfinity;
     attachLinks(collection.isar,
         IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity, object);
     return object;
@@ -110,10 +110,10 @@ class _VoucherMWebAdapter extends IsarWebTypeAdapter<VoucherM> {
   }
 
   @override
-  void attachLinks(Isar isar, int id, VoucherM object) {
+  void attachLinks(Isar isar, int id, Voucher object) {
     object.features.attach(
       id,
-      isar.voucherMs,
+      isar.vouchers,
       isar.getCollection<Feature>('Feature'),
       'features',
       false,
@@ -121,12 +121,12 @@ class _VoucherMWebAdapter extends IsarWebTypeAdapter<VoucherM> {
   }
 }
 
-class _VoucherMNativeAdapter extends IsarNativeTypeAdapter<VoucherM> {
-  const _VoucherMNativeAdapter();
+class _VoucherNativeAdapter extends IsarNativeTypeAdapter<Voucher> {
+  const _VoucherNativeAdapter();
 
   @override
-  void serialize(IsarCollection<VoucherM> collection, IsarRawObject rawObj,
-      VoucherM object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
+  void serialize(IsarCollection<Voucher> collection, IsarRawObject rawObj,
+      Voucher object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
     var dynamicSize = 0;
     final value0 = object.createdAt;
     final _createdAt = value0;
@@ -156,17 +156,16 @@ class _VoucherMNativeAdapter extends IsarNativeTypeAdapter<VoucherM> {
   }
 
   @override
-  VoucherM deserialize(IsarCollection<VoucherM> collection, int id,
+  Voucher deserialize(IsarCollection<Voucher> collection, int id,
       IsarBinaryReader reader, List<int> offsets) {
-    final object = VoucherM(
-      createdAt: reader.readLong(offsets[0]),
-      descriptor: reader.readString(offsets[1]),
-      id: id,
-      interval: reader.readLong(offsets[2]),
-      used: reader.readBool(offsets[3]),
-      usedAt: reader.readLong(offsets[4]),
-      value: reader.readLong(offsets[5]),
-    );
+    final object = Voucher();
+    object.createdAt = reader.readLong(offsets[0]);
+    object.descriptor = reader.readString(offsets[1]);
+    object.id = id;
+    object.interval = reader.readLong(offsets[2]);
+    object.used = reader.readBool(offsets[3]);
+    object.usedAt = reader.readLong(offsets[4]);
+    object.value = reader.readLong(offsets[5]);
     attachLinks(collection.isar, id, object);
     return object;
   }
@@ -195,10 +194,10 @@ class _VoucherMNativeAdapter extends IsarNativeTypeAdapter<VoucherM> {
   }
 
   @override
-  void attachLinks(Isar isar, int id, VoucherM object) {
+  void attachLinks(Isar isar, int id, Voucher object) {
     object.features.attach(
       id,
-      isar.voucherMs,
+      isar.vouchers,
       isar.getCollection<Feature>('Feature'),
       'features',
       false,
@@ -206,14 +205,14 @@ class _VoucherMNativeAdapter extends IsarNativeTypeAdapter<VoucherM> {
   }
 }
 
-extension VoucherMQueryWhereSort on QueryBuilder<VoucherM, VoucherM, QWhere> {
-  QueryBuilder<VoucherM, VoucherM, QAfterWhere> anyId() {
+extension VoucherQueryWhereSort on QueryBuilder<Voucher, Voucher, QWhere> {
+  QueryBuilder<Voucher, Voucher, QAfterWhere> anyId() {
     return addWhereClauseInternal(const WhereClause(indexName: null));
   }
 }
 
-extension VoucherMQueryWhere on QueryBuilder<VoucherM, VoucherM, QWhereClause> {
-  QueryBuilder<VoucherM, VoucherM, QAfterWhereClause> idEqualTo(int id) {
+extension VoucherQueryWhere on QueryBuilder<Voucher, Voucher, QWhereClause> {
+  QueryBuilder<Voucher, Voucher, QAfterWhereClause> idEqualTo(int id) {
     return addWhereClauseInternal(WhereClause(
       indexName: null,
       lower: [id],
@@ -223,7 +222,7 @@ extension VoucherMQueryWhere on QueryBuilder<VoucherM, VoucherM, QWhereClause> {
     ));
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterWhereClause> idNotEqualTo(int id) {
+  QueryBuilder<Voucher, Voucher, QAfterWhereClause> idNotEqualTo(int id) {
     if (whereSortInternal == Sort.asc) {
       return addWhereClauseInternal(WhereClause(
         indexName: null,
@@ -247,7 +246,7 @@ extension VoucherMQueryWhere on QueryBuilder<VoucherM, VoucherM, QWhereClause> {
     }
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterWhereClause> idGreaterThan(
+  QueryBuilder<Voucher, Voucher, QAfterWhereClause> idGreaterThan(
     int id, {
     bool include = false,
   }) {
@@ -258,7 +257,7 @@ extension VoucherMQueryWhere on QueryBuilder<VoucherM, VoucherM, QWhereClause> {
     ));
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterWhereClause> idLessThan(
+  QueryBuilder<Voucher, Voucher, QAfterWhereClause> idLessThan(
     int id, {
     bool include = false,
   }) {
@@ -269,7 +268,7 @@ extension VoucherMQueryWhere on QueryBuilder<VoucherM, VoucherM, QWhereClause> {
     ));
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterWhereClause> idBetween(
+  QueryBuilder<Voucher, Voucher, QAfterWhereClause> idBetween(
     int lowerId,
     int upperId, {
     bool includeLower = true,
@@ -285,9 +284,9 @@ extension VoucherMQueryWhere on QueryBuilder<VoucherM, VoucherM, QWhereClause> {
   }
 }
 
-extension VoucherMQueryFilter
-    on QueryBuilder<VoucherM, VoucherM, QFilterCondition> {
-  QueryBuilder<VoucherM, VoucherM, QAfterFilterCondition> createdAtEqualTo(
+extension VoucherQueryFilter
+    on QueryBuilder<Voucher, Voucher, QFilterCondition> {
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> createdAtEqualTo(
       int value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
@@ -296,7 +295,7 @@ extension VoucherMQueryFilter
     ));
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterFilterCondition> createdAtGreaterThan(
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> createdAtGreaterThan(
     int value, {
     bool include = false,
   }) {
@@ -308,7 +307,7 @@ extension VoucherMQueryFilter
     ));
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterFilterCondition> createdAtLessThan(
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> createdAtLessThan(
     int value, {
     bool include = false,
   }) {
@@ -320,7 +319,7 @@ extension VoucherMQueryFilter
     ));
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterFilterCondition> createdAtBetween(
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> createdAtBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -335,7 +334,7 @@ extension VoucherMQueryFilter
     ));
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterFilterCondition> descriptorEqualTo(
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> descriptorEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -347,7 +346,7 @@ extension VoucherMQueryFilter
     ));
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterFilterCondition> descriptorGreaterThan(
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> descriptorGreaterThan(
     String value, {
     bool caseSensitive = true,
     bool include = false,
@@ -361,7 +360,7 @@ extension VoucherMQueryFilter
     ));
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterFilterCondition> descriptorLessThan(
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> descriptorLessThan(
     String value, {
     bool caseSensitive = true,
     bool include = false,
@@ -375,7 +374,7 @@ extension VoucherMQueryFilter
     ));
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterFilterCondition> descriptorBetween(
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> descriptorBetween(
     String lower,
     String upper, {
     bool caseSensitive = true,
@@ -392,7 +391,7 @@ extension VoucherMQueryFilter
     ));
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterFilterCondition> descriptorStartsWith(
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> descriptorStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -404,7 +403,7 @@ extension VoucherMQueryFilter
     ));
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterFilterCondition> descriptorEndsWith(
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> descriptorEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -416,7 +415,7 @@ extension VoucherMQueryFilter
     ));
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterFilterCondition> descriptorContains(
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> descriptorContains(
       String value,
       {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
@@ -427,7 +426,7 @@ extension VoucherMQueryFilter
     ));
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterFilterCondition> descriptorMatches(
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> descriptorMatches(
       String pattern,
       {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
@@ -438,7 +437,7 @@ extension VoucherMQueryFilter
     ));
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterFilterCondition> idEqualTo(int value) {
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> idEqualTo(int value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
       property: 'id',
@@ -446,7 +445,7 @@ extension VoucherMQueryFilter
     ));
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterFilterCondition> idGreaterThan(
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> idGreaterThan(
     int value, {
     bool include = false,
   }) {
@@ -458,7 +457,7 @@ extension VoucherMQueryFilter
     ));
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterFilterCondition> idLessThan(
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> idLessThan(
     int value, {
     bool include = false,
   }) {
@@ -470,7 +469,7 @@ extension VoucherMQueryFilter
     ));
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterFilterCondition> idBetween(
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> idBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -485,7 +484,7 @@ extension VoucherMQueryFilter
     ));
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterFilterCondition> intervalEqualTo(
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> intervalEqualTo(
       int value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
@@ -494,7 +493,7 @@ extension VoucherMQueryFilter
     ));
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterFilterCondition> intervalGreaterThan(
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> intervalGreaterThan(
     int value, {
     bool include = false,
   }) {
@@ -506,7 +505,7 @@ extension VoucherMQueryFilter
     ));
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterFilterCondition> intervalLessThan(
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> intervalLessThan(
     int value, {
     bool include = false,
   }) {
@@ -518,7 +517,7 @@ extension VoucherMQueryFilter
     ));
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterFilterCondition> intervalBetween(
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> intervalBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -533,7 +532,7 @@ extension VoucherMQueryFilter
     ));
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterFilterCondition> usedEqualTo(
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> usedEqualTo(
       bool value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
@@ -542,7 +541,7 @@ extension VoucherMQueryFilter
     ));
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterFilterCondition> usedAtEqualTo(
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> usedAtEqualTo(
       int value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
@@ -551,7 +550,7 @@ extension VoucherMQueryFilter
     ));
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterFilterCondition> usedAtGreaterThan(
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> usedAtGreaterThan(
     int value, {
     bool include = false,
   }) {
@@ -563,7 +562,7 @@ extension VoucherMQueryFilter
     ));
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterFilterCondition> usedAtLessThan(
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> usedAtLessThan(
     int value, {
     bool include = false,
   }) {
@@ -575,7 +574,7 @@ extension VoucherMQueryFilter
     ));
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterFilterCondition> usedAtBetween(
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> usedAtBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -590,7 +589,7 @@ extension VoucherMQueryFilter
     ));
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterFilterCondition> valueEqualTo(
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> valueEqualTo(
       int value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
@@ -599,7 +598,7 @@ extension VoucherMQueryFilter
     ));
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterFilterCondition> valueGreaterThan(
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> valueGreaterThan(
     int value, {
     bool include = false,
   }) {
@@ -611,7 +610,7 @@ extension VoucherMQueryFilter
     ));
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterFilterCondition> valueLessThan(
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> valueLessThan(
     int value, {
     bool include = false,
   }) {
@@ -623,7 +622,7 @@ extension VoucherMQueryFilter
     ));
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterFilterCondition> valueBetween(
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> valueBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -639,183 +638,182 @@ extension VoucherMQueryFilter
   }
 }
 
-extension VoucherMQueryWhereSortBy
-    on QueryBuilder<VoucherM, VoucherM, QSortBy> {
-  QueryBuilder<VoucherM, VoucherM, QAfterSortBy> sortByCreatedAt() {
+extension VoucherQueryWhereSortBy on QueryBuilder<Voucher, Voucher, QSortBy> {
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> sortByCreatedAt() {
     return addSortByInternal('createdAt', Sort.asc);
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterSortBy> sortByCreatedAtDesc() {
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> sortByCreatedAtDesc() {
     return addSortByInternal('createdAt', Sort.desc);
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterSortBy> sortByDescriptor() {
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> sortByDescriptor() {
     return addSortByInternal('descriptor', Sort.asc);
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterSortBy> sortByDescriptorDesc() {
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> sortByDescriptorDesc() {
     return addSortByInternal('descriptor', Sort.desc);
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterSortBy> sortById() {
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> sortById() {
     return addSortByInternal('id', Sort.asc);
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterSortBy> sortByIdDesc() {
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> sortByIdDesc() {
     return addSortByInternal('id', Sort.desc);
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterSortBy> sortByInterval() {
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> sortByInterval() {
     return addSortByInternal('interval', Sort.asc);
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterSortBy> sortByIntervalDesc() {
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> sortByIntervalDesc() {
     return addSortByInternal('interval', Sort.desc);
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterSortBy> sortByUsed() {
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> sortByUsed() {
     return addSortByInternal('used', Sort.asc);
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterSortBy> sortByUsedDesc() {
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> sortByUsedDesc() {
     return addSortByInternal('used', Sort.desc);
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterSortBy> sortByUsedAt() {
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> sortByUsedAt() {
     return addSortByInternal('usedAt', Sort.asc);
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterSortBy> sortByUsedAtDesc() {
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> sortByUsedAtDesc() {
     return addSortByInternal('usedAt', Sort.desc);
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterSortBy> sortByValue() {
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> sortByValue() {
     return addSortByInternal('value', Sort.asc);
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterSortBy> sortByValueDesc() {
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> sortByValueDesc() {
     return addSortByInternal('value', Sort.desc);
   }
 }
 
-extension VoucherMQueryWhereSortThenBy
-    on QueryBuilder<VoucherM, VoucherM, QSortThenBy> {
-  QueryBuilder<VoucherM, VoucherM, QAfterSortBy> thenByCreatedAt() {
+extension VoucherQueryWhereSortThenBy
+    on QueryBuilder<Voucher, Voucher, QSortThenBy> {
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> thenByCreatedAt() {
     return addSortByInternal('createdAt', Sort.asc);
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterSortBy> thenByCreatedAtDesc() {
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> thenByCreatedAtDesc() {
     return addSortByInternal('createdAt', Sort.desc);
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterSortBy> thenByDescriptor() {
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> thenByDescriptor() {
     return addSortByInternal('descriptor', Sort.asc);
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterSortBy> thenByDescriptorDesc() {
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> thenByDescriptorDesc() {
     return addSortByInternal('descriptor', Sort.desc);
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterSortBy> thenById() {
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> thenById() {
     return addSortByInternal('id', Sort.asc);
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterSortBy> thenByIdDesc() {
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> thenByIdDesc() {
     return addSortByInternal('id', Sort.desc);
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterSortBy> thenByInterval() {
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> thenByInterval() {
     return addSortByInternal('interval', Sort.asc);
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterSortBy> thenByIntervalDesc() {
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> thenByIntervalDesc() {
     return addSortByInternal('interval', Sort.desc);
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterSortBy> thenByUsed() {
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> thenByUsed() {
     return addSortByInternal('used', Sort.asc);
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterSortBy> thenByUsedDesc() {
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> thenByUsedDesc() {
     return addSortByInternal('used', Sort.desc);
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterSortBy> thenByUsedAt() {
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> thenByUsedAt() {
     return addSortByInternal('usedAt', Sort.asc);
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterSortBy> thenByUsedAtDesc() {
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> thenByUsedAtDesc() {
     return addSortByInternal('usedAt', Sort.desc);
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterSortBy> thenByValue() {
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> thenByValue() {
     return addSortByInternal('value', Sort.asc);
   }
 
-  QueryBuilder<VoucherM, VoucherM, QAfterSortBy> thenByValueDesc() {
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> thenByValueDesc() {
     return addSortByInternal('value', Sort.desc);
   }
 }
 
-extension VoucherMQueryWhereDistinct
-    on QueryBuilder<VoucherM, VoucherM, QDistinct> {
-  QueryBuilder<VoucherM, VoucherM, QDistinct> distinctByCreatedAt() {
+extension VoucherQueryWhereDistinct
+    on QueryBuilder<Voucher, Voucher, QDistinct> {
+  QueryBuilder<Voucher, Voucher, QDistinct> distinctByCreatedAt() {
     return addDistinctByInternal('createdAt');
   }
 
-  QueryBuilder<VoucherM, VoucherM, QDistinct> distinctByDescriptor(
+  QueryBuilder<Voucher, Voucher, QDistinct> distinctByDescriptor(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('descriptor', caseSensitive: caseSensitive);
   }
 
-  QueryBuilder<VoucherM, VoucherM, QDistinct> distinctById() {
+  QueryBuilder<Voucher, Voucher, QDistinct> distinctById() {
     return addDistinctByInternal('id');
   }
 
-  QueryBuilder<VoucherM, VoucherM, QDistinct> distinctByInterval() {
+  QueryBuilder<Voucher, Voucher, QDistinct> distinctByInterval() {
     return addDistinctByInternal('interval');
   }
 
-  QueryBuilder<VoucherM, VoucherM, QDistinct> distinctByUsed() {
+  QueryBuilder<Voucher, Voucher, QDistinct> distinctByUsed() {
     return addDistinctByInternal('used');
   }
 
-  QueryBuilder<VoucherM, VoucherM, QDistinct> distinctByUsedAt() {
+  QueryBuilder<Voucher, Voucher, QDistinct> distinctByUsedAt() {
     return addDistinctByInternal('usedAt');
   }
 
-  QueryBuilder<VoucherM, VoucherM, QDistinct> distinctByValue() {
+  QueryBuilder<Voucher, Voucher, QDistinct> distinctByValue() {
     return addDistinctByInternal('value');
   }
 }
 
-extension VoucherMQueryProperty
-    on QueryBuilder<VoucherM, VoucherM, QQueryProperty> {
-  QueryBuilder<VoucherM, int, QQueryOperations> createdAtProperty() {
+extension VoucherQueryProperty
+    on QueryBuilder<Voucher, Voucher, QQueryProperty> {
+  QueryBuilder<Voucher, int, QQueryOperations> createdAtProperty() {
     return addPropertyNameInternal('createdAt');
   }
 
-  QueryBuilder<VoucherM, String, QQueryOperations> descriptorProperty() {
+  QueryBuilder<Voucher, String, QQueryOperations> descriptorProperty() {
     return addPropertyNameInternal('descriptor');
   }
 
-  QueryBuilder<VoucherM, int, QQueryOperations> idProperty() {
+  QueryBuilder<Voucher, int, QQueryOperations> idProperty() {
     return addPropertyNameInternal('id');
   }
 
-  QueryBuilder<VoucherM, int, QQueryOperations> intervalProperty() {
+  QueryBuilder<Voucher, int, QQueryOperations> intervalProperty() {
     return addPropertyNameInternal('interval');
   }
 
-  QueryBuilder<VoucherM, bool, QQueryOperations> usedProperty() {
+  QueryBuilder<Voucher, bool, QQueryOperations> usedProperty() {
     return addPropertyNameInternal('used');
   }
 
-  QueryBuilder<VoucherM, int, QQueryOperations> usedAtProperty() {
+  QueryBuilder<Voucher, int, QQueryOperations> usedAtProperty() {
     return addPropertyNameInternal('usedAt');
   }
 
-  QueryBuilder<VoucherM, int, QQueryOperations> valueProperty() {
+  QueryBuilder<Voucher, int, QQueryOperations> valueProperty() {
     return addPropertyNameInternal('value');
   }
 }
