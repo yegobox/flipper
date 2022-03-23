@@ -768,7 +768,7 @@ packages:
       path: "../../open-sources/flutter_datetime_picker"
       relative: true
     source: path
-    version: "1.5.1"
+    version: "1.5.2"
   flutter_facebook_auth:
     dependency: transitive
     description:
