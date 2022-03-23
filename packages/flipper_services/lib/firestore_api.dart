@@ -212,8 +212,8 @@ class FirestoreApi implements FlipperFirestore {
                 value.docs.forEach((element) {
                   Map<dynamic, dynamic> data = element.data();
                   StockSync s = StockSync.fromJson(data);
-                  ProxyService.api
-                      .syncProduct(product: p, variant: variation, stock: s);
+                  // ProxyService.api
+                  //     .syncProduct(product: p, variant: variation, stock: s);
                 });
               });
             });

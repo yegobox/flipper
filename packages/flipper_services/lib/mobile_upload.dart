@@ -5,7 +5,7 @@ import 'package:flipper_services/upload_response.dart';
 
 import 'abstractions/upload.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:flipper_models/models/models.dart';
+import 'package:flipper_models/isar_models.dart';
 
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_uploader/flutter_uploader.dart';
@@ -131,13 +131,12 @@ class MobileUpload implements UploadT {
               uploadResponseFromJson(result.response!);
           ProductSync? product =
               await ProxyService.api.getProduct(id: productId);
-          Map map = product!.toJson();
-          map['picture'] = uploadResponse.url;
-          map['imageUrl'] = uploadResponse.url;
-          map['hasPicture'] = true;
-          log.i(map);
+          // Map map = product!.toJson();
+          product!.picture = uploadResponse.url;
+          product.imageUrl = uploadResponse.url;
+          product.hasPicture = true;
           log.i(productId);
-          ProxyService.api.update(data: map, endPoint: 'product');
+          ProxyService.api.update(data: product, endPoint: 'product');
           ProductSync? kProduct =
               await ProxyService.api.getProduct(id: productId);
           ProxyService.productService

@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/secure_storage.dart';
 import 'package:googleapis/drive/v3.dart' as ga;
-import 'package:flipper_models/models/models.dart';
+import 'package:flipper_models/isar_models.dart';
 // import 'package:flutter_firebase_chat_core/flutter_firebase_chat_core.dart';
 import 'package:path/path.dart' as path;
 // import 'package:googleapis_auth/auth_io.dart';

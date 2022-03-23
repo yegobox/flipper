@@ -3,7 +3,8 @@ import 'package:flipper_rw/bottom_sheets/bottom_sheet_builder.dart';
 import 'package:flipper_chat/omni/omni_conversations.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_models/models/models.dart';
+// import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_chat/omni/helpers.dart';
 import 'package:flipper_dashboard/bottom_sheet.dart';
 import 'package:flipper_chat/omni/widgets/chat_app_bar.dart';
@@ -62,7 +63,7 @@ class _OmniChatState extends State<OmniChat> {
         (index - 1) == pageController.page) {
       pageController.animateToPage(
         index,
-        duration: Duration(milliseconds: 500),
+        duration: const Duration(milliseconds: 500),
         curve: Curves.ease,
       );
     } else {
@@ -78,7 +79,7 @@ class _OmniChatState extends State<OmniChat> {
         DeviceOrientation.portraitDown,
       ]);
       // SystemChrome.setEnabledSystemUIOverlays([);
-      SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.dark,
         statusBarBrightness: Brightness.dark,
@@ -92,14 +93,14 @@ class _OmniChatState extends State<OmniChat> {
       },
       builder: (context, model, child) {
         return Scaffold(
-          appBar: ChatAppBar('Flipper', btnBack: false),
+          appBar: const ChatAppBar('Flipper', btnBack: false),
           body: SafeArea(
             child: Column(
               children: [
                 Expanded(
                   child: PageView.builder(
                     controller: pageController,
-                    physics: BouncingScrollPhysics(),
+                    physics: const BouncingScrollPhysics(),
                     onPageChanged: (indexPage) {
                       pageIndex.value = indexPage;
                     },
@@ -113,7 +114,7 @@ class _OmniChatState extends State<OmniChat> {
                         case 3:
                           return CallsPage(model: model);
                         default:
-                          return SizedBox.shrink();
+                          return const SizedBox.shrink();
                       }
                     },
                   ),
@@ -154,7 +155,7 @@ class _OmniChatState extends State<OmniChat> {
             child: Container(
               width: 55,
               height: 55,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 shape: BoxShape.circle,
                 color: primary,
               ),
@@ -166,8 +167,8 @@ class _OmniChatState extends State<OmniChat> {
                     barrierColor: Colors.black.withOpacity(0.5),
                     builder: (BuildContext context) {
                       return Padding(
-                        padding:
-                            EdgeInsets.only(left: 10, right: 10, bottom: 20),
+                        padding: const EdgeInsets.only(
+                            left: 10, right: 10, bottom: 20),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(20),
                           child: BackdropFilter(
@@ -181,7 +182,7 @@ class _OmniChatState extends State<OmniChat> {
                                 color: Theme.of(context)
                                     .scaffoldBackgroundColor
                                     .withOpacity(0.8),
-                                padding: EdgeInsets.all(20),
+                                padding: const EdgeInsets.all(20),
                                 child: Column(
                                   children: [
                                     Container(

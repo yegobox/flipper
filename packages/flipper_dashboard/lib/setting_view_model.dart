@@ -4,7 +4,7 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_services/language_service.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_models/models/models.dart';
+import 'package:flipper_models/isar_models.dart';
 import 'package:flutter/material.dart';
 
 class SettingViewModel extends ReactiveViewModel {
@@ -178,6 +178,8 @@ class SettingViewModel extends ReactiveViewModel {
       if (voucher != null) {
         ProxyService.billing.addPoints(points: voucher.value, userId: userId);
         List<Feature> features = [];
+        // TODOvoucher.features will not work on isar
+        // need to tweak it.
         for (Feature feature in voucher.features) {
           features.add(feature);
         }

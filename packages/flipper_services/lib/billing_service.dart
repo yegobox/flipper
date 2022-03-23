@@ -1,4 +1,4 @@
-import 'package:flipper_models/models/models.dart';
+import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/routes.logger.dart';
 

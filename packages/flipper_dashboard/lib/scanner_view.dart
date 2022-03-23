@@ -2,7 +2,7 @@ import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flipper_models/models/models.dart';
+import 'package:flipper_models/isar_models.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:go_router/go_router.dart';

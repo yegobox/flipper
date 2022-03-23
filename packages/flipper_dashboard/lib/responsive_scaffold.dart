@@ -2,7 +2,7 @@ import 'package:flipper_dashboard/flipper_app.dart';
 import 'package:flipper_dashboard/sale_indicator.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/models/models.dart';
+import 'package:flipper_models/isar_models.dart';
 import './universal/maybe_tooltip.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_services/proxy.dart';
@@ -478,7 +478,7 @@ class _ResponsiveScaffoldState extends State<ResponsiveScaffold> {
                         }
                       },
                       onLogout: () async {
-                        await ProxyService.isarApi.logOut();
+                        await ProxyService.api.logOut();
                       },
                     ),
 
@@ -998,7 +998,7 @@ class _UserProfileState extends State<_UserProfile> {
                         const SizedBox(width: 10),
                         TextButton(
                           onPressed: () async {
-                            await ProxyService.isarApi.logOut();
+                            await ProxyService.api.logOut();
                             GoRouter.of(context).push(Routes.boot);
                           },
                           child: Column(

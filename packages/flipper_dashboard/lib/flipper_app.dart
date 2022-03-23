@@ -13,7 +13,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:upgrader/upgrader.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_models/models/models.dart';
+import 'package:flipper_models/isar_models.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:flipper_chat/omni/update_profile.dart';
 

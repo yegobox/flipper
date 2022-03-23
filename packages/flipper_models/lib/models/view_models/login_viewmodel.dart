@@ -1,9 +1,8 @@
+import 'package:flipper_models/isar/pin.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
-import 'package:universal_platform/universal_platform.dart';
 import 'package:flipper_routing/routes.logger.dart';
 
-import 'package:flipper_models/models/models.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 

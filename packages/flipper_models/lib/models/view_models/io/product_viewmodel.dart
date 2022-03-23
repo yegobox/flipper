@@ -1,6 +1,7 @@
 library flipper_models;
 
-import 'package:flipper_models/models/models.dart';
+// import 'package:flipper_models/models/models.dart';
+import 'package:flipper_models/isar_models.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flipper_routing/routes.logger.dart';
@@ -66,8 +67,11 @@ class ProductViewModel extends ReactiveViewModel {
     log.d(isTemp);
     log.d(branchId);
     if (isTemp == null) {
-      ProductSync product =
-          await ProxyService.api.createProduct(product: productMock);
+      ProductSync product = await ProxyService.api.createProduct(
+          product: ProductSync()
+            ..name = "temp"
+            ..branchId = ProxyService.box.getBranchId()!
+            ..businessId = ProxyService.box.getBusinessId()!);
       productService.variantsProduct(productId: product.id);
 
       productService.setCurrentProduct(product: product);
@@ -119,17 +123,14 @@ class ProductViewModel extends ReactiveViewModel {
     final int? branchId = ProxyService.box.read(key: 'branchId');
     final categoryId = DateTime.now().millisecondsSinceEpoch;
     if (name == null) return;
-    final Category category = Category(
-      id: categoryId,
-      active: true,
-      table: AppTables.category,
-      focused: false,
-      name: name,
-      channels: [userId!],
-      fbranchId: branchId!,
-    );
-    await ProxyService.api
-        .create(endPoint: 'category', data: category.toJson());
+    final Category category = Category()
+      ..id = categoryId
+      ..active = true
+      ..table = AppTables.category
+      ..focused = false
+      ..name = name
+      ..branchId = branchId!;
+    await ProxyService.api.create(endPoint: 'category', data: category);
     _appService.loadCategories();
   }
 
@@ -139,12 +140,12 @@ class ProductViewModel extends ReactiveViewModel {
       if (category.focused) {
         Category cat = category;
         cat.focused = !cat.focused;
-        cat.fbranchId = branchId;
+        cat.branchId = branchId;
         cat.active = !cat.active;
         int categoryId = category.id;
         await ProxyService.api.update(
           endPoint: 'category/$categoryId',
-          data: cat.toJson(),
+          data: cat,
         );
       }
     }
@@ -152,11 +153,11 @@ class ProductViewModel extends ReactiveViewModel {
     Category cat = category;
     cat.focused = !cat.focused;
     cat.active = !cat.active;
-    cat.fbranchId = branchId;
+    cat.branchId = branchId;
     int categoryId = category.id;
     await ProxyService.api.update(
       endPoint: 'category/$categoryId',
-      data: cat.toJson(),
+      data: cat,
     );
     _appService.loadCategories();
   }
@@ -200,13 +201,13 @@ class ProductViewModel extends ReactiveViewModel {
 
   void updateStock({required int variantId}) async {
     if (_stockValue != null) {
-      StockSync stock =
+      StockSync? stock =
           await ProxyService.api.stockByVariantId(variantId: variantId);
-      Map data = stock.toJson();
-      data['currentStock'] = _stockValue;
-      final int stockId = data['id'];
+      // Map data = stock;
+      stock!.currentStock = _stockValue!;
+      final int stockId = stock.id;
 
-      ProxyService.api.update(data: data, endPoint: 'stock/$stockId');
+      ProxyService.api.update(data: stock, endPoint: 'stock/$stockId');
       productService.variantsProduct(productId: product.id);
     }
     productService.variantsProduct(productId: product.id);
@@ -299,17 +300,17 @@ class ProductViewModel extends ReactiveViewModel {
     if (supplyPrice != null) {
       for (VariantSync variation in variants!) {
         if (variation.name == "Regular") {
-          Map map = variation.toJson();
-          map["supplyPrice"] = supplyPrice;
-          map["fproductId"] = variation.fproductId;
-          int ids = map['id'];
-          ProxyService.api.update(data: map, endPoint: 'variant/$ids');
-          StockSync stock =
+          // Map map = variation.toJson();
+          variation.supplyPrice = supplyPrice;
+          variation.productId = variation.productId;
+          int ids = variation.id;
+          ProxyService.api.update(data: variation, endPoint: 'variant/$ids');
+          StockSync? stock =
               await ProxyService.api.stockByVariantId(variantId: variation.id);
-          Map data = stock.toJson();
-          data['supplyPrice'] = supplyPrice;
-          int id = data['id'];
-          ProxyService.api.update(data: data, endPoint: 'stock/$id');
+          // Map data = stock.toJson();
+          stock!.supplyPrice = supplyPrice;
+          int id = stock.id;
+          ProxyService.api.update(data: stock, endPoint: 'stock/$id');
         }
       }
     }
@@ -317,18 +318,18 @@ class ProductViewModel extends ReactiveViewModel {
     if (retailPrice != null) {
       for (VariantSync variation in variants!) {
         if (variation.name == "Regular") {
-          Map map = variation.toJson();
-          map["retailPrice"] = retailPrice;
-          map["fproductId"] = variation.fproductId;
-          int ids = map['id'];
-          ProxyService.api.update(data: map, endPoint: 'variant/$ids');
-          StockSync stock =
+          // Map map = variation.toJson();
+          variation.retailPrice = retailPrice;
+          variation.productId = variation.productId;
+          int ids = variation.id;
+          ProxyService.api.update(data: variation, endPoint: 'variant/$ids');
+          StockSync? stock =
               await ProxyService.api.stockByVariantId(variantId: variation.id);
 
-          Map data = stock.toJson();
-          data['retailPrice'] = retailPrice;
-          int id = data['id'];
-          ProxyService.api.update(data: data, endPoint: 'stock/$id');
+          // Map data = stock.toJson();
+          stock!.retailPrice = retailPrice;
+          int id = stock.id;
+          ProxyService.api.update(data: stock, endPoint: 'stock/$id');
         }
       }
     }
@@ -346,11 +347,11 @@ class ProductViewModel extends ReactiveViewModel {
         ProxyService.api.getVariantByProductId(productId: mproduct['id']);
 
     for (VariantSync variant in variants) {
-      Map v = variant.toJson();
-      v['productName'] = name;
-      v['fproductId'] = mproduct['id'];
-      int id = v['id'];
-      await ProxyService.api.update(data: v, endPoint: 'variant/$id');
+      // Map v = variant.toJson();
+      variant.productName = name;
+      variant.productId = mproduct['id'];
+      int id = variant.id;
+      await ProxyService.api.update(data: variant, endPoint: 'variant/$id');
     }
     final response =
         await ProxyService.api.update(data: mproduct, endPoint: 'product');
@@ -365,9 +366,9 @@ class ProductViewModel extends ReactiveViewModel {
     for (VariantSync variation in variations) {
       ProxyService.api.delete(id: variation.id, endPoint: 'variation');
       //get stock->delete
-      StockSync stock =
+      StockSync? stock =
           await ProxyService.api.stockByVariantId(variantId: variation.id);
-      ProxyService.api.delete(id: stock.id, endPoint: 'stock');
+      ProxyService.api.delete(id: stock!.id, endPoint: 'stock');
     }
     //then delete the product
     ProxyService.api.delete(id: productId, endPoint: 'product');

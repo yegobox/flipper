@@ -1,9 +1,8 @@
 library flipper_models;
 
-// import './view_models/setting.dart';
 import 'package:flipper_routing/routes.locator.dart';
 import 'package:flipper_routing/routes.logger.dart';
-import 'package:flipper_models/models/models.dart';
+// import 'package:flipper_models/models/models.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/keypad_service.dart';
@@ -15,7 +14,7 @@ import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_services/language_service.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flipper_models/isar_models.dart' as isar;
+import 'package:flipper_models/isar_models.dart';
 
 class BusinessHomeViewModel extends ReactiveViewModel {
   // Services
@@ -160,7 +159,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     return await ProxyService.api.productsFuture(branchId: branchId);
   }
 
-  isar.Business get businesses => _app.business;
+  Business get businesses => _app.business;
 
   void pop() {
     ProxyService.keypad.pop();
@@ -174,28 +173,28 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   void decreaseQty(Function callback) {
     ProxyService.keypad.decreaseQty();
     if (_currentItemStock != null) {
-      keypad.setAmount(amount: _currentItemStock!.retailPrice * quantity);
+      keypad.setAmount(amount: _currentItemStock!.retailPrice! * quantity);
     }
     callback(quantity);
   }
 
   void handleCustomQtySetBeforeSelectingVariation() {
     if (_currentItemStock != null) {
-      keypad.setAmount(amount: _currentItemStock!.retailPrice * quantity);
+      keypad.setAmount(amount: _currentItemStock!.retailPrice! * quantity);
     }
   }
 
   void customQtyIncrease(int quantity) {
     ProxyService.keypad.customQtyIncrease(qty: quantity);
     if (_currentItemStock != null) {
-      keypad.setAmount(amount: _currentItemStock!.retailPrice * quantity);
+      keypad.setAmount(amount: _currentItemStock!.retailPrice! * quantity);
     }
   }
 
   void increaseQty(Function callback) {
     ProxyService.keypad.increaseQty();
     if (_currentItemStock != null) {
-      keypad.setAmount(amount: _currentItemStock!.retailPrice * quantity);
+      keypad.setAmount(amount: _currentItemStock!.retailPrice! * quantity);
     }
     callback(keypad.quantity);
   }
@@ -228,7 +227,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   Future<bool> saveOrder(
       {required int variationId, required double amount}) async {
     int branchId = ProxyService.box.read(key: 'branchId');
-    StockSync stock =
+    StockSync? stock =
         await ProxyService.api.stockByVariantId(variantId: variationId);
     if (amountTotal != 0.0) {
       VariantSync? variation = await ProxyService.api.variant(
@@ -259,7 +258,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
               'name': name,
               'createdAt': item.createdAt,
               'updatedAt': item.updatedAt,
-              'remainingStock': stock.currentStock.toInt() - quantity,
+              'remainingStock': stock!.currentStock.toInt() - quantity,
             };
             ProxyService.api.update(data: data, endPoint: 'order');
           }
@@ -281,7 +280,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
             'forderId': existOrders[0].id,
             'createdAt': DateTime.now().toString(),
             'updatedAt': DateTime.now().toString(),
-            'remainingStock': stock.currentStock.toInt() - quantity,
+            'remainingStock': stock!.currentStock.toInt() - quantity,
           };
           ProxyService.api.addOrderItem(order: existOrders[0], data: data);
         }
@@ -383,7 +382,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       return;
     }
     OrderFSync? order = await ProxyService.api.getOrderById(id: kOrder!.id);
-    Map map = order.toJson();
+    Map map = order!.toJson();
     map['note'] = note;
     ProxyService.api.update(data: map, endPoint: 'order');
     callback(1);
@@ -397,12 +396,12 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     //get the current order
     if (kOrder == null) return;
     OrderFSync? _order = await ProxyService.api.getOrderById(id: kOrder!.id);
-    Map map = _order.toJson();
-    map['status'] = parkedStatus;
-    if (map['note'] == null || map['note'] == '') {
+    // Map map = _order.toJson();
+    _order!.status = parkedStatus;
+    if (_order.note == null || _order.note == '') {
       callBack('error');
     } else {
-      ProxyService.api.update(data: map, endPoint: 'order');
+      ProxyService.api.update(data: _order, endPoint: 'order');
       //refresh order afterwards
       await currentOrder();
       callBack('saved');
@@ -411,9 +410,9 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   Future resumeOrder({required int ticketId}) async {
     OrderFSync? _order = await ProxyService.api.getOrderById(id: ticketId);
-    Map map = _order.toJson();
-    map['status'] = pendingStatus;
-    await ProxyService.api.update(data: map, endPoint: 'order');
+    // Map map = _order.toJson();
+    _order!.status = pendingStatus;
+    await ProxyService.api.update(data: _order, endPoint: 'order');
     await keypad.getTickets();
     await keypad.getOrder(branchId: ProxyService.box.read(key: 'branchId'));
     await currentOrder();

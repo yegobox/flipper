@@ -2,7 +2,7 @@ import 'package:flipper_dashboard/discount_row.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_routing/routes.router.dart';
-import 'package:flipper_models/models/models.dart';
+import 'package:flipper_models/isar_models.dart';
 import 'package:stacked/stacked.dart';
 import 'custom_dropdown.dart';
 import 'product_row.dart';

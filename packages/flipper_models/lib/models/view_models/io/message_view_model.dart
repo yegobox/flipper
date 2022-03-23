@@ -145,7 +145,7 @@ class MessageViewModel extends BusinessHomeViewModel {
     required int conversationId,
   }) async {
     int senderId = ProxyService.box.read(key: 'businessId');
-    Business business = ProxyService.api.getBusinessById(id: senderId);
+    Business business = ProxyService.obox.getBusinessById(id: senderId);
 
     Map<String, dynamic> author = types.User(
       id: senderId.toString(),
@@ -182,7 +182,7 @@ class MessageViewModel extends BusinessHomeViewModel {
   ///so we have to make sure before the user or business start to chat bot have arleady saved
   ///the business on local
   void loadSenderBusiness({required int senderId}) async {
-    user = await ProxyService.api.getBusinessById(id: senderId);
+    user = ProxyService.obox.getBusinessById(id: senderId);
     notifyListeners();
   }
 

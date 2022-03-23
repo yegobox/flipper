@@ -1,6 +1,7 @@
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/models/models.dart';
+// import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/isar_models.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';

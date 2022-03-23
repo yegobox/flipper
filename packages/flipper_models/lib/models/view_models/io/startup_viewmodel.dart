@@ -131,7 +131,7 @@ class StartUpViewModel extends BaseViewModel {
           ProxyService.box.write(key: 'needLinkPhoneNumber', value: true);
           phone = user?.email;
         }
-        await ProxyService.isarApi.login(
+        await ProxyService.api.login(
           userPhone: phone!,
         );
       } catch (e) {
@@ -147,12 +147,12 @@ class StartUpViewModel extends BaseViewModel {
       String? userId = ProxyService.box.getUserId();
       log.e("here::$userId");
       isar.Business business =
-          await ProxyService.isarApi.getLocalOrOnlineBusiness(userId: userId!);
+          await ProxyService.api.getLocalOrOnlineBusiness(userId: userId!);
 
       ProxyService.appService.setBusiness(business: business);
       // get local or online branches
       List<isar.BranchSync> branches =
-          await ProxyService.isarApi.getLocalBranches(businessId: business.id);
+          await ProxyService.api.getLocalBranches(businessId: business.id);
 
       ProxyService.box.write(key: 'branchId', value: branches[0].id);
       ProxyService.box.write(key: 'businessId', value: business.id);

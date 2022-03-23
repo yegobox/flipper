@@ -1,10 +1,9 @@
 import 'package:flipper_routing/routes.logger.dart';
-import 'package:flipper_routing/routes.router.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
 import 'add_customer.dart';
 import 'customappbar.dart';
-import 'package:flipper_models/models/models.dart';
+import 'package:flipper_models/isar_models.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';

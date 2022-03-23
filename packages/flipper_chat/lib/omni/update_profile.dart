@@ -5,7 +5,7 @@ import 'package:flipper_ui/flipper_ui.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:flipper_dashboard/setting_view_model.dart';
 import 'package:overlay_support/overlay_support.dart';
-import 'package:flipper_models/models/models.dart';
+import 'package:flipper_models/isar_models.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 

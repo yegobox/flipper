@@ -324,7 +324,7 @@ void preferences(
                     ),
                     model.kSetting.isAttendanceEnabled
                         ? QrImageView(
-                            data: model.business.name +
+                            data: model.business.name! +
                                 '-' +
                                 model.business.id.toString() +
                                 '-' +

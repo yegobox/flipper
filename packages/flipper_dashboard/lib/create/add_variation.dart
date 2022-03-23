@@ -4,10 +4,9 @@ import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_dashboard/create/section_select_unit.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/models/models.dart';
+import 'package:flipper_models/isar_models.dart';
 import 'package:stacked/stacked.dart';
 import 'package:go_router/go_router.dart';
-import 'package:uuid/uuid.dart';
 import 'divider.dart';
 import 'package:google_ui/google_ui.dart';
 
@@ -51,21 +50,19 @@ class _AddVariationState extends State<AddVariation> {
                 if (AddVariation._formKey.currentState!.validate()) {
                   final variantId = DateTime.now().millisecondsSinceEpoch;
                   List<VariantSync> variations = [];
-                  VariantSync data = VariantSync(
-                    name: nameController.text,
-                    sku: sku,
-                    retailPrice: double.parse(retailController.text),
-                    supplyPrice: double.parse(costController.text),
-                    fproductId: model.product.id,
-                    unit: model.productService.currentUnit!,
-                    channels: [model.productService.userId!],
-                    productName: model.product.name,
-                    fbranchId: model.productService.branchId!,
-                    id: variantId,
-                    table: AppTables.variation,
-                    taxName: 'N/A', //TODOreplace with branch/business config
-                    taxPercentage: 0.0,
-                  );
+                  VariantSync data = VariantSync()
+                    ..name = nameController.text
+                    ..sku = sku
+                    ..retailPrice = double.parse(retailController.text)
+                    ..supplyPrice = double.parse(costController.text)
+                    ..productId = model.product.id
+                    ..unit = model.productService.currentUnit!
+                    ..productName = model.product.name
+                    ..branchId = model.productService.branchId!
+                    ..id = variantId
+                    ..table = AppTables.variation
+                    ..taxName = 'N/A'; //TODOreplace with branch/business config
+
                   variations.add(data);
                   await model.addVariant(
                       variations: variations,

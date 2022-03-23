@@ -1,7 +1,7 @@
 import 'package:flipper_login/login.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flutterfire_ui/i10n.dart';
-import 'package:flipper_models/models/models.dart';
+import 'package:flipper_models/isar_models.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_localize/flipper_localize.dart';

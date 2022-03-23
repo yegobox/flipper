@@ -1,6 +1,6 @@
 import 'package:flipper_data_table/widget/scrollable_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/models/models.dart';
+import 'package:flipper_models/isar_models.dart';
 
 class SortablePage extends StatefulWidget {
   const SortablePage({Key? key, required this.columns, required this.data})

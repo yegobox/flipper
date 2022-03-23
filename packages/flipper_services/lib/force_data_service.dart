@@ -1,7 +1,8 @@
+import 'package:flipper_models/models/io/unit_mock.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_models/models/models.dart';
+import 'package:flipper_models/isar_models.dart';
 
 /// there is a case we need to force some data to be added for a given user
 /// this is the class to help with that.
@@ -44,8 +45,7 @@ class ForceDataEntryService {
     int branchid = ProxyService.box.read(key: 'branchId');
     List<PColor> kColors = await ProxyService.api.colors(branchId: branchid);
     if (kColors.isEmpty) {
-      await ProxyService.api
-          .create<PColor>(data: color.toJson(), endPoint: 'color');
+      await ProxyService.api.create<PColor>(data: color, endPoint: 'color');
     }
     List<Unit> kUnits = await ProxyService.api.units(branchId: branchid);
 

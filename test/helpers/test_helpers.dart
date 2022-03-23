@@ -50,8 +50,8 @@ Api getAndRegisterApi() {
   when(service.update(data: anyNamed('data'), endPoint: anyNamed('endPoint')))
       .thenAnswer((_) => Future.value(1));
 
-  when(service.getLocalOrOnlineBusiness(userId: '300'))
-      .thenAnswer((_) async => [businessMockData]);
+  // when(service.getLocalOrOnlineBusiness(userId: '300'))
+  //     .thenAnswer((_) async => [businessMockData]);
 
   when(service.addVariant(
           data: [variationMock], retailPrice: 0.0, supplyPrice: 0.0))
@@ -109,19 +109,19 @@ BillingService getAndRegisterBillingService() {
   _removeRegistrationIfExists<BillingService>();
   final service = MockBillingService();
   locator.registerSingleton<BillingService>(service);
-  when(service.useVoucher(userId: 1, voucher: 1)).thenAnswer(
-    (_) async => Future.value(
-      Voucher(
-        id: DateTime.now().millisecondsSinceEpoch,
-        value: 1,
-        interval: 1,
-        used: false,
-        createdAt: 111,
-        usedAt: 111,
-        descriptor: 'Daily',
-      ),
-    ),
-  );
+  // when(service.useVoucher(userId: 1, voucher: 1)).thenAnswer(
+  //   (_) async => Future.value(
+  //     Voucher(
+  //       id: DateTime.now().millisecondsSinceEpoch,
+  //       value: 1,
+  //       interval: 1,
+  //       used: false,
+  //       createdAt: 111,
+  //       usedAt: 111,
+  //       descriptor: 'Daily',
+  //     ),
+  //   ),
+  // );
 
   when(service.useVoucher(userId: 1, voucher: 2))
       .thenThrow(VoucherException(term: 'Voucher not found'));
@@ -129,13 +129,13 @@ BillingService getAndRegisterBillingService() {
   when(service.addPoints(userId: 1, points: 2))
       .thenThrow(VoucherException(term: 'Voucher not found'));
 
-  when(service.addPoints(
-          points: anyNamed('points'), userId: anyNamed('userId')))
-      .thenAnswer((_) => Points(
-            id: DateTime.now().millisecondsSinceEpoch,
-            value: 2,
-            userId: 1,
-          ));
+  // when(service.addPoints(
+  //         points: anyNamed('points'), userId: anyNamed('userId')))
+  // .thenAnswer((_) => Points(
+  //       id: DateTime.now().millisecondsSinceEpoch,
+  //       value: 2,
+  //       userId: 1,
+  //     ));
   return service;
 }
 
@@ -166,7 +166,7 @@ KeyPadService getAndRegisterKeyPadServiceUnmocked() {
 
 KeyPadService getAndRegisterKeyPadService() {
   final service = MockKeyPadService();
-  when(service.order).thenReturn(orderMock);
+  // when(service.order).thenReturn(orderMock);
 
   return service;
 }
@@ -177,7 +177,7 @@ ProductService getAndRegisterProductService() {
   when(service.currentUnit).thenReturn('kg');
   when(service.branchId).thenReturn(10);
   when(service.userId).thenReturn("300");
-  when(service.product).thenReturn(productMock);
+  // when(service.product).thenReturn(productMock);
   locator.registerSingleton<ProductService>(service);
   return service;
 }

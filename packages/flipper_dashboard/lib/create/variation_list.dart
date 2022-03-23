@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_models/models/models.dart';
+// import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/isar_models.dart';
 
 class VariationList extends StatelessWidget {
   const VariationList({

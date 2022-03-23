@@ -1,7 +1,7 @@
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_rw/helpers/utils.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/models/models.dart';
+import 'package:flipper_models/isar_models.dart';
 import 'package:stacked/stacked.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'list_divider.dart';

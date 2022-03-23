@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:flipper_models/models/models.dart';
+import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/billing_service.dart';
 import 'package:test/test.dart';
 

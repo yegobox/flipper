@@ -1,8 +1,9 @@
 library flipper_models;
 
+import 'package:flipper_models/models/io/unit_mock.dart';
 import 'package:flipper_routing/routes.router.dart';
-import 'package:flipper_models/models/models.dart';
-import 'package:flipper_models/isar_models.dart' as isar;
+//import 'package:flipper_models/models/models.dart';
+import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:stacked/stacked.dart';
@@ -93,31 +94,28 @@ class SignupViewModel extends FormViewModel {
     if (okStatus == 200) {
       final String userId = ProxyService.box.getUserId()!;
       //get businesses's id then look for related branch [0] create the default category
-      isar.Business businesses =
-          await ProxyService.isarApi.getOnlineBusiness(userId: userId);
+      Business businesses =
+          await ProxyService.api.getOnlineBusiness(userId: userId);
 
       ProxyService.box.write(key: 'businessId', value: businesses.id);
       ProxyService.appService.setBusiness(business: businesses);
       // if (ProxyService.remoteConfig.isSubmitDeviceTokenEnabled()) {
       // String? token = await FirebaseMessaging.instance.getToken();
       // ProxyService.firestore
-      //     .saveTokenToDatabase(token: token!, business: businesses[0].toJson());
+      //     .saveTokenToDatabase(token: token!, business: businesses[0]);
       // // }
       List<BranchSync> branches =
           await ProxyService.api.branches(businessId: businesses.id);
 
       ProxyService.box.write(key: 'branchId', value: branches[0].id);
 
-      final Category category = Category(
-        active: true,
-        table: AppTables.category,
-        focused: true,
-        name: 'NONE',
-        channels: [userId],
-        fbranchId: branches[0].id,
-      );
+      final Category category = Category()
+        ..active = true
+        ..focused = true
+        ..name = 'NONE'
+        ..branchId = branches[0].id!;
       await ProxyService.api
-          .create<Category>(data: category.toJson(), endPoint: 'category');
+          .create<Category>(data: category, endPoint: 'category');
       //get default colors for this branch
       final List<String> colors = [
         '#d63031',
@@ -140,8 +138,7 @@ class SignupViewModel extends FormViewModel {
         name: 'sample',
       );
 
-      await ProxyService.api
-          .create<PColor>(data: color.toJson(), endPoint: 'color');
+      await ProxyService.api.create<PColor>(data: color, endPoint: 'color');
       //now create default units for this branch
       final units = Unit(
         name: 'sample',
@@ -156,7 +153,7 @@ class SignupViewModel extends FormViewModel {
       await ProxyService.api.addUnits(data: units.toJson());
 
       //now create a default custom product
-      await ProxyService.api.createProduct(product: customProductMock);
+      await ProxyService.api.createProduct(product: ProductSync());
 
       // ProxyService.nav.navigateTo(Routes.home);
       GoRouter.of(context!).go(Routes.home);

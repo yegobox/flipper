@@ -1,12 +1,10 @@
-// import 'package:flipper_routing/routes.logger.dart';
-import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_rw/helpers/utils.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_text_drawable/flutter_text_drawable.dart';
-import 'package:flipper_models/models/models.dart';
+import 'package:flipper_models/isar_models.dart';
 
 import 'package:flipper_services/proxy.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -35,7 +33,7 @@ class ProductRow extends StatelessWidget {
   final Function addToMenu;
   final Function edit;
   final ProductViewModel model;
-  final List<StockSync> stocks;
+  final List<StockSync?> stocks;
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +81,7 @@ class ProductRow extends StatelessWidget {
             ),
             subtitle: Text(
               stocks.isNotEmpty
-                  ? 'In stock ' + stocks[0].currentStock.toString()
+                  ? 'In stock ' + stocks[0]!.currentStock.toString()
                   : 'In stock 0.0',
               style: const TextStyle(color: Colors.black),
             ),
@@ -92,16 +90,16 @@ class ProductRow extends StatelessWidget {
                     ' Prices',
                     style: TextStyle(color: Colors.black),
                   )
-                : product.variations.isNotEmpty && product.variations.length > 1
+                : product.variants.isNotEmpty && product.variants.length > 1
                     ? const Text(
                         ' Prices',
                         style: TextStyle(color: Colors.black),
                       )
                     : Text(
                         'RWF ' +
-                            (product.variations.isEmpty
+                            (product.variants.isEmpty
                                 ? '0'
-                                : product.variations.first.retailPrice
+                                : product.variants.first.retailPrice
                                     .toString()),
                         style: const TextStyle(color: Colors.black),
                       ),

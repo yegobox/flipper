@@ -6,7 +6,7 @@ import 'package:flipper_dashboard/keypad_view.dart';
 import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flipper_dashboard/product_view.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/models/models.dart';
+import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:overlay_support/overlay_support.dart';
@@ -95,7 +95,9 @@ class _BodyWidgetState extends State<BodyWidget> {
             ? 0
             : widget.model.tickets.length.toDouble(),
         orders: widget.model.kOrder != null
-            ? widget.model.kOrder!.orderItems.length
+            // ? widget.model.kOrder!.orderItems.length
+            //FIXMEthis is broken use the above line instead of 0
+            ? 0
             : 0,
         duePay: widget.model.kOrder != null
             ? widget.model.totalPayable.toDouble()

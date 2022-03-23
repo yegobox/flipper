@@ -30,7 +30,7 @@ import 'package:flipper_models/interface.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 
-final Api _apiService = locator<Api>();
+final Api _oBox = locator<Api>();
 final DynamicLink _dynamicLink = locator<DynamicLink>();
 final Shareble _share = locator<Shareble>();
 // final LoginStandard _auth = locator<LoginStandard>();
@@ -65,8 +65,8 @@ final BillingService _billingService = locator<BillingService>();
 final IsarApiInterface _isarApi = locator<IsarApiInterface>();
 
 abstract class ProxyService {
-  static Api get api => _apiService;
-  static IsarApiInterface get isarApi => _isarApi;
+  static Api get obox => _oBox;
+  static IsarApiInterface get api => _isarApi;
   static EventService get event => _event;
   static Crash get crash => _crash;
   static Shareble get share => _share;

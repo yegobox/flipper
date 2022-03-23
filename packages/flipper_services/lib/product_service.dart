@@ -1,5 +1,5 @@
 import 'package:flipper_routing/routes.logger.dart';
-import 'package:flipper_models/models/models.dart';
+import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 
@@ -62,9 +62,8 @@ class ProductService with ReactiveServiceMixin {
     final List<DiscountSync> _discountss =
         await ProxyService.api.getDiscounts(branchId: branchId);
     final Stream<List<ProductSync>> _productss =
-        ProxyService.api.products(branchId: branchId);
+        ProxyService.api.productStreams(branchId: branchId);
     _discounts.value = _discountss;
-    // _products.value =  _productss;
     yield* _productss;
   }
 
@@ -87,9 +86,9 @@ class ProductService with ReactiveServiceMixin {
     return await ProxyService.api.getProductByBarCode(barCode: code);
   }
 
-  List<StockSync> _stocks = [];
-  List<StockSync> get stocks => _stocks;
-  List<StockSync> loadStockByProductId({required int productId}) {
+  List<StockSync?> _stocks = [];
+  List<StockSync?> get stocks => _stocks;
+  List<StockSync?> loadStockByProductId({required int productId}) {
     _stocks = ProxyService.api.stocks(productId: productId);
     return stocks;
   }

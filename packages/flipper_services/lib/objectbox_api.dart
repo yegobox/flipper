@@ -684,7 +684,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
           ftaxId: map['ftaxId'],
         );
         List<VariantSync> variants =
-            ProxyService.api.getVariantByProductId(productId: map['id']);
+            ProxyService.obox.getVariantByProductId(productId: map['id']);
         final box = store.box<ProductSync>();
         product.variations.addAll(variants);
 
@@ -1932,7 +1932,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
       // update settings with enableAttendance = true
       String userId = ProxyService.box.read(key: 'userId');
       Setting? setting =
-          await ProxyService.api.getSetting(userId: int.parse(userId));
+          ProxyService.obox.getSetting(userId: int.parse(userId));
       setting!.attendnaceDocCreated = true;
       int id = setting.id;
       update(data: setting.toJson(), endPoint: "settings/$id");

@@ -1,7 +1,8 @@
 import 'package:flipper_models/isar_models.dart' as isar;
 import 'package:stacked/stacked.dart';
 
-import 'package:flipper_models/models/models.dart';
+// import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'proxy.dart';
 

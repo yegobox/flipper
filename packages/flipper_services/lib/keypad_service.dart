@@ -2,7 +2,7 @@ import 'package:flipper_rw/stack.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_models/models/models.dart';
+import 'package:flipper_models/isar_models.dart';
 
 class KeyPadService with ReactiveServiceMixin {
   final _key = ReactiveValue<String>("0.0");
@@ -105,15 +105,15 @@ class KeyPadService with ReactiveServiceMixin {
 
     _order.value = order;
 
-    return order != null ? order : null;
+    return order ?? null;
   }
 
   /// this function update _orders.value the same as getOrders but this takes id of the order we want
   /// it is very important to not fonfuse these functions. later on.
   Future<OrderFSync?> getOrderById({required int id}) async {
-    OrderFSync od = await ProxyService.api.getOrderById(id: id);
+    OrderFSync? od = await ProxyService.api.getOrderById(id: id);
 
-    _countOrderItems.value = od.orderItems.length;
+    _countOrderItems.value = od!.orderItems.length;
 
     _order.value = od;
     return _order.value!;
