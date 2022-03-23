@@ -54,7 +54,8 @@ class ProductViewModel extends ReactiveViewModel {
   Future<int> loadTemporalproductOrEditIfProductIdGiven(
       {int? productId}) async {
     if (productId != null) {
-      ProductSync? product = await ProxyService.api.getProduct(id: productId);
+      ProductSync? product =
+          await ProxyService.isarApi.getProduct(id: productId);
       productService.setCurrentProduct(product: product!);
       kProductName = product.name;
       productService.variantsProduct(productId: product.id);
@@ -63,11 +64,11 @@ class ProductViewModel extends ReactiveViewModel {
     }
     int branchId = ProxyService.box.getBranchId()!;
     ProductSync? isTemp =
-        ProxyService.api.isTempProductExist(branchId: branchId);
+        ProxyService.isarApi.isTempProductExist(branchId: branchId);
     log.d(isTemp);
     log.d(branchId);
     if (isTemp == null) {
-      ProductSync product = await ProxyService.api.createProduct(
+      ProductSync product = await ProxyService.isarApi.createProduct(
           product: ProductSync()
             ..name = "temp"
             ..branchId = ProxyService.box.getBranchId()!
@@ -130,7 +131,7 @@ class ProductViewModel extends ReactiveViewModel {
       ..focused = false
       ..name = name
       ..branchId = branchId!;
-    await ProxyService.api.create(endPoint: 'category', data: category);
+    await ProxyService.isarApi.create(endPoint: 'category', data: category);
     _appService.loadCategories();
   }
 
@@ -143,7 +144,7 @@ class ProductViewModel extends ReactiveViewModel {
         cat.branchId = branchId;
         cat.active = !cat.active;
         int categoryId = category.id;
-        await ProxyService.api.update(
+        await ProxyService.isarApi.update(
           endPoint: 'category/$categoryId',
           data: cat,
         );
@@ -155,7 +156,7 @@ class ProductViewModel extends ReactiveViewModel {
     cat.active = !cat.active;
     cat.branchId = branchId;
     int categoryId = category.id;
-    await ProxyService.api.update(
+    await ProxyService.isarApi.update(
       endPoint: 'category/$categoryId',
       data: cat,
     );
@@ -170,7 +171,7 @@ class ProductViewModel extends ReactiveViewModel {
       if (unit.active) {
         unit.active = !unit.active;
         int id = unit.id;
-        await ProxyService.api.update(
+        await ProxyService.isarApi.update(
           endPoint: 'unit/$id',
           data: unit.toJson(),
         );
@@ -179,22 +180,22 @@ class ProductViewModel extends ReactiveViewModel {
     Unit unit = newUnit;
     unit.active = !unit.active;
     int id = unit.id;
-    await ProxyService.api.update(
+    await ProxyService.isarApi.update(
       endPoint: 'unit/$id',
       data: unit.toJson(),
     );
     if (type == 'product') {
       final Map data = product.toJson();
       data['unit'] = unit.name;
-      ProxyService.api.update(data: data, endPoint: 'product');
+      ProxyService.isarApi.update(data: data, endPoint: 'product');
       final ProductSync? uProduct =
-          await ProxyService.api.getProduct(id: product.id);
+          await ProxyService.isarApi.getProduct(id: product.id);
       productService.setCurrentProduct(product: uProduct!);
     }
     if (type == 'variant') {
       // final Map data = product.toJson();
       // data['unit'] = unit.name;
-      // ProxyService.api.update(data: data, endPoint: 'variant');
+      // ProxyService.isarApi.update(data: data, endPoint: 'variant');
     }
     _appService.loadUnits();
   }
@@ -202,12 +203,12 @@ class ProductViewModel extends ReactiveViewModel {
   void updateStock({required int variantId}) async {
     if (_stockValue != null) {
       StockSync? stock =
-          await ProxyService.api.stockByVariantId(variantId: variantId);
+          await ProxyService.isarApi.stockByVariantId(variantId: variantId);
       // Map data = stock;
       stock!.currentStock = _stockValue!;
       final int stockId = stock.id;
 
-      ProxyService.api.update(data: stock, endPoint: 'stock/$stockId');
+      ProxyService.isarApi.update(data: stock, endPoint: 'stock/$stockId');
       productService.variantsProduct(productId: product.id);
     }
     productService.variantsProduct(productId: product.id);
@@ -221,10 +222,10 @@ class ProductViewModel extends ReactiveViewModel {
   }
 
   void deleteVariant({required int id}) async {
-    VariantSync? variant = await ProxyService.api.variant(variantId: id);
+    VariantSync? variant = await ProxyService.isarApi.variant(variantId: id);
     // can not delete regular variant every product should have a regular variant.
     if (variant!.name != 'Regular') {
-      ProxyService.api.delete(id: id, endPoint: 'variation');
+      ProxyService.isarApi.delete(id: id, endPoint: 'variation');
       //this will reload the variations remain
       loadTemporalproductOrEditIfProductIdGiven();
     }
@@ -252,24 +253,24 @@ class ProductViewModel extends ReactiveViewModel {
     for (PColor c in colors) {
       if (c.active) {
         final PColor? _color =
-            await ProxyService.api.getColor(id: c.id, endPoint: 'color');
+            await ProxyService.isarApi.getColor(id: c.id, endPoint: 'color');
         final Map mapColor = _color!.toJson();
         mapColor['active'] = false;
         mapColor['branchId'] = branchId;
         final id = mapColor['id'];
-        ProxyService.api.update(data: mapColor, endPoint: 'color/$id');
+        ProxyService.isarApi.update(data: mapColor, endPoint: 'color/$id');
       }
     }
 
     final PColor? _color =
-        await ProxyService.api.getColor(id: color.id, endPoint: 'color');
+        await ProxyService.isarApi.getColor(id: color.id, endPoint: 'color');
 
     final Map mapColor = _color!.toJson();
 
     mapColor['active'] = true;
     mapColor['branchId'] = branchId;
     final id = mapColor['id'];
-    ProxyService.api.update(data: mapColor, endPoint: 'color/$id');
+    ProxyService.isarApi.update(data: mapColor, endPoint: 'color/$id');
 
     _appService.setCurrentColor(color: color.name!);
 
@@ -284,7 +285,7 @@ class ProductViewModel extends ReactiveViewModel {
       {List<VariantSync>? variations,
       required double retailPrice,
       required double supplyPrice}) async {
-    int result = await ProxyService.api.addVariant(
+    int result = await ProxyService.isarApi.addVariant(
         data: variations!, retailPrice: retailPrice, supplyPrice: supplyPrice);
     return result;
   }
@@ -304,13 +305,14 @@ class ProductViewModel extends ReactiveViewModel {
           variation.supplyPrice = supplyPrice;
           variation.productId = variation.productId;
           int ids = variation.id;
-          ProxyService.api.update(data: variation, endPoint: 'variant/$ids');
-          StockSync? stock =
-              await ProxyService.api.stockByVariantId(variantId: variation.id);
+          ProxyService.isarApi
+              .update(data: variation, endPoint: 'variant/$ids');
+          StockSync? stock = await ProxyService.isarApi
+              .stockByVariantId(variantId: variation.id);
           // Map data = stock.toJson();
           stock!.supplyPrice = supplyPrice;
           int id = stock.id;
-          ProxyService.api.update(data: stock, endPoint: 'stock/$id');
+          ProxyService.isarApi.update(data: stock, endPoint: 'stock/$id');
         }
       }
     }
@@ -322,14 +324,15 @@ class ProductViewModel extends ReactiveViewModel {
           variation.retailPrice = retailPrice;
           variation.productId = variation.productId;
           int ids = variation.id;
-          ProxyService.api.update(data: variation, endPoint: 'variant/$ids');
-          StockSync? stock =
-              await ProxyService.api.stockByVariantId(variantId: variation.id);
+          ProxyService.isarApi
+              .update(data: variation, endPoint: 'variant/$ids');
+          StockSync? stock = await ProxyService.isarApi
+              .stockByVariantId(variantId: variation.id);
 
           // Map data = stock.toJson();
           stock!.retailPrice = retailPrice;
           int id = stock.id;
-          ProxyService.api.update(data: stock, endPoint: 'stock/$id');
+          ProxyService.isarApi.update(data: stock, endPoint: 'stock/$id');
         }
       }
     }
@@ -344,43 +347,43 @@ class ProductViewModel extends ReactiveViewModel {
     mproduct['draft'] = false;
     // update the variant with the product name
     List<VariantSync> variants =
-        ProxyService.api.getVariantByProductId(productId: mproduct['id']);
+        ProxyService.isarApi.getVariantByProductId(productId: mproduct['id']);
 
     for (VariantSync variant in variants) {
       // Map v = variant.toJson();
       variant.productName = name;
       variant.productId = mproduct['id'];
       int id = variant.id;
-      await ProxyService.api.update(data: variant, endPoint: 'variant/$id');
+      await ProxyService.isarApi.update(data: variant, endPoint: 'variant/$id');
     }
     final response =
-        await ProxyService.api.update(data: mproduct, endPoint: 'product');
+        await ProxyService.isarApi.update(data: mproduct, endPoint: 'product');
     return response == 200;
   }
 
   void deleteProduct({required int productId}) async {
     //get variants->delete
     int branchId = ProxyService.box.read(key: 'branchId');
-    List<VariantSync> variations = await ProxyService.api
+    List<VariantSync> variations = await ProxyService.isarApi
         .variants(branchId: branchId, productId: productId);
     for (VariantSync variation in variations) {
-      ProxyService.api.delete(id: variation.id, endPoint: 'variation');
+      ProxyService.isarApi.delete(id: variation.id, endPoint: 'variation');
       //get stock->delete
       StockSync? stock =
-          await ProxyService.api.stockByVariantId(variantId: variation.id);
-      ProxyService.api.delete(id: stock!.id, endPoint: 'stock');
+          await ProxyService.isarApi.stockByVariantId(variantId: variation.id);
+      ProxyService.isarApi.delete(id: stock!.id, endPoint: 'stock');
     }
     //then delete the product
-    ProxyService.api.delete(id: productId, endPoint: 'product');
+    ProxyService.isarApi.delete(id: productId, endPoint: 'product');
     loadProducts(); //refresh list of products
   }
 
   void updateExpiryDate(DateTime date) async {
     Map kProduct = product.toJson();
     kProduct['expiryDate'] = date.toIso8601String();
-    ProxyService.api.update(data: kProduct, endPoint: 'product');
+    ProxyService.isarApi.update(data: kProduct, endPoint: 'product');
     ProductSync? cProduct =
-        await ProxyService.api.getProduct(id: kProduct['id']);
+        await ProxyService.isarApi.getProduct(id: kProduct['id']);
     productService.setCurrentProduct(product: cProduct!);
     notifyListeners();
   }
@@ -399,7 +402,7 @@ class ProductViewModel extends ReactiveViewModel {
   }
 
   void deleteDiscount({id}) {
-    ProxyService.api.delete(id: id, endPoint: 'discount');
+    ProxyService.isarApi.delete(id: id, endPoint: 'discount');
     loadProducts();
   }
 

@@ -13,7 +13,7 @@ class DiscountViewModel extends ProductViewModel {
   }
 
   update({required String name, required double amount, required int id}) {
-    ProxyService.api.update(
+    ProxyService.isarApi.update(
       data: {'name': name, "amount": amount, "id": id},
       endPoint: 'discount/$id',
     );

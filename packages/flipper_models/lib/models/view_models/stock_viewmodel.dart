@@ -10,7 +10,7 @@ class StockViewModel extends BaseViewModel {
   get stocks => _stocks;
 
   loadStockByProductId({required int productId}) async {
-    _stocks = ProxyService.api.stocks(productId: productId);
+    _stocks = ProxyService.isarApi.stocks(productId: productId);
     notifyListeners();
   }
 }

@@ -52,7 +52,7 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
     if (username == null) {
       return "Username/business name is required";
     }
-    int status = await ProxyService.api.userNameAvailable(name: username);
+    int status = await ProxyService.isarApi.userNameAvailable(name: username);
 
     if (status == 200) {
       return 'That username is already taken';

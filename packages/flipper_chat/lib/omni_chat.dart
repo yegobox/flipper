@@ -46,7 +46,7 @@ class _OmniChatState extends State<OmniChat> {
         SchedulerPhase.persistentCallbacks) {
       SchedulerBinding.instance?.addPostFrameCallback((_) {
         int businessId = ProxyService.box.read(key: 'businessId');
-        Profile? profile = ProxyService.api.profile(businessId: businessId);
+        Profile? profile = ProxyService.isarApi.profile(businessId: businessId);
         if (profile == null) {
           bottomSheetBuilderProfile(
             context: context,

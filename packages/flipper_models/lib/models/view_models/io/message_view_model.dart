@@ -21,7 +21,7 @@ class MessageViewModel extends BusinessHomeViewModel {
   final log = getLogger('MessageViewModel');
   Business? user = null;
   void messages() {
-    // ProxyService.api.conversationStreamList();
+    // ProxyService.isarApi.conversationStreamList();
   }
 
   void onNewOrder() {
@@ -30,7 +30,7 @@ class MessageViewModel extends BusinessHomeViewModel {
 
   void delete(int id) {
     log.i(id);
-    ProxyService.api.delete(id: id, endPoint: 'message');
+    ProxyService.isarApi.delete(id: id, endPoint: 'message');
   }
 
   /// get a list of [Conversation] a conversation is a list of [Message]
@@ -43,7 +43,7 @@ class MessageViewModel extends BusinessHomeViewModel {
   /// TODOrename this to getConversations
   // Stream<List<Conversation>> conversations() async* {
   //   Stream<List<Conversation>> conversations =
-  //       await ProxyService.api.conversationStreamList();
+  //       await ProxyService.isarApi.conversationStreamList();
   //   yield* conversations;
   // }
 
@@ -56,10 +56,10 @@ class MessageViewModel extends BusinessHomeViewModel {
   Business? business = null;
   void loadContacts() async {
     // int id = ProxyService.box.read(key: 'businessId');
-    // business = ProxyService.api.getBusinessById(id: id);
+    // business = ProxyService.isarApi.getBusinessById(id: id);
 
     // Stream<List<Business>> contacts =
-    //     ProxyService.api.contacts().asBroadcastStream();
+    //     ProxyService.isarApi.contacts().asBroadcastStream();
 
     Stream<List<Business>> contacts = ProxyService.firestore.contacts();
 
@@ -145,7 +145,7 @@ class MessageViewModel extends BusinessHomeViewModel {
     required int conversationId,
   }) async {
     int senderId = ProxyService.box.read(key: 'businessId');
-    Business business = ProxyService.obox.getBusinessById(id: senderId);
+    Business business = ProxyService.api.getBusinessById(id: senderId);
 
     Map<String, dynamic> author = types.User(
       id: senderId.toString(),
@@ -163,7 +163,7 @@ class MessageViewModel extends BusinessHomeViewModel {
     //   convoId: conversationId,
     // );
 
-    // ProxyService.api.sendMessage(
+    // ProxyService.isarApi.sendMessage(
     //   receiverId: receiverId,
     //   message: kMessage,
     // );
@@ -182,12 +182,12 @@ class MessageViewModel extends BusinessHomeViewModel {
   ///so we have to make sure before the user or business start to chat bot have arleady saved
   ///the business on local
   void loadSenderBusiness({required int senderId}) async {
-    user = ProxyService.obox.getBusinessById(id: senderId);
+    user = ProxyService.api.getBusinessById(id: senderId);
     notifyListeners();
   }
 
   void deleteConversation(String roomId) {
-    // ProxyService.api.delete(id: conversation.id, endPoint: "conversation");
+    // ProxyService.isarApi.delete(id: conversation.id, endPoint: "conversation");
     ProxyService.firestore.deleteRoom(roomId: roomId);
   }
 

@@ -46,7 +46,7 @@ _i1.GetIt $initGetIt(_i1.GetIt get,
   gh.lazySingleton<_i3.Analytic>(() => thirdPartyServicesModule.appAnalytic);
   gh.lazySingleton<_i4.AnalyticService>(
       () => thirdPartyServicesModule.analytic);
-  gh.lazySingleton<_i5.Api<dynamic>>(() => thirdPartyServicesModule.obox);
+  gh.lazySingleton<_i5.Api<dynamic>>(() => thirdPartyServicesModule.apiService);
   gh.lazySingleton<_i6.AppService>(() => thirdPartyServicesModule.appService);
   gh.lazySingleton<_i7.BillingService>(() => thirdPartyServicesModule.billing);
   gh.lazySingleton<_i8.Country>(() => thirdPartyServicesModule.country);

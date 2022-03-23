@@ -78,7 +78,7 @@ class SignupViewModel extends FormViewModel {
     //if name containts space replace them with _
     // final String? name = kName?.replaceAll(' ', '_');
 
-    int okStatus = await ProxyService.api.signup(business: {
+    int okStatus = await ProxyService.isarApi.signup(business: {
       'name': kName,
       'latitude': latitude,
       'longitude': longitude,
@@ -95,7 +95,7 @@ class SignupViewModel extends FormViewModel {
       final String userId = ProxyService.box.getUserId()!;
       //get businesses's id then look for related branch [0] create the default category
       Business businesses =
-          await ProxyService.api.getOnlineBusiness(userId: userId);
+          await ProxyService.isarApi.getOnlineBusiness(userId: userId);
 
       ProxyService.box.write(key: 'businessId', value: businesses.id);
       ProxyService.appService.setBusiness(business: businesses);
@@ -105,7 +105,7 @@ class SignupViewModel extends FormViewModel {
       //     .saveTokenToDatabase(token: token!, business: businesses[0]);
       // // }
       List<BranchSync> branches =
-          await ProxyService.api.branches(businessId: businesses.id);
+          await ProxyService.isarApi.branches(businessId: businesses.id);
 
       ProxyService.box.write(key: 'branchId', value: branches[0].id);
 
@@ -114,7 +114,7 @@ class SignupViewModel extends FormViewModel {
         ..focused = true
         ..name = 'NONE'
         ..branchId = branches[0].id!;
-      await ProxyService.api
+      await ProxyService.isarApi
           .create<Category>(data: category, endPoint: 'category');
       //get default colors for this branch
       final List<String> colors = [
@@ -138,7 +138,7 @@ class SignupViewModel extends FormViewModel {
         name: 'sample',
       );
 
-      await ProxyService.api.create<PColor>(data: color, endPoint: 'color');
+      await ProxyService.isarApi.create<PColor>(data: color, endPoint: 'color');
       //now create default units for this branch
       final units = Unit(
         name: 'sample',
@@ -150,10 +150,10 @@ class SignupViewModel extends FormViewModel {
         fbranchId: branches[0].id,
         channels: [userId],
       );
-      await ProxyService.api.addUnits(data: units.toJson());
+      await ProxyService.isarApi.addUnits(data: units.toJson());
 
       //now create a default custom product
-      await ProxyService.api.createProduct(product: ProductSync());
+      await ProxyService.isarApi.createProduct(product: ProductSync());
 
       // ProxyService.nav.navigateTo(Routes.home);
       GoRouter.of(context!).go(Routes.home);

@@ -55,7 +55,7 @@ class LoginViewModel extends FormViewModel {
     notifyListeners();
 
     try {
-      Pin? pin = await ProxyService.api.getPin(pin: pinCode);
+      Pin? pin = await ProxyService.isarApi.getPin(pin: pinCode);
       if (pin != null) {
         await FirebaseAuth.instance.signInAnonymously();
         final auth = FirebaseAuth.instance;
@@ -64,7 +64,7 @@ class LoginViewModel extends FormViewModel {
           ProxyService.box.write(key: 'branchId', value: pin.branchId);
           ProxyService.box.write(key: 'userId', value: pin.userId);
           ProxyService.box.write(key: 'userPhone', value: pin.phoneNumber);
-          await ProxyService.api.login(
+          await ProxyService.isarApi.login(
             userPhone: pin.phoneNumber,
           );
 

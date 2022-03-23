@@ -11,7 +11,6 @@ import 'package:flipper_services/in_app_review.dart';
 import 'package:flipper_services/language_service.dart';
 import 'package:flipper_services/event_service.dart';
 import 'package:flipper_services/mobile_upload.dart';
-import 'package:flipper_services/objectbox_api.dart';
 import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/analytic_service.dart';
 import 'package:flipper_services/remote_config_service.dart';
@@ -21,7 +20,7 @@ import 'package:flipper_services/share_implementation.dart';
 import 'package:flipper_services/sync_api.dart';
 import 'package:flipper_services/system_time_service.dart';
 import 'package:injectable/injectable.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/models/models.dart';
 import 'abstractions/api.dart';
 import 'abstractions/dynamic_link.dart';
 import 'abstractions/location.dart';
@@ -181,10 +180,10 @@ abstract class ThirdPartyServicesModule {
   }
 
   @lazySingleton
-  Api get obox {
-    late Api obox;
-    obox = ObjectBoxApi();
-    return obox;
+  Api get apiService {
+    late Api apiService;
+    apiService = ObjectBoxApi();
+    return apiService;
   }
 
   @lazySingleton

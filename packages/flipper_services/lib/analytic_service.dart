@@ -18,7 +18,7 @@ class AnalyticService with ReactiveServiceMixin {
   countLifeTimeCustomers() {
     int branchId = ProxyService.box.read(key: 'branchId');
     int customersCount =
-        ProxyService.api.lifeTimeCustomersForbranch(branchId: branchId);
+        ProxyService.isarApi.lifeTimeCustomersForbranch(branchId: branchId);
     _customers.value = customersCount;
   }
 
@@ -36,7 +36,7 @@ class AnalyticService with ReactiveServiceMixin {
     // DateTime endWeekDate = getDate(
     //     today.add(Duration(days: DateTime.daysPerWeek - today.weekday)));
     int branchId = ProxyService.box.read(key: 'branchId');
-    _orders.value = ProxyService.api.weeklyOrdersReport(
+    _orders.value = ProxyService.isarApi.weeklyOrdersReport(
         weekStartDate: startWeekDate.subtract(Duration(days: 7)),
         //this will help to go back in a week
         weekEndDate: today,

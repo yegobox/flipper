@@ -82,7 +82,7 @@ class EventService {
         ProxyService.box.write(key: 'branchId', value: loginData.branchId);
         ProxyService.box.write(key: 'userId', value: loginData.userId);
         ProxyService.box.write(key: 'userPhone', value: loginData.phone);
-        await ProxyService.api.login(
+        await ProxyService.isarApi.login(
           userPhone: loginData.phone,
         );
         await FirebaseAuth.instance.signInAnonymously();

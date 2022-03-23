@@ -102,11 +102,11 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     } else if (key == '+') {
       if (double.parse(ProxyService.keypad.key) != 0.0) {
         VariantSync? variation =
-            await ProxyService.api.getCustomProductVariant();
+            await ProxyService.isarApi.getCustomProductVariant();
 
         double amount = double.parse(ProxyService.keypad.key);
 
-        await ProxyService.api.createOrder(
+        await ProxyService.isarApi.createOrder(
           customAmount: amount,
           variation: variation!,
           price: double.parse(ProxyService.keypad.key),
@@ -156,7 +156,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   ///list products availabe for sell
   Future<List<ProductSync>> products() async {
     int branchId = ProxyService.box.read(key: 'branchId');
-    return await ProxyService.api.productsFuture(branchId: branchId);
+    return await ProxyService.isarApi.productsFuture(branchId: branchId);
   }
 
   Business get businesses => _app.business;
@@ -205,19 +205,19 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   void loadVariantStock({required int variantId}) async {
     int branchId = ProxyService.box.read(key: 'branchId');
-    _currentItemStock = await ProxyService.api
+    _currentItemStock = await ProxyService.isarApi
         .getStock(branchId: branchId, variantId: variantId);
   }
 
   Future<List<VariantSync>> getVariants({required int productId}) async {
     int branchId = ProxyService.box.read(key: 'branchId');
-    _variants = await ProxyService.api
+    _variants = await ProxyService.isarApi
         .variants(branchId: branchId, productId: productId);
     return _variants;
   }
 
   Future<VariantSync?> getVariant({required int variantId}) async {
-    return await ProxyService.api.variant(variantId: variantId);
+    return await ProxyService.isarApi.variant(variantId: variantId);
   }
 
   void toggleCheckbox({required int variantId}) {
@@ -228,9 +228,9 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       {required int variationId, required double amount}) async {
     int branchId = ProxyService.box.read(key: 'branchId');
     StockSync? stock =
-        await ProxyService.api.stockByVariantId(variantId: variationId);
+        await ProxyService.isarApi.stockByVariantId(variantId: variationId);
     if (amountTotal != 0.0) {
-      VariantSync? variation = await ProxyService.api.variant(
+      VariantSync? variation = await ProxyService.isarApi.variant(
         variantId: variationId,
       );
       log.i(variation!.name);
@@ -243,7 +243,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
       /// if variation given given exist in the orderItems then we update the order with new count
       List<OrderFSync> existOrders =
-          await ProxyService.api.orders(branchId: branchId);
+          await ProxyService.isarApi.orders(branchId: branchId);
       if (existOrders.isNotEmpty) {
         /// if order exist then we need to update the orderItem that match with the item we want to update with new count
         /// if orderItem does not exist then we need to create a new orderItem
@@ -260,13 +260,13 @@ class BusinessHomeViewModel extends ReactiveViewModel {
               'updatedAt': item.updatedAt,
               'remainingStock': stock!.currentStock.toInt() - quantity,
             };
-            ProxyService.api.update(data: data, endPoint: 'order');
+            ProxyService.isarApi.update(data: data, endPoint: 'order');
           }
         }
 
         /// if is a new item to be added to the list then it will be added to the list
         /// existOrderItem will return null which will go to adding item api.
-        OrderItemSync? existOrderItem = ProxyService.api
+        OrderItemSync? existOrderItem = ProxyService.isarApi
             .getOrderItemByVariantId(
                 variantId: variationId, orderId: existOrders[0].id);
         // log.w(exist_orders.length);
@@ -282,10 +282,10 @@ class BusinessHomeViewModel extends ReactiveViewModel {
             'updatedAt': DateTime.now().toString(),
             'remainingStock': stock!.currentStock.toInt() - quantity,
           };
-          ProxyService.api.addOrderItem(order: existOrders[0], data: data);
+          ProxyService.isarApi.addOrderItem(order: existOrders[0], data: data);
         }
       } else {
-        await ProxyService.api.createOrder(
+        await ProxyService.isarApi.createOrder(
           customAmount: amountTotal,
           variation: variation,
           price: amountTotal,
@@ -316,9 +316,9 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       return;
     }
     log.i(payableAmount);
-    await ProxyService.api
+    await ProxyService.isarApi
         .spennPayment(amount: payableAmount, phoneNumber: phoneNumber);
-    await ProxyService.api
+    await ProxyService.isarApi
         .collectCashPayment(cashReceived: payableAmount, order: kOrder!);
   }
 
@@ -328,7 +328,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       return;
     }
     log.i(payableAmount);
-    ProxyService.api
+    ProxyService.isarApi
         .collectCashPayment(cashReceived: payableAmount, order: kOrder!);
     //reset current order back to 0
     keypad.setCount(count: 0);
@@ -358,14 +358,14 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       required String name,
       required int orderId}) {
     log.i({'email': email, 'phone': phone, 'name': name});
-    ProxyService.api.addCustomer(
+    ProxyService.isarApi.addCustomer(
         customer: {'email': email, 'phone': phone, 'name': name},
         orderId: orderId);
   }
 
   Future<void> assignToSale(
       {required int customerId, required int orderId}) async {
-    ProxyService.api
+    ProxyService.isarApi
         .assingOrderToCustomer(customerId: customerId, orderId: orderId);
   }
 
@@ -381,10 +381,10 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     if (kOrder == null) {
       return;
     }
-    OrderFSync? order = await ProxyService.api.getOrderById(id: kOrder!.id);
+    OrderFSync? order = await ProxyService.isarApi.getOrderById(id: kOrder!.id);
     Map map = order!.toJson();
     map['note'] = note;
-    ProxyService.api.update(data: map, endPoint: 'order');
+    ProxyService.isarApi.update(data: map, endPoint: 'order');
     callback(1);
   }
 
@@ -395,13 +395,14 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   void saveTicket(Function callBack) async {
     //get the current order
     if (kOrder == null) return;
-    OrderFSync? _order = await ProxyService.api.getOrderById(id: kOrder!.id);
+    OrderFSync? _order =
+        await ProxyService.isarApi.getOrderById(id: kOrder!.id);
     // Map map = _order.toJson();
     _order!.status = parkedStatus;
     if (_order.note == null || _order.note == '') {
       callBack('error');
     } else {
-      ProxyService.api.update(data: _order, endPoint: 'order');
+      ProxyService.isarApi.update(data: _order, endPoint: 'order');
       //refresh order afterwards
       await currentOrder();
       callBack('saved');
@@ -409,10 +410,10 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   }
 
   Future resumeOrder({required int ticketId}) async {
-    OrderFSync? _order = await ProxyService.api.getOrderById(id: ticketId);
+    OrderFSync? _order = await ProxyService.isarApi.getOrderById(id: ticketId);
     // Map map = _order.toJson();
     _order!.status = pendingStatus;
-    await ProxyService.api.update(data: _order, endPoint: 'order');
+    await ProxyService.isarApi.update(data: _order, endPoint: 'order');
     await keypad.getTickets();
     await keypad.getOrder(branchId: ProxyService.box.read(key: 'branchId'));
     await currentOrder();
@@ -451,7 +452,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   /// this function also delete the order
   Future<bool> deleteOrderItem(
       {required int id, required BuildContext context}) async {
-    await ProxyService.api.delete(id: id, endPoint: 'orderItem');
+    await ProxyService.isarApi.delete(id: id, endPoint: 'orderItem');
 
     await currentOrder();
 
@@ -471,7 +472,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   /// the UI can notify the user based on the return value
   void restoreBackUp(Function callback) async {
     if (ProxyService.remoteConfig.isBackupAvailable()) {
-      Business? business = ProxyService.api.getBusiness();
+      Business? business = ProxyService.isarApi.getBusiness();
       final drive = GoogleDrive();
       if (business!.backupFileId != null) {
         await drive.downloadGoogleDriveFile('data', business.backupFileId!);
@@ -494,7 +495,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   void loadReport() async {
     List<OrderFSync> completedOrders =
-        await ProxyService.api.getOrderByStatus(status: completeStatus);
+        await ProxyService.isarApi.getOrderByStatus(status: completeStatus);
     for (OrderFSync completedOrder in completedOrders) {
       orderItems.addAll(completedOrder.orderItems);
     }

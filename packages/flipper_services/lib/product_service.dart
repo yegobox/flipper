@@ -60,9 +60,9 @@ class ProductService with ReactiveServiceMixin {
   /// load discounts  in a list merge them with products make discount be at the top.
   Stream<List<ProductSync>> loadProducts({required int branchId}) async* {
     final List<DiscountSync> _discountss =
-        await ProxyService.api.getDiscounts(branchId: branchId);
+        await ProxyService.isarApi.getDiscounts(branchId: branchId);
     final Stream<List<ProductSync>> _productss =
-        ProxyService.api.productStreams(branchId: branchId);
+        ProxyService.isarApi.productStreams(branchId: branchId);
     _discounts.value = _discountss;
     yield* _productss;
   }
@@ -83,13 +83,13 @@ class ProductService with ReactiveServiceMixin {
 
   Future<ProductSync?> getProductByBarCode({required String? code}) async {
     if (code == null) return null;
-    return await ProxyService.api.getProductByBarCode(barCode: code);
+    return await ProxyService.isarApi.getProductByBarCode(barCode: code);
   }
 
   List<StockSync?> _stocks = [];
   List<StockSync?> get stocks => _stocks;
   List<StockSync?> loadStockByProductId({required int productId}) {
-    _stocks = ProxyService.api.stocks(productId: productId);
+    _stocks = ProxyService.isarApi.stocks(productId: productId);
     return stocks;
   }
 

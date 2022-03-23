@@ -43,7 +43,7 @@ class AppService with ReactiveServiceMixin {
     int? branchId = ProxyService.box.read(key: 'branchId');
 
     final List<Category> result =
-        await ProxyService.api.categories(branchId: branchId!);
+        await ProxyService.isarApi.categories(branchId: branchId!);
 
     _categories.value = result;
     notifyListeners();
@@ -51,7 +51,8 @@ class AppService with ReactiveServiceMixin {
 
   Future<void> loadUnits() async {
     int? branchId = ProxyService.box.read(key: 'branchId');
-    final List<Unit> result = await ProxyService.api.units(branchId: branchId!);
+    final List<Unit> result =
+        await ProxyService.isarApi.units(branchId: branchId!);
 
     _units.value = result;
   }
@@ -59,7 +60,8 @@ class AppService with ReactiveServiceMixin {
   Future<void> loadColors() async {
     int? branchId = ProxyService.box.read(key: 'branchId');
 
-    List<PColor> result = await ProxyService.api.colors(branchId: branchId!);
+    List<PColor> result =
+        await ProxyService.isarApi.colors(branchId: branchId!);
     _colors.value = result;
 
     for (PColor color in _colors.value) {
@@ -83,7 +85,7 @@ class AppService with ReactiveServiceMixin {
   /// contact are business in other words
   Future<void> loadContacts() async {
     Stream<List<Business>> contacts =
-        ProxyService.api.contacts().asBroadcastStream();
+        ProxyService.isarApi.contacts().asBroadcastStream();
     contacts.listen((event) {
       _contacts.value = event;
     });

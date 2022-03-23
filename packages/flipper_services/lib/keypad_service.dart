@@ -62,7 +62,7 @@ class KeyPadService with ReactiveServiceMixin {
 
   List<OrderFSync> get tickets => _tickets.value;
   Future<List<OrderFSync>> getTickets() async {
-    List<OrderFSync> od = await ProxyService.api.tickets();
+    List<OrderFSync> od = await ProxyService.isarApi.tickets();
     //NOTE: we assume index[0] as pending order can not be more than one at the moment
     if (od.isNotEmpty) {
       _countOrderItems.value = od[0].orderItems.length;
@@ -98,7 +98,7 @@ class KeyPadService with ReactiveServiceMixin {
   /// we have one order but an order can have more than 1 orderitem(s)
   /// it is in this recard in application anywhere else it's okay to access orders[0]
   Future<OrderFSync?> getOrder({required int branchId}) async {
-    OrderFSync? order = await ProxyService.api.order(branchId: branchId);
+    OrderFSync? order = await ProxyService.isarApi.order(branchId: branchId);
     if (order != null) {
       _countOrderItems.value = order.orderItems.length;
     }
@@ -111,7 +111,7 @@ class KeyPadService with ReactiveServiceMixin {
   /// this function update _orders.value the same as getOrders but this takes id of the order we want
   /// it is very important to not fonfuse these functions. later on.
   Future<OrderFSync?> getOrderById({required int id}) async {
-    OrderFSync? od = await ProxyService.api.getOrderById(id: id);
+    OrderFSync? od = await ProxyService.isarApi.getOrderById(id: id);
 
     _countOrderItems.value = od!.orderItems.length;
 

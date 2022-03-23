@@ -72,7 +72,7 @@ class _AddProductViewState extends State<AddProductView> {
         /// normal this is a List of variants where match the productId and take where we have the regular variant
         if (widget.productId != null) {
           log.i(widget.productId);
-          List<VariantSync> variants = ProxyService.api
+          List<VariantSync> variants = ProxyService.isarApi
               .getVariantByProductId(productId: widget.productId!);
           //filter the variants where we have the regular variant and get one of them
           VariantSync regularVariant =

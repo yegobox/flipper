@@ -54,7 +54,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
     // final log = getLogger('ObjectBoxAPi');
     // log.i('Path' + dir.path + '/$dbName');
     store = Store(getObjectBoxModel(), directory: dir.path + '/$dbName');
-    ProxyService.api.migrateToSync();
+    ProxyService.isarApi.migrateToSync();
     SyncClient syncClient = Sync.client(
       store,
       'ws://sync.yegobox.com:908', // wss for SSL, ws for unencrypted traffic
@@ -684,7 +684,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
           ftaxId: map['ftaxId'],
         );
         List<VariantSync> variants =
-            ProxyService.obox.getVariantByProductId(productId: map['id']);
+            ProxyService.api.getVariantByProductId(productId: map['id']);
         final box = store.box<ProductSync>();
         product.variations.addAll(variants);
 
@@ -1931,8 +1931,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
       log.d('created attendance document');
       // update settings with enableAttendance = true
       String userId = ProxyService.box.read(key: 'userId');
-      Setting? setting =
-          ProxyService.obox.getSetting(userId: int.parse(userId));
+      Setting? setting = ProxyService.api.getSetting(userId: int.parse(userId));
       setting!.attendnaceDocCreated = true;
       int id = setting.id;
       update(data: setting.toJson(), endPoint: "settings/$id");

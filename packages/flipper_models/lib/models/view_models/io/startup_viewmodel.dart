@@ -40,7 +40,7 @@ class StartUpViewModel extends BaseViewModel {
       if (e is SessionException) {
         String? userPhone = ProxyService.box.getUserPhone();
         try {
-          await ProxyService.api.login(
+          await ProxyService.isarApi.login(
             userPhone: userPhone!,
           );
           await appInit();
@@ -80,15 +80,15 @@ class StartUpViewModel extends BaseViewModel {
     /// FIXMEpause working on tenants
     // String phoneNumber = ProxyService.box.getUserPhone()!;
     // TenantSync? tenant;
-    // tenant = await ProxyService.api.isTenant(phoneNumber: phoneNumber);
+    // tenant = await ProxyService.isarApi.isTenant(phoneNumber: phoneNumber);
 
     /// instead of going to the network everytime to check if is tenant
     /// load tenant from local storage if not then go to network and save it to local if does not exist local
 
     // if (tenant != null) {
-    //   ProxyService.api.saveTenant(phoneNumber: phoneNumber);
+    //   ProxyService.isarApi.saveTenant(phoneNumber: phoneNumber);
     // }
-    // tenant = await ProxyService.api.isTenant(phoneNumber: phoneNumber);
+    // tenant = await ProxyService.isarApi.isTenant(phoneNumber: phoneNumber);
     // if (tenant != null &&
     //     tenant.permissions.where((e) => e.name == "admin").isNotEmpty) {
     //   /// if we only have one branch no need to switch from branches go straight to business.
@@ -131,7 +131,7 @@ class StartUpViewModel extends BaseViewModel {
           ProxyService.box.write(key: 'needLinkPhoneNumber', value: true);
           phone = user?.email;
         }
-        await ProxyService.api.login(
+        await ProxyService.isarApi.login(
           userPhone: phone!,
         );
       } catch (e) {
@@ -147,12 +147,12 @@ class StartUpViewModel extends BaseViewModel {
       String? userId = ProxyService.box.getUserId();
       log.e("here::$userId");
       isar.Business business =
-          await ProxyService.api.getLocalOrOnlineBusiness(userId: userId!);
+          await ProxyService.isarApi.getLocalOrOnlineBusiness(userId: userId!);
 
       ProxyService.appService.setBusiness(business: business);
       // get local or online branches
       List<isar.BranchSync> branches =
-          await ProxyService.api.getLocalBranches(businessId: business.id);
+          await ProxyService.isarApi.getLocalBranches(businessId: business.id);
 
       ProxyService.box.write(key: 'branchId', value: branches[0].id);
       ProxyService.box.write(key: 'businessId', value: business.id);

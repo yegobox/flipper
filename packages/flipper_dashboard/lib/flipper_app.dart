@@ -85,15 +85,15 @@ class _FlipperAppState extends State<FlipperApp> {
 
     /// to avoid receiving the message of the contact you don't have in your book
     /// we need to load contacts when the app starts.
-    // ProxyService.api.contacts().asBroadcastStream();
-    // ProxyService.api.createPin();
+    // ProxyService.isarApi.contacts().asBroadcastStream();
+    // ProxyService.isarApi.createPin();
 
     super.initState();
     if (SchedulerBinding.instance?.schedulerPhase ==
         SchedulerPhase.persistentCallbacks) {
       SchedulerBinding.instance?.addPostFrameCallback((_) async {
         int businessId = ProxyService.box.read(key: 'businessId');
-        Profile? profile = ProxyService.api.profile(businessId: businessId);
+        Profile? profile = ProxyService.isarApi.profile(businessId: businessId);
 
         int today = DateTime.now().day;
         // if today is tuesday for example and other even days

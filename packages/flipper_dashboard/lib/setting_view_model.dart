@@ -32,7 +32,7 @@ class SettingViewModel extends ReactiveViewModel {
     return ProxyService.box.read(key: 'defaultLanguage');
   }
 
-  Business get business => ProxyService.api
+  Business get business => ProxyService.isarApi
       .getBusinessById(id: ProxyService.box.read(key: 'businessId'));
 
   void setLanguage(String lang) {
@@ -52,12 +52,12 @@ class SettingViewModel extends ReactiveViewModel {
 
   Future<Profile?> updateProfile({required Profile profile}) async {
     _updateStarted = true;
-    return ProxyService.api.updateProfile(profile: profile);
+    return ProxyService.isarApi.updateProfile(profile: profile);
   }
 
   loadUserSettings() async {
     String userId = ProxyService.box.read(key: 'userId');
-    _setting = ProxyService.api.getSetting(userId: int.parse(userId));
+    _setting = ProxyService.isarApi.getSetting(userId: int.parse(userId));
     notifyListeners();
   }
 
@@ -93,13 +93,13 @@ class SettingViewModel extends ReactiveViewModel {
 
     /// do we have a subscription on the feature
 
-    isSubscribed =
-        ProxyService.api.isSubscribed(businessId: businessId, feature: feature);
+    isSubscribed = ProxyService.isarApi
+        .isSubscribed(businessId: businessId, feature: feature);
     if (isSubscribed) {
       callback(isSubscribed);
     } else {
       /// subscribe to the feature
-      isSubscribed = ProxyService.api.subscribe(
+      isSubscribed = ProxyService.isarApi.subscribe(
         businessId: businessId,
         feature: feature,
         agentCode: agentCode,
@@ -123,13 +123,13 @@ class SettingViewModel extends ReactiveViewModel {
         await ProxyService.api
             .createGoogleSheetDoc(email: kSetting.settings!.email);
 
-        Business? business = ProxyService.api.getBusiness();
+        Business? business = ProxyService.isarApi.getBusiness();
         business!.email = kSetting.settings!.email;
-        await ProxyService.api.updateBusiness(
+        await ProxyService.isarApi.updateBusiness(
           id: business.id,
           business: business.toJson(),
         );
-        ProxyService.api.update(
+        ProxyService.isarApi.update(
           data: business.toJson(),
           endPoint: 'businesses/' + business.id.toString(),
         );
@@ -151,8 +151,8 @@ class SettingViewModel extends ReactiveViewModel {
         callback(1);
       } else {
         /// the
-        Business? business = ProxyService.api.getBusiness();
-        ProxyService.api.enableAttendance(
+        Business? business = ProxyService.isarApi.getBusiness();
+        ProxyService.isarApi.enableAttendance(
             businessId: business!.id, email: kSetting.settings!.email);
       }
     } else {
@@ -162,7 +162,7 @@ class SettingViewModel extends ReactiveViewModel {
 
   Pin? pin;
   Future<void> createPin() async {
-    pin = await ProxyService.api.createPin();
+    pin = await ProxyService.isarApi.createPin();
     notifyListeners();
   }
 

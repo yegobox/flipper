@@ -100,7 +100,7 @@ class SaleIndicator extends StatelessWidget {
     //first register the user in firestore db
     //get the current firebase user
     // int businessId = ProxyService.box.read(key: 'businessId');
-    // Business business = await ProxyService.api.getBusinessById(id: businessId);
+    // Business business = await ProxyService.isarApi.getBusinessById(id: businessId);
     //patch a business to add a chat uid
     // ProxyService.firestore.addContact(business: business);
     // ProxyService.nav.navigateTo(Routes.chat);

@@ -43,11 +43,12 @@ class ForceDataEntryService {
     );
 
     int branchid = ProxyService.box.read(key: 'branchId');
-    List<PColor> kColors = await ProxyService.api.colors(branchId: branchid);
+    List<PColor> kColors =
+        await ProxyService.isarApi.colors(branchId: branchid);
     if (kColors.isEmpty) {
-      await ProxyService.api.create<PColor>(data: color, endPoint: 'color');
+      await ProxyService.isarApi.create<PColor>(data: color, endPoint: 'color');
     }
-    List<Unit> kUnits = await ProxyService.api.units(branchId: branchid);
+    List<Unit> kUnits = await ProxyService.isarApi.units(branchId: branchid);
 
     //now create default units for this branch
     final units = Unit(
@@ -61,7 +62,7 @@ class ForceDataEntryService {
       channels: [userId],
     );
     if (kUnits.isEmpty) {
-      await ProxyService.api.addUnits(data: units.toJson());
+      await ProxyService.isarApi.addUnits(data: units.toJson());
     }
   }
 }

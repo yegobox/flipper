@@ -130,15 +130,15 @@ class MobileUpload implements UploadT {
           final UploadResponse uploadResponse =
               uploadResponseFromJson(result.response!);
           ProductSync? product =
-              await ProxyService.api.getProduct(id: productId);
+              await ProxyService.isarApi.getProduct(id: productId);
           // Map map = product!.toJson();
           product!.picture = uploadResponse.url;
           product.imageUrl = uploadResponse.url;
           product.hasPicture = true;
           log.i(productId);
-          ProxyService.api.update(data: product, endPoint: 'product');
+          ProxyService.isarApi.update(data: product, endPoint: 'product');
           ProductSync? kProduct =
-              await ProxyService.api.getProduct(id: productId);
+              await ProxyService.isarApi.getProduct(id: productId);
           ProxyService.productService
               .setCurrentProduct(product: kProduct!); //refresh data!
           onUploadComplete(result.statusCode!);
@@ -186,7 +186,7 @@ class MobileUpload implements UploadT {
     } catch (e) {
       //refresh to token
       String? phone = ProxyService.box.read(key: 'userPhone');
-      await ProxyService.api.login(userPhone: phone!);
+      await ProxyService.isarApi.login(userPhone: phone!);
       onComplete(Exception(e.toString()));
     }
   }
@@ -208,7 +208,7 @@ class MobileUpload implements UploadT {
           /// refresh to token
           String? phone = ProxyService.box.read(key: 'userPhone');
           log.d(phone);
-          await ProxyService.api.login(userPhone: phone!);
+          await ProxyService.isarApi.login(userPhone: phone!);
 
           // onComplete(Exception('error'));
           onComplete(statusCode);

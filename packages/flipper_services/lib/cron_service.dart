@@ -48,7 +48,7 @@ class CronService {
   deleteReceivedMessageFromServer() {
     // cron.schedule(Schedule.parse('*/1 * * * *'), () async {
     //   log.i('scheduled delete message');
-    //   ProxyService.api.emptyQueue();
+    //   ProxyService.isarApi.emptyQueue();
     // });
   }
 
@@ -58,7 +58,7 @@ class CronService {
   // then we will customize invoice to match with actual data.
   schedule() async {
     //save the device token to firestore if it is not already there
-    Business? business = ProxyService.api.getBusiness();
+    Business? business = ProxyService.isarApi.getBusiness();
     String? token;
     if (!Platform.isWindows) {
       token = await FirebaseMessaging.instance.getToken();
@@ -74,14 +74,14 @@ class CronService {
     /// this will be used to update the business model
     /// TODOchange this to avoid multiple api calls to the server
     /// load them when app start then do it later every 15 minutes
-    // ProxyService.api.getContacts();
+    // ProxyService.isarApi.getContacts();
     // cron.schedule(Schedule.parse('*/45 * * * *'), () async {
-    //   ProxyService.api.getContacts();
+    //   ProxyService.isarApi.getContacts();
     // });
 
     /// backup the user db every day
     cron.schedule(Schedule.parse('0 0 * * *'), () {
-      Business? business = ProxyService.api.getBusiness();
+      Business? business = ProxyService.isarApi.getBusiness();
       if (business!.backUpEnabled!) {
         final drive = GoogleDrive();
         drive.backUpNow();
@@ -99,13 +99,13 @@ class CronService {
       ProxyService.box.remove(key: 'checkIn');
       if (settingService.isDailyReportEnabled()) {
         List<OrderFSync> completedOrders =
-            await ProxyService.api.getOrderByStatus(status: completeStatus);
+            await ProxyService.isarApi.getOrderByStatus(status: completeStatus);
 
         for (OrderFSync completedOrder in completedOrders) {
           completedOrder.reported = true;
           log.i('now sending the report to mail...');
           completedOrder.orderItems.load();
-          final response = await ProxyService.api.sendReport(
+          final response = await ProxyService.isarApi.sendReport(
               orderItems: completedOrder.orderItems as List<OrderItemSync>);
           if (response == 200) {
             ProxyService.api

@@ -98,7 +98,7 @@ class _AfterSaleState extends State<AfterSale> {
                       right: 0,
                       left: 0,
                       child: StreamBuilder<CustomerSync?>(
-                          stream: ProxyService.api.getCustomerByOrderId(
+                          stream: ProxyService.isarApi.getCustomerByOrderId(
                               id: model.kOrder == null ? 0 : model.kOrder!.id),
                           builder: (context, snapshot) {
                             return snapshot.data == null

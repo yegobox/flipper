@@ -135,15 +135,16 @@ class FirestoreApi implements FlipperFirestore {
     log.i(business!['id']);
     // User? user = await ProxyService.auth.getCurrentUserId();
 
-    // await ProxyService.api.getBusinessById(id: business['id']);
+    // await ProxyService.isarApi.getBusinessById(id: business['id']);
     //patch a business to add a chat uid
     // business['chatUid'] = user!.uid;
     // log.i(business);
     if (business['id'] is int) {
-      ProxyService.api.updateBusiness(id: business['id'], business: business);
+      ProxyService.isarApi
+          .updateBusiness(id: business['id'], business: business);
 
       //this update local database
-      ProxyService.api.update(
+      ProxyService.isarApi.update(
           data: business, endPoint: 'businesses/' + business['id'].toString());
     }
 
@@ -221,11 +222,11 @@ class FirestoreApi implements FlipperFirestore {
         }
         if (change.type == DocumentChangeType.modified) {
           log.d('firestore:modified triggered');
-          // ProxyService.api.updateProduct(product: change.document.data());
+          // ProxyService.isarApi.updateProduct(product: change.document.data());
         }
         if (change.type == DocumentChangeType.removed) {
           log.d('firestore:removed triggered');
-          // ProxyService.api.deleteProduct(product: change.document.data());
+          // ProxyService.isarApi.deleteProduct(product: change.document.data());
         }
       });
     });
@@ -276,7 +277,7 @@ class FirestoreApi implements FlipperFirestore {
     //     Map p = product.toJson();
     //     p['synced'] = true;
     //     //update product
-    //     await ProxyService.api.update(data: p, endPoint: 'product');
+    //     await ProxyService.isarApi.update(data: p, endPoint: 'product');
     //   }
     // });
   }

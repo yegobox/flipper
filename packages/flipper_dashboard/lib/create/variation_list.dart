@@ -23,7 +23,7 @@ class VariationList extends StatelessWidget {
       if (variations[i].name != 'temp') {
         list.add(
           StreamBuilder<StockSync>(
-            stream: ProxyService.api.stockByVariantIdStream(
+            stream: ProxyService.isarApi.stockByVariantIdStream(
               variantId: variations[i].id,
             ),
             builder: (context, snapshot) {

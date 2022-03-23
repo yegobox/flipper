@@ -31,7 +31,7 @@ class SettingsService with ReactiveServiceMixin {
     //if the setting exist then update the given detail.
     String userId = ProxyService.box.read(key: 'userId');
     Setting? setting =
-        await ProxyService.api.getSetting(userId: int.parse(userId));
+        await ProxyService.isarApi.getSetting(userId: int.parse(userId));
     if (setting != null) {
       Map<String, dynamic> settings_map = setting.toJson();
       //replace a key in settings_map if the key match with the key from map
@@ -42,14 +42,14 @@ class SettingsService with ReactiveServiceMixin {
       });
       int id = setting.id;
       // log.d(map['isAttendanceEnabled']);
-      ProxyService.api.update(data: settings_map, endPoint: 'settings/$id');
+      ProxyService.isarApi.update(data: settings_map, endPoint: 'settings/$id');
       return true;
     } else {
       Map kMap = map;
       map.forEach((key, value) {
         kMap[key] = value;
       });
-      Setting setting = new Setting(
+      Setting setting = Setting(
         email: kMap['email'] ?? '',
         userId: int.parse(userId),
         hasPin: kMap['hasPin'] ?? '',
@@ -61,12 +61,12 @@ class SettingsService with ReactiveServiceMixin {
         autoPrint: kMap['autoPrint'] ?? false,
         isAttendanceEnabled: kMap['isAttendanceEnabled'] ?? false,
       );
-      await ProxyService.api.createSetting(setting: setting);
+      await ProxyService.isarApi.createSetting(setting: setting);
       return true;
     }
   }
 
-  Setting? get settings => ProxyService.api.getSetting(
+  Setting? get settings => ProxyService.isarApi.getSetting(
       userId: int.parse(ProxyService.box.read(key: 'userId') ?? '0'));
 
   bool isDailyReportEnabled() {
