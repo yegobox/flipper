@@ -173,7 +173,7 @@ class ProductViewModel extends ReactiveViewModel {
         int id = unit.id;
         await ProxyService.isarApi.update(
           endPoint: 'unit/$id',
-          data: unit.toJson(),
+          data: unit,
         );
       }
     }
@@ -182,7 +182,7 @@ class ProductViewModel extends ReactiveViewModel {
     int id = unit.id;
     await ProxyService.isarApi.update(
       endPoint: 'unit/$id',
-      data: unit.toJson(),
+      data: unit,
     );
     if (type == 'product') {
       final Map data = product.toJson();
@@ -254,23 +254,23 @@ class ProductViewModel extends ReactiveViewModel {
       if (c.active) {
         final PColor? _color =
             await ProxyService.isarApi.getColor(id: c.id, endPoint: 'color');
-        final Map mapColor = _color!.toJson();
-        mapColor['active'] = false;
-        mapColor['branchId'] = branchId;
-        final id = mapColor['id'];
-        ProxyService.isarApi.update(data: mapColor, endPoint: 'color/$id');
+        // final Map mapColor = _color!.toJson();
+        _color!.active = false;
+        _color.branchId = branchId;
+        final id = _color.id;
+        ProxyService.isarApi.update(data: _color, endPoint: 'color/$id');
       }
     }
 
     final PColor? _color =
         await ProxyService.isarApi.getColor(id: color.id, endPoint: 'color');
 
-    final Map mapColor = _color!.toJson();
+    // final Map mapColor = _color!.toJson();
 
-    mapColor['active'] = true;
-    mapColor['branchId'] = branchId;
-    final id = mapColor['id'];
-    ProxyService.isarApi.update(data: mapColor, endPoint: 'color/$id');
+    _color!.active = true;
+    _color.branchId = branchId;
+    final id = _color.id;
+    ProxyService.isarApi.update(data: _color, endPoint: 'color/$id');
 
     _appService.setCurrentColor(color: color.name!);
 

@@ -70,7 +70,7 @@ class _CategoryWebAdapter extends IsarWebTypeAdapter<Category> {
     object.focused = IsarNative.jsObjectGet(jsObj, 'focused') ?? false;
     object.id = IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity;
     object.name = IsarNative.jsObjectGet(jsObj, 'name') ?? '';
-    object.table = IsarNative.jsObjectGet(jsObj, 'table') ?? '';
+    object.table = IsarNative.jsObjectGet(jsObj, 'table');
     return object;
   }
 
@@ -90,7 +90,7 @@ class _CategoryWebAdapter extends IsarWebTypeAdapter<Category> {
       case 'name':
         return (IsarNative.jsObjectGet(jsObj, 'name') ?? '') as P;
       case 'table':
-        return (IsarNative.jsObjectGet(jsObj, 'table') ?? '') as P;
+        return (IsarNative.jsObjectGet(jsObj, 'table')) as P;
       default:
         throw 'Illegal propertyName';
     }
@@ -117,8 +117,11 @@ class _CategoryNativeAdapter extends IsarNativeTypeAdapter<Category> {
     final _name = IsarBinaryWriter.utf8Encoder.convert(value3);
     dynamicSize += (_name.length) as int;
     final value4 = object.table;
-    final _table = IsarBinaryWriter.utf8Encoder.convert(value4);
-    dynamicSize += (_table.length) as int;
+    IsarUint8List? _table;
+    if (value4 != null) {
+      _table = IsarBinaryWriter.utf8Encoder.convert(value4);
+    }
+    dynamicSize += (_table?.length ?? 0) as int;
     final size = staticSize + dynamicSize;
 
     rawObj.buffer = alloc(size);
@@ -141,7 +144,7 @@ class _CategoryNativeAdapter extends IsarNativeTypeAdapter<Category> {
     object.focused = reader.readBool(offsets[2]);
     object.id = id;
     object.name = reader.readString(offsets[3]);
-    object.table = reader.readString(offsets[4]);
+    object.table = reader.readStringOrNull(offsets[4]);
     return object;
   }
 
@@ -160,7 +163,7 @@ class _CategoryNativeAdapter extends IsarNativeTypeAdapter<Category> {
       case 3:
         return (reader.readString(offset)) as P;
       case 4:
-        return (reader.readString(offset)) as P;
+        return (reader.readStringOrNull(offset)) as P;
       default:
         throw 'Illegal propertyIndex';
     }
@@ -467,8 +470,16 @@ extension CategoryQueryFilter
     ));
   }
 
+  QueryBuilder<Category, Category, QAfterFilterCondition> tableIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'table',
+      value: null,
+    ));
+  }
+
   QueryBuilder<Category, Category, QAfterFilterCondition> tableEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return addFilterConditionInternal(FilterCondition(
@@ -480,7 +491,7 @@ extension CategoryQueryFilter
   }
 
   QueryBuilder<Category, Category, QAfterFilterCondition> tableGreaterThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
     bool include = false,
   }) {
@@ -494,7 +505,7 @@ extension CategoryQueryFilter
   }
 
   QueryBuilder<Category, Category, QAfterFilterCondition> tableLessThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
     bool include = false,
   }) {
@@ -508,8 +519,8 @@ extension CategoryQueryFilter
   }
 
   QueryBuilder<Category, Category, QAfterFilterCondition> tableBetween(
-    String lower,
-    String upper, {
+    String? lower,
+    String? upper, {
     bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
@@ -724,7 +735,7 @@ extension CategoryQueryProperty
     return addPropertyNameInternal('name');
   }
 
-  QueryBuilder<Category, String, QQueryOperations> tableProperty() {
+  QueryBuilder<Category, String?, QQueryOperations> tableProperty() {
     return addPropertyNameInternal('table');
   }
 }

@@ -65,18 +65,17 @@ class _UnitWebAdapter extends IsarWebTypeAdapter<Unit> {
 
   @override
   Unit deserialize(IsarCollection<Unit> collection, dynamic jsObj) {
-    final object = Unit(
-      active: IsarNative.jsObjectGet(jsObj, 'active') ?? false,
-      channels: (IsarNative.jsObjectGet(jsObj, 'channels') as List?)
-          ?.map((e) => e ?? '')
-          .toList()
-          .cast<String>(),
-      fbranchId: IsarNative.jsObjectGet(jsObj, 'fbranchId'),
-      id: IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity,
-      name: IsarNative.jsObjectGet(jsObj, 'name') ?? '',
-      table: IsarNative.jsObjectGet(jsObj, 'table') ?? '',
-      value: IsarNative.jsObjectGet(jsObj, 'value') ?? '',
-    );
+    final object = Unit();
+    object.active = IsarNative.jsObjectGet(jsObj, 'active') ?? false;
+    object.channels = (IsarNative.jsObjectGet(jsObj, 'channels') as List?)
+        ?.map((e) => e ?? '')
+        .toList()
+        .cast<String>();
+    object.fbranchId = IsarNative.jsObjectGet(jsObj, 'fbranchId');
+    object.id = IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity;
+    object.name = IsarNative.jsObjectGet(jsObj, 'name') ?? '';
+    object.table = IsarNative.jsObjectGet(jsObj, 'table');
+    object.value = IsarNative.jsObjectGet(jsObj, 'value') ?? '';
     return object;
   }
 
@@ -98,7 +97,7 @@ class _UnitWebAdapter extends IsarWebTypeAdapter<Unit> {
       case 'name':
         return (IsarNative.jsObjectGet(jsObj, 'name') ?? '') as P;
       case 'table':
-        return (IsarNative.jsObjectGet(jsObj, 'table') ?? '') as P;
+        return (IsarNative.jsObjectGet(jsObj, 'table')) as P;
       case 'value':
         return (IsarNative.jsObjectGet(jsObj, 'value') ?? '') as P;
       default:
@@ -137,8 +136,11 @@ class _UnitNativeAdapter extends IsarNativeTypeAdapter<Unit> {
     final _name = IsarBinaryWriter.utf8Encoder.convert(value3);
     dynamicSize += (_name.length) as int;
     final value4 = object.table;
-    final _table = IsarBinaryWriter.utf8Encoder.convert(value4);
-    dynamicSize += (_table.length) as int;
+    IsarUint8List? _table;
+    if (value4 != null) {
+      _table = IsarBinaryWriter.utf8Encoder.convert(value4);
+    }
+    dynamicSize += (_table?.length ?? 0) as int;
     final value5 = object.value;
     final _value = IsarBinaryWriter.utf8Encoder.convert(value5);
     dynamicSize += (_value.length) as int;
@@ -159,15 +161,14 @@ class _UnitNativeAdapter extends IsarNativeTypeAdapter<Unit> {
   @override
   Unit deserialize(IsarCollection<Unit> collection, int id,
       IsarBinaryReader reader, List<int> offsets) {
-    final object = Unit(
-      active: reader.readBool(offsets[0]),
-      channels: reader.readStringList(offsets[1]),
-      fbranchId: reader.readLongOrNull(offsets[2]),
-      id: id,
-      name: reader.readString(offsets[3]),
-      table: reader.readString(offsets[4]),
-      value: reader.readString(offsets[5]),
-    );
+    final object = Unit();
+    object.active = reader.readBool(offsets[0]);
+    object.channels = reader.readStringList(offsets[1]);
+    object.fbranchId = reader.readLongOrNull(offsets[2]);
+    object.id = id;
+    object.name = reader.readString(offsets[3]);
+    object.table = reader.readStringOrNull(offsets[4]);
+    object.value = reader.readString(offsets[5]);
     return object;
   }
 
@@ -186,7 +187,7 @@ class _UnitNativeAdapter extends IsarNativeTypeAdapter<Unit> {
       case 3:
         return (reader.readString(offset)) as P;
       case 4:
-        return (reader.readString(offset)) as P;
+        return (reader.readStringOrNull(offset)) as P;
       case 5:
         return (reader.readString(offset)) as P;
       default:
@@ -608,8 +609,16 @@ extension UnitQueryFilter on QueryBuilder<Unit, Unit, QFilterCondition> {
     ));
   }
 
+  QueryBuilder<Unit, Unit, QAfterFilterCondition> tableIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'table',
+      value: null,
+    ));
+  }
+
   QueryBuilder<Unit, Unit, QAfterFilterCondition> tableEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return addFilterConditionInternal(FilterCondition(
@@ -621,7 +630,7 @@ extension UnitQueryFilter on QueryBuilder<Unit, Unit, QFilterCondition> {
   }
 
   QueryBuilder<Unit, Unit, QAfterFilterCondition> tableGreaterThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
     bool include = false,
   }) {
@@ -635,7 +644,7 @@ extension UnitQueryFilter on QueryBuilder<Unit, Unit, QFilterCondition> {
   }
 
   QueryBuilder<Unit, Unit, QAfterFilterCondition> tableLessThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
     bool include = false,
   }) {
@@ -649,8 +658,8 @@ extension UnitQueryFilter on QueryBuilder<Unit, Unit, QFilterCondition> {
   }
 
   QueryBuilder<Unit, Unit, QAfterFilterCondition> tableBetween(
-    String lower,
-    String upper, {
+    String? lower,
+    String? upper, {
     bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
@@ -961,7 +970,7 @@ extension UnitQueryProperty on QueryBuilder<Unit, Unit, QQueryProperty> {
     return addPropertyNameInternal('name');
   }
 
-  QueryBuilder<Unit, String, QQueryOperations> tableProperty() {
+  QueryBuilder<Unit, String?, QQueryOperations> tableProperty() {
     return addPropertyNameInternal('table');
   }
 

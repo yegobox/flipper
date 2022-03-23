@@ -25,7 +25,7 @@ abstract class IsarApiInterface {
     required int productId,
   });
   Future<VariantSync?> variant({required int variantId});
-  Future<int> addUnits({required Map data});
+  Future<int> addUnits<T>({required T data});
 
   Future<int> addVariant({
     required List<VariantSync> data,

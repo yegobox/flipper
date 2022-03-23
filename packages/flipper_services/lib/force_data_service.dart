@@ -32,15 +32,14 @@ class ForceDataEntryService {
       '#a29bfe'
     ];
 
-    final PColor color = PColor(
-      id: DateTime.now().millisecondsSinceEpoch,
-      colors: colors,
-      table: AppTables.color,
-      channels: [userId!],
-      active: false,
-      fbranchId: branchId,
-      name: 'sample',
-    );
+    final PColor color = PColor()
+      ..id = DateTime.now().millisecondsSinceEpoch
+      ..colors = colors
+      ..table = AppTables.color
+      ..channels = [userId!]
+      ..active = false
+      ..branchId = branchId
+      ..name = 'sample';
 
     int branchid = ProxyService.box.read(key: 'branchId');
     List<PColor> kColors =
@@ -51,18 +50,17 @@ class ForceDataEntryService {
     List<Unit> kUnits = await ProxyService.isarApi.units(branchId: branchid);
 
     //now create default units for this branch
-    final units = Unit(
-      name: 'sample',
-      value: 'kg',
-      active: false,
-      id: DateTime.now().millisecondsSinceEpoch,
-      table: AppTables.unit,
-      units: mockUnits,
-      fbranchId: branchId,
-      channels: [userId],
-    );
+    final units = Unit()
+      ..name = 'sample'
+      ..value = 'kg'
+      ..active = false
+      ..id = DateTime.now().millisecondsSinceEpoch
+      ..table = AppTables.unit
+      ..units = mockUnits
+      ..fbranchId = branchId
+      ..channels = [userId];
     if (kUnits.isEmpty) {
-      await ProxyService.isarApi.addUnits(data: units.toJson());
+      await ProxyService.isarApi.addUnits(data: units);
     }
   }
 }

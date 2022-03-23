@@ -60,7 +60,9 @@ class IsarAPI implements IsarApiInterface {
         PointsSchema,
         StockSyncSchema,
         FeatureSchema,
-        VoucherSchema
+        VoucherSchema,
+        PColorSchema,
+        CategorySchema
       ],
       inspector: false,
     );
@@ -221,16 +223,15 @@ class IsarAPI implements IsarApiInterface {
   }
 
   @override
-  Future<int> addUnits({required Map data}) async {
+  Future<int> addUnits<T>({required T data}) async {
     await isar.writeTxn((isar) async {
-      for (Map map in data['units']) {
-        final unit = Unit(
-          active: false,
-          table: data['table'],
-          value: map['value'],
-          name: map['name'],
-          fbranchId: data['fbranchId'],
-        );
+      Unit units = data as Unit;
+      for (Map map in units.units!) {
+        final unit = Unit()..active= false
+          ..table= units.table
+          ..value= units.value
+          ..name= units.name
+          ..fbranchId= units.fbranchId;
         // save unit to db
         await isar.units.put(unit);
       }
@@ -441,7 +442,7 @@ class IsarAPI implements IsarApiInterface {
   @override
   Future<List<PColor>> colors({required int branchId}) async {
     // get all colors from isar db
-    return isar.pColors.filter().fbranchIdEqualTo(branchId).findAll();
+    return isar.pColors.filter().branchIdEqualTo(branchId).findAll();
   }
 
   @override
@@ -482,8 +483,25 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<int> create<T>({required T data, required String endPoint}) {
-    // TODO: implement create
-    throw UnimplementedError();
+    if(endPoint=='color'){
+      PColor color = data as PColor;
+      isar.writeTxn((isar) async {
+        for (String co in data.colors!  ) {
+        int id = await isar.pColors.put( PColor()..name=co
+        ..active=color.active
+        ..branchId=color.branchId);
+        
+        return isar.pColors.getSync(id)!;
+        }
+      });
+    }
+    if(endPoint == 'category'){
+      Category category = data as Category;
+      isar.writeTxn((isar) {
+        return isar.categorys.put(category);
+      });
+    }
+    return Future.value(200);
   }
 
   @override
@@ -1038,8 +1056,9 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Profile? profile({required int businessId}) {
-    // TODO: implement profile
-    throw UnimplementedError();
+    return isar.writeTxnSync((isar) {
+      return isar.profiles.filter().businessIdEqualTo(businessId).findFirstSync();
+    });
   }
 
   @override

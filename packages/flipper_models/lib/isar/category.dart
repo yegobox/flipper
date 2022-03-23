@@ -13,5 +13,5 @@ class Category {
   late bool focused;
   late String name;
   late int branchId;
-  late String table;
+  String? table;
 }

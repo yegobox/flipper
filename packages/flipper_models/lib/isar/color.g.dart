@@ -17,15 +17,15 @@ extension GetPColorCollection on Isar {
 final PColorSchema = CollectionSchema(
   name: 'PColor',
   schema:
-      '{"name":"PColor","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"channels","type":"StringList"},{"name":"colors","type":"StringList"},{"name":"fbranchId","type":"Long"},{"name":"name","type":"String"},{"name":"table","type":"String"}],"indexes":[],"links":[]}',
+      '{"name":"PColor","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"channels","type":"StringList"},{"name":"colors","type":"StringList"},{"name":"name","type":"String"},{"name":"table","type":"String"}],"indexes":[],"links":[]}',
   nativeAdapter: const _PColorNativeAdapter(),
   webAdapter: const _PColorWebAdapter(),
   idName: 'id',
   propertyIds: {
     'active': 0,
-    'channels': 1,
-    'colors': 2,
-    'fbranchId': 3,
+    'branchId': 1,
+    'channels': 2,
+    'colors': 3,
     'name': 4,
     'table': 5
   },
@@ -54,9 +54,9 @@ class _PColorWebAdapter extends IsarWebTypeAdapter<PColor> {
   Object serialize(IsarCollection<PColor> collection, PColor object) {
     final jsObj = IsarNative.newJsObject();
     IsarNative.jsObjectSet(jsObj, 'active', object.active);
+    IsarNative.jsObjectSet(jsObj, 'branchId', object.branchId);
     IsarNative.jsObjectSet(jsObj, 'channels', object.channels);
     IsarNative.jsObjectSet(jsObj, 'colors', object.colors);
-    IsarNative.jsObjectSet(jsObj, 'fbranchId', object.fbranchId);
     IsarNative.jsObjectSet(jsObj, 'id', object.id);
     IsarNative.jsObjectSet(jsObj, 'name', object.name);
     IsarNative.jsObjectSet(jsObj, 'table', object.table);
@@ -65,21 +65,20 @@ class _PColorWebAdapter extends IsarWebTypeAdapter<PColor> {
 
   @override
   PColor deserialize(IsarCollection<PColor> collection, dynamic jsObj) {
-    final object = PColor(
-      active: IsarNative.jsObjectGet(jsObj, 'active') ?? false,
-      channels: (IsarNative.jsObjectGet(jsObj, 'channels') as List?)
-          ?.map((e) => e ?? '')
-          .toList()
-          .cast<String>(),
-      colors: (IsarNative.jsObjectGet(jsObj, 'colors') as List?)
-          ?.map((e) => e ?? '')
-          .toList()
-          .cast<String>(),
-      fbranchId: IsarNative.jsObjectGet(jsObj, 'fbranchId'),
-      id: IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity,
-      name: IsarNative.jsObjectGet(jsObj, 'name'),
-      table: IsarNative.jsObjectGet(jsObj, 'table') ?? '',
-    );
+    final object = PColor();
+    object.active = IsarNative.jsObjectGet(jsObj, 'active') ?? false;
+    object.branchId = IsarNative.jsObjectGet(jsObj, 'branchId');
+    object.channels = (IsarNative.jsObjectGet(jsObj, 'channels') as List?)
+        ?.map((e) => e ?? '')
+        .toList()
+        .cast<String>();
+    object.colors = (IsarNative.jsObjectGet(jsObj, 'colors') as List?)
+        ?.map((e) => e ?? '')
+        .toList()
+        .cast<String>();
+    object.id = IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity;
+    object.name = IsarNative.jsObjectGet(jsObj, 'name');
+    object.table = IsarNative.jsObjectGet(jsObj, 'table') ?? '';
     return object;
   }
 
@@ -88,6 +87,8 @@ class _PColorWebAdapter extends IsarWebTypeAdapter<PColor> {
     switch (propertyName) {
       case 'active':
         return (IsarNative.jsObjectGet(jsObj, 'active') ?? false) as P;
+      case 'branchId':
+        return (IsarNative.jsObjectGet(jsObj, 'branchId')) as P;
       case 'channels':
         return ((IsarNative.jsObjectGet(jsObj, 'channels') as List?)
             ?.map((e) => e ?? '')
@@ -98,8 +99,6 @@ class _PColorWebAdapter extends IsarWebTypeAdapter<PColor> {
             ?.map((e) => e ?? '')
             .toList()
             .cast<String>()) as P;
-      case 'fbranchId':
-        return (IsarNative.jsObjectGet(jsObj, 'fbranchId')) as P;
       case 'id':
         return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
             as P;
@@ -125,19 +124,9 @@ class _PColorNativeAdapter extends IsarNativeTypeAdapter<PColor> {
     var dynamicSize = 0;
     final value0 = object.active;
     final _active = value0;
-    final value1 = object.channels;
-    dynamicSize += (value1?.length ?? 0) * 8;
-    List<IsarUint8List?>? bytesList1;
-    if (value1 != null) {
-      bytesList1 = [];
-      for (var str in value1) {
-        final bytes = IsarBinaryWriter.utf8Encoder.convert(str);
-        bytesList1.add(bytes);
-        dynamicSize += bytes.length as int;
-      }
-    }
-    final _channels = bytesList1;
-    final value2 = object.colors;
+    final value1 = object.branchId;
+    final _branchId = value1;
+    final value2 = object.channels;
     dynamicSize += (value2?.length ?? 0) * 8;
     List<IsarUint8List?>? bytesList2;
     if (value2 != null) {
@@ -148,9 +137,19 @@ class _PColorNativeAdapter extends IsarNativeTypeAdapter<PColor> {
         dynamicSize += bytes.length as int;
       }
     }
-    final _colors = bytesList2;
-    final value3 = object.fbranchId;
-    final _fbranchId = value3;
+    final _channels = bytesList2;
+    final value3 = object.colors;
+    dynamicSize += (value3?.length ?? 0) * 8;
+    List<IsarUint8List?>? bytesList3;
+    if (value3 != null) {
+      bytesList3 = [];
+      for (var str in value3) {
+        final bytes = IsarBinaryWriter.utf8Encoder.convert(str);
+        bytesList3.add(bytes);
+        dynamicSize += bytes.length as int;
+      }
+    }
+    final _colors = bytesList3;
     final value4 = object.name;
     IsarUint8List? _name;
     if (value4 != null) {
@@ -167,9 +166,9 @@ class _PColorNativeAdapter extends IsarNativeTypeAdapter<PColor> {
     final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
     final writer = IsarBinaryWriter(buffer, staticSize);
     writer.writeBool(offsets[0], _active);
-    writer.writeStringList(offsets[1], _channels);
-    writer.writeStringList(offsets[2], _colors);
-    writer.writeLong(offsets[3], _fbranchId);
+    writer.writeLong(offsets[1], _branchId);
+    writer.writeStringList(offsets[2], _channels);
+    writer.writeStringList(offsets[3], _colors);
     writer.writeBytes(offsets[4], _name);
     writer.writeBytes(offsets[5], _table);
   }
@@ -177,15 +176,14 @@ class _PColorNativeAdapter extends IsarNativeTypeAdapter<PColor> {
   @override
   PColor deserialize(IsarCollection<PColor> collection, int id,
       IsarBinaryReader reader, List<int> offsets) {
-    final object = PColor(
-      active: reader.readBool(offsets[0]),
-      channels: reader.readStringList(offsets[1]),
-      colors: reader.readStringList(offsets[2]),
-      fbranchId: reader.readLongOrNull(offsets[3]),
-      id: id,
-      name: reader.readStringOrNull(offsets[4]),
-      table: reader.readString(offsets[5]),
-    );
+    final object = PColor();
+    object.active = reader.readBool(offsets[0]);
+    object.branchId = reader.readLongOrNull(offsets[1]);
+    object.channels = reader.readStringList(offsets[2]);
+    object.colors = reader.readStringList(offsets[3]);
+    object.id = id;
+    object.name = reader.readStringOrNull(offsets[4]);
+    object.table = reader.readString(offsets[5]);
     return object;
   }
 
@@ -198,11 +196,11 @@ class _PColorNativeAdapter extends IsarNativeTypeAdapter<PColor> {
       case 0:
         return (reader.readBool(offset)) as P;
       case 1:
-        return (reader.readStringList(offset)) as P;
+        return (reader.readLongOrNull(offset)) as P;
       case 2:
         return (reader.readStringList(offset)) as P;
       case 3:
-        return (reader.readLongOrNull(offset)) as P;
+        return (reader.readStringList(offset)) as P;
       case 4:
         return (reader.readStringOrNull(offset)) as P;
       case 5:
@@ -302,6 +300,62 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
       type: ConditionType.eq,
       property: 'active',
       value: value,
+    ));
+  }
+
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> branchIdIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'branchId',
+      value: null,
+    ));
+  }
+
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> branchIdEqualTo(
+      int? value) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.eq,
+      property: 'branchId',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> branchIdGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.gt,
+      include: include,
+      property: 'branchId',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> branchIdLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.lt,
+      include: include,
+      property: 'branchId',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> branchIdBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition.between(
+      property: 'branchId',
+      lower: lower,
+      includeLower: includeLower,
+      upper: upper,
+      includeUpper: includeUpper,
     ));
   }
 
@@ -540,62 +594,6 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
       property: 'colors',
       value: pattern,
       caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> fbranchIdIsNull() {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.isNull,
-      property: 'fbranchId',
-      value: null,
-    ));
-  }
-
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> fbranchIdEqualTo(
-      int? value) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'fbranchId',
-      value: value,
-    ));
-  }
-
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> fbranchIdGreaterThan(
-    int? value, {
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'fbranchId',
-      value: value,
-    ));
-  }
-
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> fbranchIdLessThan(
-    int? value, {
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'fbranchId',
-      value: value,
-    ));
-  }
-
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> fbranchIdBetween(
-    int? lower,
-    int? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'fbranchId',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
     ));
   }
 
@@ -869,12 +867,12 @@ extension PColorQueryWhereSortBy on QueryBuilder<PColor, PColor, QSortBy> {
     return addSortByInternal('active', Sort.desc);
   }
 
-  QueryBuilder<PColor, PColor, QAfterSortBy> sortByFbranchId() {
-    return addSortByInternal('fbranchId', Sort.asc);
+  QueryBuilder<PColor, PColor, QAfterSortBy> sortByBranchId() {
+    return addSortByInternal('branchId', Sort.asc);
   }
 
-  QueryBuilder<PColor, PColor, QAfterSortBy> sortByFbranchIdDesc() {
-    return addSortByInternal('fbranchId', Sort.desc);
+  QueryBuilder<PColor, PColor, QAfterSortBy> sortByBranchIdDesc() {
+    return addSortByInternal('branchId', Sort.desc);
   }
 
   QueryBuilder<PColor, PColor, QAfterSortBy> sortById() {
@@ -912,12 +910,12 @@ extension PColorQueryWhereSortThenBy
     return addSortByInternal('active', Sort.desc);
   }
 
-  QueryBuilder<PColor, PColor, QAfterSortBy> thenByFbranchId() {
-    return addSortByInternal('fbranchId', Sort.asc);
+  QueryBuilder<PColor, PColor, QAfterSortBy> thenByBranchId() {
+    return addSortByInternal('branchId', Sort.asc);
   }
 
-  QueryBuilder<PColor, PColor, QAfterSortBy> thenByFbranchIdDesc() {
-    return addSortByInternal('fbranchId', Sort.desc);
+  QueryBuilder<PColor, PColor, QAfterSortBy> thenByBranchIdDesc() {
+    return addSortByInternal('branchId', Sort.desc);
   }
 
   QueryBuilder<PColor, PColor, QAfterSortBy> thenById() {
@@ -950,8 +948,8 @@ extension PColorQueryWhereDistinct on QueryBuilder<PColor, PColor, QDistinct> {
     return addDistinctByInternal('active');
   }
 
-  QueryBuilder<PColor, PColor, QDistinct> distinctByFbranchId() {
-    return addDistinctByInternal('fbranchId');
+  QueryBuilder<PColor, PColor, QDistinct> distinctByBranchId() {
+    return addDistinctByInternal('branchId');
   }
 
   QueryBuilder<PColor, PColor, QDistinct> distinctById() {
@@ -974,16 +972,16 @@ extension PColorQueryProperty on QueryBuilder<PColor, PColor, QQueryProperty> {
     return addPropertyNameInternal('active');
   }
 
+  QueryBuilder<PColor, int?, QQueryOperations> branchIdProperty() {
+    return addPropertyNameInternal('branchId');
+  }
+
   QueryBuilder<PColor, List<String>?, QQueryOperations> channelsProperty() {
     return addPropertyNameInternal('channels');
   }
 
   QueryBuilder<PColor, List<String>?, QQueryOperations> colorsProperty() {
     return addPropertyNameInternal('colors');
-  }
-
-  QueryBuilder<PColor, int?, QQueryOperations> fbranchIdProperty() {
-    return addPropertyNameInternal('fbranchId');
   }
 
   QueryBuilder<PColor, int, QQueryOperations> idProperty() {

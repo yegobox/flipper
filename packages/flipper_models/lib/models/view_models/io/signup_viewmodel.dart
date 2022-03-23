@@ -2,7 +2,6 @@ library flipper_models;
 
 import 'package:flipper_models/models/io/unit_mock.dart';
 import 'package:flipper_routing/routes.router.dart';
-//import 'package:flipper_models/models/models.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flutter/cupertino.dart';
@@ -128,29 +127,27 @@ class SignupViewModel extends FormViewModel {
         '#a29bfe'
       ];
 
-      final PColor color = PColor(
-        id: DateTime.now().millisecondsSinceEpoch,
-        colors: colors,
-        table: AppTables.color,
-        channels: [userId],
-        active: false,
-        fbranchId: branches[0].id,
-        name: 'sample',
-      );
+      final PColor color = PColor()
+        ..id = DateTime.now().millisecondsSinceEpoch
+        ..colors = colors
+        ..table = AppTables.color
+        ..channels = [userId]
+        ..active = false
+        ..branchId = branches[0].id
+        ..name = 'sample';
 
       await ProxyService.isarApi.create<PColor>(data: color, endPoint: 'color');
       //now create default units for this branch
-      final units = Unit(
-        name: 'sample',
-        value: 'kg',
-        active: false,
-        id: DateTime.now().millisecondsSinceEpoch,
-        table: AppTables.unit,
-        units: mockUnits,
-        fbranchId: branches[0].id,
-        channels: [userId],
-      );
-      await ProxyService.isarApi.addUnits(data: units.toJson());
+      final units = Unit()
+        ..name = 'sample'
+        ..value = 'kg'
+        ..active = false
+        ..id = DateTime.now().millisecondsSinceEpoch
+        ..table = AppTables.unit
+        ..units = mockUnits
+        ..fbranchId = branches[0].id
+        ..channels = [userId];
+      await ProxyService.isarApi.addUnits(data: units);
 
       //now create a default custom product
       await ProxyService.isarApi.createProduct(product: ProductSync());
