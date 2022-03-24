@@ -62,7 +62,8 @@ class IsarAPI implements IsarApiInterface {
         FeatureSchema,
         VoucherSchema,
         PColorSchema,
-        CategorySchema
+        CategorySchema,
+        UnitSchema,
       ],
       inspector: false,
     );
@@ -491,7 +492,7 @@ class IsarAPI implements IsarApiInterface {
         ..active=color.active
         ..branchId=color.branchId);
         
-        return isar.pColors.getSync(id)!;
+        return await isar.pColors.get(id);
         }
       });
     }
@@ -786,10 +787,11 @@ class IsarAPI implements IsarApiInterface {
   // if list is empty then get list from online
   @override
   Future<Business> getLocalOrOnlineBusiness({required String userId}) async {
-    log.e("reaching here");
+    
     Business? kBusiness =
         await isar.businesss.filter().userIdEqualTo(userId).findFirst();
     if (kBusiness == null) {
+      log.e("fetching business from server");
       return await getOnlineBusiness(userId: userId);
     }
     return kBusiness;

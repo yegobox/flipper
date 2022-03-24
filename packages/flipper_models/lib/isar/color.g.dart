@@ -78,7 +78,7 @@ class _PColorWebAdapter extends IsarWebTypeAdapter<PColor> {
         .cast<String>();
     object.id = IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity;
     object.name = IsarNative.jsObjectGet(jsObj, 'name');
-    object.table = IsarNative.jsObjectGet(jsObj, 'table') ?? '';
+    object.table = IsarNative.jsObjectGet(jsObj, 'table');
     return object;
   }
 
@@ -105,7 +105,7 @@ class _PColorWebAdapter extends IsarWebTypeAdapter<PColor> {
       case 'name':
         return (IsarNative.jsObjectGet(jsObj, 'name')) as P;
       case 'table':
-        return (IsarNative.jsObjectGet(jsObj, 'table') ?? '') as P;
+        return (IsarNative.jsObjectGet(jsObj, 'table')) as P;
       default:
         throw 'Illegal propertyName';
     }
@@ -157,8 +157,11 @@ class _PColorNativeAdapter extends IsarNativeTypeAdapter<PColor> {
     }
     dynamicSize += (_name?.length ?? 0) as int;
     final value5 = object.table;
-    final _table = IsarBinaryWriter.utf8Encoder.convert(value5);
-    dynamicSize += (_table.length) as int;
+    IsarUint8List? _table;
+    if (value5 != null) {
+      _table = IsarBinaryWriter.utf8Encoder.convert(value5);
+    }
+    dynamicSize += (_table?.length ?? 0) as int;
     final size = staticSize + dynamicSize;
 
     rawObj.buffer = alloc(size);
@@ -183,7 +186,7 @@ class _PColorNativeAdapter extends IsarNativeTypeAdapter<PColor> {
     object.colors = reader.readStringList(offsets[3]);
     object.id = id;
     object.name = reader.readStringOrNull(offsets[4]);
-    object.table = reader.readString(offsets[5]);
+    object.table = reader.readStringOrNull(offsets[5]);
     return object;
   }
 
@@ -204,7 +207,7 @@ class _PColorNativeAdapter extends IsarNativeTypeAdapter<PColor> {
       case 4:
         return (reader.readStringOrNull(offset)) as P;
       case 5:
-        return (reader.readString(offset)) as P;
+        return (reader.readStringOrNull(offset)) as P;
       default:
         throw 'Illegal propertyIndex';
     }
@@ -754,8 +757,16 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
     ));
   }
 
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> tableIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'table',
+      value: null,
+    ));
+  }
+
   QueryBuilder<PColor, PColor, QAfterFilterCondition> tableEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return addFilterConditionInternal(FilterCondition(
@@ -767,7 +778,7 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> tableGreaterThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
     bool include = false,
   }) {
@@ -781,7 +792,7 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> tableLessThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
     bool include = false,
   }) {
@@ -795,8 +806,8 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> tableBetween(
-    String lower,
-    String upper, {
+    String? lower,
+    String? upper, {
     bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
@@ -992,7 +1003,7 @@ extension PColorQueryProperty on QueryBuilder<PColor, PColor, QQueryProperty> {
     return addPropertyNameInternal('name');
   }
 
-  QueryBuilder<PColor, String, QQueryOperations> tableProperty() {
+  QueryBuilder<PColor, String?, QQueryOperations> tableProperty() {
     return addPropertyNameInternal('table');
   }
 }

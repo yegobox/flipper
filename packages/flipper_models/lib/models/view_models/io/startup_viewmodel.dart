@@ -145,7 +145,7 @@ class StartUpViewModel extends BaseViewModel {
   Future<isar.Business> appInit() async {
     try {
       String? userId = ProxyService.box.getUserId();
-      log.e("here::$userId");
+      log.e("userId::$userId");
       isar.Business business =
           await ProxyService.isarApi.getLocalOrOnlineBusiness(userId: userId!);
 
