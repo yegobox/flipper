@@ -64,7 +64,7 @@ class ProductViewModel extends ReactiveViewModel {
     }
     int branchId = ProxyService.box.getBranchId()!;
     ProductSync? isTemp =
-        ProxyService.isarApi.isTempProductExist(branchId: branchId);
+        await ProxyService.isarApi.isTempProductExist(branchId: branchId);
     log.d(isTemp);
     log.d(branchId);
     if (isTemp == null) {
@@ -346,8 +346,8 @@ class ProductViewModel extends ReactiveViewModel {
     mproduct['color'] = currentColor;
     mproduct['draft'] = false;
     // update the variant with the product name
-    List<VariantSync> variants =
-        ProxyService.isarApi.getVariantByProductId(productId: mproduct['id']);
+    List<VariantSync> variants = await ProxyService.isarApi
+        .getVariantByProductId(productId: mproduct['id']);
 
     for (VariantSync variant in variants) {
       // Map v = variant.toJson();

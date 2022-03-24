@@ -57,7 +57,7 @@ class SettingViewModel extends ReactiveViewModel {
 
   loadUserSettings() async {
     String userId = ProxyService.box.read(key: 'userId');
-    _setting = ProxyService.isarApi.getSetting(userId: int.parse(userId));
+    _setting = await ProxyService.isarApi.getSetting(userId: int.parse(userId));
     notifyListeners();
   }
 
@@ -115,16 +115,15 @@ class SettingViewModel extends ReactiveViewModel {
   /// the backend is built in a way to reshare the report to the user's email.
   void enableDailyReport(Function callback) async {
     kSetting.toggleDailyReportSetting();
-    if (kSetting.settings != null && kSetting.settings!.email.isNotEmpty) {
-      if (!RegExp(r"^[\w.+\-]+@gmail\.com$")
-          .hasMatch(kSetting.settings!.email)) {
+    Setting? setting = await kSetting.settings();
+    if (setting != null && setting.email.isNotEmpty) {
+      if (!RegExp(r"^[\w.+\-]+@gmail\.com$").hasMatch(setting.email)) {
         callback(1);
       } else {
-        await ProxyService.api
-            .createGoogleSheetDoc(email: kSetting.settings!.email);
+        await ProxyService.api.createGoogleSheetDoc(email: setting.email);
 
-        Business? business = ProxyService.isarApi.getBusiness();
-        business!.email = kSetting.settings!.email;
+        Business? business = await ProxyService.isarApi.getBusiness();
+        business!.email = setting.email;
         await ProxyService.isarApi.updateBusiness(
           id: business.id,
           business: business.toJson(),
@@ -143,17 +142,17 @@ class SettingViewModel extends ReactiveViewModel {
   List<ReactiveServiceMixin> get reactiveServices =>
       [kSetting, languageService];
 
-  void enableAttendance(Function callback) {
+  Future<void> enableAttendance(Function callback) async {
     kSetting.toggleAttendanceSetting();
-    if (kSetting.settings != null && kSetting.settings!.email.isNotEmpty) {
-      if (!RegExp(r"^[\w.+\-]+@gmail\.com$")
-          .hasMatch(kSetting.settings!.email)) {
+    Setting? setting = await kSetting.settings();
+    if (setting != null && setting.email.isNotEmpty) {
+      if (!RegExp(r"^[\w.+\-]+@gmail\.com$").hasMatch(setting.email)) {
         callback(1);
       } else {
         /// the
-        Business? business = ProxyService.isarApi.getBusiness();
-        ProxyService.isarApi.enableAttendance(
-            businessId: business!.id, email: kSetting.settings!.email);
+        Business? business = await ProxyService.isarApi.getBusiness();
+        ProxyService.isarApi
+            .enableAttendance(businessId: business!.id, email: setting.email);
       }
     } else {
       callback(2);

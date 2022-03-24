@@ -38,6 +38,7 @@ class StartUpViewModel extends BaseViewModel {
       notifyListeners();
     } catch (e) {
       if (e is SessionException) {
+        log.e("session expired");
         String? userPhone = ProxyService.box.getUserPhone();
         try {
           await ProxyService.isarApi.login(
@@ -46,6 +47,7 @@ class StartUpViewModel extends BaseViewModel {
           await appInit();
         } catch (e) {
           if (e is InternalServerError) {
+            log.e("internal server error");
             loginInfo.isLoggedIn = false;
             rethrow;
           }
@@ -64,6 +66,7 @@ class StartUpViewModel extends BaseViewModel {
         loginInfo.needSignUp = true;
         rethrow;
       } else {
+        log.e("The error:$e");
         errorCallback(1);
 
         rethrow;

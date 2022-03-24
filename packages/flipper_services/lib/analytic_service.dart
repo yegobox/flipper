@@ -26,7 +26,7 @@ class AnalyticService with ReactiveServiceMixin {
 
   /// If we are today, then go back one week
   /// then show the report of that previous week.
-  countOrdersByThisWeek() {
+  countOrdersByThisWeek() async {
     _revenue.value = 0;
     //get today date using DateTime
     DateTime today = new DateTime.now();
@@ -36,7 +36,7 @@ class AnalyticService with ReactiveServiceMixin {
     // DateTime endWeekDate = getDate(
     //     today.add(Duration(days: DateTime.daysPerWeek - today.weekday)));
     int branchId = ProxyService.box.read(key: 'branchId');
-    _orders.value = ProxyService.isarApi.weeklyOrdersReport(
+    _orders.value = await ProxyService.isarApi.weeklyOrdersReport(
         weekStartDate: startWeekDate.subtract(Duration(days: 7)),
         //this will help to go back in a week
         weekEndDate: today,

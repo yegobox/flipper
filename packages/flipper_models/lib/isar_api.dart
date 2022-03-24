@@ -77,7 +77,7 @@ class IsarAPI implements IsarApiInterface {
   }
 
   @override
-  CustomerSync? addCustomer({required Map customer, required int orderId}) {
+  Future<CustomerSync?> addCustomer({required Map customer, required int orderId})async {
     int branchId = ProxyService.box.read(key: 'branchId');
      CustomerSync kCustomer = CustomerSync(
       name: customer['name'],
@@ -87,14 +87,14 @@ class IsarAPI implements IsarApiInterface {
       address: customer['address'] ?? '',
       orderId: orderId,
     );
-    return isar.writeTxnSync((isar) {
-      int id= isar.customerSyncs.putSync(kCustomer);
-      return isar.customerSyncs.getSync(id);
+    return await isar.writeTxn((isar)async {
+      int id= await isar.customerSyncs.put(kCustomer);
+      return await isar.customerSyncs.get(id);
     });
   }
 
   Future<OrderFSync?> pendingOrderExist({required int branchId}) async {
-    return isar.writeTxnSync((isar) {
+    return isar.writeTxn((isar) {
       return isar.orderFSyncs
           .filter()
           .fbranchIdEqualTo(branchId)
@@ -150,7 +150,7 @@ class IsarAPI implements IsarApiInterface {
         createdAt: DateTime.now().toIso8601String(),
       );
       // save order to db
-      OrderFSync createdOrder = await isar.writeTxnSync((isar) async {
+      OrderFSync createdOrder = await isar.writeTxn((isar) async {
         int id = await isar.orderFSyncs.put(order);
         return isar.orderFSyncs.getSync(id)!;
       });
@@ -190,7 +190,7 @@ class IsarAPI implements IsarApiInterface {
       );
       existOrder.orderItems.add(item);
       // update order
-      OrderFSync updatedOrder = await isar.writeTxnSync((isar) async {
+      OrderFSync updatedOrder = await isar.writeTxn((isar) async {
         int id = await isar.orderFSyncs.put(existOrder);
         return isar.orderFSyncs.getSync(id)!;
       });
@@ -199,7 +199,7 @@ class IsarAPI implements IsarApiInterface {
   }
 
   @override
-  OrderFSync addOrderItem({required OrderFSync order, required Map data}) {
+  Future<OrderFSync?> addOrderItem({required OrderFSync order, required Map data})async {
     OrderItemSync item = OrderItemSync(
       count: data['count'],
       name: data['name'],
@@ -211,9 +211,9 @@ class IsarAPI implements IsarApiInterface {
       remainingStock: data['remainingStock'],
     );
     order.orderItems.add(item);
-    return isar.writeTxnSync((isar) {
-      int id = isar.orderFSyncs.putSync(order);
-      return isar.orderFSyncs.getSync(id)!;
+    return  isar.writeTxn((isar)async {
+      int id =await isar.orderFSyncs.put(order);
+      return  isar.orderFSyncs.get(id);
     });
   }
 
@@ -241,12 +241,12 @@ class IsarAPI implements IsarApiInterface {
   }
 
   @override
-  Subscription addUpdateSubscription(
+  Future<Subscription?> addUpdateSubscription(
       {required int userId,
       required int interval,
       required double recurringAmount,
       required String descriptor,
-      required List<Feature> features}) {
+      required List<Feature> features})async {
     // get Subscription where userId = userId from db
     Subscription? subscription =
         isar.subscriptions.filter().userIdEqualTo(userId).findFirstSync();
@@ -278,17 +278,17 @@ class IsarAPI implements IsarApiInterface {
       recurring: recurringAmount,
     );
     // save subscription to db and return subscription
-    Subscription sub = isar.writeTxnSync((isar) {
-      int id = isar.subscriptions.putSync(subscription!);
-      return isar.subscriptions.getSync(id)!;
+    Subscription? sub = await isar.writeTxn((isar)async {
+      int id = await isar.subscriptions.put(subscription!);
+      return isar.subscriptions.get(id);
     });
     for (var feature in features) {
-      sub.features.value = feature;
+      sub!.features.value = feature;
     }
     // update sub to db
-    return isar.writeTxnSync((isar) {
-      int id = isar.subscriptions.putSync(sub);
-      return isar.subscriptions.getSync(id)!;
+    return isar.writeTxn((isar)async {
+      int id =await isar.subscriptions.put(sub!);
+      return isar.subscriptions.get(id);
     });
   }
 
@@ -508,7 +508,7 @@ class IsarAPI implements IsarApiInterface {
   @override
   Future<void> createGoogleSheetDoc({required String email}) async {
     // TODOre-work on this until it work 100%;
-    Business? business = getBusiness();
+    Business? business =await getBusiness();
     String docName = business!.name! + '- Report';
 
     await client.post(Uri.parse("$apihub/v2/api/createSheetDocument"),
@@ -618,8 +618,8 @@ class IsarAPI implements IsarApiInterface {
     /// call to create attendance document
     /// get business from store
 
-    BusinessSync? business = isar.writeTxnSync((isar)  {
-      return isar.businessSyncs.getSync(businessId);
+    BusinessSync? business =await isar.writeTxn((isar)  {
+      return isar.businessSyncs.get(businessId);
     });
     final http.Response response = await client.post(
         Uri.parse("$apihub/v2/api/createAttendanceDoc"),
@@ -633,7 +633,7 @@ class IsarAPI implements IsarApiInterface {
       // update settings with enableAttendance = true
       String userId = ProxyService.box.read(key: 'userId');
       Setting? setting =
-           getSetting(userId: int.parse(userId));
+           await getSetting(userId: int.parse(userId));
       setting!.attendnaceDocCreated = true;
       int id = setting.id;
       update(data: setting.toJson(), endPoint: "settings/$id");
@@ -644,10 +644,10 @@ class IsarAPI implements IsarApiInterface {
   }
 
   @override
-  Business? getBusiness() {
+  Future<Business?> getBusiness() {
     String? userId = ProxyService.box.getUserId();
-    return isar.writeTxnSync((isar) {
-      return isar.businesss.filter().userIdEqualTo(userId!).findFirstSync();
+    return isar.writeTxn((isar) {
+      return isar.businesss.filter().userIdEqualTo(userId!).findFirst();
     });
   }
 
@@ -659,8 +659,8 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<Business?> getBusinessFromOnlineGivenId({required int id}) async{
-    Business? business = isar.writeTxnSync((isar) {
-      return isar.businesss.filter().idEqualTo(id).findFirstSync();
+    Business? business =await isar.writeTxn((isar) {
+      return isar.businesss.filter().idEqualTo(id).findFirst();
     });
     if(business!=null) return business;
     final http.Response response = await client.get(Uri.parse("$apihub/v2/api/business/$id"));
@@ -676,7 +676,7 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<PColor?> getColor({required int id, String? endPoint})async {
-    return isar.writeTxnSync((isar) async {
+    return isar.writeTxn((isar) async {
       return isar.pColors.getSync(id);
     });
   }
@@ -691,24 +691,24 @@ class IsarAPI implements IsarApiInterface {
   Future<VariantSync?> getCustomProductVariant() async {
     int branchId = ProxyService.box.getBranchId()!;
     int businessId = ProxyService.box.getBusinessId()!;
-    ProductSync? product = isar.writeTxnSync((isar) {
-      return isar.writeTxnSync((isar) {
+    ProductSync? product =await isar.writeTxn((isar) {
+      return isar.writeTxn((isar) {
         return isar.productSyncs
           .filter()
           .nameEqualTo('Custom Amount')
-          .findFirstSync();
+          .findFirst();
       })
     });
     if (product == null) {
       ProductSync p = await buildProductObject(branchId, businessId);
-      return isar.writeTxnSync((isar) async {
+      return isar.writeTxn((isar) async {
         return isar.variantSyncs
           .filter()
           .productIdEqualTo(p.id)
           .findFirstSync();
       });
     }else{
-      return isar.writeTxnSync((isar) async {
+      return isar.writeTxn((isar) async {
         return isar.variantSyncs
           .filter()
           .productIdEqualTo(product.id)
@@ -808,13 +808,18 @@ class IsarAPI implements IsarApiInterface {
     if (response.statusCode == 404) {
       throw NotFoundException(term: "Business not found");
     }
-    Business? business = isar.businesss.getSync(fromJson(response.body).id);
+   
+    Business? business =await isar.writeTxn((isar) {
+      return isar.businesss.get(fromJson(response.body).id);
+    });
     if (business == null) {
       await isar.writeTxn((isar) async {
-        isar.businesss.put(fromJson(response.body));
+        return isar.businesss.put(fromJson(response.body));
       });
       business =
-          await isar.businesss.filter().userIdEqualTo(userId).findFirst();
+          await isar.writeTxn((isar) {
+            return isar.businesss.filter().userIdEqualTo(userId).findFirst();
+          });
       return business!;
     } else {
       return business;
@@ -823,14 +828,14 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<OrderFSync?> getOrderById({required int id}) {
-    return isar.writeTxnSync((isar) async {
+    return isar.writeTxn((isar) async {
       return isar.orderFSyncs.get(id);
     });
   }
 
   @override
   Future<List<OrderFSync>> getOrderByStatus({required String status}) {
-    return isar.writeTxnSync((isar) async {
+    return isar.writeTxn((isar) async {
       return isar.orderFSyncs.filter().statusEqualTo(status).findAllSync();
     });
   }
@@ -843,14 +848,14 @@ class IsarAPI implements IsarApiInterface {
   }
 
   @override
-  OrderItemSync? getOrderItemByVariantId(
-      {required int variantId, required int orderId}) {
-    return isar.writeTxnSync((isar) {
+  Future<OrderItemSync?> getOrderItemByVariantId(
+      {required int variantId, required int orderId})async {
+    return await isar.writeTxn((isar) {
       return isar.orderItemSyncs
           .filter()
           .fvariantIdEqualTo(variantId)
           .forderIdEqualTo(orderId)
-          .findFirstSync();
+          .findFirst();
     });
   }
 
@@ -865,9 +870,9 @@ class IsarAPI implements IsarApiInterface {
   }
 
   @override
-  Points? getPoints({required int userId}) {
-    return isar.writeTxnSync((isar) {
-      return isar.pointss.filter().userIdEqualTo(userId).findFirstSync();
+  Future<Points?> getPoints({required int userId}) {
+    return isar.writeTxn((isar) {
+      return isar.pointss.filter().userIdEqualTo(userId).findFirst();
     });
   }
 
@@ -886,9 +891,9 @@ class IsarAPI implements IsarApiInterface {
   }
 
   @override
-  Setting? getSetting({required int userId}) {
-    return isar.writeTxnSync((isar) {
-      return isar.settings.filter().userIdEqualTo(userId).findFirstSync();
+  Future<Setting?> getSetting({required int userId})async {
+    return isar.writeTxn((isar) {
+      return isar.settings.filter().userIdEqualTo(userId).findFirst();
     });
   }
 
@@ -906,8 +911,8 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<Subscription?> getSubscription({required int userId}) async {
-    Subscription? local = isar.writeTxnSync((isar) {
-      return isar.subscriptions.filter().userIdEqualTo(userId).findFirstSync();
+    Subscription? local =await isar.writeTxn((isar) {
+      return isar.subscriptions.filter().userIdEqualTo(userId).findFirst();
     });
     if (local == null) {
       final response =
@@ -928,12 +933,12 @@ class IsarAPI implements IsarApiInterface {
   }
 
   @override
-  List<VariantSync> getVariantByProductId({required int productId}) {
-    return isar.writeTxnSync((isar) {
+  Future<List<VariantSync>> getVariantByProductId({required int productId}) async{
+    return isar.writeTxn((isar) {
       return isar.variantSyncs
           .filter()
           .productIdEqualTo(productId)
-          .findAllSync();
+          .findAll();
     });
   }
 
@@ -944,12 +949,12 @@ class IsarAPI implements IsarApiInterface {
   }
 
   @override
-  ProductSync? isTempProductExist({required int branchId}) {
-    return isar.writeTxnSync((isar) {
+  Future<ProductSync?> isTempProductExist({required int branchId}) {
+    return isar.writeTxn((isar) {
       return isar.productSyncs
           .filter()
           .branchIdEqualTo(branchId)
-          .findFirstSync();
+          .findFirst();
     });
   }
 
@@ -1057,9 +1062,9 @@ class IsarAPI implements IsarApiInterface {
   }
 
   @override
-  Profile? profile({required int businessId}) {
-    return isar.writeTxnSync((isar) {
-      return isar.profiles.filter().businessIdEqualTo(businessId).findFirstSync();
+  Future<Profile?> profile({required int businessId})async {
+    return isar.writeTxn((isar) {
+      return isar.profiles.filter().businessIdEqualTo(businessId).findFirst();
     });
   }
 
@@ -1097,7 +1102,8 @@ class IsarAPI implements IsarApiInterface {
       {required double amount, required phoneNumber}) async {
     String userId = ProxyService.box.read(key: 'userId');
     var headers = {'Content-Type': 'application/x-www-form-urlencoded'};
-    String businessName = getBusiness()!.name!;
+    Business? bu = await getBusiness();
+    String businessName = bu!.name!;
     var request =
         http.Request('POST', Uri.parse('https://flipper.yegobox.com/pay'));
     request.bodyFields = {
@@ -1143,13 +1149,13 @@ class IsarAPI implements IsarApiInterface {
   }
 
   @override
-  List<StockSync?> stocks({required int productId}) {
-    return isar.writeTxnSync((isar) {
+  Future<List<StockSync?>> stocks({required int productId})async {
+    return isar.writeTxn((isar) {
       return isar.stockSyncs
           .filter()
           .productIdEqualTo(productId)
           .build()
-          .findAllSync();
+          .findAll();
     });
   }
 
@@ -1235,11 +1241,11 @@ class IsarAPI implements IsarApiInterface {
   }
 
   @override
-  Profile? updateProfile({required Profile profile}) {
+  Future<Profile?> updateProfile({required Profile profile})async {
     //TODOcheck if the profile is propery updated.
-    return isar.writeTxnSync((isar) {
-      int id = isar.profiles.putSync(profile);
-      return isar.profiles.getSync(id);
+    return isar.writeTxn((isar) async{
+      int id =await isar.profiles.put(profile);
+      return isar.profiles.get(id);
     });
   }
 
@@ -1300,13 +1306,14 @@ class IsarAPI implements IsarApiInterface {
   }
 
   @override
-  List<OrderFSync> weeklyOrdersReport(
+  Future<List<OrderFSync>> weeklyOrdersReport(
       {required DateTime weekStartDate,
       required DateTime weekEndDate,
       required int branchId}) {
+        // throw UnimplementedError();
     List<DateTime> weekDates = getWeeksForRange(weekStartDate, weekEndDate);
     List<OrderFSync> pastOrders = [];
-    return isar.writeTxnSync((isar) {
+    return isar.writeTxn((isar) {
       for (DateTime date in weekDates) {
         List<OrderFSync> orders = isar.orderFSyncs
             .filter()
@@ -1326,7 +1333,7 @@ class IsarAPI implements IsarApiInterface {
       for (var item in pastOrders) {
         mp[item.orderNumber] = item;
       }
-      return mp.values.toList();
+      return Future.value(mp.values.toList());
     });
   }
 

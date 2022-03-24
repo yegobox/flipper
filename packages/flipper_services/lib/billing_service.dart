@@ -31,14 +31,14 @@ class BillingService {
     required double amount,
   }) async {
     /// update the subscription of the user
-    Subscription sub = await ProxyService.isarApi.addUpdateSubscription(
+    Subscription? sub = await ProxyService.isarApi.addUpdateSubscription(
       userId: userId,
       interval: interval,
       recurringAmount: amount,
       descriptor: descriptor,
       features: features,
     );
-    return sub;
+    return sub!;
   }
 
   Future<bool> activeSubscription() async {
@@ -69,7 +69,7 @@ class BillingService {
 
       if (nextBillingDate.isBefore(today)) {
         // if the user still have some point consume them and update the subscription
-        Points? points = ProxyService.isarApi.getPoints(userId: userId);
+        Points? points = await ProxyService.isarApi.getPoints(userId: userId);
         if (points?.value != null && points!.value > 0) {
           ProxyService.isarApi
               .consumePoints(userId: userId, points: points.value);

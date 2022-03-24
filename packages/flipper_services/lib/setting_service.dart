@@ -66,22 +66,26 @@ class SettingsService with ReactiveServiceMixin {
     }
   }
 
-  Setting? get settings => ProxyService.isarApi.getSetting(
-      userId: int.parse(ProxyService.box.read(key: 'userId') ?? '0'));
+  Future<Setting?> settings() async {
+    return ProxyService.isarApi.getSetting(
+        userId: int.parse(ProxyService.box.read(key: 'userId') ?? '0'));
+  }
 
-  bool isDailyReportEnabled() {
-    if (settings != null) {
-      return settings!.sendDailyReport == true;
+  Future<bool> isDailyReportEnabled() async {
+    Setting? setting = await settings();
+    if (setting != null) {
+      return Future.value(setting.sendDailyReport == true);
     } else {
-      return false;
+      return Future.value(false);
     }
   }
 
-  bool enabledPrint() {
-    if (settings != null) {
-      return settings!.autoPrint == true;
+  Future<bool> enabledPrint() async {
+    Setting? setting = await settings();
+    if (setting != null) {
+      return Future.value(setting.autoPrint == true);
     } else {
-      return false;
+      return Future.value(false);
     }
   }
 
@@ -89,38 +93,42 @@ class SettingsService with ReactiveServiceMixin {
     await updateSettings(map: {'autoPrint': bool});
   }
 
-  void getEnableReportToggleState() {
-    if (settings != null) {
-      _sendDailReport.value = settings!.sendDailyReport == null
-          ? false
-          : settings!.sendDailyReport!;
+  void getEnableReportToggleState() async {
+    Setting? setting = await settings();
+    if (setting != null) {
+      _sendDailReport.value =
+          setting.sendDailyReport == null ? false : setting.sendDailyReport!;
     }
   }
 
-  void getEnableAttendanceToggleState() {
-    if (settings != null) {
-      _isAttendanceEnabled.value = settings!.isAttendanceEnabled == null
+  void getEnableAttendanceToggleState() async {
+    Setting? setting = await settings();
+    if (setting != null) {
+      _isAttendanceEnabled.value = setting.isAttendanceEnabled == null
           ? false
-          : settings!.isAttendanceEnabled!;
+          : setting.isAttendanceEnabled!;
     }
   }
 
-  void toggleAttendanceSetting() {
-    if (settings != null) {
-      _isAttendanceEnabled.value = settings!.isAttendanceEnabled == null
-          ? false
-          : !settings!.isAttendanceEnabled!;
+  void toggleAttendanceSetting() async {
+    Setting? setting = await settings();
+    if (setting != null) {
+      if (setting.isAttendanceEnabled == null) {
+        _isAttendanceEnabled.value = false;
+      } else {
+        _isAttendanceEnabled.value = !setting.isAttendanceEnabled!;
+      }
 
-      Setting setting = new Setting(
-        id: settings!.id,
-        email: settings!.email,
-        userId: settings!.userId,
-        hasPin: settings!.hasPin,
-        googleSheetDocCreated: settings!.googleSheetDocCreated,
-        attendnaceDocCreated: settings!.attendnaceDocCreated,
-        sendDailyReport: settings!.sendDailyReport!,
-        openReceiptFileOSaleComplete: settings!.openReceiptFileOSaleComplete,
-        autoPrint: settings!.autoPrint,
+      Setting(
+        id: setting.id,
+        email: setting.email,
+        userId: setting.userId,
+        hasPin: setting.hasPin,
+        googleSheetDocCreated: setting.googleSheetDocCreated,
+        attendnaceDocCreated: setting.attendnaceDocCreated,
+        sendDailyReport: setting.sendDailyReport!,
+        openReceiptFileOSaleComplete: setting.openReceiptFileOSaleComplete,
+        autoPrint: setting.autoPrint,
         isAttendanceEnabled: _isAttendanceEnabled.value,
       );
       updateSettings(map: setting.toJson());
@@ -128,21 +136,24 @@ class SettingsService with ReactiveServiceMixin {
     }
   }
 
-  void toggleDailyReportSetting() {
-    if (settings != null) {
-      _sendDailReport.value = settings!.sendDailyReport == null
-          ? false
-          : !settings!.sendDailyReport!;
-      Setting setting = Setting(
-        id: settings!.id,
-        email: settings!.email,
-        userId: settings!.userId,
-        hasPin: settings!.hasPin,
-        googleSheetDocCreated: settings!.googleSheetDocCreated,
-        attendnaceDocCreated: settings!.attendnaceDocCreated,
+  void toggleDailyReportSetting() async {
+    Setting? setting = await settings();
+    if (setting != null) {
+      if (setting.sendDailyReport == null) {
+        _sendDailReport.value = false;
+      } else {
+        _sendDailReport.value = !setting.sendDailyReport!;
+      }
+      Setting(
+        id: setting.id,
+        email: setting.email,
+        userId: setting.userId,
+        hasPin: setting.hasPin,
+        googleSheetDocCreated: setting.googleSheetDocCreated,
+        attendnaceDocCreated: setting.attendnaceDocCreated,
         sendDailyReport: _sendDailReport.value,
-        openReceiptFileOSaleComplete: settings!.openReceiptFileOSaleComplete,
-        autoPrint: settings!.autoPrint,
+        openReceiptFileOSaleComplete: setting.openReceiptFileOSaleComplete,
+        autoPrint: setting.autoPrint,
       );
       updateSettings(map: setting.toJson());
       notifyListeners();
@@ -151,10 +162,11 @@ class SettingsService with ReactiveServiceMixin {
 
   Future<Function?> enableAttendance(
       {required bool bool, required Function callback}) async {
-    if (settings != null) {
+    Setting? setting = await settings();
+    if (setting != null) {
       int businessId = ProxyService.box.read(key: 'businessId');
       await ProxyService.api
-          .enableAttendance(businessId: businessId, email: settings!.email);
+          .enableAttendance(businessId: businessId, email: setting.email);
       return callback(true);
     } else {
       return callback(false);

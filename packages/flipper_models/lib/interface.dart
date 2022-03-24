@@ -8,7 +8,7 @@ abstract class IsarApiInterface {
   Future<Business> getLocalOrOnlineBusiness({required String userId});
   Future<List<BranchSync>> branches({required int businessId});
   Future<List<BranchSync>> getLocalBranches({required int businessId});
-  List<StockSync?> stocks({required int productId});
+  Future<List<StockSync?>> stocks({required int productId});
   Stream<StockSync> stockByVariantIdStream({required int variantId});
   Stream<List<ProductSync>> productStreams({required int branchId});
   Future<StockSync?> stockByVariantId({required int variantId});
@@ -38,7 +38,7 @@ abstract class IsarApiInterface {
   // Future
   //this function for now figure out what is the business id on backend side.
   Future<ProductSync> createProduct({required ProductSync product});
-  ProductSync? isTempProductExist({required int branchId});
+  Future<ProductSync?> isTempProductExist({required int branchId});
   Future<bool> logOut();
 
   Future<Voucher?> consumeVoucher({required int voucherCode});
@@ -64,7 +64,7 @@ abstract class IsarApiInterface {
       {required double cashReceived, required OrderFSync order});
 
 // app settings and users settings
-  Setting? getSetting({required int userId});
+  Future<Setting?> getSetting({required int userId});
 
   Future<Setting?> createSetting({required Setting setting});
   // Stream<List<Conversation>> conversationStreamList({int? receiverId});
@@ -83,19 +83,20 @@ abstract class IsarApiInterface {
   Stream<List<Business>> contacts();
   Future<List<Business>> getContacts();
 
-  Business? getBusiness();
-  CustomerSync? addCustomer({required Map customer, required int orderId});
+  Future<Business?> getBusiness();
+  Future<CustomerSync?> addCustomer(
+      {required Map customer, required int orderId});
   Future assingOrderToCustomer({required int customerId, required int orderId});
   Stream<CustomerSync?> getCustomer({required String key});
   Stream<CustomerSync?> getCustomerByOrderId({required int id});
   Future<OrderFSync?> getOrderById({required int id});
   Future<List<OrderFSync>> tickets();
-  List<VariantSync> getVariantByProductId({required int productId});
+  Future<List<VariantSync>> getVariantByProductId({required int productId});
   Future<List<OrderFSync>> getOrderByStatus({required String status});
   Future<int> sendReport({required List<OrderItemSync> orderItems});
   Future<void> createGoogleSheetDoc({required String email});
   Business getBusinessById({required int id});
-  OrderItemSync? getOrderItemByVariantId(
+  Future<OrderItemSync?> getOrderItemByVariantId(
       {required int variantId, required int orderId});
   //abstract method to update business
   Future<void> updateBusiness({required int id, required Map business});
@@ -103,7 +104,7 @@ abstract class IsarApiInterface {
   //analytics
   int lifeTimeCustomersForbranch({required int branchId});
 
-  List<OrderFSync> weeklyOrdersReport({
+  Future<List<OrderFSync>> weeklyOrdersReport({
     required DateTime weekStartDate,
     required DateTime weekEndDate,
     required int branchId,
@@ -114,7 +115,8 @@ abstract class IsarApiInterface {
 
   Future<List<DiscountSync>> getDiscounts({required int branchId});
 
-  OrderFSync addOrderItem({required OrderFSync order, required Map data});
+  Future<OrderFSync?> addOrderItem(
+      {required OrderFSync order, required Map data});
 
   // Conversation createConversation({required Conversation conversation});
 
@@ -145,11 +147,11 @@ abstract class IsarApiInterface {
   Future<bool> enableAttendance(
       {required int businessId, required String email});
 
-  Profile? profile({required int businessId});
-  Profile? updateProfile({required Profile profile});
+  Future<Profile?> profile({required int businessId});
+  Future<Profile?> updateProfile({required Profile profile});
   void saveTenant({required String phoneNumber});
   Points addPoint({required int userId, required int point});
-  Subscription addUpdateSubscription({
+  Future<Subscription?> addUpdateSubscription({
     required int userId,
     required int interval,
     required double recurringAmount,
@@ -157,7 +159,7 @@ abstract class IsarApiInterface {
     required List<Feature> features,
   });
   Future<Subscription?> getSubscription({required int userId});
-  Points? getPoints({required int userId});
+  Future<Points?> getPoints({required int userId});
   void consumePoints({required int userId, required int points});
   Future<Pin?> createPin();
   Future<Pin?> getPin({required String pin});

@@ -156,25 +156,30 @@ class _ProductViewState extends State<ProductView> {
             /// show the products
             ...model.productService.products.map(
               (product) {
-                return ProductRow(
-                  color: product.color,
-                  stocks: model.productService
-                      .loadStockByProductId(productId: product.id),
-                  model: model,
-                  hasImage: product.hasPicture,
-                  product: product,
-                  name: product.name,
-                  imageUrl: product.imageUrl,
-                  edit: (productId) {
-                    GoRouter.of(context).push(Routes.product + "/$productId");
-                  },
-                  addToMenu: (productId) {
-                    model.addToMenu(productId: productId);
-                  },
-                  delete: (productId) {
-                    model.deleteProduct(productId: productId);
-                  },
-                );
+                return FutureBuilder<List<StockSync?>>(
+                    future: model.productService
+                        .loadStockByProductId(productId: product.id),
+                    builder: (BuildContext context, stocks) {
+                      return ProductRow(
+                        color: product.color,
+                        stocks: stocks.data!,
+                        model: model,
+                        hasImage: product.hasPicture,
+                        product: product,
+                        name: product.name,
+                        imageUrl: product.imageUrl,
+                        edit: (productId) {
+                          GoRouter.of(context)
+                              .push(Routes.product + "/$productId");
+                        },
+                        addToMenu: (productId) {
+                          model.addToMenu(productId: productId);
+                        },
+                        delete: (productId) {
+                          model.deleteProduct(productId: productId);
+                        },
+                      );
+                    });
               },
             ).toList()
           ],

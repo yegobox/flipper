@@ -905,10 +905,12 @@ class MockProductService extends _i1.Mock implements _i15.ProductService {
               returnValue: Future<_i9.ProductSync?>.value())
           as _i11.Future<_i9.ProductSync?>);
   @override
-  List<_i9.StockSync?> loadStockByProductId({int? productId}) =>
+  _i11.Future<List<_i9.StockSync?>> loadStockByProductId({int? productId}) =>
       (super.noSuchMethod(
           Invocation.method(#loadStockByProductId, [], {#productId: productId}),
-          returnValue: <_i9.StockSync?>[]) as List<_i9.StockSync?>);
+          returnValue:
+              Future<List<_i9.StockSync?>>.value(<_i9.StockSync?>[])) as _i11
+          .Future<List<_i9.StockSync?>>);
   @override
   void listenToReactiveValues(List<dynamic>? reactiveValues) =>
       super.noSuchMethod(
@@ -1080,13 +1082,17 @@ class MockSettingsService extends _i1.Mock implements _i17.SettingsService {
       (super.noSuchMethod(Invocation.method(#updateSettings, [], {#map: map}),
           returnValue: Future<bool>.value(false)) as _i11.Future<bool>);
   @override
-  bool isDailyReportEnabled() =>
-      (super.noSuchMethod(Invocation.method(#isDailyReportEnabled, []),
-          returnValue: false) as bool);
+  _i11.Future<_i9.Setting?> settings() => (super.noSuchMethod(
+      Invocation.method(#settings, []),
+      returnValue: Future<_i9.Setting?>.value()) as _i11.Future<_i9.Setting?>);
   @override
-  bool enabledPrint() =>
+  _i11.Future<bool> isDailyReportEnabled() =>
+      (super.noSuchMethod(Invocation.method(#isDailyReportEnabled, []),
+          returnValue: Future<bool>.value(false)) as _i11.Future<bool>);
+  @override
+  _i11.Future<bool> enabledPrint() =>
       (super.noSuchMethod(Invocation.method(#enabledPrint, []),
-          returnValue: false) as bool);
+          returnValue: Future<bool>.value(false)) as _i11.Future<bool>);
   @override
   void enablePrint({bool? bool}) =>
       super.noSuchMethod(Invocation.method(#enablePrint, [], {#bool: bool}),

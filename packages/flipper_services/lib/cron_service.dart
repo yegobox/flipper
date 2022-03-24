@@ -58,7 +58,7 @@ class CronService {
   // then we will customize invoice to match with actual data.
   schedule() async {
     //save the device token to firestore if it is not already there
-    Business? business = ProxyService.isarApi.getBusiness();
+    Business? business = await ProxyService.isarApi.getBusiness();
     String? token;
     if (!Platform.isWindows) {
       token = await FirebaseMessaging.instance.getToken();
@@ -80,8 +80,8 @@ class CronService {
     // });
 
     /// backup the user db every day
-    cron.schedule(Schedule.parse('0 0 * * *'), () {
-      Business? business = ProxyService.isarApi.getBusiness();
+    cron.schedule(Schedule.parse('0 0 * * *'), () async {
+      Business? business = await ProxyService.isarApi.getBusiness();
       if (business!.backUpEnabled!) {
         final drive = GoogleDrive();
         drive.backUpNow();
@@ -97,7 +97,7 @@ class CronService {
       String userId = ProxyService.box.getUserId()!;
       ProxyService.billing.monitorSubscription(userId: int.parse(userId));
       ProxyService.box.remove(key: 'checkIn');
-      if (settingService.isDailyReportEnabled()) {
+      if (await settingService.isDailyReportEnabled()) {
         List<OrderFSync> completedOrders =
             await ProxyService.isarApi.getOrderByStatus(status: completeStatus);
 

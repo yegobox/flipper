@@ -266,7 +266,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
         /// if is a new item to be added to the list then it will be added to the list
         /// existOrderItem will return null which will go to adding item api.
-        OrderItemSync? existOrderItem = ProxyService.isarApi
+        OrderItemSync? existOrderItem = await ProxyService.isarApi
             .getOrderItemByVariantId(
                 variantId: variationId, orderId: existOrders[0].id);
         // log.w(exist_orders.length);
@@ -472,7 +472,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   /// the UI can notify the user based on the return value
   void restoreBackUp(Function callback) async {
     if (ProxyService.remoteConfig.isBackupAvailable()) {
-      Business? business = ProxyService.isarApi.getBusiness();
+      Business? business = await ProxyService.isarApi.getBusiness();
       final drive = GoogleDrive();
       if (business!.backupFileId != null) {
         await drive.downloadGoogleDriveFile('data', business.backupFileId!);

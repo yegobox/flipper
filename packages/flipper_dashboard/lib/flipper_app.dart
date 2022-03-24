@@ -93,7 +93,8 @@ class _FlipperAppState extends State<FlipperApp> {
         SchedulerPhase.persistentCallbacks) {
       SchedulerBinding.instance?.addPostFrameCallback((_) async {
         int businessId = ProxyService.box.read(key: 'businessId');
-        Profile? profile = ProxyService.isarApi.profile(businessId: businessId);
+        Profile? profile =
+            await ProxyService.isarApi.profile(businessId: businessId);
 
         int today = DateTime.now().day;
         // if today is tuesday for example and other even days
