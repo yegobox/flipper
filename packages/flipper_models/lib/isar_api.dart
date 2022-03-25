@@ -1,15 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-// Decision three
-// can't use import because the part won't be imported
-// can't use same interface since will be a waste as bcs of the first issue
-// can use separate interface and would work but will mean that I need to re-write every call.
-// Do I need to mimick desktop app to web?
-// no->then this will work as web will not have 100 % feature as the rest of the app
-// ->ditch objectbox to isar, but need a way to migrate old data to new.
-// ->right now ditch is comlicated bcs isar still need some feature required for this easy migration
-// ->migrating slowly on web will give more insight as we wait for the feature to be omplemented on isar side
-// ->isar won't need to use same interface as objectbox since isar support all platforms
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_models/isar/product.dart';
 import 'package:flipper_routing/routes.logger.dart';
@@ -32,8 +22,6 @@ class ExtendedClient extends http.BaseClient {
     request.headers['Authorization'] = token ?? '';
     request.headers['userId'] = userId ?? '';
     request.headers['Content-Type'] = 'application/json';
-    // request.headers['Connection'] = "Keep-Alive";
-    // request.headers['Keep-Alive'] = "timeout=5, max=1000";
     return _inner.send(request);
   }
 }
@@ -63,6 +51,8 @@ class IsarAPI implements IsarApiInterface {
         PColorSchema,
         CategorySchema,
         UnitSchema,
+        SettingSchema,
+        DiscountSyncSchema,
       ],
       inspector: false,
     );
@@ -839,7 +829,7 @@ class IsarAPI implements IsarApiInterface {
   @override
   Future<List<OrderFSync>> getOrderByStatus({required String status}) {
     return isar.writeTxn((isar) async {
-      return isar.orderFSyncs.filter().statusEqualTo(status).findAllSync();
+      return isar.orderFSyncs.filter().statusEqualTo(status).findAll();
     });
   }
 
