@@ -82,7 +82,6 @@ void main() async {
     // SystemChrome.setEnabledSystemUIMode(
     //   SystemUiMode.leanBack,
     // );
-    // runApp(FlipperAppLegacy());
     runApp(const ProviderScope(child: Gate()));
   }, (error, stack) async {
     await Sentry.captureException(error, stackTrace: stack);

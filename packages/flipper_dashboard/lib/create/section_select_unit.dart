@@ -1,6 +1,6 @@
+import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/models/models.dart';
 import 'package:go_router/go_router.dart';
 
 class SectionSelectUnit extends StatelessWidget {
@@ -12,7 +12,7 @@ class SectionSelectUnit extends StatelessWidget {
     late Text text = const Text('Select Unit');
 
     if (product.unit != '') {
-      text = Text(product.unit);
+      text = Text(product.unit ?? 'Select Unit');
     }
 
     return text;

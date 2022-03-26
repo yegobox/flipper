@@ -88,11 +88,11 @@ class _VariantSyncWebAdapter extends IsarWebTypeAdapter<VariantSync> {
     object.productName = IsarNative.jsObjectGet(jsObj, 'productName') ?? '';
     object.retailPrice =
         IsarNative.jsObjectGet(jsObj, 'retailPrice') ?? double.negativeInfinity;
-    object.sku = IsarNative.jsObjectGet(jsObj, 'sku') ?? '';
+    object.sku = IsarNative.jsObjectGet(jsObj, 'sku');
     object.supplyPrice =
         IsarNative.jsObjectGet(jsObj, 'supplyPrice') ?? double.negativeInfinity;
     object.synced = IsarNative.jsObjectGet(jsObj, 'synced');
-    object.table = IsarNative.jsObjectGet(jsObj, 'table') ?? '';
+    object.table = IsarNative.jsObjectGet(jsObj, 'table');
     object.taxName = IsarNative.jsObjectGet(jsObj, 'taxName');
     object.taxPercentage = IsarNative.jsObjectGet(jsObj, 'taxPercentage');
     object.unit = IsarNative.jsObjectGet(jsObj, 'unit') ?? '';
@@ -121,14 +121,14 @@ class _VariantSyncWebAdapter extends IsarWebTypeAdapter<VariantSync> {
         return (IsarNative.jsObjectGet(jsObj, 'retailPrice') ??
             double.negativeInfinity) as P;
       case 'sku':
-        return (IsarNative.jsObjectGet(jsObj, 'sku') ?? '') as P;
+        return (IsarNative.jsObjectGet(jsObj, 'sku')) as P;
       case 'supplyPrice':
         return (IsarNative.jsObjectGet(jsObj, 'supplyPrice') ??
             double.negativeInfinity) as P;
       case 'synced':
         return (IsarNative.jsObjectGet(jsObj, 'synced')) as P;
       case 'table':
-        return (IsarNative.jsObjectGet(jsObj, 'table') ?? '') as P;
+        return (IsarNative.jsObjectGet(jsObj, 'table')) as P;
       case 'taxName':
         return (IsarNative.jsObjectGet(jsObj, 'taxName')) as P;
       case 'taxPercentage':
@@ -177,15 +177,21 @@ class _VariantSyncNativeAdapter extends IsarNativeTypeAdapter<VariantSync> {
     final value4 = object.retailPrice;
     final _retailPrice = value4;
     final value5 = object.sku;
-    final _sku = IsarBinaryWriter.utf8Encoder.convert(value5);
-    dynamicSize += (_sku.length) as int;
+    IsarUint8List? _sku;
+    if (value5 != null) {
+      _sku = IsarBinaryWriter.utf8Encoder.convert(value5);
+    }
+    dynamicSize += (_sku?.length ?? 0) as int;
     final value6 = object.supplyPrice;
     final _supplyPrice = value6;
     final value7 = object.synced;
     final _synced = value7;
     final value8 = object.table;
-    final _table = IsarBinaryWriter.utf8Encoder.convert(value8);
-    dynamicSize += (_table.length) as int;
+    IsarUint8List? _table;
+    if (value8 != null) {
+      _table = IsarBinaryWriter.utf8Encoder.convert(value8);
+    }
+    dynamicSize += (_table?.length ?? 0) as int;
     final value9 = object.taxName;
     IsarUint8List? _taxName;
     if (value9 != null) {
@@ -227,10 +233,10 @@ class _VariantSyncNativeAdapter extends IsarNativeTypeAdapter<VariantSync> {
     object.productId = reader.readLong(offsets[2]);
     object.productName = reader.readString(offsets[3]);
     object.retailPrice = reader.readDouble(offsets[4]);
-    object.sku = reader.readString(offsets[5]);
+    object.sku = reader.readStringOrNull(offsets[5]);
     object.supplyPrice = reader.readDouble(offsets[6]);
     object.synced = reader.readBoolOrNull(offsets[7]);
-    object.table = reader.readString(offsets[8]);
+    object.table = reader.readStringOrNull(offsets[8]);
     object.taxName = reader.readStringOrNull(offsets[9]);
     object.taxPercentage = reader.readDoubleOrNull(offsets[10]);
     object.unit = reader.readString(offsets[11]);
@@ -255,13 +261,13 @@ class _VariantSyncNativeAdapter extends IsarNativeTypeAdapter<VariantSync> {
       case 4:
         return (reader.readDouble(offset)) as P;
       case 5:
-        return (reader.readString(offset)) as P;
+        return (reader.readStringOrNull(offset)) as P;
       case 6:
         return (reader.readDouble(offset)) as P;
       case 7:
         return (reader.readBoolOrNull(offset)) as P;
       case 8:
-        return (reader.readString(offset)) as P;
+        return (reader.readStringOrNull(offset)) as P;
       case 9:
         return (reader.readStringOrNull(offset)) as P;
       case 10:
@@ -759,8 +765,16 @@ extension VariantSyncQueryFilter
     ));
   }
 
+  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> skuIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'sku',
+      value: null,
+    ));
+  }
+
   QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> skuEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return addFilterConditionInternal(FilterCondition(
@@ -772,7 +786,7 @@ extension VariantSyncQueryFilter
   }
 
   QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> skuGreaterThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
     bool include = false,
   }) {
@@ -786,7 +800,7 @@ extension VariantSyncQueryFilter
   }
 
   QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> skuLessThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
     bool include = false,
   }) {
@@ -800,8 +814,8 @@ extension VariantSyncQueryFilter
   }
 
   QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> skuBetween(
-    String lower,
-    String upper, {
+    String? lower,
+    String? upper, {
     bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
@@ -910,8 +924,16 @@ extension VariantSyncQueryFilter
     ));
   }
 
+  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> tableIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'table',
+      value: null,
+    ));
+  }
+
   QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> tableEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return addFilterConditionInternal(FilterCondition(
@@ -924,7 +946,7 @@ extension VariantSyncQueryFilter
 
   QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
       tableGreaterThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
     bool include = false,
   }) {
@@ -938,7 +960,7 @@ extension VariantSyncQueryFilter
   }
 
   QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> tableLessThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
     bool include = false,
   }) {
@@ -952,8 +974,8 @@ extension VariantSyncQueryFilter
   }
 
   QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> tableBetween(
-    String lower,
-    String upper, {
+    String? lower,
+    String? upper, {
     bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
@@ -1575,7 +1597,7 @@ extension VariantSyncQueryProperty
     return addPropertyNameInternal('retailPrice');
   }
 
-  QueryBuilder<VariantSync, String, QQueryOperations> skuProperty() {
+  QueryBuilder<VariantSync, String?, QQueryOperations> skuProperty() {
     return addPropertyNameInternal('sku');
   }
 
@@ -1587,7 +1609,7 @@ extension VariantSyncQueryProperty
     return addPropertyNameInternal('synced');
   }
 
-  QueryBuilder<VariantSync, String, QQueryOperations> tableProperty() {
+  QueryBuilder<VariantSync, String?, QQueryOperations> tableProperty() {
     return addPropertyNameInternal('table');
   }
 

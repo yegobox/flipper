@@ -120,7 +120,6 @@ class ProductViewModel extends ReactiveViewModel {
 
   ///create a new category and refresh list of categories
   Future<void> createCategory() async {
-    final String? userId = ProxyService.box.read(key: 'userId');
     final int? branchId = ProxyService.box.read(key: 'branchId');
     final categoryId = DateTime.now().millisecondsSinceEpoch;
     if (name == null) return;
@@ -301,7 +300,6 @@ class ProductViewModel extends ReactiveViewModel {
     if (supplyPrice != null) {
       for (VariantSync variation in variants!) {
         if (variation.name == "Regular") {
-          // Map map = variation.toJson();
           variation.supplyPrice = supplyPrice;
           variation.productId = variation.productId;
           int ids = variation.id;
@@ -309,10 +307,12 @@ class ProductViewModel extends ReactiveViewModel {
               .update(data: variation, endPoint: 'variant/$ids');
           StockSync? stock = await ProxyService.isarApi
               .stockByVariantId(variantId: variation.id);
-          // Map data = stock.toJson();
-          stock!.supplyPrice = supplyPrice;
-          int id = stock.id;
-          ProxyService.isarApi.update(data: stock, endPoint: 'stock/$id');
+
+          if (stock != null) {
+            stock.supplyPrice = supplyPrice;
+            int id = stock.id;
+            ProxyService.isarApi.update(data: stock, endPoint: 'stock/$id');
+          }
         }
       }
     }
@@ -320,7 +320,6 @@ class ProductViewModel extends ReactiveViewModel {
     if (retailPrice != null) {
       for (VariantSync variation in variants!) {
         if (variation.name == "Regular") {
-          // Map map = variation.toJson();
           variation.retailPrice = retailPrice;
           variation.productId = variation.productId;
           int ids = variation.id;
@@ -329,30 +328,30 @@ class ProductViewModel extends ReactiveViewModel {
           StockSync? stock = await ProxyService.isarApi
               .stockByVariantId(variantId: variation.id);
 
-          // Map data = stock.toJson();
-          stock!.retailPrice = retailPrice;
-          int id = stock.id;
-          ProxyService.isarApi.update(data: stock, endPoint: 'stock/$id');
+          if (stock != null) {
+            stock.retailPrice = retailPrice;
+            int id = stock.id;
+            ProxyService.isarApi.update(data: stock, endPoint: 'stock/$id');
+          }
         }
       }
     }
     productService.variantsProduct(productId: product.id);
   }
 
-  Future<bool> addProduct({required Map mproduct, required String name}) async {
-    mproduct['name'] = name;
-    mproduct['barCode'] = productService.barCode.toString();
-    mproduct['color'] = currentColor;
-    mproduct['color'] = currentColor;
-    mproduct['draft'] = false;
-    // update the variant with the product name
+  Future<bool> addProduct(
+      {required ProductSync mproduct, required String name}) async {
+    mproduct.name = name;
+    mproduct.barCode = productService.barCode.toString();
+    mproduct.color = currentColor;
+    mproduct.color = currentColor;
+    mproduct.draft = false;
     List<VariantSync> variants = await ProxyService.isarApi
-        .getVariantByProductId(productId: mproduct['id']);
+        .getVariantByProductId(productId: mproduct.id);
 
     for (VariantSync variant in variants) {
-      // Map v = variant.toJson();
       variant.productName = name;
-      variant.productId = mproduct['id'];
+      variant.productId = mproduct.id;
       int id = variant.id;
       await ProxyService.isarApi.update(data: variant, endPoint: 'variant/$id');
     }

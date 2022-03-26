@@ -162,7 +162,7 @@ class _ProductViewState extends State<ProductView> {
                     builder: (BuildContext context, stocks) {
                       return ProductRow(
                         color: product.color,
-                        stocks: stocks.data!,
+                        stocks: stocks.data ?? [],
                         model: model,
                         hasImage: product.hasPicture,
                         product: product,

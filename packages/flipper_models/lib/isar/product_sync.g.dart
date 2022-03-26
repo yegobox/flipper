@@ -17,7 +17,7 @@ extension GetProductSyncCollection on Isar {
 final ProductSyncSchema = CollectionSchema(
   name: 'ProductSync',
   schema:
-      '{"name":"ProductSync","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"barCode","type":"String"},{"name":"branchId","type":"Long"},{"name":"businessId","type":"Long"},{"name":"color","type":"String"},{"name":"createdAt","type":"String"},{"name":"currentUpdate","type":"Bool"},{"name":"description","type":"String"},{"name":"draft","type":"Bool"},{"name":"expiryDate","type":"String"},{"name":"fcategoryId","type":"String"},{"name":"ftaxId","type":"String"},{"name":"hasPicture","type":"Bool"},{"name":"imageLocal","type":"Bool"},{"name":"imageUrl","type":"String"},{"name":"name","type":"String"},{"name":"picture","type":"String"},{"name":"supplierId","type":"String"},{"name":"synced","type":"Bool"},{"name":"table","type":"String"},{"name":"unit","type":"String"}],"indexes":[],"links":[]}',
+      '{"name":"ProductSync","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"barCode","type":"String"},{"name":"branchId","type":"Long"},{"name":"businessId","type":"Long"},{"name":"categoryId","type":"String"},{"name":"color","type":"String"},{"name":"createdAt","type":"String"},{"name":"currentUpdate","type":"Bool"},{"name":"description","type":"String"},{"name":"draft","type":"Bool"},{"name":"expiryDate","type":"String"},{"name":"hasPicture","type":"Bool"},{"name":"imageLocal","type":"Bool"},{"name":"imageUrl","type":"String"},{"name":"name","type":"String"},{"name":"picture","type":"String"},{"name":"supplierId","type":"String"},{"name":"synced","type":"Bool"},{"name":"table","type":"String"},{"name":"taxId","type":"String"},{"name":"unit","type":"String"}],"indexes":[],"links":[]}',
   nativeAdapter: const _ProductSyncNativeAdapter(),
   webAdapter: const _ProductSyncWebAdapter(),
   idName: 'id',
@@ -26,22 +26,22 @@ final ProductSyncSchema = CollectionSchema(
     'barCode': 1,
     'branchId': 2,
     'businessId': 3,
-    'color': 4,
-    'createdAt': 5,
-    'currentUpdate': 6,
-    'description': 7,
-    'draft': 8,
-    'expiryDate': 9,
-    'fcategoryId': 10,
-    'ftaxId': 11,
-    'hasPicture': 12,
-    'imageLocal': 13,
-    'imageUrl': 14,
-    'name': 15,
-    'picture': 16,
-    'supplierId': 17,
-    'synced': 18,
-    'table': 19,
+    'categoryId': 4,
+    'color': 5,
+    'createdAt': 6,
+    'currentUpdate': 7,
+    'description': 8,
+    'draft': 9,
+    'expiryDate': 10,
+    'hasPicture': 11,
+    'imageLocal': 12,
+    'imageUrl': 13,
+    'name': 14,
+    'picture': 15,
+    'supplierId': 16,
+    'synced': 17,
+    'table': 18,
+    'taxId': 19,
     'unit': 20
   },
   listProperties: {},
@@ -72,14 +72,13 @@ class _ProductSyncWebAdapter extends IsarWebTypeAdapter<ProductSync> {
     IsarNative.jsObjectSet(jsObj, 'barCode', object.barCode);
     IsarNative.jsObjectSet(jsObj, 'branchId', object.branchId);
     IsarNative.jsObjectSet(jsObj, 'businessId', object.businessId);
+    IsarNative.jsObjectSet(jsObj, 'categoryId', object.categoryId);
     IsarNative.jsObjectSet(jsObj, 'color', object.color);
     IsarNative.jsObjectSet(jsObj, 'createdAt', object.createdAt);
     IsarNative.jsObjectSet(jsObj, 'currentUpdate', object.currentUpdate);
     IsarNative.jsObjectSet(jsObj, 'description', object.description);
     IsarNative.jsObjectSet(jsObj, 'draft', object.draft);
     IsarNative.jsObjectSet(jsObj, 'expiryDate', object.expiryDate);
-    IsarNative.jsObjectSet(jsObj, 'fcategoryId', object.fcategoryId);
-    IsarNative.jsObjectSet(jsObj, 'ftaxId', object.ftaxId);
     IsarNative.jsObjectSet(jsObj, 'hasPicture', object.hasPicture);
     IsarNative.jsObjectSet(jsObj, 'id', object.id);
     IsarNative.jsObjectSet(jsObj, 'imageLocal', object.imageLocal);
@@ -89,6 +88,7 @@ class _ProductSyncWebAdapter extends IsarWebTypeAdapter<ProductSync> {
     IsarNative.jsObjectSet(jsObj, 'supplierId', object.supplierId);
     IsarNative.jsObjectSet(jsObj, 'synced', object.synced);
     IsarNative.jsObjectSet(jsObj, 'table', object.table);
+    IsarNative.jsObjectSet(jsObj, 'taxId', object.taxId);
     IsarNative.jsObjectSet(jsObj, 'unit', object.unit);
     return jsObj;
   }
@@ -103,24 +103,24 @@ class _ProductSyncWebAdapter extends IsarWebTypeAdapter<ProductSync> {
         IsarNative.jsObjectGet(jsObj, 'branchId') ?? double.negativeInfinity;
     object.businessId =
         IsarNative.jsObjectGet(jsObj, 'businessId') ?? double.negativeInfinity;
+    object.categoryId = IsarNative.jsObjectGet(jsObj, 'categoryId');
     object.color = IsarNative.jsObjectGet(jsObj, 'color') ?? '';
     object.createdAt = IsarNative.jsObjectGet(jsObj, 'createdAt');
     object.currentUpdate = IsarNative.jsObjectGet(jsObj, 'currentUpdate');
     object.description = IsarNative.jsObjectGet(jsObj, 'description');
     object.draft = IsarNative.jsObjectGet(jsObj, 'draft');
     object.expiryDate = IsarNative.jsObjectGet(jsObj, 'expiryDate');
-    object.fcategoryId = IsarNative.jsObjectGet(jsObj, 'fcategoryId');
-    object.ftaxId = IsarNative.jsObjectGet(jsObj, 'ftaxId');
     object.hasPicture = IsarNative.jsObjectGet(jsObj, 'hasPicture') ?? false;
     object.id = IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity;
     object.imageLocal = IsarNative.jsObjectGet(jsObj, 'imageLocal');
     object.imageUrl = IsarNative.jsObjectGet(jsObj, 'imageUrl');
     object.name = IsarNative.jsObjectGet(jsObj, 'name') ?? '';
-    object.picture = IsarNative.jsObjectGet(jsObj, 'picture') ?? '';
+    object.picture = IsarNative.jsObjectGet(jsObj, 'picture');
     object.supplierId = IsarNative.jsObjectGet(jsObj, 'supplierId');
     object.synced = IsarNative.jsObjectGet(jsObj, 'synced');
-    object.table = IsarNative.jsObjectGet(jsObj, 'table') ?? '';
-    object.unit = IsarNative.jsObjectGet(jsObj, 'unit') ?? '';
+    object.table = IsarNative.jsObjectGet(jsObj, 'table');
+    object.taxId = IsarNative.jsObjectGet(jsObj, 'taxId');
+    object.unit = IsarNative.jsObjectGet(jsObj, 'unit');
     attachLinks(collection.isar,
         IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity, object);
     return object;
@@ -139,6 +139,8 @@ class _ProductSyncWebAdapter extends IsarWebTypeAdapter<ProductSync> {
       case 'businessId':
         return (IsarNative.jsObjectGet(jsObj, 'businessId') ??
             double.negativeInfinity) as P;
+      case 'categoryId':
+        return (IsarNative.jsObjectGet(jsObj, 'categoryId')) as P;
       case 'color':
         return (IsarNative.jsObjectGet(jsObj, 'color') ?? '') as P;
       case 'createdAt':
@@ -151,10 +153,6 @@ class _ProductSyncWebAdapter extends IsarWebTypeAdapter<ProductSync> {
         return (IsarNative.jsObjectGet(jsObj, 'draft')) as P;
       case 'expiryDate':
         return (IsarNative.jsObjectGet(jsObj, 'expiryDate')) as P;
-      case 'fcategoryId':
-        return (IsarNative.jsObjectGet(jsObj, 'fcategoryId')) as P;
-      case 'ftaxId':
-        return (IsarNative.jsObjectGet(jsObj, 'ftaxId')) as P;
       case 'hasPicture':
         return (IsarNative.jsObjectGet(jsObj, 'hasPicture') ?? false) as P;
       case 'id':
@@ -167,15 +165,17 @@ class _ProductSyncWebAdapter extends IsarWebTypeAdapter<ProductSync> {
       case 'name':
         return (IsarNative.jsObjectGet(jsObj, 'name') ?? '') as P;
       case 'picture':
-        return (IsarNative.jsObjectGet(jsObj, 'picture') ?? '') as P;
+        return (IsarNative.jsObjectGet(jsObj, 'picture')) as P;
       case 'supplierId':
         return (IsarNative.jsObjectGet(jsObj, 'supplierId')) as P;
       case 'synced':
         return (IsarNative.jsObjectGet(jsObj, 'synced')) as P;
       case 'table':
-        return (IsarNative.jsObjectGet(jsObj, 'table') ?? '') as P;
+        return (IsarNative.jsObjectGet(jsObj, 'table')) as P;
+      case 'taxId':
+        return (IsarNative.jsObjectGet(jsObj, 'taxId')) as P;
       case 'unit':
-        return (IsarNative.jsObjectGet(jsObj, 'unit') ?? '') as P;
+        return (IsarNative.jsObjectGet(jsObj, 'unit')) as P;
       default:
         throw 'Illegal propertyName';
     }
@@ -217,73 +217,82 @@ class _ProductSyncNativeAdapter extends IsarNativeTypeAdapter<ProductSync> {
     final _branchId = value2;
     final value3 = object.businessId;
     final _businessId = value3;
-    final value4 = object.color;
-    final _color = IsarBinaryWriter.utf8Encoder.convert(value4);
+    final value4 = object.categoryId;
+    IsarUint8List? _categoryId;
+    if (value4 != null) {
+      _categoryId = IsarBinaryWriter.utf8Encoder.convert(value4);
+    }
+    dynamicSize += (_categoryId?.length ?? 0) as int;
+    final value5 = object.color;
+    final _color = IsarBinaryWriter.utf8Encoder.convert(value5);
     dynamicSize += (_color.length) as int;
-    final value5 = object.createdAt;
+    final value6 = object.createdAt;
     IsarUint8List? _createdAt;
-    if (value5 != null) {
-      _createdAt = IsarBinaryWriter.utf8Encoder.convert(value5);
+    if (value6 != null) {
+      _createdAt = IsarBinaryWriter.utf8Encoder.convert(value6);
     }
     dynamicSize += (_createdAt?.length ?? 0) as int;
-    final value6 = object.currentUpdate;
-    final _currentUpdate = value6;
-    final value7 = object.description;
+    final value7 = object.currentUpdate;
+    final _currentUpdate = value7;
+    final value8 = object.description;
     IsarUint8List? _description;
-    if (value7 != null) {
-      _description = IsarBinaryWriter.utf8Encoder.convert(value7);
+    if (value8 != null) {
+      _description = IsarBinaryWriter.utf8Encoder.convert(value8);
     }
     dynamicSize += (_description?.length ?? 0) as int;
-    final value8 = object.draft;
-    final _draft = value8;
-    final value9 = object.expiryDate;
+    final value9 = object.draft;
+    final _draft = value9;
+    final value10 = object.expiryDate;
     IsarUint8List? _expiryDate;
-    if (value9 != null) {
-      _expiryDate = IsarBinaryWriter.utf8Encoder.convert(value9);
+    if (value10 != null) {
+      _expiryDate = IsarBinaryWriter.utf8Encoder.convert(value10);
     }
     dynamicSize += (_expiryDate?.length ?? 0) as int;
-    final value10 = object.fcategoryId;
-    IsarUint8List? _fcategoryId;
-    if (value10 != null) {
-      _fcategoryId = IsarBinaryWriter.utf8Encoder.convert(value10);
-    }
-    dynamicSize += (_fcategoryId?.length ?? 0) as int;
-    final value11 = object.ftaxId;
-    IsarUint8List? _ftaxId;
-    if (value11 != null) {
-      _ftaxId = IsarBinaryWriter.utf8Encoder.convert(value11);
-    }
-    dynamicSize += (_ftaxId?.length ?? 0) as int;
-    final value12 = object.hasPicture;
-    final _hasPicture = value12;
-    final value13 = object.imageLocal;
-    final _imageLocal = value13;
-    final value14 = object.imageUrl;
+    final value11 = object.hasPicture;
+    final _hasPicture = value11;
+    final value12 = object.imageLocal;
+    final _imageLocal = value12;
+    final value13 = object.imageUrl;
     IsarUint8List? _imageUrl;
-    if (value14 != null) {
-      _imageUrl = IsarBinaryWriter.utf8Encoder.convert(value14);
+    if (value13 != null) {
+      _imageUrl = IsarBinaryWriter.utf8Encoder.convert(value13);
     }
     dynamicSize += (_imageUrl?.length ?? 0) as int;
-    final value15 = object.name;
-    final _name = IsarBinaryWriter.utf8Encoder.convert(value15);
+    final value14 = object.name;
+    final _name = IsarBinaryWriter.utf8Encoder.convert(value14);
     dynamicSize += (_name.length) as int;
-    final value16 = object.picture;
-    final _picture = IsarBinaryWriter.utf8Encoder.convert(value16);
-    dynamicSize += (_picture.length) as int;
-    final value17 = object.supplierId;
+    final value15 = object.picture;
+    IsarUint8List? _picture;
+    if (value15 != null) {
+      _picture = IsarBinaryWriter.utf8Encoder.convert(value15);
+    }
+    dynamicSize += (_picture?.length ?? 0) as int;
+    final value16 = object.supplierId;
     IsarUint8List? _supplierId;
-    if (value17 != null) {
-      _supplierId = IsarBinaryWriter.utf8Encoder.convert(value17);
+    if (value16 != null) {
+      _supplierId = IsarBinaryWriter.utf8Encoder.convert(value16);
     }
     dynamicSize += (_supplierId?.length ?? 0) as int;
-    final value18 = object.synced;
-    final _synced = value18;
-    final value19 = object.table;
-    final _table = IsarBinaryWriter.utf8Encoder.convert(value19);
-    dynamicSize += (_table.length) as int;
+    final value17 = object.synced;
+    final _synced = value17;
+    final value18 = object.table;
+    IsarUint8List? _table;
+    if (value18 != null) {
+      _table = IsarBinaryWriter.utf8Encoder.convert(value18);
+    }
+    dynamicSize += (_table?.length ?? 0) as int;
+    final value19 = object.taxId;
+    IsarUint8List? _taxId;
+    if (value19 != null) {
+      _taxId = IsarBinaryWriter.utf8Encoder.convert(value19);
+    }
+    dynamicSize += (_taxId?.length ?? 0) as int;
     final value20 = object.unit;
-    final _unit = IsarBinaryWriter.utf8Encoder.convert(value20);
-    dynamicSize += (_unit.length) as int;
+    IsarUint8List? _unit;
+    if (value20 != null) {
+      _unit = IsarBinaryWriter.utf8Encoder.convert(value20);
+    }
+    dynamicSize += (_unit?.length ?? 0) as int;
     final size = staticSize + dynamicSize;
 
     rawObj.buffer = alloc(size);
@@ -294,22 +303,22 @@ class _ProductSyncNativeAdapter extends IsarNativeTypeAdapter<ProductSync> {
     writer.writeBytes(offsets[1], _barCode);
     writer.writeLong(offsets[2], _branchId);
     writer.writeLong(offsets[3], _businessId);
-    writer.writeBytes(offsets[4], _color);
-    writer.writeBytes(offsets[5], _createdAt);
-    writer.writeBool(offsets[6], _currentUpdate);
-    writer.writeBytes(offsets[7], _description);
-    writer.writeBool(offsets[8], _draft);
-    writer.writeBytes(offsets[9], _expiryDate);
-    writer.writeBytes(offsets[10], _fcategoryId);
-    writer.writeBytes(offsets[11], _ftaxId);
-    writer.writeBool(offsets[12], _hasPicture);
-    writer.writeBool(offsets[13], _imageLocal);
-    writer.writeBytes(offsets[14], _imageUrl);
-    writer.writeBytes(offsets[15], _name);
-    writer.writeBytes(offsets[16], _picture);
-    writer.writeBytes(offsets[17], _supplierId);
-    writer.writeBool(offsets[18], _synced);
-    writer.writeBytes(offsets[19], _table);
+    writer.writeBytes(offsets[4], _categoryId);
+    writer.writeBytes(offsets[5], _color);
+    writer.writeBytes(offsets[6], _createdAt);
+    writer.writeBool(offsets[7], _currentUpdate);
+    writer.writeBytes(offsets[8], _description);
+    writer.writeBool(offsets[9], _draft);
+    writer.writeBytes(offsets[10], _expiryDate);
+    writer.writeBool(offsets[11], _hasPicture);
+    writer.writeBool(offsets[12], _imageLocal);
+    writer.writeBytes(offsets[13], _imageUrl);
+    writer.writeBytes(offsets[14], _name);
+    writer.writeBytes(offsets[15], _picture);
+    writer.writeBytes(offsets[16], _supplierId);
+    writer.writeBool(offsets[17], _synced);
+    writer.writeBytes(offsets[18], _table);
+    writer.writeBytes(offsets[19], _taxId);
     writer.writeBytes(offsets[20], _unit);
   }
 
@@ -321,24 +330,24 @@ class _ProductSyncNativeAdapter extends IsarNativeTypeAdapter<ProductSync> {
     object.barCode = reader.readStringOrNull(offsets[1]);
     object.branchId = reader.readLong(offsets[2]);
     object.businessId = reader.readLong(offsets[3]);
-    object.color = reader.readString(offsets[4]);
-    object.createdAt = reader.readStringOrNull(offsets[5]);
-    object.currentUpdate = reader.readBoolOrNull(offsets[6]);
-    object.description = reader.readStringOrNull(offsets[7]);
-    object.draft = reader.readBoolOrNull(offsets[8]);
-    object.expiryDate = reader.readStringOrNull(offsets[9]);
-    object.fcategoryId = reader.readStringOrNull(offsets[10]);
-    object.ftaxId = reader.readStringOrNull(offsets[11]);
-    object.hasPicture = reader.readBool(offsets[12]);
+    object.categoryId = reader.readStringOrNull(offsets[4]);
+    object.color = reader.readString(offsets[5]);
+    object.createdAt = reader.readStringOrNull(offsets[6]);
+    object.currentUpdate = reader.readBoolOrNull(offsets[7]);
+    object.description = reader.readStringOrNull(offsets[8]);
+    object.draft = reader.readBoolOrNull(offsets[9]);
+    object.expiryDate = reader.readStringOrNull(offsets[10]);
+    object.hasPicture = reader.readBool(offsets[11]);
     object.id = id;
-    object.imageLocal = reader.readBoolOrNull(offsets[13]);
-    object.imageUrl = reader.readStringOrNull(offsets[14]);
-    object.name = reader.readString(offsets[15]);
-    object.picture = reader.readString(offsets[16]);
-    object.supplierId = reader.readStringOrNull(offsets[17]);
-    object.synced = reader.readBoolOrNull(offsets[18]);
-    object.table = reader.readString(offsets[19]);
-    object.unit = reader.readString(offsets[20]);
+    object.imageLocal = reader.readBoolOrNull(offsets[12]);
+    object.imageUrl = reader.readStringOrNull(offsets[13]);
+    object.name = reader.readString(offsets[14]);
+    object.picture = reader.readStringOrNull(offsets[15]);
+    object.supplierId = reader.readStringOrNull(offsets[16]);
+    object.synced = reader.readBoolOrNull(offsets[17]);
+    object.table = reader.readStringOrNull(offsets[18]);
+    object.taxId = reader.readStringOrNull(offsets[19]);
+    object.unit = reader.readStringOrNull(offsets[20]);
     attachLinks(collection.isar, id, object);
     return object;
   }
@@ -358,39 +367,39 @@ class _ProductSyncNativeAdapter extends IsarNativeTypeAdapter<ProductSync> {
       case 3:
         return (reader.readLong(offset)) as P;
       case 4:
-        return (reader.readString(offset)) as P;
+        return (reader.readStringOrNull(offset)) as P;
       case 5:
-        return (reader.readStringOrNull(offset)) as P;
+        return (reader.readString(offset)) as P;
       case 6:
-        return (reader.readBoolOrNull(offset)) as P;
+        return (reader.readStringOrNull(offset)) as P;
       case 7:
-        return (reader.readStringOrNull(offset)) as P;
-      case 8:
         return (reader.readBoolOrNull(offset)) as P;
-      case 9:
+      case 8:
         return (reader.readStringOrNull(offset)) as P;
+      case 9:
+        return (reader.readBoolOrNull(offset)) as P;
       case 10:
         return (reader.readStringOrNull(offset)) as P;
       case 11:
-        return (reader.readStringOrNull(offset)) as P;
-      case 12:
         return (reader.readBool(offset)) as P;
+      case 12:
+        return (reader.readBoolOrNull(offset)) as P;
       case 13:
-        return (reader.readBoolOrNull(offset)) as P;
+        return (reader.readStringOrNull(offset)) as P;
       case 14:
-        return (reader.readStringOrNull(offset)) as P;
+        return (reader.readString(offset)) as P;
       case 15:
-        return (reader.readString(offset)) as P;
-      case 16:
-        return (reader.readString(offset)) as P;
-      case 17:
         return (reader.readStringOrNull(offset)) as P;
-      case 18:
+      case 16:
+        return (reader.readStringOrNull(offset)) as P;
+      case 17:
         return (reader.readBoolOrNull(offset)) as P;
+      case 18:
+        return (reader.readStringOrNull(offset)) as P;
       case 19:
-        return (reader.readString(offset)) as P;
+        return (reader.readStringOrNull(offset)) as P;
       case 20:
-        return (reader.readString(offset)) as P;
+        return (reader.readStringOrNull(offset)) as P;
       default:
         throw 'Illegal propertyIndex';
     }
@@ -713,6 +722,122 @@ extension ProductSyncQueryFilter
       includeLower: includeLower,
       upper: upper,
       includeUpper: includeUpper,
+    ));
+  }
+
+  QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition>
+      categoryIdIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'categoryId',
+      value: null,
+    ));
+  }
+
+  QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition>
+      categoryIdEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.eq,
+      property: 'categoryId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition>
+      categoryIdGreaterThan(
+    String? value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.gt,
+      include: include,
+      property: 'categoryId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition>
+      categoryIdLessThan(
+    String? value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.lt,
+      include: include,
+      property: 'categoryId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition>
+      categoryIdBetween(
+    String? lower,
+    String? upper, {
+    bool caseSensitive = true,
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition.between(
+      property: 'categoryId',
+      lower: lower,
+      includeLower: includeLower,
+      upper: upper,
+      includeUpper: includeUpper,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition>
+      categoryIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.startsWith,
+      property: 'categoryId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition>
+      categoryIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.endsWith,
+      property: 'categoryId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition>
+      categoryIdContains(String value, {bool caseSensitive = true}) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.contains,
+      property: 'categoryId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition>
+      categoryIdMatches(String pattern, {bool caseSensitive = true}) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.matches,
+      property: 'categoryId',
+      value: pattern,
+      caseSensitive: caseSensitive,
     ));
   }
 
@@ -1204,235 +1329,6 @@ extension ProductSyncQueryFilter
   }
 
   QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition>
-      fcategoryIdIsNull() {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.isNull,
-      property: 'fcategoryId',
-      value: null,
-    ));
-  }
-
-  QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition>
-      fcategoryIdEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'fcategoryId',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition>
-      fcategoryIdGreaterThan(
-    String? value, {
-    bool caseSensitive = true,
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'fcategoryId',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition>
-      fcategoryIdLessThan(
-    String? value, {
-    bool caseSensitive = true,
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'fcategoryId',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition>
-      fcategoryIdBetween(
-    String? lower,
-    String? upper, {
-    bool caseSensitive = true,
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'fcategoryId',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition>
-      fcategoryIdStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.startsWith,
-      property: 'fcategoryId',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition>
-      fcategoryIdEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.endsWith,
-      property: 'fcategoryId',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition>
-      fcategoryIdContains(String value, {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.contains,
-      property: 'fcategoryId',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition>
-      fcategoryIdMatches(String pattern, {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.matches,
-      property: 'fcategoryId',
-      value: pattern,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition> ftaxIdIsNull() {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.isNull,
-      property: 'ftaxId',
-      value: null,
-    ));
-  }
-
-  QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition> ftaxIdEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'ftaxId',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition>
-      ftaxIdGreaterThan(
-    String? value, {
-    bool caseSensitive = true,
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'ftaxId',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition> ftaxIdLessThan(
-    String? value, {
-    bool caseSensitive = true,
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'ftaxId',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition> ftaxIdBetween(
-    String? lower,
-    String? upper, {
-    bool caseSensitive = true,
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'ftaxId',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition>
-      ftaxIdStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.startsWith,
-      property: 'ftaxId',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition> ftaxIdEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.endsWith,
-      property: 'ftaxId',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition> ftaxIdContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.contains,
-      property: 'ftaxId',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition> ftaxIdMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.matches,
-      property: 'ftaxId',
-      value: pattern,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition>
       hasPictureEqualTo(bool value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
@@ -1725,8 +1621,17 @@ extension ProductSyncQueryFilter
     ));
   }
 
+  QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition>
+      pictureIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'picture',
+      value: null,
+    ));
+  }
+
   QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition> pictureEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return addFilterConditionInternal(FilterCondition(
@@ -1739,7 +1644,7 @@ extension ProductSyncQueryFilter
 
   QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition>
       pictureGreaterThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
     bool include = false,
   }) {
@@ -1753,7 +1658,7 @@ extension ProductSyncQueryFilter
   }
 
   QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition> pictureLessThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
     bool include = false,
   }) {
@@ -1767,8 +1672,8 @@ extension ProductSyncQueryFilter
   }
 
   QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition> pictureBetween(
-    String lower,
-    String upper, {
+    String? lower,
+    String? upper, {
     bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
@@ -1963,8 +1868,16 @@ extension ProductSyncQueryFilter
     ));
   }
 
+  QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition> tableIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'table',
+      value: null,
+    ));
+  }
+
   QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition> tableEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return addFilterConditionInternal(FilterCondition(
@@ -1977,7 +1890,7 @@ extension ProductSyncQueryFilter
 
   QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition>
       tableGreaterThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
     bool include = false,
   }) {
@@ -1991,7 +1904,7 @@ extension ProductSyncQueryFilter
   }
 
   QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition> tableLessThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
     bool include = false,
   }) {
@@ -2005,8 +1918,8 @@ extension ProductSyncQueryFilter
   }
 
   QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition> tableBetween(
-    String lower,
-    String upper, {
+    String? lower,
+    String? upper, {
     bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
@@ -2067,8 +1980,128 @@ extension ProductSyncQueryFilter
     ));
   }
 
-  QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition> unitEqualTo(
+  QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition> taxIdIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'taxId',
+      value: null,
+    ));
+  }
+
+  QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition> taxIdEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.eq,
+      property: 'taxId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition>
+      taxIdGreaterThan(
+    String? value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.gt,
+      include: include,
+      property: 'taxId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition> taxIdLessThan(
+    String? value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.lt,
+      include: include,
+      property: 'taxId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition> taxIdBetween(
+    String? lower,
+    String? upper, {
+    bool caseSensitive = true,
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition.between(
+      property: 'taxId',
+      lower: lower,
+      includeLower: includeLower,
+      upper: upper,
+      includeUpper: includeUpper,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition> taxIdStartsWith(
     String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.startsWith,
+      property: 'taxId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition> taxIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.endsWith,
+      property: 'taxId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition> taxIdContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.contains,
+      property: 'taxId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition> taxIdMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.matches,
+      property: 'taxId',
+      value: pattern,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition> unitIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'unit',
+      value: null,
+    ));
+  }
+
+  QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition> unitEqualTo(
+    String? value, {
     bool caseSensitive = true,
   }) {
     return addFilterConditionInternal(FilterCondition(
@@ -2080,7 +2113,7 @@ extension ProductSyncQueryFilter
   }
 
   QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition> unitGreaterThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
     bool include = false,
   }) {
@@ -2094,7 +2127,7 @@ extension ProductSyncQueryFilter
   }
 
   QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition> unitLessThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
     bool include = false,
   }) {
@@ -2108,8 +2141,8 @@ extension ProductSyncQueryFilter
   }
 
   QueryBuilder<ProductSync, ProductSync, QAfterFilterCondition> unitBetween(
-    String lower,
-    String upper, {
+    String? lower,
+    String? upper, {
     bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
@@ -2205,6 +2238,14 @@ extension ProductSyncQueryWhereSortBy
     return addSortByInternal('businessId', Sort.desc);
   }
 
+  QueryBuilder<ProductSync, ProductSync, QAfterSortBy> sortByCategoryId() {
+    return addSortByInternal('categoryId', Sort.asc);
+  }
+
+  QueryBuilder<ProductSync, ProductSync, QAfterSortBy> sortByCategoryIdDesc() {
+    return addSortByInternal('categoryId', Sort.desc);
+  }
+
   QueryBuilder<ProductSync, ProductSync, QAfterSortBy> sortByColor() {
     return addSortByInternal('color', Sort.asc);
   }
@@ -2252,22 +2293,6 @@ extension ProductSyncQueryWhereSortBy
 
   QueryBuilder<ProductSync, ProductSync, QAfterSortBy> sortByExpiryDateDesc() {
     return addSortByInternal('expiryDate', Sort.desc);
-  }
-
-  QueryBuilder<ProductSync, ProductSync, QAfterSortBy> sortByFcategoryId() {
-    return addSortByInternal('fcategoryId', Sort.asc);
-  }
-
-  QueryBuilder<ProductSync, ProductSync, QAfterSortBy> sortByFcategoryIdDesc() {
-    return addSortByInternal('fcategoryId', Sort.desc);
-  }
-
-  QueryBuilder<ProductSync, ProductSync, QAfterSortBy> sortByFtaxId() {
-    return addSortByInternal('ftaxId', Sort.asc);
-  }
-
-  QueryBuilder<ProductSync, ProductSync, QAfterSortBy> sortByFtaxIdDesc() {
-    return addSortByInternal('ftaxId', Sort.desc);
   }
 
   QueryBuilder<ProductSync, ProductSync, QAfterSortBy> sortByHasPicture() {
@@ -2342,6 +2367,14 @@ extension ProductSyncQueryWhereSortBy
     return addSortByInternal('table', Sort.desc);
   }
 
+  QueryBuilder<ProductSync, ProductSync, QAfterSortBy> sortByTaxId() {
+    return addSortByInternal('taxId', Sort.asc);
+  }
+
+  QueryBuilder<ProductSync, ProductSync, QAfterSortBy> sortByTaxIdDesc() {
+    return addSortByInternal('taxId', Sort.desc);
+  }
+
   QueryBuilder<ProductSync, ProductSync, QAfterSortBy> sortByUnit() {
     return addSortByInternal('unit', Sort.asc);
   }
@@ -2383,6 +2416,14 @@ extension ProductSyncQueryWhereSortThenBy
 
   QueryBuilder<ProductSync, ProductSync, QAfterSortBy> thenByBusinessIdDesc() {
     return addSortByInternal('businessId', Sort.desc);
+  }
+
+  QueryBuilder<ProductSync, ProductSync, QAfterSortBy> thenByCategoryId() {
+    return addSortByInternal('categoryId', Sort.asc);
+  }
+
+  QueryBuilder<ProductSync, ProductSync, QAfterSortBy> thenByCategoryIdDesc() {
+    return addSortByInternal('categoryId', Sort.desc);
   }
 
   QueryBuilder<ProductSync, ProductSync, QAfterSortBy> thenByColor() {
@@ -2432,22 +2473,6 @@ extension ProductSyncQueryWhereSortThenBy
 
   QueryBuilder<ProductSync, ProductSync, QAfterSortBy> thenByExpiryDateDesc() {
     return addSortByInternal('expiryDate', Sort.desc);
-  }
-
-  QueryBuilder<ProductSync, ProductSync, QAfterSortBy> thenByFcategoryId() {
-    return addSortByInternal('fcategoryId', Sort.asc);
-  }
-
-  QueryBuilder<ProductSync, ProductSync, QAfterSortBy> thenByFcategoryIdDesc() {
-    return addSortByInternal('fcategoryId', Sort.desc);
-  }
-
-  QueryBuilder<ProductSync, ProductSync, QAfterSortBy> thenByFtaxId() {
-    return addSortByInternal('ftaxId', Sort.asc);
-  }
-
-  QueryBuilder<ProductSync, ProductSync, QAfterSortBy> thenByFtaxIdDesc() {
-    return addSortByInternal('ftaxId', Sort.desc);
   }
 
   QueryBuilder<ProductSync, ProductSync, QAfterSortBy> thenByHasPicture() {
@@ -2522,6 +2547,14 @@ extension ProductSyncQueryWhereSortThenBy
     return addSortByInternal('table', Sort.desc);
   }
 
+  QueryBuilder<ProductSync, ProductSync, QAfterSortBy> thenByTaxId() {
+    return addSortByInternal('taxId', Sort.asc);
+  }
+
+  QueryBuilder<ProductSync, ProductSync, QAfterSortBy> thenByTaxIdDesc() {
+    return addSortByInternal('taxId', Sort.desc);
+  }
+
   QueryBuilder<ProductSync, ProductSync, QAfterSortBy> thenByUnit() {
     return addSortByInternal('unit', Sort.asc);
   }
@@ -2550,6 +2583,11 @@ extension ProductSyncQueryWhereDistinct
     return addDistinctByInternal('businessId');
   }
 
+  QueryBuilder<ProductSync, ProductSync, QDistinct> distinctByCategoryId(
+      {bool caseSensitive = true}) {
+    return addDistinctByInternal('categoryId', caseSensitive: caseSensitive);
+  }
+
   QueryBuilder<ProductSync, ProductSync, QDistinct> distinctByColor(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('color', caseSensitive: caseSensitive);
@@ -2576,16 +2614,6 @@ extension ProductSyncQueryWhereDistinct
   QueryBuilder<ProductSync, ProductSync, QDistinct> distinctByExpiryDate(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('expiryDate', caseSensitive: caseSensitive);
-  }
-
-  QueryBuilder<ProductSync, ProductSync, QDistinct> distinctByFcategoryId(
-      {bool caseSensitive = true}) {
-    return addDistinctByInternal('fcategoryId', caseSensitive: caseSensitive);
-  }
-
-  QueryBuilder<ProductSync, ProductSync, QDistinct> distinctByFtaxId(
-      {bool caseSensitive = true}) {
-    return addDistinctByInternal('ftaxId', caseSensitive: caseSensitive);
   }
 
   QueryBuilder<ProductSync, ProductSync, QDistinct> distinctByHasPicture() {
@@ -2629,6 +2657,11 @@ extension ProductSyncQueryWhereDistinct
     return addDistinctByInternal('table', caseSensitive: caseSensitive);
   }
 
+  QueryBuilder<ProductSync, ProductSync, QDistinct> distinctByTaxId(
+      {bool caseSensitive = true}) {
+    return addDistinctByInternal('taxId', caseSensitive: caseSensitive);
+  }
+
   QueryBuilder<ProductSync, ProductSync, QDistinct> distinctByUnit(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('unit', caseSensitive: caseSensitive);
@@ -2651,6 +2684,10 @@ extension ProductSyncQueryProperty
 
   QueryBuilder<ProductSync, int, QQueryOperations> businessIdProperty() {
     return addPropertyNameInternal('businessId');
+  }
+
+  QueryBuilder<ProductSync, String?, QQueryOperations> categoryIdProperty() {
+    return addPropertyNameInternal('categoryId');
   }
 
   QueryBuilder<ProductSync, String, QQueryOperations> colorProperty() {
@@ -2677,14 +2714,6 @@ extension ProductSyncQueryProperty
     return addPropertyNameInternal('expiryDate');
   }
 
-  QueryBuilder<ProductSync, String?, QQueryOperations> fcategoryIdProperty() {
-    return addPropertyNameInternal('fcategoryId');
-  }
-
-  QueryBuilder<ProductSync, String?, QQueryOperations> ftaxIdProperty() {
-    return addPropertyNameInternal('ftaxId');
-  }
-
   QueryBuilder<ProductSync, bool, QQueryOperations> hasPictureProperty() {
     return addPropertyNameInternal('hasPicture');
   }
@@ -2705,7 +2734,7 @@ extension ProductSyncQueryProperty
     return addPropertyNameInternal('name');
   }
 
-  QueryBuilder<ProductSync, String, QQueryOperations> pictureProperty() {
+  QueryBuilder<ProductSync, String?, QQueryOperations> pictureProperty() {
     return addPropertyNameInternal('picture');
   }
 
@@ -2717,11 +2746,15 @@ extension ProductSyncQueryProperty
     return addPropertyNameInternal('synced');
   }
 
-  QueryBuilder<ProductSync, String, QQueryOperations> tableProperty() {
+  QueryBuilder<ProductSync, String?, QQueryOperations> tableProperty() {
     return addPropertyNameInternal('table');
   }
 
-  QueryBuilder<ProductSync, String, QQueryOperations> unitProperty() {
+  QueryBuilder<ProductSync, String?, QQueryOperations> taxIdProperty() {
+    return addPropertyNameInternal('taxId');
+  }
+
+  QueryBuilder<ProductSync, String?, QQueryOperations> unitProperty() {
     return addPropertyNameInternal('unit');
   }
 }

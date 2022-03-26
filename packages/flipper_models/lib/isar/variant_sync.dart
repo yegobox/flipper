@@ -8,16 +8,16 @@ part 'variant_sync.g.dart';
 class VariantSync {
   late int id = Isar.autoIncrement;
   late String name;
-  late String sku;
+  String? sku;
   late int productId;
   late String unit;
-  late String table;
+  String? table;
   late String productName;
   late int branchId;
-  late String? taxName;
-  late double? taxPercentage;
+  String? taxName;
+  double? taxPercentage;
   late double supplyPrice;
   late double retailPrice;
-  late bool? synced;
+  bool? synced;
   final stock = IsarLink<StockSync>();
 }

@@ -545,6 +545,7 @@ class IsarAPI implements IsarApiInterface {
     product.active = false;
     product.id = DateTime.now().microsecondsSinceEpoch;
     product.description = 'description';
+    product.color = '#ee5253';
     product.hasPicture = false;
     product.businessId = ProxyService.box.getBusinessId()!;
     product.branchId = ProxyService.box.getBranchId()!;
@@ -552,16 +553,16 @@ class IsarAPI implements IsarApiInterface {
     final int branchId = ProxyService.box.getBranchId()!;
 
     // save product in isar Db
-    ProductSync kProduct = await isar.writeTxn((isar) async {
+    ProductSync? kProduct = await isar.writeTxn((isar) async {
       int id = await isar.productSyncs.put(product);
-      return isar.productSyncs.getSync(id)!;
+      return isar.productSyncs.get(id);
     });
     // save variants in isar Db with the above productId
-    VariantSync variant = await isar.writeTxn((isar) async {
+    VariantSync? variant = await isar.writeTxn((isar) async {
       VariantSync variant = VariantSync()
         ..name = 'Regular'
         ..sku = 'sku'
-        ..productId = kProduct.id
+        ..productId = kProduct!.id
         ..unit = 'Per Item'
         ..table = 'variants'
         ..productName = product.name
@@ -571,12 +572,11 @@ class IsarAPI implements IsarApiInterface {
         ..retailPrice = 0
         ..supplyPrice = 0.0;
       int id = await isar.variantSyncs.put(variant);
-
-      return isar.variantSyncs.getSync(id)!;
+      log.i("VariantId:$id");
+      return isar.variantSyncs.get(id);
     });
     await isar.writeTxn((isar) async {
-      kProduct.variants.add(variant);
-      //assing variant to product
+      kProduct!.variants.add(variant!);
       await isar.productSyncs.put(kProduct);
       StockSync? stock = StockSync()
         ..canTrackingStock = false
@@ -698,17 +698,14 @@ class IsarAPI implements IsarApiInterface {
     if (product == null) {
       ProductSync p = await buildProductObject(branchId, businessId);
       return isar.writeTxn((isar) async {
-        return isar.variantSyncs
-            .filter()
-            .productIdEqualTo(p.id)
-            .findFirstSync();
+        return isar.variantSyncs.filter().productIdEqualTo(p.id).findFirst();
       });
     } else {
       return isar.writeTxn((isar) async {
         return isar.variantSyncs
             .filter()
             .productIdEqualTo(product.id)
-            .findFirstSync();
+            .findFirst();
       });
     }
   }
@@ -719,7 +716,7 @@ class IsarAPI implements IsarApiInterface {
           ..branchId = branchId
           ..draft = true
           ..currentUpdate = true
-          ..ftaxId = "XX"
+          ..taxId = "XX"
           ..imageLocal = false
           ..businessId = businessId
           ..name = "temp"
@@ -729,7 +726,7 @@ class IsarAPI implements IsarApiInterface {
           ..table = "products"
           ..color = "#e74c3c"
           ..supplierId = "XXX"
-          ..fcategoryId = "XXX"
+          ..categoryId = "XXX"
           ..unit = "kg"
           ..synced = false
           ..createdAt = DateTime.now().toIso8601String());
@@ -1039,8 +1036,13 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Stream<List<ProductSync>> productStreams({required int branchId}) {
-    // TODO: implement productStreams
-    throw UnimplementedError();
+    return isar.productSyncs
+        .filter()
+        .branchIdEqualTo(branchId)
+        .and()
+        .draftEqualTo(false)
+        .build()
+        .watch(initialReturn: true);
   }
 
   @override
@@ -1201,8 +1203,9 @@ class IsarAPI implements IsarApiInterface {
     }
     switch (point) {
       case 'product':
+        final product = data as ProductSync;
         await isar.writeTxn((isar) async {
-          await isar.productSyncs.put(data as ProductSync);
+          return await isar.productSyncs.put(product);
         });
         break;
       default:

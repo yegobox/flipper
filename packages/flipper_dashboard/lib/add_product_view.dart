@@ -1,6 +1,5 @@
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flutter/material.dart';
-// import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:stacked/stacked.dart';
@@ -105,7 +104,7 @@ class _AddProductViewState extends State<AddProductView> {
               showActionButton: true,
               onPressedCallback: () async {
                 await model.addProduct(
-                    mproduct: model.product.toJson(), name: productName.text);
+                    mproduct: model.product, name: productName.text);
                 await model.loadProducts();
                 GoRouter.of(context).pop();
               },
@@ -131,6 +130,7 @@ class _AddProductViewState extends State<AddProductView> {
                     child: SizedBox(
                       width: double.infinity,
                       child: GTextFormField(
+                        hintText: "Product Name",
                         controller: productName,
                         onChanged: (value) {
                           /// for locking on unlocking the save button
