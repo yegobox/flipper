@@ -369,12 +369,6 @@ class IsarAPI implements IsarApiInterface {
   }
 
   @override
-  Future<List<Category>> categories({required int branchId}) async {
-    // get all categories from isar db
-    return isar.categorys.filter().branchIdEqualTo(branchId).findAll();
-  }
-
-  @override
   Future<bool> checkIn({required String? checkInCode}) async {
     //  String? checkIn = ProxyService.box.read(key: 'checkIn');
     String? checkIn;
@@ -1266,23 +1260,36 @@ class IsarAPI implements IsarApiInterface {
   }
 
   @override
-  Future<int> update<T>({required T data, required String endPoint}) async {
-    final split = endPoint.split('/');
-    String point = endPoint;
-
-    int id = 0;
-    if (split.length == 2) {
-      point = endPoint.split('/')[0];
-      id = int.parse(endPoint.split('/')[1]);
+  Future<int> update<T>({required T data, String? endPoint}) async {
+    if (data is ProductSync) {
+      final product = data;
+      await isar.writeTxn((isar) async {
+        return await isar.productSyncs.put(product);
+      });
     }
-    switch (point) {
-      case 'product':
-        final product = data as ProductSync;
-        await isar.writeTxn((isar) async {
-          return await isar.productSyncs.put(product);
-        });
-        break;
-      default:
+    if (data is VariantSync) {
+      final variant = data;
+      await isar.writeTxn((isar) async {
+        return await isar.variantSyncs.put(variant);
+      });
+    }
+    if (data is StockSync) {
+      final stock = data;
+      await isar.writeTxn((isar) async {
+        return await isar.stockSyncs.put(stock);
+      });
+    }
+    if (data is OrderFSync) {
+      final order = data;
+      await isar.writeTxn((isar) async {
+        return await isar.orderFSyncs.put(order);
+      });
+    }
+    if (data is Category) {
+      final order = data;
+      await isar.writeTxn((isar) async {
+        return await isar.categorys.put(order);
+      });
     }
     return 1;
   }
@@ -1411,5 +1418,20 @@ class IsarAPI implements IsarApiInterface {
           .build()
           .findAll();
     });
+  }
+
+  @override
+  Future<List<Category>> categories({required int branchId}) async {
+    // get all categories from isar db
+    return isar.categorys.filter().branchIdEqualTo(branchId).findAll();
+  }
+
+  @override
+  Stream<List<Category>> categoriesStream({required int branchId}) {
+    return isar.categorys
+        .filter()
+        .branchIdEqualTo(branchId)
+        .build()
+        .watch(initialReturn: true);
   }
 }

@@ -302,16 +302,13 @@ class ProductViewModel extends ReactiveViewModel {
         if (variation.name == "Regular") {
           variation.supplyPrice = supplyPrice;
           variation.productId = variation.productId;
-          int ids = variation.id;
-          ProxyService.isarApi
-              .update(data: variation, endPoint: 'variant/$ids');
+          ProxyService.isarApi.update(data: variation);
           StockSync? stock = await ProxyService.isarApi
               .stockByVariantId(variantId: variation.id);
 
           if (stock != null) {
             stock.supplyPrice = supplyPrice;
-            int id = stock.id;
-            ProxyService.isarApi.update(data: stock, endPoint: 'stock/$id');
+            ProxyService.isarApi.update(data: stock);
           }
         }
       }
@@ -322,16 +319,15 @@ class ProductViewModel extends ReactiveViewModel {
         if (variation.name == "Regular") {
           variation.retailPrice = retailPrice;
           variation.productId = variation.productId;
-          int ids = variation.id;
-          ProxyService.isarApi
-              .update(data: variation, endPoint: 'variant/$ids');
+
+          ProxyService.isarApi.update(data: variation);
           StockSync? stock = await ProxyService.isarApi
               .stockByVariantId(variantId: variation.id);
 
           if (stock != null) {
             stock.retailPrice = retailPrice;
-            int id = stock.id;
-            ProxyService.isarApi.update(data: stock, endPoint: 'stock/$id');
+
+            ProxyService.isarApi.update(data: stock);
           }
         }
       }

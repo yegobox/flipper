@@ -14,9 +14,10 @@ abstract class IsarApiInterface {
   Future<StockSync?> stockByVariantId({required int variantId});
   Future<List<PColor>> colors({required int branchId});
   Future<List<Category>> categories({required int branchId});
+  Stream<List<Category>> categoriesStream({required int branchId});
   Future<List<Unit>> units({required int branchId});
   Future<int> create<T>({required T data, required String endPoint});
-  Future<int> update<T>({required T data, required String endPoint});
+  Future<int> update<T>({required T data, String? endPoint});
   Future<bool> delete({required dynamic id, String? endPoint});
   Future<PColor?> getColor({required int id, String? endPoint});
   Future<StockSync?> getStock({required int branchId, required int variantId});

@@ -1,6 +1,7 @@
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_rw/helpers/utils.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:stacked/stacked.dart';
@@ -10,7 +11,7 @@ import 'package:go_router/go_router.dart';
 class ListCategories extends StatelessWidget {
   const ListCategories({Key? key, required this.categories}) : super(key: key);
   final List<Category> categories;
-  Wrap CategoryList(
+  Wrap categoryList(
       {required List<Category> categories,
       required BuildContext context,
       required ProductViewModel model}) {
@@ -61,48 +62,57 @@ class ListCategories extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<ProductViewModel>.reactive(
-        viewModelBuilder: () => ProductViewModel(),
-        builder: (context, model, child) {
-          return Scaffold(
-            appBar: CustomAppBar(
-              onPop: () {
-                GoRouter.of(context).pop();
-              },
-              showActionButton: false,
-              title: 'Category',
-              icon: Icons.close,
-              multi: 3,
-              bottomSpacer: 52,
-            ),
-            body: ListView(
-              children: <Widget>[
-                const Center(
-                  child: CenterDivider(
-                    width: double.infinity,
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    GoRouter.of(context).push(Routes.category);
-                  },
-                  child: ListTile(
-                    title: const Text('Create Category ',
-                        style: TextStyle(color: Colors.black)),
-                    trailing: Wrap(
-                      children: const <Widget>[
-                        Icon(Icons.arrow_forward_ios),
-                      ],
+      viewModelBuilder: () => ProductViewModel(),
+      builder: (context, model, child) {
+        return Scaffold(
+          appBar: CustomAppBar(
+            onPop: () {
+              GoRouter.of(context).pop();
+            },
+            showActionButton: false,
+            title: 'Category',
+            icon: Icons.close,
+            multi: 3,
+            bottomSpacer: 52,
+          ),
+          body: StreamBuilder<List<Category>>(
+              stream: ProxyService.isarApi
+                  .categoriesStream(branchId: ProxyService.box.getBranchId()!),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Text('Loading...');
+                }
+                return ListView(
+                  children: <Widget>[
+                    const Center(
+                      child: CenterDivider(
+                        width: double.infinity,
+                      ),
                     ),
-                  ),
-                ),
-                CategoryList(
-                  categories: model.categories,
-                  context: context,
-                  model: model,
-                ),
-              ],
-            ),
-          );
-        });
+                    GestureDetector(
+                      onTap: () {
+                        GoRouter.of(context).push(Routes.category);
+                      },
+                      child: ListTile(
+                        title: const Text('Create Category ',
+                            style: TextStyle(color: Colors.black)),
+                        trailing: Wrap(
+                          children: const <Widget>[
+                            Icon(Icons.arrow_forward_ios),
+                          ],
+                        ),
+                      ),
+                    ),
+                    categoryList(
+                      categories: snapshot.data!,
+                      context: context,
+                      model: model,
+                    ),
+                  ],
+                );
+              }),
+        );
+      },
+    );
   }
 }

@@ -160,6 +160,9 @@ class _ProductViewState extends State<ProductView> {
                     future: model.productService
                         .loadStockByProductId(productId: product.id),
                     builder: (BuildContext context, stocks) {
+                      if (stocks.connectionState == ConnectionState.waiting) {
+                        return const Text('loading..');
+                      }
                       return ProductRow(
                         color: product.color,
                         stocks: stocks.data ?? [],

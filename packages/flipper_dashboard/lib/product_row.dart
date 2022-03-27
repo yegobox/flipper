@@ -96,11 +96,7 @@ class ProductRow extends StatelessWidget {
                         style: TextStyle(color: Colors.black),
                       )
                     : Text(
-                        'RWF ' +
-                            (product.variants.isEmpty
-                                ? '0'
-                                : product.variants.first.retailPrice
-                                    .toString()),
+                        'RWF ' + stocks.first!.retailPrice.toString(),
                         style: const TextStyle(color: Colors.black),
                       ),
           ),
