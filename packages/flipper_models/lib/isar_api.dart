@@ -221,10 +221,9 @@ class IsarAPI implements IsarApiInterface {
       for (Map map in units.units!) {
         final unit = Unit()
           ..active = false
-          ..table = units.table
           ..value = units.value
-          ..name = units.name
-          ..fbranchId = units.fbranchId;
+          ..name = map['name']
+          ..branchId = units.branchId;
         // save unit to db
         await isar.units.put(unit);
       }
@@ -1255,7 +1254,7 @@ class IsarAPI implements IsarApiInterface {
   @override
   Future<List<Unit>> units({required int branchId}) async {
     return isar.writeTxn((isar) {
-      return isar.units.filter().fbranchIdEqualTo(branchId).findAll();
+      return isar.units.filter().branchIdEqualTo(branchId).findAll();
     });
   }
 
@@ -1289,6 +1288,12 @@ class IsarAPI implements IsarApiInterface {
       final order = data;
       await isar.writeTxn((isar) async {
         return await isar.categorys.put(order);
+      });
+    }
+    if (data is Unit) {
+      final unit = data;
+      await isar.writeTxn((isar) async {
+        return await isar.units.put(unit);
       });
     }
     return 1;

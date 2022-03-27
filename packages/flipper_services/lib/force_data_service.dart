@@ -51,14 +51,12 @@ class ForceDataEntryService {
 
     //now create default units for this branch
     final units = Unit()
-      ..name = 'sample'
+      ..name = 'Per Kilogram (kg)'
       ..value = 'kg'
       ..active = false
       ..id = DateTime.now().millisecondsSinceEpoch
-      ..table = AppTables.unit
       ..units = mockUnits
-      ..fbranchId = branchId
-      ..channels = [userId];
+      ..branchId = branchId;
     if (kUnits.isEmpty) {
       await ProxyService.isarApi.addUnits(data: units);
     }

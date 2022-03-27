@@ -17,19 +17,12 @@ extension GetUnitCollection on Isar {
 final UnitSchema = CollectionSchema(
   name: 'Unit',
   schema:
-      '{"name":"Unit","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"channels","type":"StringList"},{"name":"fbranchId","type":"Long"},{"name":"name","type":"String"},{"name":"table","type":"String"},{"name":"value","type":"String"}],"indexes":[],"links":[]}',
+      '{"name":"Unit","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"name","type":"String"},{"name":"value","type":"String"}],"indexes":[],"links":[]}',
   nativeAdapter: const _UnitNativeAdapter(),
   webAdapter: const _UnitWebAdapter(),
   idName: 'id',
-  propertyIds: {
-    'active': 0,
-    'channels': 1,
-    'fbranchId': 2,
-    'name': 3,
-    'table': 4,
-    'value': 5
-  },
-  listProperties: {'channels'},
+  propertyIds: {'active': 0, 'branchId': 1, 'name': 2, 'value': 3},
+  listProperties: {},
   indexIds: {},
   indexTypes: {},
   linkIds: {},
@@ -54,11 +47,9 @@ class _UnitWebAdapter extends IsarWebTypeAdapter<Unit> {
   Object serialize(IsarCollection<Unit> collection, Unit object) {
     final jsObj = IsarNative.newJsObject();
     IsarNative.jsObjectSet(jsObj, 'active', object.active);
-    IsarNative.jsObjectSet(jsObj, 'channels', object.channels);
-    IsarNative.jsObjectSet(jsObj, 'fbranchId', object.fbranchId);
+    IsarNative.jsObjectSet(jsObj, 'branchId', object.branchId);
     IsarNative.jsObjectSet(jsObj, 'id', object.id);
     IsarNative.jsObjectSet(jsObj, 'name', object.name);
-    IsarNative.jsObjectSet(jsObj, 'table', object.table);
     IsarNative.jsObjectSet(jsObj, 'value', object.value);
     return jsObj;
   }
@@ -67,14 +58,10 @@ class _UnitWebAdapter extends IsarWebTypeAdapter<Unit> {
   Unit deserialize(IsarCollection<Unit> collection, dynamic jsObj) {
     final object = Unit();
     object.active = IsarNative.jsObjectGet(jsObj, 'active') ?? false;
-    object.channels = (IsarNative.jsObjectGet(jsObj, 'channels') as List?)
-        ?.map((e) => e ?? '')
-        .toList()
-        .cast<String>();
-    object.fbranchId = IsarNative.jsObjectGet(jsObj, 'fbranchId');
+    object.branchId =
+        IsarNative.jsObjectGet(jsObj, 'branchId') ?? double.negativeInfinity;
     object.id = IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity;
     object.name = IsarNative.jsObjectGet(jsObj, 'name') ?? '';
-    object.table = IsarNative.jsObjectGet(jsObj, 'table');
     object.value = IsarNative.jsObjectGet(jsObj, 'value') ?? '';
     return object;
   }
@@ -84,20 +71,14 @@ class _UnitWebAdapter extends IsarWebTypeAdapter<Unit> {
     switch (propertyName) {
       case 'active':
         return (IsarNative.jsObjectGet(jsObj, 'active') ?? false) as P;
-      case 'channels':
-        return ((IsarNative.jsObjectGet(jsObj, 'channels') as List?)
-            ?.map((e) => e ?? '')
-            .toList()
-            .cast<String>()) as P;
-      case 'fbranchId':
-        return (IsarNative.jsObjectGet(jsObj, 'fbranchId')) as P;
+      case 'branchId':
+        return (IsarNative.jsObjectGet(jsObj, 'branchId') ??
+            double.negativeInfinity) as P;
       case 'id':
         return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
             as P;
       case 'name':
         return (IsarNative.jsObjectGet(jsObj, 'name') ?? '') as P;
-      case 'table':
-        return (IsarNative.jsObjectGet(jsObj, 'table')) as P;
       case 'value':
         return (IsarNative.jsObjectGet(jsObj, 'value') ?? '') as P;
       default:
@@ -118,31 +99,13 @@ class _UnitNativeAdapter extends IsarNativeTypeAdapter<Unit> {
     var dynamicSize = 0;
     final value0 = object.active;
     final _active = value0;
-    final value1 = object.channels;
-    dynamicSize += (value1?.length ?? 0) * 8;
-    List<IsarUint8List?>? bytesList1;
-    if (value1 != null) {
-      bytesList1 = [];
-      for (var str in value1) {
-        final bytes = IsarBinaryWriter.utf8Encoder.convert(str);
-        bytesList1.add(bytes);
-        dynamicSize += bytes.length as int;
-      }
-    }
-    final _channels = bytesList1;
-    final value2 = object.fbranchId;
-    final _fbranchId = value2;
-    final value3 = object.name;
-    final _name = IsarBinaryWriter.utf8Encoder.convert(value3);
+    final value1 = object.branchId;
+    final _branchId = value1;
+    final value2 = object.name;
+    final _name = IsarBinaryWriter.utf8Encoder.convert(value2);
     dynamicSize += (_name.length) as int;
-    final value4 = object.table;
-    IsarUint8List? _table;
-    if (value4 != null) {
-      _table = IsarBinaryWriter.utf8Encoder.convert(value4);
-    }
-    dynamicSize += (_table?.length ?? 0) as int;
-    final value5 = object.value;
-    final _value = IsarBinaryWriter.utf8Encoder.convert(value5);
+    final value3 = object.value;
+    final _value = IsarBinaryWriter.utf8Encoder.convert(value3);
     dynamicSize += (_value.length) as int;
     final size = staticSize + dynamicSize;
 
@@ -151,11 +114,9 @@ class _UnitNativeAdapter extends IsarNativeTypeAdapter<Unit> {
     final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
     final writer = IsarBinaryWriter(buffer, staticSize);
     writer.writeBool(offsets[0], _active);
-    writer.writeStringList(offsets[1], _channels);
-    writer.writeLong(offsets[2], _fbranchId);
-    writer.writeBytes(offsets[3], _name);
-    writer.writeBytes(offsets[4], _table);
-    writer.writeBytes(offsets[5], _value);
+    writer.writeLong(offsets[1], _branchId);
+    writer.writeBytes(offsets[2], _name);
+    writer.writeBytes(offsets[3], _value);
   }
 
   @override
@@ -163,12 +124,10 @@ class _UnitNativeAdapter extends IsarNativeTypeAdapter<Unit> {
       IsarBinaryReader reader, List<int> offsets) {
     final object = Unit();
     object.active = reader.readBool(offsets[0]);
-    object.channels = reader.readStringList(offsets[1]);
-    object.fbranchId = reader.readLongOrNull(offsets[2]);
+    object.branchId = reader.readLong(offsets[1]);
     object.id = id;
-    object.name = reader.readString(offsets[3]);
-    object.table = reader.readStringOrNull(offsets[4]);
-    object.value = reader.readString(offsets[5]);
+    object.name = reader.readString(offsets[2]);
+    object.value = reader.readString(offsets[3]);
     return object;
   }
 
@@ -181,14 +140,10 @@ class _UnitNativeAdapter extends IsarNativeTypeAdapter<Unit> {
       case 0:
         return (reader.readBool(offset)) as P;
       case 1:
-        return (reader.readStringList(offset)) as P;
+        return (reader.readLong(offset)) as P;
       case 2:
-        return (reader.readLongOrNull(offset)) as P;
-      case 3:
         return (reader.readString(offset)) as P;
-      case 4:
-        return (reader.readStringOrNull(offset)) as P;
-      case 5:
+      case 3:
         return (reader.readString(offset)) as P;
       default:
         throw 'Illegal propertyIndex';
@@ -287,173 +242,46 @@ extension UnitQueryFilter on QueryBuilder<Unit, Unit, QFilterCondition> {
     ));
   }
 
-  QueryBuilder<Unit, Unit, QAfterFilterCondition> channelsIsNull() {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.isNull,
-      property: 'channels',
-      value: null,
-    ));
-  }
-
-  QueryBuilder<Unit, Unit, QAfterFilterCondition> channelsAnyIsNull() {
+  QueryBuilder<Unit, Unit, QAfterFilterCondition> branchIdEqualTo(int value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
-      property: 'channels',
-      value: null,
-    ));
-  }
-
-  QueryBuilder<Unit, Unit, QAfterFilterCondition> channelsAnyEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'channels',
+      property: 'branchId',
       value: value,
-      caseSensitive: caseSensitive,
     ));
   }
 
-  QueryBuilder<Unit, Unit, QAfterFilterCondition> channelsAnyGreaterThan(
-    String? value, {
-    bool caseSensitive = true,
+  QueryBuilder<Unit, Unit, QAfterFilterCondition> branchIdGreaterThan(
+    int value, {
     bool include = false,
   }) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.gt,
       include: include,
-      property: 'channels',
+      property: 'branchId',
       value: value,
-      caseSensitive: caseSensitive,
     ));
   }
 
-  QueryBuilder<Unit, Unit, QAfterFilterCondition> channelsAnyLessThan(
-    String? value, {
-    bool caseSensitive = true,
+  QueryBuilder<Unit, Unit, QAfterFilterCondition> branchIdLessThan(
+    int value, {
     bool include = false,
   }) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.lt,
       include: include,
-      property: 'channels',
+      property: 'branchId',
       value: value,
-      caseSensitive: caseSensitive,
     ));
   }
 
-  QueryBuilder<Unit, Unit, QAfterFilterCondition> channelsAnyBetween(
-    String? lower,
-    String? upper, {
-    bool caseSensitive = true,
+  QueryBuilder<Unit, Unit, QAfterFilterCondition> branchIdBetween(
+    int lower,
+    int upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return addFilterConditionInternal(FilterCondition.between(
-      property: 'channels',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Unit, Unit, QAfterFilterCondition> channelsAnyStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.startsWith,
-      property: 'channels',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Unit, Unit, QAfterFilterCondition> channelsAnyEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.endsWith,
-      property: 'channels',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Unit, Unit, QAfterFilterCondition> channelsAnyContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.contains,
-      property: 'channels',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Unit, Unit, QAfterFilterCondition> channelsAnyMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.matches,
-      property: 'channels',
-      value: pattern,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Unit, Unit, QAfterFilterCondition> fbranchIdIsNull() {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.isNull,
-      property: 'fbranchId',
-      value: null,
-    ));
-  }
-
-  QueryBuilder<Unit, Unit, QAfterFilterCondition> fbranchIdEqualTo(int? value) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'fbranchId',
-      value: value,
-    ));
-  }
-
-  QueryBuilder<Unit, Unit, QAfterFilterCondition> fbranchIdGreaterThan(
-    int? value, {
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'fbranchId',
-      value: value,
-    ));
-  }
-
-  QueryBuilder<Unit, Unit, QAfterFilterCondition> fbranchIdLessThan(
-    int? value, {
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'fbranchId',
-      value: value,
-    ));
-  }
-
-  QueryBuilder<Unit, Unit, QAfterFilterCondition> fbranchIdBetween(
-    int? lower,
-    int? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'fbranchId',
+      property: 'branchId',
       lower: lower,
       includeLower: includeLower,
       upper: upper,
@@ -609,115 +437,6 @@ extension UnitQueryFilter on QueryBuilder<Unit, Unit, QFilterCondition> {
     ));
   }
 
-  QueryBuilder<Unit, Unit, QAfterFilterCondition> tableIsNull() {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.isNull,
-      property: 'table',
-      value: null,
-    ));
-  }
-
-  QueryBuilder<Unit, Unit, QAfterFilterCondition> tableEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'table',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Unit, Unit, QAfterFilterCondition> tableGreaterThan(
-    String? value, {
-    bool caseSensitive = true,
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'table',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Unit, Unit, QAfterFilterCondition> tableLessThan(
-    String? value, {
-    bool caseSensitive = true,
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'table',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Unit, Unit, QAfterFilterCondition> tableBetween(
-    String? lower,
-    String? upper, {
-    bool caseSensitive = true,
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'table',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Unit, Unit, QAfterFilterCondition> tableStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.startsWith,
-      property: 'table',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Unit, Unit, QAfterFilterCondition> tableEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.endsWith,
-      property: 'table',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Unit, Unit, QAfterFilterCondition> tableContains(String value,
-      {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.contains,
-      property: 'table',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Unit, Unit, QAfterFilterCondition> tableMatches(String pattern,
-      {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.matches,
-      property: 'table',
-      value: pattern,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
   QueryBuilder<Unit, Unit, QAfterFilterCondition> valueEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -829,12 +548,12 @@ extension UnitQueryWhereSortBy on QueryBuilder<Unit, Unit, QSortBy> {
     return addSortByInternal('active', Sort.desc);
   }
 
-  QueryBuilder<Unit, Unit, QAfterSortBy> sortByFbranchId() {
-    return addSortByInternal('fbranchId', Sort.asc);
+  QueryBuilder<Unit, Unit, QAfterSortBy> sortByBranchId() {
+    return addSortByInternal('branchId', Sort.asc);
   }
 
-  QueryBuilder<Unit, Unit, QAfterSortBy> sortByFbranchIdDesc() {
-    return addSortByInternal('fbranchId', Sort.desc);
+  QueryBuilder<Unit, Unit, QAfterSortBy> sortByBranchIdDesc() {
+    return addSortByInternal('branchId', Sort.desc);
   }
 
   QueryBuilder<Unit, Unit, QAfterSortBy> sortById() {
@@ -851,14 +570,6 @@ extension UnitQueryWhereSortBy on QueryBuilder<Unit, Unit, QSortBy> {
 
   QueryBuilder<Unit, Unit, QAfterSortBy> sortByNameDesc() {
     return addSortByInternal('name', Sort.desc);
-  }
-
-  QueryBuilder<Unit, Unit, QAfterSortBy> sortByTable() {
-    return addSortByInternal('table', Sort.asc);
-  }
-
-  QueryBuilder<Unit, Unit, QAfterSortBy> sortByTableDesc() {
-    return addSortByInternal('table', Sort.desc);
   }
 
   QueryBuilder<Unit, Unit, QAfterSortBy> sortByValue() {
@@ -879,12 +590,12 @@ extension UnitQueryWhereSortThenBy on QueryBuilder<Unit, Unit, QSortThenBy> {
     return addSortByInternal('active', Sort.desc);
   }
 
-  QueryBuilder<Unit, Unit, QAfterSortBy> thenByFbranchId() {
-    return addSortByInternal('fbranchId', Sort.asc);
+  QueryBuilder<Unit, Unit, QAfterSortBy> thenByBranchId() {
+    return addSortByInternal('branchId', Sort.asc);
   }
 
-  QueryBuilder<Unit, Unit, QAfterSortBy> thenByFbranchIdDesc() {
-    return addSortByInternal('fbranchId', Sort.desc);
+  QueryBuilder<Unit, Unit, QAfterSortBy> thenByBranchIdDesc() {
+    return addSortByInternal('branchId', Sort.desc);
   }
 
   QueryBuilder<Unit, Unit, QAfterSortBy> thenById() {
@@ -903,14 +614,6 @@ extension UnitQueryWhereSortThenBy on QueryBuilder<Unit, Unit, QSortThenBy> {
     return addSortByInternal('name', Sort.desc);
   }
 
-  QueryBuilder<Unit, Unit, QAfterSortBy> thenByTable() {
-    return addSortByInternal('table', Sort.asc);
-  }
-
-  QueryBuilder<Unit, Unit, QAfterSortBy> thenByTableDesc() {
-    return addSortByInternal('table', Sort.desc);
-  }
-
   QueryBuilder<Unit, Unit, QAfterSortBy> thenByValue() {
     return addSortByInternal('value', Sort.asc);
   }
@@ -925,8 +628,8 @@ extension UnitQueryWhereDistinct on QueryBuilder<Unit, Unit, QDistinct> {
     return addDistinctByInternal('active');
   }
 
-  QueryBuilder<Unit, Unit, QDistinct> distinctByFbranchId() {
-    return addDistinctByInternal('fbranchId');
+  QueryBuilder<Unit, Unit, QDistinct> distinctByBranchId() {
+    return addDistinctByInternal('branchId');
   }
 
   QueryBuilder<Unit, Unit, QDistinct> distinctById() {
@@ -936,11 +639,6 @@ extension UnitQueryWhereDistinct on QueryBuilder<Unit, Unit, QDistinct> {
   QueryBuilder<Unit, Unit, QDistinct> distinctByName(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('name', caseSensitive: caseSensitive);
-  }
-
-  QueryBuilder<Unit, Unit, QDistinct> distinctByTable(
-      {bool caseSensitive = true}) {
-    return addDistinctByInternal('table', caseSensitive: caseSensitive);
   }
 
   QueryBuilder<Unit, Unit, QDistinct> distinctByValue(
@@ -954,12 +652,8 @@ extension UnitQueryProperty on QueryBuilder<Unit, Unit, QQueryProperty> {
     return addPropertyNameInternal('active');
   }
 
-  QueryBuilder<Unit, List<String>?, QQueryOperations> channelsProperty() {
-    return addPropertyNameInternal('channels');
-  }
-
-  QueryBuilder<Unit, int?, QQueryOperations> fbranchIdProperty() {
-    return addPropertyNameInternal('fbranchId');
+  QueryBuilder<Unit, int, QQueryOperations> branchIdProperty() {
+    return addPropertyNameInternal('branchId');
   }
 
   QueryBuilder<Unit, int, QQueryOperations> idProperty() {
@@ -968,10 +662,6 @@ extension UnitQueryProperty on QueryBuilder<Unit, Unit, QQueryProperty> {
 
   QueryBuilder<Unit, String, QQueryOperations> nameProperty() {
     return addPropertyNameInternal('name');
-  }
-
-  QueryBuilder<Unit, String?, QQueryOperations> tableProperty() {
-    return addPropertyNameInternal('table');
   }
 
   QueryBuilder<Unit, String, QQueryOperations> valueProperty() {

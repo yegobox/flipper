@@ -169,24 +169,21 @@ class ProductViewModel extends ReactiveViewModel {
     for (Unit unit in units) {
       if (unit.active) {
         unit.active = !unit.active;
-        int id = unit.id;
+        unit.branchId = ProxyService.box.getBranchId()!;
         await ProxyService.isarApi.update(
-          endPoint: 'unit/$id',
           data: unit,
         );
       }
     }
     Unit unit = newUnit;
     unit.active = !unit.active;
-    int id = unit.id;
+    unit.branchId = ProxyService.box.getBranchId()!;
     await ProxyService.isarApi.update(
-      endPoint: 'unit/$id',
       data: unit,
     );
     if (type == 'product') {
-      final Map data = product.toJson();
-      data['unit'] = unit.name;
-      ProxyService.isarApi.update(data: data, endPoint: 'product');
+      product.unit = unit.name;
+      ProxyService.isarApi.update(data: product);
       final ProductSync? uProduct =
           await ProxyService.isarApi.getProduct(id: product.id);
       productService.setCurrentProduct(product: uProduct!);

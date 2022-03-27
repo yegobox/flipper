@@ -139,14 +139,12 @@ class SignupViewModel extends FormViewModel {
       await ProxyService.isarApi.create<PColor>(data: color, endPoint: 'color');
       //now create default units for this branch
       final units = Unit()
-        ..name = 'sample'
+        ..name = 'Per Kilogram (kg)'
         ..value = 'kg'
         ..active = false
         ..id = DateTime.now().millisecondsSinceEpoch
-        ..table = AppTables.unit
         ..units = mockUnits
-        ..fbranchId = branches[0].id
-        ..channels = [userId];
+        ..branchId = branches[0].id!;
       await ProxyService.isarApi.addUnits(data: units);
 
       //now create a default custom product
