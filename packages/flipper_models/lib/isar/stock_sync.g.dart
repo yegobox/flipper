@@ -17,7 +17,7 @@ extension GetStockSyncCollection on Isar {
 final StockSyncSchema = CollectionSchema(
   name: 'StockSync',
   schema:
-      '{"name":"StockSync","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"canTrackingStock","type":"Bool"},{"name":"currentStock","type":"Double"},{"name":"lowStock","type":"Double"},{"name":"productId","type":"Long"},{"name":"retailPrice","type":"Double"},{"name":"showLowStockAlert","type":"Bool"},{"name":"supplyPrice","type":"Double"},{"name":"table","type":"String"},{"name":"value","type":"Double"},{"name":"variantId","type":"Long"}],"indexes":[],"links":[]}',
+      '{"name":"StockSync","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"canTrackingStock","type":"Bool"},{"name":"currentStock","type":"Double"},{"name":"lowStock","type":"Double"},{"name":"productId","type":"Long"},{"name":"retailPrice","type":"Double"},{"name":"showLowStockAlert","type":"Bool"},{"name":"supplyPrice","type":"Double"},{"name":"value","type":"Double"},{"name":"variantId","type":"Long"}],"indexes":[],"links":[]}',
   nativeAdapter: const _StockSyncNativeAdapter(),
   webAdapter: const _StockSyncWebAdapter(),
   idName: 'id',
@@ -31,9 +31,8 @@ final StockSyncSchema = CollectionSchema(
     'retailPrice': 6,
     'showLowStockAlert': 7,
     'supplyPrice': 8,
-    'table': 9,
-    'value': 10,
-    'variantId': 11
+    'value': 9,
+    'variantId': 10
   },
   listProperties: {},
   indexIds: {},
@@ -70,7 +69,6 @@ class _StockSyncWebAdapter extends IsarWebTypeAdapter<StockSync> {
     IsarNative.jsObjectSet(
         jsObj, 'showLowStockAlert', object.showLowStockAlert);
     IsarNative.jsObjectSet(jsObj, 'supplyPrice', object.supplyPrice);
-    IsarNative.jsObjectSet(jsObj, 'table', object.table);
     IsarNative.jsObjectSet(jsObj, 'value', object.value);
     IsarNative.jsObjectSet(jsObj, 'variantId', object.variantId);
     return jsObj;
@@ -80,7 +78,8 @@ class _StockSyncWebAdapter extends IsarWebTypeAdapter<StockSync> {
   StockSync deserialize(IsarCollection<StockSync> collection, dynamic jsObj) {
     final object = StockSync();
     object.active = IsarNative.jsObjectGet(jsObj, 'active');
-    object.branchId = IsarNative.jsObjectGet(jsObj, 'branchId');
+    object.branchId =
+        IsarNative.jsObjectGet(jsObj, 'branchId') ?? double.negativeInfinity;
     object.canTrackingStock = IsarNative.jsObjectGet(jsObj, 'canTrackingStock');
     object.currentStock = IsarNative.jsObjectGet(jsObj, 'currentStock') ??
         double.negativeInfinity;
@@ -92,7 +91,6 @@ class _StockSyncWebAdapter extends IsarWebTypeAdapter<StockSync> {
     object.showLowStockAlert =
         IsarNative.jsObjectGet(jsObj, 'showLowStockAlert');
     object.supplyPrice = IsarNative.jsObjectGet(jsObj, 'supplyPrice');
-    object.table = IsarNative.jsObjectGet(jsObj, 'table');
     object.value = IsarNative.jsObjectGet(jsObj, 'value');
     object.variantId =
         IsarNative.jsObjectGet(jsObj, 'variantId') ?? double.negativeInfinity;
@@ -105,7 +103,8 @@ class _StockSyncWebAdapter extends IsarWebTypeAdapter<StockSync> {
       case 'active':
         return (IsarNative.jsObjectGet(jsObj, 'active')) as P;
       case 'branchId':
-        return (IsarNative.jsObjectGet(jsObj, 'branchId')) as P;
+        return (IsarNative.jsObjectGet(jsObj, 'branchId') ??
+            double.negativeInfinity) as P;
       case 'canTrackingStock':
         return (IsarNative.jsObjectGet(jsObj, 'canTrackingStock')) as P;
       case 'currentStock':
@@ -125,8 +124,6 @@ class _StockSyncWebAdapter extends IsarWebTypeAdapter<StockSync> {
         return (IsarNative.jsObjectGet(jsObj, 'showLowStockAlert')) as P;
       case 'supplyPrice':
         return (IsarNative.jsObjectGet(jsObj, 'supplyPrice')) as P;
-      case 'table':
-        return (IsarNative.jsObjectGet(jsObj, 'table')) as P;
       case 'value':
         return (IsarNative.jsObjectGet(jsObj, 'value')) as P;
       case 'variantId':
@@ -166,16 +163,10 @@ class _StockSyncNativeAdapter extends IsarNativeTypeAdapter<StockSync> {
     final _showLowStockAlert = value7;
     final value8 = object.supplyPrice;
     final _supplyPrice = value8;
-    final value9 = object.table;
-    IsarUint8List? _table;
-    if (value9 != null) {
-      _table = IsarBinaryWriter.utf8Encoder.convert(value9);
-    }
-    dynamicSize += (_table?.length ?? 0) as int;
-    final value10 = object.value;
-    final _value = value10;
-    final value11 = object.variantId;
-    final _variantId = value11;
+    final value9 = object.value;
+    final _value = value9;
+    final value10 = object.variantId;
+    final _variantId = value10;
     final size = staticSize + dynamicSize;
 
     rawObj.buffer = alloc(size);
@@ -191,9 +182,8 @@ class _StockSyncNativeAdapter extends IsarNativeTypeAdapter<StockSync> {
     writer.writeDouble(offsets[6], _retailPrice);
     writer.writeBool(offsets[7], _showLowStockAlert);
     writer.writeDouble(offsets[8], _supplyPrice);
-    writer.writeBytes(offsets[9], _table);
-    writer.writeDouble(offsets[10], _value);
-    writer.writeLong(offsets[11], _variantId);
+    writer.writeDouble(offsets[9], _value);
+    writer.writeLong(offsets[10], _variantId);
   }
 
   @override
@@ -201,7 +191,7 @@ class _StockSyncNativeAdapter extends IsarNativeTypeAdapter<StockSync> {
       IsarBinaryReader reader, List<int> offsets) {
     final object = StockSync();
     object.active = reader.readBoolOrNull(offsets[0]);
-    object.branchId = reader.readLongOrNull(offsets[1]);
+    object.branchId = reader.readLong(offsets[1]);
     object.canTrackingStock = reader.readBoolOrNull(offsets[2]);
     object.currentStock = reader.readDouble(offsets[3]);
     object.id = id;
@@ -210,9 +200,8 @@ class _StockSyncNativeAdapter extends IsarNativeTypeAdapter<StockSync> {
     object.retailPrice = reader.readDoubleOrNull(offsets[6]);
     object.showLowStockAlert = reader.readBoolOrNull(offsets[7]);
     object.supplyPrice = reader.readDoubleOrNull(offsets[8]);
-    object.table = reader.readStringOrNull(offsets[9]);
-    object.value = reader.readDoubleOrNull(offsets[10]);
-    object.variantId = reader.readLong(offsets[11]);
+    object.value = reader.readDoubleOrNull(offsets[9]);
+    object.variantId = reader.readLong(offsets[10]);
     return object;
   }
 
@@ -225,7 +214,7 @@ class _StockSyncNativeAdapter extends IsarNativeTypeAdapter<StockSync> {
       case 0:
         return (reader.readBoolOrNull(offset)) as P;
       case 1:
-        return (reader.readLongOrNull(offset)) as P;
+        return (reader.readLong(offset)) as P;
       case 2:
         return (reader.readBoolOrNull(offset)) as P;
       case 3:
@@ -241,10 +230,8 @@ class _StockSyncNativeAdapter extends IsarNativeTypeAdapter<StockSync> {
       case 8:
         return (reader.readDoubleOrNull(offset)) as P;
       case 9:
-        return (reader.readStringOrNull(offset)) as P;
-      case 10:
         return (reader.readDoubleOrNull(offset)) as P;
-      case 11:
+      case 10:
         return (reader.readLong(offset)) as P;
       default:
         throw 'Illegal propertyIndex';
@@ -355,16 +342,8 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition> branchIdIsNull() {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.isNull,
-      property: 'branchId',
-      value: null,
-    ));
-  }
-
   QueryBuilder<StockSync, StockSync, QAfterFilterCondition> branchIdEqualTo(
-      int? value) {
+      int value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
       property: 'branchId',
@@ -373,7 +352,7 @@ extension StockSyncQueryFilter
   }
 
   QueryBuilder<StockSync, StockSync, QAfterFilterCondition> branchIdGreaterThan(
-    int? value, {
+    int value, {
     bool include = false,
   }) {
     return addFilterConditionInternal(FilterCondition(
@@ -385,7 +364,7 @@ extension StockSyncQueryFilter
   }
 
   QueryBuilder<StockSync, StockSync, QAfterFilterCondition> branchIdLessThan(
-    int? value, {
+    int value, {
     bool include = false,
   }) {
     return addFilterConditionInternal(FilterCondition(
@@ -397,8 +376,8 @@ extension StockSyncQueryFilter
   }
 
   QueryBuilder<StockSync, StockSync, QAfterFilterCondition> branchIdBetween(
-    int? lower,
-    int? upper, {
+    int lower,
+    int upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -694,117 +673,6 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition> tableIsNull() {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.isNull,
-      property: 'table',
-      value: null,
-    ));
-  }
-
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition> tableEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'table',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition> tableGreaterThan(
-    String? value, {
-    bool caseSensitive = true,
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'table',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition> tableLessThan(
-    String? value, {
-    bool caseSensitive = true,
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'table',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition> tableBetween(
-    String? lower,
-    String? upper, {
-    bool caseSensitive = true,
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'table',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition> tableStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.startsWith,
-      property: 'table',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition> tableEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.endsWith,
-      property: 'table',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition> tableContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.contains,
-      property: 'table',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition> tableMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.matches,
-      property: 'table',
-      value: pattern,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
   QueryBuilder<StockSync, StockSync, QAfterFilterCondition> valueIsNull() {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.isNull,
@@ -978,14 +846,6 @@ extension StockSyncQueryWhereSortBy
     return addSortByInternal('supplyPrice', Sort.desc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> sortByTable() {
-    return addSortByInternal('table', Sort.asc);
-  }
-
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> sortByTableDesc() {
-    return addSortByInternal('table', Sort.desc);
-  }
-
   QueryBuilder<StockSync, StockSync, QAfterSortBy> sortByValue() {
     return addSortByInternal('value', Sort.asc);
   }
@@ -1087,14 +947,6 @@ extension StockSyncQueryWhereSortThenBy
     return addSortByInternal('supplyPrice', Sort.desc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> thenByTable() {
-    return addSortByInternal('table', Sort.asc);
-  }
-
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> thenByTableDesc() {
-    return addSortByInternal('table', Sort.desc);
-  }
-
   QueryBuilder<StockSync, StockSync, QAfterSortBy> thenByValue() {
     return addSortByInternal('value', Sort.asc);
   }
@@ -1154,11 +1006,6 @@ extension StockSyncQueryWhereDistinct
     return addDistinctByInternal('supplyPrice');
   }
 
-  QueryBuilder<StockSync, StockSync, QDistinct> distinctByTable(
-      {bool caseSensitive = true}) {
-    return addDistinctByInternal('table', caseSensitive: caseSensitive);
-  }
-
   QueryBuilder<StockSync, StockSync, QDistinct> distinctByValue() {
     return addDistinctByInternal('value');
   }
@@ -1174,7 +1021,7 @@ extension StockSyncQueryProperty
     return addPropertyNameInternal('active');
   }
 
-  QueryBuilder<StockSync, int?, QQueryOperations> branchIdProperty() {
+  QueryBuilder<StockSync, int, QQueryOperations> branchIdProperty() {
     return addPropertyNameInternal('branchId');
   }
 
@@ -1208,10 +1055,6 @@ extension StockSyncQueryProperty
 
   QueryBuilder<StockSync, double?, QQueryOperations> supplyPriceProperty() {
     return addPropertyNameInternal('supplyPrice');
-  }
-
-  QueryBuilder<StockSync, String?, QQueryOperations> tableProperty() {
-    return addPropertyNameInternal('table');
   }
 
   QueryBuilder<StockSync, double?, QQueryOperations> valueProperty() {

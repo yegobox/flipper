@@ -21,7 +21,7 @@ class ProductSync {
   String? supplierId;
   String? categoryId;
   String? createdAt;
-   String? unit;
+  String? unit;
   bool? draft;
   bool? imageLocal;
   bool? currentUpdate;
@@ -29,6 +29,5 @@ class ProductSync {
   String? expiryDate;
   String? barCode;
   bool? synced;
-  @Backlink(to: 'stock')
   final variants = IsarLinks<VariantSync>();
 }

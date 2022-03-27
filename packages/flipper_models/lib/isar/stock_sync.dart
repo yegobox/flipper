@@ -1,6 +1,3 @@
-// To parse this JSON data, do
-//
-//     final stock = stockFromJson(jsonString);
 library flipper_models;
 
 import 'package:isar/isar.dart';
@@ -9,7 +6,7 @@ part 'stock_sync.g.dart';
 @Collection()
 class StockSync {
   late int id = Isar.autoIncrement;
-  late int? branchId;
+  late int branchId;
   late int variantId;
   double? lowStock;
   late double currentStock;
@@ -17,8 +14,7 @@ class StockSync {
   double? retailPrice;
   bool? canTrackingStock;
   bool? showLowStockAlert;
-  String? table;
   late int productId;
-  late bool? active;
+  bool? active;
   double? value;
 }

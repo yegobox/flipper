@@ -19,5 +19,5 @@ class VariantSync {
   late double supplyPrice;
   late double retailPrice;
   bool? synced;
-  final stock = IsarLink<StockSync>();
+  // final stock = IsarLink<StockSync>();
 }

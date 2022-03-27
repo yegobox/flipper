@@ -303,7 +303,6 @@ class IsarAPI implements IsarApiInterface {
           ..retailPrice = retailPrice
           ..canTrackingStock = false
           ..showLowStockAlert = false
-          ..table = "stocks"
           ..productId = variation.productId
           ..value = 0
           ..active = false;
@@ -545,51 +544,62 @@ class IsarAPI implements IsarApiInterface {
     product.active = false;
     product.id = DateTime.now().microsecondsSinceEpoch;
     product.description = 'description';
-    product.color = '#ee5253';
+    product.color = '#5A2328';
     product.hasPicture = false;
     product.businessId = ProxyService.box.getBusinessId()!;
     product.branchId = ProxyService.box.getBranchId()!;
 
     final int branchId = ProxyService.box.getBranchId()!;
 
-    // save product in isar Db
     ProductSync? kProduct = await isar.writeTxn((isar) async {
-      int id = await isar.productSyncs.put(product);
+      int id = await isar.productSyncs.put(product, saveLinks: true);
       return isar.productSyncs.get(id);
     });
+    int idd = kProduct!.id;
+    log.i("product:$idd");
     // save variants in isar Db with the above productId
-    VariantSync? variant = await isar.writeTxn((isar) async {
-      VariantSync variant = VariantSync()
-        ..name = 'Regular'
-        ..sku = 'sku'
-        ..productId = kProduct!.id
-        ..unit = 'Per Item'
-        ..table = 'variants'
-        ..productName = product.name
-        ..branchId = branchId
-        ..taxName = 'N/A'
-        ..taxPercentage = 0
-        ..retailPrice = 0
-        ..supplyPrice = 0.0;
-      int id = await isar.variantSyncs.put(variant);
-      log.i("VariantId:$id");
-      return isar.variantSyncs.get(id);
-    });
+    kProduct.variants.add(VariantSync()
+      ..name = 'Regular'
+      ..sku = 'sku'
+      ..productId = kProduct.id
+      ..unit = 'Per Item'
+      ..table = 'variants'
+      ..productName = product.name
+      ..branchId = branchId
+      ..taxName = 'N/A'
+      ..taxPercentage = 0
+      ..retailPrice = 0
+      ..supplyPrice = 0.0);
     await isar.writeTxn((isar) async {
-      kProduct!.variants.add(variant!);
-      await isar.productSyncs.put(kProduct);
-      StockSync? stock = StockSync()
-        ..canTrackingStock = false
-        ..showLowStockAlert = false
-        ..branchId = branchId
-        ..variantId = variant.id
-        ..active = false
-        ..productId = kProduct.id;
-
-      variant.stock.value = stock;
-      await isar.variantSyncs.put(variant);
+      kProduct.variants.save();
     });
-    throw UnimplementedError();
+    VariantSync? variant = await isar.writeTxn((isar) async {
+      return isar.variantSyncs
+          .filter()
+          .productIdEqualTo(kProduct.id)
+          .findFirst();
+    });
+    int vaa = variant!.id;
+    log.i("variantID:$vaa");
+    StockSync stock = StockSync()
+      ..canTrackingStock = false
+      ..showLowStockAlert = false
+      ..currentStock = 0.0
+      ..branchId = branchId
+      ..variantId = variant.id
+      ..supplyPrice = 0.0
+      ..retailPrice = 0.0
+      ..lowStock = 10.0
+      ..canTrackingStock = true
+      ..showLowStockAlert = true
+      ..value = 300.0
+      ..active = false
+      ..productId = kProduct.id;
+
+    await isar.writeTxn((isar) async {
+      return isar.stockSyncs.put(stock, saveLinks: true);
+    });
+    return kProduct;
   }
 
   @override
@@ -600,8 +610,72 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<bool> delete({required id, String? endPoint}) {
-    // TODO: implement delete
-    throw UnimplementedError();
+    switch (endPoint) {
+      case 'color':
+        isar.writeTxn((isar) async {
+          await isar.pColors.delete(id);
+          return true;
+        });
+        break;
+      case 'category':
+        isar.writeTxn((isar) async {
+          await isar.categorys.delete(id);
+          return true;
+        });
+        break;
+      case 'product':
+        isar.writeTxn((isar) async {
+          await isar.productSyncs.delete(id);
+          return true;
+        });
+        break;
+      case 'variant':
+        isar.writeTxn((isar) async {
+          await isar.variantSyncs.delete(id);
+          return true;
+        });
+        break;
+      case 'stock':
+        isar.writeTxn((isar) async {
+          await isar.stockSyncs.delete(id);
+          return true;
+        });
+        break;
+      case 'setting':
+        isar.writeTxn((isar) async {
+          await isar.settings.delete(id);
+          return true;
+        });
+        break;
+      case 'pin':
+        isar.writeTxn((isar) async {
+          await isar.pins.delete(id);
+          return true;
+        });
+        break;
+      case 'business':
+        isar.writeTxn((isar) async {
+          await isar.businessSyncs.delete(id);
+          return true;
+        });
+        break;
+      case 'branch':
+        isar.writeTxn((isar) async {
+          await isar.branchSyncs.delete(id);
+          return true;
+        });
+        break;
+
+      case 'voucher':
+        isar.writeTxn((isar) async {
+          await isar.vouchers.delete(id);
+          return true;
+        });
+        break;
+      default:
+        return Future.value(false);
+    }
+    return Future.value(false);
   }
 
   @override

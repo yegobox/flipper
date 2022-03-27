@@ -17,7 +17,7 @@ extension GetVariantSyncCollection on Isar {
 final VariantSyncSchema = CollectionSchema(
   name: 'VariantSync',
   schema:
-      '{"name":"VariantSync","idName":"id","properties":[{"name":"branchId","type":"Long"},{"name":"name","type":"String"},{"name":"productId","type":"Long"},{"name":"productName","type":"String"},{"name":"retailPrice","type":"Double"},{"name":"sku","type":"String"},{"name":"supplyPrice","type":"Double"},{"name":"synced","type":"Bool"},{"name":"table","type":"String"},{"name":"taxName","type":"String"},{"name":"taxPercentage","type":"Double"},{"name":"unit","type":"String"}],"indexes":[],"links":[{"name":"stock","target":"StockSync"}]}',
+      '{"name":"VariantSync","idName":"id","properties":[{"name":"branchId","type":"Long"},{"name":"name","type":"String"},{"name":"productId","type":"Long"},{"name":"productName","type":"String"},{"name":"retailPrice","type":"Double"},{"name":"sku","type":"String"},{"name":"supplyPrice","type":"Double"},{"name":"synced","type":"Bool"},{"name":"table","type":"String"},{"name":"taxName","type":"String"},{"name":"taxPercentage","type":"Double"},{"name":"unit","type":"String"}],"indexes":[],"links":[]}',
   nativeAdapter: const _VariantSyncNativeAdapter(),
   webAdapter: const _VariantSyncWebAdapter(),
   idName: 'id',
@@ -38,9 +38,9 @@ final VariantSyncSchema = CollectionSchema(
   listProperties: {},
   indexIds: {},
   indexTypes: {},
-  linkIds: {'stock': 0},
+  linkIds: {},
   backlinkIds: {},
-  linkedCollections: ['StockSync'],
+  linkedCollections: [],
   getId: (obj) {
     if (obj.id == Isar.autoIncrement) {
       return null;
@@ -49,7 +49,7 @@ final VariantSyncSchema = CollectionSchema(
     }
   },
   setId: (obj, id) => obj.id = id,
-  getLinks: (obj) => [obj.stock],
+  getLinks: (obj) => [],
   version: 2,
 );
 
@@ -96,8 +96,6 @@ class _VariantSyncWebAdapter extends IsarWebTypeAdapter<VariantSync> {
     object.taxName = IsarNative.jsObjectGet(jsObj, 'taxName');
     object.taxPercentage = IsarNative.jsObjectGet(jsObj, 'taxPercentage');
     object.unit = IsarNative.jsObjectGet(jsObj, 'unit') ?? '';
-    attachLinks(collection.isar,
-        IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity, object);
     return object;
   }
 
@@ -141,15 +139,7 @@ class _VariantSyncWebAdapter extends IsarWebTypeAdapter<VariantSync> {
   }
 
   @override
-  void attachLinks(Isar isar, int id, VariantSync object) {
-    object.stock.attach(
-      id,
-      isar.variantSyncs,
-      isar.getCollection<StockSync>('StockSync'),
-      'stock',
-      false,
-    );
-  }
+  void attachLinks(Isar isar, int id, VariantSync object) {}
 }
 
 class _VariantSyncNativeAdapter extends IsarNativeTypeAdapter<VariantSync> {
@@ -240,7 +230,6 @@ class _VariantSyncNativeAdapter extends IsarNativeTypeAdapter<VariantSync> {
     object.taxName = reader.readStringOrNull(offsets[9]);
     object.taxPercentage = reader.readDoubleOrNull(offsets[10]);
     object.unit = reader.readString(offsets[11]);
-    attachLinks(collection.isar, id, object);
     return object;
   }
 
@@ -280,15 +269,7 @@ class _VariantSyncNativeAdapter extends IsarNativeTypeAdapter<VariantSync> {
   }
 
   @override
-  void attachLinks(Isar isar, int id, VariantSync object) {
-    object.stock.attach(
-      id,
-      isar.variantSyncs,
-      isar.getCollection<StockSync>('StockSync'),
-      'stock',
-      false,
-    );
-  }
+  void attachLinks(Isar isar, int id, VariantSync object) {}
 }
 
 extension VariantSyncQueryWhereSort

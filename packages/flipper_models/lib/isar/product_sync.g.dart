@@ -17,7 +17,7 @@ extension GetProductSyncCollection on Isar {
 final ProductSyncSchema = CollectionSchema(
   name: 'ProductSync',
   schema:
-      '{"name":"ProductSync","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"barCode","type":"String"},{"name":"branchId","type":"Long"},{"name":"businessId","type":"Long"},{"name":"categoryId","type":"String"},{"name":"color","type":"String"},{"name":"createdAt","type":"String"},{"name":"currentUpdate","type":"Bool"},{"name":"description","type":"String"},{"name":"draft","type":"Bool"},{"name":"expiryDate","type":"String"},{"name":"hasPicture","type":"Bool"},{"name":"imageLocal","type":"Bool"},{"name":"imageUrl","type":"String"},{"name":"name","type":"String"},{"name":"picture","type":"String"},{"name":"supplierId","type":"String"},{"name":"synced","type":"Bool"},{"name":"table","type":"String"},{"name":"taxId","type":"String"},{"name":"unit","type":"String"}],"indexes":[],"links":[]}',
+      '{"name":"ProductSync","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"barCode","type":"String"},{"name":"branchId","type":"Long"},{"name":"businessId","type":"Long"},{"name":"categoryId","type":"String"},{"name":"color","type":"String"},{"name":"createdAt","type":"String"},{"name":"currentUpdate","type":"Bool"},{"name":"description","type":"String"},{"name":"draft","type":"Bool"},{"name":"expiryDate","type":"String"},{"name":"hasPicture","type":"Bool"},{"name":"imageLocal","type":"Bool"},{"name":"imageUrl","type":"String"},{"name":"name","type":"String"},{"name":"picture","type":"String"},{"name":"supplierId","type":"String"},{"name":"synced","type":"Bool"},{"name":"table","type":"String"},{"name":"taxId","type":"String"},{"name":"unit","type":"String"}],"indexes":[],"links":[{"name":"variants","target":"VariantSync"}]}',
   nativeAdapter: const _ProductSyncNativeAdapter(),
   webAdapter: const _ProductSyncWebAdapter(),
   idName: 'id',
@@ -47,8 +47,8 @@ final ProductSyncSchema = CollectionSchema(
   listProperties: {},
   indexIds: {},
   indexTypes: {},
-  linkIds: {},
-  backlinkIds: {'variants': 0},
+  linkIds: {'variants': 0},
+  backlinkIds: {},
   linkedCollections: ['VariantSync'],
   getId: (obj) {
     if (obj.id == Isar.autoIncrement) {
@@ -188,7 +188,7 @@ class _ProductSyncWebAdapter extends IsarWebTypeAdapter<ProductSync> {
       isar.productSyncs,
       isar.getCollection<VariantSync>('VariantSync'),
       'variants',
-      true,
+      false,
     );
   }
 }
@@ -412,7 +412,7 @@ class _ProductSyncNativeAdapter extends IsarNativeTypeAdapter<ProductSync> {
       isar.productSyncs,
       isar.getCollection<VariantSync>('VariantSync'),
       'variants',
-      true,
+      false,
     );
   }
 }

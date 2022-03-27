@@ -65,12 +65,12 @@ class ProductViewModel extends ReactiveViewModel {
     int branchId = ProxyService.box.getBranchId()!;
     ProductSync? isTemp =
         await ProxyService.isarApi.isTempProductExist(branchId: branchId);
-    log.d(isTemp);
-    log.d(branchId);
+
     if (isTemp == null) {
       ProductSync product = await ProxyService.isarApi.createProduct(
           product: ProductSync()
             ..name = "temp"
+            ..color = "#5A2328"
             ..branchId = ProxyService.box.getBranchId()!
             ..businessId = ProxyService.box.getBusinessId()!);
       productService.variantsProduct(productId: product.id);
@@ -370,7 +370,9 @@ class ProductViewModel extends ReactiveViewModel {
       //get stock->delete
       StockSync? stock =
           await ProxyService.isarApi.stockByVariantId(variantId: variation.id);
-      ProxyService.isarApi.delete(id: stock!.id, endPoint: 'stock');
+      if (stock != null) {
+        ProxyService.isarApi.delete(id: stock.id, endPoint: 'stock');
+      }
     }
     //then delete the product
     ProxyService.isarApi.delete(id: productId, endPoint: 'product');
