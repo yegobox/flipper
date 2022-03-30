@@ -161,7 +161,7 @@ class _ProductViewState extends State<ProductView> {
                         .loadStockByProductId(productId: product.id),
                     builder: (BuildContext context, stocks) {
                       if (stocks.connectionState == ConnectionState.waiting) {
-                        return const Text('loading..');
+                        return const SizedBox.shrink();
                       }
                       return ProductRow(
                         color: product.color,

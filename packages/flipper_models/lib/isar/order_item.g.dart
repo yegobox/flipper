@@ -17,7 +17,7 @@ extension GetOrderItemSyncCollection on Isar {
 final OrderItemSyncSchema = CollectionSchema(
   name: 'OrderItemSync',
   schema:
-      '{"name":"OrderItemSync","idName":"id","properties":[{"name":"count","type":"Double"},{"name":"createdAt","type":"String"},{"name":"discount","type":"Double"},{"name":"forderId","type":"Long"},{"name":"fvariantId","type":"Long"},{"name":"name","type":"String"},{"name":"price","type":"Double"},{"name":"remainingStock","type":"Long"},{"name":"reported","type":"Bool"},{"name":"type","type":"String"},{"name":"updatedAt","type":"String"}],"indexes":[],"links":[]}',
+      '{"name":"OrderItemSync","idName":"id","properties":[{"name":"count","type":"Double"},{"name":"createdAt","type":"String"},{"name":"discount","type":"Double"},{"name":"name","type":"String"},{"name":"orderId","type":"Long"},{"name":"price","type":"Double"},{"name":"remainingStock","type":"Double"},{"name":"reported","type":"Bool"},{"name":"type","type":"String"},{"name":"updatedAt","type":"String"},{"name":"variantId","type":"Long"}],"indexes":[],"links":[]}',
   nativeAdapter: const _OrderItemSyncNativeAdapter(),
   webAdapter: const _OrderItemSyncWebAdapter(),
   idName: 'id',
@@ -25,14 +25,14 @@ final OrderItemSyncSchema = CollectionSchema(
     'count': 0,
     'createdAt': 1,
     'discount': 2,
-    'forderId': 3,
-    'fvariantId': 4,
-    'name': 5,
-    'price': 6,
-    'remainingStock': 7,
-    'reported': 8,
-    'type': 9,
-    'updatedAt': 10
+    'name': 3,
+    'orderId': 4,
+    'price': 5,
+    'remainingStock': 6,
+    'reported': 7,
+    'type': 8,
+    'updatedAt': 9,
+    'variantId': 10
   },
   listProperties: {},
   indexIds: {},
@@ -62,38 +62,39 @@ class _OrderItemSyncWebAdapter extends IsarWebTypeAdapter<OrderItemSync> {
     IsarNative.jsObjectSet(jsObj, 'count', object.count);
     IsarNative.jsObjectSet(jsObj, 'createdAt', object.createdAt);
     IsarNative.jsObjectSet(jsObj, 'discount', object.discount);
-    IsarNative.jsObjectSet(jsObj, 'forderId', object.forderId);
-    IsarNative.jsObjectSet(jsObj, 'fvariantId', object.fvariantId);
     IsarNative.jsObjectSet(jsObj, 'id', object.id);
     IsarNative.jsObjectSet(jsObj, 'name', object.name);
+    IsarNative.jsObjectSet(jsObj, 'orderId', object.orderId);
     IsarNative.jsObjectSet(jsObj, 'price', object.price);
     IsarNative.jsObjectSet(jsObj, 'remainingStock', object.remainingStock);
     IsarNative.jsObjectSet(jsObj, 'reported', object.reported);
     IsarNative.jsObjectSet(jsObj, 'type', object.type);
     IsarNative.jsObjectSet(jsObj, 'updatedAt', object.updatedAt);
+    IsarNative.jsObjectSet(jsObj, 'variantId', object.variantId);
     return jsObj;
   }
 
   @override
   OrderItemSync deserialize(
       IsarCollection<OrderItemSync> collection, dynamic jsObj) {
-    final object = OrderItemSync(
-      count: IsarNative.jsObjectGet(jsObj, 'count') ?? double.negativeInfinity,
-      createdAt: IsarNative.jsObjectGet(jsObj, 'createdAt') ?? '',
-      discount: IsarNative.jsObjectGet(jsObj, 'discount'),
-      forderId:
-          IsarNative.jsObjectGet(jsObj, 'forderId') ?? double.negativeInfinity,
-      fvariantId: IsarNative.jsObjectGet(jsObj, 'fvariantId') ??
-          double.negativeInfinity,
-      id: IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity,
-      name: IsarNative.jsObjectGet(jsObj, 'name') ?? '',
-      price: IsarNative.jsObjectGet(jsObj, 'price') ?? double.negativeInfinity,
-      remainingStock: IsarNative.jsObjectGet(jsObj, 'remainingStock') ??
-          double.negativeInfinity,
-      reported: IsarNative.jsObjectGet(jsObj, 'reported') ?? false,
-      type: IsarNative.jsObjectGet(jsObj, 'type'),
-      updatedAt: IsarNative.jsObjectGet(jsObj, 'updatedAt') ?? '',
-    );
+    final object = OrderItemSync();
+    object.count =
+        IsarNative.jsObjectGet(jsObj, 'count') ?? double.negativeInfinity;
+    object.createdAt = IsarNative.jsObjectGet(jsObj, 'createdAt') ?? '';
+    object.discount = IsarNative.jsObjectGet(jsObj, 'discount');
+    object.id = IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity;
+    object.name = IsarNative.jsObjectGet(jsObj, 'name') ?? '';
+    object.orderId =
+        IsarNative.jsObjectGet(jsObj, 'orderId') ?? double.negativeInfinity;
+    object.price =
+        IsarNative.jsObjectGet(jsObj, 'price') ?? double.negativeInfinity;
+    object.remainingStock = IsarNative.jsObjectGet(jsObj, 'remainingStock') ??
+        double.negativeInfinity;
+    object.reported = IsarNative.jsObjectGet(jsObj, 'reported') ?? false;
+    object.type = IsarNative.jsObjectGet(jsObj, 'type');
+    object.updatedAt = IsarNative.jsObjectGet(jsObj, 'updatedAt') ?? '';
+    object.variantId =
+        IsarNative.jsObjectGet(jsObj, 'variantId') ?? double.negativeInfinity;
     return object;
   }
 
@@ -107,17 +108,14 @@ class _OrderItemSyncWebAdapter extends IsarWebTypeAdapter<OrderItemSync> {
         return (IsarNative.jsObjectGet(jsObj, 'createdAt') ?? '') as P;
       case 'discount':
         return (IsarNative.jsObjectGet(jsObj, 'discount')) as P;
-      case 'forderId':
-        return (IsarNative.jsObjectGet(jsObj, 'forderId') ??
-            double.negativeInfinity) as P;
-      case 'fvariantId':
-        return (IsarNative.jsObjectGet(jsObj, 'fvariantId') ??
-            double.negativeInfinity) as P;
       case 'id':
         return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
             as P;
       case 'name':
         return (IsarNative.jsObjectGet(jsObj, 'name') ?? '') as P;
+      case 'orderId':
+        return (IsarNative.jsObjectGet(jsObj, 'orderId') ??
+            double.negativeInfinity) as P;
       case 'price':
         return (IsarNative.jsObjectGet(jsObj, 'price') ??
             double.negativeInfinity) as P;
@@ -130,6 +128,9 @@ class _OrderItemSyncWebAdapter extends IsarWebTypeAdapter<OrderItemSync> {
         return (IsarNative.jsObjectGet(jsObj, 'type')) as P;
       case 'updatedAt':
         return (IsarNative.jsObjectGet(jsObj, 'updatedAt') ?? '') as P;
+      case 'variantId':
+        return (IsarNative.jsObjectGet(jsObj, 'variantId') ??
+            double.negativeInfinity) as P;
       default:
         throw 'Illegal propertyName';
     }
@@ -158,28 +159,28 @@ class _OrderItemSyncNativeAdapter extends IsarNativeTypeAdapter<OrderItemSync> {
     dynamicSize += (_createdAt.length) as int;
     final value2 = object.discount;
     final _discount = value2;
-    final value3 = object.forderId;
-    final _forderId = value3;
-    final value4 = object.fvariantId;
-    final _fvariantId = value4;
-    final value5 = object.name;
-    final _name = IsarBinaryWriter.utf8Encoder.convert(value5);
+    final value3 = object.name;
+    final _name = IsarBinaryWriter.utf8Encoder.convert(value3);
     dynamicSize += (_name.length) as int;
-    final value6 = object.price;
-    final _price = value6;
-    final value7 = object.remainingStock;
-    final _remainingStock = value7;
-    final value8 = object.reported;
-    final _reported = value8;
-    final value9 = object.type;
+    final value4 = object.orderId;
+    final _orderId = value4;
+    final value5 = object.price;
+    final _price = value5;
+    final value6 = object.remainingStock;
+    final _remainingStock = value6;
+    final value7 = object.reported;
+    final _reported = value7;
+    final value8 = object.type;
     IsarUint8List? _type;
-    if (value9 != null) {
-      _type = IsarBinaryWriter.utf8Encoder.convert(value9);
+    if (value8 != null) {
+      _type = IsarBinaryWriter.utf8Encoder.convert(value8);
     }
     dynamicSize += (_type?.length ?? 0) as int;
-    final value10 = object.updatedAt;
-    final _updatedAt = IsarBinaryWriter.utf8Encoder.convert(value10);
+    final value9 = object.updatedAt;
+    final _updatedAt = IsarBinaryWriter.utf8Encoder.convert(value9);
     dynamicSize += (_updatedAt.length) as int;
+    final value10 = object.variantId;
+    final _variantId = value10;
     final size = staticSize + dynamicSize;
 
     rawObj.buffer = alloc(size);
@@ -189,33 +190,32 @@ class _OrderItemSyncNativeAdapter extends IsarNativeTypeAdapter<OrderItemSync> {
     writer.writeDouble(offsets[0], _count);
     writer.writeBytes(offsets[1], _createdAt);
     writer.writeDouble(offsets[2], _discount);
-    writer.writeLong(offsets[3], _forderId);
-    writer.writeLong(offsets[4], _fvariantId);
-    writer.writeBytes(offsets[5], _name);
-    writer.writeDouble(offsets[6], _price);
-    writer.writeLong(offsets[7], _remainingStock);
-    writer.writeBool(offsets[8], _reported);
-    writer.writeBytes(offsets[9], _type);
-    writer.writeBytes(offsets[10], _updatedAt);
+    writer.writeBytes(offsets[3], _name);
+    writer.writeLong(offsets[4], _orderId);
+    writer.writeDouble(offsets[5], _price);
+    writer.writeDouble(offsets[6], _remainingStock);
+    writer.writeBool(offsets[7], _reported);
+    writer.writeBytes(offsets[8], _type);
+    writer.writeBytes(offsets[9], _updatedAt);
+    writer.writeLong(offsets[10], _variantId);
   }
 
   @override
   OrderItemSync deserialize(IsarCollection<OrderItemSync> collection, int id,
       IsarBinaryReader reader, List<int> offsets) {
-    final object = OrderItemSync(
-      count: reader.readDouble(offsets[0]),
-      createdAt: reader.readString(offsets[1]),
-      discount: reader.readDoubleOrNull(offsets[2]),
-      forderId: reader.readLong(offsets[3]),
-      fvariantId: reader.readLong(offsets[4]),
-      id: id,
-      name: reader.readString(offsets[5]),
-      price: reader.readDouble(offsets[6]),
-      remainingStock: reader.readLong(offsets[7]),
-      reported: reader.readBool(offsets[8]),
-      type: reader.readStringOrNull(offsets[9]),
-      updatedAt: reader.readString(offsets[10]),
-    );
+    final object = OrderItemSync();
+    object.count = reader.readDouble(offsets[0]);
+    object.createdAt = reader.readString(offsets[1]);
+    object.discount = reader.readDoubleOrNull(offsets[2]);
+    object.id = id;
+    object.name = reader.readString(offsets[3]);
+    object.orderId = reader.readLong(offsets[4]);
+    object.price = reader.readDouble(offsets[5]);
+    object.remainingStock = reader.readDouble(offsets[6]);
+    object.reported = reader.readBool(offsets[7]);
+    object.type = reader.readStringOrNull(offsets[8]);
+    object.updatedAt = reader.readString(offsets[9]);
+    object.variantId = reader.readLong(offsets[10]);
     return object;
   }
 
@@ -232,21 +232,21 @@ class _OrderItemSyncNativeAdapter extends IsarNativeTypeAdapter<OrderItemSync> {
       case 2:
         return (reader.readDoubleOrNull(offset)) as P;
       case 3:
-        return (reader.readLong(offset)) as P;
+        return (reader.readString(offset)) as P;
       case 4:
         return (reader.readLong(offset)) as P;
       case 5:
-        return (reader.readString(offset)) as P;
+        return (reader.readDouble(offset)) as P;
       case 6:
         return (reader.readDouble(offset)) as P;
       case 7:
-        return (reader.readLong(offset)) as P;
-      case 8:
         return (reader.readBool(offset)) as P;
-      case 9:
+      case 8:
         return (reader.readStringOrNull(offset)) as P;
-      case 10:
+      case 9:
         return (reader.readString(offset)) as P;
+      case 10:
+        return (reader.readLong(offset)) as P;
       default:
         throw 'Illegal propertyIndex';
     }
@@ -519,108 +519,6 @@ extension OrderItemSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderItemSync, OrderItemSync, QAfterFilterCondition>
-      forderIdEqualTo(int value) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'forderId',
-      value: value,
-    ));
-  }
-
-  QueryBuilder<OrderItemSync, OrderItemSync, QAfterFilterCondition>
-      forderIdGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'forderId',
-      value: value,
-    ));
-  }
-
-  QueryBuilder<OrderItemSync, OrderItemSync, QAfterFilterCondition>
-      forderIdLessThan(
-    int value, {
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'forderId',
-      value: value,
-    ));
-  }
-
-  QueryBuilder<OrderItemSync, OrderItemSync, QAfterFilterCondition>
-      forderIdBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'forderId',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-    ));
-  }
-
-  QueryBuilder<OrderItemSync, OrderItemSync, QAfterFilterCondition>
-      fvariantIdEqualTo(int value) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'fvariantId',
-      value: value,
-    ));
-  }
-
-  QueryBuilder<OrderItemSync, OrderItemSync, QAfterFilterCondition>
-      fvariantIdGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'fvariantId',
-      value: value,
-    ));
-  }
-
-  QueryBuilder<OrderItemSync, OrderItemSync, QAfterFilterCondition>
-      fvariantIdLessThan(
-    int value, {
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'fvariantId',
-      value: value,
-    ));
-  }
-
-  QueryBuilder<OrderItemSync, OrderItemSync, QAfterFilterCondition>
-      fvariantIdBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'fvariantId',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-    ));
-  }
-
   QueryBuilder<OrderItemSync, OrderItemSync, QAfterFilterCondition> idEqualTo(
       int value) {
     return addFilterConditionInternal(FilterCondition(
@@ -777,6 +675,57 @@ extension OrderItemSyncQueryFilter
   }
 
   QueryBuilder<OrderItemSync, OrderItemSync, QAfterFilterCondition>
+      orderIdEqualTo(int value) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.eq,
+      property: 'orderId',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<OrderItemSync, OrderItemSync, QAfterFilterCondition>
+      orderIdGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.gt,
+      include: include,
+      property: 'orderId',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<OrderItemSync, OrderItemSync, QAfterFilterCondition>
+      orderIdLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.lt,
+      include: include,
+      property: 'orderId',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<OrderItemSync, OrderItemSync, QAfterFilterCondition>
+      orderIdBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition.between(
+      property: 'orderId',
+      lower: lower,
+      includeLower: includeLower,
+      upper: upper,
+      includeUpper: includeUpper,
+    ));
+  }
+
+  QueryBuilder<OrderItemSync, OrderItemSync, QAfterFilterCondition>
       priceGreaterThan(double value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.gt,
@@ -808,53 +757,33 @@ extension OrderItemSyncQueryFilter
   }
 
   QueryBuilder<OrderItemSync, OrderItemSync, QAfterFilterCondition>
-      remainingStockEqualTo(int value) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'remainingStock',
-      value: value,
-    ));
-  }
-
-  QueryBuilder<OrderItemSync, OrderItemSync, QAfterFilterCondition>
-      remainingStockGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
+      remainingStockGreaterThan(double value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.gt,
-      include: include,
+      include: false,
       property: 'remainingStock',
       value: value,
     ));
   }
 
   QueryBuilder<OrderItemSync, OrderItemSync, QAfterFilterCondition>
-      remainingStockLessThan(
-    int value, {
-    bool include = false,
-  }) {
+      remainingStockLessThan(double value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.lt,
-      include: include,
+      include: false,
       property: 'remainingStock',
       value: value,
     ));
   }
 
   QueryBuilder<OrderItemSync, OrderItemSync, QAfterFilterCondition>
-      remainingStockBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
+      remainingStockBetween(double lower, double upper) {
     return addFilterConditionInternal(FilterCondition.between(
       property: 'remainingStock',
       lower: lower,
-      includeLower: includeLower,
+      includeLower: false,
       upper: upper,
-      includeUpper: includeUpper,
+      includeUpper: false,
     ));
   }
 
@@ -1088,6 +1017,57 @@ extension OrderItemSyncQueryFilter
       caseSensitive: caseSensitive,
     ));
   }
+
+  QueryBuilder<OrderItemSync, OrderItemSync, QAfterFilterCondition>
+      variantIdEqualTo(int value) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.eq,
+      property: 'variantId',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<OrderItemSync, OrderItemSync, QAfterFilterCondition>
+      variantIdGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.gt,
+      include: include,
+      property: 'variantId',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<OrderItemSync, OrderItemSync, QAfterFilterCondition>
+      variantIdLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.lt,
+      include: include,
+      property: 'variantId',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<OrderItemSync, OrderItemSync, QAfterFilterCondition>
+      variantIdBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition.between(
+      property: 'variantId',
+      lower: lower,
+      includeLower: includeLower,
+      upper: upper,
+      includeUpper: includeUpper,
+    ));
+  }
 }
 
 extension OrderItemSyncQueryWhereSortBy
@@ -1118,24 +1098,6 @@ extension OrderItemSyncQueryWhereSortBy
     return addSortByInternal('discount', Sort.desc);
   }
 
-  QueryBuilder<OrderItemSync, OrderItemSync, QAfterSortBy> sortByForderId() {
-    return addSortByInternal('forderId', Sort.asc);
-  }
-
-  QueryBuilder<OrderItemSync, OrderItemSync, QAfterSortBy>
-      sortByForderIdDesc() {
-    return addSortByInternal('forderId', Sort.desc);
-  }
-
-  QueryBuilder<OrderItemSync, OrderItemSync, QAfterSortBy> sortByFvariantId() {
-    return addSortByInternal('fvariantId', Sort.asc);
-  }
-
-  QueryBuilder<OrderItemSync, OrderItemSync, QAfterSortBy>
-      sortByFvariantIdDesc() {
-    return addSortByInternal('fvariantId', Sort.desc);
-  }
-
   QueryBuilder<OrderItemSync, OrderItemSync, QAfterSortBy> sortById() {
     return addSortByInternal('id', Sort.asc);
   }
@@ -1150,6 +1112,14 @@ extension OrderItemSyncQueryWhereSortBy
 
   QueryBuilder<OrderItemSync, OrderItemSync, QAfterSortBy> sortByNameDesc() {
     return addSortByInternal('name', Sort.desc);
+  }
+
+  QueryBuilder<OrderItemSync, OrderItemSync, QAfterSortBy> sortByOrderId() {
+    return addSortByInternal('orderId', Sort.asc);
+  }
+
+  QueryBuilder<OrderItemSync, OrderItemSync, QAfterSortBy> sortByOrderIdDesc() {
+    return addSortByInternal('orderId', Sort.desc);
   }
 
   QueryBuilder<OrderItemSync, OrderItemSync, QAfterSortBy> sortByPrice() {
@@ -1195,6 +1165,15 @@ extension OrderItemSyncQueryWhereSortBy
       sortByUpdatedAtDesc() {
     return addSortByInternal('updatedAt', Sort.desc);
   }
+
+  QueryBuilder<OrderItemSync, OrderItemSync, QAfterSortBy> sortByVariantId() {
+    return addSortByInternal('variantId', Sort.asc);
+  }
+
+  QueryBuilder<OrderItemSync, OrderItemSync, QAfterSortBy>
+      sortByVariantIdDesc() {
+    return addSortByInternal('variantId', Sort.desc);
+  }
 }
 
 extension OrderItemSyncQueryWhereSortThenBy
@@ -1225,24 +1204,6 @@ extension OrderItemSyncQueryWhereSortThenBy
     return addSortByInternal('discount', Sort.desc);
   }
 
-  QueryBuilder<OrderItemSync, OrderItemSync, QAfterSortBy> thenByForderId() {
-    return addSortByInternal('forderId', Sort.asc);
-  }
-
-  QueryBuilder<OrderItemSync, OrderItemSync, QAfterSortBy>
-      thenByForderIdDesc() {
-    return addSortByInternal('forderId', Sort.desc);
-  }
-
-  QueryBuilder<OrderItemSync, OrderItemSync, QAfterSortBy> thenByFvariantId() {
-    return addSortByInternal('fvariantId', Sort.asc);
-  }
-
-  QueryBuilder<OrderItemSync, OrderItemSync, QAfterSortBy>
-      thenByFvariantIdDesc() {
-    return addSortByInternal('fvariantId', Sort.desc);
-  }
-
   QueryBuilder<OrderItemSync, OrderItemSync, QAfterSortBy> thenById() {
     return addSortByInternal('id', Sort.asc);
   }
@@ -1257,6 +1218,14 @@ extension OrderItemSyncQueryWhereSortThenBy
 
   QueryBuilder<OrderItemSync, OrderItemSync, QAfterSortBy> thenByNameDesc() {
     return addSortByInternal('name', Sort.desc);
+  }
+
+  QueryBuilder<OrderItemSync, OrderItemSync, QAfterSortBy> thenByOrderId() {
+    return addSortByInternal('orderId', Sort.asc);
+  }
+
+  QueryBuilder<OrderItemSync, OrderItemSync, QAfterSortBy> thenByOrderIdDesc() {
+    return addSortByInternal('orderId', Sort.desc);
   }
 
   QueryBuilder<OrderItemSync, OrderItemSync, QAfterSortBy> thenByPrice() {
@@ -1302,6 +1271,15 @@ extension OrderItemSyncQueryWhereSortThenBy
       thenByUpdatedAtDesc() {
     return addSortByInternal('updatedAt', Sort.desc);
   }
+
+  QueryBuilder<OrderItemSync, OrderItemSync, QAfterSortBy> thenByVariantId() {
+    return addSortByInternal('variantId', Sort.asc);
+  }
+
+  QueryBuilder<OrderItemSync, OrderItemSync, QAfterSortBy>
+      thenByVariantIdDesc() {
+    return addSortByInternal('variantId', Sort.desc);
+  }
 }
 
 extension OrderItemSyncQueryWhereDistinct
@@ -1319,14 +1297,6 @@ extension OrderItemSyncQueryWhereDistinct
     return addDistinctByInternal('discount');
   }
 
-  QueryBuilder<OrderItemSync, OrderItemSync, QDistinct> distinctByForderId() {
-    return addDistinctByInternal('forderId');
-  }
-
-  QueryBuilder<OrderItemSync, OrderItemSync, QDistinct> distinctByFvariantId() {
-    return addDistinctByInternal('fvariantId');
-  }
-
   QueryBuilder<OrderItemSync, OrderItemSync, QDistinct> distinctById() {
     return addDistinctByInternal('id');
   }
@@ -1334,6 +1304,10 @@ extension OrderItemSyncQueryWhereDistinct
   QueryBuilder<OrderItemSync, OrderItemSync, QDistinct> distinctByName(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('name', caseSensitive: caseSensitive);
+  }
+
+  QueryBuilder<OrderItemSync, OrderItemSync, QDistinct> distinctByOrderId() {
+    return addDistinctByInternal('orderId');
   }
 
   QueryBuilder<OrderItemSync, OrderItemSync, QDistinct> distinctByPrice() {
@@ -1358,6 +1332,10 @@ extension OrderItemSyncQueryWhereDistinct
       {bool caseSensitive = true}) {
     return addDistinctByInternal('updatedAt', caseSensitive: caseSensitive);
   }
+
+  QueryBuilder<OrderItemSync, OrderItemSync, QDistinct> distinctByVariantId() {
+    return addDistinctByInternal('variantId');
+  }
 }
 
 extension OrderItemSyncQueryProperty
@@ -1374,14 +1352,6 @@ extension OrderItemSyncQueryProperty
     return addPropertyNameInternal('discount');
   }
 
-  QueryBuilder<OrderItemSync, int, QQueryOperations> forderIdProperty() {
-    return addPropertyNameInternal('forderId');
-  }
-
-  QueryBuilder<OrderItemSync, int, QQueryOperations> fvariantIdProperty() {
-    return addPropertyNameInternal('fvariantId');
-  }
-
   QueryBuilder<OrderItemSync, int, QQueryOperations> idProperty() {
     return addPropertyNameInternal('id');
   }
@@ -1390,11 +1360,16 @@ extension OrderItemSyncQueryProperty
     return addPropertyNameInternal('name');
   }
 
+  QueryBuilder<OrderItemSync, int, QQueryOperations> orderIdProperty() {
+    return addPropertyNameInternal('orderId');
+  }
+
   QueryBuilder<OrderItemSync, double, QQueryOperations> priceProperty() {
     return addPropertyNameInternal('price');
   }
 
-  QueryBuilder<OrderItemSync, int, QQueryOperations> remainingStockProperty() {
+  QueryBuilder<OrderItemSync, double, QQueryOperations>
+      remainingStockProperty() {
     return addPropertyNameInternal('remainingStock');
   }
 
@@ -1408,5 +1383,9 @@ extension OrderItemSyncQueryProperty
 
   QueryBuilder<OrderItemSync, String, QQueryOperations> updatedAtProperty() {
     return addPropertyNameInternal('updatedAt');
+  }
+
+  QueryBuilder<OrderItemSync, int, QQueryOperations> variantIdProperty() {
+    return addPropertyNameInternal('variantId');
   }
 }

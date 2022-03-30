@@ -277,7 +277,7 @@ class _SellState extends State<Sell> {
             showActionButton: true,
             onPressedCallback: () async {
               log.w(model.checked);
-              //TODOcheck if model.checked is  chaning based on variation shoosed.
+
               bool saved = await model.saveOrder(
                 variationId: model.checked,
                 amount: model.amountTotal,

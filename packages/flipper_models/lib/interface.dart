@@ -116,8 +116,8 @@ abstract class IsarApiInterface {
 
   Future<List<DiscountSync>> getDiscounts({required int branchId});
 
-  Future<OrderFSync?> addOrderItem(
-      {required OrderFSync order, required Map data});
+  Future<void> addOrderItem(
+      {required OrderFSync order, required OrderItemSync item});
 
   // Conversation createConversation({required Conversation conversation});
 

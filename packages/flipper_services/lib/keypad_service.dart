@@ -91,6 +91,7 @@ class KeyPadService with ReactiveServiceMixin {
   }
 
   void setOrder(OrderFSync order) {
+    order.orderItems.load();
     _order.value = order;
   }
 
@@ -99,13 +100,16 @@ class KeyPadService with ReactiveServiceMixin {
   /// it is in this recard in application anywhere else it's okay to access orders[0]
   Future<OrderFSync?> getOrder({required int branchId}) async {
     OrderFSync? order = await ProxyService.isarApi.order(branchId: branchId);
+    log.d('getOrder: $order');
     if (order != null) {
+      order.orderItems.load();
+      log.d(order.orderItems);
       _countOrderItems.value = order.orderItems.length;
     }
 
     _order.value = order;
 
-    return order ?? null;
+    return order;
   }
 
   /// this function update _orders.value the same as getOrders but this takes id of the order we want

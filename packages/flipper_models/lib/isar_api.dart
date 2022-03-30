@@ -84,10 +84,10 @@ class IsarAPI implements IsarApiInterface {
   }
 
   Future<OrderFSync?> pendingOrderExist({required int branchId}) async {
-    return isar.writeTxn((isar) {
+    return isar.writeTxn((isar) async {
       return isar.orderFSyncs
           .filter()
-          .fbranchIdEqualTo(branchId)
+          .branchIdEqualTo(branchId)
           .statusEqualTo('pending')
           .findFirst();
     });
@@ -103,8 +103,8 @@ class IsarAPI implements IsarApiInterface {
       double quantity = 1}) async {
     final ref = const Uuid().v1();
 
-    final String orderNUmber = const Uuid().v1();
-    String userId = "1";
+    final String orderNumber = const Uuid().v1();
+
     int branchId = 1;
     String name = '';
     OrderFSync? existOrder = await pendingOrderExist(branchId: branchId);
@@ -122,89 +122,77 @@ class IsarAPI implements IsarApiInterface {
       }
     }
     if (existOrder == null) {
-      final order = OrderFSync(
-        reference: ref,
-        orderNumber: orderNUmber,
-        status: 'pending',
-        orderType: orderType,
-        active: true,
-        draft: true,
-        channels: [userId],
-        subTotal: customAmount,
-        table: 'orders',
-        cashReceived: customAmount,
-        updatedAt: DateTime.now().toIso8601String(),
-        customerChangeDue: 0.0, //fix this
-        paymentType: 'Cash',
-        fbranchId: branchId,
-        createdAt: DateTime.now().toIso8601String(),
-      );
+      final order = OrderFSync()
+        ..reference = ref
+        ..orderNumber = orderNumber
+        ..status = 'pending'
+        ..orderType = orderType
+        ..active = true
+        ..draft = true
+        ..subTotal = customAmount
+        ..cashReceived = customAmount
+        ..updatedAt = DateTime.now().toIso8601String()
+        ..customerChangeDue = 0.0
+        ..paymentType = 'Cash'
+        ..branchId = branchId
+        ..createdAt = DateTime.now().toIso8601String();
       // save order to db
-      OrderFSync createdOrder = await isar.writeTxn((isar) async {
+      OrderFSync? createdOrder = await isar.writeTxn((isar) async {
         int id = await isar.orderFSyncs.put(order);
-        return isar.orderFSyncs.getSync(id)!;
+        return isar.orderFSyncs.get(id);
       });
       // get stock by variation.id
       StockSync stock = isar.stockSyncs
           .filter()
           .variantIdEqualTo(variation.id)
           .findFirstSync()!;
-      OrderItemSync orderItems = OrderItemSync(
-        count: quantity,
-        // name: useProductName ? variation.productName : variation.name,
-        name: name,
-        fvariantId: variation.id,
-        price: price,
-        forderId: createdOrder.id,
-        createdAt: DateTime.now().toIso8601String(),
-        updatedAt: DateTime.now().toIso8601String(),
-        remainingStock: stock.currentStock.toInt() - quantity.toInt(),
-      );
+      OrderItemSync orderItems = OrderItemSync()
+        ..count = price
+        ..count = quantity
+        ..name = name
+        ..variantId = variation.id
+        ..price = price
+        ..orderId = createdOrder!.id
+        ..createdAt = DateTime.now().toIso8601String()
+        ..updatedAt = DateTime.now().toIso8601String()
+        ..remainingStock = stock.currentStock - quantity.toInt();
       createdOrder.orderItems.add(orderItems);
+      await isar.writeTxn((isar) async {
+        return createdOrder.orderItems.save();
+      });
       return createdOrder;
     } else {
       // get StockSync by variation.id
-      StockSync stock = isar.stockSyncs
-          .filter()
-          .variantIdEqualTo(variation.id)
-          .findFirstSync()!;
-      OrderItemSync item = OrderItemSync(
-        count: quantity,
-        name: name,
-        fvariantId: variation.id,
-        price: price,
-        forderId: existOrder.id,
-        createdAt: DateTime.now().toIso8601String(),
-        updatedAt: DateTime.now().toIso8601String(),
-        remainingStock: stock.currentStock.toInt() - quantity.toInt(),
-      );
+      StockSync? stock = await isar.writeTxn((isar) async {
+        return isar.stockSyncs
+            .filter()
+            .variantIdEqualTo(variation.id)
+            .findFirst();
+      });
+      OrderItemSync item = OrderItemSync()
+        ..count = quantity
+        ..name = name
+        ..variantId = variation.id
+        ..price = price
+        ..orderId = existOrder.id
+        ..createdAt = DateTime.now().toIso8601String()
+        ..updatedAt = DateTime.now().toIso8601String()
+        ..remainingStock = stock!.currentStock - quantity.toInt();
       existOrder.orderItems.add(item);
       // update order
-      OrderFSync updatedOrder = await isar.writeTxn((isar) async {
-        int id = await isar.orderFSyncs.put(existOrder);
-        return isar.orderFSyncs.getSync(id)!;
+      await isar.writeTxn((isar) async {
+        return existOrder.orderItems.save();
       });
-      return updatedOrder;
+      return existOrder;
     }
   }
 
   @override
-  Future<OrderFSync?> addOrderItem(
-      {required OrderFSync order, required Map data}) async {
-    OrderItemSync item = OrderItemSync(
-      count: data['count'],
-      name: data['name'],
-      fvariantId: data['fvariantId'],
-      price: data['price'],
-      forderId: data['forderId'],
-      createdAt: data['createdAt'],
-      updatedAt: data['updatedAt'],
-      remainingStock: data['remainingStock'],
-    );
+  Future<void> addOrderItem(
+      {required OrderFSync order, required OrderItemSync item}) async {
     order.orderItems.add(item);
     return isar.writeTxn((isar) async {
-      int id = await isar.orderFSyncs.put(order);
-      return isar.orderFSyncs.get(id);
+      return order.orderItems.save();
     });
   }
 
@@ -910,8 +898,8 @@ class IsarAPI implements IsarApiInterface {
     return await isar.writeTxn((isar) {
       return isar.orderItemSyncs
           .filter()
-          .fvariantIdEqualTo(variantId)
-          .forderIdEqualTo(orderId)
+          .variantIdEqualTo(variantId)
+          .orderIdEqualTo(orderId)
           .findFirst();
     });
   }
@@ -1090,15 +1078,23 @@ class IsarAPI implements IsarApiInterface {
   }
 
   @override
-  Future<OrderFSync?> order({required int branchId}) {
-    // TODO: implement order
-    throw UnimplementedError();
+  Future<OrderFSync?> order({required int branchId}) async {
+    return isar.writeTxn((isar) async {
+      return isar.orderFSyncs
+          .filter()
+          .statusEqualTo('pending')
+          .branchIdEqualTo(branchId)
+          .findFirst();
+    });
   }
 
   @override
   Future<List<OrderFSync>> orders({required int branchId}) {
-    // TODO: implement orders
-    throw UnimplementedError();
+    return isar.orderFSyncs
+        .filter()
+        .branchIdEqualTo(branchId)
+        .statusEqualTo('pending')
+        .findAll();
   }
 
   @override
@@ -1106,7 +1102,6 @@ class IsarAPI implements IsarApiInterface {
     return isar.productSyncs
         .filter()
         .branchIdEqualTo(branchId)
-        .and()
         .draftEqualTo(false)
         .build()
         .watch(initialReturn: true);
@@ -1296,6 +1291,21 @@ class IsarAPI implements IsarApiInterface {
         return await isar.units.put(unit);
       });
     }
+    if (data is OrderItemSync) {
+      final orderItem = data;
+      // find this related order
+      OrderFSync? order = await isar.writeTxn((isar) async {
+        return await isar.orderFSyncs
+            .filter()
+            .idEqualTo(orderItem.orderId)
+            .build()
+            .findFirst();
+      });
+      order!.orderItems.add(data);
+      await isar.writeTxn((isar) async {
+        return order.orderItems.save();
+      });
+    }
     return 1;
   }
 
@@ -1394,7 +1404,7 @@ class IsarAPI implements IsarApiInterface {
       for (DateTime date in weekDates) {
         List<OrderFSync> orders = isar.orderFSyncs
             .filter()
-            .fbranchIdEqualTo(branchId)
+            .branchIdEqualTo(branchId)
             .findAllSync()
             .where((order) =>
                 DateTime.parse(order.createdAt).difference(date).inDays >= -7)

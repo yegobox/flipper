@@ -108,8 +108,7 @@ class CronService {
           final response = await ProxyService.isarApi.sendReport(
               orderItems: completedOrder.orderItems as List<OrderItemSync>);
           if (response == 200) {
-            ProxyService.api
-                .update(data: completedOrder.toJson(), endPoint: 'order');
+            ProxyService.isarApi.update(data: completedOrder);
           }
         }
       }

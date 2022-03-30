@@ -95,9 +95,7 @@ class _BodyWidgetState extends State<BodyWidget> {
             ? 0
             : widget.model.tickets.length.toDouble(),
         orders: widget.model.kOrder != null
-            // ? widget.model.kOrder!.orderItems.length
-            //FIXMEthis is broken use the above line instead of 0
-            ? 0
+            ? widget.model.kOrder!.orderItems.length
             : 0,
         duePay: widget.model.kOrder != null
             ? widget.model.totalPayable.toDouble()
@@ -105,7 +103,7 @@ class _BodyWidgetState extends State<BodyWidget> {
         ticketHandler: () async {
           await widget.model.keypad.getTickets();
           await widget.model.keypad
-              .getOrder(branchId: ProxyService.box.read(key: 'branchId'));
+              .getOrder(branchId: ProxyService.box.getBranchId()!);
           if (widget.model.kOrder == null && widget.model.tickets.isNotEmpty) {
             //then we know we need to resume.
             //TODOfix this on desktop is not showing.

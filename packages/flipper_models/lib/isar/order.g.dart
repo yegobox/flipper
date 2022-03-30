@@ -17,31 +17,29 @@ extension GetOrderFSyncCollection on Isar {
 final OrderFSyncSchema = CollectionSchema(
   name: 'OrderFSync',
   schema:
-      '{"name":"OrderFSync","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"cashReceived","type":"Double"},{"name":"channels","type":"StringList"},{"name":"createdAt","type":"String"},{"name":"customerChangeDue","type":"Double"},{"name":"customerId","type":"Long"},{"name":"draft","type":"Bool"},{"name":"fbranchId","type":"Long"},{"name":"note","type":"String"},{"name":"orderNumber","type":"String"},{"name":"orderType","type":"String"},{"name":"paymentType","type":"String"},{"name":"reference","type":"String"},{"name":"reported","type":"Bool"},{"name":"status","type":"String"},{"name":"subTotal","type":"Double"},{"name":"table","type":"String"},{"name":"updatedAt","type":"String"}],"indexes":[],"links":[{"name":"orderItems","target":"OrderItemSync"}]}',
+      '{"name":"OrderFSync","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"cashReceived","type":"Double"},{"name":"createdAt","type":"String"},{"name":"customerChangeDue","type":"Double"},{"name":"customerId","type":"Long"},{"name":"draft","type":"Bool"},{"name":"note","type":"String"},{"name":"orderNumber","type":"String"},{"name":"orderType","type":"String"},{"name":"paymentType","type":"String"},{"name":"reference","type":"String"},{"name":"reported","type":"Bool"},{"name":"status","type":"String"},{"name":"subTotal","type":"Double"},{"name":"updatedAt","type":"String"}],"indexes":[],"links":[{"name":"orderItems","target":"OrderItemSync"}]}',
   nativeAdapter: const _OrderFSyncNativeAdapter(),
   webAdapter: const _OrderFSyncWebAdapter(),
   idName: 'id',
   propertyIds: {
     'active': 0,
-    'cashReceived': 1,
-    'channels': 2,
+    'branchId': 1,
+    'cashReceived': 2,
     'createdAt': 3,
     'customerChangeDue': 4,
     'customerId': 5,
     'draft': 6,
-    'fbranchId': 7,
-    'note': 8,
-    'orderNumber': 9,
-    'orderType': 10,
-    'paymentType': 11,
-    'reference': 12,
-    'reported': 13,
-    'status': 14,
-    'subTotal': 15,
-    'table': 16,
-    'updatedAt': 17
+    'note': 7,
+    'orderNumber': 8,
+    'orderType': 9,
+    'paymentType': 10,
+    'reference': 11,
+    'reported': 12,
+    'status': 13,
+    'subTotal': 14,
+    'updatedAt': 15
   },
-  listProperties: {'channels'},
+  listProperties: {},
   indexIds: {},
   indexTypes: {},
   linkIds: {'orderItems': 0},
@@ -66,14 +64,13 @@ class _OrderFSyncWebAdapter extends IsarWebTypeAdapter<OrderFSync> {
   Object serialize(IsarCollection<OrderFSync> collection, OrderFSync object) {
     final jsObj = IsarNative.newJsObject();
     IsarNative.jsObjectSet(jsObj, 'active', object.active);
+    IsarNative.jsObjectSet(jsObj, 'branchId', object.branchId);
     IsarNative.jsObjectSet(jsObj, 'cashReceived', object.cashReceived);
-    IsarNative.jsObjectSet(jsObj, 'channels', object.channels);
     IsarNative.jsObjectSet(jsObj, 'createdAt', object.createdAt);
     IsarNative.jsObjectSet(
         jsObj, 'customerChangeDue', object.customerChangeDue);
     IsarNative.jsObjectSet(jsObj, 'customerId', object.customerId);
     IsarNative.jsObjectSet(jsObj, 'draft', object.draft);
-    IsarNative.jsObjectSet(jsObj, 'fbranchId', object.fbranchId);
     IsarNative.jsObjectSet(jsObj, 'id', object.id);
     IsarNative.jsObjectSet(jsObj, 'note', object.note);
     IsarNative.jsObjectSet(jsObj, 'orderNumber', object.orderNumber);
@@ -83,41 +80,35 @@ class _OrderFSyncWebAdapter extends IsarWebTypeAdapter<OrderFSync> {
     IsarNative.jsObjectSet(jsObj, 'reported', object.reported);
     IsarNative.jsObjectSet(jsObj, 'status', object.status);
     IsarNative.jsObjectSet(jsObj, 'subTotal', object.subTotal);
-    IsarNative.jsObjectSet(jsObj, 'table', object.table);
     IsarNative.jsObjectSet(jsObj, 'updatedAt', object.updatedAt);
     return jsObj;
   }
 
   @override
   OrderFSync deserialize(IsarCollection<OrderFSync> collection, dynamic jsObj) {
-    final object = OrderFSync(
-      active: IsarNative.jsObjectGet(jsObj, 'active') ?? false,
-      cashReceived: IsarNative.jsObjectGet(jsObj, 'cashReceived') ??
-          double.negativeInfinity,
-      channels: (IsarNative.jsObjectGet(jsObj, 'channels') as List?)
-          ?.map((e) => e ?? '')
-          .toList()
-          .cast<String>(),
-      createdAt: IsarNative.jsObjectGet(jsObj, 'createdAt') ?? '',
-      customerChangeDue: IsarNative.jsObjectGet(jsObj, 'customerChangeDue') ??
-          double.negativeInfinity,
-      customerId: IsarNative.jsObjectGet(jsObj, 'customerId'),
-      draft: IsarNative.jsObjectGet(jsObj, 'draft') ?? false,
-      fbranchId:
-          IsarNative.jsObjectGet(jsObj, 'fbranchId') ?? double.negativeInfinity,
-      id: IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity,
-      note: IsarNative.jsObjectGet(jsObj, 'note'),
-      orderNumber: IsarNative.jsObjectGet(jsObj, 'orderNumber') ?? '',
-      orderType: IsarNative.jsObjectGet(jsObj, 'orderType') ?? '',
-      paymentType: IsarNative.jsObjectGet(jsObj, 'paymentType') ?? '',
-      reference: IsarNative.jsObjectGet(jsObj, 'reference') ?? '',
-      reported: IsarNative.jsObjectGet(jsObj, 'reported'),
-      status: IsarNative.jsObjectGet(jsObj, 'status') ?? '',
-      subTotal:
-          IsarNative.jsObjectGet(jsObj, 'subTotal') ?? double.negativeInfinity,
-      table: IsarNative.jsObjectGet(jsObj, 'table') ?? '',
-      updatedAt: IsarNative.jsObjectGet(jsObj, 'updatedAt'),
-    );
+    final object = OrderFSync();
+    object.active = IsarNative.jsObjectGet(jsObj, 'active') ?? false;
+    object.branchId =
+        IsarNative.jsObjectGet(jsObj, 'branchId') ?? double.negativeInfinity;
+    object.cashReceived = IsarNative.jsObjectGet(jsObj, 'cashReceived') ??
+        double.negativeInfinity;
+    object.createdAt = IsarNative.jsObjectGet(jsObj, 'createdAt') ?? '';
+    object.customerChangeDue =
+        IsarNative.jsObjectGet(jsObj, 'customerChangeDue') ??
+            double.negativeInfinity;
+    object.customerId = IsarNative.jsObjectGet(jsObj, 'customerId');
+    object.draft = IsarNative.jsObjectGet(jsObj, 'draft') ?? false;
+    object.id = IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity;
+    object.note = IsarNative.jsObjectGet(jsObj, 'note');
+    object.orderNumber = IsarNative.jsObjectGet(jsObj, 'orderNumber') ?? '';
+    object.orderType = IsarNative.jsObjectGet(jsObj, 'orderType') ?? '';
+    object.paymentType = IsarNative.jsObjectGet(jsObj, 'paymentType') ?? '';
+    object.reference = IsarNative.jsObjectGet(jsObj, 'reference') ?? '';
+    object.reported = IsarNative.jsObjectGet(jsObj, 'reported');
+    object.status = IsarNative.jsObjectGet(jsObj, 'status') ?? '';
+    object.subTotal =
+        IsarNative.jsObjectGet(jsObj, 'subTotal') ?? double.negativeInfinity;
+    object.updatedAt = IsarNative.jsObjectGet(jsObj, 'updatedAt');
     attachLinks(collection.isar,
         IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity, object);
     return object;
@@ -128,14 +119,12 @@ class _OrderFSyncWebAdapter extends IsarWebTypeAdapter<OrderFSync> {
     switch (propertyName) {
       case 'active':
         return (IsarNative.jsObjectGet(jsObj, 'active') ?? false) as P;
+      case 'branchId':
+        return (IsarNative.jsObjectGet(jsObj, 'branchId') ??
+            double.negativeInfinity) as P;
       case 'cashReceived':
         return (IsarNative.jsObjectGet(jsObj, 'cashReceived') ??
             double.negativeInfinity) as P;
-      case 'channels':
-        return ((IsarNative.jsObjectGet(jsObj, 'channels') as List?)
-            ?.map((e) => e ?? '')
-            .toList()
-            .cast<String>()) as P;
       case 'createdAt':
         return (IsarNative.jsObjectGet(jsObj, 'createdAt') ?? '') as P;
       case 'customerChangeDue':
@@ -145,9 +134,6 @@ class _OrderFSyncWebAdapter extends IsarWebTypeAdapter<OrderFSync> {
         return (IsarNative.jsObjectGet(jsObj, 'customerId')) as P;
       case 'draft':
         return (IsarNative.jsObjectGet(jsObj, 'draft') ?? false) as P;
-      case 'fbranchId':
-        return (IsarNative.jsObjectGet(jsObj, 'fbranchId') ??
-            double.negativeInfinity) as P;
       case 'id':
         return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
             as P;
@@ -168,8 +154,6 @@ class _OrderFSyncWebAdapter extends IsarWebTypeAdapter<OrderFSync> {
       case 'subTotal':
         return (IsarNative.jsObjectGet(jsObj, 'subTotal') ??
             double.negativeInfinity) as P;
-      case 'table':
-        return (IsarNative.jsObjectGet(jsObj, 'table') ?? '') as P;
       case 'updatedAt':
         return (IsarNative.jsObjectGet(jsObj, 'updatedAt')) as P;
       default:
@@ -203,20 +187,10 @@ class _OrderFSyncNativeAdapter extends IsarNativeTypeAdapter<OrderFSync> {
     var dynamicSize = 0;
     final value0 = object.active;
     final _active = value0;
-    final value1 = object.cashReceived;
-    final _cashReceived = value1;
-    final value2 = object.channels;
-    dynamicSize += (value2?.length ?? 0) * 8;
-    List<IsarUint8List?>? bytesList2;
-    if (value2 != null) {
-      bytesList2 = [];
-      for (var str in value2) {
-        final bytes = IsarBinaryWriter.utf8Encoder.convert(str);
-        bytesList2.add(bytes);
-        dynamicSize += bytes.length as int;
-      }
-    }
-    final _channels = bytesList2;
+    final value1 = object.branchId;
+    final _branchId = value1;
+    final value2 = object.cashReceived;
+    final _cashReceived = value2;
     final value3 = object.createdAt;
     final _createdAt = IsarBinaryWriter.utf8Encoder.convert(value3);
     dynamicSize += (_createdAt.length) as int;
@@ -226,40 +200,35 @@ class _OrderFSyncNativeAdapter extends IsarNativeTypeAdapter<OrderFSync> {
     final _customerId = value5;
     final value6 = object.draft;
     final _draft = value6;
-    final value7 = object.fbranchId;
-    final _fbranchId = value7;
-    final value8 = object.note;
+    final value7 = object.note;
     IsarUint8List? _note;
-    if (value8 != null) {
-      _note = IsarBinaryWriter.utf8Encoder.convert(value8);
+    if (value7 != null) {
+      _note = IsarBinaryWriter.utf8Encoder.convert(value7);
     }
     dynamicSize += (_note?.length ?? 0) as int;
-    final value9 = object.orderNumber;
-    final _orderNumber = IsarBinaryWriter.utf8Encoder.convert(value9);
+    final value8 = object.orderNumber;
+    final _orderNumber = IsarBinaryWriter.utf8Encoder.convert(value8);
     dynamicSize += (_orderNumber.length) as int;
-    final value10 = object.orderType;
-    final _orderType = IsarBinaryWriter.utf8Encoder.convert(value10);
+    final value9 = object.orderType;
+    final _orderType = IsarBinaryWriter.utf8Encoder.convert(value9);
     dynamicSize += (_orderType.length) as int;
-    final value11 = object.paymentType;
-    final _paymentType = IsarBinaryWriter.utf8Encoder.convert(value11);
+    final value10 = object.paymentType;
+    final _paymentType = IsarBinaryWriter.utf8Encoder.convert(value10);
     dynamicSize += (_paymentType.length) as int;
-    final value12 = object.reference;
-    final _reference = IsarBinaryWriter.utf8Encoder.convert(value12);
+    final value11 = object.reference;
+    final _reference = IsarBinaryWriter.utf8Encoder.convert(value11);
     dynamicSize += (_reference.length) as int;
-    final value13 = object.reported;
-    final _reported = value13;
-    final value14 = object.status;
-    final _status = IsarBinaryWriter.utf8Encoder.convert(value14);
+    final value12 = object.reported;
+    final _reported = value12;
+    final value13 = object.status;
+    final _status = IsarBinaryWriter.utf8Encoder.convert(value13);
     dynamicSize += (_status.length) as int;
-    final value15 = object.subTotal;
-    final _subTotal = value15;
-    final value16 = object.table;
-    final _table = IsarBinaryWriter.utf8Encoder.convert(value16);
-    dynamicSize += (_table.length) as int;
-    final value17 = object.updatedAt;
+    final value14 = object.subTotal;
+    final _subTotal = value14;
+    final value15 = object.updatedAt;
     IsarUint8List? _updatedAt;
-    if (value17 != null) {
-      _updatedAt = IsarBinaryWriter.utf8Encoder.convert(value17);
+    if (value15 != null) {
+      _updatedAt = IsarBinaryWriter.utf8Encoder.convert(value15);
     }
     dynamicSize += (_updatedAt?.length ?? 0) as int;
     final size = staticSize + dynamicSize;
@@ -269,49 +238,44 @@ class _OrderFSyncNativeAdapter extends IsarNativeTypeAdapter<OrderFSync> {
     final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
     final writer = IsarBinaryWriter(buffer, staticSize);
     writer.writeBool(offsets[0], _active);
-    writer.writeDouble(offsets[1], _cashReceived);
-    writer.writeStringList(offsets[2], _channels);
+    writer.writeLong(offsets[1], _branchId);
+    writer.writeDouble(offsets[2], _cashReceived);
     writer.writeBytes(offsets[3], _createdAt);
     writer.writeDouble(offsets[4], _customerChangeDue);
     writer.writeLong(offsets[5], _customerId);
     writer.writeBool(offsets[6], _draft);
-    writer.writeLong(offsets[7], _fbranchId);
-    writer.writeBytes(offsets[8], _note);
-    writer.writeBytes(offsets[9], _orderNumber);
-    writer.writeBytes(offsets[10], _orderType);
-    writer.writeBytes(offsets[11], _paymentType);
-    writer.writeBytes(offsets[12], _reference);
-    writer.writeBool(offsets[13], _reported);
-    writer.writeBytes(offsets[14], _status);
-    writer.writeDouble(offsets[15], _subTotal);
-    writer.writeBytes(offsets[16], _table);
-    writer.writeBytes(offsets[17], _updatedAt);
+    writer.writeBytes(offsets[7], _note);
+    writer.writeBytes(offsets[8], _orderNumber);
+    writer.writeBytes(offsets[9], _orderType);
+    writer.writeBytes(offsets[10], _paymentType);
+    writer.writeBytes(offsets[11], _reference);
+    writer.writeBool(offsets[12], _reported);
+    writer.writeBytes(offsets[13], _status);
+    writer.writeDouble(offsets[14], _subTotal);
+    writer.writeBytes(offsets[15], _updatedAt);
   }
 
   @override
   OrderFSync deserialize(IsarCollection<OrderFSync> collection, int id,
       IsarBinaryReader reader, List<int> offsets) {
-    final object = OrderFSync(
-      active: reader.readBool(offsets[0]),
-      cashReceived: reader.readDouble(offsets[1]),
-      channels: reader.readStringList(offsets[2]),
-      createdAt: reader.readString(offsets[3]),
-      customerChangeDue: reader.readDouble(offsets[4]),
-      customerId: reader.readLongOrNull(offsets[5]),
-      draft: reader.readBool(offsets[6]),
-      fbranchId: reader.readLong(offsets[7]),
-      id: id,
-      note: reader.readStringOrNull(offsets[8]),
-      orderNumber: reader.readString(offsets[9]),
-      orderType: reader.readString(offsets[10]),
-      paymentType: reader.readString(offsets[11]),
-      reference: reader.readString(offsets[12]),
-      reported: reader.readBoolOrNull(offsets[13]),
-      status: reader.readString(offsets[14]),
-      subTotal: reader.readDouble(offsets[15]),
-      table: reader.readString(offsets[16]),
-      updatedAt: reader.readStringOrNull(offsets[17]),
-    );
+    final object = OrderFSync();
+    object.active = reader.readBool(offsets[0]);
+    object.branchId = reader.readLong(offsets[1]);
+    object.cashReceived = reader.readDouble(offsets[2]);
+    object.createdAt = reader.readString(offsets[3]);
+    object.customerChangeDue = reader.readDouble(offsets[4]);
+    object.customerId = reader.readLongOrNull(offsets[5]);
+    object.draft = reader.readBool(offsets[6]);
+    object.id = id;
+    object.note = reader.readStringOrNull(offsets[7]);
+    object.orderNumber = reader.readString(offsets[8]);
+    object.orderType = reader.readString(offsets[9]);
+    object.paymentType = reader.readString(offsets[10]);
+    object.reference = reader.readString(offsets[11]);
+    object.reported = reader.readBoolOrNull(offsets[12]);
+    object.status = reader.readString(offsets[13]);
+    object.subTotal = reader.readDouble(offsets[14]);
+    object.updatedAt = reader.readStringOrNull(offsets[15]);
     attachLinks(collection.isar, id, object);
     return object;
   }
@@ -325,9 +289,9 @@ class _OrderFSyncNativeAdapter extends IsarNativeTypeAdapter<OrderFSync> {
       case 0:
         return (reader.readBool(offset)) as P;
       case 1:
-        return (reader.readDouble(offset)) as P;
+        return (reader.readLong(offset)) as P;
       case 2:
-        return (reader.readStringList(offset)) as P;
+        return (reader.readDouble(offset)) as P;
       case 3:
         return (reader.readString(offset)) as P;
       case 4:
@@ -337,9 +301,9 @@ class _OrderFSyncNativeAdapter extends IsarNativeTypeAdapter<OrderFSync> {
       case 6:
         return (reader.readBool(offset)) as P;
       case 7:
-        return (reader.readLong(offset)) as P;
-      case 8:
         return (reader.readStringOrNull(offset)) as P;
+      case 8:
+        return (reader.readString(offset)) as P;
       case 9:
         return (reader.readString(offset)) as P;
       case 10:
@@ -347,16 +311,12 @@ class _OrderFSyncNativeAdapter extends IsarNativeTypeAdapter<OrderFSync> {
       case 11:
         return (reader.readString(offset)) as P;
       case 12:
-        return (reader.readString(offset)) as P;
-      case 13:
         return (reader.readBoolOrNull(offset)) as P;
+      case 13:
+        return (reader.readString(offset)) as P;
       case 14:
-        return (reader.readString(offset)) as P;
-      case 15:
         return (reader.readDouble(offset)) as P;
-      case 16:
-        return (reader.readString(offset)) as P;
-      case 17:
+      case 15:
         return (reader.readStringOrNull(offset)) as P;
       default:
         throw 'Illegal propertyIndex';
@@ -467,6 +427,55 @@ extension OrderFSyncQueryFilter
     ));
   }
 
+  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> branchIdEqualTo(
+      int value) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.eq,
+      property: 'branchId',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
+      branchIdGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.gt,
+      include: include,
+      property: 'branchId',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> branchIdLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.lt,
+      include: include,
+      property: 'branchId',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> branchIdBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition.between(
+      property: 'branchId',
+      lower: lower,
+      includeLower: includeLower,
+      upper: upper,
+      includeUpper: includeUpper,
+    ));
+  }
+
   QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
       cashReceivedGreaterThan(double value) {
     return addFilterConditionInternal(FilterCondition(
@@ -495,130 +504,6 @@ extension OrderFSyncQueryFilter
       includeLower: false,
       upper: upper,
       includeUpper: false,
-    ));
-  }
-
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> channelsIsNull() {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.isNull,
-      property: 'channels',
-      value: null,
-    ));
-  }
-
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      channelsAnyIsNull() {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'channels',
-      value: null,
-    ));
-  }
-
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      channelsAnyEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'channels',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      channelsAnyGreaterThan(
-    String? value, {
-    bool caseSensitive = true,
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'channels',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      channelsAnyLessThan(
-    String? value, {
-    bool caseSensitive = true,
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'channels',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      channelsAnyBetween(
-    String? lower,
-    String? upper, {
-    bool caseSensitive = true,
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'channels',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      channelsAnyStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.startsWith,
-      property: 'channels',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      channelsAnyEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.endsWith,
-      property: 'channels',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      channelsAnyContains(String value, {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.contains,
-      property: 'channels',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      channelsAnyMatches(String pattern, {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.matches,
-      property: 'channels',
-      value: pattern,
-      caseSensitive: caseSensitive,
     ));
   }
 
@@ -823,55 +708,6 @@ extension OrderFSyncQueryFilter
       type: ConditionType.eq,
       property: 'draft',
       value: value,
-    ));
-  }
-
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> fbranchIdEqualTo(
-      int value) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'fbranchId',
-      value: value,
-    ));
-  }
-
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      fbranchIdGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'fbranchId',
-      value: value,
-    ));
-  }
-
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> fbranchIdLessThan(
-    int value, {
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'fbranchId',
-      value: value,
-    ));
-  }
-
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> fbranchIdBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'fbranchId',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
     ));
   }
 
@@ -1609,109 +1445,6 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> tableEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'table',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> tableGreaterThan(
-    String value, {
-    bool caseSensitive = true,
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'table',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> tableLessThan(
-    String value, {
-    bool caseSensitive = true,
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'table',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> tableBetween(
-    String lower,
-    String upper, {
-    bool caseSensitive = true,
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'table',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> tableStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.startsWith,
-      property: 'table',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> tableEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.endsWith,
-      property: 'table',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> tableContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.contains,
-      property: 'table',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> tableMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.matches,
-      property: 'table',
-      value: pattern,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
   QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
       updatedAtIsNull() {
     return addFilterConditionInternal(FilterCondition(
@@ -1837,6 +1570,14 @@ extension OrderFSyncQueryWhereSortBy
     return addSortByInternal('active', Sort.desc);
   }
 
+  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortByBranchId() {
+    return addSortByInternal('branchId', Sort.asc);
+  }
+
+  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortByBranchIdDesc() {
+    return addSortByInternal('branchId', Sort.desc);
+  }
+
   QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortByCashReceived() {
     return addSortByInternal('cashReceived', Sort.asc);
   }
@@ -1876,14 +1617,6 @@ extension OrderFSyncQueryWhereSortBy
 
   QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortByDraftDesc() {
     return addSortByInternal('draft', Sort.desc);
-  }
-
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortByFbranchId() {
-    return addSortByInternal('fbranchId', Sort.asc);
-  }
-
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortByFbranchIdDesc() {
-    return addSortByInternal('fbranchId', Sort.desc);
   }
 
   QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortById() {
@@ -1958,14 +1691,6 @@ extension OrderFSyncQueryWhereSortBy
     return addSortByInternal('subTotal', Sort.desc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortByTable() {
-    return addSortByInternal('table', Sort.asc);
-  }
-
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortByTableDesc() {
-    return addSortByInternal('table', Sort.desc);
-  }
-
   QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortByUpdatedAt() {
     return addSortByInternal('updatedAt', Sort.asc);
   }
@@ -1983,6 +1708,14 @@ extension OrderFSyncQueryWhereSortThenBy
 
   QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenByActiveDesc() {
     return addSortByInternal('active', Sort.desc);
+  }
+
+  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenByBranchId() {
+    return addSortByInternal('branchId', Sort.asc);
+  }
+
+  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenByBranchIdDesc() {
+    return addSortByInternal('branchId', Sort.desc);
   }
 
   QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenByCashReceived() {
@@ -2024,14 +1757,6 @@ extension OrderFSyncQueryWhereSortThenBy
 
   QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenByDraftDesc() {
     return addSortByInternal('draft', Sort.desc);
-  }
-
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenByFbranchId() {
-    return addSortByInternal('fbranchId', Sort.asc);
-  }
-
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenByFbranchIdDesc() {
-    return addSortByInternal('fbranchId', Sort.desc);
   }
 
   QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenById() {
@@ -2106,14 +1831,6 @@ extension OrderFSyncQueryWhereSortThenBy
     return addSortByInternal('subTotal', Sort.desc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenByTable() {
-    return addSortByInternal('table', Sort.asc);
-  }
-
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenByTableDesc() {
-    return addSortByInternal('table', Sort.desc);
-  }
-
   QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenByUpdatedAt() {
     return addSortByInternal('updatedAt', Sort.asc);
   }
@@ -2127,6 +1844,10 @@ extension OrderFSyncQueryWhereDistinct
     on QueryBuilder<OrderFSync, OrderFSync, QDistinct> {
   QueryBuilder<OrderFSync, OrderFSync, QDistinct> distinctByActive() {
     return addDistinctByInternal('active');
+  }
+
+  QueryBuilder<OrderFSync, OrderFSync, QDistinct> distinctByBranchId() {
+    return addDistinctByInternal('branchId');
   }
 
   QueryBuilder<OrderFSync, OrderFSync, QDistinct> distinctByCashReceived() {
@@ -2149,10 +1870,6 @@ extension OrderFSyncQueryWhereDistinct
 
   QueryBuilder<OrderFSync, OrderFSync, QDistinct> distinctByDraft() {
     return addDistinctByInternal('draft');
-  }
-
-  QueryBuilder<OrderFSync, OrderFSync, QDistinct> distinctByFbranchId() {
-    return addDistinctByInternal('fbranchId');
   }
 
   QueryBuilder<OrderFSync, OrderFSync, QDistinct> distinctById() {
@@ -2197,11 +1914,6 @@ extension OrderFSyncQueryWhereDistinct
     return addDistinctByInternal('subTotal');
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QDistinct> distinctByTable(
-      {bool caseSensitive = true}) {
-    return addDistinctByInternal('table', caseSensitive: caseSensitive);
-  }
-
   QueryBuilder<OrderFSync, OrderFSync, QDistinct> distinctByUpdatedAt(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('updatedAt', caseSensitive: caseSensitive);
@@ -2214,12 +1926,12 @@ extension OrderFSyncQueryProperty
     return addPropertyNameInternal('active');
   }
 
-  QueryBuilder<OrderFSync, double, QQueryOperations> cashReceivedProperty() {
-    return addPropertyNameInternal('cashReceived');
+  QueryBuilder<OrderFSync, int, QQueryOperations> branchIdProperty() {
+    return addPropertyNameInternal('branchId');
   }
 
-  QueryBuilder<OrderFSync, List<String>?, QQueryOperations> channelsProperty() {
-    return addPropertyNameInternal('channels');
+  QueryBuilder<OrderFSync, double, QQueryOperations> cashReceivedProperty() {
+    return addPropertyNameInternal('cashReceived');
   }
 
   QueryBuilder<OrderFSync, String, QQueryOperations> createdAtProperty() {
@@ -2237,10 +1949,6 @@ extension OrderFSyncQueryProperty
 
   QueryBuilder<OrderFSync, bool, QQueryOperations> draftProperty() {
     return addPropertyNameInternal('draft');
-  }
-
-  QueryBuilder<OrderFSync, int, QQueryOperations> fbranchIdProperty() {
-    return addPropertyNameInternal('fbranchId');
   }
 
   QueryBuilder<OrderFSync, int, QQueryOperations> idProperty() {
@@ -2277,10 +1985,6 @@ extension OrderFSyncQueryProperty
 
   QueryBuilder<OrderFSync, double, QQueryOperations> subTotalProperty() {
     return addPropertyNameInternal('subTotal');
-  }
-
-  QueryBuilder<OrderFSync, String, QQueryOperations> tableProperty() {
-    return addPropertyNameInternal('table');
   }
 
   QueryBuilder<OrderFSync, String?, QQueryOperations> updatedAtProperty() {

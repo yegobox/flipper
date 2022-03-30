@@ -248,19 +248,19 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         /// if order exist then we need to update the orderItem that match with the item we want to update with new count
         /// if orderItem does not exist then we need to create a new orderItem
         for (OrderItemSync item in existOrders[0].orderItems) {
-          if (item.fvariantId == variationId) {
-            Map data = {
-              'count': item.count + quantity.toDouble(),
-              'price': (item.count + quantity.toDouble()) *
-                  (amountTotal / quantity.toDouble()),
-              'fvariantId': variationId,
-              'id': existOrders[0].id,
-              'name': name,
-              'createdAt': item.createdAt,
-              'updatedAt': item.updatedAt,
-              'remainingStock': stock!.currentStock.toInt() - quantity,
-            };
-            ProxyService.isarApi.update(data: data, endPoint: 'order');
+          if (item.variantId == variationId) {
+            item
+              ..count = item.count + quantity.toDouble()
+              ..price = (item.count + quantity.toDouble()) *
+                  (amountTotal / quantity.toDouble())
+              ..variantId = variationId
+              ..orderId = existOrders[0].id
+              ..name = name
+              ..createdAt = item.createdAt
+              ..updatedAt = item.updatedAt
+              ..remainingStock = stock!.currentStock - quantity;
+
+            ProxyService.isarApi.update(data: item);
           }
         }
 
@@ -271,18 +271,18 @@ class BusinessHomeViewModel extends ReactiveViewModel {
                 variantId: variationId, orderId: existOrders[0].id);
         // log.w(exist_orders.length);
         if (existOrderItem == null) {
-          Map data = {
-            'count': quantity.toDouble(),
-            'price':
-                (quantity.toDouble()) * (amountTotal / quantity.toDouble()),
-            'fvariantId': variationId,
-            'name': name,
-            'forderId': existOrders[0].id,
-            'createdAt': DateTime.now().toString(),
-            'updatedAt': DateTime.now().toString(),
-            'remainingStock': stock!.currentStock.toInt() - quantity,
-          };
-          ProxyService.isarApi.addOrderItem(order: existOrders[0], data: data);
+          OrderItemSync item = OrderItemSync()
+            ..count = quantity.toDouble()
+            ..price =
+                (quantity.toDouble()) * (amountTotal / quantity.toDouble())
+            ..variantId = variationId
+            ..name = name
+            ..orderId = existOrders[0].id
+            ..createdAt = DateTime.now().toString()
+            ..updatedAt = DateTime.now().toString()
+            ..remainingStock = stock!.currentStock - quantity;
+
+          ProxyService.isarApi.addOrderItem(order: existOrders[0], item: item);
         }
       } else {
         await ProxyService.isarApi.createOrder(
@@ -382,9 +382,9 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       return;
     }
     OrderFSync? order = await ProxyService.isarApi.getOrderById(id: kOrder!.id);
-    Map map = order!.toJson();
-    map['note'] = note;
-    ProxyService.isarApi.update(data: map, endPoint: 'order');
+    // Map map = order!;
+    order!.note = note;
+    ProxyService.isarApi.update(data: order);
     callback(1);
   }
 
@@ -402,7 +402,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     if (_order.note == null || _order.note == '') {
       callBack('error');
     } else {
-      ProxyService.isarApi.update(data: _order, endPoint: 'order');
+      ProxyService.isarApi.update(data: _order);
       //refresh order afterwards
       await currentOrder();
       callBack('saved');

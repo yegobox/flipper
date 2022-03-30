@@ -411,17 +411,12 @@ class ProductViewModel extends ReactiveViewModel {
         if (item.price.toInt() <= discount.amount! && item.discount == null) {
           item.discount = item.price;
 
-          /// update the item in the order
-          int id = item.id;
-          await ProxyService.api
-              .update(data: item.toJson(), endPoint: 'orderItem/$id');
+          await ProxyService.isarApi.update(data: item);
         } else if (item.discount == null) {
-          int id = item.id;
           item.discount =
               discount.amount != null ? discount.amount!.toDouble() : 0.0;
 
-          await ProxyService.api
-              .update(data: item.toJson(), endPoint: 'orderItem/$id');
+          await ProxyService.isarApi.update(data: item);
         }
       }
       // TODOD: update the order commented this may cause issue. as I no longer extends businessHomeViewmodel
