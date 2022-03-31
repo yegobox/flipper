@@ -277,6 +277,8 @@ class BusinessHomeViewModel extends ReactiveViewModel {
                 (quantity.toDouble()) * (amountTotal / quantity.toDouble())
             ..variantId = variationId
             ..name = name
+            ..discount = 0.0
+            ..reported = false
             ..orderId = existOrders[0].id
             ..createdAt = DateTime.now().toString()
             ..updatedAt = DateTime.now().toString()
@@ -434,7 +436,8 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     if (keypad.order == null) return 0.0;
     num? totalPayable =
         keypad.order!.orderItems.fold(0, (a, b) => a! + (b.price));
-
+    keypad.order!.orderItems.load();
+    log.i(keypad.order!.orderItems);
     num? totalDiscount = keypad.order!.orderItems
         .fold(0, (a, b) => a! + (b.discount == null ? 0 : b.discount!.toInt()));
     keypad.setTotalPayable(

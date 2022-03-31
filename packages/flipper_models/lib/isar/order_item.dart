@@ -12,11 +12,10 @@ class OrderItemSync {
   late double price;
   late double? discount;
 
-  late String? type;
+  String? type;
   late bool reported;
 
   late double remainingStock;
   late String createdAt;
   late String updatedAt;
-  List<OrderItemSync>? orderItems;
 }

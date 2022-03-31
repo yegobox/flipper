@@ -1,6 +1,5 @@
 library flipper_models;
 
-import 'package:flipper_models/isar/stock_sync.dart';
 import 'package:isar/isar.dart';
 part 'variant_sync.g.dart';
 

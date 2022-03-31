@@ -101,9 +101,9 @@ class IsarAPI implements IsarApiInterface {
       bool useProductName = false,
       String orderType = 'custom',
       double quantity = 1}) async {
-    final ref = const Uuid().v1();
+    final ref = const Uuid().v1().substring(0, 8);
 
-    final String orderNumber = const Uuid().v1();
+    final String orderNumber = const Uuid().v1().substring(0, 8);
 
     int branchId = 1;
     String name = '';
@@ -138,7 +138,7 @@ class IsarAPI implements IsarApiInterface {
         ..createdAt = DateTime.now().toIso8601String();
       // save order to db
       OrderFSync? createdOrder = await isar.writeTxn((isar) async {
-        int id = await isar.orderFSyncs.put(order);
+        int id = await isar.orderFSyncs.put(order, saveLinks: true);
         return isar.orderFSyncs.get(id);
       });
       // get stock by variation.id
@@ -146,17 +146,19 @@ class IsarAPI implements IsarApiInterface {
           .filter()
           .variantIdEqualTo(variation.id)
           .findFirstSync()!;
-      OrderItemSync orderItems = OrderItemSync()
+
+      createdOrder!.orderItems.add(OrderItemSync()
         ..count = price
         ..count = quantity
         ..name = name
+        ..discount = 0.0
+        ..reported = false
         ..variantId = variation.id
         ..price = price
-        ..orderId = createdOrder!.id
+        ..orderId = createdOrder.id
         ..createdAt = DateTime.now().toIso8601String()
         ..updatedAt = DateTime.now().toIso8601String()
-        ..remainingStock = stock.currentStock - quantity.toInt();
-      createdOrder.orderItems.add(orderItems);
+        ..remainingStock = stock.currentStock - quantity.toInt());
       await isar.writeTxn((isar) async {
         return createdOrder.orderItems.save();
       });
@@ -169,7 +171,8 @@ class IsarAPI implements IsarApiInterface {
             .variantIdEqualTo(variation.id)
             .findFirst();
       });
-      OrderItemSync item = OrderItemSync()
+
+      existOrder.orderItems.add(OrderItemSync()
         ..count = quantity
         ..name = name
         ..variantId = variation.id
@@ -177,8 +180,7 @@ class IsarAPI implements IsarApiInterface {
         ..orderId = existOrder.id
         ..createdAt = DateTime.now().toIso8601String()
         ..updatedAt = DateTime.now().toIso8601String()
-        ..remainingStock = stock!.currentStock - quantity.toInt();
-      existOrder.orderItems.add(item);
+        ..remainingStock = stock!.currentStock - quantity.toInt());
       // update order
       await isar.writeTxn((isar) async {
         return existOrder.orderItems.save();
@@ -552,7 +554,7 @@ class IsarAPI implements IsarApiInterface {
       ..retailPrice = 0
       ..supplyPrice = 0.0);
     await isar.writeTxn((isar) async {
-      kProduct.variants.save();
+      return await kProduct.variants.save();
     });
     VariantSync? variant = await isar.writeTxn((isar) async {
       return isar.variantSyncs
@@ -578,7 +580,7 @@ class IsarAPI implements IsarApiInterface {
       ..productId = kProduct.id;
 
     await isar.writeTxn((isar) async {
-      return isar.stockSyncs.put(stock, saveLinks: true);
+      return isar.stockSyncs.put(stock);
     });
     return kProduct;
   }
