@@ -46,7 +46,7 @@ jobs:
   # TODOpause testing
   fastlane-deploy:
     name: "Google Deploy"
-    needs: [testing]
+    # needs: [testing]
     runs-on: ubuntu-18.04
     steps:
       # Set up Flutter.
