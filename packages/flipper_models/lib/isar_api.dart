@@ -1260,37 +1260,37 @@ class IsarAPI implements IsarApiInterface {
     if (data is ProductSync) {
       final product = data;
       await isar.writeTxn((isar) async {
-        return await isar.productSyncs.put(product);
+        return await isar.productSyncs.put(product, saveLinks: true);
       });
     }
     if (data is VariantSync) {
       final variant = data;
       await isar.writeTxn((isar) async {
-        return await isar.variantSyncs.put(variant);
+        return await isar.variantSyncs.put(variant, saveLinks: true);
       });
     }
     if (data is StockSync) {
       final stock = data;
       await isar.writeTxn((isar) async {
-        return await isar.stockSyncs.put(stock);
+        return await isar.stockSyncs.put(stock, saveLinks: true);
       });
     }
     if (data is OrderFSync) {
       final order = data;
       await isar.writeTxn((isar) async {
-        return await isar.orderFSyncs.put(order);
+        return await isar.orderFSyncs.put(order, saveLinks: true);
       });
     }
     if (data is Category) {
       final order = data;
       await isar.writeTxn((isar) async {
-        return await isar.categorys.put(order);
+        return await isar.categorys.put(order, saveLinks: true);
       });
     }
     if (data is Unit) {
       final unit = data;
       await isar.writeTxn((isar) async {
-        return await isar.units.put(unit);
+        return await isar.units.put(unit, saveLinks: true);
       });
     }
     if (data is OrderItemSync) {

@@ -104,7 +104,7 @@ class CronService {
         for (OrderFSync completedOrder in completedOrders) {
           completedOrder.reported = true;
           log.i('now sending the report to mail...');
-          completedOrder.orderItems.load();
+          await completedOrder.orderItems.load();
           final response = await ProxyService.isarApi.sendReport(
               orderItems: completedOrder.orderItems as List<OrderItemSync>);
           if (response == 200) {

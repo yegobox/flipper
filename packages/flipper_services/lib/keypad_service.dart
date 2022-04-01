@@ -90,8 +90,8 @@ class KeyPadService with ReactiveServiceMixin {
     _totalDiscount.value = amount;
   }
 
-  void setOrder(OrderFSync order) {
-    order.orderItems.load();
+  void setOrder(OrderFSync order) async {
+    await order.orderItems.load();
     _order.value = order;
   }
 
@@ -102,7 +102,7 @@ class KeyPadService with ReactiveServiceMixin {
     OrderFSync? order = await ProxyService.isarApi.order(branchId: branchId);
     log.d('getOrder: $order');
     if (order != null) {
-      order.orderItems.load();
+      await order.orderItems.load();
       log.d(order.orderItems);
       _countOrderItems.value = order.orderItems.length;
     }
