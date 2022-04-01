@@ -9,7 +9,7 @@ on:
         default: "beta"
   # Refs/tags push events to matching v*, i.e. v1.0, v20.15.10
   push:
-    branches: [main]
+    branches: [main, dev]
     # tags:
     # - 'v*'
 
@@ -59,7 +59,7 @@ jobs:
       - name: Checkout flipper code
         uses: actions/checkout@v2
       - name: Update version in YAML
-        run: sed -i 's/1.0.1-dev.3/1.67.0+111101067/g' pubspec.yaml
+        run: sed -i 's/1.0.1-dev.3/1.68.0+111101068/g' pubspec.yaml
       - name: submodule init
         run: git submodule update --init
       - name: Configure Missing files

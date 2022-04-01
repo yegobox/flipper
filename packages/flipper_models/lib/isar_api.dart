@@ -1092,11 +1092,13 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<List<OrderFSync>> orders({required int branchId}) {
-    return isar.orderFSyncs
-        .filter()
-        .branchIdEqualTo(branchId)
-        .statusEqualTo('pending')
-        .findAll();
+    return isar.writeTxn((isar) async {
+      return isar.orderFSyncs
+          .filter()
+          .branchIdEqualTo(branchId)
+          .statusEqualTo('pending')
+          .findAll();
+    });
   }
 
   @override

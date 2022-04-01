@@ -437,7 +437,6 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     num? totalPayable =
         keypad.order!.orderItems.fold(0, (a, b) => a! + (b.price));
     await keypad.order!.orderItems.load();
-    log.i(keypad.order!.orderItems);
     num? totalDiscount = keypad.order!.orderItems
         .fold(0, (a, b) => a! + (b.discount == null ? 0 : b.discount!.toInt()));
     keypad.setTotalPayable(
