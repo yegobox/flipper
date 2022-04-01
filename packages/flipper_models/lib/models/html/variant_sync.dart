@@ -9,20 +9,19 @@ import 'package:flipper_models/models/html/stock_sync.dart';
 import 'package:isar/isar.dart';
 part 'variant_sync.g.dart';
 
-VariantSync svariationFromJson(String str) =>
-    VariantSync.fromJson(json.decode(str));
+Variant svariationFromJson(String str) => Variant.fromJson(json.decode(str));
 
-String svariationToJson(VariantSync data) => json.encode(data.toJson());
+String svariationToJson(Variant data) => json.encode(data.toJson());
 
-List<VariantSync> variationFromJson(String str) => List<VariantSync>.from(
-    json.decode(str).map((x) => VariantSync.fromJson(x)));
+List<Variant> variationFromJson(String str) =>
+    List<Variant>.from(json.decode(str).map((x) => Variant.fromJson(x)));
 
-String variationToJson(List<VariantSync> data) =>
+String variationToJson(List<Variant> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
 @Collection()
-class VariantSync {
-  VariantSync({
+class Variant {
+  Variant({
     this.id = 0,
     required this.name,
     required this.sku,
@@ -54,9 +53,9 @@ class VariantSync {
   late double supplyPrice;
   late double retailPrice;
   late bool? synced;
-  late StockSync? stock;
+  late Stock? stock;
 
-  factory VariantSync.fromJson(Map<dynamic, dynamic> json) => VariantSync(
+  factory Variant.fromJson(Map<dynamic, dynamic> json) => Variant(
         id: json["id"],
         name: json["name"],
         sku: json["sku"],
@@ -72,7 +71,7 @@ class VariantSync {
         taxPercentage: json["taxPercentage"] != null
             ? json["taxPercentage"].toDouble()
             : 0.0,
-        stock: StockSync.fromJson(json["stock"]),
+        stock: Stock.fromJson(json["stock"]),
       );
 
   Map<String, dynamic> toJson() => {

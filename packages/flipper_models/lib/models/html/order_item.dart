@@ -3,8 +3,8 @@ import 'package:isar/isar.dart';
 part 'order_item.g.dart';
 
 @Collection()
-class OrderItemSync {
-  OrderItemSync({
+class OrderItem {
+  OrderItem({
     this.id = 0,
     required this.name,
     required this.fvariantId,
@@ -32,10 +32,10 @@ class OrderItemSync {
   late int remainingStock;
   late String createdAt;
   late String updatedAt;
-  // final orderItems = IsarLink<OrderItemSync>();
-  List<OrderItemSync>? orderItems;
+  // final orderItems = IsarLink<OrderItem>();
+  List<OrderItem>? orderItems;
 
-  factory OrderItemSync.fromJson(Map<String, dynamic> json) => OrderItemSync(
+  factory OrderItem.fromJson(Map<String, dynamic> json) => OrderItem(
         id: int.parse(json["id"]),
         type: json["type"],
         reported: json["reported"],

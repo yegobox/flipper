@@ -6,12 +6,12 @@ abstract class IsarApiInterface {
   Future<SyncF> login({required String userPhone});
   Future<Business> getOnlineBusiness({required String userId});
   Future<Business> getLocalOrOnlineBusiness({required String userId});
-  Future<List<BranchSync>> branches({required int businessId});
-  Future<List<BranchSync>> getLocalBranches({required int businessId});
-  Future<List<StockSync?>> stocks({required int productId});
-  Stream<StockSync> stockByVariantIdStream({required int variantId});
+  Future<List<Branch>> branches({required int businessId});
+  Future<List<Branch>> getLocalBranches({required int businessId});
+  Future<List<Stock?>> stocks({required int productId});
+  Stream<Stock> stockByVariantIdStream({required int variantId});
   Stream<List<ProductSync>> productStreams({required int branchId});
-  Future<StockSync?> stockByVariantId({required int variantId});
+  Future<Stock?> stockByVariantId({required int variantId});
   Future<List<PColor>> colors({required int branchId});
   Future<List<Category>> categories({required int branchId});
   Stream<List<Category>> categoriesStream({required int branchId});
@@ -20,16 +20,16 @@ abstract class IsarApiInterface {
   Future<int> update<T>({required T data, String? endPoint});
   Future<bool> delete({required dynamic id, String? endPoint});
   Future<PColor?> getColor({required int id, String? endPoint});
-  Future<StockSync?> getStock({required int branchId, required int variantId});
-  Future<List<VariantSync>> variants({
+  Future<Stock?> getStock({required int branchId, required int variantId});
+  Future<List<Variant>> variants({
     required int branchId,
     required int productId,
   });
-  Future<VariantSync?> variant({required int variantId});
+  Future<Variant?> variant({required int variantId});
   Future<int> addUnits<T>({required T data});
 
   Future<int> addVariant({
-    required List<VariantSync> data,
+    required List<Variant> data,
     required double retailPrice,
     required double supplyPrice,
   });
@@ -46,23 +46,23 @@ abstract class IsarApiInterface {
 
   ///create an order if no pending order exist should create a new one
   ///then if it exist should return the existing one!
-  Future<OrderFSync> createOrder({
+  Future<Order> createOrder({
     required double customAmount,
-    required VariantSync variation,
+    required Variant variation,
     required double price,
     bool useProductName = false,
     String orderType = 'custom',
     double quantity = 1,
   });
 
-  Future<List<OrderFSync>> orders({required int branchId});
-  Future<OrderFSync?> order({required int branchId});
-  Future<OrderItemSync?> getOrderItem({required int id});
+  Future<List<Order>> orders({required int branchId});
+  Future<Order?> order({required int branchId});
+  Future<OrderItem?> getOrderItem({required int id});
 
-  Future<VariantSync?> getCustomProductVariant();
+  Future<Variant?> getCustomProductVariant();
   Future<Spenn> spennPayment({required double amount, required phoneNumber});
   Future<void> collectCashPayment(
-      {required double cashReceived, required OrderFSync order});
+      {required double cashReceived, required Order order});
 
 // app settings and users settings
   Future<Setting?> getSetting({required int userId});
@@ -90,14 +90,14 @@ abstract class IsarApiInterface {
   Future assingOrderToCustomer({required int customerId, required int orderId});
   Stream<CustomerSync?> getCustomer({required String key});
   Stream<CustomerSync?> getCustomerByOrderId({required int id});
-  Future<OrderFSync?> getOrderById({required int id});
-  Future<List<OrderFSync>> tickets();
-  Future<List<VariantSync>> getVariantByProductId({required int productId});
-  Future<List<OrderFSync>> getOrderByStatus({required String status});
-  Future<int> sendReport({required List<OrderItemSync> orderItems});
+  Future<Order?> getOrderById({required int id});
+  Future<List<Order>> tickets();
+  Future<List<Variant>> getVariantByProductId({required int productId});
+  Future<List<Order>> getOrderByStatus({required String status});
+  Future<int> sendReport({required List<OrderItem> orderItems});
   Future<void> createGoogleSheetDoc({required String email});
   Business getBusinessById({required int id});
-  Future<OrderItemSync?> getOrderItemByVariantId(
+  Future<OrderItem?> getOrderItemByVariantId(
       {required int variantId, required int orderId});
   //abstract method to update business
   Future<void> updateBusiness({required int id, required Map business});
@@ -105,7 +105,7 @@ abstract class IsarApiInterface {
   //analytics
   int lifeTimeCustomersForbranch({required int branchId});
 
-  Future<List<OrderFSync>> weeklyOrdersReport({
+  Future<List<Order>> weeklyOrdersReport({
     required DateTime weekStartDate,
     required DateTime weekEndDate,
     required int branchId,
@@ -116,8 +116,7 @@ abstract class IsarApiInterface {
 
   Future<List<DiscountSync>> getDiscounts({required int branchId});
 
-  Future<void> addOrderItem(
-      {required OrderFSync order, required OrderItemSync item});
+  Future<void> addOrderItem({required Order order, required OrderItem item});
 
   // Conversation createConversation({required Conversation conversation});
 
@@ -131,12 +130,12 @@ abstract class IsarApiInterface {
   Future<Business?> getBusinessFromOnlineGivenId({required int id});
 
   /// sync related methods
-  // Future<void> addAllVariants({required List<VariantSync> variants});
+  // Future<void> addAllVariants({required List<Variant> variants});
   Future<void> syncProduct(
       {required ProductSync product,
-      required VariantSync variant,
-      required StockSync stock});
-  // Future<void> addStock({required StockSync stock});
+      required Variant variant,
+      required Stock stock});
+  // Future<void> addStock({required Stock stock});
   void migrateToSync();
   bool isSubscribed({required String feature, required int businessId});
   bool subscribe({

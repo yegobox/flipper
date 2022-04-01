@@ -4,7 +4,7 @@ import 'package:isar/isar.dart';
 part 'variant_sync.g.dart';
 
 @Collection()
-class VariantSync {
+class Variant {
   late int id = Isar.autoIncrement;
   late String name;
   String? sku;
@@ -18,5 +18,5 @@ class VariantSync {
   late double supplyPrice;
   late double retailPrice;
   bool? synced;
-  // final stock = IsarLink<StockSync>();
+  // final stock = IsarLink<Stock>();
 }

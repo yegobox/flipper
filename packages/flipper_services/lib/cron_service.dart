@@ -98,15 +98,15 @@ class CronService {
       ProxyService.billing.monitorSubscription(userId: int.parse(userId));
       ProxyService.box.remove(key: 'checkIn');
       if (await settingService.isDailyReportEnabled()) {
-        List<OrderFSync> completedOrders =
+        List<Order> completedOrders =
             await ProxyService.isarApi.getOrderByStatus(status: completeStatus);
 
-        for (OrderFSync completedOrder in completedOrders) {
+        for (Order completedOrder in completedOrders) {
           completedOrder.reported = true;
           log.i('now sending the report to mail...');
           await completedOrder.orderItems.load();
           final response = await ProxyService.isarApi.sendReport(
-              orderItems: completedOrder.orderItems as List<OrderItemSync>);
+              orderItems: completedOrder.orderItems as List<OrderItem>);
           if (response == 200) {
             ProxyService.isarApi.update(data: completedOrder);
           }

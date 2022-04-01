@@ -39,7 +39,6 @@ class Variant {
     this.taxPercentage,
   });
 
-  
   int id;
   String name;
   String sku;
@@ -69,7 +68,7 @@ class Variant {
         unit: json["unit"],
         supplyPrice: json["supplyPrice"],
         retailPrice: json["retailPrice"],
-        synced: json["synced"] == null ? false : json["synced"],
+        synced: json["synced"] ?? false,
         table: json["table"],
         productName: json["productName"],
         fbranchId: json["fbranchId"],
@@ -89,7 +88,7 @@ class Variant {
         "migrated": migrated,
         "supplyPrice": supplyPrice,
         "retailPrice": retailPrice,
-        "synced": synced == null ? false : synced,
+        "synced": synced ?? false,
         "productName": productName,
         "fbranchId": int.parse(fbranchId.toString()),
         "taxName": taxName ?? '',

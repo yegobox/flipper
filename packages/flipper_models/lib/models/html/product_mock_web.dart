@@ -27,7 +27,7 @@ final customProductMock = new ProductSync(
   channels: ["300"],
   createdAt: DateTime.now().toIso8601String(),
   variations: [],
-  stock: StockSync(
+  stock: Stock(
       fbranchId: 1,
       fvariantId: 1,
       lowStock: 0,
@@ -64,7 +64,7 @@ final productMock = new ProductSync(
   channels: ["300"],
   createdAt: DateTime.now().toIso8601String(),
   variations: [],
-  stock: StockSync(
+  stock: Stock(
       fbranchId: 1,
       fvariantId: 1,
       lowStock: 0,
@@ -81,7 +81,7 @@ final productMock = new ProductSync(
       target: ''),
 );
 
-final branchMock = BranchSync(
+final branchMock = Branch(
   id: DateTime.now().millisecondsSinceEpoch,
   active: false,
   description: 'desc',

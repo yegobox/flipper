@@ -1,7 +1,7 @@
 import 'order.dart';
-// import 'order_item.dart';
+// import 'OrderF_item.dart';
 
-OrderFSync? orderMock = new OrderFSync(
+OrderF? OrderFMock = OrderF(
   id: DateTime.now().millisecondsSinceEpoch,
   reference: 'caa5cbf1-b3c3-11',
   orderNumber: 'caa5cbf1-b3c3-',
@@ -13,7 +13,7 @@ OrderFSync? orderMock = new OrderFSync(
   subTotal: 300,
   cashReceived: 300,
   customerChangeDue: 0.0,
-  table: 'orders',
+  table: 'OrderFs',
   channels: ['300'],
   createdAt: DateTime.now().toIso8601String(),
   paymentType: 'Cash',

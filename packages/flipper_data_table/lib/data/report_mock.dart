@@ -1,7 +1,7 @@
 import 'package:flipper_models/models/models.dart';
 
-final reports = <OrderItemSync>[
-  OrderItemSync(
+final reports = <OrderItem>[
+  OrderItem(
     name: "mango",
     fvariantId: 1,
     count: 10,

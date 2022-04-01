@@ -29,7 +29,7 @@ class TenantSync {
   late String name;
   late String phoneNumber;
   late String email;
-  final branches = IsarLink<BranchSync>();
+  final branches = IsarLink<Branch>();
   final permissions = IsarLink<Permissionsync>();
 
   factory TenantSync.fromJson(Map<String, dynamic> json) => TenantSync(

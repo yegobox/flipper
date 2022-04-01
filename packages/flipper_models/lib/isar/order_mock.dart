@@ -1,7 +1,7 @@
 import 'order.dart';
 
 // ignore: unnecessary_new
-OrderFSync? orderMock = OrderFSync()
+Order? orderMock = Order()
   ..id = DateTime.now().millisecondsSinceEpoch
   ..reference = 'caa5cbf1-b3c3-11'
   ..orderNumber = 'caa5cbf1-b3c3-'

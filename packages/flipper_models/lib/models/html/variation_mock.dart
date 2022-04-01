@@ -2,7 +2,7 @@ import 'package:flipper_models/models/html/stock_sync.dart';
 
 import './variant_sync.dart';
 
-final variationMock = new VariantSync(
+final variationMock = new Variant(
   id: DateTime.now().millisecondsSinceEpoch,
   name: 'Regular',
   sku: 'sku',
@@ -16,7 +16,7 @@ final variationMock = new VariantSync(
   taxPercentage: 0.0,
   retailPrice: 0.0,
   supplyPrice: 0.0,
-  stock: StockSync(
+  stock: Stock(
     canTrackingStock: false,
     currentStock: 200,
     fproductId: 1,

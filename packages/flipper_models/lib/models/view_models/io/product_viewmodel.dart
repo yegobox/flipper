@@ -36,7 +36,7 @@ class ProductViewModel extends ReactiveViewModel {
 
   get currentColor => _appService.currentColor;
 
-  List<VariantSync>? get variants => productService.variants;
+  List<Variant>? get variants => productService.variants;
 
   Stream<String> getBarCode() async* {
     yield productService.barCode;
@@ -198,7 +198,7 @@ class ProductViewModel extends ReactiveViewModel {
 
   void updateStock({required int variantId}) async {
     if (_stockValue != null) {
-      StockSync? stock =
+      Stock? stock =
           await ProxyService.isarApi.stockByVariantId(variantId: variantId);
       // Map data = stock;
       stock!.currentStock = _stockValue!;
@@ -218,7 +218,7 @@ class ProductViewModel extends ReactiveViewModel {
   }
 
   void deleteVariant({required int id}) async {
-    VariantSync? variant = await ProxyService.isarApi.variant(variantId: id);
+    Variant? variant = await ProxyService.isarApi.variant(variantId: id);
     // can not delete regular variant every product should have a regular variant.
     if (variant!.name != 'Regular') {
       ProxyService.isarApi.delete(id: id, endPoint: 'variation');
@@ -278,7 +278,7 @@ class ProductViewModel extends ReactiveViewModel {
   }
 
   Future<int> addVariant(
-      {List<VariantSync>? variations,
+      {List<Variant>? variations,
       required double retailPrice,
       required double supplyPrice}) async {
     int result = await ProxyService.isarApi.addVariant(
@@ -295,12 +295,12 @@ class ProductViewModel extends ReactiveViewModel {
   /// of related stock
   void updateRegularVariant({double? supplyPrice, double? retailPrice}) async {
     if (supplyPrice != null) {
-      for (VariantSync variation in variants!) {
+      for (Variant variation in variants!) {
         if (variation.name == "Regular") {
           variation.supplyPrice = supplyPrice;
           variation.productId = variation.productId;
           ProxyService.isarApi.update(data: variation);
-          StockSync? stock = await ProxyService.isarApi
+          Stock? stock = await ProxyService.isarApi
               .stockByVariantId(variantId: variation.id);
 
           if (stock != null) {
@@ -312,13 +312,13 @@ class ProductViewModel extends ReactiveViewModel {
     }
 
     if (retailPrice != null) {
-      for (VariantSync variation in variants!) {
+      for (Variant variation in variants!) {
         if (variation.name == "Regular") {
           variation.retailPrice = retailPrice;
           variation.productId = variation.productId;
 
           ProxyService.isarApi.update(data: variation);
-          StockSync? stock = await ProxyService.isarApi
+          Stock? stock = await ProxyService.isarApi
               .stockByVariantId(variantId: variation.id);
 
           if (stock != null) {
@@ -339,10 +339,10 @@ class ProductViewModel extends ReactiveViewModel {
     mproduct.color = currentColor;
     mproduct.color = currentColor;
     mproduct.draft = false;
-    List<VariantSync> variants = await ProxyService.isarApi
+    List<Variant> variants = await ProxyService.isarApi
         .getVariantByProductId(productId: mproduct.id);
 
-    for (VariantSync variant in variants) {
+    for (Variant variant in variants) {
       variant.productName = name;
       variant.productId = mproduct.id;
       int id = variant.id;
@@ -356,12 +356,12 @@ class ProductViewModel extends ReactiveViewModel {
   void deleteProduct({required int productId}) async {
     //get variants->delete
     int branchId = ProxyService.box.read(key: 'branchId');
-    List<VariantSync> variations = await ProxyService.isarApi
+    List<Variant> variations = await ProxyService.isarApi
         .variants(branchId: branchId, productId: productId);
-    for (VariantSync variation in variations) {
+    for (Variant variation in variations) {
       ProxyService.isarApi.delete(id: variation.id, endPoint: 'variation');
       //get stock->delete
-      StockSync? stock =
+      Stock? stock =
           await ProxyService.isarApi.stockByVariantId(variantId: variation.id);
       if (stock != null) {
         ProxyService.isarApi.delete(id: stock.id, endPoint: 'stock');
@@ -404,10 +404,10 @@ class ProductViewModel extends ReactiveViewModel {
   /// a discount can not go beyond the item's price
   Future<bool> applyDiscount({required DiscountSync discount}) async {
     int branchId = ProxyService.box.read(key: 'branchId');
-    OrderFSync? order = await ProxyService.keypad.getOrder(branchId: branchId);
+    Order? order = await ProxyService.keypad.getOrder(branchId: branchId);
 
     if (order != null) {
-      for (OrderItemSync item in order.orderItems) {
+      for (OrderItem item in order.orderItems) {
         if (item.price.toInt() <= discount.amount! && item.discount == null) {
           item.discount = item.price;
 

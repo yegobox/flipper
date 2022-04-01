@@ -6,7 +6,7 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
 
 class StockViewModel extends BaseViewModel {
-  List<StockSync?> _stocks = [];
+  List<Stock?> _stocks = [];
   get stocks => _stocks;
 
   loadStockByProductId({required int productId}) async {

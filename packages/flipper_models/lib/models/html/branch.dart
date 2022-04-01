@@ -8,18 +8,18 @@ import 'dart:convert';
 import 'package:isar/isar.dart';
 part 'branch.g.dart';
 
-BranchSync branchFromJson(String str) => BranchSync.fromJson(json.decode(str));
-String sbranchToJson(BranchSync data) => json.encode(data.toJson());
+Branch branchFromJson(String str) => Branch.fromJson(json.decode(str));
+String sbranchToJson(Branch data) => json.encode(data.toJson());
 
-List<BranchSync> branchsFromJson(String str) =>
-    List<BranchSync>.from(json.decode(str).map((x) => BranchSync.fromJson(x)));
+List<Branch> branchsFromJson(String str) =>
+    List<Branch>.from(json.decode(str).map((x) => Branch.fromJson(x)));
 
-String branchToJson(List<BranchSync> data) =>
+String branchToJson(List<Branch> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
 @Collection()
-class BranchSync {
-  BranchSync({
+class Branch {
+  Branch({
     this.id = 0,
     required this.active,
     this.channels,
@@ -42,7 +42,7 @@ class BranchSync {
   late String? latitude;
   late String table;
 
-  factory BranchSync.fromJson(Map<String, dynamic> json) => BranchSync(
+  factory Branch.fromJson(Map<String, dynamic> json) => Branch(
         id: json["id"],
         active: json["active"] ?? false,
         description: json["description"] ?? '',

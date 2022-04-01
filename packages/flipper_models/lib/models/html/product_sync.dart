@@ -70,8 +70,8 @@ class ProductSync {
   String? expiryDate;
   String? barCode;
   bool? synced;
-  List<VariantSync> variations;
-  StockSync? stock;
+  List<Variant> variations;
+  Stock? stock;
 
   factory ProductSync.fromJson(Map<dynamic, dynamic> json) => ProductSync(
         id: json["id"],
@@ -96,9 +96,9 @@ class ProductSync {
         currentUpdate:
             json["currentUpdate"] == null ? false : json["currentUpdate"],
         imageUrl: json["imageUrl"],
-        variations: List<VariantSync>.from(
-            json["variations"].map((x) => VariantSync.fromJson(x))),
-        stock: StockSync.fromJson(json["stock"]),
+        variations: List<Variant>.from(
+            json["variations"].map((x) => Variant.fromJson(x))),
+        stock: Stock.fromJson(json["stock"]),
       );
 
   Map<String, dynamic> toJson() => {

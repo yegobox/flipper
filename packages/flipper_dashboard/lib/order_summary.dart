@@ -19,7 +19,7 @@ class OrderSummary extends StatelessWidget {
       list.add(const Center(child: Text('There is no current order')));
       return list;
     }
-    for (OrderItemSync item in model.kOrder!.orderItems) {
+    for (OrderItem item in model.kOrder!.orderItems) {
       list.add(
         Slidable(
           actionPane: const SlidableDrawerActionPane(),

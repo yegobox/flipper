@@ -1,6 +1,6 @@
 // To parse this JSON data, do
 //
-//     final order = orderFromJson(jsonString);
+//     final OrderF = OrderFFromJson(jsonString);
 
 import 'dart:convert';
 
@@ -8,20 +8,22 @@ import 'package:objectbox/objectbox.dart';
 
 import 'order_item.dart';
 
-OrderFSync sorderFromJson(String str) => OrderFSync.fromJson(json.decode(str));
+OrderF sOrderFFromJson(String str) => OrderF.fromJson(json.decode(str));
 
-String sorderToJson(OrderFSync data) => json.encode(data.toJson());
+String sOrderFToJson(OrderF data) => json.encode(data.toJson());
 
-List<OrderFSync> orderFromJson(String str) =>
-    List<OrderFSync>.from(json.decode(str).map((x) => OrderFSync.fromJson(x)));
+List<OrderF> orderFFromJson(String str) =>
+    List<OrderF>.from(json.decode(str).map((x) => OrderF.fromJson(x)));
 
-String orderToJson(List<OrderFSync> data) =>
+String orderFToJson(List<OrderF> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
+/// because this model is not named same was as in isar it might cause
+/// issue when we want to use both database at the same time. to I have to watch it.
 @Entity()
 @Sync()
-class OrderFSync {
-  OrderFSync(
+class OrderF {
+  OrderF(
       {this.id = 0,
       required this.reference,
       required this.orderNumber,
@@ -37,7 +39,7 @@ class OrderFSync {
       required this.createdAt,
       this.updatedAt,
       this.reported,
-      // required this.orderItems,
+      // required this.OrderFItems,
       required this.table,
       this.channels,
       this.note,
@@ -63,15 +65,15 @@ class OrderFSync {
   @Transient()
   List<String>? channels;
 
-  // now add a customer to an order
+  // now add a customer to an OrderF
   int? customerId;
 
   String? note;
 
   @Backlink()
-  final orderItems = ToMany<OrderItemSync>();
+  final orderItems = ToMany<OrderItem>();
 
-  factory OrderFSync.fromJson(Map<String, dynamic> json) => OrderFSync(
+  factory OrderF.fromJson(Map<String, dynamic> json) => OrderF(
         id: int.parse(json["id"]),
         reference: json["reference"],
         orderNumber: json["orderNumber"],
@@ -110,7 +112,6 @@ class OrderFSync {
         "createdAt": createdAt,
         "updatedAt": updatedAt,
         "note": note,
-        "orderItems": orderItems,
         "table": table,
         "customerId": customerId,
         "channels": channels,

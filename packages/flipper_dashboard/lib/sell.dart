@@ -175,7 +175,7 @@ class _SellState extends State<Sell> {
   List<Widget> variants({required BusinessHomeViewModel model}) {
     final List<Widget> list = <Widget>[];
 
-    for (VariantSync variant in model.variants) {
+    for (Variant variant in model.variants) {
       list.add(SingleChildScrollView(
         child: InkWell(
           onTap: () {
@@ -196,7 +196,7 @@ class _SellState extends State<Sell> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    FutureBuilder<VariantSync?>(
+                    FutureBuilder<Variant?>(
                         future: model.getVariant(variantId: variant.id),
                         builder: (context, snapshot) {
                           return snapshot.hasData

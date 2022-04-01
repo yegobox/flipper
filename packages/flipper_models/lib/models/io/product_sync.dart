@@ -4,7 +4,7 @@
 library flipper_models;
 
 import 'dart:convert';
-import './variant_sync.dart';
+import './variants.dart';
 import 'package:objectbox/objectbox.dart';
 
 ProductSync sproductFromJson(String str) =>
@@ -70,7 +70,7 @@ class ProductSync {
   bool? synced;
 
   @Backlink('product')
-  final variations = ToMany<VariantSync>();
+  final variations = ToMany<Variant>();
 
   factory ProductSync.fromJson(Map<dynamic, dynamic> json) => ProductSync(
         id: json["id"],

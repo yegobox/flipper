@@ -8,18 +8,18 @@ part of flipper_models;
 
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast
 
-extension GetVariantSyncCollection on Isar {
-  IsarCollection<VariantSync> get variantSyncs {
-    return getCollection('VariantSync');
+extension GetVariantCollection on Isar {
+  IsarCollection<Variant> get variants {
+    return getCollection('Variant');
   }
 }
 
-final VariantSyncSchema = CollectionSchema(
-  name: 'VariantSync',
+final VariantSchema = CollectionSchema(
+  name: 'Variant',
   schema:
-      '{"name":"VariantSync","idName":"id","properties":[{"name":"channels","type":"StringList"},{"name":"fbranchId","type":"Long"},{"name":"fproductId","type":"Long"},{"name":"name","type":"String"},{"name":"productName","type":"String"},{"name":"retailPrice","type":"Double"},{"name":"sku","type":"String"},{"name":"supplyPrice","type":"Double"},{"name":"synced","type":"Bool"},{"name":"table","type":"String"},{"name":"taxName","type":"String"},{"name":"taxPercentage","type":"Double"},{"name":"unit","type":"String"}],"indexes":[],"links":[]}',
-  nativeAdapter: const _VariantSyncNativeAdapter(),
-  webAdapter: const _VariantSyncWebAdapter(),
+      '{"name":"Variant","idName":"id","properties":[{"name":"channels","type":"StringList"},{"name":"fbranchId","type":"Long"},{"name":"fproductId","type":"Long"},{"name":"name","type":"String"},{"name":"productName","type":"String"},{"name":"retailPrice","type":"Double"},{"name":"sku","type":"String"},{"name":"supplyPrice","type":"Double"},{"name":"synced","type":"Bool"},{"name":"table","type":"String"},{"name":"taxName","type":"String"},{"name":"taxPercentage","type":"Double"},{"name":"unit","type":"String"}],"indexes":[],"links":[]}',
+  nativeAdapter: const _VariantNativeAdapter(),
+  webAdapter: const _VariantWebAdapter(),
   idName: 'id',
   propertyIds: {
     'channels': 0,
@@ -54,11 +54,11 @@ final VariantSyncSchema = CollectionSchema(
   version: 2,
 );
 
-class _VariantSyncWebAdapter extends IsarWebTypeAdapter<VariantSync> {
-  const _VariantSyncWebAdapter();
+class _VariantWebAdapter extends IsarWebTypeAdapter<Variant> {
+  const _VariantWebAdapter();
 
   @override
-  Object serialize(IsarCollection<VariantSync> collection, VariantSync object) {
+  Object serialize(IsarCollection<Variant> collection, Variant object) {
     final jsObj = IsarNative.newJsObject();
     IsarNative.jsObjectSet(jsObj, 'channels', object.channels);
     IsarNative.jsObjectSet(jsObj, 'fbranchId', object.fbranchId);
@@ -78,9 +78,8 @@ class _VariantSyncWebAdapter extends IsarWebTypeAdapter<VariantSync> {
   }
 
   @override
-  VariantSync deserialize(
-      IsarCollection<VariantSync> collection, dynamic jsObj) {
-    final object = VariantSync(
+  Variant deserialize(IsarCollection<Variant> collection, dynamic jsObj) {
+    final object = Variant(
       channels: (IsarNative.jsObjectGet(jsObj, 'channels') as List?)
           ?.map((e) => e ?? '')
           .toList()
@@ -151,20 +150,15 @@ class _VariantSyncWebAdapter extends IsarWebTypeAdapter<VariantSync> {
   }
 
   @override
-  void attachLinks(Isar isar, int id, VariantSync object) {}
+  void attachLinks(Isar isar, int id, Variant object) {}
 }
 
-class _VariantSyncNativeAdapter extends IsarNativeTypeAdapter<VariantSync> {
-  const _VariantSyncNativeAdapter();
+class _VariantNativeAdapter extends IsarNativeTypeAdapter<Variant> {
+  const _VariantNativeAdapter();
 
   @override
-  void serialize(
-      IsarCollection<VariantSync> collection,
-      IsarRawObject rawObj,
-      VariantSync object,
-      int staticSize,
-      List<int> offsets,
-      AdapterAlloc alloc) {
+  void serialize(IsarCollection<Variant> collection, IsarRawObject rawObj,
+      Variant object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
     var dynamicSize = 0;
     final value0 = object.channels;
     dynamicSize += (value0?.length ?? 0) * 8;
@@ -233,9 +227,9 @@ class _VariantSyncNativeAdapter extends IsarNativeTypeAdapter<VariantSync> {
   }
 
   @override
-  VariantSync deserialize(IsarCollection<VariantSync> collection, int id,
+  Variant deserialize(IsarCollection<Variant> collection, int id,
       IsarBinaryReader reader, List<int> offsets) {
-    final object = VariantSync(
+    final object = Variant(
       channels: reader.readStringList(offsets[0]),
       fbranchId: reader.readLong(offsets[1]),
       fproductId: reader.readLong(offsets[2]),
@@ -292,19 +286,17 @@ class _VariantSyncNativeAdapter extends IsarNativeTypeAdapter<VariantSync> {
   }
 
   @override
-  void attachLinks(Isar isar, int id, VariantSync object) {}
+  void attachLinks(Isar isar, int id, Variant object) {}
 }
 
-extension VariantSyncQueryWhereSort
-    on QueryBuilder<VariantSync, VariantSync, QWhere> {
-  QueryBuilder<VariantSync, VariantSync, QAfterWhere> anyId() {
+extension VariantQueryWhereSort on QueryBuilder<Variant, Variant, QWhere> {
+  QueryBuilder<Variant, Variant, QAfterWhere> anyId() {
     return addWhereClauseInternal(const WhereClause(indexName: null));
   }
 }
 
-extension VariantSyncQueryWhere
-    on QueryBuilder<VariantSync, VariantSync, QWhereClause> {
-  QueryBuilder<VariantSync, VariantSync, QAfterWhereClause> idEqualTo(int id) {
+extension VariantQueryWhere on QueryBuilder<Variant, Variant, QWhereClause> {
+  QueryBuilder<Variant, Variant, QAfterWhereClause> idEqualTo(int id) {
     return addWhereClauseInternal(WhereClause(
       indexName: null,
       lower: [id],
@@ -314,8 +306,7 @@ extension VariantSyncQueryWhere
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterWhereClause> idNotEqualTo(
-      int id) {
+  QueryBuilder<Variant, Variant, QAfterWhereClause> idNotEqualTo(int id) {
     if (whereSortInternal == Sort.asc) {
       return addWhereClauseInternal(WhereClause(
         indexName: null,
@@ -339,7 +330,7 @@ extension VariantSyncQueryWhere
     }
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterWhereClause> idGreaterThan(
+  QueryBuilder<Variant, Variant, QAfterWhereClause> idGreaterThan(
     int id, {
     bool include = false,
   }) {
@@ -350,7 +341,7 @@ extension VariantSyncQueryWhere
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterWhereClause> idLessThan(
+  QueryBuilder<Variant, Variant, QAfterWhereClause> idLessThan(
     int id, {
     bool include = false,
   }) {
@@ -361,7 +352,7 @@ extension VariantSyncQueryWhere
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterWhereClause> idBetween(
+  QueryBuilder<Variant, Variant, QAfterWhereClause> idBetween(
     int lowerId,
     int upperId, {
     bool includeLower = true,
@@ -377,10 +368,9 @@ extension VariantSyncQueryWhere
   }
 }
 
-extension VariantSyncQueryFilter
-    on QueryBuilder<VariantSync, VariantSync, QFilterCondition> {
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      channelsIsNull() {
+extension VariantQueryFilter
+    on QueryBuilder<Variant, Variant, QFilterCondition> {
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> channelsIsNull() {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.isNull,
       property: 'channels',
@@ -388,8 +378,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      channelsAnyIsNull() {
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> channelsAnyIsNull() {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
       property: 'channels',
@@ -397,8 +386,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      channelsAnyEqualTo(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> channelsAnyEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
@@ -410,8 +398,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      channelsAnyGreaterThan(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> channelsAnyGreaterThan(
     String? value, {
     bool caseSensitive = true,
     bool include = false,
@@ -425,8 +412,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      channelsAnyLessThan(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> channelsAnyLessThan(
     String? value, {
     bool caseSensitive = true,
     bool include = false,
@@ -440,8 +426,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      channelsAnyBetween(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> channelsAnyBetween(
     String? lower,
     String? upper, {
     bool caseSensitive = true,
@@ -458,8 +443,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      channelsAnyStartsWith(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> channelsAnyStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -471,8 +455,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      channelsAnyEndsWith(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> channelsAnyEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -484,8 +467,9 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      channelsAnyContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> channelsAnyContains(
+      String value,
+      {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.contains,
       property: 'channels',
@@ -494,8 +478,9 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      channelsAnyMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> channelsAnyMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.matches,
       property: 'channels',
@@ -504,118 +489,111 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      fbranchIdEqualTo(int value) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'fbranchId',
-      value: value,
-    ));
-  }
-
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      fbranchIdGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'fbranchId',
-      value: value,
-    ));
-  }
-
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      fbranchIdLessThan(
-    int value, {
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'fbranchId',
-      value: value,
-    ));
-  }
-
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      fbranchIdBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'fbranchId',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-    ));
-  }
-
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      fproductIdEqualTo(int value) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'fproductId',
-      value: value,
-    ));
-  }
-
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      fproductIdGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'fproductId',
-      value: value,
-    ));
-  }
-
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      fproductIdLessThan(
-    int value, {
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'fproductId',
-      value: value,
-    ));
-  }
-
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      fproductIdBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'fproductId',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-    ));
-  }
-
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> idEqualTo(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> fbranchIdEqualTo(
       int value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
+      property: 'fbranchId',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> fbranchIdGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.gt,
+      include: include,
+      property: 'fbranchId',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> fbranchIdLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.lt,
+      include: include,
+      property: 'fbranchId',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> fbranchIdBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition.between(
+      property: 'fbranchId',
+      lower: lower,
+      includeLower: includeLower,
+      upper: upper,
+      includeUpper: includeUpper,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> fproductIdEqualTo(
+      int value) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.eq,
+      property: 'fproductId',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> fproductIdGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.gt,
+      include: include,
+      property: 'fproductId',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> fproductIdLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.lt,
+      include: include,
+      property: 'fproductId',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> fproductIdBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition.between(
+      property: 'fproductId',
+      lower: lower,
+      includeLower: includeLower,
+      upper: upper,
+      includeUpper: includeUpper,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> idEqualTo(int value) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.eq,
       property: 'id',
       value: value,
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> idGreaterThan(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> idGreaterThan(
     int value, {
     bool include = false,
   }) {
@@ -627,7 +605,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> idLessThan(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> idLessThan(
     int value, {
     bool include = false,
   }) {
@@ -639,7 +617,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> idBetween(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> idBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -654,7 +632,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> nameEqualTo(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> nameEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -666,7 +644,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> nameGreaterThan(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> nameGreaterThan(
     String value, {
     bool caseSensitive = true,
     bool include = false,
@@ -680,7 +658,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> nameLessThan(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> nameLessThan(
     String value, {
     bool caseSensitive = true,
     bool include = false,
@@ -694,7 +672,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> nameBetween(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> nameBetween(
     String lower,
     String upper, {
     bool caseSensitive = true,
@@ -711,7 +689,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> nameStartsWith(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> nameStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -723,7 +701,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> nameEndsWith(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> nameEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -735,7 +713,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> nameContains(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> nameContains(
       String value,
       {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
@@ -746,7 +724,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> nameMatches(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> nameMatches(
       String pattern,
       {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
@@ -757,8 +735,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      productNameEqualTo(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> productNameEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -770,8 +747,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      productNameGreaterThan(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> productNameGreaterThan(
     String value, {
     bool caseSensitive = true,
     bool include = false,
@@ -785,8 +761,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      productNameLessThan(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> productNameLessThan(
     String value, {
     bool caseSensitive = true,
     bool include = false,
@@ -800,8 +775,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      productNameBetween(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> productNameBetween(
     String lower,
     String upper, {
     bool caseSensitive = true,
@@ -818,8 +792,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      productNameStartsWith(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> productNameStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -831,8 +804,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      productNameEndsWith(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> productNameEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -844,8 +816,9 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      productNameContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> productNameContains(
+      String value,
+      {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.contains,
       property: 'productName',
@@ -854,8 +827,9 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      productNameMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> productNameMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.matches,
       property: 'productName',
@@ -864,8 +838,8 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      retailPriceGreaterThan(double value) {
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> retailPriceGreaterThan(
+      double value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.gt,
       include: false,
@@ -874,8 +848,8 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      retailPriceLessThan(double value) {
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> retailPriceLessThan(
+      double value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.lt,
       include: false,
@@ -884,8 +858,8 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      retailPriceBetween(double lower, double upper) {
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> retailPriceBetween(
+      double lower, double upper) {
     return addFilterConditionInternal(FilterCondition.between(
       property: 'retailPrice',
       lower: lower,
@@ -895,7 +869,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> skuEqualTo(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> skuEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -907,7 +881,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> skuGreaterThan(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> skuGreaterThan(
     String value, {
     bool caseSensitive = true,
     bool include = false,
@@ -921,7 +895,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> skuLessThan(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> skuLessThan(
     String value, {
     bool caseSensitive = true,
     bool include = false,
@@ -935,7 +909,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> skuBetween(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> skuBetween(
     String lower,
     String upper, {
     bool caseSensitive = true,
@@ -952,7 +926,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> skuStartsWith(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> skuStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -964,7 +938,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> skuEndsWith(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> skuEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -976,7 +950,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> skuContains(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> skuContains(
       String value,
       {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
@@ -987,7 +961,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> skuMatches(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> skuMatches(
       String pattern,
       {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
@@ -998,8 +972,8 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      supplyPriceGreaterThan(double value) {
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> supplyPriceGreaterThan(
+      double value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.gt,
       include: false,
@@ -1008,8 +982,8 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      supplyPriceLessThan(double value) {
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> supplyPriceLessThan(
+      double value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.lt,
       include: false,
@@ -1018,8 +992,8 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      supplyPriceBetween(double lower, double upper) {
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> supplyPriceBetween(
+      double lower, double upper) {
     return addFilterConditionInternal(FilterCondition.between(
       property: 'supplyPrice',
       lower: lower,
@@ -1029,7 +1003,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> syncedIsNull() {
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> syncedIsNull() {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.isNull,
       property: 'synced',
@@ -1037,7 +1011,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> syncedEqualTo(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> syncedEqualTo(
       bool? value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
@@ -1046,7 +1020,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> tableEqualTo(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> tableEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1058,8 +1032,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      tableGreaterThan(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> tableGreaterThan(
     String value, {
     bool caseSensitive = true,
     bool include = false,
@@ -1073,7 +1046,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> tableLessThan(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> tableLessThan(
     String value, {
     bool caseSensitive = true,
     bool include = false,
@@ -1087,7 +1060,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> tableBetween(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> tableBetween(
     String lower,
     String upper, {
     bool caseSensitive = true,
@@ -1104,7 +1077,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> tableStartsWith(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> tableStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1116,7 +1089,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> tableEndsWith(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> tableEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1128,7 +1101,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> tableContains(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> tableContains(
       String value,
       {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
@@ -1139,7 +1112,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> tableMatches(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> tableMatches(
       String pattern,
       {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
@@ -1150,8 +1123,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      taxNameIsNull() {
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> taxNameIsNull() {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.isNull,
       property: 'taxName',
@@ -1159,7 +1131,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> taxNameEqualTo(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> taxNameEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
@@ -1171,8 +1143,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      taxNameGreaterThan(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> taxNameGreaterThan(
     String? value, {
     bool caseSensitive = true,
     bool include = false,
@@ -1186,7 +1157,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> taxNameLessThan(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> taxNameLessThan(
     String? value, {
     bool caseSensitive = true,
     bool include = false,
@@ -1200,7 +1171,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> taxNameBetween(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> taxNameBetween(
     String? lower,
     String? upper, {
     bool caseSensitive = true,
@@ -1217,8 +1188,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      taxNameStartsWith(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> taxNameStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1230,7 +1200,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> taxNameEndsWith(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> taxNameEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1242,7 +1212,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> taxNameContains(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> taxNameContains(
       String value,
       {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
@@ -1253,7 +1223,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> taxNameMatches(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> taxNameMatches(
       String pattern,
       {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
@@ -1264,8 +1234,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      taxPercentageIsNull() {
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> taxPercentageIsNull() {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.isNull,
       property: 'taxPercentage',
@@ -1273,7 +1242,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
+  QueryBuilder<Variant, Variant, QAfterFilterCondition>
       taxPercentageGreaterThan(double? value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.gt,
@@ -1283,8 +1252,8 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      taxPercentageLessThan(double? value) {
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> taxPercentageLessThan(
+      double? value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.lt,
       include: false,
@@ -1293,8 +1262,8 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition>
-      taxPercentageBetween(double? lower, double? upper) {
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> taxPercentageBetween(
+      double? lower, double? upper) {
     return addFilterConditionInternal(FilterCondition.between(
       property: 'taxPercentage',
       lower: lower,
@@ -1304,7 +1273,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> unitEqualTo(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> unitEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1316,7 +1285,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> unitGreaterThan(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> unitGreaterThan(
     String value, {
     bool caseSensitive = true,
     bool include = false,
@@ -1330,7 +1299,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> unitLessThan(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> unitLessThan(
     String value, {
     bool caseSensitive = true,
     bool include = false,
@@ -1344,7 +1313,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> unitBetween(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> unitBetween(
     String lower,
     String upper, {
     bool caseSensitive = true,
@@ -1361,7 +1330,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> unitStartsWith(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> unitStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1373,7 +1342,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> unitEndsWith(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> unitEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1385,7 +1354,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> unitContains(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> unitContains(
       String value,
       {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
@@ -1396,7 +1365,7 @@ extension VariantSyncQueryFilter
     ));
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterFilterCondition> unitMatches(
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> unitMatches(
       String pattern,
       {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
@@ -1408,339 +1377,335 @@ extension VariantSyncQueryFilter
   }
 }
 
-extension VariantSyncQueryWhereSortBy
-    on QueryBuilder<VariantSync, VariantSync, QSortBy> {
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> sortByFbranchId() {
+extension VariantQueryWhereSortBy on QueryBuilder<Variant, Variant, QSortBy> {
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByFbranchId() {
     return addSortByInternal('fbranchId', Sort.asc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> sortByFbranchIdDesc() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByFbranchIdDesc() {
     return addSortByInternal('fbranchId', Sort.desc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> sortByFproductId() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByFproductId() {
     return addSortByInternal('fproductId', Sort.asc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> sortByFproductIdDesc() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByFproductIdDesc() {
     return addSortByInternal('fproductId', Sort.desc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> sortById() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortById() {
     return addSortByInternal('id', Sort.asc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> sortByIdDesc() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByIdDesc() {
     return addSortByInternal('id', Sort.desc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> sortByName() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByName() {
     return addSortByInternal('name', Sort.asc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> sortByNameDesc() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByNameDesc() {
     return addSortByInternal('name', Sort.desc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> sortByProductName() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByProductName() {
     return addSortByInternal('productName', Sort.asc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> sortByProductNameDesc() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByProductNameDesc() {
     return addSortByInternal('productName', Sort.desc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> sortByRetailPrice() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByRetailPrice() {
     return addSortByInternal('retailPrice', Sort.asc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> sortByRetailPriceDesc() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByRetailPriceDesc() {
     return addSortByInternal('retailPrice', Sort.desc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> sortBySku() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortBySku() {
     return addSortByInternal('sku', Sort.asc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> sortBySkuDesc() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortBySkuDesc() {
     return addSortByInternal('sku', Sort.desc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> sortBySupplyPrice() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortBySupplyPrice() {
     return addSortByInternal('supplyPrice', Sort.asc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> sortBySupplyPriceDesc() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortBySupplyPriceDesc() {
     return addSortByInternal('supplyPrice', Sort.desc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> sortBySynced() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortBySynced() {
     return addSortByInternal('synced', Sort.asc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> sortBySyncedDesc() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortBySyncedDesc() {
     return addSortByInternal('synced', Sort.desc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> sortByTable() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByTable() {
     return addSortByInternal('table', Sort.asc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> sortByTableDesc() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByTableDesc() {
     return addSortByInternal('table', Sort.desc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> sortByTaxName() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByTaxName() {
     return addSortByInternal('taxName', Sort.asc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> sortByTaxNameDesc() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByTaxNameDesc() {
     return addSortByInternal('taxName', Sort.desc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> sortByTaxPercentage() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByTaxPercentage() {
     return addSortByInternal('taxPercentage', Sort.asc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy>
-      sortByTaxPercentageDesc() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByTaxPercentageDesc() {
     return addSortByInternal('taxPercentage', Sort.desc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> sortByUnit() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByUnit() {
     return addSortByInternal('unit', Sort.asc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> sortByUnitDesc() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByUnitDesc() {
     return addSortByInternal('unit', Sort.desc);
   }
 }
 
-extension VariantSyncQueryWhereSortThenBy
-    on QueryBuilder<VariantSync, VariantSync, QSortThenBy> {
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> thenByFbranchId() {
+extension VariantQueryWhereSortThenBy
+    on QueryBuilder<Variant, Variant, QSortThenBy> {
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByFbranchId() {
     return addSortByInternal('fbranchId', Sort.asc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> thenByFbranchIdDesc() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByFbranchIdDesc() {
     return addSortByInternal('fbranchId', Sort.desc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> thenByFproductId() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByFproductId() {
     return addSortByInternal('fproductId', Sort.asc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> thenByFproductIdDesc() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByFproductIdDesc() {
     return addSortByInternal('fproductId', Sort.desc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> thenById() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenById() {
     return addSortByInternal('id', Sort.asc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> thenByIdDesc() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByIdDesc() {
     return addSortByInternal('id', Sort.desc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> thenByName() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByName() {
     return addSortByInternal('name', Sort.asc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> thenByNameDesc() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByNameDesc() {
     return addSortByInternal('name', Sort.desc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> thenByProductName() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByProductName() {
     return addSortByInternal('productName', Sort.asc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> thenByProductNameDesc() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByProductNameDesc() {
     return addSortByInternal('productName', Sort.desc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> thenByRetailPrice() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByRetailPrice() {
     return addSortByInternal('retailPrice', Sort.asc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> thenByRetailPriceDesc() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByRetailPriceDesc() {
     return addSortByInternal('retailPrice', Sort.desc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> thenBySku() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenBySku() {
     return addSortByInternal('sku', Sort.asc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> thenBySkuDesc() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenBySkuDesc() {
     return addSortByInternal('sku', Sort.desc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> thenBySupplyPrice() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenBySupplyPrice() {
     return addSortByInternal('supplyPrice', Sort.asc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> thenBySupplyPriceDesc() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenBySupplyPriceDesc() {
     return addSortByInternal('supplyPrice', Sort.desc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> thenBySynced() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenBySynced() {
     return addSortByInternal('synced', Sort.asc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> thenBySyncedDesc() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenBySyncedDesc() {
     return addSortByInternal('synced', Sort.desc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> thenByTable() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByTable() {
     return addSortByInternal('table', Sort.asc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> thenByTableDesc() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByTableDesc() {
     return addSortByInternal('table', Sort.desc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> thenByTaxName() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByTaxName() {
     return addSortByInternal('taxName', Sort.asc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> thenByTaxNameDesc() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByTaxNameDesc() {
     return addSortByInternal('taxName', Sort.desc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> thenByTaxPercentage() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByTaxPercentage() {
     return addSortByInternal('taxPercentage', Sort.asc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy>
-      thenByTaxPercentageDesc() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByTaxPercentageDesc() {
     return addSortByInternal('taxPercentage', Sort.desc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> thenByUnit() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByUnit() {
     return addSortByInternal('unit', Sort.asc);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QAfterSortBy> thenByUnitDesc() {
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByUnitDesc() {
     return addSortByInternal('unit', Sort.desc);
   }
 }
 
-extension VariantSyncQueryWhereDistinct
-    on QueryBuilder<VariantSync, VariantSync, QDistinct> {
-  QueryBuilder<VariantSync, VariantSync, QDistinct> distinctByFbranchId() {
+extension VariantQueryWhereDistinct
+    on QueryBuilder<Variant, Variant, QDistinct> {
+  QueryBuilder<Variant, Variant, QDistinct> distinctByFbranchId() {
     return addDistinctByInternal('fbranchId');
   }
 
-  QueryBuilder<VariantSync, VariantSync, QDistinct> distinctByFproductId() {
+  QueryBuilder<Variant, Variant, QDistinct> distinctByFproductId() {
     return addDistinctByInternal('fproductId');
   }
 
-  QueryBuilder<VariantSync, VariantSync, QDistinct> distinctById() {
+  QueryBuilder<Variant, Variant, QDistinct> distinctById() {
     return addDistinctByInternal('id');
   }
 
-  QueryBuilder<VariantSync, VariantSync, QDistinct> distinctByName(
+  QueryBuilder<Variant, Variant, QDistinct> distinctByName(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('name', caseSensitive: caseSensitive);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QDistinct> distinctByProductName(
+  QueryBuilder<Variant, Variant, QDistinct> distinctByProductName(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('productName', caseSensitive: caseSensitive);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QDistinct> distinctByRetailPrice() {
+  QueryBuilder<Variant, Variant, QDistinct> distinctByRetailPrice() {
     return addDistinctByInternal('retailPrice');
   }
 
-  QueryBuilder<VariantSync, VariantSync, QDistinct> distinctBySku(
+  QueryBuilder<Variant, Variant, QDistinct> distinctBySku(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('sku', caseSensitive: caseSensitive);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QDistinct> distinctBySupplyPrice() {
+  QueryBuilder<Variant, Variant, QDistinct> distinctBySupplyPrice() {
     return addDistinctByInternal('supplyPrice');
   }
 
-  QueryBuilder<VariantSync, VariantSync, QDistinct> distinctBySynced() {
+  QueryBuilder<Variant, Variant, QDistinct> distinctBySynced() {
     return addDistinctByInternal('synced');
   }
 
-  QueryBuilder<VariantSync, VariantSync, QDistinct> distinctByTable(
+  QueryBuilder<Variant, Variant, QDistinct> distinctByTable(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('table', caseSensitive: caseSensitive);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QDistinct> distinctByTaxName(
+  QueryBuilder<Variant, Variant, QDistinct> distinctByTaxName(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('taxName', caseSensitive: caseSensitive);
   }
 
-  QueryBuilder<VariantSync, VariantSync, QDistinct> distinctByTaxPercentage() {
+  QueryBuilder<Variant, Variant, QDistinct> distinctByTaxPercentage() {
     return addDistinctByInternal('taxPercentage');
   }
 
-  QueryBuilder<VariantSync, VariantSync, QDistinct> distinctByUnit(
+  QueryBuilder<Variant, Variant, QDistinct> distinctByUnit(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('unit', caseSensitive: caseSensitive);
   }
 }
 
-extension VariantSyncQueryProperty
-    on QueryBuilder<VariantSync, VariantSync, QQueryProperty> {
-  QueryBuilder<VariantSync, List<String>?, QQueryOperations>
-      channelsProperty() {
+extension VariantQueryProperty
+    on QueryBuilder<Variant, Variant, QQueryProperty> {
+  QueryBuilder<Variant, List<String>?, QQueryOperations> channelsProperty() {
     return addPropertyNameInternal('channels');
   }
 
-  QueryBuilder<VariantSync, int, QQueryOperations> fbranchIdProperty() {
+  QueryBuilder<Variant, int, QQueryOperations> fbranchIdProperty() {
     return addPropertyNameInternal('fbranchId');
   }
 
-  QueryBuilder<VariantSync, int, QQueryOperations> fproductIdProperty() {
+  QueryBuilder<Variant, int, QQueryOperations> fproductIdProperty() {
     return addPropertyNameInternal('fproductId');
   }
 
-  QueryBuilder<VariantSync, int, QQueryOperations> idProperty() {
+  QueryBuilder<Variant, int, QQueryOperations> idProperty() {
     return addPropertyNameInternal('id');
   }
 
-  QueryBuilder<VariantSync, String, QQueryOperations> nameProperty() {
+  QueryBuilder<Variant, String, QQueryOperations> nameProperty() {
     return addPropertyNameInternal('name');
   }
 
-  QueryBuilder<VariantSync, String, QQueryOperations> productNameProperty() {
+  QueryBuilder<Variant, String, QQueryOperations> productNameProperty() {
     return addPropertyNameInternal('productName');
   }
 
-  QueryBuilder<VariantSync, double, QQueryOperations> retailPriceProperty() {
+  QueryBuilder<Variant, double, QQueryOperations> retailPriceProperty() {
     return addPropertyNameInternal('retailPrice');
   }
 
-  QueryBuilder<VariantSync, String, QQueryOperations> skuProperty() {
+  QueryBuilder<Variant, String, QQueryOperations> skuProperty() {
     return addPropertyNameInternal('sku');
   }
 
-  QueryBuilder<VariantSync, double, QQueryOperations> supplyPriceProperty() {
+  QueryBuilder<Variant, double, QQueryOperations> supplyPriceProperty() {
     return addPropertyNameInternal('supplyPrice');
   }
 
-  QueryBuilder<VariantSync, bool?, QQueryOperations> syncedProperty() {
+  QueryBuilder<Variant, bool?, QQueryOperations> syncedProperty() {
     return addPropertyNameInternal('synced');
   }
 
-  QueryBuilder<VariantSync, String, QQueryOperations> tableProperty() {
+  QueryBuilder<Variant, String, QQueryOperations> tableProperty() {
     return addPropertyNameInternal('table');
   }
 
-  QueryBuilder<VariantSync, String?, QQueryOperations> taxNameProperty() {
+  QueryBuilder<Variant, String?, QQueryOperations> taxNameProperty() {
     return addPropertyNameInternal('taxName');
   }
 
-  QueryBuilder<VariantSync, double?, QQueryOperations> taxPercentageProperty() {
+  QueryBuilder<Variant, double?, QQueryOperations> taxPercentageProperty() {
     return addPropertyNameInternal('taxPercentage');
   }
 
-  QueryBuilder<VariantSync, String, QQueryOperations> unitProperty() {
+  QueryBuilder<Variant, String, QQueryOperations> unitProperty() {
     return addPropertyNameInternal('unit');
   }
 }

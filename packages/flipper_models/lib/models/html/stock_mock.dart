@@ -1,6 +1,6 @@
 import './stock_sync.dart';
 
-final stockMock = new StockSync(
+final stockMock = new Stock(
     id: DateTime.now().millisecondsSinceEpoch,
     fbranchId: 11,
     fvariantId: 1,

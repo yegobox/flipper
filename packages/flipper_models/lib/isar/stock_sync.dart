@@ -4,7 +4,7 @@ import 'package:isar/isar.dart';
 part 'stock_sync.g.dart';
 
 @Collection()
-class StockSync {
+class Stock {
   late int id = Isar.autoIncrement;
   late int branchId;
   late int variantId;

@@ -47,7 +47,7 @@ final productMock = ProductSync(
   createdAt: DateTime.now().toIso8601String(),
 );
 
-final branchMock = BranchSync(
+final branchMock = Branch(
   id: DateTime.now().millisecondsSinceEpoch,
   active: false,
   description: 'desc',

@@ -3,7 +3,7 @@ import 'package:isar/isar.dart';
 part 'order_item.g.dart';
 
 @Collection()
-class OrderItemSync {
+class OrderItem {
   late int id = Isar.autoIncrement;
   late String name;
   late int orderId;

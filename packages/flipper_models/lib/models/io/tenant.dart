@@ -31,7 +31,7 @@ class TenantSync {
   String email;
 
   @Backlink()
-  final branches = ToMany<BranchSync>();
+  final branches = ToMany<Branch>();
 
   @Backlink()
   final permissions = ToMany<Permissionsync>();

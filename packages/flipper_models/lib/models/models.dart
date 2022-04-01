@@ -72,8 +72,8 @@ export 'package:flipper_models/models/io/setting.dart'
 export 'package:flipper_models/models/io/spenn.dart'
     if (dart.library.html) 'package:flipper_models/models/html/spenn.dart';
 
-export 'package:flipper_models/models/io/stock_sync.dart'
-    if (dart.library.html) 'package:flipper_models/models/html/stock_sync.dart';
+export 'package:flipper_models/models/io/stock.dart'
+    if (dart.library.html) 'package:flipper_models/models/html/stock.dart';
 
 export 'package:flipper_models/models/io/stock.dart'
     if (dart.library.html) 'package:flipper_models/models/html/stock.dart';
@@ -95,12 +95,6 @@ export 'package:flipper_models/models/io/unit.dart'
 
 export 'package:flipper_models/models/io/variant_stock.dart'
     if (dart.library.html) 'package:flipper_models/models/html/variant_stock.dart';
-
-export 'package:flipper_models/models/io/variant_sync.dart'
-    if (dart.library.html) 'package:flipper_models/models/html/variant_sync.dart';
-
-export 'package:flipper_models/models/io/variant_sync.dart'
-    if (dart.library.html) 'package:flipper_models/models/html/variants.dart';
 
 export 'package:flipper_models/models/io/variants.dart'
     if (dart.library.html) 'package:flipper_models/models/html/variants.dart';

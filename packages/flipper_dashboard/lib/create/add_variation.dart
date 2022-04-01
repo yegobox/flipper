@@ -49,8 +49,8 @@ class _AddVariationState extends State<AddVariation> {
               onPressedCallback: () async {
                 if (AddVariation._formKey.currentState!.validate()) {
                   final variantId = DateTime.now().millisecondsSinceEpoch;
-                  List<VariantSync> variations = [];
-                  VariantSync data = VariantSync()
+                  List<Variant> variations = [];
+                  Variant data = Variant()
                     ..name = nameController.text
                     ..sku = sku
                     ..retailPrice = double.parse(retailController.text)

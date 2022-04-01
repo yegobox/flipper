@@ -1,6 +1,6 @@
 import './variant_sync.dart';
 
-final variationMock = VariantSync()
+final variationMock = Variant()
   ..id = DateTime.now().millisecondsSinceEpoch
   ..name = 'Regular'
   ..sku = 'sku'

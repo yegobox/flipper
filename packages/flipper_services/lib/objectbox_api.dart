@@ -206,9 +206,9 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  List<StockSync> stocks({required int productId}) {
-    List<StockSync> stocks = store
-        .box<StockSync>()
+  List<Stock> stocks({required int productId}) {
+    List<Stock> stocks = store
+        .box<Stock>()
         .getAll()
         .where((stock) => stock.fproductId == productId)
         .toList();
@@ -216,15 +216,15 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  Future<VariantSync?> variant({required int variantId}) async {
-    return store.box<VariantSync>().get(variantId);
+  Future<Variant?> variant({required int variantId}) async {
+    return store.box<Variant>().get(variantId);
   }
 
   @override
-  Future<List<VariantSync>> variants(
+  Future<List<Variant>> variants(
       {required int branchId, required int productId}) async {
     return store
-        .box<VariantSync>()
+        .box<Variant>()
         .getAll()
         .where((v) => v.fproductId == productId)
         .where((v) => v.fbranchId == branchId)
@@ -249,11 +249,11 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  Future<StockSync?> getStock(
+  Future<Stock?> getStock(
       {required int branchId, required int variantId}) async {
-    StockSync? stock = store
-        .box<StockSync>()
-        .query(StockSync_.fvariantId.equals(variantId))
+    Stock? stock = store
+        .box<Stock>()
+        .query(Stock_.fvariantId.equals(variantId))
         .build()
         .findFirst();
     if (stock != null) {
@@ -269,7 +269,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
         store.box<PColor>().remove(id);
         break;
       case 'orderItem':
-        store.box<OrderItemSync>().remove(id);
+        store.box<OrderItem>().remove(id);
         break;
       // case 'conversation':
       //   store.box<Conversation>().remove(id);
@@ -278,10 +278,10 @@ class ObjectBoxApi extends MobileUpload implements Api {
         store.box<ProductSync>().remove(id);
         break;
       case 'stock':
-        store.box<StockSync>().remove(id);
+        store.box<Stock>().remove(id);
         break;
       case 'variation':
-        store.box<VariantSync>().remove(id);
+        store.box<Variant>().remove(id);
         break;
       case 'message':
         store.box<Message>().remove(id);
@@ -293,7 +293,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
         store.box<DiscountSync>().remove(id);
         break;
       case 'order':
-        store.box<OrderFSync>().remove(id);
+        store.box<OrderF>().remove(id);
         break;
       default:
     }
@@ -302,16 +302,16 @@ class ObjectBoxApi extends MobileUpload implements Api {
 
   @override
   Future<int> addVariant(
-      {required List<VariantSync> data,
+      {required List<Variant> data,
       required double retailPrice,
       required double supplyPrice}) async {
-    for (VariantSync variation in data) {
+    for (Variant variation in data) {
       Map d = variation.toJson();
-      final box = store.box<VariantSync>();
+      final box = store.box<Variant>();
       final variantId = box.put(variation);
       final stockId = DateTime.now().millisecondsSinceEpoch;
       String? userId = ProxyService.box.read(key: 'userId');
-      final stock = StockSync(
+      final stock = Stock(
         id: stockId,
         fvariantId: variantId,
         lowStock: 0.0,
@@ -326,20 +326,20 @@ class ObjectBoxApi extends MobileUpload implements Api {
         value: 0,
         active: false,
       );
-      final stockBox = store.box<StockSync>();
+      final stockBox = store.box<Stock>();
       stockBox.put(stock);
     }
     return 200;
   }
 
   @override
-  Future<List<BranchSync>> branches({required int businessId}) async {
+  Future<List<Branch>> branches({required int businessId}) async {
     final response =
         await client.get(Uri.parse("$apihub/v2/api/branches/$businessId"));
 
     if (response.statusCode == 200) {
-      for (BranchSync branch in branchFromJson(response.body)) {
-        final box = store.box<BranchSync>();
+      for (Branch branch in branchFromJson(response.body)) {
+        final box = store.box<Branch>();
         box.put(branch, mode: PutMode.put);
       }
       return branchFromJson(response.body);
@@ -349,7 +349,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
 
   @override
   Future<void> collectCashPayment(
-      {required double cashReceived, required OrderFSync order}) async {
+      {required double cashReceived, required OrderF order}) async {
     // Map data = order.toJson();
     // data['cashReceived'] = cashReceived;
     // data['status'] = completeStatus;
@@ -362,9 +362,9 @@ class ObjectBoxApi extends MobileUpload implements Api {
 
     update(data: order.toJson(), endPoint: 'order');
     // update order's orderItems
-    for (OrderItemSync item in order.orderItems) {
+    for (OrderItem item in order.orderItems) {
       // each item.variantId should have new stock value
-      StockSync? stock =
+      Stock? stock =
           await getStock(branchId: order.fbranchId, variantId: item.fvariantId);
       if (stock != null) {
         stock.currentStock = stock.currentStock - item.count;
@@ -374,20 +374,20 @@ class ObjectBoxApi extends MobileUpload implements Api {
     }
   }
 
-  Future<OrderFSync?> pendingOrderExist({required int branchId}) async {
+  Future<OrderF?> pendingOrderExist({required int branchId}) async {
     return store
-        .box<OrderFSync>()
-        .query(OrderFSync_.status
+        .box<OrderF>()
+        .query(OrderF_.status
             .equals('pending')
-            .and(OrderFSync_.fbranchId.equals(branchId)))
+            .and(OrderF_.fbranchId.equals(branchId)))
         .build()
         .findFirst();
   }
 
   @override
-  Future<OrderFSync> createOrder(
+  Future<OrderF> createOrder(
       {required double customAmount,
-      required VariantSync variation,
+      required Variant variation,
       required double price,
       bool useProductName = false,
       String orderType = 'custom',
@@ -396,7 +396,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
     final orderNUmber = const Uuid().v1();
     String userId = ProxyService.box.read(key: 'userId');
     int branchId = ProxyService.box.read(key: 'branchId');
-    OrderFSync? existOrder = await pendingOrderExist(branchId: branchId);
+    OrderF? existOrder = await pendingOrderExist(branchId: branchId);
     String name = '';
     if (variation.name == 'Regular') {
       if (variation.productName != 'Custom Amount') {
@@ -412,9 +412,9 @@ class ObjectBoxApi extends MobileUpload implements Api {
       }
     }
     if (existOrder == null) {
-      final box = store.box<OrderFSync>();
+      final box = store.box<OrderF>();
       final id = box.put(
-        OrderFSync(
+        OrderF(
           reference: ref,
           orderNumber: orderNUmber,
           status: 'pending',
@@ -433,9 +433,9 @@ class ObjectBoxApi extends MobileUpload implements Api {
         ),
       );
 
-      OrderFSync ss = store.box<OrderFSync>().get(id)!;
-      StockSync stock = await stockByVariantId(variantId: variation.id);
-      OrderItemSync orderItems = OrderItemSync(
+      OrderF ss = store.box<OrderF>().get(id)!;
+      Stock stock = await stockByVariantId(variantId: variation.id);
+      OrderItem orderItems = OrderItem(
         count: quantity,
         // name: useProductName ? variation.productName : variation.name,
         name: name,
@@ -452,8 +452,8 @@ class ObjectBoxApi extends MobileUpload implements Api {
       box.put(ss);
       return ss;
     } else {
-      StockSync stock = await stockByVariantId(variantId: variation.id);
-      OrderItemSync item = OrderItemSync(
+      Stock stock = await stockByVariantId(variantId: variation.id);
+      OrderItem item = OrderItem(
         count: quantity,
         name: name,
         fvariantId: variation.id,
@@ -466,9 +466,9 @@ class ObjectBoxApi extends MobileUpload implements Api {
       existOrder.orderItems.add(item);
       // final box = store.box<OrderF>();
       // final id = box.put(existOrder, mode: PutMode.update);
-      final id = store.box<OrderFSync>().put(existOrder);
+      final id = store.box<OrderF>().put(existOrder);
       // update(data: existOrder.toJson(), endPoint: 'order');
-      return store.box<OrderFSync>().get(id)!;
+      return store.box<OrderF>().get(id)!;
     }
   }
 
@@ -486,7 +486,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
 
     final productId =
         store.box<ProductSync>().put(product, mode: PutMode.insert);
-    VariantSync variant = VariantSync(
+    Variant variant = Variant(
       name: 'Regular',
       sku: 'sku',
       fproductId: productId,
@@ -507,9 +507,8 @@ class ObjectBoxApi extends MobileUpload implements Api {
 
     store.box<ProductSync>().put(productFromStore);
 
-    List<VariantSync> v =
-        await variants(branchId: branchId, productId: productId);
-    final stock = StockSync(
+    List<Variant> v = await variants(branchId: branchId, productId: productId);
+    final stock = Stock(
       fbranchId: branchId,
       fvariantId: v[0].id,
       lowStock: 0.0,
@@ -524,12 +523,12 @@ class ObjectBoxApi extends MobileUpload implements Api {
       active: false,
       value: 0,
     );
-    VariantSync vs = v[0];
+    Variant vs = v[0];
     vs.stock.target = stock;
 
-    store.box<VariantSync>().put(vs);
+    store.box<Variant>().put(vs);
 
-    final stockBox = store.box<StockSync>();
+    final stockBox = store.box<Stock>();
     stockBox.put(stock);
     return store.box<ProductSync>().get(productId)!;
   }
@@ -540,7 +539,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  Future<VariantSync?> getCustomProductVariant() async {
+  Future<Variant?> getCustomProductVariant() async {
     ProductSync? product = store
         .box<ProductSync>()
         .query(ProductSync_.name.equals('Custom Amount'))
@@ -550,14 +549,14 @@ class ObjectBoxApi extends MobileUpload implements Api {
     if (product == null) {
       ProductSync p = await createProduct(product: customProductMock);
       return store
-          .box<VariantSync>()
-          .query(VariantSync_.fproductId.equals(p.id))
+          .box<Variant>()
+          .query(Variant_.fproductId.equals(p.id))
           .build()
           .findFirst()!;
     } else {
       return store
-          .box<VariantSync>()
-          .query(VariantSync_.fproductId.equals(product.id))
+          .box<Variant>()
+          .query(Variant_.fproductId.equals(product.id))
           .build()
           .findFirst()!;
     }
@@ -569,9 +568,9 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  Future<List<OrderFSync>> orders({required int branchId}) async {
+  Future<List<OrderF>> orders({required int branchId}) async {
     return store
-        .box<OrderFSync>()
+        .box<OrderF>()
         .getAll()
         .where((v) => v.status == 'pending')
         .where((v) => v.fbranchId == branchId)
@@ -579,12 +578,12 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  Future<OrderFSync?> order({required int branchId}) async {
+  Future<OrderF?> order({required int branchId}) async {
     return store
-        .box<OrderFSync>()
-        .query(OrderFSync_.status
+        .box<OrderF>()
+        .query(OrderF_.status
             .equals('pending')
-            .and((OrderFSync_.fbranchId.equals(branchId))))
+            .and((OrderF_.fbranchId.equals(branchId))))
         .build()
         .findFirst();
   }
@@ -618,22 +617,22 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  Future<StockSync> stockByVariantId({required int variantId}) async {
+  Future<Stock> stockByVariantId({required int variantId}) async {
     return store
-        .box<StockSync>()
+        .box<Stock>()
         .getAll()
         .where((v) => v.fvariantId == variantId)
         .toList()[0];
   }
 
   @override
-  Stream<StockSync> stockByVariantIdStream({required int variantId}) {
+  Stream<Stock> stockByVariantIdStream({required int variantId}) {
     return store
-        .box<StockSync>()
-        .query(StockSync_.fvariantId.equals(variantId))
+        .box<Stock>()
+        .query(Stock_.fvariantId.equals(variantId))
         .watch(triggerImmediately: true)
-        // Watching the query produces a Stream<Query<StockSync>>
-        // To get the actual data inside a List<StockSync>, we need to call find() on the query
+        // Watching the query produces a Stream<Query<Stock>>
+        // To get the actual data inside a List<Stock>, we need to call find() on the query
         .map((query) => query.find()[0]);
   }
 
@@ -683,7 +682,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
           synced: map['synced'],
           ftaxId: map['ftaxId'],
         );
-        List<VariantSync> variants =
+        List<Variant> variants =
             ProxyService.api.getVariantByProductId(productId: map['id']);
         final box = store.box<ProductSync>();
         product.variations.addAll(variants);
@@ -691,13 +690,13 @@ class ObjectBoxApi extends MobileUpload implements Api {
         box.put(product, mode: PutMode.update);
         break;
       case 'stock':
-        StockSync? color = store.box<StockSync>().get(id);
+        Stock? color = store.box<Stock>().get(id);
         Map map = color!.toJson();
         data.forEach((key, value) {
           map[key] = value;
         });
         int branchId = ProxyService.box.getBranchId()!;
-        StockSync stock = StockSync(
+        Stock stock = Stock(
           active: map['active'],
           fbranchId: branchId,
           table: map['table'],
@@ -713,7 +712,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
           value: map['value'],
           fvariantId: map['fvariantId'],
         );
-        final box = store.box<StockSync>();
+        final box = store.box<Stock>();
         box.put(stock, mode: PutMode.update);
         break;
       case 'category':
@@ -776,13 +775,13 @@ class ObjectBoxApi extends MobileUpload implements Api {
         box.put(ubusiness, mode: PutMode.update);
         break;
       case 'variant':
-        VariantSync? variation = store.box<VariantSync>().get(id);
+        Variant? variation = store.box<Variant>().get(id);
         Map map = variation!.toJson();
         data.forEach((key, value) {
           map[key] = value;
         });
         int branchId = ProxyService.box.getBranchId()!;
-        VariantSync variant = VariantSync(
+        Variant variant = Variant(
           fbranchId: branchId,
           name: map['name'],
           table: map['table'],
@@ -796,10 +795,10 @@ class ObjectBoxApi extends MobileUpload implements Api {
           unit: map['unit'],
         );
         // get stock where  map['id']
-        StockSync? stock =
+        Stock? stock =
             await getStock(branchId: map['fbranchId'], variantId: map['id']);
         variant.stock.target = stock!;
-        final box = store.box<VariantSync>();
+        final box = store.box<Variant>();
         box.put(variant, mode: PutMode.update);
         break;
       case 'unit':
@@ -840,13 +839,13 @@ class ObjectBoxApi extends MobileUpload implements Api {
         box.put(pcolor, mode: PutMode.update);
         break;
       case 'order':
-        OrderFSync? singleOrder = store.box<OrderFSync>().get(dn['id']);
+        OrderF? singleOrder = store.box<OrderF>().get(dn['id']);
         Map map = singleOrder!.toJson();
         data.forEach((key, value) {
           map[key] = value;
         });
         int branchId = ProxyService.box.getBranchId()!;
-        OrderFSync order = OrderFSync(
+        OrderF order = OrderF(
           active: map['active'],
           fbranchId: branchId,
           table: map['table'],
@@ -867,7 +866,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
           subTotal: map['subTotal'],
           updatedAt: map['updatedAt'],
         );
-        final box = store.box<OrderFSync>();
+        final box = store.box<OrderF>();
         box.put(order, mode: PutMode.update);
         //update relationship OrderItem
         // OrderItem? orderItem = store.box<OrderItem>().get(order.id);
@@ -875,8 +874,8 @@ class ObjectBoxApi extends MobileUpload implements Api {
         // singleOrder.orderItems.add(element)
         //loop through singleOrder.orderItems find where fvariantId equal to the one in data map
         //update the element with the new data this will update the relationship
-        List<OrderItemSync> updatedOrderItem = [];
-        for (OrderItemSync item in singleOrder.orderItems) {
+        List<OrderItem> updatedOrderItem = [];
+        for (OrderItem item in singleOrder.orderItems) {
           if (item.fvariantId == data['fvariantId']) {
             item.fvariantId = data['fvariantId'];
             item.count = data['count'];
@@ -884,7 +883,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
             item.forderId = data['id'];
             item.fvariantId = data['fvariantId'];
             updatedOrderItem.add(item);
-            store.box<OrderItemSync>().put(item, mode: PutMode.update);
+            store.box<OrderItem>().put(item, mode: PutMode.update);
           }
         }
         break;
@@ -951,7 +950,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
       /// when dealing with something that has a relationship
       /// we need to update it as the following.!
       case 'orderItem':
-        OrderItemSync? orderItem = store.box<OrderItemSync>().get(id);
+        OrderItem? orderItem = store.box<OrderItem>().get(id);
 
         orderItem!.forderId = data['forderId'];
         orderItem.fvariantId = data['fvariantId'];
@@ -961,7 +960,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
         orderItem.name = data['name'];
         orderItem.discount = data['discount'];
         orderItem.type = data['type'];
-        store.box<OrderItemSync>().put(orderItem);
+        store.box<OrderItem>().put(orderItem);
         break;
       default:
         return 200;
@@ -1006,8 +1005,8 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  Future<OrderItemSync?> getOrderItem({required int id}) async {
-    return store.box<OrderItemSync>().get(id);
+  Future<OrderItem?> getOrderItem({required int id}) async {
+    return store.box<OrderItem>().get(id);
   }
 
   @override
@@ -1111,7 +1110,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
   @override
   Future assingOrderToCustomer(
       {required int customerId, required int orderId}) async {
-    OrderFSync? order = store.box<OrderFSync>().get(orderId)!;
+    OrderF? order = store.box<OrderF>().get(orderId)!;
     Map korder = order.toJson();
     korder['customerId'] = customerId;
     update(data: korder, endPoint: 'order');
@@ -1148,19 +1147,19 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  Future<OrderFSync> getOrderById({required int id}) async {
-    return store.box<OrderFSync>().getAll().firstWhere((v) => v.id == id);
+  Future<OrderF> getOrderById({required int id}) async {
+    return store.box<OrderF>().getAll().firstWhere((v) => v.id == id);
   }
 
-  /// tickets return [OrderFSync] as tickets if we have
+  /// tickets return [OrderF] as tickets if we have
   /// order with parked status then they are tickets
   /// if first there is norder with [parkedStatus]
   /// then return [] empty list of tickets to signal that we can show save button
   /// for new ticket i.e order
   @override
-  Future<List<OrderFSync>> tickets() async {
-    List<OrderFSync> tickets = store
-        .box<OrderFSync>()
+  Future<List<OrderF>> tickets() async {
+    List<OrderF> tickets = store
+        .box<OrderF>()
         .getAll()
         .where((v) => v.status == pendingStatus)
         .toList();
@@ -1168,34 +1167,33 @@ class ObjectBoxApi extends MobileUpload implements Api {
       return [];
     }
     return store
-        .box<OrderFSync>()
+        .box<OrderF>()
         .getAll()
         .where((v) => v.status == parkedStatus)
         .toList();
   }
 
   @override
-  List<VariantSync> getVariantByProductId({required int productId}) {
+  List<Variant> getVariantByProductId({required int productId}) {
     return store
-        .box<VariantSync>()
+        .box<Variant>()
         .getAll()
         .where((v) => v.fproductId == productId)
         .toList();
   }
 
   @override
-  Future<List<OrderFSync>> getOrderByStatus({required String status}) async {
+  Future<List<OrderF>> getOrderByStatus({required String status}) async {
     return store
-        .box<OrderFSync>()
-        .query(OrderFSync_.status
-            .equals(status)
-            .and((OrderFSync_.reported.equals(false))))
+        .box<OrderF>()
+        .query(
+            OrderF_.status.equals(status).and((OrderF_.reported.equals(false))))
         .build()
         .find();
   }
 
   @override
-  Future<int> sendReport({required List<OrderItemSync> orderItems}) async {
+  Future<int> sendReport({required List<OrderItem> orderItems}) async {
     final response = await client.post(Uri.parse("$apihub/v2/api/report"),
         body: jsonEncode(orderItems),
         headers: {'Content-Type': 'application/json'});
@@ -1345,16 +1343,16 @@ class ObjectBoxApi extends MobileUpload implements Api {
         .findFirst()!;
   }
 
-  /// take the current [OrderFSync] and find related [OrderItemSync]
-  /// if the [OrderItemSync] is not found then return null else return the [OrderItemSync]
+  /// take the current [OrderF] and find related [OrderItem]
+  /// if the [OrderItem] is not found then return null else return the [OrderItem]
   /// when fail to find an element it then throw StateError which means it failed to find the element in the list
   /// then this is the reason why we need to return null as there is no such item which current order.
   @override
-  OrderItemSync? getOrderItemByVariantId(
+  OrderItem? getOrderItemByVariantId(
       {required int variantId, required int orderId}) {
-    OrderFSync? o = store
-        .box<OrderFSync>()
-        .query(OrderFSync_.id.equals(orderId))
+    OrderF? o = store
+        .box<OrderF>()
+        .query(OrderF_.id.equals(orderId))
         .build()
         .findFirst();
     try {
@@ -1419,16 +1417,16 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  List<OrderFSync> weeklyOrdersReport({
+  List<OrderF> weeklyOrdersReport({
     required DateTime weekStartDate,
     required DateTime weekEndDate,
     required int branchId,
   }) {
     List<DateTime> weekDates = getWeeksForRange(weekStartDate, weekEndDate);
-    List<OrderFSync> pastOrders = [];
+    List<OrderF> pastOrders = [];
     for (DateTime date in weekDates) {
-      List<OrderFSync> orders = store
-          .box<OrderFSync>()
+      List<OrderF> orders = store
+          .box<OrderF>()
           .getAll()
           .where((order) =>
               DateTime.parse(order.createdAt).difference(date).inDays >= -7 &&
@@ -1443,7 +1441,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
       }
     }
     // filter list pastOrders for duplicate values of OrderF.orderNumber property
-    Map<String, OrderFSync> mp = {};
+    Map<String, OrderF> mp = {};
     for (var item in pastOrders) {
       mp[item.orderNumber] = item;
     }
@@ -1460,8 +1458,8 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  OrderFSync addOrderItem({required OrderFSync order, required Map data}) {
-    OrderItemSync item = OrderItemSync(
+  OrderF addOrderItem({required OrderF order, required Map data}) {
+    OrderItem item = OrderItem(
       count: data['count'],
       name: data['name'],
       fvariantId: data['fvariantId'],
@@ -1472,8 +1470,8 @@ class ObjectBoxApi extends MobileUpload implements Api {
       remainingStock: data['remainingStock'],
     );
     order.orderItems.add(item);
-    final id = store.box<OrderFSync>().put(order);
-    return store.box<OrderFSync>().get(id)!;
+    final id = store.box<OrderF>().put(order);
+    return store.box<OrderF>().get(id)!;
   }
 
   // @override
@@ -1632,9 +1630,9 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  Future<List<BranchSync>> getLocalBranches({required int businessId}) async {
-    List<BranchSync> kBranches = store
-        .box<BranchSync>()
+  Future<List<Branch>> getLocalBranches({required int businessId}) async {
+    List<Branch> kBranches = store
+        .box<Branch>()
         .getAll()
         .where((unit) => unit.fbusinessId == businessId)
         .toList();
@@ -1685,16 +1683,16 @@ class ObjectBoxApi extends MobileUpload implements Api {
             .and(ProductSync_.draft.equals(false))
             .and(ProductSync_.synced.equals(false)))
         .watch(triggerImmediately: true)
-        // Watching the query produces a Stream<Query<StockSync>>
-        // To get the actual data inside a List<StockSync>, we need to call find() on the query
+        // Watching the query produces a Stream<Query<Stock>>
+        // To get the actual data inside a List<Stock>, we need to call find() on the query
         .map((query) => query.find());
   }
 
   @override
   Future<void> syncProduct({
     required ProductSync product,
-    required VariantSync variant,
-    required StockSync stock,
+    required Variant variant,
+    required Stock stock,
   }) async {
     ProductSync? kProduct = store.box<ProductSync>().get(product.id);
 
@@ -1724,16 +1722,16 @@ class ObjectBoxApi extends MobileUpload implements Api {
     }
   }
 
-  Future<void> syncStock(VariantSync variant, int id, StockSync stock) async {
-    List<VariantSync> v =
+  Future<void> syncStock(Variant variant, int id, Stock stock) async {
+    List<Variant> v =
         await variants(branchId: variant.fbranchId, productId: id);
 
-    VariantSync vs = v[0];
+    Variant vs = v[0];
     vs.stock.target = stock;
 
-    store.box<VariantSync>().put(vs);
+    store.box<Variant>().put(vs);
 
-    final stockBox = store.box<StockSync>();
+    final stockBox = store.box<Stock>();
     stockBox.put(stock);
   }
 
@@ -1782,7 +1780,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
       final productFromStore = store.box<ProductSync>().get(productId)!;
 
       /// build new variants with new model
-      VariantSync variant = VariantSync(
+      Variant variant = Variant(
         name: variantss[0].name,
         sku: 'sku',
         fproductId: productId,
@@ -1803,18 +1801,18 @@ class ObjectBoxApi extends MobileUpload implements Api {
       store.box<ProductSync>().put(productFromStore);
 
       /// get variants from store in new model
-      List<VariantSync> v =
+      List<Variant> v =
           await variants(branchId: branchId, productId: productId);
 
       /// get old stock
       final stock = store
-          .box<StockSync>()
+          .box<Stock>()
           .getAll()
           .where((v) => v.fvariantId == variantss[0].id)
           .toList()[0];
 
       /// build new stock with new model
-      StockSync sStock = StockSync(
+      Stock sStock = Stock(
         fbranchId: stock.fbranchId,
         fvariantId: stock.id,
         lowStock: stock.lowStock,
@@ -1831,14 +1829,14 @@ class ObjectBoxApi extends MobileUpload implements Api {
       );
 
       /// from new variant model add the stock
-      VariantSync vs = v[0];
+      Variant vs = v[0];
       vs.stock.target = sStock;
 
       /// save the new variant model updated with stock
-      store.box<VariantSync>().put(vs);
+      store.box<Variant>().put(vs);
 
       /// save the new stock model
-      final stockBox = store.box<StockSync>();
+      final stockBox = store.box<Stock>();
       stockBox.put(sStock);
 
       /// update product.migrated to true

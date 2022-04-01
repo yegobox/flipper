@@ -71,10 +71,10 @@ class _AddProductViewState extends State<AddProductView> {
         /// normal this is a List of variants where match the productId and take where we have the regular variant
         if (widget.productId != null) {
           log.i(widget.productId);
-          List<VariantSync> variants = await ProxyService.isarApi
+          List<Variant> variants = await ProxyService.isarApi
               .getVariantByProductId(productId: widget.productId!);
           //filter the variants where we have the regular variant and get one of them
-          VariantSync regularVariant =
+          Variant regularVariant =
               variants.firstWhere((variant) => variant.name == 'Regular');
 
           productName.text = model.kProductName;

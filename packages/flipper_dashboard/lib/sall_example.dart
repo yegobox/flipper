@@ -511,10 +511,10 @@ class Sell extends StatelessWidget {
     );
   }
 
-  List<Widget> Variants({required BusinessHomeViewModel model}) {
+  List<Widget> variant({required BusinessHomeViewModel model}) {
     final List<Widget> list = <Widget>[];
 
-    for (VariantSync variant in model.variants) {
+    for (Variant variant in model.variants) {
       list.add(SingleChildScrollView(
         child: InkWell(
           onTap: () {
@@ -535,7 +535,7 @@ class Sell extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      FutureBuilder<VariantSync?>(
+                      FutureBuilder<Variant?>(
                           future: model.getVariant(variantId: variant.id),
                           builder: (context, snapshot) {
                             return snapshot.hasData
@@ -650,7 +650,7 @@ class Sell extends StatelessWidget {
 
                         ListView(
                           shrinkWrap: true,
-                          children: Variants(model: model),
+                          children: variant(model: model),
                         ),
 
                         // endloop  == start/and discounts

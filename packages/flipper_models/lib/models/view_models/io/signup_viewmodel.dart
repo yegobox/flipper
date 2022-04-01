@@ -103,7 +103,7 @@ class SignupViewModel extends FormViewModel {
       // ProxyService.firestore
       //     .saveTokenToDatabase(token: token!, business: businesses[0]);
       // // }
-      List<BranchSync> branches =
+      List<Branch> branches =
           await ProxyService.isarApi.branches(businessId: businesses.id);
 
       ProxyService.box.write(key: 'branchId', value: branches[0].id);

@@ -29,5 +29,5 @@ class ProductSync {
   String? expiryDate;
   String? barCode;
   bool? synced;
-  final variants = IsarLinks<VariantSync>();
+  final variants = IsarLinks<Variant>();
 }

@@ -12,8 +12,8 @@ class AnalyticService with ReactiveServiceMixin {
   final _revenue = ReactiveValue<int>(0);
   int? get revenue => _revenue.value;
 
-  final _orders = ReactiveValue<List<OrderFSync>>([]);
-  List<OrderFSync> get orders => _orders.value;
+  final _orders = ReactiveValue<List<Order>>([]);
+  List<Order> get orders => _orders.value;
 
   countLifeTimeCustomers() {
     int branchId = ProxyService.box.read(key: 'branchId');
@@ -42,7 +42,7 @@ class AnalyticService with ReactiveServiceMixin {
         weekEndDate: today,
         branchId: branchId);
     List<int> revenues = [];
-    for (OrderFSync order in orders) {
+    for (Order order in orders) {
       revenues.add(order.cashReceived.toInt());
     }
     // given data list to be [1,2,3,4,5]

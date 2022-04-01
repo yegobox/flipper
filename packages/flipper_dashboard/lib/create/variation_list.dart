@@ -13,21 +13,21 @@ class VariationList extends StatelessWidget {
     required this.deleteVariant,
     required this.model,
   }) : super(key: key);
-  final List<VariantSync> variations;
+  final List<Variant> variations;
   final ProductViewModel model;
   final Function deleteVariant;
-  Widget _buildVariationsList({required List<VariantSync> variations}) {
+  Widget _buildVariationsList({required List<Variant> variations}) {
     final List<Widget> list = <Widget>[];
 
     for (var i = 0; i < variations.length; i++) {
       if (variations[i].name != 'temp') {
         list.add(
-          StreamBuilder<StockSync>(
+          StreamBuilder<Stock>(
             stream: ProxyService.isarApi.stockByVariantIdStream(
               variantId: variations[i].id,
             ),
             builder: (context, snapshot) {
-              final StockSync? stock = snapshot.data;
+              final Stock? stock = snapshot.data;
               return Slidable(
                 child: Center(
                   child: SizedBox(

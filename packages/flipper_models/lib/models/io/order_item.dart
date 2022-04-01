@@ -4,8 +4,8 @@ import 'order.dart';
 
 @Entity()
 @Sync()
-class OrderItemSync {
-  OrderItemSync(
+class OrderItem {
+  OrderItem(
       {this.id = 0,
       required this.name,
       required this.fvariantId,
@@ -37,9 +37,9 @@ class OrderItemSync {
   String createdAt;
   String updatedAt;
 
-  final order = ToOne<OrderFSync>();
+  final order = ToOne<OrderF>();
 
-  factory OrderItemSync.fromJson(Map<String, dynamic> json) => OrderItemSync(
+  factory OrderItem.fromJson(Map<String, dynamic> json) => OrderItem(
         id: int.parse(json["id"]),
         type: json["type"],
         reported: json["reported"],

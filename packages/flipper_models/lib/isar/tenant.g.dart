@@ -17,7 +17,7 @@ extension GetTenantSyncCollection on Isar {
 final TenantSyncSchema = CollectionSchema(
   name: 'TenantSync',
   schema:
-      '{"name":"TenantSync","idName":"id","properties":[{"name":"email","type":"String"},{"name":"name","type":"String"},{"name":"phoneNumber","type":"String"}],"indexes":[],"links":[{"name":"branches","target":"BranchSync"},{"name":"permissions","target":"Permissionsync"}]}',
+      '{"name":"TenantSync","idName":"id","properties":[{"name":"email","type":"String"},{"name":"name","type":"String"},{"name":"phoneNumber","type":"String"}],"indexes":[],"links":[{"name":"branches","target":"Branch"},{"name":"permissions","target":"Permissionsync"}]}',
   nativeAdapter: const _TenantSyncNativeAdapter(),
   webAdapter: const _TenantSyncWebAdapter(),
   idName: 'id',
@@ -27,7 +27,7 @@ final TenantSyncSchema = CollectionSchema(
   indexTypes: {},
   linkIds: {'branches': 0, 'permissions': 1},
   backlinkIds: {},
-  linkedCollections: ['BranchSync', 'Permissionsync'],
+  linkedCollections: ['Branch', 'Permissionsync'],
   getId: (obj) {
     if (obj.id == Isar.autoIncrement) {
       return null;
@@ -88,7 +88,7 @@ class _TenantSyncWebAdapter extends IsarWebTypeAdapter<TenantSync> {
     object.branches.attach(
       id,
       isar.tenantSyncs,
-      isar.getCollection<BranchSync>('BranchSync'),
+      isar.getCollection<Branch>('Branch'),
       'branches',
       false,
     );
@@ -169,7 +169,7 @@ class _TenantSyncNativeAdapter extends IsarNativeTypeAdapter<TenantSync> {
     object.branches.attach(
       id,
       isar.tenantSyncs,
-      isar.getCollection<BranchSync>('BranchSync'),
+      isar.getCollection<Branch>('Branch'),
       'branches',
       false,
     );

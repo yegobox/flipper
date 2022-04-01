@@ -156,7 +156,7 @@ class _ProductViewState extends State<ProductView> {
             /// show the products
             ...model.productService.products.map(
               (product) {
-                return FutureBuilder<List<StockSync?>>(
+                return FutureBuilder<List<Stock?>>(
                     future: model.productService
                         .loadStockByProductId(productId: product.id),
                     builder: (BuildContext context, stocks) {

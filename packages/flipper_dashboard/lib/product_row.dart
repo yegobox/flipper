@@ -33,7 +33,7 @@ class ProductRow extends StatelessWidget {
   final Function addToMenu;
   final Function edit;
   final ProductViewModel model;
-  final List<StockSync?> stocks;
+  final List<Stock?> stocks;
 
   @override
   Widget build(BuildContext context) {

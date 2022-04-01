@@ -59,7 +59,7 @@ Api getAndRegisterApi() {
   when(service.getCustomProductVariant())
       .thenAnswer((_) async => variationMock);
 
-  when(service.orders()).thenAnswer((_) async => [orderMock!]);
+  // when(service.orders()).thenAnswer((_) async => [orderMock!]);
 
   when(service.stockByVariantId(variantId: variationMock.id))
       .thenAnswer((_) async => stockMock);
@@ -97,9 +97,9 @@ Api getAndRegisterApi() {
     ),
   );
 
-  when(service.createOrder(
-          customAmount: 0.0, variation: variationMock, price: 0.0, quantity: 1))
-      .thenAnswer((_) async => Future.value(orderMock));
+  // when(service.createOrder(
+  //         customAmount: 0.0, variation: variationMock, price: 0.0, quantity: 1))
+  //     .thenAnswer((_) async => Future.value(orderMock));
 
   locator.registerSingleton<Api>(service);
   return service;

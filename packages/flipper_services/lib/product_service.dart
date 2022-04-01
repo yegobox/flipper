@@ -48,7 +48,7 @@ class ProductService with ReactiveServiceMixin {
   }
 
   final _variants = ReactiveValue<dynamic>(null);
-  List<VariantSync>? get variants => _variants.value;
+  List<Variant>? get variants => _variants.value;
 
   Future<void> variantsProduct({required int productId}) async {
     final int? branchId = ProxyService.box.read(key: 'branchId');
@@ -86,10 +86,9 @@ class ProductService with ReactiveServiceMixin {
     return await ProxyService.isarApi.getProductByBarCode(barCode: code);
   }
 
-  List<StockSync?> _stocks = [];
-  List<StockSync?> get stocks => _stocks;
-  Future<List<StockSync?>> loadStockByProductId(
-      {required int productId}) async {
+  List<Stock?> _stocks = [];
+  List<Stock?> get stocks => _stocks;
+  Future<List<Stock?>> loadStockByProductId({required int productId}) async {
     _stocks = await ProxyService.isarApi.stocks(productId: productId);
     log.i("stock::${_stocks[0]!.retailPrice}");
     return stocks;

@@ -23,7 +23,7 @@ class MessageService with ReactiveServiceMixin {
 
   final _orders = ReactiveValue<dynamic>(null);
 
-  OrderFSync? get orders => _orders.value;
+  OrderF? get orders => _orders.value;
   void onNewOrder() {
     // _orders.value = new OrderF();
   }

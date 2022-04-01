@@ -8,18 +8,18 @@ part of flipper_models;
 
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast
 
-extension GetStockSyncCollection on Isar {
-  IsarCollection<StockSync> get stockSyncs {
-    return getCollection('StockSync');
+extension GetStockCollection on Isar {
+  IsarCollection<Stock> get stocks {
+    return getCollection('Stock');
   }
 }
 
-final StockSyncSchema = CollectionSchema(
-  name: 'StockSync',
+final StockSchema = CollectionSchema(
+  name: 'Stock',
   schema:
-      '{"name":"StockSync","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"canTrackingStock","type":"Bool"},{"name":"currentStock","type":"Double"},{"name":"lowStock","type":"Double"},{"name":"productId","type":"Long"},{"name":"retailPrice","type":"Double"},{"name":"showLowStockAlert","type":"Bool"},{"name":"supplyPrice","type":"Double"},{"name":"value","type":"Double"},{"name":"variantId","type":"Long"}],"indexes":[],"links":[]}',
-  nativeAdapter: const _StockSyncNativeAdapter(),
-  webAdapter: const _StockSyncWebAdapter(),
+      '{"name":"Stock","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"canTrackingStock","type":"Bool"},{"name":"currentStock","type":"Double"},{"name":"lowStock","type":"Double"},{"name":"productId","type":"Long"},{"name":"retailPrice","type":"Double"},{"name":"showLowStockAlert","type":"Bool"},{"name":"supplyPrice","type":"Double"},{"name":"value","type":"Double"},{"name":"variantId","type":"Long"}],"indexes":[],"links":[]}',
+  nativeAdapter: const _StockNativeAdapter(),
+  webAdapter: const _StockWebAdapter(),
   idName: 'id',
   propertyIds: {
     'active': 0,
@@ -52,11 +52,11 @@ final StockSyncSchema = CollectionSchema(
   version: 2,
 );
 
-class _StockSyncWebAdapter extends IsarWebTypeAdapter<StockSync> {
-  const _StockSyncWebAdapter();
+class _StockWebAdapter extends IsarWebTypeAdapter<Stock> {
+  const _StockWebAdapter();
 
   @override
-  Object serialize(IsarCollection<StockSync> collection, StockSync object) {
+  Object serialize(IsarCollection<Stock> collection, Stock object) {
     final jsObj = IsarNative.newJsObject();
     IsarNative.jsObjectSet(jsObj, 'active', object.active);
     IsarNative.jsObjectSet(jsObj, 'branchId', object.branchId);
@@ -75,8 +75,8 @@ class _StockSyncWebAdapter extends IsarWebTypeAdapter<StockSync> {
   }
 
   @override
-  StockSync deserialize(IsarCollection<StockSync> collection, dynamic jsObj) {
-    final object = StockSync();
+  Stock deserialize(IsarCollection<Stock> collection, dynamic jsObj) {
+    final object = Stock();
     object.active = IsarNative.jsObjectGet(jsObj, 'active');
     object.branchId =
         IsarNative.jsObjectGet(jsObj, 'branchId') ?? double.negativeInfinity;
@@ -135,15 +135,15 @@ class _StockSyncWebAdapter extends IsarWebTypeAdapter<StockSync> {
   }
 
   @override
-  void attachLinks(Isar isar, int id, StockSync object) {}
+  void attachLinks(Isar isar, int id, Stock object) {}
 }
 
-class _StockSyncNativeAdapter extends IsarNativeTypeAdapter<StockSync> {
-  const _StockSyncNativeAdapter();
+class _StockNativeAdapter extends IsarNativeTypeAdapter<Stock> {
+  const _StockNativeAdapter();
 
   @override
-  void serialize(IsarCollection<StockSync> collection, IsarRawObject rawObj,
-      StockSync object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
+  void serialize(IsarCollection<Stock> collection, IsarRawObject rawObj,
+      Stock object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
     var dynamicSize = 0;
     final value0 = object.active;
     final _active = value0;
@@ -187,9 +187,9 @@ class _StockSyncNativeAdapter extends IsarNativeTypeAdapter<StockSync> {
   }
 
   @override
-  StockSync deserialize(IsarCollection<StockSync> collection, int id,
+  Stock deserialize(IsarCollection<Stock> collection, int id,
       IsarBinaryReader reader, List<int> offsets) {
-    final object = StockSync();
+    final object = Stock();
     object.active = reader.readBoolOrNull(offsets[0]);
     object.branchId = reader.readLong(offsets[1]);
     object.canTrackingStock = reader.readBoolOrNull(offsets[2]);
@@ -239,19 +239,17 @@ class _StockSyncNativeAdapter extends IsarNativeTypeAdapter<StockSync> {
   }
 
   @override
-  void attachLinks(Isar isar, int id, StockSync object) {}
+  void attachLinks(Isar isar, int id, Stock object) {}
 }
 
-extension StockSyncQueryWhereSort
-    on QueryBuilder<StockSync, StockSync, QWhere> {
-  QueryBuilder<StockSync, StockSync, QAfterWhere> anyId() {
+extension StockQueryWhereSort on QueryBuilder<Stock, Stock, QWhere> {
+  QueryBuilder<Stock, Stock, QAfterWhere> anyId() {
     return addWhereClauseInternal(const WhereClause(indexName: null));
   }
 }
 
-extension StockSyncQueryWhere
-    on QueryBuilder<StockSync, StockSync, QWhereClause> {
-  QueryBuilder<StockSync, StockSync, QAfterWhereClause> idEqualTo(int id) {
+extension StockQueryWhere on QueryBuilder<Stock, Stock, QWhereClause> {
+  QueryBuilder<Stock, Stock, QAfterWhereClause> idEqualTo(int id) {
     return addWhereClauseInternal(WhereClause(
       indexName: null,
       lower: [id],
@@ -261,7 +259,7 @@ extension StockSyncQueryWhere
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterWhereClause> idNotEqualTo(int id) {
+  QueryBuilder<Stock, Stock, QAfterWhereClause> idNotEqualTo(int id) {
     if (whereSortInternal == Sort.asc) {
       return addWhereClauseInternal(WhereClause(
         indexName: null,
@@ -285,7 +283,7 @@ extension StockSyncQueryWhere
     }
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterWhereClause> idGreaterThan(
+  QueryBuilder<Stock, Stock, QAfterWhereClause> idGreaterThan(
     int id, {
     bool include = false,
   }) {
@@ -296,7 +294,7 @@ extension StockSyncQueryWhere
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterWhereClause> idLessThan(
+  QueryBuilder<Stock, Stock, QAfterWhereClause> idLessThan(
     int id, {
     bool include = false,
   }) {
@@ -307,7 +305,7 @@ extension StockSyncQueryWhere
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterWhereClause> idBetween(
+  QueryBuilder<Stock, Stock, QAfterWhereClause> idBetween(
     int lowerId,
     int upperId, {
     bool includeLower = true,
@@ -323,9 +321,8 @@ extension StockSyncQueryWhere
   }
 }
 
-extension StockSyncQueryFilter
-    on QueryBuilder<StockSync, StockSync, QFilterCondition> {
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition> activeIsNull() {
+extension StockQueryFilter on QueryBuilder<Stock, Stock, QFilterCondition> {
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> activeIsNull() {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.isNull,
       property: 'active',
@@ -333,8 +330,7 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition> activeEqualTo(
-      bool? value) {
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> activeEqualTo(bool? value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
       property: 'active',
@@ -342,8 +338,7 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition> branchIdEqualTo(
-      int value) {
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> branchIdEqualTo(int value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
       property: 'branchId',
@@ -351,7 +346,7 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition> branchIdGreaterThan(
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> branchIdGreaterThan(
     int value, {
     bool include = false,
   }) {
@@ -363,7 +358,7 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition> branchIdLessThan(
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> branchIdLessThan(
     int value, {
     bool include = false,
   }) {
@@ -375,7 +370,7 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition> branchIdBetween(
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> branchIdBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -390,8 +385,7 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition>
-      canTrackingStockIsNull() {
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> canTrackingStockIsNull() {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.isNull,
       property: 'canTrackingStock',
@@ -399,8 +393,8 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition>
-      canTrackingStockEqualTo(bool? value) {
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> canTrackingStockEqualTo(
+      bool? value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
       property: 'canTrackingStock',
@@ -408,8 +402,8 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition>
-      currentStockGreaterThan(double value) {
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> currentStockGreaterThan(
+      double value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.gt,
       include: false,
@@ -418,8 +412,8 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition>
-      currentStockLessThan(double value) {
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> currentStockLessThan(
+      double value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.lt,
       include: false,
@@ -428,7 +422,7 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition> currentStockBetween(
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> currentStockBetween(
       double lower, double upper) {
     return addFilterConditionInternal(FilterCondition.between(
       property: 'currentStock',
@@ -439,8 +433,7 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition> idEqualTo(
-      int value) {
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> idEqualTo(int value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
       property: 'id',
@@ -448,7 +441,7 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition> idGreaterThan(
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> idGreaterThan(
     int value, {
     bool include = false,
   }) {
@@ -460,7 +453,7 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition> idLessThan(
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> idLessThan(
     int value, {
     bool include = false,
   }) {
@@ -472,7 +465,7 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition> idBetween(
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> idBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -487,7 +480,7 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition> lowStockIsNull() {
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> lowStockIsNull() {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.isNull,
       property: 'lowStock',
@@ -495,7 +488,7 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition> lowStockGreaterThan(
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> lowStockGreaterThan(
       double? value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.gt,
@@ -505,7 +498,7 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition> lowStockLessThan(
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> lowStockLessThan(
       double? value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.lt,
@@ -515,7 +508,7 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition> lowStockBetween(
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> lowStockBetween(
       double? lower, double? upper) {
     return addFilterConditionInternal(FilterCondition.between(
       property: 'lowStock',
@@ -526,7 +519,7 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition> productIdEqualTo(
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> productIdEqualTo(
       int value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
@@ -535,8 +528,7 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition>
-      productIdGreaterThan(
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> productIdGreaterThan(
     int value, {
     bool include = false,
   }) {
@@ -548,7 +540,7 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition> productIdLessThan(
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> productIdLessThan(
     int value, {
     bool include = false,
   }) {
@@ -560,7 +552,7 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition> productIdBetween(
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> productIdBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -575,8 +567,7 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition>
-      retailPriceIsNull() {
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> retailPriceIsNull() {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.isNull,
       property: 'retailPrice',
@@ -584,8 +575,8 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition>
-      retailPriceGreaterThan(double? value) {
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> retailPriceGreaterThan(
+      double? value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.gt,
       include: false,
@@ -594,7 +585,7 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition> retailPriceLessThan(
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> retailPriceLessThan(
       double? value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.lt,
@@ -604,7 +595,7 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition> retailPriceBetween(
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> retailPriceBetween(
       double? lower, double? upper) {
     return addFilterConditionInternal(FilterCondition.between(
       property: 'retailPrice',
@@ -615,8 +606,7 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition>
-      showLowStockAlertIsNull() {
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> showLowStockAlertIsNull() {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.isNull,
       property: 'showLowStockAlert',
@@ -624,8 +614,8 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition>
-      showLowStockAlertEqualTo(bool? value) {
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> showLowStockAlertEqualTo(
+      bool? value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
       property: 'showLowStockAlert',
@@ -633,8 +623,7 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition>
-      supplyPriceIsNull() {
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> supplyPriceIsNull() {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.isNull,
       property: 'supplyPrice',
@@ -642,8 +631,8 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition>
-      supplyPriceGreaterThan(double? value) {
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> supplyPriceGreaterThan(
+      double? value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.gt,
       include: false,
@@ -652,7 +641,7 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition> supplyPriceLessThan(
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> supplyPriceLessThan(
       double? value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.lt,
@@ -662,7 +651,7 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition> supplyPriceBetween(
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> supplyPriceBetween(
       double? lower, double? upper) {
     return addFilterConditionInternal(FilterCondition.between(
       property: 'supplyPrice',
@@ -673,7 +662,7 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition> valueIsNull() {
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> valueIsNull() {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.isNull,
       property: 'value',
@@ -681,7 +670,7 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition> valueGreaterThan(
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> valueGreaterThan(
       double? value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.gt,
@@ -691,7 +680,7 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition> valueLessThan(
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> valueLessThan(
       double? value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.lt,
@@ -701,7 +690,7 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition> valueBetween(
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> valueBetween(
       double? lower, double? upper) {
     return addFilterConditionInternal(FilterCondition.between(
       property: 'value',
@@ -712,7 +701,7 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition> variantIdEqualTo(
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> variantIdEqualTo(
       int value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
@@ -721,8 +710,7 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition>
-      variantIdGreaterThan(
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> variantIdGreaterThan(
     int value, {
     bool include = false,
   }) {
@@ -734,7 +722,7 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition> variantIdLessThan(
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> variantIdLessThan(
     int value, {
     bool include = false,
   }) {
@@ -746,7 +734,7 @@ extension StockSyncQueryFilter
     ));
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterFilterCondition> variantIdBetween(
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> variantIdBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -762,306 +750,298 @@ extension StockSyncQueryFilter
   }
 }
 
-extension StockSyncQueryWhereSortBy
-    on QueryBuilder<StockSync, StockSync, QSortBy> {
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> sortByActive() {
+extension StockQueryWhereSortBy on QueryBuilder<Stock, Stock, QSortBy> {
+  QueryBuilder<Stock, Stock, QAfterSortBy> sortByActive() {
     return addSortByInternal('active', Sort.asc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> sortByActiveDesc() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> sortByActiveDesc() {
     return addSortByInternal('active', Sort.desc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> sortByBranchId() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> sortByBranchId() {
     return addSortByInternal('branchId', Sort.asc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> sortByBranchIdDesc() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> sortByBranchIdDesc() {
     return addSortByInternal('branchId', Sort.desc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> sortByCanTrackingStock() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> sortByCanTrackingStock() {
     return addSortByInternal('canTrackingStock', Sort.asc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy>
-      sortByCanTrackingStockDesc() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> sortByCanTrackingStockDesc() {
     return addSortByInternal('canTrackingStock', Sort.desc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> sortByCurrentStock() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> sortByCurrentStock() {
     return addSortByInternal('currentStock', Sort.asc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> sortByCurrentStockDesc() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> sortByCurrentStockDesc() {
     return addSortByInternal('currentStock', Sort.desc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> sortById() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> sortById() {
     return addSortByInternal('id', Sort.asc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> sortByIdDesc() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> sortByIdDesc() {
     return addSortByInternal('id', Sort.desc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> sortByLowStock() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> sortByLowStock() {
     return addSortByInternal('lowStock', Sort.asc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> sortByLowStockDesc() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> sortByLowStockDesc() {
     return addSortByInternal('lowStock', Sort.desc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> sortByProductId() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> sortByProductId() {
     return addSortByInternal('productId', Sort.asc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> sortByProductIdDesc() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> sortByProductIdDesc() {
     return addSortByInternal('productId', Sort.desc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> sortByRetailPrice() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> sortByRetailPrice() {
     return addSortByInternal('retailPrice', Sort.asc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> sortByRetailPriceDesc() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> sortByRetailPriceDesc() {
     return addSortByInternal('retailPrice', Sort.desc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> sortByShowLowStockAlert() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> sortByShowLowStockAlert() {
     return addSortByInternal('showLowStockAlert', Sort.asc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy>
-      sortByShowLowStockAlertDesc() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> sortByShowLowStockAlertDesc() {
     return addSortByInternal('showLowStockAlert', Sort.desc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> sortBySupplyPrice() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> sortBySupplyPrice() {
     return addSortByInternal('supplyPrice', Sort.asc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> sortBySupplyPriceDesc() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> sortBySupplyPriceDesc() {
     return addSortByInternal('supplyPrice', Sort.desc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> sortByValue() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> sortByValue() {
     return addSortByInternal('value', Sort.asc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> sortByValueDesc() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> sortByValueDesc() {
     return addSortByInternal('value', Sort.desc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> sortByVariantId() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> sortByVariantId() {
     return addSortByInternal('variantId', Sort.asc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> sortByVariantIdDesc() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> sortByVariantIdDesc() {
     return addSortByInternal('variantId', Sort.desc);
   }
 }
 
-extension StockSyncQueryWhereSortThenBy
-    on QueryBuilder<StockSync, StockSync, QSortThenBy> {
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> thenByActive() {
+extension StockQueryWhereSortThenBy on QueryBuilder<Stock, Stock, QSortThenBy> {
+  QueryBuilder<Stock, Stock, QAfterSortBy> thenByActive() {
     return addSortByInternal('active', Sort.asc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> thenByActiveDesc() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> thenByActiveDesc() {
     return addSortByInternal('active', Sort.desc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> thenByBranchId() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> thenByBranchId() {
     return addSortByInternal('branchId', Sort.asc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> thenByBranchIdDesc() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> thenByBranchIdDesc() {
     return addSortByInternal('branchId', Sort.desc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> thenByCanTrackingStock() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> thenByCanTrackingStock() {
     return addSortByInternal('canTrackingStock', Sort.asc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy>
-      thenByCanTrackingStockDesc() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> thenByCanTrackingStockDesc() {
     return addSortByInternal('canTrackingStock', Sort.desc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> thenByCurrentStock() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> thenByCurrentStock() {
     return addSortByInternal('currentStock', Sort.asc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> thenByCurrentStockDesc() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> thenByCurrentStockDesc() {
     return addSortByInternal('currentStock', Sort.desc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> thenById() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> thenById() {
     return addSortByInternal('id', Sort.asc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> thenByIdDesc() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> thenByIdDesc() {
     return addSortByInternal('id', Sort.desc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> thenByLowStock() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> thenByLowStock() {
     return addSortByInternal('lowStock', Sort.asc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> thenByLowStockDesc() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> thenByLowStockDesc() {
     return addSortByInternal('lowStock', Sort.desc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> thenByProductId() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> thenByProductId() {
     return addSortByInternal('productId', Sort.asc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> thenByProductIdDesc() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> thenByProductIdDesc() {
     return addSortByInternal('productId', Sort.desc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> thenByRetailPrice() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> thenByRetailPrice() {
     return addSortByInternal('retailPrice', Sort.asc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> thenByRetailPriceDesc() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> thenByRetailPriceDesc() {
     return addSortByInternal('retailPrice', Sort.desc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> thenByShowLowStockAlert() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> thenByShowLowStockAlert() {
     return addSortByInternal('showLowStockAlert', Sort.asc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy>
-      thenByShowLowStockAlertDesc() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> thenByShowLowStockAlertDesc() {
     return addSortByInternal('showLowStockAlert', Sort.desc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> thenBySupplyPrice() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> thenBySupplyPrice() {
     return addSortByInternal('supplyPrice', Sort.asc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> thenBySupplyPriceDesc() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> thenBySupplyPriceDesc() {
     return addSortByInternal('supplyPrice', Sort.desc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> thenByValue() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> thenByValue() {
     return addSortByInternal('value', Sort.asc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> thenByValueDesc() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> thenByValueDesc() {
     return addSortByInternal('value', Sort.desc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> thenByVariantId() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> thenByVariantId() {
     return addSortByInternal('variantId', Sort.asc);
   }
 
-  QueryBuilder<StockSync, StockSync, QAfterSortBy> thenByVariantIdDesc() {
+  QueryBuilder<Stock, Stock, QAfterSortBy> thenByVariantIdDesc() {
     return addSortByInternal('variantId', Sort.desc);
   }
 }
 
-extension StockSyncQueryWhereDistinct
-    on QueryBuilder<StockSync, StockSync, QDistinct> {
-  QueryBuilder<StockSync, StockSync, QDistinct> distinctByActive() {
+extension StockQueryWhereDistinct on QueryBuilder<Stock, Stock, QDistinct> {
+  QueryBuilder<Stock, Stock, QDistinct> distinctByActive() {
     return addDistinctByInternal('active');
   }
 
-  QueryBuilder<StockSync, StockSync, QDistinct> distinctByBranchId() {
+  QueryBuilder<Stock, Stock, QDistinct> distinctByBranchId() {
     return addDistinctByInternal('branchId');
   }
 
-  QueryBuilder<StockSync, StockSync, QDistinct> distinctByCanTrackingStock() {
+  QueryBuilder<Stock, Stock, QDistinct> distinctByCanTrackingStock() {
     return addDistinctByInternal('canTrackingStock');
   }
 
-  QueryBuilder<StockSync, StockSync, QDistinct> distinctByCurrentStock() {
+  QueryBuilder<Stock, Stock, QDistinct> distinctByCurrentStock() {
     return addDistinctByInternal('currentStock');
   }
 
-  QueryBuilder<StockSync, StockSync, QDistinct> distinctById() {
+  QueryBuilder<Stock, Stock, QDistinct> distinctById() {
     return addDistinctByInternal('id');
   }
 
-  QueryBuilder<StockSync, StockSync, QDistinct> distinctByLowStock() {
+  QueryBuilder<Stock, Stock, QDistinct> distinctByLowStock() {
     return addDistinctByInternal('lowStock');
   }
 
-  QueryBuilder<StockSync, StockSync, QDistinct> distinctByProductId() {
+  QueryBuilder<Stock, Stock, QDistinct> distinctByProductId() {
     return addDistinctByInternal('productId');
   }
 
-  QueryBuilder<StockSync, StockSync, QDistinct> distinctByRetailPrice() {
+  QueryBuilder<Stock, Stock, QDistinct> distinctByRetailPrice() {
     return addDistinctByInternal('retailPrice');
   }
 
-  QueryBuilder<StockSync, StockSync, QDistinct> distinctByShowLowStockAlert() {
+  QueryBuilder<Stock, Stock, QDistinct> distinctByShowLowStockAlert() {
     return addDistinctByInternal('showLowStockAlert');
   }
 
-  QueryBuilder<StockSync, StockSync, QDistinct> distinctBySupplyPrice() {
+  QueryBuilder<Stock, Stock, QDistinct> distinctBySupplyPrice() {
     return addDistinctByInternal('supplyPrice');
   }
 
-  QueryBuilder<StockSync, StockSync, QDistinct> distinctByValue() {
+  QueryBuilder<Stock, Stock, QDistinct> distinctByValue() {
     return addDistinctByInternal('value');
   }
 
-  QueryBuilder<StockSync, StockSync, QDistinct> distinctByVariantId() {
+  QueryBuilder<Stock, Stock, QDistinct> distinctByVariantId() {
     return addDistinctByInternal('variantId');
   }
 }
 
-extension StockSyncQueryProperty
-    on QueryBuilder<StockSync, StockSync, QQueryProperty> {
-  QueryBuilder<StockSync, bool?, QQueryOperations> activeProperty() {
+extension StockQueryProperty on QueryBuilder<Stock, Stock, QQueryProperty> {
+  QueryBuilder<Stock, bool?, QQueryOperations> activeProperty() {
     return addPropertyNameInternal('active');
   }
 
-  QueryBuilder<StockSync, int, QQueryOperations> branchIdProperty() {
+  QueryBuilder<Stock, int, QQueryOperations> branchIdProperty() {
     return addPropertyNameInternal('branchId');
   }
 
-  QueryBuilder<StockSync, bool?, QQueryOperations> canTrackingStockProperty() {
+  QueryBuilder<Stock, bool?, QQueryOperations> canTrackingStockProperty() {
     return addPropertyNameInternal('canTrackingStock');
   }
 
-  QueryBuilder<StockSync, double, QQueryOperations> currentStockProperty() {
+  QueryBuilder<Stock, double, QQueryOperations> currentStockProperty() {
     return addPropertyNameInternal('currentStock');
   }
 
-  QueryBuilder<StockSync, int, QQueryOperations> idProperty() {
+  QueryBuilder<Stock, int, QQueryOperations> idProperty() {
     return addPropertyNameInternal('id');
   }
 
-  QueryBuilder<StockSync, double?, QQueryOperations> lowStockProperty() {
+  QueryBuilder<Stock, double?, QQueryOperations> lowStockProperty() {
     return addPropertyNameInternal('lowStock');
   }
 
-  QueryBuilder<StockSync, int, QQueryOperations> productIdProperty() {
+  QueryBuilder<Stock, int, QQueryOperations> productIdProperty() {
     return addPropertyNameInternal('productId');
   }
 
-  QueryBuilder<StockSync, double?, QQueryOperations> retailPriceProperty() {
+  QueryBuilder<Stock, double?, QQueryOperations> retailPriceProperty() {
     return addPropertyNameInternal('retailPrice');
   }
 
-  QueryBuilder<StockSync, bool?, QQueryOperations> showLowStockAlertProperty() {
+  QueryBuilder<Stock, bool?, QQueryOperations> showLowStockAlertProperty() {
     return addPropertyNameInternal('showLowStockAlert');
   }
 
-  QueryBuilder<StockSync, double?, QQueryOperations> supplyPriceProperty() {
+  QueryBuilder<Stock, double?, QQueryOperations> supplyPriceProperty() {
     return addPropertyNameInternal('supplyPrice');
   }
 
-  QueryBuilder<StockSync, double?, QQueryOperations> valueProperty() {
+  QueryBuilder<Stock, double?, QQueryOperations> valueProperty() {
     return addPropertyNameInternal('value');
   }
 
-  QueryBuilder<StockSync, int, QQueryOperations> variantIdProperty() {
+  QueryBuilder<Stock, int, QQueryOperations> variantIdProperty() {
     return addPropertyNameInternal('variantId');
   }
 }

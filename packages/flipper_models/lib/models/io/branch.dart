@@ -9,19 +9,19 @@ import './subscription.dart';
 import './tenant.dart';
 import 'package:objectbox/objectbox.dart';
 
-BranchSync sbranchFromJson(String str) => BranchSync.fromJson(json.decode(str));
-String sbranchToJson(BranchSync data) => json.encode(data.toJson());
+Branch sbranchFromJson(String str) => Branch.fromJson(json.decode(str));
+String sbranchToJson(Branch data) => json.encode(data.toJson());
 
-List<BranchSync> branchFromJson(String str) =>
-    List<BranchSync>.from(json.decode(str).map((x) => BranchSync.fromJson(x)));
+List<Branch> branchFromJson(String str) =>
+    List<Branch>.from(json.decode(str).map((x) => Branch.fromJson(x)));
 
-String branchToJson(List<BranchSync> data) =>
+String branchToJson(List<Branch> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
 @Entity()
 @Sync()
-class BranchSync {
-  BranchSync({
+class Branch {
+  Branch({
     this.id = 0,
     required this.active,
     this.channels,
@@ -48,7 +48,7 @@ class BranchSync {
 
   final subscription = ToOne<Subscription>();
 
-  factory BranchSync.fromJson(Map<String, dynamic> json) => BranchSync(
+  factory Branch.fromJson(Map<String, dynamic> json) => Branch(
         id: json["id"],
         active: json["active"] == null ? false : json["active"],
         description: json["description"] == null ? '' : json["description"],

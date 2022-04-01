@@ -8,20 +8,19 @@ import 'dart:convert';
 import 'package:isar/isar.dart';
 part 'stock_sync.g.dart';
 
-StockSync sstockFromJsonSync(String str) =>
-    StockSync.fromJson(json.decode(str));
+Stock sstockFromJsonSync(String str) => Stock.fromJson(json.decode(str));
 
-String sstockToJsonSync(StockSync data) => json.encode(data.toJson());
+String sstockToJsonSync(Stock data) => json.encode(data.toJson());
 
-List<StockSync> stocksFromJsonSync(String str) =>
-    List<StockSync>.from(json.decode(str).map((x) => StockSync.fromJson(x)));
+List<Stock> stocksFromJsonSync(String str) =>
+    List<Stock>.from(json.decode(str).map((x) => Stock.fromJson(x)));
 
-String stockToJsonSync(List<StockSync> data) =>
+String stockToJsonSync(List<Stock> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
 @Collection()
-class StockSync {
-  StockSync({
+class Stock {
+  Stock({
     this.id = 0,
     this.fbranchId,
     required this.fvariantId,
@@ -53,7 +52,7 @@ class StockSync {
   late bool? active;
   late double value; // the value of stock items ie. count * retailPrice
   dynamic target;
-  factory StockSync.fromJson(Map<dynamic, dynamic> json) => StockSync(
+  factory Stock.fromJson(Map<dynamic, dynamic> json) => Stock(
         id: json["id"],
         fbranchId: json["fbranchId"],
         fvariantId: json["fvariantId"],

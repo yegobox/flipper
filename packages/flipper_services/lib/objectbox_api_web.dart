@@ -14,7 +14,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  OrderFSync addOrderItem({required OrderFSync order, required Map data}) {
+  OrderF addOrderItem({required OrderF order, required Map data}) {
     // TODO: implement addOrderItem
     throw UnimplementedError();
   }
@@ -44,7 +44,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
 
   @override
   Future<int> addVariant(
-      {required List<VariantSync> data,
+      {required List<Variant> data,
       required double retailPrice,
       required double supplyPrice}) {
     // TODO: implement addVariant
@@ -59,7 +59,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  Future<List<BranchSync>> branches({required int businessId}) {
+  Future<List<Branch>> branches({required int businessId}) {
     // TODO: implement branches
     throw UnimplementedError();
   }
@@ -78,7 +78,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
 
   @override
   Future<void> collectCashPayment(
-      {required double cashReceived, required OrderFSync order}) {
+      {required double cashReceived, required OrderF order}) {
     // TODO: implement collectCashPayment
     throw UnimplementedError();
   }
@@ -119,9 +119,9 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  Future<OrderFSync> createOrder(
+  Future<OrderF> createOrder(
       {required double customAmount,
-      required VariantSync variation,
+      required Variant variation,
       required double price,
       bool useProductName = false,
       String orderType = 'custom',
@@ -197,7 +197,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  Future<VariantSync?> getCustomProductVariant() {
+  Future<Variant?> getCustomProductVariant() {
     // TODO: implement getCustomProductVariant
     throw UnimplementedError();
   }
@@ -221,7 +221,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  Future<List<BranchSync>> getLocalBranches({required int businessId}) {
+  Future<List<Branch>> getLocalBranches({required int businessId}) {
     // TODO: implement getLocalBranches
     throw UnimplementedError();
   }
@@ -239,25 +239,25 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  Future<OrderFSync> getOrderById({required int id}) {
+  Future<OrderF> getOrderById({required int id}) {
     // TODO: implement getOrderById
     throw UnimplementedError();
   }
 
   @override
-  Future<List<OrderFSync>> getOrderByStatus({required String status}) {
+  Future<List<OrderF>> getOrderByStatus({required String status}) {
     // TODO: implement getOrderByStatus
     throw UnimplementedError();
   }
 
   @override
-  Future<OrderItemSync?> getOrderItem({required int id}) {
+  Future<OrderItem?> getOrderItem({required int id}) {
     // TODO: implement getOrderItem
     throw UnimplementedError();
   }
 
   @override
-  OrderItemSync? getOrderItemByVariantId(
+  OrderItem? getOrderItemByVariantId(
       {required int variantId, required int orderId}) {
     // TODO: implement getOrderItemByVariantId
     throw UnimplementedError();
@@ -294,7 +294,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  Future<StockSync?> getStock({required int branchId, required int variantId}) {
+  Future<Stock?> getStock({required int branchId, required int variantId}) {
     // TODO: implement getStock
     throw UnimplementedError();
   }
@@ -306,7 +306,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  List<VariantSync> getVariantByProductId({required int productId}) {
+  List<Variant> getVariantByProductId({required int productId}) {
     // TODO: implement getVariantByProductId
     throw UnimplementedError();
   }
@@ -359,13 +359,13 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  Future<OrderFSync?> order({required int branchId}) {
+  Future<OrderF?> order({required int branchId}) {
     // TODO: implement order
     throw UnimplementedError();
   }
 
   @override
-  Future<List<OrderFSync>> orders({required int branchId}) {
+  Future<List<OrderF>> orders({required int branchId}) {
     // TODO: implement orders
     throw UnimplementedError();
   }
@@ -406,7 +406,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  Future<int> sendReport({required List<OrderItemSync> orderItems}) {
+  Future<int> sendReport({required List<OrderItem> orderItems}) {
     // TODO: implement sendReport
     throw UnimplementedError();
   }
@@ -424,19 +424,19 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  Future<StockSync> stockByVariantId({required int variantId}) {
+  Future<Stock> stockByVariantId({required int variantId}) {
     // TODO: implement stockByVariantId
     throw UnimplementedError();
   }
 
   @override
-  Stream<StockSync> stockByVariantIdStream({required int variantId}) {
+  Stream<Stock> stockByVariantIdStream({required int variantId}) {
     // TODO: implement stockByVariantIdStream
     throw UnimplementedError();
   }
 
   @override
-  List<StockSync> stocks({required int productId}) {
+  List<Stock> stocks({required int productId}) {
     // TODO: implement stocks
     throw UnimplementedError();
   }
@@ -459,14 +459,14 @@ class ObjectBoxApi extends MobileUpload implements Api {
   @override
   Future<void> syncProduct(
       {required ProductSync product,
-      required VariantSync variant,
-      required StockSync stock}) {
+      required Variant variant,
+      required Stock stock}) {
     // TODO: implement syncProduct
     throw UnimplementedError();
   }
 
   @override
-  Future<List<OrderFSync>> tickets() {
+  Future<List<OrderF>> tickets() {
     // TODO: implement tickets
     throw UnimplementedError();
   }
@@ -508,20 +508,20 @@ class ObjectBoxApi extends MobileUpload implements Api {
   }
 
   @override
-  Future<VariantSync?> variant({required int variantId}) {
+  Future<Variant?> variant({required int variantId}) {
     // TODO: implement variant
     throw UnimplementedError();
   }
 
   @override
-  Future<List<VariantSync>> variants(
+  Future<List<Variant>> variants(
       {required int branchId, required int productId}) {
     // TODO: implement variants
     throw UnimplementedError();
   }
 
   @override
-  List<OrderFSync> weeklyOrdersReport(
+  List<OrderF> weeklyOrdersReport(
       {required DateTime weekStartDate,
       required DateTime weekEndDate,
       required int branchId}) {

@@ -6,7 +6,7 @@ class SortablePage extends StatefulWidget {
   const SortablePage({Key? key, required this.columns, required this.data})
       : super(key: key);
   final List<String> columns;
-  final List<OrderItemSync> data;
+  final List<OrderItem> data;
 
   @override
   _SortablePageState createState() => _SortablePageState();
@@ -48,8 +48,7 @@ class _SortablePageState extends State<SortablePage> {
       )
       .toList();
 
-  List<DataRow> getRows(List<OrderItemSync> users) =>
-      users.map((OrderItemSync user) {
+  List<DataRow> getRows(List<OrderItem> users) => users.map((OrderItem user) {
         final cells = [
           user.name,
           user.price,

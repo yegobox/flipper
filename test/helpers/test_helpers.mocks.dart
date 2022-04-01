@@ -38,11 +38,11 @@ import 'package:stacked/stacked.dart' as _i8;
 
 class _FakeSyncF_0 extends _i1.Fake implements _i2.SyncF {}
 
-class _FakeStockSync_1 extends _i1.Fake implements _i2.StockSync {}
+class _FakeStock_1 extends _i1.Fake implements _i2.Stock {}
 
 class _FakeProductSync_2 extends _i1.Fake implements _i2.ProductSync {}
 
-class _FakeOrderFSync_3 extends _i1.Fake implements _i2.OrderFSync {}
+class _FakeOrderF_3 extends _i1.Fake implements _i2.OrderF {}
 
 class _FakeSpenn_4 extends _i1.Fake implements _i2.Spenn {}
 
@@ -111,29 +111,27 @@ class MockApi<T> extends _i1.Mock implements _i10.Api<T> {
               Future<List<_i2.Business>>.value(<_i2.Business>[])) as _i11
           .Future<List<_i2.Business>>);
   @override
-  _i11.Future<List<_i2.BranchSync>> branches({int? businessId}) => (super
-      .noSuchMethod(Invocation.method(#branches, [], {#businessId: businessId}),
-          returnValue:
-              Future<List<_i2.BranchSync>>.value(<_i2.BranchSync>[])) as _i11
-      .Future<List<_i2.BranchSync>>);
-  @override
-  _i11.Future<List<_i2.BranchSync>> getLocalBranches({int? businessId}) =>
+  _i11.Future<List<_i2.Branch>> branches({int? businessId}) =>
       (super.noSuchMethod(
+              Invocation.method(#branches, [], {#businessId: businessId}),
+              returnValue: Future<List<_i2.Branch>>.value(<_i2.Branch>[]))
+          as _i11.Future<List<_i2.Branch>>);
+  @override
+  _i11.Future<List<_i2.Branch>> getLocalBranches({int? businessId}) => (super
+      .noSuchMethod(
           Invocation.method(#getLocalBranches, [], {#businessId: businessId}),
-          returnValue:
-              Future<List<_i2.BranchSync>>.value(<_i2.BranchSync>[])) as _i11
-          .Future<List<_i2.BranchSync>>);
+          returnValue: Future<List<_i2.Branch>>.value(<_i2.Branch>[])) as _i11
+      .Future<List<_i2.Branch>>);
   @override
-  List<_i2.StockSync> stocks({int? productId}) => (super.noSuchMethod(
+  List<_i2.Stock> stocks({int? productId}) => (super.noSuchMethod(
       Invocation.method(#stocks, [], {#productId: productId}),
-      returnValue: <_i2.StockSync>[]) as List<_i2.StockSync>);
+      returnValue: <_i2.Stock>[]) as List<_i2.Stock>);
   @override
-  _i11.Stream<_i2.StockSync> stockByVariantIdStream({int? variantId}) =>
+  _i11.Stream<_i2.Stock> stockByVariantIdStream({int? variantId}) =>
       (super.noSuchMethod(
-              Invocation.method(
-                  #stockByVariantIdStream, [], {#variantId: variantId}),
-              returnValue: Stream<_i2.StockSync>.empty())
-          as _i11.Stream<_i2.StockSync>);
+          Invocation.method(
+              #stockByVariantIdStream, [], {#variantId: variantId}),
+          returnValue: Stream<_i2.Stock>.empty()) as _i11.Stream<_i2.Stock>);
   @override
   _i11.Stream<List<_i2.ProductSync>> productStreams({int? branchId}) =>
       (super.noSuchMethod(
@@ -141,11 +139,11 @@ class MockApi<T> extends _i1.Mock implements _i10.Api<T> {
               returnValue: Stream<List<_i2.ProductSync>>.empty())
           as _i11.Stream<List<_i2.ProductSync>>);
   @override
-  _i11.Future<_i2.StockSync> stockByVariantId({int? variantId}) =>
+  _i11.Future<_i2.Stock> stockByVariantId({int? variantId}) =>
       (super.noSuchMethod(
               Invocation.method(#stockByVariantId, [], {#variantId: variantId}),
-              returnValue: Future<_i2.StockSync>.value(_FakeStockSync_1()))
-          as _i11.Future<_i2.StockSync>);
+              returnValue: Future<_i2.Stock>.value(_FakeStock_1()))
+          as _i11.Future<_i2.Stock>);
   @override
   _i11.Future<List<_i2.PColor>> colors({int? branchId}) =>
       (super.noSuchMethod(Invocation.method(#colors, [], {#branchId: branchId}),
@@ -184,34 +182,29 @@ class MockApi<T> extends _i1.Mock implements _i10.Api<T> {
               returnValue: Future<_i2.PColor?>.value())
           as _i11.Future<_i2.PColor?>);
   @override
-  _i11.Future<_i2.StockSync?> getStock({int? branchId, int? variantId}) =>
+  _i11.Future<_i2.Stock?> getStock({int? branchId, int? variantId}) =>
       (super.noSuchMethod(
-              Invocation.method(
-                  #getStock, [], {#branchId: branchId, #variantId: variantId}),
-              returnValue: Future<_i2.StockSync?>.value())
-          as _i11.Future<_i2.StockSync?>);
+          Invocation.method(
+              #getStock, [], {#branchId: branchId, #variantId: variantId}),
+          returnValue: Future<_i2.Stock?>.value()) as _i11.Future<_i2.Stock?>);
   @override
-  _i11.Future<List<_i2.VariantSync>> variants(
-          {int? branchId, int? productId}) =>
+  _i11.Future<List<_i2.Variant>> variants({int? branchId, int? productId}) =>
       (super.noSuchMethod(
               Invocation.method(
                   #variants, [], {#branchId: branchId, #productId: productId}),
-              returnValue:
-                  Future<List<_i2.VariantSync>>.value(<_i2.VariantSync>[]))
-          as _i11.Future<List<_i2.VariantSync>>);
+              returnValue: Future<List<_i2.Variant>>.value(<_i2.Variant>[]))
+          as _i11.Future<List<_i2.Variant>>);
   @override
-  _i11.Future<_i2.VariantSync?> variant({int? variantId}) =>
-      (super.noSuchMethod(
-              Invocation.method(#variant, [], {#variantId: variantId}),
-              returnValue: Future<_i2.VariantSync?>.value())
-          as _i11.Future<_i2.VariantSync?>);
+  _i11.Future<_i2.Variant?> variant({int? variantId}) => (super.noSuchMethod(
+      Invocation.method(#variant, [], {#variantId: variantId}),
+      returnValue: Future<_i2.Variant?>.value()) as _i11.Future<_i2.Variant?>);
   @override
   _i11.Future<int> addUnits({Map<dynamic, dynamic>? data}) =>
       (super.noSuchMethod(Invocation.method(#addUnits, [], {#data: data}),
           returnValue: Future<int>.value(0)) as _i11.Future<int>);
   @override
   _i11.Future<int> addVariant(
-          {List<_i2.VariantSync>? data,
+          {List<_i2.Variant>? data,
           double? retailPrice,
           double? supplyPrice}) =>
       (super.noSuchMethod(
@@ -253,9 +246,9 @@ class MockApi<T> extends _i1.Mock implements _i10.Api<T> {
           returnValue:
               Future<_i2.Voucher?>.value()) as _i11.Future<_i2.Voucher?>);
   @override
-  _i11.Future<_i2.OrderFSync> createOrder(
+  _i11.Future<_i2.OrderF> createOrder(
           {double? customAmount,
-          _i2.VariantSync? variation,
+          _i2.Variant? variation,
           double? price,
           bool? useProductName = false,
           String? orderType = r'custom',
@@ -269,29 +262,26 @@ class MockApi<T> extends _i1.Mock implements _i10.Api<T> {
                 #orderType: orderType,
                 #quantity: quantity
               }),
-              returnValue: Future<_i2.OrderFSync>.value(_FakeOrderFSync_3()))
-          as _i11.Future<_i2.OrderFSync>);
+              returnValue: Future<_i2.OrderF>.value(_FakeOrderF_3()))
+          as _i11.Future<_i2.OrderF>);
   @override
-  _i11.Future<List<_i2.OrderFSync>> orders({int? branchId}) =>
+  _i11.Future<List<_i2.OrderF>> orders({int? branchId}) =>
       (super.noSuchMethod(Invocation.method(#orders, [], {#branchId: branchId}),
-              returnValue:
-                  Future<List<_i2.OrderFSync>>.value(<_i2.OrderFSync>[]))
-          as _i11.Future<List<_i2.OrderFSync>>);
+              returnValue: Future<List<_i2.OrderF>>.value(<_i2.OrderF>[]))
+          as _i11.Future<List<_i2.OrderF>>);
   @override
-  _i11.Future<_i2.OrderFSync?> order({int? branchId}) =>
-      (super.noSuchMethod(Invocation.method(#order, [], {#branchId: branchId}),
-              returnValue: Future<_i2.OrderFSync?>.value())
-          as _i11.Future<_i2.OrderFSync?>);
+  _i11.Future<_i2.OrderF?> order({int? branchId}) => (super.noSuchMethod(
+      Invocation.method(#order, [], {#branchId: branchId}),
+      returnValue: Future<_i2.OrderF?>.value()) as _i11.Future<_i2.OrderF?>);
   @override
-  _i11.Future<_i2.OrderItemSync?> getOrderItem({int? id}) =>
+  _i11.Future<_i2.OrderItem?> getOrderItem({int? id}) =>
       (super.noSuchMethod(Invocation.method(#getOrderItem, [], {#id: id}),
-              returnValue: Future<_i2.OrderItemSync?>.value())
-          as _i11.Future<_i2.OrderItemSync?>);
+              returnValue: Future<_i2.OrderItem?>.value())
+          as _i11.Future<_i2.OrderItem?>);
   @override
-  _i11.Future<_i2.VariantSync?> getCustomProductVariant() =>
-      (super.noSuchMethod(Invocation.method(#getCustomProductVariant, []),
-              returnValue: Future<_i2.VariantSync?>.value())
-          as _i11.Future<_i2.VariantSync?>);
+  _i11.Future<_i2.Variant?> getCustomProductVariant() => (super.noSuchMethod(
+      Invocation.method(#getCustomProductVariant, []),
+      returnValue: Future<_i2.Variant?>.value()) as _i11.Future<_i2.Variant?>);
   @override
   _i11.Future<_i2.Spenn> spennPayment({double? amount, dynamic phoneNumber}) =>
       (super.noSuchMethod(
@@ -301,7 +291,7 @@ class MockApi<T> extends _i1.Mock implements _i10.Api<T> {
           as _i11.Future<_i2.Spenn>);
   @override
   _i11.Future<void> collectCashPayment(
-          {double? cashReceived, _i2.OrderFSync? order}) =>
+          {double? cashReceived, _i2.OrderF? order}) =>
       (super.noSuchMethod(
               Invocation.method(#collectCashPayment, [],
                   {#cashReceived: cashReceived, #order: order}),
@@ -368,29 +358,29 @@ class MockApi<T> extends _i1.Mock implements _i10.Api<T> {
               returnValue: Stream<_i2.CustomerSync?>.empty())
       as _i11.Stream<_i2.CustomerSync?>);
   @override
-  _i11.Future<_i2.OrderFSync> getOrderById({int? id}) =>
+  _i11.Future<_i2.OrderF> getOrderById({int? id}) =>
       (super.noSuchMethod(Invocation.method(#getOrderById, [], {#id: id}),
-              returnValue: Future<_i2.OrderFSync>.value(_FakeOrderFSync_3()))
-          as _i11.Future<_i2.OrderFSync>);
+              returnValue: Future<_i2.OrderF>.value(_FakeOrderF_3()))
+          as _i11.Future<_i2.OrderF>);
   @override
-  _i11.Future<List<_i2.OrderFSync>> tickets() => (super.noSuchMethod(
-          Invocation.method(#tickets, []),
-          returnValue: Future<List<_i2.OrderFSync>>.value(<_i2.OrderFSync>[]))
-      as _i11.Future<List<_i2.OrderFSync>>);
+  _i11.Future<List<_i2.OrderF>> tickets() =>
+      (super.noSuchMethod(Invocation.method(#tickets, []),
+              returnValue: Future<List<_i2.OrderF>>.value(<_i2.OrderF>[]))
+          as _i11.Future<List<_i2.OrderF>>);
   @override
-  List<_i2.VariantSync> getVariantByProductId({int? productId}) =>
+  List<_i2.Variant> getVariantByProductId({int? productId}) =>
       (super.noSuchMethod(
           Invocation.method(
               #getVariantByProductId, [], {#productId: productId}),
-          returnValue: <_i2.VariantSync>[]) as List<_i2.VariantSync>);
+          returnValue: <_i2.Variant>[]) as List<_i2.Variant>);
   @override
-  _i11.Future<List<_i2.OrderFSync>> getOrderByStatus({String? status}) => (super
-      .noSuchMethod(Invocation.method(#getOrderByStatus, [], {#status: status}),
-          returnValue:
-              Future<List<_i2.OrderFSync>>.value(<_i2.OrderFSync>[])) as _i11
-      .Future<List<_i2.OrderFSync>>);
+  _i11.Future<List<_i2.OrderF>> getOrderByStatus({String? status}) =>
+      (super.noSuchMethod(
+              Invocation.method(#getOrderByStatus, [], {#status: status}),
+              returnValue: Future<List<_i2.OrderF>>.value(<_i2.OrderF>[]))
+          as _i11.Future<List<_i2.OrderF>>);
   @override
-  _i11.Future<int> sendReport({List<_i2.OrderItemSync>? orderItems}) =>
+  _i11.Future<int> sendReport({List<_i2.OrderItem>? orderItems}) =>
       (super.noSuchMethod(
           Invocation.method(#sendReport, [], {#orderItems: orderItems}),
           returnValue: Future<int>.value(0)) as _i11.Future<int>);
@@ -406,9 +396,9 @@ class MockApi<T> extends _i1.Mock implements _i10.Api<T> {
       (super.noSuchMethod(Invocation.method(#getBusinessById, [], {#id: id}),
           returnValue: _FakeBusiness_5()) as _i2.Business);
   @override
-  _i2.OrderItemSync? getOrderItemByVariantId({int? variantId, int? orderId}) =>
+  _i2.OrderItem? getOrderItemByVariantId({int? variantId, int? orderId}) =>
       (super.noSuchMethod(Invocation.method(#getOrderItemByVariantId, [],
-          {#variantId: variantId, #orderId: orderId})) as _i2.OrderItemSync?);
+          {#variantId: variantId, #orderId: orderId})) as _i2.OrderItem?);
   @override
   _i11.Future<void> updateBusiness(
           {int? id, Map<dynamic, dynamic>? business}) =>
@@ -423,7 +413,7 @@ class MockApi<T> extends _i1.Mock implements _i10.Api<T> {
       Invocation.method(#lifeTimeCustomersForbranch, [], {#branchId: branchId}),
       returnValue: 0) as int);
   @override
-  List<_i2.OrderFSync> weeklyOrdersReport(
+  List<_i2.OrderF> weeklyOrdersReport(
           {DateTime? weekStartDate, DateTime? weekEndDate, int? branchId}) =>
       (super.noSuchMethod(
           Invocation.method(#weeklyOrdersReport, [], {
@@ -431,7 +421,7 @@ class MockApi<T> extends _i1.Mock implements _i10.Api<T> {
             #weekEndDate: weekEndDate,
             #branchId: branchId
           }),
-          returnValue: <_i2.OrderFSync>[]) as List<_i2.OrderFSync>);
+          returnValue: <_i2.OrderF>[]) as List<_i2.OrderF>);
   @override
   _i11.Future<void> saveDiscount(
           {int? branchId, dynamic name, double? amount}) =>
@@ -449,11 +439,10 @@ class MockApi<T> extends _i1.Mock implements _i10.Api<T> {
                   Future<List<_i2.DiscountSync>>.value(<_i2.DiscountSync>[]))
       as _i11.Future<List<_i2.DiscountSync>>);
   @override
-  _i2.OrderFSync addOrderItem(
-          {_i2.OrderFSync? order, Map<dynamic, dynamic>? data}) =>
+  _i2.OrderF addOrderItem({_i2.OrderF? order, Map<dynamic, dynamic>? data}) =>
       (super.noSuchMethod(
           Invocation.method(#addOrderItem, [], {#order: order, #data: data}),
-          returnValue: _FakeOrderFSync_3()) as _i2.OrderFSync);
+          returnValue: _FakeOrderF_3()) as _i2.OrderF);
   @override
   void emptySentMessageQueue() =>
       super.noSuchMethod(Invocation.method(#emptySentMessageQueue, []),
@@ -480,9 +469,7 @@ class MockApi<T> extends _i1.Mock implements _i10.Api<T> {
           as _i11.Future<_i2.Business>);
   @override
   _i11.Future<void> syncProduct(
-          {_i2.ProductSync? product,
-          _i2.VariantSync? variant,
-          _i2.StockSync? stock}) =>
+          {_i2.ProductSync? product, _i2.Variant? variant, _i2.Stock? stock}) =>
       (super.noSuchMethod(
               Invocation.method(#syncProduct, [],
                   {#product: product, #variant: variant, #stock: stock}),
@@ -866,9 +853,8 @@ class MockProductService extends _i1.Mock implements _i15.ProductService {
       super.noSuchMethod(Invocation.setter(#products, value),
           returnValueForMissingStub: null);
   @override
-  List<_i9.StockSync?> get stocks =>
-      (super.noSuchMethod(Invocation.getter(#stocks),
-          returnValue: <_i9.StockSync?>[]) as List<_i9.StockSync?>);
+  List<_i9.Stock?> get stocks => (super.noSuchMethod(Invocation.getter(#stocks),
+      returnValue: <_i9.Stock?>[]) as List<_i9.Stock?>);
   @override
   void setBarcode(String? value) =>
       super.noSuchMethod(Invocation.method(#setBarcode, [value]),
@@ -905,12 +891,11 @@ class MockProductService extends _i1.Mock implements _i15.ProductService {
               returnValue: Future<_i9.ProductSync?>.value())
           as _i11.Future<_i9.ProductSync?>);
   @override
-  _i11.Future<List<_i9.StockSync?>> loadStockByProductId({int? productId}) =>
-      (super.noSuchMethod(
+  _i11.Future<List<_i9.Stock?>> loadStockByProductId({int? productId}) => (super
+      .noSuchMethod(
           Invocation.method(#loadStockByProductId, [], {#productId: productId}),
-          returnValue:
-              Future<List<_i9.StockSync?>>.value(<_i9.StockSync?>[])) as _i11
-          .Future<List<_i9.StockSync?>>);
+          returnValue: Future<List<_i9.Stock?>>.value(<_i9.Stock?>[])) as _i11
+      .Future<List<_i9.Stock?>>);
   @override
   void listenToReactiveValues(List<dynamic>? reactiveValues) =>
       super.noSuchMethod(
@@ -959,9 +944,9 @@ class MockKeyPadService extends _i1.Mock implements _i16.KeyPadService {
   int get check =>
       (super.noSuchMethod(Invocation.getter(#check), returnValue: 0) as int);
   @override
-  List<_i9.OrderFSync> get tickets =>
-      (super.noSuchMethod(Invocation.getter(#tickets),
-          returnValue: <_i9.OrderFSync>[]) as List<_i9.OrderFSync>);
+  List<_i9.Order> get tickets => (super
+          .noSuchMethod(Invocation.getter(#tickets), returnValue: <_i9.Order>[])
+      as List<_i9.Order>);
   @override
   double get totalPayable =>
       (super.noSuchMethod(Invocation.getter(#totalPayable), returnValue: 0.0)
@@ -988,10 +973,10 @@ class MockKeyPadService extends _i1.Mock implements _i16.KeyPadService {
   dynamic setCount({int? count}) =>
       super.noSuchMethod(Invocation.method(#setCount, [], {#count: count}));
   @override
-  _i11.Future<List<_i9.OrderFSync>> getTickets() => (super.noSuchMethod(
-          Invocation.method(#getTickets, []),
-          returnValue: Future<List<_i9.OrderFSync>>.value(<_i9.OrderFSync>[]))
-      as _i11.Future<List<_i9.OrderFSync>>);
+  _i11.Future<List<_i9.Order>> getTickets() =>
+      (super.noSuchMethod(Invocation.method(#getTickets, []),
+              returnValue: Future<List<_i9.Order>>.value(<_i9.Order>[]))
+          as _i11.Future<List<_i9.Order>>);
   @override
   void setTotalPayable({double? amount}) => super.noSuchMethod(
       Invocation.method(#setTotalPayable, [], {#amount: amount}),
@@ -1001,19 +986,17 @@ class MockKeyPadService extends _i1.Mock implements _i16.KeyPadService {
       Invocation.method(#setTotalDiscount, [], {#amount: amount}),
       returnValueForMissingStub: null);
   @override
-  void setOrder(_i9.OrderFSync? order) =>
+  void setOrder(_i9.Order? order) =>
       super.noSuchMethod(Invocation.method(#setOrder, [order]),
           returnValueForMissingStub: null);
   @override
-  _i11.Future<_i9.OrderFSync?> getOrder({int? branchId}) => (super.noSuchMethod(
-          Invocation.method(#getOrder, [], {#branchId: branchId}),
-          returnValue: Future<_i9.OrderFSync?>.value())
-      as _i11.Future<_i9.OrderFSync?>);
+  _i11.Future<_i9.Order?> getOrder({int? branchId}) => (super.noSuchMethod(
+      Invocation.method(#getOrder, [], {#branchId: branchId}),
+      returnValue: Future<_i9.Order?>.value()) as _i11.Future<_i9.Order?>);
   @override
-  _i11.Future<_i9.OrderFSync?> getOrderById({int? id}) =>
+  _i11.Future<_i9.Order?> getOrderById({int? id}) =>
       (super.noSuchMethod(Invocation.method(#getOrderById, [], {#id: id}),
-              returnValue: Future<_i9.OrderFSync?>.value())
-          as _i11.Future<_i9.OrderFSync?>);
+          returnValue: Future<_i9.Order?>.value()) as _i11.Future<_i9.Order?>);
   @override
   void reset() => super.noSuchMethod(Invocation.method(#reset, []),
       returnValueForMissingStub: null);

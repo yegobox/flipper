@@ -1,6 +1,6 @@
-import './stock_sync.dart';
+import './stock.dart';
 
-final stockMock = new StockSync(
+final stockMock = Stock(
   id: DateTime.now().millisecondsSinceEpoch,
   fbranchId: 11,
   fvariantId: 1,

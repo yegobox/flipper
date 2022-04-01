@@ -26,7 +26,7 @@ class Subscription {
   double recurring;
 
   @Backlink()
-  final branches = ToMany<BranchSync>();
+  final branches = ToMany<Branch>();
 
   @Backlink()
   final features = ToMany<Feature>();

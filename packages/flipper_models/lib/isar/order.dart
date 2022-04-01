@@ -5,7 +5,7 @@ import 'order_item.dart';
 part 'order.g.dart';
 
 @Collection()
-class OrderFSync {
+class Order {
   late int id = Isar.autoIncrement;
   late String reference;
   late String orderNumber;
@@ -25,5 +25,5 @@ class OrderFSync {
   int? customerId;
 
   String? note;
-  final orderItems = IsarLinks<OrderItemSync>();
+  final orderItems = IsarLinks<OrderItem>();
 }

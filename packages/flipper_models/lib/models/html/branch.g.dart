@@ -8,18 +8,18 @@ part of flipper_models;
 
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast
 
-extension GetBranchSyncCollection on Isar {
-  IsarCollection<BranchSync> get branchSyncs {
-    return getCollection('BranchSync');
+extension GetBranchCollection on Isar {
+  IsarCollection<Branch> get branchs {
+    return getCollection('Branch');
   }
 }
 
-final BranchSyncSchema = CollectionSchema(
-  name: 'BranchSync',
+final BranchSchema = CollectionSchema(
+  name: 'Branch',
   schema:
-      '{"name":"BranchSync","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"channels","type":"StringList"},{"name":"description","type":"String"},{"name":"fbusinessId","type":"Long"},{"name":"latitude","type":"String"},{"name":"longitude","type":"String"},{"name":"name","type":"String"},{"name":"table","type":"String"}],"indexes":[],"links":[]}',
-  nativeAdapter: const _BranchSyncNativeAdapter(),
-  webAdapter: const _BranchSyncWebAdapter(),
+      '{"name":"Branch","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"channels","type":"StringList"},{"name":"description","type":"String"},{"name":"fbusinessId","type":"Long"},{"name":"latitude","type":"String"},{"name":"longitude","type":"String"},{"name":"name","type":"String"},{"name":"table","type":"String"}],"indexes":[],"links":[]}',
+  nativeAdapter: const _BranchNativeAdapter(),
+  webAdapter: const _BranchWebAdapter(),
   idName: 'id',
   propertyIds: {
     'active': 0,
@@ -49,11 +49,11 @@ final BranchSyncSchema = CollectionSchema(
   version: 2,
 );
 
-class _BranchSyncWebAdapter extends IsarWebTypeAdapter<BranchSync> {
-  const _BranchSyncWebAdapter();
+class _BranchWebAdapter extends IsarWebTypeAdapter<Branch> {
+  const _BranchWebAdapter();
 
   @override
-  Object serialize(IsarCollection<BranchSync> collection, BranchSync object) {
+  Object serialize(IsarCollection<Branch> collection, Branch object) {
     final jsObj = IsarNative.newJsObject();
     IsarNative.jsObjectSet(jsObj, 'active', object.active);
     IsarNative.jsObjectSet(jsObj, 'channels', object.channels);
@@ -68,8 +68,8 @@ class _BranchSyncWebAdapter extends IsarWebTypeAdapter<BranchSync> {
   }
 
   @override
-  BranchSync deserialize(IsarCollection<BranchSync> collection, dynamic jsObj) {
-    final object = BranchSync(
+  Branch deserialize(IsarCollection<Branch> collection, dynamic jsObj) {
+    final object = Branch(
       active: IsarNative.jsObjectGet(jsObj, 'active'),
       channels: (IsarNative.jsObjectGet(jsObj, 'channels') as List?)
           ?.map((e) => e ?? '')
@@ -117,20 +117,15 @@ class _BranchSyncWebAdapter extends IsarWebTypeAdapter<BranchSync> {
   }
 
   @override
-  void attachLinks(Isar isar, int id, BranchSync object) {}
+  void attachLinks(Isar isar, int id, Branch object) {}
 }
 
-class _BranchSyncNativeAdapter extends IsarNativeTypeAdapter<BranchSync> {
-  const _BranchSyncNativeAdapter();
+class _BranchNativeAdapter extends IsarNativeTypeAdapter<Branch> {
+  const _BranchNativeAdapter();
 
   @override
-  void serialize(
-      IsarCollection<BranchSync> collection,
-      IsarRawObject rawObj,
-      BranchSync object,
-      int staticSize,
-      List<int> offsets,
-      AdapterAlloc alloc) {
+  void serialize(IsarCollection<Branch> collection, IsarRawObject rawObj,
+      Branch object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
     var dynamicSize = 0;
     final value0 = object.active;
     final _active = value0;
@@ -189,9 +184,9 @@ class _BranchSyncNativeAdapter extends IsarNativeTypeAdapter<BranchSync> {
   }
 
   @override
-  BranchSync deserialize(IsarCollection<BranchSync> collection, int id,
+  Branch deserialize(IsarCollection<Branch> collection, int id,
       IsarBinaryReader reader, List<int> offsets) {
-    final object = BranchSync(
+    final object = Branch(
       active: reader.readBoolOrNull(offsets[0]),
       channels: reader.readStringList(offsets[1]),
       description: reader.readStringOrNull(offsets[2]),
@@ -233,19 +228,17 @@ class _BranchSyncNativeAdapter extends IsarNativeTypeAdapter<BranchSync> {
   }
 
   @override
-  void attachLinks(Isar isar, int id, BranchSync object) {}
+  void attachLinks(Isar isar, int id, Branch object) {}
 }
 
-extension BranchSyncQueryWhereSort
-    on QueryBuilder<BranchSync, BranchSync, QWhere> {
-  QueryBuilder<BranchSync, BranchSync, QAfterWhere> anyId() {
+extension BranchQueryWhereSort on QueryBuilder<Branch, Branch, QWhere> {
+  QueryBuilder<Branch, Branch, QAfterWhere> anyId() {
     return addWhereClauseInternal(const WhereClause(indexName: null));
   }
 }
 
-extension BranchSyncQueryWhere
-    on QueryBuilder<BranchSync, BranchSync, QWhereClause> {
-  QueryBuilder<BranchSync, BranchSync, QAfterWhereClause> idEqualTo(int id) {
+extension BranchQueryWhere on QueryBuilder<Branch, Branch, QWhereClause> {
+  QueryBuilder<Branch, Branch, QAfterWhereClause> idEqualTo(int id) {
     return addWhereClauseInternal(WhereClause(
       indexName: null,
       lower: [id],
@@ -255,7 +248,7 @@ extension BranchSyncQueryWhere
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterWhereClause> idNotEqualTo(int id) {
+  QueryBuilder<Branch, Branch, QAfterWhereClause> idNotEqualTo(int id) {
     if (whereSortInternal == Sort.asc) {
       return addWhereClauseInternal(WhereClause(
         indexName: null,
@@ -279,7 +272,7 @@ extension BranchSyncQueryWhere
     }
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterWhereClause> idGreaterThan(
+  QueryBuilder<Branch, Branch, QAfterWhereClause> idGreaterThan(
     int id, {
     bool include = false,
   }) {
@@ -290,7 +283,7 @@ extension BranchSyncQueryWhere
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterWhereClause> idLessThan(
+  QueryBuilder<Branch, Branch, QAfterWhereClause> idLessThan(
     int id, {
     bool include = false,
   }) {
@@ -301,7 +294,7 @@ extension BranchSyncQueryWhere
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterWhereClause> idBetween(
+  QueryBuilder<Branch, Branch, QAfterWhereClause> idBetween(
     int lowerId,
     int upperId, {
     bool includeLower = true,
@@ -317,9 +310,8 @@ extension BranchSyncQueryWhere
   }
 }
 
-extension BranchSyncQueryFilter
-    on QueryBuilder<BranchSync, BranchSync, QFilterCondition> {
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> activeIsNull() {
+extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> activeIsNull() {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.isNull,
       property: 'active',
@@ -327,7 +319,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> activeEqualTo(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> activeEqualTo(
       bool? value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
@@ -336,7 +328,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> channelsIsNull() {
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> channelsIsNull() {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.isNull,
       property: 'channels',
@@ -344,8 +336,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition>
-      channelsAnyIsNull() {
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> channelsAnyIsNull() {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
       property: 'channels',
@@ -353,8 +344,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition>
-      channelsAnyEqualTo(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> channelsAnyEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
@@ -366,8 +356,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition>
-      channelsAnyGreaterThan(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> channelsAnyGreaterThan(
     String? value, {
     bool caseSensitive = true,
     bool include = false,
@@ -381,8 +370,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition>
-      channelsAnyLessThan(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> channelsAnyLessThan(
     String? value, {
     bool caseSensitive = true,
     bool include = false,
@@ -396,8 +384,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition>
-      channelsAnyBetween(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> channelsAnyBetween(
     String? lower,
     String? upper, {
     bool caseSensitive = true,
@@ -414,8 +401,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition>
-      channelsAnyStartsWith(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> channelsAnyStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -427,8 +413,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition>
-      channelsAnyEndsWith(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> channelsAnyEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -440,8 +425,9 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition>
-      channelsAnyContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> channelsAnyContains(
+      String value,
+      {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.contains,
       property: 'channels',
@@ -450,8 +436,9 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition>
-      channelsAnyMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> channelsAnyMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.matches,
       property: 'channels',
@@ -460,8 +447,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition>
-      descriptionIsNull() {
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> descriptionIsNull() {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.isNull,
       property: 'description',
@@ -469,8 +455,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition>
-      descriptionEqualTo(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> descriptionEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
@@ -482,8 +467,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition>
-      descriptionGreaterThan(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> descriptionGreaterThan(
     String? value, {
     bool caseSensitive = true,
     bool include = false,
@@ -497,8 +481,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition>
-      descriptionLessThan(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> descriptionLessThan(
     String? value, {
     bool caseSensitive = true,
     bool include = false,
@@ -512,8 +495,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition>
-      descriptionBetween(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> descriptionBetween(
     String? lower,
     String? upper, {
     bool caseSensitive = true,
@@ -530,8 +512,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition>
-      descriptionStartsWith(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> descriptionStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -543,8 +524,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition>
-      descriptionEndsWith(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> descriptionEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -556,8 +536,9 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition>
-      descriptionContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> descriptionContains(
+      String value,
+      {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.contains,
       property: 'description',
@@ -566,8 +547,9 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition>
-      descriptionMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> descriptionMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.matches,
       property: 'description',
@@ -576,8 +558,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition>
-      fbusinessIdIsNull() {
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> fbusinessIdIsNull() {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.isNull,
       property: 'fbusinessId',
@@ -585,8 +566,8 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition>
-      fbusinessIdEqualTo(int? value) {
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> fbusinessIdEqualTo(
+      int? value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
       property: 'fbusinessId',
@@ -594,8 +575,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition>
-      fbusinessIdGreaterThan(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> fbusinessIdGreaterThan(
     int? value, {
     bool include = false,
   }) {
@@ -607,8 +587,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition>
-      fbusinessIdLessThan(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> fbusinessIdLessThan(
     int? value, {
     bool include = false,
   }) {
@@ -620,8 +599,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition>
-      fbusinessIdBetween(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> fbusinessIdBetween(
     int? lower,
     int? upper, {
     bool includeLower = true,
@@ -636,8 +614,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> idEqualTo(
-      int value) {
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> idEqualTo(int value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
       property: 'id',
@@ -645,7 +622,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> idGreaterThan(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> idGreaterThan(
     int value, {
     bool include = false,
   }) {
@@ -657,7 +634,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> idLessThan(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> idLessThan(
     int value, {
     bool include = false,
   }) {
@@ -669,7 +646,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> idBetween(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> idBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -684,7 +661,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> latitudeIsNull() {
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> latitudeIsNull() {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.isNull,
       property: 'latitude',
@@ -692,7 +669,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> latitudeEqualTo(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> latitudeEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
@@ -704,8 +681,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition>
-      latitudeGreaterThan(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> latitudeGreaterThan(
     String? value, {
     bool caseSensitive = true,
     bool include = false,
@@ -719,7 +695,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> latitudeLessThan(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> latitudeLessThan(
     String? value, {
     bool caseSensitive = true,
     bool include = false,
@@ -733,7 +709,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> latitudeBetween(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> latitudeBetween(
     String? lower,
     String? upper, {
     bool caseSensitive = true,
@@ -750,8 +726,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition>
-      latitudeStartsWith(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> latitudeStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -763,7 +738,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> latitudeEndsWith(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> latitudeEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -775,7 +750,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> latitudeContains(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> latitudeContains(
       String value,
       {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
@@ -786,7 +761,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> latitudeMatches(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> latitudeMatches(
       String pattern,
       {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
@@ -797,8 +772,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition>
-      longitudeIsNull() {
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> longitudeIsNull() {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.isNull,
       property: 'longitude',
@@ -806,7 +780,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> longitudeEqualTo(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> longitudeEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
@@ -818,8 +792,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition>
-      longitudeGreaterThan(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> longitudeGreaterThan(
     String? value, {
     bool caseSensitive = true,
     bool include = false,
@@ -833,7 +806,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> longitudeLessThan(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> longitudeLessThan(
     String? value, {
     bool caseSensitive = true,
     bool include = false,
@@ -847,7 +820,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> longitudeBetween(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> longitudeBetween(
     String? lower,
     String? upper, {
     bool caseSensitive = true,
@@ -864,8 +837,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition>
-      longitudeStartsWith(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> longitudeStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -877,7 +849,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> longitudeEndsWith(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> longitudeEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -889,7 +861,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> longitudeContains(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> longitudeContains(
       String value,
       {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
@@ -900,7 +872,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> longitudeMatches(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> longitudeMatches(
       String pattern,
       {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
@@ -911,7 +883,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> nameEqualTo(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> nameEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -923,7 +895,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> nameGreaterThan(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> nameGreaterThan(
     String value, {
     bool caseSensitive = true,
     bool include = false,
@@ -937,7 +909,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> nameLessThan(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> nameLessThan(
     String value, {
     bool caseSensitive = true,
     bool include = false,
@@ -951,7 +923,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> nameBetween(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> nameBetween(
     String lower,
     String upper, {
     bool caseSensitive = true,
@@ -968,7 +940,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> nameStartsWith(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> nameStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -980,7 +952,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> nameEndsWith(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> nameEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -992,8 +964,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> nameContains(
-      String value,
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> nameContains(String value,
       {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.contains,
@@ -1003,7 +974,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> nameMatches(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> nameMatches(
       String pattern,
       {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
@@ -1014,7 +985,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> tableEqualTo(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> tableEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1026,7 +997,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> tableGreaterThan(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> tableGreaterThan(
     String value, {
     bool caseSensitive = true,
     bool include = false,
@@ -1040,7 +1011,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> tableLessThan(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> tableLessThan(
     String value, {
     bool caseSensitive = true,
     bool include = false,
@@ -1054,7 +1025,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> tableBetween(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> tableBetween(
     String lower,
     String upper, {
     bool caseSensitive = true,
@@ -1071,7 +1042,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> tableStartsWith(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> tableStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1083,7 +1054,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> tableEndsWith(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> tableEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1095,7 +1066,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> tableContains(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> tableContains(
       String value,
       {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
@@ -1106,7 +1077,7 @@ extension BranchSyncQueryFilter
     ));
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterFilterCondition> tableMatches(
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> tableMatches(
       String pattern,
       {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
@@ -1118,215 +1089,212 @@ extension BranchSyncQueryFilter
   }
 }
 
-extension BranchSyncQueryWhereSortBy
-    on QueryBuilder<BranchSync, BranchSync, QSortBy> {
-  QueryBuilder<BranchSync, BranchSync, QAfterSortBy> sortByActive() {
+extension BranchQueryWhereSortBy on QueryBuilder<Branch, Branch, QSortBy> {
+  QueryBuilder<Branch, Branch, QAfterSortBy> sortByActive() {
     return addSortByInternal('active', Sort.asc);
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterSortBy> sortByActiveDesc() {
+  QueryBuilder<Branch, Branch, QAfterSortBy> sortByActiveDesc() {
     return addSortByInternal('active', Sort.desc);
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterSortBy> sortByDescription() {
+  QueryBuilder<Branch, Branch, QAfterSortBy> sortByDescription() {
     return addSortByInternal('description', Sort.asc);
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterSortBy> sortByDescriptionDesc() {
+  QueryBuilder<Branch, Branch, QAfterSortBy> sortByDescriptionDesc() {
     return addSortByInternal('description', Sort.desc);
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterSortBy> sortByFbusinessId() {
+  QueryBuilder<Branch, Branch, QAfterSortBy> sortByFbusinessId() {
     return addSortByInternal('fbusinessId', Sort.asc);
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterSortBy> sortByFbusinessIdDesc() {
+  QueryBuilder<Branch, Branch, QAfterSortBy> sortByFbusinessIdDesc() {
     return addSortByInternal('fbusinessId', Sort.desc);
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterSortBy> sortById() {
+  QueryBuilder<Branch, Branch, QAfterSortBy> sortById() {
     return addSortByInternal('id', Sort.asc);
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterSortBy> sortByIdDesc() {
+  QueryBuilder<Branch, Branch, QAfterSortBy> sortByIdDesc() {
     return addSortByInternal('id', Sort.desc);
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterSortBy> sortByLatitude() {
+  QueryBuilder<Branch, Branch, QAfterSortBy> sortByLatitude() {
     return addSortByInternal('latitude', Sort.asc);
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterSortBy> sortByLatitudeDesc() {
+  QueryBuilder<Branch, Branch, QAfterSortBy> sortByLatitudeDesc() {
     return addSortByInternal('latitude', Sort.desc);
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterSortBy> sortByLongitude() {
+  QueryBuilder<Branch, Branch, QAfterSortBy> sortByLongitude() {
     return addSortByInternal('longitude', Sort.asc);
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterSortBy> sortByLongitudeDesc() {
+  QueryBuilder<Branch, Branch, QAfterSortBy> sortByLongitudeDesc() {
     return addSortByInternal('longitude', Sort.desc);
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterSortBy> sortByName() {
+  QueryBuilder<Branch, Branch, QAfterSortBy> sortByName() {
     return addSortByInternal('name', Sort.asc);
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterSortBy> sortByNameDesc() {
+  QueryBuilder<Branch, Branch, QAfterSortBy> sortByNameDesc() {
     return addSortByInternal('name', Sort.desc);
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterSortBy> sortByTable() {
+  QueryBuilder<Branch, Branch, QAfterSortBy> sortByTable() {
     return addSortByInternal('table', Sort.asc);
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterSortBy> sortByTableDesc() {
+  QueryBuilder<Branch, Branch, QAfterSortBy> sortByTableDesc() {
     return addSortByInternal('table', Sort.desc);
   }
 }
 
-extension BranchSyncQueryWhereSortThenBy
-    on QueryBuilder<BranchSync, BranchSync, QSortThenBy> {
-  QueryBuilder<BranchSync, BranchSync, QAfterSortBy> thenByActive() {
+extension BranchQueryWhereSortThenBy
+    on QueryBuilder<Branch, Branch, QSortThenBy> {
+  QueryBuilder<Branch, Branch, QAfterSortBy> thenByActive() {
     return addSortByInternal('active', Sort.asc);
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterSortBy> thenByActiveDesc() {
+  QueryBuilder<Branch, Branch, QAfterSortBy> thenByActiveDesc() {
     return addSortByInternal('active', Sort.desc);
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterSortBy> thenByDescription() {
+  QueryBuilder<Branch, Branch, QAfterSortBy> thenByDescription() {
     return addSortByInternal('description', Sort.asc);
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterSortBy> thenByDescriptionDesc() {
+  QueryBuilder<Branch, Branch, QAfterSortBy> thenByDescriptionDesc() {
     return addSortByInternal('description', Sort.desc);
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterSortBy> thenByFbusinessId() {
+  QueryBuilder<Branch, Branch, QAfterSortBy> thenByFbusinessId() {
     return addSortByInternal('fbusinessId', Sort.asc);
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterSortBy> thenByFbusinessIdDesc() {
+  QueryBuilder<Branch, Branch, QAfterSortBy> thenByFbusinessIdDesc() {
     return addSortByInternal('fbusinessId', Sort.desc);
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterSortBy> thenById() {
+  QueryBuilder<Branch, Branch, QAfterSortBy> thenById() {
     return addSortByInternal('id', Sort.asc);
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterSortBy> thenByIdDesc() {
+  QueryBuilder<Branch, Branch, QAfterSortBy> thenByIdDesc() {
     return addSortByInternal('id', Sort.desc);
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterSortBy> thenByLatitude() {
+  QueryBuilder<Branch, Branch, QAfterSortBy> thenByLatitude() {
     return addSortByInternal('latitude', Sort.asc);
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterSortBy> thenByLatitudeDesc() {
+  QueryBuilder<Branch, Branch, QAfterSortBy> thenByLatitudeDesc() {
     return addSortByInternal('latitude', Sort.desc);
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterSortBy> thenByLongitude() {
+  QueryBuilder<Branch, Branch, QAfterSortBy> thenByLongitude() {
     return addSortByInternal('longitude', Sort.asc);
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterSortBy> thenByLongitudeDesc() {
+  QueryBuilder<Branch, Branch, QAfterSortBy> thenByLongitudeDesc() {
     return addSortByInternal('longitude', Sort.desc);
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterSortBy> thenByName() {
+  QueryBuilder<Branch, Branch, QAfterSortBy> thenByName() {
     return addSortByInternal('name', Sort.asc);
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterSortBy> thenByNameDesc() {
+  QueryBuilder<Branch, Branch, QAfterSortBy> thenByNameDesc() {
     return addSortByInternal('name', Sort.desc);
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterSortBy> thenByTable() {
+  QueryBuilder<Branch, Branch, QAfterSortBy> thenByTable() {
     return addSortByInternal('table', Sort.asc);
   }
 
-  QueryBuilder<BranchSync, BranchSync, QAfterSortBy> thenByTableDesc() {
+  QueryBuilder<Branch, Branch, QAfterSortBy> thenByTableDesc() {
     return addSortByInternal('table', Sort.desc);
   }
 }
 
-extension BranchSyncQueryWhereDistinct
-    on QueryBuilder<BranchSync, BranchSync, QDistinct> {
-  QueryBuilder<BranchSync, BranchSync, QDistinct> distinctByActive() {
+extension BranchQueryWhereDistinct on QueryBuilder<Branch, Branch, QDistinct> {
+  QueryBuilder<Branch, Branch, QDistinct> distinctByActive() {
     return addDistinctByInternal('active');
   }
 
-  QueryBuilder<BranchSync, BranchSync, QDistinct> distinctByDescription(
+  QueryBuilder<Branch, Branch, QDistinct> distinctByDescription(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('description', caseSensitive: caseSensitive);
   }
 
-  QueryBuilder<BranchSync, BranchSync, QDistinct> distinctByFbusinessId() {
+  QueryBuilder<Branch, Branch, QDistinct> distinctByFbusinessId() {
     return addDistinctByInternal('fbusinessId');
   }
 
-  QueryBuilder<BranchSync, BranchSync, QDistinct> distinctById() {
+  QueryBuilder<Branch, Branch, QDistinct> distinctById() {
     return addDistinctByInternal('id');
   }
 
-  QueryBuilder<BranchSync, BranchSync, QDistinct> distinctByLatitude(
+  QueryBuilder<Branch, Branch, QDistinct> distinctByLatitude(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('latitude', caseSensitive: caseSensitive);
   }
 
-  QueryBuilder<BranchSync, BranchSync, QDistinct> distinctByLongitude(
+  QueryBuilder<Branch, Branch, QDistinct> distinctByLongitude(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('longitude', caseSensitive: caseSensitive);
   }
 
-  QueryBuilder<BranchSync, BranchSync, QDistinct> distinctByName(
+  QueryBuilder<Branch, Branch, QDistinct> distinctByName(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('name', caseSensitive: caseSensitive);
   }
 
-  QueryBuilder<BranchSync, BranchSync, QDistinct> distinctByTable(
+  QueryBuilder<Branch, Branch, QDistinct> distinctByTable(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('table', caseSensitive: caseSensitive);
   }
 }
 
-extension BranchSyncQueryProperty
-    on QueryBuilder<BranchSync, BranchSync, QQueryProperty> {
-  QueryBuilder<BranchSync, bool?, QQueryOperations> activeProperty() {
+extension BranchQueryProperty on QueryBuilder<Branch, Branch, QQueryProperty> {
+  QueryBuilder<Branch, bool?, QQueryOperations> activeProperty() {
     return addPropertyNameInternal('active');
   }
 
-  QueryBuilder<BranchSync, List<String>?, QQueryOperations> channelsProperty() {
+  QueryBuilder<Branch, List<String>?, QQueryOperations> channelsProperty() {
     return addPropertyNameInternal('channels');
   }
 
-  QueryBuilder<BranchSync, String?, QQueryOperations> descriptionProperty() {
+  QueryBuilder<Branch, String?, QQueryOperations> descriptionProperty() {
     return addPropertyNameInternal('description');
   }
 
-  QueryBuilder<BranchSync, int?, QQueryOperations> fbusinessIdProperty() {
+  QueryBuilder<Branch, int?, QQueryOperations> fbusinessIdProperty() {
     return addPropertyNameInternal('fbusinessId');
   }
 
-  QueryBuilder<BranchSync, int, QQueryOperations> idProperty() {
+  QueryBuilder<Branch, int, QQueryOperations> idProperty() {
     return addPropertyNameInternal('id');
   }
 
-  QueryBuilder<BranchSync, String?, QQueryOperations> latitudeProperty() {
+  QueryBuilder<Branch, String?, QQueryOperations> latitudeProperty() {
     return addPropertyNameInternal('latitude');
   }
 
-  QueryBuilder<BranchSync, String?, QQueryOperations> longitudeProperty() {
+  QueryBuilder<Branch, String?, QQueryOperations> longitudeProperty() {
     return addPropertyNameInternal('longitude');
   }
 
-  QueryBuilder<BranchSync, String, QQueryOperations> nameProperty() {
+  QueryBuilder<Branch, String, QQueryOperations> nameProperty() {
     return addPropertyNameInternal('name');
   }
 
-  QueryBuilder<BranchSync, String, QQueryOperations> tableProperty() {
+  QueryBuilder<Branch, String, QQueryOperations> tableProperty() {
     return addPropertyNameInternal('table');
   }
 }

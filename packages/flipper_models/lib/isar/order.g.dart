@@ -8,18 +8,18 @@ part of 'order.dart';
 
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast
 
-extension GetOrderFSyncCollection on Isar {
-  IsarCollection<OrderFSync> get orderFSyncs {
-    return getCollection('OrderFSync');
+extension GetOrderCollection on Isar {
+  IsarCollection<Order> get orders {
+    return getCollection('Order');
   }
 }
 
-final OrderFSyncSchema = CollectionSchema(
-  name: 'OrderFSync',
+final OrderSchema = CollectionSchema(
+  name: 'Order',
   schema:
-      '{"name":"OrderFSync","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"cashReceived","type":"Double"},{"name":"createdAt","type":"String"},{"name":"customerChangeDue","type":"Double"},{"name":"customerId","type":"Long"},{"name":"draft","type":"Bool"},{"name":"note","type":"String"},{"name":"orderNumber","type":"String"},{"name":"orderType","type":"String"},{"name":"paymentType","type":"String"},{"name":"reference","type":"String"},{"name":"reported","type":"Bool"},{"name":"status","type":"String"},{"name":"subTotal","type":"Double"},{"name":"updatedAt","type":"String"}],"indexes":[],"links":[{"name":"orderItems","target":"OrderItemSync"}]}',
-  nativeAdapter: const _OrderFSyncNativeAdapter(),
-  webAdapter: const _OrderFSyncWebAdapter(),
+      '{"name":"Order","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"cashReceived","type":"Double"},{"name":"createdAt","type":"String"},{"name":"customerChangeDue","type":"Double"},{"name":"customerId","type":"Long"},{"name":"draft","type":"Bool"},{"name":"note","type":"String"},{"name":"orderNumber","type":"String"},{"name":"orderType","type":"String"},{"name":"paymentType","type":"String"},{"name":"reference","type":"String"},{"name":"reported","type":"Bool"},{"name":"status","type":"String"},{"name":"subTotal","type":"Double"},{"name":"updatedAt","type":"String"}],"indexes":[],"links":[{"name":"orderItems","target":"OrderItem"}]}',
+  nativeAdapter: const _OrderNativeAdapter(),
+  webAdapter: const _OrderWebAdapter(),
   idName: 'id',
   propertyIds: {
     'active': 0,
@@ -44,7 +44,7 @@ final OrderFSyncSchema = CollectionSchema(
   indexTypes: {},
   linkIds: {'orderItems': 0},
   backlinkIds: {},
-  linkedCollections: ['OrderItemSync'],
+  linkedCollections: ['OrderItem'],
   getId: (obj) {
     if (obj.id == Isar.autoIncrement) {
       return null;
@@ -57,11 +57,11 @@ final OrderFSyncSchema = CollectionSchema(
   version: 2,
 );
 
-class _OrderFSyncWebAdapter extends IsarWebTypeAdapter<OrderFSync> {
-  const _OrderFSyncWebAdapter();
+class _OrderWebAdapter extends IsarWebTypeAdapter<Order> {
+  const _OrderWebAdapter();
 
   @override
-  Object serialize(IsarCollection<OrderFSync> collection, OrderFSync object) {
+  Object serialize(IsarCollection<Order> collection, Order object) {
     final jsObj = IsarNative.newJsObject();
     IsarNative.jsObjectSet(jsObj, 'active', object.active);
     IsarNative.jsObjectSet(jsObj, 'branchId', object.branchId);
@@ -85,8 +85,8 @@ class _OrderFSyncWebAdapter extends IsarWebTypeAdapter<OrderFSync> {
   }
 
   @override
-  OrderFSync deserialize(IsarCollection<OrderFSync> collection, dynamic jsObj) {
-    final object = OrderFSync();
+  Order deserialize(IsarCollection<Order> collection, dynamic jsObj) {
+    final object = Order();
     object.active = IsarNative.jsObjectGet(jsObj, 'active') ?? false;
     object.branchId =
         IsarNative.jsObjectGet(jsObj, 'branchId') ?? double.negativeInfinity;
@@ -162,28 +162,23 @@ class _OrderFSyncWebAdapter extends IsarWebTypeAdapter<OrderFSync> {
   }
 
   @override
-  void attachLinks(Isar isar, int id, OrderFSync object) {
+  void attachLinks(Isar isar, int id, Order object) {
     object.orderItems.attach(
       id,
-      isar.orderFSyncs,
-      isar.getCollection<OrderItemSync>('OrderItemSync'),
+      isar.orders,
+      isar.getCollection<OrderItem>('OrderItem'),
       'orderItems',
       false,
     );
   }
 }
 
-class _OrderFSyncNativeAdapter extends IsarNativeTypeAdapter<OrderFSync> {
-  const _OrderFSyncNativeAdapter();
+class _OrderNativeAdapter extends IsarNativeTypeAdapter<Order> {
+  const _OrderNativeAdapter();
 
   @override
-  void serialize(
-      IsarCollection<OrderFSync> collection,
-      IsarRawObject rawObj,
-      OrderFSync object,
-      int staticSize,
-      List<int> offsets,
-      AdapterAlloc alloc) {
+  void serialize(IsarCollection<Order> collection, IsarRawObject rawObj,
+      Order object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
     var dynamicSize = 0;
     final value0 = object.active;
     final _active = value0;
@@ -256,9 +251,9 @@ class _OrderFSyncNativeAdapter extends IsarNativeTypeAdapter<OrderFSync> {
   }
 
   @override
-  OrderFSync deserialize(IsarCollection<OrderFSync> collection, int id,
+  Order deserialize(IsarCollection<Order> collection, int id,
       IsarBinaryReader reader, List<int> offsets) {
-    final object = OrderFSync();
+    final object = Order();
     object.active = reader.readBool(offsets[0]);
     object.branchId = reader.readLong(offsets[1]);
     object.cashReceived = reader.readDouble(offsets[2]);
@@ -324,27 +319,25 @@ class _OrderFSyncNativeAdapter extends IsarNativeTypeAdapter<OrderFSync> {
   }
 
   @override
-  void attachLinks(Isar isar, int id, OrderFSync object) {
+  void attachLinks(Isar isar, int id, Order object) {
     object.orderItems.attach(
       id,
-      isar.orderFSyncs,
-      isar.getCollection<OrderItemSync>('OrderItemSync'),
+      isar.orders,
+      isar.getCollection<OrderItem>('OrderItem'),
       'orderItems',
       false,
     );
   }
 }
 
-extension OrderFSyncQueryWhereSort
-    on QueryBuilder<OrderFSync, OrderFSync, QWhere> {
-  QueryBuilder<OrderFSync, OrderFSync, QAfterWhere> anyId() {
+extension OrderQueryWhereSort on QueryBuilder<Order, Order, QWhere> {
+  QueryBuilder<Order, Order, QAfterWhere> anyId() {
     return addWhereClauseInternal(const WhereClause(indexName: null));
   }
 }
 
-extension OrderFSyncQueryWhere
-    on QueryBuilder<OrderFSync, OrderFSync, QWhereClause> {
-  QueryBuilder<OrderFSync, OrderFSync, QAfterWhereClause> idEqualTo(int id) {
+extension OrderQueryWhere on QueryBuilder<Order, Order, QWhereClause> {
+  QueryBuilder<Order, Order, QAfterWhereClause> idEqualTo(int id) {
     return addWhereClauseInternal(WhereClause(
       indexName: null,
       lower: [id],
@@ -354,7 +347,7 @@ extension OrderFSyncQueryWhere
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterWhereClause> idNotEqualTo(int id) {
+  QueryBuilder<Order, Order, QAfterWhereClause> idNotEqualTo(int id) {
     if (whereSortInternal == Sort.asc) {
       return addWhereClauseInternal(WhereClause(
         indexName: null,
@@ -378,7 +371,7 @@ extension OrderFSyncQueryWhere
     }
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterWhereClause> idGreaterThan(
+  QueryBuilder<Order, Order, QAfterWhereClause> idGreaterThan(
     int id, {
     bool include = false,
   }) {
@@ -389,7 +382,7 @@ extension OrderFSyncQueryWhere
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterWhereClause> idLessThan(
+  QueryBuilder<Order, Order, QAfterWhereClause> idLessThan(
     int id, {
     bool include = false,
   }) {
@@ -400,7 +393,7 @@ extension OrderFSyncQueryWhere
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterWhereClause> idBetween(
+  QueryBuilder<Order, Order, QAfterWhereClause> idBetween(
     int lowerId,
     int upperId, {
     bool includeLower = true,
@@ -416,10 +409,8 @@ extension OrderFSyncQueryWhere
   }
 }
 
-extension OrderFSyncQueryFilter
-    on QueryBuilder<OrderFSync, OrderFSync, QFilterCondition> {
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> activeEqualTo(
-      bool value) {
+extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
+  QueryBuilder<Order, Order, QAfterFilterCondition> activeEqualTo(bool value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
       property: 'active',
@@ -427,8 +418,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> branchIdEqualTo(
-      int value) {
+  QueryBuilder<Order, Order, QAfterFilterCondition> branchIdEqualTo(int value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
       property: 'branchId',
@@ -436,8 +426,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      branchIdGreaterThan(
+  QueryBuilder<Order, Order, QAfterFilterCondition> branchIdGreaterThan(
     int value, {
     bool include = false,
   }) {
@@ -449,7 +438,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> branchIdLessThan(
+  QueryBuilder<Order, Order, QAfterFilterCondition> branchIdLessThan(
     int value, {
     bool include = false,
   }) {
@@ -461,7 +450,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> branchIdBetween(
+  QueryBuilder<Order, Order, QAfterFilterCondition> branchIdBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -476,8 +465,8 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      cashReceivedGreaterThan(double value) {
+  QueryBuilder<Order, Order, QAfterFilterCondition> cashReceivedGreaterThan(
+      double value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.gt,
       include: false,
@@ -486,8 +475,8 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      cashReceivedLessThan(double value) {
+  QueryBuilder<Order, Order, QAfterFilterCondition> cashReceivedLessThan(
+      double value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.lt,
       include: false,
@@ -496,8 +485,8 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      cashReceivedBetween(double lower, double upper) {
+  QueryBuilder<Order, Order, QAfterFilterCondition> cashReceivedBetween(
+      double lower, double upper) {
     return addFilterConditionInternal(FilterCondition.between(
       property: 'cashReceived',
       lower: lower,
@@ -507,7 +496,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> createdAtEqualTo(
+  QueryBuilder<Order, Order, QAfterFilterCondition> createdAtEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -519,8 +508,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      createdAtGreaterThan(
+  QueryBuilder<Order, Order, QAfterFilterCondition> createdAtGreaterThan(
     String value, {
     bool caseSensitive = true,
     bool include = false,
@@ -534,7 +522,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> createdAtLessThan(
+  QueryBuilder<Order, Order, QAfterFilterCondition> createdAtLessThan(
     String value, {
     bool caseSensitive = true,
     bool include = false,
@@ -548,7 +536,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> createdAtBetween(
+  QueryBuilder<Order, Order, QAfterFilterCondition> createdAtBetween(
     String lower,
     String upper, {
     bool caseSensitive = true,
@@ -565,8 +553,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      createdAtStartsWith(
+  QueryBuilder<Order, Order, QAfterFilterCondition> createdAtStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -578,7 +565,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> createdAtEndsWith(
+  QueryBuilder<Order, Order, QAfterFilterCondition> createdAtEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -590,7 +577,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> createdAtContains(
+  QueryBuilder<Order, Order, QAfterFilterCondition> createdAtContains(
       String value,
       {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
@@ -601,7 +588,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> createdAtMatches(
+  QueryBuilder<Order, Order, QAfterFilterCondition> createdAtMatches(
       String pattern,
       {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
@@ -612,7 +599,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
+  QueryBuilder<Order, Order, QAfterFilterCondition>
       customerChangeDueGreaterThan(double value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.gt,
@@ -622,8 +609,8 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      customerChangeDueLessThan(double value) {
+  QueryBuilder<Order, Order, QAfterFilterCondition> customerChangeDueLessThan(
+      double value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.lt,
       include: false,
@@ -632,8 +619,8 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      customerChangeDueBetween(double lower, double upper) {
+  QueryBuilder<Order, Order, QAfterFilterCondition> customerChangeDueBetween(
+      double lower, double upper) {
     return addFilterConditionInternal(FilterCondition.between(
       property: 'customerChangeDue',
       lower: lower,
@@ -643,8 +630,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      customerIdIsNull() {
+  QueryBuilder<Order, Order, QAfterFilterCondition> customerIdIsNull() {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.isNull,
       property: 'customerId',
@@ -652,7 +638,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> customerIdEqualTo(
+  QueryBuilder<Order, Order, QAfterFilterCondition> customerIdEqualTo(
       int? value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
@@ -661,8 +647,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      customerIdGreaterThan(
+  QueryBuilder<Order, Order, QAfterFilterCondition> customerIdGreaterThan(
     int? value, {
     bool include = false,
   }) {
@@ -674,8 +659,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      customerIdLessThan(
+  QueryBuilder<Order, Order, QAfterFilterCondition> customerIdLessThan(
     int? value, {
     bool include = false,
   }) {
@@ -687,7 +671,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> customerIdBetween(
+  QueryBuilder<Order, Order, QAfterFilterCondition> customerIdBetween(
     int? lower,
     int? upper, {
     bool includeLower = true,
@@ -702,8 +686,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> draftEqualTo(
-      bool value) {
+  QueryBuilder<Order, Order, QAfterFilterCondition> draftEqualTo(bool value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
       property: 'draft',
@@ -711,8 +694,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> idEqualTo(
-      int value) {
+  QueryBuilder<Order, Order, QAfterFilterCondition> idEqualTo(int value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
       property: 'id',
@@ -720,7 +702,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> idGreaterThan(
+  QueryBuilder<Order, Order, QAfterFilterCondition> idGreaterThan(
     int value, {
     bool include = false,
   }) {
@@ -732,7 +714,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> idLessThan(
+  QueryBuilder<Order, Order, QAfterFilterCondition> idLessThan(
     int value, {
     bool include = false,
   }) {
@@ -744,7 +726,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> idBetween(
+  QueryBuilder<Order, Order, QAfterFilterCondition> idBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -759,7 +741,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> noteIsNull() {
+  QueryBuilder<Order, Order, QAfterFilterCondition> noteIsNull() {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.isNull,
       property: 'note',
@@ -767,7 +749,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> noteEqualTo(
+  QueryBuilder<Order, Order, QAfterFilterCondition> noteEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
@@ -779,7 +761,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> noteGreaterThan(
+  QueryBuilder<Order, Order, QAfterFilterCondition> noteGreaterThan(
     String? value, {
     bool caseSensitive = true,
     bool include = false,
@@ -793,7 +775,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> noteLessThan(
+  QueryBuilder<Order, Order, QAfterFilterCondition> noteLessThan(
     String? value, {
     bool caseSensitive = true,
     bool include = false,
@@ -807,7 +789,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> noteBetween(
+  QueryBuilder<Order, Order, QAfterFilterCondition> noteBetween(
     String? lower,
     String? upper, {
     bool caseSensitive = true,
@@ -824,7 +806,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> noteStartsWith(
+  QueryBuilder<Order, Order, QAfterFilterCondition> noteStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -836,7 +818,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> noteEndsWith(
+  QueryBuilder<Order, Order, QAfterFilterCondition> noteEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -848,136 +830,130 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> noteContains(
+  QueryBuilder<Order, Order, QAfterFilterCondition> noteContains(String value,
+      {bool caseSensitive = true}) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.contains,
+      property: 'note',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> noteMatches(String pattern,
+      {bool caseSensitive = true}) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.matches,
+      property: 'note',
+      value: pattern,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> orderNumberEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.eq,
+      property: 'orderNumber',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> orderNumberGreaterThan(
+    String value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.gt,
+      include: include,
+      property: 'orderNumber',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> orderNumberLessThan(
+    String value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.lt,
+      include: include,
+      property: 'orderNumber',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> orderNumberBetween(
+    String lower,
+    String upper, {
+    bool caseSensitive = true,
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition.between(
+      property: 'orderNumber',
+      lower: lower,
+      includeLower: includeLower,
+      upper: upper,
+      includeUpper: includeUpper,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> orderNumberStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.startsWith,
+      property: 'orderNumber',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> orderNumberEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.endsWith,
+      property: 'orderNumber',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> orderNumberContains(
       String value,
       {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.contains,
-      property: 'note',
+      property: 'orderNumber',
       value: value,
       caseSensitive: caseSensitive,
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> noteMatches(
+  QueryBuilder<Order, Order, QAfterFilterCondition> orderNumberMatches(
       String pattern,
       {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.matches,
-      property: 'note',
-      value: pattern,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      orderNumberEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'orderNumber',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      orderNumberGreaterThan(
-    String value, {
-    bool caseSensitive = true,
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'orderNumber',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      orderNumberLessThan(
-    String value, {
-    bool caseSensitive = true,
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'orderNumber',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      orderNumberBetween(
-    String lower,
-    String upper, {
-    bool caseSensitive = true,
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'orderNumber',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      orderNumberStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.startsWith,
-      property: 'orderNumber',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      orderNumberEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.endsWith,
-      property: 'orderNumber',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      orderNumberContains(String value, {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.contains,
-      property: 'orderNumber',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      orderNumberMatches(String pattern, {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.matches,
       property: 'orderNumber',
       value: pattern,
       caseSensitive: caseSensitive,
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> orderTypeEqualTo(
+  QueryBuilder<Order, Order, QAfterFilterCondition> orderTypeEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -989,8 +965,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      orderTypeGreaterThan(
+  QueryBuilder<Order, Order, QAfterFilterCondition> orderTypeGreaterThan(
     String value, {
     bool caseSensitive = true,
     bool include = false,
@@ -1004,7 +979,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> orderTypeLessThan(
+  QueryBuilder<Order, Order, QAfterFilterCondition> orderTypeLessThan(
     String value, {
     bool caseSensitive = true,
     bool include = false,
@@ -1018,7 +993,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> orderTypeBetween(
+  QueryBuilder<Order, Order, QAfterFilterCondition> orderTypeBetween(
     String lower,
     String upper, {
     bool caseSensitive = true,
@@ -1035,8 +1010,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      orderTypeStartsWith(
+  QueryBuilder<Order, Order, QAfterFilterCondition> orderTypeStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1048,7 +1022,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> orderTypeEndsWith(
+  QueryBuilder<Order, Order, QAfterFilterCondition> orderTypeEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1060,7 +1034,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> orderTypeContains(
+  QueryBuilder<Order, Order, QAfterFilterCondition> orderTypeContains(
       String value,
       {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
@@ -1071,7 +1045,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> orderTypeMatches(
+  QueryBuilder<Order, Order, QAfterFilterCondition> orderTypeMatches(
       String pattern,
       {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
@@ -1082,8 +1056,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      paymentTypeEqualTo(
+  QueryBuilder<Order, Order, QAfterFilterCondition> paymentTypeEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1095,8 +1068,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      paymentTypeGreaterThan(
+  QueryBuilder<Order, Order, QAfterFilterCondition> paymentTypeGreaterThan(
     String value, {
     bool caseSensitive = true,
     bool include = false,
@@ -1110,8 +1082,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      paymentTypeLessThan(
+  QueryBuilder<Order, Order, QAfterFilterCondition> paymentTypeLessThan(
     String value, {
     bool caseSensitive = true,
     bool include = false,
@@ -1125,8 +1096,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      paymentTypeBetween(
+  QueryBuilder<Order, Order, QAfterFilterCondition> paymentTypeBetween(
     String lower,
     String upper, {
     bool caseSensitive = true,
@@ -1143,8 +1113,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      paymentTypeStartsWith(
+  QueryBuilder<Order, Order, QAfterFilterCondition> paymentTypeStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1156,8 +1125,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      paymentTypeEndsWith(
+  QueryBuilder<Order, Order, QAfterFilterCondition> paymentTypeEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1169,8 +1137,9 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      paymentTypeContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<Order, Order, QAfterFilterCondition> paymentTypeContains(
+      String value,
+      {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.contains,
       property: 'paymentType',
@@ -1179,8 +1148,9 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      paymentTypeMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<Order, Order, QAfterFilterCondition> paymentTypeMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.matches,
       property: 'paymentType',
@@ -1189,7 +1159,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> referenceEqualTo(
+  QueryBuilder<Order, Order, QAfterFilterCondition> referenceEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1201,8 +1171,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      referenceGreaterThan(
+  QueryBuilder<Order, Order, QAfterFilterCondition> referenceGreaterThan(
     String value, {
     bool caseSensitive = true,
     bool include = false,
@@ -1216,7 +1185,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> referenceLessThan(
+  QueryBuilder<Order, Order, QAfterFilterCondition> referenceLessThan(
     String value, {
     bool caseSensitive = true,
     bool include = false,
@@ -1230,7 +1199,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> referenceBetween(
+  QueryBuilder<Order, Order, QAfterFilterCondition> referenceBetween(
     String lower,
     String upper, {
     bool caseSensitive = true,
@@ -1247,8 +1216,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      referenceStartsWith(
+  QueryBuilder<Order, Order, QAfterFilterCondition> referenceStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1260,7 +1228,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> referenceEndsWith(
+  QueryBuilder<Order, Order, QAfterFilterCondition> referenceEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1272,7 +1240,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> referenceContains(
+  QueryBuilder<Order, Order, QAfterFilterCondition> referenceContains(
       String value,
       {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
@@ -1283,7 +1251,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> referenceMatches(
+  QueryBuilder<Order, Order, QAfterFilterCondition> referenceMatches(
       String pattern,
       {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
@@ -1294,7 +1262,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> reportedIsNull() {
+  QueryBuilder<Order, Order, QAfterFilterCondition> reportedIsNull() {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.isNull,
       property: 'reported',
@@ -1302,7 +1270,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> reportedEqualTo(
+  QueryBuilder<Order, Order, QAfterFilterCondition> reportedEqualTo(
       bool? value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
@@ -1311,7 +1279,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> statusEqualTo(
+  QueryBuilder<Order, Order, QAfterFilterCondition> statusEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1323,7 +1291,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> statusGreaterThan(
+  QueryBuilder<Order, Order, QAfterFilterCondition> statusGreaterThan(
     String value, {
     bool caseSensitive = true,
     bool include = false,
@@ -1337,7 +1305,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> statusLessThan(
+  QueryBuilder<Order, Order, QAfterFilterCondition> statusLessThan(
     String value, {
     bool caseSensitive = true,
     bool include = false,
@@ -1351,7 +1319,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> statusBetween(
+  QueryBuilder<Order, Order, QAfterFilterCondition> statusBetween(
     String lower,
     String upper, {
     bool caseSensitive = true,
@@ -1368,7 +1336,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> statusStartsWith(
+  QueryBuilder<Order, Order, QAfterFilterCondition> statusStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1380,7 +1348,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> statusEndsWith(
+  QueryBuilder<Order, Order, QAfterFilterCondition> statusEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1392,8 +1360,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> statusContains(
-      String value,
+  QueryBuilder<Order, Order, QAfterFilterCondition> statusContains(String value,
       {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.contains,
@@ -1403,7 +1370,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> statusMatches(
+  QueryBuilder<Order, Order, QAfterFilterCondition> statusMatches(
       String pattern,
       {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
@@ -1414,8 +1381,8 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      subTotalGreaterThan(double value) {
+  QueryBuilder<Order, Order, QAfterFilterCondition> subTotalGreaterThan(
+      double value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.gt,
       include: false,
@@ -1424,7 +1391,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> subTotalLessThan(
+  QueryBuilder<Order, Order, QAfterFilterCondition> subTotalLessThan(
       double value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.lt,
@@ -1434,7 +1401,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> subTotalBetween(
+  QueryBuilder<Order, Order, QAfterFilterCondition> subTotalBetween(
       double lower, double upper) {
     return addFilterConditionInternal(FilterCondition.between(
       property: 'subTotal',
@@ -1445,8 +1412,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      updatedAtIsNull() {
+  QueryBuilder<Order, Order, QAfterFilterCondition> updatedAtIsNull() {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.isNull,
       property: 'updatedAt',
@@ -1454,7 +1420,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> updatedAtEqualTo(
+  QueryBuilder<Order, Order, QAfterFilterCondition> updatedAtEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
@@ -1466,8 +1432,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      updatedAtGreaterThan(
+  QueryBuilder<Order, Order, QAfterFilterCondition> updatedAtGreaterThan(
     String? value, {
     bool caseSensitive = true,
     bool include = false,
@@ -1481,7 +1446,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> updatedAtLessThan(
+  QueryBuilder<Order, Order, QAfterFilterCondition> updatedAtLessThan(
     String? value, {
     bool caseSensitive = true,
     bool include = false,
@@ -1495,7 +1460,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> updatedAtBetween(
+  QueryBuilder<Order, Order, QAfterFilterCondition> updatedAtBetween(
     String? lower,
     String? upper, {
     bool caseSensitive = true,
@@ -1512,8 +1477,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition>
-      updatedAtStartsWith(
+  QueryBuilder<Order, Order, QAfterFilterCondition> updatedAtStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1525,7 +1489,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> updatedAtEndsWith(
+  QueryBuilder<Order, Order, QAfterFilterCondition> updatedAtEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1537,7 +1501,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> updatedAtContains(
+  QueryBuilder<Order, Order, QAfterFilterCondition> updatedAtContains(
       String value,
       {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
@@ -1548,7 +1512,7 @@ extension OrderFSyncQueryFilter
     ));
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterFilterCondition> updatedAtMatches(
+  QueryBuilder<Order, Order, QAfterFilterCondition> updatedAtMatches(
       String pattern,
       {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
@@ -1560,434 +1524,426 @@ extension OrderFSyncQueryFilter
   }
 }
 
-extension OrderFSyncQueryWhereSortBy
-    on QueryBuilder<OrderFSync, OrderFSync, QSortBy> {
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortByActive() {
+extension OrderQueryWhereSortBy on QueryBuilder<Order, Order, QSortBy> {
+  QueryBuilder<Order, Order, QAfterSortBy> sortByActive() {
     return addSortByInternal('active', Sort.asc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortByActiveDesc() {
+  QueryBuilder<Order, Order, QAfterSortBy> sortByActiveDesc() {
     return addSortByInternal('active', Sort.desc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortByBranchId() {
+  QueryBuilder<Order, Order, QAfterSortBy> sortByBranchId() {
     return addSortByInternal('branchId', Sort.asc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortByBranchIdDesc() {
+  QueryBuilder<Order, Order, QAfterSortBy> sortByBranchIdDesc() {
     return addSortByInternal('branchId', Sort.desc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortByCashReceived() {
+  QueryBuilder<Order, Order, QAfterSortBy> sortByCashReceived() {
     return addSortByInternal('cashReceived', Sort.asc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortByCashReceivedDesc() {
+  QueryBuilder<Order, Order, QAfterSortBy> sortByCashReceivedDesc() {
     return addSortByInternal('cashReceived', Sort.desc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortByCreatedAt() {
+  QueryBuilder<Order, Order, QAfterSortBy> sortByCreatedAt() {
     return addSortByInternal('createdAt', Sort.asc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortByCreatedAtDesc() {
+  QueryBuilder<Order, Order, QAfterSortBy> sortByCreatedAtDesc() {
     return addSortByInternal('createdAt', Sort.desc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortByCustomerChangeDue() {
+  QueryBuilder<Order, Order, QAfterSortBy> sortByCustomerChangeDue() {
     return addSortByInternal('customerChangeDue', Sort.asc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy>
-      sortByCustomerChangeDueDesc() {
+  QueryBuilder<Order, Order, QAfterSortBy> sortByCustomerChangeDueDesc() {
     return addSortByInternal('customerChangeDue', Sort.desc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortByCustomerId() {
+  QueryBuilder<Order, Order, QAfterSortBy> sortByCustomerId() {
     return addSortByInternal('customerId', Sort.asc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortByCustomerIdDesc() {
+  QueryBuilder<Order, Order, QAfterSortBy> sortByCustomerIdDesc() {
     return addSortByInternal('customerId', Sort.desc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortByDraft() {
+  QueryBuilder<Order, Order, QAfterSortBy> sortByDraft() {
     return addSortByInternal('draft', Sort.asc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortByDraftDesc() {
+  QueryBuilder<Order, Order, QAfterSortBy> sortByDraftDesc() {
     return addSortByInternal('draft', Sort.desc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortById() {
+  QueryBuilder<Order, Order, QAfterSortBy> sortById() {
     return addSortByInternal('id', Sort.asc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortByIdDesc() {
+  QueryBuilder<Order, Order, QAfterSortBy> sortByIdDesc() {
     return addSortByInternal('id', Sort.desc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortByNote() {
+  QueryBuilder<Order, Order, QAfterSortBy> sortByNote() {
     return addSortByInternal('note', Sort.asc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortByNoteDesc() {
+  QueryBuilder<Order, Order, QAfterSortBy> sortByNoteDesc() {
     return addSortByInternal('note', Sort.desc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortByOrderNumber() {
+  QueryBuilder<Order, Order, QAfterSortBy> sortByOrderNumber() {
     return addSortByInternal('orderNumber', Sort.asc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortByOrderNumberDesc() {
+  QueryBuilder<Order, Order, QAfterSortBy> sortByOrderNumberDesc() {
     return addSortByInternal('orderNumber', Sort.desc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortByOrderType() {
+  QueryBuilder<Order, Order, QAfterSortBy> sortByOrderType() {
     return addSortByInternal('orderType', Sort.asc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortByOrderTypeDesc() {
+  QueryBuilder<Order, Order, QAfterSortBy> sortByOrderTypeDesc() {
     return addSortByInternal('orderType', Sort.desc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortByPaymentType() {
+  QueryBuilder<Order, Order, QAfterSortBy> sortByPaymentType() {
     return addSortByInternal('paymentType', Sort.asc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortByPaymentTypeDesc() {
+  QueryBuilder<Order, Order, QAfterSortBy> sortByPaymentTypeDesc() {
     return addSortByInternal('paymentType', Sort.desc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortByReference() {
+  QueryBuilder<Order, Order, QAfterSortBy> sortByReference() {
     return addSortByInternal('reference', Sort.asc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortByReferenceDesc() {
+  QueryBuilder<Order, Order, QAfterSortBy> sortByReferenceDesc() {
     return addSortByInternal('reference', Sort.desc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortByReported() {
+  QueryBuilder<Order, Order, QAfterSortBy> sortByReported() {
     return addSortByInternal('reported', Sort.asc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortByReportedDesc() {
+  QueryBuilder<Order, Order, QAfterSortBy> sortByReportedDesc() {
     return addSortByInternal('reported', Sort.desc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortByStatus() {
+  QueryBuilder<Order, Order, QAfterSortBy> sortByStatus() {
     return addSortByInternal('status', Sort.asc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortByStatusDesc() {
+  QueryBuilder<Order, Order, QAfterSortBy> sortByStatusDesc() {
     return addSortByInternal('status', Sort.desc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortBySubTotal() {
+  QueryBuilder<Order, Order, QAfterSortBy> sortBySubTotal() {
     return addSortByInternal('subTotal', Sort.asc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortBySubTotalDesc() {
+  QueryBuilder<Order, Order, QAfterSortBy> sortBySubTotalDesc() {
     return addSortByInternal('subTotal', Sort.desc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortByUpdatedAt() {
+  QueryBuilder<Order, Order, QAfterSortBy> sortByUpdatedAt() {
     return addSortByInternal('updatedAt', Sort.asc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> sortByUpdatedAtDesc() {
+  QueryBuilder<Order, Order, QAfterSortBy> sortByUpdatedAtDesc() {
     return addSortByInternal('updatedAt', Sort.desc);
   }
 }
 
-extension OrderFSyncQueryWhereSortThenBy
-    on QueryBuilder<OrderFSync, OrderFSync, QSortThenBy> {
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenByActive() {
+extension OrderQueryWhereSortThenBy on QueryBuilder<Order, Order, QSortThenBy> {
+  QueryBuilder<Order, Order, QAfterSortBy> thenByActive() {
     return addSortByInternal('active', Sort.asc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenByActiveDesc() {
+  QueryBuilder<Order, Order, QAfterSortBy> thenByActiveDesc() {
     return addSortByInternal('active', Sort.desc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenByBranchId() {
+  QueryBuilder<Order, Order, QAfterSortBy> thenByBranchId() {
     return addSortByInternal('branchId', Sort.asc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenByBranchIdDesc() {
+  QueryBuilder<Order, Order, QAfterSortBy> thenByBranchIdDesc() {
     return addSortByInternal('branchId', Sort.desc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenByCashReceived() {
+  QueryBuilder<Order, Order, QAfterSortBy> thenByCashReceived() {
     return addSortByInternal('cashReceived', Sort.asc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenByCashReceivedDesc() {
+  QueryBuilder<Order, Order, QAfterSortBy> thenByCashReceivedDesc() {
     return addSortByInternal('cashReceived', Sort.desc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenByCreatedAt() {
+  QueryBuilder<Order, Order, QAfterSortBy> thenByCreatedAt() {
     return addSortByInternal('createdAt', Sort.asc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenByCreatedAtDesc() {
+  QueryBuilder<Order, Order, QAfterSortBy> thenByCreatedAtDesc() {
     return addSortByInternal('createdAt', Sort.desc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenByCustomerChangeDue() {
+  QueryBuilder<Order, Order, QAfterSortBy> thenByCustomerChangeDue() {
     return addSortByInternal('customerChangeDue', Sort.asc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy>
-      thenByCustomerChangeDueDesc() {
+  QueryBuilder<Order, Order, QAfterSortBy> thenByCustomerChangeDueDesc() {
     return addSortByInternal('customerChangeDue', Sort.desc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenByCustomerId() {
+  QueryBuilder<Order, Order, QAfterSortBy> thenByCustomerId() {
     return addSortByInternal('customerId', Sort.asc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenByCustomerIdDesc() {
+  QueryBuilder<Order, Order, QAfterSortBy> thenByCustomerIdDesc() {
     return addSortByInternal('customerId', Sort.desc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenByDraft() {
+  QueryBuilder<Order, Order, QAfterSortBy> thenByDraft() {
     return addSortByInternal('draft', Sort.asc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenByDraftDesc() {
+  QueryBuilder<Order, Order, QAfterSortBy> thenByDraftDesc() {
     return addSortByInternal('draft', Sort.desc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenById() {
+  QueryBuilder<Order, Order, QAfterSortBy> thenById() {
     return addSortByInternal('id', Sort.asc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenByIdDesc() {
+  QueryBuilder<Order, Order, QAfterSortBy> thenByIdDesc() {
     return addSortByInternal('id', Sort.desc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenByNote() {
+  QueryBuilder<Order, Order, QAfterSortBy> thenByNote() {
     return addSortByInternal('note', Sort.asc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenByNoteDesc() {
+  QueryBuilder<Order, Order, QAfterSortBy> thenByNoteDesc() {
     return addSortByInternal('note', Sort.desc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenByOrderNumber() {
+  QueryBuilder<Order, Order, QAfterSortBy> thenByOrderNumber() {
     return addSortByInternal('orderNumber', Sort.asc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenByOrderNumberDesc() {
+  QueryBuilder<Order, Order, QAfterSortBy> thenByOrderNumberDesc() {
     return addSortByInternal('orderNumber', Sort.desc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenByOrderType() {
+  QueryBuilder<Order, Order, QAfterSortBy> thenByOrderType() {
     return addSortByInternal('orderType', Sort.asc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenByOrderTypeDesc() {
+  QueryBuilder<Order, Order, QAfterSortBy> thenByOrderTypeDesc() {
     return addSortByInternal('orderType', Sort.desc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenByPaymentType() {
+  QueryBuilder<Order, Order, QAfterSortBy> thenByPaymentType() {
     return addSortByInternal('paymentType', Sort.asc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenByPaymentTypeDesc() {
+  QueryBuilder<Order, Order, QAfterSortBy> thenByPaymentTypeDesc() {
     return addSortByInternal('paymentType', Sort.desc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenByReference() {
+  QueryBuilder<Order, Order, QAfterSortBy> thenByReference() {
     return addSortByInternal('reference', Sort.asc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenByReferenceDesc() {
+  QueryBuilder<Order, Order, QAfterSortBy> thenByReferenceDesc() {
     return addSortByInternal('reference', Sort.desc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenByReported() {
+  QueryBuilder<Order, Order, QAfterSortBy> thenByReported() {
     return addSortByInternal('reported', Sort.asc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenByReportedDesc() {
+  QueryBuilder<Order, Order, QAfterSortBy> thenByReportedDesc() {
     return addSortByInternal('reported', Sort.desc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenByStatus() {
+  QueryBuilder<Order, Order, QAfterSortBy> thenByStatus() {
     return addSortByInternal('status', Sort.asc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenByStatusDesc() {
+  QueryBuilder<Order, Order, QAfterSortBy> thenByStatusDesc() {
     return addSortByInternal('status', Sort.desc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenBySubTotal() {
+  QueryBuilder<Order, Order, QAfterSortBy> thenBySubTotal() {
     return addSortByInternal('subTotal', Sort.asc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenBySubTotalDesc() {
+  QueryBuilder<Order, Order, QAfterSortBy> thenBySubTotalDesc() {
     return addSortByInternal('subTotal', Sort.desc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenByUpdatedAt() {
+  QueryBuilder<Order, Order, QAfterSortBy> thenByUpdatedAt() {
     return addSortByInternal('updatedAt', Sort.asc);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QAfterSortBy> thenByUpdatedAtDesc() {
+  QueryBuilder<Order, Order, QAfterSortBy> thenByUpdatedAtDesc() {
     return addSortByInternal('updatedAt', Sort.desc);
   }
 }
 
-extension OrderFSyncQueryWhereDistinct
-    on QueryBuilder<OrderFSync, OrderFSync, QDistinct> {
-  QueryBuilder<OrderFSync, OrderFSync, QDistinct> distinctByActive() {
+extension OrderQueryWhereDistinct on QueryBuilder<Order, Order, QDistinct> {
+  QueryBuilder<Order, Order, QDistinct> distinctByActive() {
     return addDistinctByInternal('active');
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QDistinct> distinctByBranchId() {
+  QueryBuilder<Order, Order, QDistinct> distinctByBranchId() {
     return addDistinctByInternal('branchId');
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QDistinct> distinctByCashReceived() {
+  QueryBuilder<Order, Order, QDistinct> distinctByCashReceived() {
     return addDistinctByInternal('cashReceived');
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QDistinct> distinctByCreatedAt(
+  QueryBuilder<Order, Order, QDistinct> distinctByCreatedAt(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('createdAt', caseSensitive: caseSensitive);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QDistinct>
-      distinctByCustomerChangeDue() {
+  QueryBuilder<Order, Order, QDistinct> distinctByCustomerChangeDue() {
     return addDistinctByInternal('customerChangeDue');
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QDistinct> distinctByCustomerId() {
+  QueryBuilder<Order, Order, QDistinct> distinctByCustomerId() {
     return addDistinctByInternal('customerId');
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QDistinct> distinctByDraft() {
+  QueryBuilder<Order, Order, QDistinct> distinctByDraft() {
     return addDistinctByInternal('draft');
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QDistinct> distinctById() {
+  QueryBuilder<Order, Order, QDistinct> distinctById() {
     return addDistinctByInternal('id');
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QDistinct> distinctByNote(
+  QueryBuilder<Order, Order, QDistinct> distinctByNote(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('note', caseSensitive: caseSensitive);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QDistinct> distinctByOrderNumber(
+  QueryBuilder<Order, Order, QDistinct> distinctByOrderNumber(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('orderNumber', caseSensitive: caseSensitive);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QDistinct> distinctByOrderType(
+  QueryBuilder<Order, Order, QDistinct> distinctByOrderType(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('orderType', caseSensitive: caseSensitive);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QDistinct> distinctByPaymentType(
+  QueryBuilder<Order, Order, QDistinct> distinctByPaymentType(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('paymentType', caseSensitive: caseSensitive);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QDistinct> distinctByReference(
+  QueryBuilder<Order, Order, QDistinct> distinctByReference(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('reference', caseSensitive: caseSensitive);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QDistinct> distinctByReported() {
+  QueryBuilder<Order, Order, QDistinct> distinctByReported() {
     return addDistinctByInternal('reported');
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QDistinct> distinctByStatus(
+  QueryBuilder<Order, Order, QDistinct> distinctByStatus(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('status', caseSensitive: caseSensitive);
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QDistinct> distinctBySubTotal() {
+  QueryBuilder<Order, Order, QDistinct> distinctBySubTotal() {
     return addDistinctByInternal('subTotal');
   }
 
-  QueryBuilder<OrderFSync, OrderFSync, QDistinct> distinctByUpdatedAt(
+  QueryBuilder<Order, Order, QDistinct> distinctByUpdatedAt(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('updatedAt', caseSensitive: caseSensitive);
   }
 }
 
-extension OrderFSyncQueryProperty
-    on QueryBuilder<OrderFSync, OrderFSync, QQueryProperty> {
-  QueryBuilder<OrderFSync, bool, QQueryOperations> activeProperty() {
+extension OrderQueryProperty on QueryBuilder<Order, Order, QQueryProperty> {
+  QueryBuilder<Order, bool, QQueryOperations> activeProperty() {
     return addPropertyNameInternal('active');
   }
 
-  QueryBuilder<OrderFSync, int, QQueryOperations> branchIdProperty() {
+  QueryBuilder<Order, int, QQueryOperations> branchIdProperty() {
     return addPropertyNameInternal('branchId');
   }
 
-  QueryBuilder<OrderFSync, double, QQueryOperations> cashReceivedProperty() {
+  QueryBuilder<Order, double, QQueryOperations> cashReceivedProperty() {
     return addPropertyNameInternal('cashReceived');
   }
 
-  QueryBuilder<OrderFSync, String, QQueryOperations> createdAtProperty() {
+  QueryBuilder<Order, String, QQueryOperations> createdAtProperty() {
     return addPropertyNameInternal('createdAt');
   }
 
-  QueryBuilder<OrderFSync, double, QQueryOperations>
-      customerChangeDueProperty() {
+  QueryBuilder<Order, double, QQueryOperations> customerChangeDueProperty() {
     return addPropertyNameInternal('customerChangeDue');
   }
 
-  QueryBuilder<OrderFSync, int?, QQueryOperations> customerIdProperty() {
+  QueryBuilder<Order, int?, QQueryOperations> customerIdProperty() {
     return addPropertyNameInternal('customerId');
   }
 
-  QueryBuilder<OrderFSync, bool, QQueryOperations> draftProperty() {
+  QueryBuilder<Order, bool, QQueryOperations> draftProperty() {
     return addPropertyNameInternal('draft');
   }
 
-  QueryBuilder<OrderFSync, int, QQueryOperations> idProperty() {
+  QueryBuilder<Order, int, QQueryOperations> idProperty() {
     return addPropertyNameInternal('id');
   }
 
-  QueryBuilder<OrderFSync, String?, QQueryOperations> noteProperty() {
+  QueryBuilder<Order, String?, QQueryOperations> noteProperty() {
     return addPropertyNameInternal('note');
   }
 
-  QueryBuilder<OrderFSync, String, QQueryOperations> orderNumberProperty() {
+  QueryBuilder<Order, String, QQueryOperations> orderNumberProperty() {
     return addPropertyNameInternal('orderNumber');
   }
 
-  QueryBuilder<OrderFSync, String, QQueryOperations> orderTypeProperty() {
+  QueryBuilder<Order, String, QQueryOperations> orderTypeProperty() {
     return addPropertyNameInternal('orderType');
   }
 
-  QueryBuilder<OrderFSync, String, QQueryOperations> paymentTypeProperty() {
+  QueryBuilder<Order, String, QQueryOperations> paymentTypeProperty() {
     return addPropertyNameInternal('paymentType');
   }
 
-  QueryBuilder<OrderFSync, String, QQueryOperations> referenceProperty() {
+  QueryBuilder<Order, String, QQueryOperations> referenceProperty() {
     return addPropertyNameInternal('reference');
   }
 
-  QueryBuilder<OrderFSync, bool?, QQueryOperations> reportedProperty() {
+  QueryBuilder<Order, bool?, QQueryOperations> reportedProperty() {
     return addPropertyNameInternal('reported');
   }
 
-  QueryBuilder<OrderFSync, String, QQueryOperations> statusProperty() {
+  QueryBuilder<Order, String, QQueryOperations> statusProperty() {
     return addPropertyNameInternal('status');
   }
 
-  QueryBuilder<OrderFSync, double, QQueryOperations> subTotalProperty() {
+  QueryBuilder<Order, double, QQueryOperations> subTotalProperty() {
     return addPropertyNameInternal('subTotal');
   }
 
-  QueryBuilder<OrderFSync, String?, QQueryOperations> updatedAtProperty() {
+  QueryBuilder<Order, String?, QQueryOperations> updatedAtProperty() {
     return addPropertyNameInternal('updatedAt');
   }
 }

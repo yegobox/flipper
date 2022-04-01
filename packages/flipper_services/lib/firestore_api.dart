@@ -17,9 +17,8 @@ abstract class FlipperFirestore {
   void deleteRoom({required String roomId});
   void pullProducts({required int branchId});
   void pushProducts({required int branchId});
-  void pushVariations(
-      {required int branchId, required List<VariantSync> products});
-  void pushStock({required int branchId, required List<StockSync> products});
+  void pushVariations({required int branchId, required List<Variant> products});
+  void pushStock({required int branchId, required List<Stock> products});
 }
 
 class UnSupportedFirestoreApi implements FlipperFirestore {
@@ -71,13 +70,13 @@ class UnSupportedFirestoreApi implements FlipperFirestore {
   }
 
   @override
-  void pushStock({required int branchId, required List<StockSync> products}) {
+  void pushStock({required int branchId, required List<Stock> products}) {
     // TODO: implement pushStock
   }
 
   @override
   void pushVariations(
-      {required int branchId, required List<VariantSync> products}) {
+      {required int branchId, required List<Variant> products}) {
     // TODO: implement pushVariations
   }
 }
@@ -205,14 +204,14 @@ class FirestoreApi implements FlipperFirestore {
               .then((value) {
             value.docs.forEach((element) {
               Map<dynamic, dynamic> data = element.data();
-              VariantSync variation = VariantSync.fromJson(data);
+              Variant variation = Variant.fromJson(data);
               FirebaseFirestore.instance
                   .collection('products/${id}/variations/${variation.id}/stock')
                   .get()
                   .then((value) {
                 value.docs.forEach((element) {
                   Map<dynamic, dynamic> data = element.data();
-                  StockSync s = StockSync.fromJson(data);
+                  Stock s = Stock.fromJson(data);
                   // ProxyService.api
                   //     .syncProduct(product: p, variant: variation, stock: s);
                 });
@@ -251,7 +250,7 @@ class FirestoreApi implements FlipperFirestore {
     //         .doc(id)
     //         .set(product.toJson())
     //         .then((v) {
-    //       for (VariantSync variation in product.variations) {
+    //       for (Variant variation in product.variations) {
     //         FirebaseFirestore.instance
     //             .collection('products')
     //             .doc(id)
@@ -283,13 +282,13 @@ class FirestoreApi implements FlipperFirestore {
   }
 
   @override
-  void pushStock({required int branchId, required List<StockSync> products}) {
+  void pushStock({required int branchId, required List<Stock> products}) {
     // TODO: implement pushStock
   }
 
   @override
   void pushVariations(
-      {required int branchId, required List<VariantSync> products}) {
+      {required int branchId, required List<Variant> products}) {
     // TODO: implement pushVariations
   }
 }
