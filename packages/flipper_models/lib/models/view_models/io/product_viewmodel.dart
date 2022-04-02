@@ -248,25 +248,18 @@ class ProductViewModel extends ReactiveViewModel {
     int branchId = ProxyService.box.read(key: 'branchId');
     for (PColor c in colors) {
       if (c.active) {
-        final PColor? _color =
-            await ProxyService.isarApi.getColor(id: c.id, endPoint: 'color');
-        // final Map mapColor = _color!.toJson();
+        final PColor? _color = await ProxyService.isarApi.getColor(id: c.id);
         _color!.active = false;
         _color.branchId = branchId;
-        final id = _color.id;
-        ProxyService.isarApi.update(data: _color, endPoint: 'color/$id');
+        ProxyService.isarApi.update(data: _color);
       }
     }
 
-    final PColor? _color =
-        await ProxyService.isarApi.getColor(id: color.id, endPoint: 'color');
-
-    // final Map mapColor = _color!.toJson();
+    final PColor? _color = await ProxyService.isarApi.getColor(id: color.id);
 
     _color!.active = true;
     _color.branchId = branchId;
-    final id = _color.id;
-    ProxyService.isarApi.update(data: _color, endPoint: 'color/$id');
+    ProxyService.isarApi.update(data: _color);
 
     _appService.setCurrentColor(color: color.name!);
 

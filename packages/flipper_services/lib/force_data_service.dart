@@ -20,7 +20,7 @@ class ForceDataEntryService {
       return;
     }
 
-    final String? userId = ProxyService.box.read(key: 'userId');
+    final String? userId = ProxyService.box.getUserId();
     final List<String> colors = [
       '#d63031',
       '#0984e3',
@@ -39,7 +39,7 @@ class ForceDataEntryService {
       ..channels = [userId!]
       ..active = false
       ..branchId = branchId
-      ..name = 'sample';
+      ..name = '#d63031';
 
     int branchid = ProxyService.box.read(key: 'branchId');
     List<PColor> kColors =

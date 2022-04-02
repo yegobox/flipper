@@ -185,24 +185,25 @@ class ColorTile extends StatelessWidget {
           Stack(
             alignment: Alignment.center,
             children: [
-              Container(
+              SizedBox(
                 height: 80,
                 width: 120,
-                child: FlatButton(
-                  shape: RoundedRectangleBorder(
-                    side: BorderSide(
-                      color: HexColor(colors[i].name!),
+                child: TextButton(
+                  style: TextButton.styleFrom(
+                    primary: HexColor(colors[i].name!),
+                    backgroundColor: HexColor(colors[i].name!),
+                    shape: RoundedRectangleBorder(
+                      side: BorderSide(
+                        color: HexColor(colors[i].name!),
+                      ),
                     ),
                   ),
-                  color: HexColor(colors[i].name!),
                   child: const Text(''),
                   onPressed: () {
-                    //reset all other color to not selected
                     model.switchColor(color: colors[i]);
                   },
                 ),
               ),
-              // FIXME: add checkmark on active color is not working propper.
               colors[i].active
                   ? IconButton(
                       alignment: Alignment.center,

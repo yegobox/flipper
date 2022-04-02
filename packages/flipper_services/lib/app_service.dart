@@ -63,8 +63,8 @@ class AppService with ReactiveServiceMixin {
     List<PColor> result =
         await ProxyService.isarApi.colors(branchId: branchId!);
     _colors.value = result;
-
-    for (PColor color in _colors.value) {
+    log.i(result.length);
+    for (PColor color in result) {
       if (color.active) {
         setCurrentColor(color: color.name!);
       }

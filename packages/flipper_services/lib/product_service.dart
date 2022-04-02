@@ -51,7 +51,7 @@ class ProductService with ReactiveServiceMixin {
   List<Variant>? get variants => _variants.value;
 
   Future<void> variantsProduct({required int productId}) async {
-    final int? branchId = ProxyService.box.read(key: 'branchId');
+    final int? branchId = ProxyService.box.getBranchId()!;
 
     _variants.value = await ProxyService.isarApi
         .variants(branchId: branchId!, productId: productId);

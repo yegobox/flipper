@@ -412,8 +412,9 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<List<PColor>> colors({required int branchId}) async {
-    // get all colors from isar db
-    return isar.pColors.filter().branchIdEqualTo(branchId).findAll();
+    return isar.writeTxn((isar) async {
+      return isar.pColors.filter().branchIdEqualTo(branchId).findAll();
+    });
   }
 
   @override
@@ -458,13 +459,11 @@ class IsarAPI implements IsarApiInterface {
     if (endPoint == 'color') {
       PColor color = data as PColor;
       isar.writeTxn((isar) async {
-        for (String co in data.colors!) {
-          int id = await isar.pColors.put(PColor()
-            ..name = co
+        for (String colorName in data.colors!) {
+          await isar.pColors.put(PColor()
+            ..name = colorName
             ..active = color.active
             ..branchId = color.branchId);
-
-          return await isar.pColors.get(id);
         }
       });
     }
@@ -723,7 +722,7 @@ class IsarAPI implements IsarApiInterface {
   @override
   Future<PColor?> getColor({required int id, String? endPoint}) async {
     return isar.writeTxn((isar) async {
-      return isar.pColors.getSync(id);
+      return isar.pColors.get(id);
     });
   }
 
@@ -1279,6 +1278,12 @@ class IsarAPI implements IsarApiInterface {
         return await isar.units.put(unit, saveLinks: true);
       });
     }
+    if (data is PColor) {
+      final color = data;
+      await isar.writeTxn((isar) async {
+        return await isar.pColors.put(color, saveLinks: true);
+      });
+    }
     if (data is OrderItem) {
       final orderItem = data;
       // find this related order
@@ -1351,9 +1356,7 @@ class IsarAPI implements IsarApiInterface {
   @override
   Future<List<Variant>> variants(
       {required int branchId, required int productId}) async {
-    // get variants where branchId and productId from isar db
     return await isar.writeTxn((isar) async {
-      // get variants where branchId and productId from isar db
       return await isar.variants
           .filter()
           .branchIdEqualTo(branchId)

@@ -178,8 +178,11 @@ class _AddProductViewState extends State<AddProductView> {
                   SupplyPrice(
                     controller: supplyPriceController,
                     onModelUpdate: (value) {
-                      model.updateRegularVariant(
-                          supplyPrice: double.parse(value));
+                      String trimed = value.trim();
+                      if (trimed.isNotEmpty) {
+                        model.updateRegularVariant(
+                            supplyPrice: double.parse(value));
+                      }
                     },
                   ),
                   verticalSpaceSmall,
