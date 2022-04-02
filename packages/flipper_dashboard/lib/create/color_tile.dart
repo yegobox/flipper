@@ -105,7 +105,7 @@ class ColorTile extends StatelessWidget {
               Align(
                 alignment: Alignment.topCenter,
                 child: Wrap(
-                  children: buildStack(context, model.colors, model),
+                  children: colorsStack(context, model.colors, model),
                 ),
               ),
               const ListDivider(
@@ -175,7 +175,7 @@ class ColorTile extends StatelessWidget {
     );
   }
 
-  List<Widget> buildStack(
+  List<Widget> colorsStack(
       BuildContext context, List<PColor> colors, ProductViewModel model) {
     final List<Widget> stacks = [];
 
