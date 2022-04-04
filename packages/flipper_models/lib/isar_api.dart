@@ -1429,7 +1429,9 @@ class IsarAPI implements IsarApiInterface {
   @override
   Future<List<Category>> categories({required int branchId}) async {
     // get all categories from isar db
-    return isar.categorys.filter().branchIdEqualTo(branchId).findAll();
+    return isar.writeTxn((isar) async {
+      return isar.categorys.filter().branchIdEqualTo(branchId).findAll();
+    });
   }
 
   @override
