@@ -1,4 +1,3 @@
-
 class Routes {
   static const String boot = '/boot';
   static const String chat = '/omni';
@@ -31,4 +30,6 @@ class Routes {
   static const String map = '/map-view';
   static const String customers = '/customers';
   static const String finance = '/finance';
+
+  static const noNet = '/nonetwork';
 }

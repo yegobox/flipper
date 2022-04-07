@@ -82,7 +82,7 @@ void main() async {
     // SystemChrome.setEnabledSystemUIMode(
     //   SystemUiMode.leanBack,
     // );
-    runApp(const ProviderScope(child: Gate()));
+    runApp(const Gate());
   }, (error, stack) async {
     await Sentry.captureException(error, stackTrace: stack);
     if (!isWindows) {

@@ -17,7 +17,7 @@ class InAppReviewService implements Review {
 
   @override
   void review() async {
-    Random rnd = new Random();
+    Random rnd = Random();
     int min = 8, max = 42;
     int r = min + rnd.nextInt(max - min);
 

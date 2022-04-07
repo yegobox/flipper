@@ -6,7 +6,6 @@ import 'package:overlay_support/overlay_support.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:google_ui/google_ui.dart';
-import 'package:stacked/stacked.dart';
 import 'package:flipper_chat/omni/omni_contacts.dart';
 import 'package:flipper_chat/omni_chat.dart';
 import 'package:flipper_dashboard/add_discount.dart';
@@ -37,6 +36,7 @@ import 'package:flipper_login/pin_login.dart';
 import 'package:flipper_login/signup_form_view.dart';
 import 'package:flipper_routing/finance_app.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 class LoginInfo extends ChangeNotifier {
   var _isLoggedIn = false;
@@ -84,60 +84,49 @@ class LoginInfo extends ChangeNotifier {
 
 final loginInfo = LoginInfo();
 
-class Gate extends StatefulWidget {
+class Gate extends StatelessWidget {
   const Gate({Key? key}) : super(key: key);
 
   @override
-  State<Gate> createState() => _GateState();
-}
-
-class _GateState extends State<Gate> {
-  @override
   Widget build(BuildContext context) {
     final router = GoRouter(
-      initialLocation: Routes.boot,
+      initialLocation: Routes.home,
       refreshListenable: loginInfo,
       redirect: (state) {
         final bool loggedIn = loginInfo.isLoggedIn;
         final bool needSignUp = loginInfo.needSignUp;
-        // when a country is for example United state with space in it will cause a loop so replace space init
+        final onHome = state.subloc == Routes.home;
+        final onLogin = state.subloc == Routes.login;
+        final onNoNet = state.subloc == Routes.noNet;
         final String country = loginInfo.country.replaceAll(" ", "");
+        final onSignUp = state.subloc == Routes.signup + "/$country";
         final bool noNet = loginInfo.noNet;
-        final bool needSwitchBranch = loginInfo.switchBranch;
-        final bool isLogging = state.subloc == '/login';
-        final bool isArleadyHome = state.subloc == '/home';
-        final bool isArleadyNoNet = state.subloc == '/nonetwork';
-        final bool isArleadySignup =
-            state.subloc == Routes.signup + "/$country";
-        final bool isRedirecting = loginInfo.redirecting;
-        if (noNet && isLogging && isRedirecting) {
-          return "/nonetwork";
-        }
-        if (needSwitchBranch && loggedIn && isRedirecting) {
-          return "/switchbranch";
-        }
+
+        final routeWithRedirectRules = [
+          Routes.signup + "/$country",
+          Routes.login,
+          Routes.noNet,
+          Routes.home,
+        ];
         if (loggedIn &&
-            needSignUp &&
-            !isArleadySignup &&
-            !isArleadyHome &&
-            !isRedirecting) {
+            !onHome &&
+            routeWithRedirectRules.contains(state.subloc)) {
+          return Routes.home;
+        }
+        if (needSignUp &&
+            !onSignUp &&
+            routeWithRedirectRules.contains(state.subloc)) {
           return Routes.signup + "/$country";
         }
-        if (!loggedIn && !isLogging && !isArleadyNoNet && !isRedirecting) {
+        if (!loggedIn &&
+            !onLogin &&
+            routeWithRedirectRules.contains(state.subloc)) {
           return Routes.login;
         }
-        // TODOif we don't check if we are aready on home page, the goRouter
-        // will throw a loop error since we may push the page to the stack
-        // more than once https://github.com/csells/go_router/discussions/364
-        if (loggedIn && !isArleadyHome && !needSignUp && isRedirecting) {
-          return Routes.home;
-        }
-        if (loggedIn &&
-            !isLogging &&
-            !isArleadyHome &&
-            !needSignUp &&
-            isRedirecting) {
-          return Routes.home;
+        if (noNet &&
+            !onNoNet &&
+            routeWithRedirectRules.contains(state.subloc)) {
+          return Routes.noNet;
         }
         return null;
       },
@@ -421,45 +410,39 @@ class _GateState extends State<Gate> {
         )
       ],
     );
-    return ViewModelBuilder<BusinessHomeViewModel>.reactive(
-      viewModelBuilder: () => BusinessHomeViewModel(),
-      onModelReady: (model) async {
-        String? defaultLanguage = model.getSetting();
+    return OverlaySupport.global(
+      child: ChangeNotifierProvider.value(
+        value: loginInfo,
+        child: MaterialApp.router(
+          debugShowCheckedModeBanner: false,
+          title: 'flipper',
+          // Define the light theme for the app, based on defined colors and
+          // properties above.
+          theme: GThemeGenerator.generate(),
 
-        defaultLanguage == null ? const Locale('en') : Locale(defaultLanguage);
-      },
-      builder: (context, model, child) {
-        return OverlaySupport.global(
-          child: MaterialApp.router(
-            debugShowCheckedModeBanner: false,
-            title: 'flipper',
-            // Define the light theme for the app, based on defined colors and
-            // properties above.
-            theme: GThemeGenerator.generate(),
+          darkTheme: GThemeGenerator.generateDark(),
 
-            darkTheme: GThemeGenerator.generateDark(),
-
-            localizationsDelegates: [
-              FlutterFireUILocalizations.withDefaultOverrides(
-                const LabelOverrides(),
-              ),
-              const FlipperLocalizationsDelegate(),
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-            ],
-            supportedLocales: const [
-              Locale('en', 'US'), // English
-              Locale('es', 'ES'), // Spanish
-            ],
-            locale: const Locale('en'),
-            // locale: model
-            //     .languageService.locale,
-            themeMode: model.settingService.themeMode.value,
-            routeInformationParser: router.routeInformationParser,
-            routerDelegate: router.routerDelegate,
-          ),
-        );
-      },
+          localizationsDelegates: [
+            FlutterFireUILocalizations.withDefaultOverrides(
+              const LabelOverrides(),
+            ),
+            const FlipperLocalizationsDelegate(),
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en', 'US'), // English
+            Locale('es', 'ES'), // Spanish
+          ],
+          locale: const Locale('en'),
+          // locale: model
+          //     .languageService.locale,
+          // themeMode: model.settingService.themeMode.value,
+          themeMode: ThemeMode.system,
+          routeInformationParser: router.routeInformationParser,
+          routerDelegate: router.routerDelegate,
+        ),
+      ),
     );
   }
 }

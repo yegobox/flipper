@@ -33,16 +33,16 @@ class SettingsService with ReactiveServiceMixin {
     Setting? setting =
         await ProxyService.isarApi.getSetting(userId: int.parse(userId));
     if (setting != null) {
-      Map<String, dynamic> settings_map = setting.toJson();
+      Map<String, dynamic> settingsMap = setting.toJson();
       //replace a key in settings_map if the key match with the key from map
-      settings_map.forEach((key, value) {
+      settingsMap.forEach((key, value) {
         if (map.containsKey(key)) {
-          settings_map[key] = map[key];
+          settingsMap[key] = map[key];
         }
       });
       int id = setting.id;
       // log.d(map['isAttendanceEnabled']);
-      ProxyService.isarApi.update(data: settings_map, endPoint: 'settings/$id');
+      ProxyService.isarApi.update(data: settingsMap, endPoint: 'settings/$id');
       return true;
     } else {
       Map kMap = map;
