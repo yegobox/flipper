@@ -6,14 +6,10 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.1.3'
+        classpath 'com.android.tools.build:gradle:4.1.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath 'com.google.gms:google-services:4.3.10'
     }
-    // FIXME: add this back later as it is giving me errors but worked before
-    // configurations.classpath {
-    //     resolutionStrategy.activateDependencyLocking()
-    // }
 }
 
 allprojects {
@@ -24,22 +20,12 @@ allprojects {
 }
 
 rootProject.buildDir = '../build'
-
-
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
-    project.evaluationDependsOn(':app')
-    /// this below dependencyLocking  copied from google gallery example app
-    // FIXME: add this back later as it is giving me errors but worked before
-    // dependencyLocking {
-    //     ignoredDependencies.add('io.flutter:*')
-    //     lockFile = file("${rootProject.projectDir}/project-${project.name}.lockfile")
-    //     if (!project.hasProperty('local-engine-repo')) {
-    //         lockAllConfigurations()
-    //     }
-    // }
 }
-
+subprojects {
+    project.evaluationDependsOn(':app')
+}
 
 task clean(type: Delete) {
     delete rootProject.buildDir

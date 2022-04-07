@@ -24,8 +24,8 @@ class StartUpView extends StatelessWidget {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     backgroundColor: Colors.red,
-                    content:
-                        Text("Error happened in our end, please try again!"),
+                    content: Text(
+                        "We are humman, and not perfect! Please try again."),
                   ),
                 );
                 GoRouter.of(context).go("/login");
