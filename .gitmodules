@@ -42,3 +42,7 @@
 [submodule "open-sources/flutter_datetime_picker"]
 	path = open-sources/flutter_datetime_picker
 	url = https://github.com/yegobox/flutter_datetime_picker.git
+[submodule "open-sources/flutter_slidable"]
+	path = open-sources/flutter_slidable
+	branch = dev
+	url = https://github.com/yegobox/flutter_slidable.git
