@@ -418,6 +418,12 @@ void main() async {
         )
       ],
     );
+    ErrorWidget.builder = (details) => const Material(
+          key: PageStorageKey('error'),
+          child: Scaffold(
+            body: Center(child: Text("We faced challenges.. try again")),
+          ),
+        );
     runApp(
       OverlaySupport.global(
         child: ChangeNotifierProvider.value(
