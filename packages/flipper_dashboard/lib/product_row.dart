@@ -1,12 +1,10 @@
 import 'package:flipper_rw/helpers/utils.dart';
 import 'package:flipper_routing/routes.router.dart';
-import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_text_drawable/flutter_text_drawable.dart';
 import 'package:flipper_models/isar_models.dart';
 
-import 'package:flipper_services/proxy.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
 
@@ -38,6 +36,7 @@ class ProductRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Slidable(
+      key: Key('slidable-${product.id}'),
       child: GestureDetector(
         onTap: () {
           GoRouter.of(context).push(Routes.sell, extra: product);
@@ -106,44 +105,39 @@ class ProductRow extends StatelessWidget {
           ),
         ]),
       ),
-      actions: [
-        IconSlideAction(
-          caption: FLocalization.of(context).addTomenu,
-          color: Colors.white,
-          icon: Icons.menu,
-          onTap: () {
-            addToMenu(product.id);
-          },
+      endActionPane: ActionPane(
+        // A motion is a widget used to control how the pane animates.
+        motion: ScrollMotion(
+          key: Key('dismissable-${product.id}'),
         ),
-      ],
-      secondaryActions: <Widget>[
-        if (ProxyService.remoteConfig.isMenuAvailable())
-          IconSlideAction(
-            caption: FLocalization.of(context).addTomenu,
-            color: Colors.white,
-            icon: Icons.menu,
-            onTap: () {
-              addToMenu(product.id);
+
+        // A pane can dismiss the Slidable.
+        dismissible:
+            DismissiblePane(key: Key('${product.id}'), onDismissed: () {}),
+
+        // All actions are defined in the children parameter.
+        children: [
+          // A SlidableAction can have an icon and/or a label.
+          SlidableAction(
+            onPressed: (_) {
+              delete(product.id);
             },
+            backgroundColor: const Color(0xFFFE4A49),
+            foregroundColor: Colors.white,
+            icon: Icons.delete,
+            label: 'Delete',
           ),
-        IconSlideAction(
-          caption: FLocalization.of(context).edit,
-          color: Colors.white,
-          icon: Icons.edit,
-          onTap: () {
-            edit(product.id);
-          },
-        ),
-        IconSlideAction(
-          caption: FLocalization.of(context).delete,
-          color: Colors.red,
-          icon: Icons.delete,
-          onTap: () {
-            delete(product.id);
-          },
-        ),
-      ],
-      actionPane: const SlidableDrawerActionPane(),
+          SlidableAction(
+            onPressed: (_) {
+              edit(product.id);
+            },
+            backgroundColor: Colors.blue,
+            foregroundColor: Colors.white,
+            icon: Icons.edit,
+            label: 'Edit',
+          )
+        ],
+      ),
     );
   }
 }

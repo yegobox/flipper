@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:go_router/go_router.dart';
 import 'package:stacked/stacked.dart';
-import 'package:provider/provider.dart';
 
 class StartUpView extends StatelessWidget {
   const StartUpView({Key? key, this.invokeLogin}) : super(key: key);
@@ -37,12 +36,9 @@ class StartUpView extends StatelessWidget {
       ),
       viewModelBuilder: () => StartUpViewModel(),
       builder: (context, model, child) {
-        return ChangeNotifierProvider<LoginInfo>.value(
-          value: loginInfo,
-          child: const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
+        return const Scaffold(
+          body: Center(
+            child: CircularProgressIndicator(),
           ),
         );
       },

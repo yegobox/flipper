@@ -82,10 +82,11 @@ class _OmnConversationsState extends State<OmnConversations> {
     return StreamBuilder<List<types.Room>>(
       stream: FirebaseChatCore.instance.rooms(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData)
-          return Center(
+        if (!snapshot.hasData) {
+          return const Center(
             child: Text('No conversations'),
           );
+        }
 
         return Column(
           children: [
@@ -98,17 +99,26 @@ class _OmnConversationsState extends State<OmnConversations> {
                   final room = snapshot.data![index];
                   String senderName = room.name ?? '';
                   return Slidable(
-                    secondaryActions: <Widget>[
-                      IconSlideAction(
-                        caption: 'delete',
-                        color: Colors.red,
-                        icon: Icons.delete,
-                        onTap: () {
-                          widget.model.deleteConversation(room.id);
-                        },
-                      ),
-                    ],
-                    actionPane: SlidableDrawerActionPane(),
+                    endActionPane: ActionPane(
+                      // A motion is a widget used to control how the pane animates.
+                      motion: const ScrollMotion(),
+
+                      // A pane can dismiss the Slidable.
+                      dismissible: DismissiblePane(onDismissed: () {}),
+
+                      // All actions are defined in the children parameter.
+                      children: [
+                        // A SlidableAction can have an icon and/or a label.
+                        SlidableAction(
+                          onPressed: omniHandle(
+                              context, room.id, widget.model, 'delete'),
+                          backgroundColor: const Color(0xFFFE4A49),
+                          foregroundColor: Colors.white,
+                          icon: Icons.delete,
+                          label: 'Delete',
+                        ),
+                      ],
+                    ),
                     child: InkWell(
                       onTap: () {
                         Navigator.of(context).push(
@@ -144,7 +154,7 @@ class _OmnConversationsState extends State<OmnConversations> {
                                     right: 2,
                                     top: 0,
                                     child: Container(
-                                      decoration: BoxDecoration(
+                                      decoration: const BoxDecoration(
                                         color: Helpers.greenColor,
                                         shape: BoxShape.circle,
                                       ),
@@ -170,7 +180,7 @@ class _OmnConversationsState extends State<OmnConversations> {
                                           CrossAxisAlignment.center,
                                       children: [
                                         Text(
-                                          '${senderName}',
+                                          senderName,
                                           style: Helpers.txtDefault.copyWith(
                                             fontWeight: FontWeight.w600,
                                             fontSize: 18,
@@ -196,13 +206,6 @@ class _OmnConversationsState extends State<OmnConversations> {
                                         ),
                                       ],
                                     ),
-                                    // Text(
-                                    //   room.lastMessages,
-                                    //   overflow: TextOverflow.ellipsis,
-                                    //   maxLines: 1,
-                                    //   softWrap: true,
-                                    //   style: Helpers.txtDefault,
-                                    // ),
                                   ],
                                 ),
                               ),
@@ -219,5 +222,9 @@ class _OmnConversationsState extends State<OmnConversations> {
         );
       },
     );
+  }
+
+  omniHandle(BuildContext context, id, model, String action) {
+    // widget.model.deleteConversation(room.id);
   }
 }

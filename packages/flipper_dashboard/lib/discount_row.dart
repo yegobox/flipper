@@ -1,4 +1,3 @@
-import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:ionicons/ionicons.dart';
@@ -32,58 +31,61 @@ class DiscountRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Slidable(
-      child: GestureDetector(
-        onTap: () {
-          applyDiscount(discount);
-        },
-        onLongPress: () {},
-        child: Column(children: <Widget>[
-          ListTile(
-            contentPadding: const EdgeInsets.fromLTRB(0, 0, 15, 0),
-            leading: SizedBox(
-              height: MediaQuery.of(context).size.height,
-              width: 58,
-              child: const CircleAvatar(
-                child: SizedBox(
-                  height: 10,
-                  child: Icon(
-                    Ionicons.pricetags_sharp,
-                    color: black,
+        child: GestureDetector(
+          onTap: () {
+            applyDiscount(discount);
+          },
+          onLongPress: () {},
+          child: Column(children: <Widget>[
+            ListTile(
+              contentPadding: const EdgeInsets.fromLTRB(0, 0, 15, 0),
+              leading: SizedBox(
+                height: MediaQuery.of(context).size.height,
+                width: 58,
+                child: const CircleAvatar(
+                  child: SizedBox(
+                    height: 10,
+                    child: Icon(
+                      Ionicons.pricetags_sharp,
+                      color: black,
+                    ),
                   ),
                 ),
               ),
+              title: Text(
+                name,
+                style: const TextStyle(color: Colors.black),
+              ),
+              trailing: Text(discount.amount.toString() + 'RWF off'),
             ),
-            title: Text(
-              name,
-              style: const TextStyle(color: Colors.black),
+            Container(
+              height: 0.5,
+              color: Colors.black26,
             ),
-            trailing: Text(discount.amount.toString() + 'RWF off'),
-          ),
-          Container(
-            height: 0.5,
-            color: Colors.black26,
-          ),
-        ]),
-      ),
-      secondaryActions: <Widget>[
-        IconSlideAction(
-          caption: FLocalization.of(context).edit,
-          color: Colors.white,
-          icon: Icons.edit,
-          onTap: () {
-            edit(discount);
-          },
+          ]),
         ),
-        IconSlideAction(
-          caption: FLocalization.of(context).delete,
-          color: Colors.red,
-          icon: Icons.delete,
-          onTap: () {
-            delete(discount.id);
-          },
-        ),
-      ],
-      actionPane: const SlidableDrawerActionPane(),
-    );
+        endActionPane: ActionPane(
+          // A motion is a widget used to control how the pane animates.
+          motion: const ScrollMotion(),
+
+          // A pane can dismiss the Slidable.
+          dismissible: DismissiblePane(onDismissed: () {}),
+
+          // All actions are defined in the children parameter.
+          children: [
+            // A SlidableAction can have an icon and/or a label.
+            SlidableAction(
+              onPressed: doSomething(context, discount.id),
+              backgroundColor: const Color(0xFFFE4A49),
+              foregroundColor: Colors.white,
+              icon: Icons.delete,
+              label: 'Delete',
+            ),
+          ],
+        ));
+  }
+
+  doSomething(BuildContext context, int id) {
+    delete(id);
   }
 }

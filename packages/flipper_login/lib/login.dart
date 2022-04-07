@@ -78,10 +78,10 @@ class _LoginViewState extends State<LoginView>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return StreamBuilder(
-      stream: FirebaseAuth.instance.authStateChanges(),
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.userChanges(),
       builder: (BuildContext context, snapshot) {
-        if (snapshot.hasData && FirebaseAuth.instance.currentUser != null) {
+        if (snapshot.hasData) {
           return const StartUpView(
             invokeLogin: true,
           );
@@ -98,6 +98,11 @@ class _LoginViewState extends State<LoginView>
                       ),
                     ),
                     child: SignInScreen(
+                      actions: [
+                        AuthStateChangeAction<SignedIn>((context, state) {
+                          //do nothing to avoid bug.
+                        }),
+                      ],
                       headerBuilder: headerImage('assets/logo.png'),
                       sideBuilder: sideImage('assets/logo.png'),
                       subtitleBuilder: (context, action) {

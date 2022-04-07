@@ -22,17 +22,27 @@ class OrderSummary extends StatelessWidget {
     for (OrderItem item in model.kOrder!.orderItems) {
       list.add(
         Slidable(
-          actionPane: const SlidableDrawerActionPane(),
-          secondaryActions: <Widget>[
-            IconSlideAction(
-              caption: 'Delete',
-              color: Colors.red,
-              icon: Icons.delete,
-              onTap: () {
-                model.deleteOrderItem(id: item.id, context: context);
-              },
-            )
-          ],
+          // The start action pane is the one at the right or the top side.
+          endActionPane: ActionPane(
+            // A motion is a widget used to control how the pane animates.
+            motion: const ScrollMotion(),
+
+            // A pane can dismiss the Slidable.
+            dismissible: DismissiblePane(onDismissed: () {}),
+
+            // All actions are defined in the children parameter.
+            children: [
+              // A SlidableAction can have an icon and/or a label.
+              SlidableAction(
+                onPressed: orderHandle(context, item.id, model),
+                backgroundColor: const Color(0xFFFE4A49),
+                foregroundColor: Colors.white,
+                icon: Icons.delete,
+                label: 'Delete',
+              ),
+            ],
+          ),
+
           child: ListTile(
             contentPadding: const EdgeInsets.only(left: 40.0, right: 40.0),
             trailing: Text(
@@ -133,9 +143,9 @@ class OrderSummary extends StatelessWidget {
                           .toString(),
                   style: const TextStyle(color: Colors.black),
                 ),
-                leading: Text(
+                leading: const Text(
                   'Total',
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.black,
                   ),
                 ),
@@ -145,5 +155,11 @@ class OrderSummary extends StatelessWidget {
         );
       },
     );
+  }
+
+  SlidableActionCallback? orderHandle(
+      BuildContext context, int id, BusinessHomeViewModel model) {
+    model.deleteOrderItem(id: id, context: context);
+    return null;
   }
 }

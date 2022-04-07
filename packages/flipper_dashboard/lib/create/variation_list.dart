@@ -29,6 +29,7 @@ class VariationList extends StatelessWidget {
             builder: (context, snapshot) {
               final Stock? stock = snapshot.data;
               return Slidable(
+                key: Key('slidable-${variations[i].id}'),
                 child: Center(
                   child: SizedBox(
                     height: 90,
@@ -62,17 +63,29 @@ class VariationList extends StatelessWidget {
                     ]),
                   ),
                 ),
-                secondaryActions: <Widget>[
-                  IconSlideAction(
-                    caption: 'Delete',
-                    color: Colors.red,
-                    icon: Icons.delete,
-                    onTap: () {
-                      deleteVariant(variations[i].id);
-                    },
-                  ),
-                ],
-                actionPane: const SlidableDrawerActionPane(),
+                endActionPane: ActionPane(
+                  // A motion is a widget used to control how the pane animates.
+                  motion: const ScrollMotion(),
+
+                  // A pane can dismiss the Slidable.
+                  dismissible: DismissiblePane(
+                      key: Key('dismiss-${variations[i].id}'),
+                      onDismissed: () {}),
+
+                  // All actions are defined in the children parameter.
+                  children: [
+                    // A SlidableAction can have an icon and/or a label.
+                    SlidableAction(
+                      onPressed: (_) {
+                        deleteVariant(variations[i].id);
+                      },
+                      backgroundColor: const Color(0xFFFE4A49),
+                      foregroundColor: Colors.white,
+                      icon: Icons.delete,
+                      label: 'Delete',
+                    ),
+                  ],
+                ),
               );
             },
           ),
