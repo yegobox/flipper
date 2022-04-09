@@ -17,39 +17,41 @@ part 'business.g.dart';
 
 @Collection()
 class BusinessSync {
-  BusinessSync(
-      {required this.name,
-      this.currency,
-      this.fcategoryId = 1,
-      required this.latitude,
-      required this.longitude,
-      this.userId,
-      this.typeId,
-      this.timeZone,
-      this.channels,
-      this.table = "businesses",
-      required this.country,
-      this.businessUrl,
-      this.hexColor,
-      this.imageUrl,
-      required this.type,
-      this.active = false,
-      this.metadata,
-      this.lastSeen,
-      this.firstName,
-      this.lastName,
-      this.deviceToken,
-      this.chatUid,
-      this.backUpEnabled = false,
-      this.subscriptionPlan,
-      this.nextBillingDate,
-      this.previousBillingDate,
-      this.isLastSubscriptionPaymentSucceeded,
-      this.backupFileId,
-      this.email,
-      this.lastDbBackup,
-      this.fullName,
-      this.role});
+  BusinessSync({
+    required this.name,
+    this.currency,
+    this.fcategoryId = 1,
+    required this.latitude,
+    required this.longitude,
+    this.userId,
+    this.typeId,
+    this.timeZone,
+    this.channels,
+    this.table = "businesses",
+    required this.country,
+    this.businessUrl,
+    this.hexColor,
+    this.imageUrl,
+    required this.type,
+    this.active = false,
+    this.metadata,
+    this.lastSeen,
+    this.firstName,
+    this.lastName,
+    this.deviceToken,
+    this.chatUid,
+    this.backUpEnabled = false,
+    this.subscriptionPlan,
+    this.nextBillingDate,
+    this.previousBillingDate,
+    this.isLastSubscriptionPaymentSucceeded,
+    this.backupFileId,
+    this.email,
+    this.lastDbBackup,
+    this.fullName,
+    this.role,
+    this.tinNumber,
+  });
   late int id = Isar.autoIncrement;
   String name;
   String? currency;
@@ -102,4 +104,5 @@ class BusinessSync {
   String? email;
   String? lastDbBackup;
   String? fullName;
+  String? tinNumber;
 }

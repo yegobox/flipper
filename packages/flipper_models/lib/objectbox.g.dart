@@ -1852,24 +1852,14 @@ final _entities = <ModelEntity>[
   ModelEntity(
       id: const IdUid(30, 8907278973206553759),
       name: 'Stock',
-      lastPropertyId: const IdUid(15, 2892104998486047143),
-      flags: 2,
+      lastPropertyId: const IdUid(23, 3600409905450249368),
+      flags: 0,
       properties: <ModelProperty>[
         ModelProperty(
             id: const IdUid(1, 5911676863241245288),
             name: 'id',
             type: 6,
             flags: 1),
-        ModelProperty(
-            id: const IdUid(2, 6193328580697187813),
-            name: 'fbranchId',
-            type: 6,
-            flags: 0),
-        ModelProperty(
-            id: const IdUid(3, 6538025073545651606),
-            name: 'fvariantId',
-            type: 6,
-            flags: 0),
         ModelProperty(
             id: const IdUid(4, 802041116899516113),
             name: 'lowStock',
@@ -1906,11 +1896,6 @@ final _entities = <ModelEntity>[
             type: 9,
             flags: 0),
         ModelProperty(
-            id: const IdUid(11, 8587939689054664413),
-            name: 'fproductId',
-            type: 6,
-            flags: 0),
-        ModelProperty(
             id: const IdUid(12, 1871145483233076607),
             name: 'active',
             type: 1,
@@ -1919,6 +1904,31 @@ final _entities = <ModelEntity>[
             id: const IdUid(14, 8900425541845166922),
             name: 'value',
             type: 8,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(19, 9086364393313901129),
+            name: 'migrated',
+            type: 1,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(20, 4680188189656011525),
+            name: 'test',
+            type: 8,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(21, 4987275906941999210),
+            name: 'fbranchId',
+            type: 6,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(22, 1608124097664366262),
+            name: 'fvariantId',
+            type: 6,
+            flags: 0),
+        ModelProperty(
+            id: const IdUid(23, 3600409905450249368),
+            name: 'fproductId',
+            type: 6,
             flags: 0)
       ],
       relations: <ModelRelation>[],
@@ -2338,7 +2348,16 @@ ModelDefinition getObjectBoxModel() {
       lastSequenceId: const IdUid(0, 0),
       retiredEntityUids: const [],
       retiredIndexUids: const [],
-      retiredPropertyUids: const [8123255247850935231, 2892104998486047143],
+      retiredPropertyUids: const [
+        8123255247850935231,
+        2892104998486047143,
+        6193328580697187813,
+        6538025073545651606,
+        8587939689054664413,
+        5809566600374217876,
+        1531241534676624686,
+        193163277940545598
+      ],
       retiredRelationUids: const [],
       modelVersion: 5,
       modelVersionParserMinimum: 5,
@@ -3319,9 +3338,9 @@ ModelDefinition getObjectBoxModel() {
         },
         objectToFB: (OrderF object, fb.Builder fbb) {
           final referenceOffset = fbb.writeString(object.reference);
-          final orderFNumberOffset = fbb.writeString(object.orderNumber);
+          final orderNumberOffset = fbb.writeString(object.orderNumber);
           final statusOffset = fbb.writeString(object.status);
-          final orderFTypeOffset = fbb.writeString(object.orderType);
+          final orderTypeOffset = fbb.writeString(object.orderType);
           final paymentTypeOffset = fbb.writeString(object.paymentType);
           final createdAtOffset = fbb.writeString(object.createdAt);
           final updatedAtOffset = object.updatedAt == null
@@ -3333,10 +3352,10 @@ ModelDefinition getObjectBoxModel() {
           fbb.startTable(19);
           fbb.addInt64(0, object.id);
           fbb.addOffset(1, referenceOffset);
-          fbb.addOffset(2, orderFNumberOffset);
+          fbb.addOffset(2, orderNumberOffset);
           fbb.addInt64(3, object.fbranchId);
           fbb.addOffset(4, statusOffset);
-          fbb.addOffset(5, orderFTypeOffset);
+          fbb.addOffset(5, orderTypeOffset);
           fbb.addBool(6, object.active);
           fbb.addBool(7, object.draft);
           fbb.addFloat64(8, object.subTotal);
@@ -4103,10 +4122,8 @@ ModelDefinition getObjectBoxModel() {
         },
         objectToFB: (Stock object, fb.Builder fbb) {
           final tableOffset = fbb.writeString(object.table);
-          fbb.startTable(16);
+          fbb.startTable(24);
           fbb.addInt64(0, object.id);
-          fbb.addInt64(1, object.fbranchId);
-          fbb.addInt64(2, object.fvariantId);
           fbb.addFloat64(3, object.lowStock);
           fbb.addFloat64(4, object.currentStock);
           fbb.addFloat64(5, object.supplyPrice);
@@ -4114,9 +4131,13 @@ ModelDefinition getObjectBoxModel() {
           fbb.addBool(7, object.canTrackingStock);
           fbb.addBool(8, object.showLowStockAlert);
           fbb.addOffset(9, tableOffset);
-          fbb.addInt64(10, object.fproductId);
           fbb.addBool(11, object.active);
           fbb.addFloat64(13, object.value);
+          fbb.addBool(18, object.migrated);
+          fbb.addFloat64(19, object.test);
+          fbb.addInt64(20, object.fbranchId);
+          fbb.addInt64(21, object.fvariantId);
+          fbb.addInt64(22, object.fproductId);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -4127,9 +4148,9 @@ ModelDefinition getObjectBoxModel() {
           final object = Stock(
               id: const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0),
               fbranchId: const fb.Int64Reader()
-                  .vTableGetNullable(buffer, rootOffset, 6),
+                  .vTableGetNullable(buffer, rootOffset, 44),
               fvariantId:
-                  const fb.Int64Reader().vTableGet(buffer, rootOffset, 8, 0),
+                  const fb.Int64Reader().vTableGet(buffer, rootOffset, 46, 0),
               lowStock:
                   const fb.Float64Reader().vTableGet(buffer, rootOffset, 10, 0),
               currentStock:
@@ -4145,11 +4166,14 @@ ModelDefinition getObjectBoxModel() {
               table: const fb.StringReader(asciiOptimization: true)
                   .vTableGet(buffer, rootOffset, 22, ''),
               fproductId:
-                  const fb.Int64Reader().vTableGet(buffer, rootOffset, 24, 0),
+                  const fb.Int64Reader().vTableGet(buffer, rootOffset, 48, 0),
               active: const fb.BoolReader()
                   .vTableGetNullable(buffer, rootOffset, 26),
-              value: const fb.Float64Reader()
-                  .vTableGet(buffer, rootOffset, 30, 0));
+              value:
+                  const fb.Float64Reader().vTableGet(buffer, rootOffset, 30, 0),
+              migrated: const fb.BoolReader()
+                  .vTableGetNullable(buffer, rootOffset, 40),
+              test: const fb.Float64Reader().vTableGetNullable(buffer, rootOffset, 42));
 
           return object;
         }),
@@ -5831,51 +5855,58 @@ class Stock_ {
   /// see [Stock.id]
   static final id = QueryIntegerProperty<Stock>(_entities[29].properties[0]);
 
-  /// see [Stock.fbranchId]
-  static final fbranchId =
-      QueryIntegerProperty<Stock>(_entities[29].properties[1]);
-
-  /// see [Stock.fvariantId]
-  static final fvariantId =
-      QueryIntegerProperty<Stock>(_entities[29].properties[2]);
-
   /// see [Stock.lowStock]
   static final lowStock =
-      QueryDoubleProperty<Stock>(_entities[29].properties[3]);
+      QueryDoubleProperty<Stock>(_entities[29].properties[1]);
 
   /// see [Stock.currentStock]
   static final currentStock =
-      QueryDoubleProperty<Stock>(_entities[29].properties[4]);
+      QueryDoubleProperty<Stock>(_entities[29].properties[2]);
 
   /// see [Stock.supplyPrice]
   static final supplyPrice =
-      QueryDoubleProperty<Stock>(_entities[29].properties[5]);
+      QueryDoubleProperty<Stock>(_entities[29].properties[3]);
 
   /// see [Stock.retailPrice]
   static final retailPrice =
-      QueryDoubleProperty<Stock>(_entities[29].properties[6]);
+      QueryDoubleProperty<Stock>(_entities[29].properties[4]);
 
   /// see [Stock.canTrackingStock]
   static final canTrackingStock =
-      QueryBooleanProperty<Stock>(_entities[29].properties[7]);
+      QueryBooleanProperty<Stock>(_entities[29].properties[5]);
 
   /// see [Stock.showLowStockAlert]
   static final showLowStockAlert =
-      QueryBooleanProperty<Stock>(_entities[29].properties[8]);
+      QueryBooleanProperty<Stock>(_entities[29].properties[6]);
 
   /// see [Stock.table]
-  static final table = QueryStringProperty<Stock>(_entities[29].properties[9]);
-
-  /// see [Stock.fproductId]
-  static final fproductId =
-      QueryIntegerProperty<Stock>(_entities[29].properties[10]);
+  static final table = QueryStringProperty<Stock>(_entities[29].properties[7]);
 
   /// see [Stock.active]
   static final active =
-      QueryBooleanProperty<Stock>(_entities[29].properties[11]);
+      QueryBooleanProperty<Stock>(_entities[29].properties[8]);
 
   /// see [Stock.value]
-  static final value = QueryDoubleProperty<Stock>(_entities[29].properties[12]);
+  static final value = QueryDoubleProperty<Stock>(_entities[29].properties[9]);
+
+  /// see [Stock.migrated]
+  static final migrated =
+      QueryBooleanProperty<Stock>(_entities[29].properties[10]);
+
+  /// see [Stock.test]
+  static final test = QueryDoubleProperty<Stock>(_entities[29].properties[11]);
+
+  /// see [Stock.fbranchId]
+  static final fbranchId =
+      QueryIntegerProperty<Stock>(_entities[29].properties[12]);
+
+  /// see [Stock.fvariantId]
+  static final fvariantId =
+      QueryIntegerProperty<Stock>(_entities[29].properties[13]);
+
+  /// see [Stock.fproductId]
+  static final fproductId =
+      QueryIntegerProperty<Stock>(_entities[29].properties[14]);
 }
 
 /// [Subscription] entity fields to define ObjectBox queries.

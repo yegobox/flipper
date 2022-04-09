@@ -17,7 +17,7 @@ extension GetBusinessSyncCollection on Isar {
 final BusinessSyncSchema = CollectionSchema(
   name: 'BusinessSync',
   schema:
-      '{"name":"BusinessSync","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"backUpEnabled","type":"Bool"},{"name":"backupFileId","type":"String"},{"name":"businessUrl","type":"String"},{"name":"channels","type":"StringList"},{"name":"chatUid","type":"String"},{"name":"country","type":"String"},{"name":"createdAt","type":"String"},{"name":"currency","type":"String"},{"name":"deviceToken","type":"String"},{"name":"email","type":"String"},{"name":"fcategoryId","type":"Long"},{"name":"firstName","type":"String"},{"name":"fullName","type":"String"},{"name":"hexColor","type":"String"},{"name":"imageUrl","type":"String"},{"name":"isLastSubscriptionPaymentSucceeded","type":"Bool"},{"name":"lastDbBackup","type":"String"},{"name":"lastName","type":"String"},{"name":"lastSeen","type":"Long"},{"name":"latitude","type":"String"},{"name":"longitude","type":"String"},{"name":"metadata","type":"String"},{"name":"name","type":"String"},{"name":"nextBillingDate","type":"String"},{"name":"previousBillingDate","type":"String"},{"name":"role","type":"String"},{"name":"subscriptionPlan","type":"String"},{"name":"table","type":"String"},{"name":"timeZone","type":"String"},{"name":"type","type":"String"},{"name":"typeId","type":"String"},{"name":"userId","type":"String"}],"indexes":[],"links":[]}',
+      '{"name":"BusinessSync","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"backUpEnabled","type":"Bool"},{"name":"backupFileId","type":"String"},{"name":"businessUrl","type":"String"},{"name":"channels","type":"StringList"},{"name":"chatUid","type":"String"},{"name":"country","type":"String"},{"name":"createdAt","type":"String"},{"name":"currency","type":"String"},{"name":"deviceToken","type":"String"},{"name":"email","type":"String"},{"name":"fcategoryId","type":"Long"},{"name":"firstName","type":"String"},{"name":"fullName","type":"String"},{"name":"hexColor","type":"String"},{"name":"imageUrl","type":"String"},{"name":"isLastSubscriptionPaymentSucceeded","type":"Bool"},{"name":"lastDbBackup","type":"String"},{"name":"lastName","type":"String"},{"name":"lastSeen","type":"Long"},{"name":"latitude","type":"String"},{"name":"longitude","type":"String"},{"name":"metadata","type":"String"},{"name":"name","type":"String"},{"name":"nextBillingDate","type":"String"},{"name":"previousBillingDate","type":"String"},{"name":"role","type":"String"},{"name":"subscriptionPlan","type":"String"},{"name":"table","type":"String"},{"name":"timeZone","type":"String"},{"name":"tinNumber","type":"String"},{"name":"type","type":"String"},{"name":"typeId","type":"String"},{"name":"userId","type":"String"}],"indexes":[],"links":[]}',
   nativeAdapter: const _BusinessSyncNativeAdapter(),
   webAdapter: const _BusinessSyncWebAdapter(),
   idName: 'id',
@@ -52,9 +52,10 @@ final BusinessSyncSchema = CollectionSchema(
     'subscriptionPlan': 27,
     'table': 28,
     'timeZone': 29,
-    'type': 30,
-    'typeId': 31,
-    'userId': 32
+    'tinNumber': 30,
+    'type': 31,
+    'typeId': 32,
+    'userId': 33
   },
   listProperties: {'channels'},
   indexIds: {},
@@ -114,6 +115,7 @@ class _BusinessSyncWebAdapter extends IsarWebTypeAdapter<BusinessSync> {
     IsarNative.jsObjectSet(jsObj, 'subscriptionPlan', object.subscriptionPlan);
     IsarNative.jsObjectSet(jsObj, 'table', object.table);
     IsarNative.jsObjectSet(jsObj, 'timeZone', object.timeZone);
+    IsarNative.jsObjectSet(jsObj, 'tinNumber', object.tinNumber);
     IsarNative.jsObjectSet(jsObj, 'type', object.type);
     IsarNative.jsObjectSet(jsObj, 'typeId', object.typeId);
     IsarNative.jsObjectSet(jsObj, 'userId', object.userId);
@@ -157,6 +159,7 @@ class _BusinessSyncWebAdapter extends IsarWebTypeAdapter<BusinessSync> {
       subscriptionPlan: IsarNative.jsObjectGet(jsObj, 'subscriptionPlan'),
       table: IsarNative.jsObjectGet(jsObj, 'table'),
       timeZone: IsarNative.jsObjectGet(jsObj, 'timeZone'),
+      tinNumber: IsarNative.jsObjectGet(jsObj, 'tinNumber'),
       type: IsarNative.jsObjectGet(jsObj, 'type') ?? '',
       typeId: IsarNative.jsObjectGet(jsObj, 'typeId'),
       userId: IsarNative.jsObjectGet(jsObj, 'userId'),
@@ -236,6 +239,8 @@ class _BusinessSyncWebAdapter extends IsarWebTypeAdapter<BusinessSync> {
         return (IsarNative.jsObjectGet(jsObj, 'table')) as P;
       case 'timeZone':
         return (IsarNative.jsObjectGet(jsObj, 'timeZone')) as P;
+      case 'tinNumber':
+        return (IsarNative.jsObjectGet(jsObj, 'tinNumber')) as P;
       case 'type':
         return (IsarNative.jsObjectGet(jsObj, 'type') ?? '') as P;
       case 'typeId':
@@ -417,19 +422,25 @@ class _BusinessSyncNativeAdapter extends IsarNativeTypeAdapter<BusinessSync> {
       _timeZone = IsarBinaryWriter.utf8Encoder.convert(value29);
     }
     dynamicSize += (_timeZone?.length ?? 0) as int;
-    final value30 = object.type;
-    final _type = IsarBinaryWriter.utf8Encoder.convert(value30);
+    final value30 = object.tinNumber;
+    IsarUint8List? _tinNumber;
+    if (value30 != null) {
+      _tinNumber = IsarBinaryWriter.utf8Encoder.convert(value30);
+    }
+    dynamicSize += (_tinNumber?.length ?? 0) as int;
+    final value31 = object.type;
+    final _type = IsarBinaryWriter.utf8Encoder.convert(value31);
     dynamicSize += (_type.length) as int;
-    final value31 = object.typeId;
+    final value32 = object.typeId;
     IsarUint8List? _typeId;
-    if (value31 != null) {
-      _typeId = IsarBinaryWriter.utf8Encoder.convert(value31);
+    if (value32 != null) {
+      _typeId = IsarBinaryWriter.utf8Encoder.convert(value32);
     }
     dynamicSize += (_typeId?.length ?? 0) as int;
-    final value32 = object.userId;
+    final value33 = object.userId;
     IsarUint8List? _userId;
-    if (value32 != null) {
-      _userId = IsarBinaryWriter.utf8Encoder.convert(value32);
+    if (value33 != null) {
+      _userId = IsarBinaryWriter.utf8Encoder.convert(value33);
     }
     dynamicSize += (_userId?.length ?? 0) as int;
     final size = staticSize + dynamicSize;
@@ -468,9 +479,10 @@ class _BusinessSyncNativeAdapter extends IsarNativeTypeAdapter<BusinessSync> {
     writer.writeBytes(offsets[27], _subscriptionPlan);
     writer.writeBytes(offsets[28], _table);
     writer.writeBytes(offsets[29], _timeZone);
-    writer.writeBytes(offsets[30], _type);
-    writer.writeBytes(offsets[31], _typeId);
-    writer.writeBytes(offsets[32], _userId);
+    writer.writeBytes(offsets[30], _tinNumber);
+    writer.writeBytes(offsets[31], _type);
+    writer.writeBytes(offsets[32], _typeId);
+    writer.writeBytes(offsets[33], _userId);
   }
 
   @override
@@ -506,9 +518,10 @@ class _BusinessSyncNativeAdapter extends IsarNativeTypeAdapter<BusinessSync> {
       subscriptionPlan: reader.readStringOrNull(offsets[27]),
       table: reader.readStringOrNull(offsets[28]),
       timeZone: reader.readStringOrNull(offsets[29]),
-      type: reader.readString(offsets[30]),
-      typeId: reader.readStringOrNull(offsets[31]),
-      userId: reader.readStringOrNull(offsets[32]),
+      tinNumber: reader.readStringOrNull(offsets[30]),
+      type: reader.readString(offsets[31]),
+      typeId: reader.readStringOrNull(offsets[32]),
+      userId: reader.readStringOrNull(offsets[33]),
     );
     object.createdAt = reader.readStringOrNull(offsets[7]);
     object.id = id;
@@ -582,10 +595,12 @@ class _BusinessSyncNativeAdapter extends IsarNativeTypeAdapter<BusinessSync> {
       case 29:
         return (reader.readStringOrNull(offset)) as P;
       case 30:
-        return (reader.readString(offset)) as P;
-      case 31:
         return (reader.readStringOrNull(offset)) as P;
+      case 31:
+        return (reader.readString(offset)) as P;
       case 32:
+        return (reader.readStringOrNull(offset)) as P;
+      case 33:
         return (reader.readStringOrNull(offset)) as P;
       default:
         throw 'Illegal propertyIndex';
@@ -3767,6 +3782,122 @@ extension BusinessSyncQueryFilter
     ));
   }
 
+  QueryBuilder<BusinessSync, BusinessSync, QAfterFilterCondition>
+      tinNumberIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'tinNumber',
+      value: null,
+    ));
+  }
+
+  QueryBuilder<BusinessSync, BusinessSync, QAfterFilterCondition>
+      tinNumberEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.eq,
+      property: 'tinNumber',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<BusinessSync, BusinessSync, QAfterFilterCondition>
+      tinNumberGreaterThan(
+    String? value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.gt,
+      include: include,
+      property: 'tinNumber',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<BusinessSync, BusinessSync, QAfterFilterCondition>
+      tinNumberLessThan(
+    String? value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.lt,
+      include: include,
+      property: 'tinNumber',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<BusinessSync, BusinessSync, QAfterFilterCondition>
+      tinNumberBetween(
+    String? lower,
+    String? upper, {
+    bool caseSensitive = true,
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition.between(
+      property: 'tinNumber',
+      lower: lower,
+      includeLower: includeLower,
+      upper: upper,
+      includeUpper: includeUpper,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<BusinessSync, BusinessSync, QAfterFilterCondition>
+      tinNumberStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.startsWith,
+      property: 'tinNumber',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<BusinessSync, BusinessSync, QAfterFilterCondition>
+      tinNumberEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.endsWith,
+      property: 'tinNumber',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<BusinessSync, BusinessSync, QAfterFilterCondition>
+      tinNumberContains(String value, {bool caseSensitive = true}) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.contains,
+      property: 'tinNumber',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<BusinessSync, BusinessSync, QAfterFilterCondition>
+      tinNumberMatches(String pattern, {bool caseSensitive = true}) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.matches,
+      property: 'tinNumber',
+      value: pattern,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
   QueryBuilder<BusinessSync, BusinessSync, QAfterFilterCondition> typeEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -4359,6 +4490,14 @@ extension BusinessSyncQueryWhereSortBy
     return addSortByInternal('timeZone', Sort.desc);
   }
 
+  QueryBuilder<BusinessSync, BusinessSync, QAfterSortBy> sortByTinNumber() {
+    return addSortByInternal('tinNumber', Sort.asc);
+  }
+
+  QueryBuilder<BusinessSync, BusinessSync, QAfterSortBy> sortByTinNumberDesc() {
+    return addSortByInternal('tinNumber', Sort.desc);
+  }
+
   QueryBuilder<BusinessSync, BusinessSync, QAfterSortBy> sortByType() {
     return addSortByInternal('type', Sort.asc);
   }
@@ -4640,6 +4779,14 @@ extension BusinessSyncQueryWhereSortThenBy
     return addSortByInternal('timeZone', Sort.desc);
   }
 
+  QueryBuilder<BusinessSync, BusinessSync, QAfterSortBy> thenByTinNumber() {
+    return addSortByInternal('tinNumber', Sort.asc);
+  }
+
+  QueryBuilder<BusinessSync, BusinessSync, QAfterSortBy> thenByTinNumberDesc() {
+    return addSortByInternal('tinNumber', Sort.desc);
+  }
+
   QueryBuilder<BusinessSync, BusinessSync, QAfterSortBy> thenByType() {
     return addSortByInternal('type', Sort.asc);
   }
@@ -4816,6 +4963,11 @@ extension BusinessSyncQueryWhereDistinct
     return addDistinctByInternal('timeZone', caseSensitive: caseSensitive);
   }
 
+  QueryBuilder<BusinessSync, BusinessSync, QDistinct> distinctByTinNumber(
+      {bool caseSensitive = true}) {
+    return addDistinctByInternal('tinNumber', caseSensitive: caseSensitive);
+  }
+
   QueryBuilder<BusinessSync, BusinessSync, QDistinct> distinctByType(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('type', caseSensitive: caseSensitive);
@@ -4961,6 +5113,10 @@ extension BusinessSyncQueryProperty
 
   QueryBuilder<BusinessSync, String?, QQueryOperations> timeZoneProperty() {
     return addPropertyNameInternal('timeZone');
+  }
+
+  QueryBuilder<BusinessSync, String?, QQueryOperations> tinNumberProperty() {
+    return addPropertyNameInternal('tinNumber');
   }
 
   QueryBuilder<BusinessSync, String, QQueryOperations> typeProperty() {
