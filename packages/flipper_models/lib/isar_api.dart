@@ -53,6 +53,7 @@ class IsarAPI implements IsarApiInterface {
         UnitSchema,
         SettingSchema,
         DiscountSyncSchema,
+        CustomerSyncSchema,
       ],
       inspector: false,
     );
@@ -532,35 +533,34 @@ class IsarAPI implements IsarApiInterface {
       int id = await isar.productSyncs.put(product, saveLinks: true);
       return isar.productSyncs.get(id);
     });
-    int idd = kProduct!.id;
-    log.i("product:$idd");
     // save variants in isar Db with the above productId
-    kProduct.variants.add(Variant()
-      ..name = 'Regular'
-      ..sku = 'sku'
-      ..productId = kProduct.id
-      ..unit = 'Per Item'
-      ..table = 'variants'
-      ..productName = product.name
-      ..branchId = branchId
-      ..taxName = 'N/A'
-      ..taxPercentage = 0
-      ..retailPrice = 0
-      ..supplyPrice = 0.0);
+    kProduct!.variants.add(
+      Variant()
+        ..name = 'Regular'
+        ..sku = 'sku'
+        ..productId = kProduct.id
+        ..unit = 'Per Item'
+        ..table = 'variants'
+        ..productName = product.name
+        ..branchId = branchId
+        ..taxName = 'N/A'
+        ..taxPercentage = 0
+        ..retailPrice = 0
+        ..supplyPrice = 0.0,
+    );
     await isar.writeTxn((isar) async {
       return await kProduct.variants.save();
     });
     Variant? variant = await isar.writeTxn((isar) async {
       return isar.variants.filter().productIdEqualTo(kProduct.id).findFirst();
     });
-    int vaa = variant!.id;
-    log.i("variantID:$vaa");
+
     Stock stock = Stock()
       ..canTrackingStock = false
       ..showLowStockAlert = false
       ..currentStock = 0.0
       ..branchId = branchId
-      ..variantId = variant.id
+      ..variantId = variant!.id
       ..supplyPrice = 0.0
       ..retailPrice = 0.0
       ..lowStock = 10.0
@@ -643,6 +643,12 @@ class IsarAPI implements IsarApiInterface {
       case 'voucher':
         isar.writeTxn((isar) async {
           await isar.vouchers.delete(id);
+          return true;
+        });
+        break;
+      case 'orderItem':
+        isar.writeTxn((isar) async {
+          await isar.orderItems.delete(id);
           return true;
         });
         break;

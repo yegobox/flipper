@@ -8,11 +8,6 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:overlay_support/overlay_support.dart';
 
-enum ForHere { lafayette, jefferson }
-enum ToGo { lafayette, jefferson }
-enum Delivery { lafayette, jefferson }
-enum Pickup { lafayette, jefferson }
-
 class Sell extends StatefulWidget {
   const Sell({Key? key, required this.product}) : super(key: key);
   final ProductSync product;
@@ -27,15 +22,7 @@ class _SellState extends State<Sell> {
     super.initState();
   }
 
-  final ForHere forHere = ForHere.lafayette;
-
-  final ToGo toGo = ToGo.lafayette;
-
   final log = getLogger('Sell');
-
-  final Delivery delivery = Delivery.lafayette;
-
-  final Pickup pick = Pickup.lafayette;
 
   final TextEditingController quantityController =
       TextEditingController(text: "1");

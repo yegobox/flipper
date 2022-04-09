@@ -88,9 +88,9 @@ class ProductViewModel extends ReactiveViewModel {
     return isTemp.id;
   }
 
-  void isPriceSet(bool bool) {
-    _price = bool;
-    _lock = !bool || _name == null;
+  void isPriceSet(bool price) {
+    _price = price;
+    _lock = !price || _name == null;
     notifyListeners();
   }
 

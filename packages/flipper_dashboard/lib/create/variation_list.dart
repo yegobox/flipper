@@ -52,8 +52,8 @@ class VariationList extends StatelessWidget {
                                         ' in stock',
                               ),
                               onPressed: () {
-                                GoRouter.of(context).push(
-                                    Routes.stock + "/${variations[i].id}");
+                                GoRouter.of(context).push(Routes.stock +
+                                    "/${variations[i].id}/${stock!.currentStock.toInt().toString()}");
                               },
                             ),
                           ],

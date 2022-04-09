@@ -241,12 +241,13 @@ void main() async {
           ),
         ),
         GoRoute(
-          path: '/stock/:id',
+          path: '/stock/:id/:stock',
           name: 'stock',
           pageBuilder: (context, state) => MaterialPage(
             key: state.pageKey,
             child: ReceiveStock(
               variantId: int.parse(state.params['id']!),
+              existingStock: state.params['stock']!,
             ),
           ),
         ),
@@ -418,10 +419,38 @@ void main() async {
         )
       ],
     );
-    ErrorWidget.builder = (details) => const Material(
-          key: PageStorageKey('error'),
+    ErrorWidget.builder = (details) => Material(
+          key: const PageStorageKey('error'),
           child: Scaffold(
-            body: Center(child: Text("We faced challenges.. try again")),
+            body: SafeArea(
+                child: Center(
+              child: Column(
+                children: [
+                  Text('Error: ${details.exception.toString()}'),
+                  ElevatedButton(
+                    child: const Text('Retry'),
+                    onPressed: () {},
+                    style: ButtonStyle(
+                      shape: MaterialStateProperty.resolveWith((states) {
+                        return RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(0),
+                        );
+                      }),
+                      backgroundColor: MaterialStateProperty.resolveWith<Color>(
+                        (Set<MaterialState> states) {
+                          if (states.contains(MaterialState.pressed)) {
+                            return const ColorScheme.light().primary;
+                          } else if (states.contains(MaterialState.disabled)) {
+                            return Colors.grey.withOpacity(0.5);
+                          }
+                          return const ColorScheme.light().primary;
+                        },
+                      ),
+                    ),
+                  )
+                ],
+              ),
+            )),
           ),
         );
     runApp(

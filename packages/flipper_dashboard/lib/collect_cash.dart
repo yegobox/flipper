@@ -5,10 +5,11 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/models/models.dart';
-import 'package:rounded_loading_button/rounded_loading_button.dart';
 import 'package:pubnub/pubnub.dart' as nub;
 import 'package:flipper_routing/routes.router.dart';
 import 'package:go_router/go_router.dart';
+
+import 'rounded_loading_button.dart';
 
 class CollectCashView extends StatefulWidget {
   const CollectCashView({Key? key, required this.paymentType})
@@ -135,8 +136,9 @@ class _CollectCashViewState extends State<CollectCashView> {
                             ),
                             const SizedBox(height: 10),
                             RoundedLoadingButton(
-                              borderRadius: 20.0,
+                              borderRadius: 4.0,
                               controller: _btnController,
+                              color: Theme.of(context).primaryColor,
                               onPressed: () async {
                                 double totalOrderAmount = model.totalPayable;
 

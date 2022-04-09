@@ -22,6 +22,7 @@ class OrderSummary extends StatelessWidget {
     for (OrderItem item in model.kOrder!.orderItems) {
       list.add(
         Slidable(
+          key: ValueKey(item.id),
           // The start action pane is the one at the right or the top side.
           endActionPane: ActionPane(
             // A motion is a widget used to control how the pane animates.
@@ -34,7 +35,9 @@ class OrderSummary extends StatelessWidget {
             children: [
               // A SlidableAction can have an icon and/or a label.
               SlidableAction(
-                onPressed: orderHandle(context, item.id, model),
+                onPressed: (_) {
+                  model.deleteOrderItem(id: item.id, context: context);
+                },
                 backgroundColor: const Color(0xFFFE4A49),
                 foregroundColor: Colors.white,
                 icon: Icons.delete,
@@ -155,11 +158,5 @@ class OrderSummary extends StatelessWidget {
         );
       },
     );
-  }
-
-  SlidableActionCallback? orderHandle(
-      BuildContext context, int id, BusinessHomeViewModel model) {
-    model.deleteOrderItem(id: id, context: context);
-    return null;
   }
 }

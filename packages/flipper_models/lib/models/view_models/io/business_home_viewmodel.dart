@@ -212,6 +212,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     int branchId = ProxyService.box.read(key: 'branchId');
     _variants = await ProxyService.isarApi
         .variants(branchId: branchId, productId: productId);
+    notifyListeners();
     return _variants;
   }
 

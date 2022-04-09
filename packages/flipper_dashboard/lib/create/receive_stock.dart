@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/models/models.dart';
@@ -5,8 +7,10 @@ import 'package:stacked/stacked.dart';
 import 'package:go_router/go_router.dart';
 
 class ReceiveStock extends StatefulWidget {
-  const ReceiveStock({Key? key, required this.variantId}) : super(key: key);
+  const ReceiveStock({Key? key, required this.variantId, this.existingStock})
+      : super(key: key);
   final int variantId;
+  final String? existingStock;
 
   @override
   State<ReceiveStock> createState() => _ReceiveStockState();
@@ -18,7 +22,7 @@ class _ReceiveStockState extends State<ReceiveStock> {
   @override
   void initState() {
     super.initState();
-    controller = TextEditingController(text: "0");
+    controller = TextEditingController(text: widget.existingStock ?? "0");
   }
 
   @override
@@ -63,16 +67,16 @@ class _ReceiveStockState extends State<ReceiveStock> {
                     autofocus: true,
                     style: const TextStyle(color: Colors.black),
                     onChanged: (String? count) async {
-                      if (count != null &&
-                          count.startsWith('0') &&
-                          count != '') {
-                        controller.text = count.substring(1);
+                      log("$count");
+                      // clean count so that it does not start with 0.
+                      if (count?.startsWith('0') == true) {
+                        controller.text = count!.substring(1);
                         model.setStockValue(
-                          value: double.parse(controller.text),
+                          value: double.parse(count),
                         );
-                      } else if (count != null && count != '') {
+                      } else {
                         model.setStockValue(
-                          value: double.parse(controller.text),
+                          value: double.parse(count!),
                         );
                       }
                     },

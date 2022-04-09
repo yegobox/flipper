@@ -50,7 +50,7 @@ class RemoteConfigService implements Remote {
   @override
   bool isChatAvailable() {
     if (kDebugMode) {
-      return true;
+      return false;
     }
     return remoteConfig.getBool('isChatAvailable');
   }
