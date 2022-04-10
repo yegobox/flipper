@@ -1,7 +1,6 @@
 name: flipper_models
 description: flipper models scaffold.
 version: 0.0.1-dev.6
-# publish_to: "none"
 repository: https://github.com/yegobox/packages
 
 environment:
@@ -34,9 +33,11 @@ dependencies:
   connectivity_plus: ^2.2.0
   isar: ^2.2.0+1
   isar_flutter_libs: ^2.2.0+1
+  # http: ^0.13.4
+  # flat_buffers: ^2.0.5
+
 dev_dependencies:
   build_runner: ^2.1.7
-  # Enable when buildig objectbox and disable isar generator as they are not playing nice
   objectbox_generator: any
   isar_generator: 2.2.0+1
   json_serializable:

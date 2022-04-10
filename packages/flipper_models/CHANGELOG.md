@@ -1,3 +1,5 @@
+## 0.0.1-dev.6
+- This is most stable model
 ## 0.0.1-dev.5
 - Mo updates
 ## 0.0.1-dev.4

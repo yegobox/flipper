@@ -141,8 +141,19 @@ class _AfterSaleState extends State<AfterSale> {
                                                                     .order.id);
 
                                                     Print print = Print();
-                                                    // print.feed(items);
-                                                    // print.print();
+                                                    print.feed(items);
+                                                    print.print(
+                                                      grandTotal: 500,
+                                                      currencySymbol: "RW",
+                                                      info: "Richie",
+                                                      taxId: "342",
+                                                      receiverName: "Richie",
+                                                      receiverMail:
+                                                          "info@yegobox.com",
+                                                      receiverPhone:
+                                                          "+250788854800",
+                                                      email: "info@yegobox.com",
+                                                    );
                                                   },
                                                 ),
                                               ),
