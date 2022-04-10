@@ -11,7 +11,7 @@ packages:
 ignore:
   - "*web*"
   - "*odm*"
-  - "*example*"
+  # - "*example*"
 
 # melos publish --dry-run
 command:

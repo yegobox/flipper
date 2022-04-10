@@ -23,11 +23,11 @@ packages:
     source: hosted
     version: "1.0.4"
   flipper_loading:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: flipper_loading
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../../flipper_loading"
+      relative: true
+    source: path
     version: "2.0.0"
   flipper_ui:
     dependency: "direct main"
@@ -75,6 +75,5 @@ packages:
     source: hosted
     version: "2.1.1"
 sdks:
-  dart: ">=2.14.0 <3.0.0"
-  flutter: ">=1.17.0"
+  dart: ">=2.16.0 <3.0.0"
   flutter_lints: ">=1.0.0 <2.0.0"

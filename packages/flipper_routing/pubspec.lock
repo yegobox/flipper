@@ -1660,7 +1660,7 @@ packages:
       path: "../../open-sources/receipt"
       relative: true
     source: path
-    version: "0.1.0"
+    version: "1.0.0-dev.2"
   riverpod:
     dependency: transitive
     description:

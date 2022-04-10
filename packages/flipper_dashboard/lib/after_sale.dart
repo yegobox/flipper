@@ -141,8 +141,8 @@ class _AfterSaleState extends State<AfterSale> {
                                                                     .order.id);
 
                                                     Print print = Print();
-                                                    print.feed(items);
-                                                    print.print();
+                                                    // print.feed(items);
+                                                    // print.print();
                                                   },
                                                 ),
                                               ),
