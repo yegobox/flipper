@@ -67,6 +67,7 @@ dependencies:
   printing: ^5.3.0
   qr_flutter: ^4.0.1
   flutter_datetime_picker: ^1.5.2
+  receipt: ^0.1.0
 flutter:
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

@@ -621,7 +621,7 @@ class MockRemote extends _i1.Mock implements _i13.Remote {
       (super.noSuchMethod(Invocation.method(#isSpennPaymentAvailable, []),
           returnValue: false) as bool);
   @override
-  bool isEmailReceiptAvailable() =>
+  bool isReceiptOnEmail() =>
       (super.noSuchMethod(Invocation.method(#isEmailReceiptAvailable, []),
           returnValue: false) as bool);
   @override

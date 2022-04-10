@@ -75,7 +75,7 @@ class RemoteConfigService implements Remote {
   }
 
   @override
-  bool isEmailReceiptAvailable() {
+  bool isReceiptOnEmail() {
     return remoteConfig.getBool('email_receipt');
   }
 
@@ -238,7 +238,7 @@ class RemoteConfigWindows implements Remote {
   }
 
   @override
-  bool isEmailReceiptAvailable() {
+  bool isReceiptOnEmail() {
     return false;
   }
 

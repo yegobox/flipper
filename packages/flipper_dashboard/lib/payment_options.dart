@@ -1,3 +1,4 @@
+import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flutter/foundation.dart';
@@ -5,15 +6,15 @@ import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 import 'package:number_display/number_display.dart';
-import 'package:flipper_models/models/models.dart';
 import 'package:go_router/go_router.dart';
 
 class Payments extends StatelessWidget {
-  Payments({Key? key}) : super(key: key);
+  Payments({Key? key, required this.order}) : super(key: key);
   final display = createDisplay(
     length: 8,
     decimal: 0,
   );
+  final Order order;
 
   @override
   Widget build(BuildContext context) {
@@ -68,7 +69,8 @@ class Payments extends StatelessWidget {
                         children: [
                           GestureDetector(
                             onTap: () {
-                              GoRouter.of(context).push(Routes.collect + "/cash");
+                              GoRouter.of(context)
+                                  .push(Routes.collect + "/cash", extra: order);
                             },
                             child: const ListTile(
                               leading: Text(

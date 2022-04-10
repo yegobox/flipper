@@ -5,8 +5,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:number_display/number_display.dart';
+import 'package:receipt/print.dart';
 import 'package:stacked/stacked.dart';
-// import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'customappbar.dart';
@@ -14,8 +14,11 @@ import 'package:google_ui/google_ui.dart';
 import 'package:go_router/go_router.dart';
 
 class AfterSale extends StatefulWidget {
-  const AfterSale({Key? key, required this.totalOrderAmount}) : super(key: key);
+  const AfterSale(
+      {Key? key, required this.totalOrderAmount, required this.order})
+      : super(key: key);
   final double totalOrderAmount;
+  final Order order;
 
   @override
   _AfterSaleState createState() => _AfterSaleState();
@@ -103,14 +106,12 @@ class _AfterSaleState extends State<AfterSale> {
                           builder: (context, snapshot) {
                             return snapshot.data == null
                                 ? Column(
-                                    // ignore: prefer_const_literals_to_create_immutables
                                     children: [
                                       const Text(
                                           'How would you like your receipt?'),
                                       const SizedBox(height: 10),
                                       ProxyService.remoteConfig
-                                                  .isEmailReceiptAvailable() ||
-                                              kDebugMode
+                                              .isReceiptOnEmail()
                                           ? Padding(
                                               padding: const EdgeInsets.only(
                                                   left: 18, right: 18),
@@ -123,7 +124,29 @@ class _AfterSaleState extends State<AfterSale> {
                                                 ),
                                               ),
                                             )
-                                          : const SizedBox.shrink(),
+                                          : Padding(
+                                              padding: const EdgeInsets.only(
+                                                  left: 18, right: 18),
+                                              child: SizedBox(
+                                                height: 50,
+                                                width: double.infinity,
+                                                child: GOutlinedButton(
+                                                  'Print Now',
+                                                  onPressed: () async {
+                                                    List<OrderItem> items =
+                                                        await ProxyService
+                                                            .isarApi
+                                                            .orderItems(
+                                                                orderId: widget
+                                                                    .order.id);
+
+                                                    Print print = Print();
+                                                    print.feed(items);
+                                                    print.print();
+                                                  },
+                                                ),
+                                              ),
+                                            ),
                                       const SizedBox(height: 20),
                                       Padding(
                                         padding: const EdgeInsets.only(
@@ -151,7 +174,7 @@ class _AfterSaleState extends State<AfterSale> {
                                           'How would you like your receipt?'),
                                       const SizedBox(height: 10),
                                       ProxyService.remoteConfig
-                                                  .isEmailReceiptAvailable() ||
+                                                  .isReceiptOnEmail() ||
                                               kDebugMode
                                           ? Padding(
                                               padding: const EdgeInsets.only(

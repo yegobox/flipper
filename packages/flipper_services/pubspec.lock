@@ -1681,7 +1681,7 @@ packages:
       name: pdf
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.7.2"
+    version: "3.7.3"
   pedantic:
     dependency: transitive
     description:
@@ -1737,7 +1737,7 @@ packages:
       name: printing
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "5.7.3"
+    version: "5.7.5"
   process:
     dependency: transitive
     description:
@@ -1808,6 +1808,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "4.0.0"
+  receipt:
+    dependency: "direct overridden"
+    description:
+      path: "../../open-sources/receipt"
+      relative: true
+    source: path
+    version: "0.1.0"
   riverpod:
     dependency: transitive
     description:

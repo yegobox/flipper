@@ -1,10 +1,10 @@
+import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_rw/helpers/utils.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_models/models/models.dart';
 import 'package:pubnub/pubnub.dart' as nub;
 import 'package:flipper_routing/routes.router.dart';
 import 'package:go_router/go_router.dart';
@@ -12,9 +12,11 @@ import 'package:go_router/go_router.dart';
 import 'rounded_loading_button.dart';
 
 class CollectCashView extends StatefulWidget {
-  const CollectCashView({Key? key, required this.paymentType})
+  const CollectCashView(
+      {Key? key, required this.paymentType, required this.order})
       : super(key: key);
   final String paymentType;
+  final Order order;
 
   @override
   State<CollectCashView> createState() => _CollectCashViewState();
@@ -153,8 +155,9 @@ class _CollectCashViewState extends State<CollectCashView> {
                                     model.collectCashPayment(
                                         payableAmount: totalOrderAmount);
                                     _btnController.success();
-                                    GoRouter.of(context).push(Routes.afterSale +
-                                        "/$totalOrderAmount");
+                                    GoRouter.of(context).push(
+                                        Routes.afterSale + "/$totalOrderAmount",
+                                        extra: widget.order);
                                   }
                                 } else {
                                   _btnController.stop();

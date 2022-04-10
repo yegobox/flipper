@@ -1448,4 +1448,15 @@ class IsarAPI implements IsarApiInterface {
         .build()
         .watch(initialReturn: true);
   }
+
+  @override
+  Future<List<OrderItem>> orderItems({required int orderId}) async {
+    return isar.writeTxn((isar) async {
+      return await isar.orderItems
+          .filter()
+          .orderIdEqualTo(orderId)
+          .build()
+          .findAll();
+    });
+  }
 }

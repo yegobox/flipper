@@ -165,4 +165,7 @@ abstract class IsarApiInterface {
   Future<Pin?> getPin({required String pin});
 
   Future<List<ProductSync>> productsFuture({required int branchId});
+
+  /// get a list of orderItems given orderId
+  Future<List<OrderItem>> orderItems({required int orderId});
 }

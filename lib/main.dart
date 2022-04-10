@@ -297,12 +297,15 @@ void main() async {
             ),
           ),
         ),
+        // Pass the order object
         GoRoute(
           path: '/pay',
           name: 'pay',
           pageBuilder: (context, state) => MaterialPage(
             key: state.pageKey,
-            child: Payments(),
+            child: Payments(
+              order: state.extra! as Order,
+            ),
           ),
         ),
         GoRoute(
@@ -312,6 +315,7 @@ void main() async {
             key: state.pageKey,
             child: CollectCashView(
               paymentType: state.params['paymentType']!,
+              order: state.extra! as Order,
             ),
           ),
         ),
@@ -322,6 +326,7 @@ void main() async {
             key: state.pageKey,
             child: AfterSale(
               totalOrderAmount: double.parse(state.params['total']!),
+              order: state.extra! as Order,
             ),
           ),
         ),
