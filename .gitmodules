@@ -46,3 +46,6 @@
 	path = open-sources/flutter_slidable
 	branch = dev
 	url = https://github.com/yegobox/flutter_slidable.git
+[submodule "open-sources/receipt"]
+	path = open-sources/receipt
+	url = https://github.com/yegobox/receipt.git
