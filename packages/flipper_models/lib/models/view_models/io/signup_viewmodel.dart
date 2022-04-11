@@ -1,7 +1,6 @@
 library flipper_models;
 
 import 'package:flipper_models/models/io/unit_mock.dart';
-import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flutter/cupertino.dart';
@@ -9,12 +8,13 @@ import 'package:stacked/stacked.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:go_router/go_router.dart';
+
+import 'gate.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 
 class SignupViewModel extends FormViewModel {
-  String? businessType = 'Social';
+  String? businessType = 'Business';
   final log = getLogger('SignupViewModel');
 
   bool registerStart = false;
@@ -42,10 +42,17 @@ class SignupViewModel extends FormViewModel {
     kCountry = country;
   }
 
-  String? _type;
-  void setType({required String type}) {
-    _type = type;
+  var _tin = "";
+  String get tin => _tin;
+  set tin(String value) {
+    _tin = value;
+    notifyListeners();
   }
+
+  // String? _type;
+  // void setType({required String type}) {
+  //   _type = type;
+  // }
 
   void registerLocation() async {
     final permission = await ProxyService.location.doWeHaveLocationPermission();
@@ -85,7 +92,9 @@ class SignupViewModel extends FormViewModel {
       'currency': 'RW',
       'createdAt': DateTime.now().toIso8601String(),
       'userId': ProxyService.box.read(key: 'userId'),
-      'type': businessType,
+      "tinNumber": tin,
+      // 'type': businessType,
+      'type': 'Business',
       'referredBy': referralCode ?? 'Organic',
       'fullName': kFullName,
       'country': kCountry
@@ -148,10 +157,16 @@ class SignupViewModel extends FormViewModel {
       await ProxyService.isarApi.addUnits(data: units);
 
       //now create a default custom product
-      await ProxyService.isarApi.createProduct(product: ProductSync());
+      await ProxyService.isarApi.createProduct(
+          product: ProductSync()
+            ..name = "custom"
+            ..color = "#5A2328"
+            ..branchId = ProxyService.box.getBranchId()!
+            ..businessId = ProxyService.box.getBusinessId()!);
 
-      // ProxyService.nav.navigateTo(Routes.home);
-      GoRouter.of(context!).go(Routes.home);
+      loginInfo.isLoggedIn = true;
+      loginInfo.redirecting = false;
+      loginInfo.needSignUp = false;
     }
   }
 

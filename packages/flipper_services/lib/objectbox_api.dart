@@ -6,8 +6,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_models/models/models.dart';
 
 import 'package:flipper_models/models/objectbox.dart';
+import 'package:flipper_models/models/view_models/io/gate.dart';
 import 'package:flipper_routing/routes.logger.dart';
-import 'package:flipper_rw/gate.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/dio_client.dart';
 import 'package:flipper_services/mobile_upload.dart';
@@ -1406,7 +1406,7 @@ class ObjectBoxApi extends MobileUpload implements Api {
 
     while (date.difference(end).inDays <= 0) {
       // start new week on Monday
-      if (date.weekday == 1 && week.length > 0) {
+      if (date.weekday == 1 && week.isNotEmpty) {
         result.add(week);
       }
 
@@ -1962,8 +1962,9 @@ class ObjectBoxApi extends MobileUpload implements Api {
         .get(Uri.parse("$apihub/v2/api/tenantByPhone/$phoneNumber"));
     if (response.statusCode == 200) {
       TenantSync tenant = stenantFromJson(response.body);
-      if (store.box<TenantSync>().get(tenant.id) == null)
+      if (store.box<TenantSync>().get(tenant.id) == null) {
         store.box<TenantSync>().put(tenant);
+      }
     }
   }
 

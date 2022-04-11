@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flipper_rw/gate.dart';
+import 'package:flipper_models/models/view_models/io/gate.dart';
 import 'package:flipper_chat/omni/omni_contacts.dart';
 import 'package:flipper_chat/omni_chat.dart';
 import 'package:flipper_dashboard/add_discount.dart';
@@ -116,18 +116,19 @@ void main() async {
           Routes.noNet,
           Routes.home,
         ];
-        if (loggedIn &&
-            !onHome &&
-            routeWithRedirectRules.contains(state.subloc)) {
-          return Routes.home;
-        }
         if (needSignUp &&
             !onSignUp &&
             routeWithRedirectRules.contains(state.subloc)) {
           return Routes.signup + "/$country";
         }
+        if (loggedIn &&
+            !onHome &&
+            routeWithRedirectRules.contains(state.subloc)) {
+          return Routes.home;
+        }
         if (!loggedIn &&
             !onLogin &&
+            !needSignUp &&
             routeWithRedirectRules.contains(state.subloc)) {
           return Routes.login;
         }

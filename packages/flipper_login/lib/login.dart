@@ -1,7 +1,7 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flipper_models/models/view_models/io/gate.dart';
 import 'config.dart';
-import 'package:flipper_rw/gate.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterfire_ui/auth.dart';

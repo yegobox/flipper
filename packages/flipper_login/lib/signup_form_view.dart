@@ -1,7 +1,5 @@
 import 'package:flipper_models/models/models.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'signup_form_view.form.dart';
@@ -26,6 +24,11 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
     ],
     asyncValidatorDebounceTime: const Duration(milliseconds: 300),
   );
+  final tinNumber = TextFieldBloc(
+    validators: [
+      FieldBlocValidators.required,
+    ],
+  );
   TextFieldBloc countryName = TextFieldBloc(
     initialValue: 'Kenya',
   );
@@ -34,7 +37,7 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
   AsyncFieldValidationFormBloc(
       {required this.signupViewModel, required String country}) {
     countryName.updateInitialValue(country);
-    addFieldBlocs(fieldBlocs: [username, fullName, countryName]);
+    addFieldBlocs(fieldBlocs: [username, fullName, countryName, tinNumber]);
 
     username.addAsyncValidators(
       [_checkUsername],
@@ -73,6 +76,7 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
       signupViewModel.setName(name: username.value);
       signupViewModel.setFullName(name: fullName.value);
       signupViewModel.setCountry(country: countryName.value);
+      signupViewModel.tin = tinNumber.value;
       signupViewModel.signup();
       emitSuccess();
     } catch (e) {
@@ -99,15 +103,6 @@ class SignUpFormView extends StatelessWidget with $SignUpFormView {
       },
       viewModelBuilder: () => SignupViewModel(),
       builder: (context, model, child) {
-        /// for debugging purpose add this here to refer to when debugging in prod
-        SchedulerBinding.instance?.addPostFrameCallback((_) {
-          if (kDebugMode) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              duration: const Duration(minutes: 1),
-              content: Text(ProxyService.box.getUserId() ?? ''),
-            ));
-          }
-        });
         return BlocProvider(
           create: (context) => AsyncFieldValidationFormBloc(
               signupViewModel: model, country: countryNm),
@@ -157,6 +152,19 @@ class SignUpFormView extends StatelessWidget with $SignUpFormView {
                           padding: const EdgeInsets.only(
                               left: 0.0, right: 0.0, top: 0.0),
                           child: TextFieldBlocBuilder(
+                            textFieldBloc: formBloc.tinNumber,
+                            suffixButton: SuffixButton.asyncValidating,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              labelText: 'Tin number',
+                              prefixIcon: Icon(Icons.person),
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(
+                              left: 0.0, right: 0.0, top: 0.0),
+                          child: TextFieldBlocBuilder(
                             readOnly: true,
                             textFieldBloc: formBloc.countryName,
                             keyboardType: TextInputType.text,
@@ -167,46 +175,46 @@ class SignUpFormView extends StatelessWidget with $SignUpFormView {
                           ),
                         ),
                         const Text('How do you want to use flipper?'),
-                        DropdownButtonFormField<String>(
-                          value: model.businessType,
-                          icon: const Icon(
-                            Icons.arrow_downward,
-                            color: Colors.white,
-                          ),
-                          iconSize: 24,
-                          elevation: 16,
-                          style: const TextStyle(color: Colors.deepPurple),
-                          decoration: InputDecoration(
-                            enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                color: Theme.of(context).primaryColor,
-                                width: 2,
-                              ),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            border: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                  color: Theme.of(context).primaryColor,
-                                  width: 4),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            filled: true,
-                            fillColor: Theme.of(context).primaryColor,
-                          ),
-                          onChanged: (String? style) {
-                            model.setBuinessType(type: style!);
-                          },
-                          items: <String>['Social', 'Business']
-                              .map<DropdownMenuItem<String>>((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(
-                                value,
-                                style: const TextStyle(color: Colors.white),
-                              ),
-                            );
-                          }).toList(),
-                        ),
+                        // DropdownButtonFormField<String>(
+                        //   value: model.businessType,
+                        //   icon: const Icon(
+                        //     Icons.arrow_downward,
+                        //     color: Colors.white,
+                        //   ),
+                        //   iconSize: 24,
+                        //   elevation: 16,
+                        //   style: const TextStyle(color: Colors.deepPurple),
+                        //   decoration: InputDecoration(
+                        //     enabledBorder: OutlineInputBorder(
+                        //       borderSide: BorderSide(
+                        //         color: Theme.of(context).primaryColor,
+                        //         width: 2,
+                        //       ),
+                        //       borderRadius: BorderRadius.circular(4),
+                        //     ),
+                        //     border: OutlineInputBorder(
+                        //       borderSide: BorderSide(
+                        //           color: Theme.of(context).primaryColor,
+                        //           width: 4),
+                        //       borderRadius: BorderRadius.circular(4),
+                        //     ),
+                        //     filled: true,
+                        //     fillColor: Theme.of(context).primaryColor,
+                        //   ),
+                        //   onChanged: (String? style) {
+                        //     model.setBuinessType(type: style!);
+                        //   },
+                        //   items: <String>['Business', 'Social']
+                        //       .map<DropdownMenuItem<String>>((String value) {
+                        //     return DropdownMenuItem<String>(
+                        //       value: value,
+                        //       child: Text(
+                        //         value,
+                        //         style: const TextStyle(color: Colors.white),
+                        //       ),
+                        //     );
+                        //   }).toList(),
+                        // ),
                         !model.registerStart
                             ? Padding(
                                 padding: const EdgeInsets.only(

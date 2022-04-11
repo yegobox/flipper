@@ -5,9 +5,10 @@ import 'package:flipper_models/isar/product.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_rw/gate.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:http/http.dart' as http;
+
+import 'models/view_models/io/gate.dart';
 
 late Isar isar;
 
@@ -1025,6 +1026,7 @@ class IsarAPI implements IsarApiInterface {
     ProxyService.box.remove(key: 'UToken');
     ProxyService.box.remove(key: 'businessId');
     loginInfo.isLoggedIn = false;
+    loginInfo.needSignUp = false;
     FirebaseAuth.instance.signOut();
     return await Future.value(true);
   }
@@ -1141,9 +1143,12 @@ class IsarAPI implements IsarApiInterface {
   }
 
   @override
-  Future<int> signup({required Map business}) {
-    // TODO: implement signup
-    throw UnimplementedError();
+  Future<int> signup({required Map business}) async {
+    final http.Response response = await client.post(
+        Uri.parse("$apihub/v2/api/business"),
+        body: jsonEncode(business),
+        headers: {'Content-Type': 'application/json'});
+    return response.statusCode;
   }
 
   @override

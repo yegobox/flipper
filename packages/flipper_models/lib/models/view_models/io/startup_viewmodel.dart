@@ -1,7 +1,6 @@
 library flipper_models;
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flipper_rw/gate.dart';
 import 'package:flipper_routing/routes.locator.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_models/models/models.dart';
@@ -10,6 +9,8 @@ import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:universal_platform/universal_platform.dart';
+
+import 'gate.dart';
 
 final isWeb = UniversalPlatform.isWeb;
 
@@ -61,7 +62,7 @@ class StartUpViewModel extends BaseViewModel {
       } else if (e is NotFoundException) {
         String? countryName = await ProxyService.country.getCountryName();
         loginInfo.country = countryName!;
-        loginInfo.isLoggedIn = true;
+        loginInfo.isLoggedIn = false;
         loginInfo.redirecting = false;
         loginInfo.needSignUp = true;
         rethrow;
