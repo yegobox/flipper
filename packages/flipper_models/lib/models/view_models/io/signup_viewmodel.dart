@@ -83,6 +83,7 @@ class SignupViewModel extends FormViewModel {
     String? referralCode = ProxyService.box.read(key: 'referralCode');
     //if name containts space replace them with _
     // final String? name = kName?.replaceAll(' ', '_');
+    log.i(tin);
 
     int okStatus = await ProxyService.isarApi.signup(business: {
       'name': kName,
@@ -92,7 +93,7 @@ class SignupViewModel extends FormViewModel {
       'currency': 'RW',
       'createdAt': DateTime.now().toIso8601String(),
       'userId': ProxyService.box.read(key: 'userId'),
-      "tinNumber": tin,
+      "tinNumber": int.parse(tin),
       // 'type': businessType,
       'type': 'Business',
       'referredBy': referralCode ?? 'Organic',
