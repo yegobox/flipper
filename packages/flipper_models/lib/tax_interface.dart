@@ -9,6 +9,20 @@
 import 'package:flipper_models/isar_models.dart';
 
 abstract class TaxInterface {
-  Future<bool> saveItem({required Variant product});
+  Future<bool> saveItem({required Variant variation});
   Future<bool> saveStock({required Stock stock});
+  Future<bool> initApi({
+    required String tinNumber,
+    required String bhfId,
+    required String dvcSrlNo,
+  });
+  Future<bool> selectItems({
+    required String tinNumber,
+    required String bhfId,
+    String lastReqDt,
+  });
+  Future<bool> savePurchases({
+    required Order order,
+    required List<OrderItem> items,
+  });
 }

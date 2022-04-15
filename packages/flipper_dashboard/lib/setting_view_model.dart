@@ -16,6 +16,15 @@ class SettingViewModel extends ReactiveViewModel {
   Setting? get setting => _setting;
   bool get updateStart => _updateStarted;
   final log = getLogger('SettingViewModel');
+
+  Business? _business;
+  Business? get business => _business;
+  getBusiness() async {
+    _business = await ProxyService.isarApi
+        .getBusinessById(id: ProxyService.box.read(key: 'businessId'));
+    notifyListeners();
+  }
+
   String? defaultLanguage;
 
   Locale? klocale;
@@ -31,9 +40,6 @@ class SettingViewModel extends ReactiveViewModel {
     setLanguage(ProxyService.box.read(key: 'defaultLanguage') ?? 'en');
     return ProxyService.box.read(key: 'defaultLanguage');
   }
-
-  Business get business => ProxyService.isarApi
-      .getBusinessById(id: ProxyService.box.read(key: 'businessId'));
 
   void setLanguage(String lang) {
     defaultLanguage = null;

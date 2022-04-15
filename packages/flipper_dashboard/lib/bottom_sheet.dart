@@ -293,6 +293,7 @@ void preferences(
             body: ViewModelBuilder<SettingViewModel>.reactive(
               viewModelBuilder: () => SettingViewModel(),
               onModelReady: (model) {
+                model.getBusiness();
                 model.kSetting.getEnableAttendanceToggleState();
               },
               builder: (context, model, child) {
@@ -324,11 +325,11 @@ void preferences(
                     ),
                     model.kSetting.isAttendanceEnabled
                         ? QrImageView(
-                            data: model.business.name! +
+                            data: model.business!.name! +
                                 '-' +
-                                model.business.id.toString() +
+                                model.business!.id.toString() +
                                 '-' +
-                                model.business.userId.toString(),
+                                model.business!.userId.toString(),
                             version: QrVersions.auto,
                             size: 200.0,
                           )

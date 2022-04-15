@@ -36,7 +36,7 @@ class IsarAPI implements IsarApiInterface {
       directory: dbName,
       schemas: [
         OrderSchema,
-        BusinessSyncSchema,
+        BusinessSchema,
         BranchSchema,
         BusinessSchema,
         OrderItemSchema,
@@ -630,7 +630,7 @@ class IsarAPI implements IsarApiInterface {
         break;
       case 'business':
         isar.writeTxn((isar) async {
-          await isar.businessSyncs.delete(id);
+          await isar.businesss.delete(id);
           return true;
         });
         break;
@@ -670,13 +670,13 @@ class IsarAPI implements IsarApiInterface {
     /// call to create attendance document
     /// get business from store
 
-    BusinessSync? business = await isar.writeTxn((isar) {
-      return isar.businessSyncs.get(businessId);
+    Business? business = await isar.writeTxn((isar) {
+      return isar.businesss.get(businessId);
     });
     final http.Response response = await client.post(
         Uri.parse("$apihub/v2/api/createAttendanceDoc"),
         body: jsonEncode({
-          "title": business!.name + '-' + 'Attendance',
+          "title": business!.name! + '-' + 'Attendance',
           "shareToEmail": email
         }),
         headers: {'Content-Type': 'application/json'});
@@ -703,9 +703,10 @@ class IsarAPI implements IsarApiInterface {
   }
 
   @override
-  Business getBusinessById({required int id}) {
-    // TODO: implement getBusinessById
-    throw UnimplementedError();
+  Future<Business?> getBusinessById({required int id}) async {
+    return await isar.writeTxn((isar) {
+      return isar.businesss.get(id);
+    });
   }
 
   @override
@@ -1013,8 +1014,6 @@ class IsarAPI implements IsarApiInterface {
     /// delete all business and branches from isar db for
     /// potential next business that can log-in to not mix data.
     await isar.writeTxn((isar) async {
-      // delete all business
-      await isar.businessSyncs.clear();
       await isar.businesss.clear();
       // delete all branches.
       await isar.branchs.clear();

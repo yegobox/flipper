@@ -21,9 +21,7 @@ class Order {
   late String createdAt;
   String? updatedAt;
   bool? reported;
-
   int? customerId;
-
   String? note;
   final orderItems = IsarLinks<OrderItem>();
 }

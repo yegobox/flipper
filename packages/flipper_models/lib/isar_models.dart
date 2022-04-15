@@ -10,7 +10,7 @@ export 'isar/discount.dart';
 export 'isar/customer.dart';
 export 'isar/color.dart';
 export 'isar/category.dart';
-export 'isar/business_local.dart';
+export 'isar/business.dart';
 export 'isar/branch.dart';
 export 'isar/voucher.dart';
 export 'isar/variant_sync.dart';
