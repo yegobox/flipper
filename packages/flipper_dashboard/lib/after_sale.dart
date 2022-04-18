@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:number_display/number_display.dart';
-import 'package:receipt/print.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_ui/flipper_ui.dart';
@@ -100,7 +99,7 @@ class _AfterSaleState extends State<AfterSale> {
                       bottom: 200,
                       right: 0,
                       left: 0,
-                      child: StreamBuilder<CustomerSync?>(
+                      child: StreamBuilder<Customer?>(
                           stream: ProxyService.isarApi.getCustomerByOrderId(
                               id: model.kOrder == null ? 0 : model.kOrder!.id),
                           builder: (context, snapshot) {
@@ -139,21 +138,21 @@ class _AfterSaleState extends State<AfterSale> {
                                                             .orderItems(
                                                                 orderId: widget
                                                                     .order.id);
-
-                                                    Print print = Print();
-                                                    print.feed(items);
-                                                    print.print(
-                                                      grandTotal: 500,
-                                                      currencySymbol: "RW",
-                                                      info: "Richie",
-                                                      taxId: "342",
-                                                      receiverName: "Richie",
-                                                      receiverMail:
-                                                          "info@yegobox.com",
-                                                      receiverPhone:
-                                                          "+250788854800",
-                                                      email: "info@yegobox.com",
-                                                    );
+// TODO: continue working on receipt.
+                                                    // Print print = Print();
+                                                    // print.feed(items);
+                                                    // print.print(
+                                                    //   grandTotal: 500,
+                                                    //   currencySymbol: "RW",
+                                                    //   info: "Richie",
+                                                    //   taxId: "342",
+                                                    //   receiverName: "Richie",
+                                                    //   receiverMail:
+                                                    //       "info@yegobox.com",
+                                                    //   receiverPhone:
+                                                    //       "+250788854800",
+                                                    //   email: "info@yegobox.com",
+                                                    // );
                                                   },
                                                 ),
                                               ),

@@ -8,18 +8,18 @@ part of 'customer.dart';
 
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast
 
-extension GetCustomerSyncCollection on Isar {
-  IsarCollection<CustomerSync> get customerSyncs {
-    return getCollection('CustomerSync');
+extension GetCustomerCollection on Isar {
+  IsarCollection<Customer> get customers {
+    return getCollection('Customer');
   }
 }
 
-final CustomerSyncSchema = CollectionSchema(
-  name: 'CustomerSync',
+final CustomerSchema = CollectionSchema(
+  name: 'Customer',
   schema:
-      '{"name":"CustomerSync","idName":"id","properties":[{"name":"address","type":"String"},{"name":"branchId","type":"Long"},{"name":"email","type":"String"},{"name":"name","type":"String"},{"name":"orderId","type":"Long"},{"name":"phone","type":"String"},{"name":"updatedAt","type":"String"}],"indexes":[],"links":[]}',
-  nativeAdapter: const _CustomerSyncNativeAdapter(),
-  webAdapter: const _CustomerSyncWebAdapter(),
+      '{"name":"Customer","idName":"id","properties":[{"name":"address","type":"String"},{"name":"branchId","type":"Long"},{"name":"email","type":"String"},{"name":"name","type":"String"},{"name":"orderId","type":"Long"},{"name":"phone","type":"String"},{"name":"updatedAt","type":"String"}],"indexes":[],"links":[]}',
+  nativeAdapter: const _CustomerNativeAdapter(),
+  webAdapter: const _CustomerWebAdapter(),
   idName: 'id',
   propertyIds: {
     'address': 0,
@@ -48,12 +48,11 @@ final CustomerSyncSchema = CollectionSchema(
   version: 2,
 );
 
-class _CustomerSyncWebAdapter extends IsarWebTypeAdapter<CustomerSync> {
-  const _CustomerSyncWebAdapter();
+class _CustomerWebAdapter extends IsarWebTypeAdapter<Customer> {
+  const _CustomerWebAdapter();
 
   @override
-  Object serialize(
-      IsarCollection<CustomerSync> collection, CustomerSync object) {
+  Object serialize(IsarCollection<Customer> collection, Customer object) {
     final jsObj = IsarNative.newJsObject();
     IsarNative.jsObjectSet(jsObj, 'address', object.address);
     IsarNative.jsObjectSet(jsObj, 'branchId', object.branchId);
@@ -67,20 +66,18 @@ class _CustomerSyncWebAdapter extends IsarWebTypeAdapter<CustomerSync> {
   }
 
   @override
-  CustomerSync deserialize(
-      IsarCollection<CustomerSync> collection, dynamic jsObj) {
-    final object = CustomerSync(
-      address: IsarNative.jsObjectGet(jsObj, 'address') ?? '',
-      branchId:
-          IsarNative.jsObjectGet(jsObj, 'branchId') ?? double.negativeInfinity,
-      email: IsarNative.jsObjectGet(jsObj, 'email') ?? '',
-      id: IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity,
-      name: IsarNative.jsObjectGet(jsObj, 'name') ?? '',
-      orderId:
-          IsarNative.jsObjectGet(jsObj, 'orderId') ?? double.negativeInfinity,
-      phone: IsarNative.jsObjectGet(jsObj, 'phone') ?? '',
-      updatedAt: IsarNative.jsObjectGet(jsObj, 'updatedAt'),
-    );
+  Customer deserialize(IsarCollection<Customer> collection, dynamic jsObj) {
+    final object = Customer();
+    object.address = IsarNative.jsObjectGet(jsObj, 'address');
+    object.branchId =
+        IsarNative.jsObjectGet(jsObj, 'branchId') ?? double.negativeInfinity;
+    object.email = IsarNative.jsObjectGet(jsObj, 'email') ?? '';
+    object.id = IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity;
+    object.name = IsarNative.jsObjectGet(jsObj, 'name') ?? '';
+    object.orderId =
+        IsarNative.jsObjectGet(jsObj, 'orderId') ?? double.negativeInfinity;
+    object.phone = IsarNative.jsObjectGet(jsObj, 'phone') ?? '';
+    object.updatedAt = IsarNative.jsObjectGet(jsObj, 'updatedAt');
     return object;
   }
 
@@ -88,7 +85,7 @@ class _CustomerSyncWebAdapter extends IsarWebTypeAdapter<CustomerSync> {
   P deserializeProperty<P>(Object jsObj, String propertyName) {
     switch (propertyName) {
       case 'address':
-        return (IsarNative.jsObjectGet(jsObj, 'address') ?? '') as P;
+        return (IsarNative.jsObjectGet(jsObj, 'address')) as P;
       case 'branchId':
         return (IsarNative.jsObjectGet(jsObj, 'branchId') ??
             double.negativeInfinity) as P;
@@ -112,24 +109,22 @@ class _CustomerSyncWebAdapter extends IsarWebTypeAdapter<CustomerSync> {
   }
 
   @override
-  void attachLinks(Isar isar, int id, CustomerSync object) {}
+  void attachLinks(Isar isar, int id, Customer object) {}
 }
 
-class _CustomerSyncNativeAdapter extends IsarNativeTypeAdapter<CustomerSync> {
-  const _CustomerSyncNativeAdapter();
+class _CustomerNativeAdapter extends IsarNativeTypeAdapter<Customer> {
+  const _CustomerNativeAdapter();
 
   @override
-  void serialize(
-      IsarCollection<CustomerSync> collection,
-      IsarRawObject rawObj,
-      CustomerSync object,
-      int staticSize,
-      List<int> offsets,
-      AdapterAlloc alloc) {
+  void serialize(IsarCollection<Customer> collection, IsarRawObject rawObj,
+      Customer object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
     var dynamicSize = 0;
     final value0 = object.address;
-    final _address = IsarBinaryWriter.utf8Encoder.convert(value0);
-    dynamicSize += (_address.length) as int;
+    IsarUint8List? _address;
+    if (value0 != null) {
+      _address = IsarBinaryWriter.utf8Encoder.convert(value0);
+    }
+    dynamicSize += (_address?.length ?? 0) as int;
     final value1 = object.branchId;
     final _branchId = value1;
     final value2 = object.email;
@@ -165,18 +160,17 @@ class _CustomerSyncNativeAdapter extends IsarNativeTypeAdapter<CustomerSync> {
   }
 
   @override
-  CustomerSync deserialize(IsarCollection<CustomerSync> collection, int id,
+  Customer deserialize(IsarCollection<Customer> collection, int id,
       IsarBinaryReader reader, List<int> offsets) {
-    final object = CustomerSync(
-      address: reader.readString(offsets[0]),
-      branchId: reader.readLong(offsets[1]),
-      email: reader.readString(offsets[2]),
-      id: id,
-      name: reader.readString(offsets[3]),
-      orderId: reader.readLong(offsets[4]),
-      phone: reader.readString(offsets[5]),
-      updatedAt: reader.readStringOrNull(offsets[6]),
-    );
+    final object = Customer();
+    object.address = reader.readStringOrNull(offsets[0]);
+    object.branchId = reader.readLong(offsets[1]);
+    object.email = reader.readString(offsets[2]);
+    object.id = id;
+    object.name = reader.readString(offsets[3]);
+    object.orderId = reader.readLong(offsets[4]);
+    object.phone = reader.readString(offsets[5]);
+    object.updatedAt = reader.readStringOrNull(offsets[6]);
     return object;
   }
 
@@ -187,7 +181,7 @@ class _CustomerSyncNativeAdapter extends IsarNativeTypeAdapter<CustomerSync> {
       case -1:
         return id as P;
       case 0:
-        return (reader.readString(offset)) as P;
+        return (reader.readStringOrNull(offset)) as P;
       case 1:
         return (reader.readLong(offset)) as P;
       case 2:
@@ -206,20 +200,17 @@ class _CustomerSyncNativeAdapter extends IsarNativeTypeAdapter<CustomerSync> {
   }
 
   @override
-  void attachLinks(Isar isar, int id, CustomerSync object) {}
+  void attachLinks(Isar isar, int id, Customer object) {}
 }
 
-extension CustomerSyncQueryWhereSort
-    on QueryBuilder<CustomerSync, CustomerSync, QWhere> {
-  QueryBuilder<CustomerSync, CustomerSync, QAfterWhere> anyId() {
+extension CustomerQueryWhereSort on QueryBuilder<Customer, Customer, QWhere> {
+  QueryBuilder<Customer, Customer, QAfterWhere> anyId() {
     return addWhereClauseInternal(const WhereClause(indexName: null));
   }
 }
 
-extension CustomerSyncQueryWhere
-    on QueryBuilder<CustomerSync, CustomerSync, QWhereClause> {
-  QueryBuilder<CustomerSync, CustomerSync, QAfterWhereClause> idEqualTo(
-      int id) {
+extension CustomerQueryWhere on QueryBuilder<Customer, Customer, QWhereClause> {
+  QueryBuilder<Customer, Customer, QAfterWhereClause> idEqualTo(int id) {
     return addWhereClauseInternal(WhereClause(
       indexName: null,
       lower: [id],
@@ -229,8 +220,7 @@ extension CustomerSyncQueryWhere
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterWhereClause> idNotEqualTo(
-      int id) {
+  QueryBuilder<Customer, Customer, QAfterWhereClause> idNotEqualTo(int id) {
     if (whereSortInternal == Sort.asc) {
       return addWhereClauseInternal(WhereClause(
         indexName: null,
@@ -254,7 +244,7 @@ extension CustomerSyncQueryWhere
     }
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterWhereClause> idGreaterThan(
+  QueryBuilder<Customer, Customer, QAfterWhereClause> idGreaterThan(
     int id, {
     bool include = false,
   }) {
@@ -265,7 +255,7 @@ extension CustomerSyncQueryWhere
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterWhereClause> idLessThan(
+  QueryBuilder<Customer, Customer, QAfterWhereClause> idLessThan(
     int id, {
     bool include = false,
   }) {
@@ -276,7 +266,7 @@ extension CustomerSyncQueryWhere
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterWhereClause> idBetween(
+  QueryBuilder<Customer, Customer, QAfterWhereClause> idBetween(
     int lowerId,
     int upperId, {
     bool includeLower = true,
@@ -292,11 +282,18 @@ extension CustomerSyncQueryWhere
   }
 }
 
-extension CustomerSyncQueryFilter
-    on QueryBuilder<CustomerSync, CustomerSync, QFilterCondition> {
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition>
-      addressEqualTo(
-    String value, {
+extension CustomerQueryFilter
+    on QueryBuilder<Customer, Customer, QFilterCondition> {
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> addressIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'address',
+      value: null,
+    ));
+  }
+
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> addressEqualTo(
+    String? value, {
     bool caseSensitive = true,
   }) {
     return addFilterConditionInternal(FilterCondition(
@@ -307,9 +304,8 @@ extension CustomerSyncQueryFilter
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition>
-      addressGreaterThan(
-    String value, {
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> addressGreaterThan(
+    String? value, {
     bool caseSensitive = true,
     bool include = false,
   }) {
@@ -322,9 +318,8 @@ extension CustomerSyncQueryFilter
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition>
-      addressLessThan(
-    String value, {
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> addressLessThan(
+    String? value, {
     bool caseSensitive = true,
     bool include = false,
   }) {
@@ -337,10 +332,9 @@ extension CustomerSyncQueryFilter
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition>
-      addressBetween(
-    String lower,
-    String upper, {
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> addressBetween(
+    String? lower,
+    String? upper, {
     bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
@@ -355,8 +349,7 @@ extension CustomerSyncQueryFilter
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition>
-      addressStartsWith(
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> addressStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -368,8 +361,7 @@ extension CustomerSyncQueryFilter
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition>
-      addressEndsWith(
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> addressEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -381,192 +373,188 @@ extension CustomerSyncQueryFilter
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition>
-      addressContains(String value, {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.contains,
-      property: 'address',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition>
-      addressMatches(String pattern, {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.matches,
-      property: 'address',
-      value: pattern,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition>
-      branchIdEqualTo(int value) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'branchId',
-      value: value,
-    ));
-  }
-
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition>
-      branchIdGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'branchId',
-      value: value,
-    ));
-  }
-
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition>
-      branchIdLessThan(
-    int value, {
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'branchId',
-      value: value,
-    ));
-  }
-
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition>
-      branchIdBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'branchId',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-    ));
-  }
-
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition> emailEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'email',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition>
-      emailGreaterThan(
-    String value, {
-    bool caseSensitive = true,
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'email',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition> emailLessThan(
-    String value, {
-    bool caseSensitive = true,
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'email',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition> emailBetween(
-    String lower,
-    String upper, {
-    bool caseSensitive = true,
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'email',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition>
-      emailStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.startsWith,
-      property: 'email',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition> emailEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.endsWith,
-      property: 'email',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition> emailContains(
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> addressContains(
       String value,
       {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.contains,
-      property: 'email',
+      property: 'address',
       value: value,
       caseSensitive: caseSensitive,
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition> emailMatches(
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> addressMatches(
       String pattern,
       {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.matches,
-      property: 'email',
+      property: 'address',
       value: pattern,
       caseSensitive: caseSensitive,
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition> idEqualTo(
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> branchIdEqualTo(
       int value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
+      property: 'branchId',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> branchIdGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.gt,
+      include: include,
+      property: 'branchId',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> branchIdLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.lt,
+      include: include,
+      property: 'branchId',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> branchIdBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition.between(
+      property: 'branchId',
+      lower: lower,
+      includeLower: includeLower,
+      upper: upper,
+      includeUpper: includeUpper,
+    ));
+  }
+
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> emailEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.eq,
+      property: 'email',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> emailGreaterThan(
+    String value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.gt,
+      include: include,
+      property: 'email',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> emailLessThan(
+    String value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.lt,
+      include: include,
+      property: 'email',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> emailBetween(
+    String lower,
+    String upper, {
+    bool caseSensitive = true,
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition.between(
+      property: 'email',
+      lower: lower,
+      includeLower: includeLower,
+      upper: upper,
+      includeUpper: includeUpper,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> emailStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.startsWith,
+      property: 'email',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> emailEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.endsWith,
+      property: 'email',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> emailContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.contains,
+      property: 'email',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> emailMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.matches,
+      property: 'email',
+      value: pattern,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> idEqualTo(int value) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.eq,
       property: 'id',
       value: value,
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition> idGreaterThan(
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> idGreaterThan(
     int value, {
     bool include = false,
   }) {
@@ -578,7 +566,7 @@ extension CustomerSyncQueryFilter
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition> idLessThan(
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> idLessThan(
     int value, {
     bool include = false,
   }) {
@@ -590,7 +578,7 @@ extension CustomerSyncQueryFilter
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition> idBetween(
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> idBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -605,7 +593,7 @@ extension CustomerSyncQueryFilter
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition> nameEqualTo(
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> nameEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -617,8 +605,7 @@ extension CustomerSyncQueryFilter
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition>
-      nameGreaterThan(
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> nameGreaterThan(
     String value, {
     bool caseSensitive = true,
     bool include = false,
@@ -632,7 +619,7 @@ extension CustomerSyncQueryFilter
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition> nameLessThan(
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> nameLessThan(
     String value, {
     bool caseSensitive = true,
     bool include = false,
@@ -646,7 +633,7 @@ extension CustomerSyncQueryFilter
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition> nameBetween(
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> nameBetween(
     String lower,
     String upper, {
     bool caseSensitive = true,
@@ -663,8 +650,7 @@ extension CustomerSyncQueryFilter
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition>
-      nameStartsWith(
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> nameStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -676,7 +662,7 @@ extension CustomerSyncQueryFilter
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition> nameEndsWith(
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> nameEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -688,7 +674,7 @@ extension CustomerSyncQueryFilter
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition> nameContains(
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> nameContains(
       String value,
       {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
@@ -699,7 +685,7 @@ extension CustomerSyncQueryFilter
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition> nameMatches(
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> nameMatches(
       String pattern,
       {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
@@ -710,8 +696,8 @@ extension CustomerSyncQueryFilter
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition>
-      orderIdEqualTo(int value) {
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> orderIdEqualTo(
+      int value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
       property: 'orderId',
@@ -719,8 +705,7 @@ extension CustomerSyncQueryFilter
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition>
-      orderIdGreaterThan(
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> orderIdGreaterThan(
     int value, {
     bool include = false,
   }) {
@@ -732,8 +717,7 @@ extension CustomerSyncQueryFilter
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition>
-      orderIdLessThan(
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> orderIdLessThan(
     int value, {
     bool include = false,
   }) {
@@ -745,8 +729,7 @@ extension CustomerSyncQueryFilter
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition>
-      orderIdBetween(
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> orderIdBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -761,7 +744,7 @@ extension CustomerSyncQueryFilter
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition> phoneEqualTo(
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> phoneEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -773,8 +756,7 @@ extension CustomerSyncQueryFilter
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition>
-      phoneGreaterThan(
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> phoneGreaterThan(
     String value, {
     bool caseSensitive = true,
     bool include = false,
@@ -788,7 +770,7 @@ extension CustomerSyncQueryFilter
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition> phoneLessThan(
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> phoneLessThan(
     String value, {
     bool caseSensitive = true,
     bool include = false,
@@ -802,7 +784,7 @@ extension CustomerSyncQueryFilter
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition> phoneBetween(
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> phoneBetween(
     String lower,
     String upper, {
     bool caseSensitive = true,
@@ -819,8 +801,7 @@ extension CustomerSyncQueryFilter
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition>
-      phoneStartsWith(
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> phoneStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -832,7 +813,7 @@ extension CustomerSyncQueryFilter
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition> phoneEndsWith(
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> phoneEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -844,7 +825,7 @@ extension CustomerSyncQueryFilter
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition> phoneContains(
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> phoneContains(
       String value,
       {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
@@ -855,7 +836,7 @@ extension CustomerSyncQueryFilter
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition> phoneMatches(
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> phoneMatches(
       String pattern,
       {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
@@ -866,8 +847,7 @@ extension CustomerSyncQueryFilter
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition>
-      updatedAtIsNull() {
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> updatedAtIsNull() {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.isNull,
       property: 'updatedAt',
@@ -875,8 +855,7 @@ extension CustomerSyncQueryFilter
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition>
-      updatedAtEqualTo(
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> updatedAtEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
@@ -888,8 +867,7 @@ extension CustomerSyncQueryFilter
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition>
-      updatedAtGreaterThan(
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> updatedAtGreaterThan(
     String? value, {
     bool caseSensitive = true,
     bool include = false,
@@ -903,8 +881,7 @@ extension CustomerSyncQueryFilter
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition>
-      updatedAtLessThan(
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> updatedAtLessThan(
     String? value, {
     bool caseSensitive = true,
     bool include = false,
@@ -918,8 +895,7 @@ extension CustomerSyncQueryFilter
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition>
-      updatedAtBetween(
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> updatedAtBetween(
     String? lower,
     String? upper, {
     bool caseSensitive = true,
@@ -936,8 +912,7 @@ extension CustomerSyncQueryFilter
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition>
-      updatedAtStartsWith(
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> updatedAtStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -949,8 +924,7 @@ extension CustomerSyncQueryFilter
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition>
-      updatedAtEndsWith(
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> updatedAtEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -962,8 +936,9 @@ extension CustomerSyncQueryFilter
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition>
-      updatedAtContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> updatedAtContains(
+      String value,
+      {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.contains,
       property: 'updatedAt',
@@ -972,8 +947,9 @@ extension CustomerSyncQueryFilter
     ));
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterFilterCondition>
-      updatedAtMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> updatedAtMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.matches,
       property: 'updatedAt',
@@ -983,211 +959,211 @@ extension CustomerSyncQueryFilter
   }
 }
 
-extension CustomerSyncQueryWhereSortBy
-    on QueryBuilder<CustomerSync, CustomerSync, QSortBy> {
-  QueryBuilder<CustomerSync, CustomerSync, QAfterSortBy> sortByAddress() {
+extension CustomerQueryWhereSortBy
+    on QueryBuilder<Customer, Customer, QSortBy> {
+  QueryBuilder<Customer, Customer, QAfterSortBy> sortByAddress() {
     return addSortByInternal('address', Sort.asc);
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterSortBy> sortByAddressDesc() {
+  QueryBuilder<Customer, Customer, QAfterSortBy> sortByAddressDesc() {
     return addSortByInternal('address', Sort.desc);
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterSortBy> sortByBranchId() {
+  QueryBuilder<Customer, Customer, QAfterSortBy> sortByBranchId() {
     return addSortByInternal('branchId', Sort.asc);
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterSortBy> sortByBranchIdDesc() {
+  QueryBuilder<Customer, Customer, QAfterSortBy> sortByBranchIdDesc() {
     return addSortByInternal('branchId', Sort.desc);
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterSortBy> sortByEmail() {
+  QueryBuilder<Customer, Customer, QAfterSortBy> sortByEmail() {
     return addSortByInternal('email', Sort.asc);
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterSortBy> sortByEmailDesc() {
+  QueryBuilder<Customer, Customer, QAfterSortBy> sortByEmailDesc() {
     return addSortByInternal('email', Sort.desc);
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterSortBy> sortById() {
+  QueryBuilder<Customer, Customer, QAfterSortBy> sortById() {
     return addSortByInternal('id', Sort.asc);
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterSortBy> sortByIdDesc() {
+  QueryBuilder<Customer, Customer, QAfterSortBy> sortByIdDesc() {
     return addSortByInternal('id', Sort.desc);
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterSortBy> sortByName() {
+  QueryBuilder<Customer, Customer, QAfterSortBy> sortByName() {
     return addSortByInternal('name', Sort.asc);
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterSortBy> sortByNameDesc() {
+  QueryBuilder<Customer, Customer, QAfterSortBy> sortByNameDesc() {
     return addSortByInternal('name', Sort.desc);
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterSortBy> sortByOrderId() {
+  QueryBuilder<Customer, Customer, QAfterSortBy> sortByOrderId() {
     return addSortByInternal('orderId', Sort.asc);
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterSortBy> sortByOrderIdDesc() {
+  QueryBuilder<Customer, Customer, QAfterSortBy> sortByOrderIdDesc() {
     return addSortByInternal('orderId', Sort.desc);
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterSortBy> sortByPhone() {
+  QueryBuilder<Customer, Customer, QAfterSortBy> sortByPhone() {
     return addSortByInternal('phone', Sort.asc);
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterSortBy> sortByPhoneDesc() {
+  QueryBuilder<Customer, Customer, QAfterSortBy> sortByPhoneDesc() {
     return addSortByInternal('phone', Sort.desc);
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterSortBy> sortByUpdatedAt() {
+  QueryBuilder<Customer, Customer, QAfterSortBy> sortByUpdatedAt() {
     return addSortByInternal('updatedAt', Sort.asc);
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterSortBy> sortByUpdatedAtDesc() {
+  QueryBuilder<Customer, Customer, QAfterSortBy> sortByUpdatedAtDesc() {
     return addSortByInternal('updatedAt', Sort.desc);
   }
 }
 
-extension CustomerSyncQueryWhereSortThenBy
-    on QueryBuilder<CustomerSync, CustomerSync, QSortThenBy> {
-  QueryBuilder<CustomerSync, CustomerSync, QAfterSortBy> thenByAddress() {
+extension CustomerQueryWhereSortThenBy
+    on QueryBuilder<Customer, Customer, QSortThenBy> {
+  QueryBuilder<Customer, Customer, QAfterSortBy> thenByAddress() {
     return addSortByInternal('address', Sort.asc);
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterSortBy> thenByAddressDesc() {
+  QueryBuilder<Customer, Customer, QAfterSortBy> thenByAddressDesc() {
     return addSortByInternal('address', Sort.desc);
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterSortBy> thenByBranchId() {
+  QueryBuilder<Customer, Customer, QAfterSortBy> thenByBranchId() {
     return addSortByInternal('branchId', Sort.asc);
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterSortBy> thenByBranchIdDesc() {
+  QueryBuilder<Customer, Customer, QAfterSortBy> thenByBranchIdDesc() {
     return addSortByInternal('branchId', Sort.desc);
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterSortBy> thenByEmail() {
+  QueryBuilder<Customer, Customer, QAfterSortBy> thenByEmail() {
     return addSortByInternal('email', Sort.asc);
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterSortBy> thenByEmailDesc() {
+  QueryBuilder<Customer, Customer, QAfterSortBy> thenByEmailDesc() {
     return addSortByInternal('email', Sort.desc);
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterSortBy> thenById() {
+  QueryBuilder<Customer, Customer, QAfterSortBy> thenById() {
     return addSortByInternal('id', Sort.asc);
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterSortBy> thenByIdDesc() {
+  QueryBuilder<Customer, Customer, QAfterSortBy> thenByIdDesc() {
     return addSortByInternal('id', Sort.desc);
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterSortBy> thenByName() {
+  QueryBuilder<Customer, Customer, QAfterSortBy> thenByName() {
     return addSortByInternal('name', Sort.asc);
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterSortBy> thenByNameDesc() {
+  QueryBuilder<Customer, Customer, QAfterSortBy> thenByNameDesc() {
     return addSortByInternal('name', Sort.desc);
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterSortBy> thenByOrderId() {
+  QueryBuilder<Customer, Customer, QAfterSortBy> thenByOrderId() {
     return addSortByInternal('orderId', Sort.asc);
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterSortBy> thenByOrderIdDesc() {
+  QueryBuilder<Customer, Customer, QAfterSortBy> thenByOrderIdDesc() {
     return addSortByInternal('orderId', Sort.desc);
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterSortBy> thenByPhone() {
+  QueryBuilder<Customer, Customer, QAfterSortBy> thenByPhone() {
     return addSortByInternal('phone', Sort.asc);
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterSortBy> thenByPhoneDesc() {
+  QueryBuilder<Customer, Customer, QAfterSortBy> thenByPhoneDesc() {
     return addSortByInternal('phone', Sort.desc);
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterSortBy> thenByUpdatedAt() {
+  QueryBuilder<Customer, Customer, QAfterSortBy> thenByUpdatedAt() {
     return addSortByInternal('updatedAt', Sort.asc);
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterSortBy> thenByUpdatedAtDesc() {
+  QueryBuilder<Customer, Customer, QAfterSortBy> thenByUpdatedAtDesc() {
     return addSortByInternal('updatedAt', Sort.desc);
   }
 }
 
-extension CustomerSyncQueryWhereDistinct
-    on QueryBuilder<CustomerSync, CustomerSync, QDistinct> {
-  QueryBuilder<CustomerSync, CustomerSync, QDistinct> distinctByAddress(
+extension CustomerQueryWhereDistinct
+    on QueryBuilder<Customer, Customer, QDistinct> {
+  QueryBuilder<Customer, Customer, QDistinct> distinctByAddress(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('address', caseSensitive: caseSensitive);
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QDistinct> distinctByBranchId() {
+  QueryBuilder<Customer, Customer, QDistinct> distinctByBranchId() {
     return addDistinctByInternal('branchId');
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QDistinct> distinctByEmail(
+  QueryBuilder<Customer, Customer, QDistinct> distinctByEmail(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('email', caseSensitive: caseSensitive);
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QDistinct> distinctById() {
+  QueryBuilder<Customer, Customer, QDistinct> distinctById() {
     return addDistinctByInternal('id');
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QDistinct> distinctByName(
+  QueryBuilder<Customer, Customer, QDistinct> distinctByName(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('name', caseSensitive: caseSensitive);
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QDistinct> distinctByOrderId() {
+  QueryBuilder<Customer, Customer, QDistinct> distinctByOrderId() {
     return addDistinctByInternal('orderId');
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QDistinct> distinctByPhone(
+  QueryBuilder<Customer, Customer, QDistinct> distinctByPhone(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('phone', caseSensitive: caseSensitive);
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QDistinct> distinctByUpdatedAt(
+  QueryBuilder<Customer, Customer, QDistinct> distinctByUpdatedAt(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('updatedAt', caseSensitive: caseSensitive);
   }
 }
 
-extension CustomerSyncQueryProperty
-    on QueryBuilder<CustomerSync, CustomerSync, QQueryProperty> {
-  QueryBuilder<CustomerSync, String, QQueryOperations> addressProperty() {
+extension CustomerQueryProperty
+    on QueryBuilder<Customer, Customer, QQueryProperty> {
+  QueryBuilder<Customer, String?, QQueryOperations> addressProperty() {
     return addPropertyNameInternal('address');
   }
 
-  QueryBuilder<CustomerSync, int, QQueryOperations> branchIdProperty() {
+  QueryBuilder<Customer, int, QQueryOperations> branchIdProperty() {
     return addPropertyNameInternal('branchId');
   }
 
-  QueryBuilder<CustomerSync, String, QQueryOperations> emailProperty() {
+  QueryBuilder<Customer, String, QQueryOperations> emailProperty() {
     return addPropertyNameInternal('email');
   }
 
-  QueryBuilder<CustomerSync, int, QQueryOperations> idProperty() {
+  QueryBuilder<Customer, int, QQueryOperations> idProperty() {
     return addPropertyNameInternal('id');
   }
 
-  QueryBuilder<CustomerSync, String, QQueryOperations> nameProperty() {
+  QueryBuilder<Customer, String, QQueryOperations> nameProperty() {
     return addPropertyNameInternal('name');
   }
 
-  QueryBuilder<CustomerSync, int, QQueryOperations> orderIdProperty() {
+  QueryBuilder<Customer, int, QQueryOperations> orderIdProperty() {
     return addPropertyNameInternal('orderId');
   }
 
-  QueryBuilder<CustomerSync, String, QQueryOperations> phoneProperty() {
+  QueryBuilder<Customer, String, QQueryOperations> phoneProperty() {
     return addPropertyNameInternal('phone');
   }
 
-  QueryBuilder<CustomerSync, String?, QQueryOperations> updatedAtProperty() {
+  QueryBuilder<Customer, String?, QQueryOperations> updatedAtProperty() {
     return addPropertyNameInternal('updatedAt');
   }
 }

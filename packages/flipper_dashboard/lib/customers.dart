@@ -50,7 +50,7 @@ class Customers extends StatelessWidget {
                     ),
                   ),
                   verticalSpaceSmall,
-                  StreamBuilder<CustomerSync?>(
+                  StreamBuilder<Customer?>(
                       stream: ProxyService.isarApi.getCustomer(
                         key: model.searchCustomerkey,
                       ),

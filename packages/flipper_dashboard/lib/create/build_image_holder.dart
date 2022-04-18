@@ -11,9 +11,9 @@ class ColorAndImagePlaceHolder extends StatelessWidget {
   const ColorAndImagePlaceHolder(
       {Key? key, required this.product, required this.currentColor})
       : super(key: key);
-  final ProductSync? product;
+  final Product? product;
   final String currentColor;
-  Future<ProductSync?> getProduct() async {
+  Future<Product?> getProduct() async {
     return product;
   }
 
@@ -23,7 +23,7 @@ class ColorAndImagePlaceHolder extends StatelessWidget {
       onTap: () {
         GoRouter.of(context).push(Routes.colors);
       },
-      child: FutureBuilder<ProductSync?>(
+      child: FutureBuilder<Product?>(
         future: getProduct(),
         builder: (context, product) {
           //if for the case of adding a discount the product will be null

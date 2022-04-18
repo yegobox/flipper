@@ -20,18 +20,18 @@ class ProductService with ReactiveServiceMixin {
   }
 
   final _product = ReactiveValue<dynamic>(null);
-  ProductSync? get product => _product.value;
+  Product? get product => _product.value;
 
   final _discounts = ReactiveValue<List<DiscountSync>>([]);
   List<DiscountSync> get discounts => _discounts.value;
 
-  final _products = ReactiveValue<List<ProductSync>>([]);
+  final _products = ReactiveValue<List<Product>>([]);
 
-  List<ProductSync> get products => _products.value
+  List<Product> get products => _products.value
       .where((element) =>
           element.name != 'temp' && element.name != 'Custom Amount')
       .toList();
-  set products(List<ProductSync> value) {
+  set products(List<Product> value) {
     _products.value = value;
     notifyListeners();
   }
@@ -43,7 +43,7 @@ class ProductService with ReactiveServiceMixin {
     _currentUnit = unit;
   }
 
-  setCurrentProduct({required ProductSync product}) {
+  setCurrentProduct({required Product product}) {
     _product.value = product;
   }
 
@@ -58,10 +58,10 @@ class ProductService with ReactiveServiceMixin {
   }
 
   /// load discounts  in a list merge them with products make discount be at the top.
-  Stream<List<ProductSync>> loadProducts({required int branchId}) async* {
+  Stream<List<Product>> loadProducts({required int branchId}) async* {
     final List<DiscountSync> _discountss =
         await ProxyService.isarApi.getDiscounts(branchId: branchId);
-    final Stream<List<ProductSync>> _productss =
+    final Stream<List<Product>> _productss =
         ProxyService.isarApi.productStreams(branchId: branchId);
     _discounts.value = _discountss;
     yield* _productss;
@@ -81,7 +81,7 @@ class ProductService with ReactiveServiceMixin {
     if (searchKey.isEmpty) loadProducts(branchId: branchId);
   }
 
-  Future<ProductSync?> getProductByBarCode({required String? code}) async {
+  Future<Product?> getProductByBarCode({required String? code}) async {
     if (code == null) return null;
     return await ProxyService.isarApi.getProductByBarCode(barCode: code);
   }

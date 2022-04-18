@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flipper_dashboard/tax_configuration.dart';
 import 'package:flipper_models/models/view_models/io/gate.dart';
 import 'package:flipper_chat/omni/omni_contacts.dart';
 import 'package:flipper_chat/omni_chat.dart';
@@ -294,7 +295,7 @@ void main() async {
           pageBuilder: (context, state) => MaterialPage(
             key: state.pageKey,
             child: Sell(
-              product: state.extra! as ProductSync,
+              product: state.extra! as Product,
             ),
           ),
         ),
@@ -422,6 +423,14 @@ void main() async {
             key: state.pageKey,
             child: Devices(pin: int.parse(state.params['pin']!)),
           ),
+        ),
+        GoRoute(
+          path: '/tax_config',
+          name: 'tax_config',
+          pageBuilder: (context, state) => MaterialPage(
+            key: state.pageKey,
+            child: const TaxConfiguration(),
+          ),
         )
       ],
     );
@@ -432,7 +441,7 @@ void main() async {
                 child: Center(
               child: Column(
                 children: [
-                  Text('Error: ${details.exception.toString()}'),
+                  const Text('Error in our backend'),
                   ElevatedButton(
                     child: const Text('Retry'),
                     onPressed: () {},

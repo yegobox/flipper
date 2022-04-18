@@ -622,7 +622,7 @@ class MockRemote extends _i1.Mock implements _i13.Remote {
           returnValue: false) as bool);
   @override
   bool isReceiptOnEmail() =>
-      (super.noSuchMethod(Invocation.method(#isEmailReceiptAvailable, []),
+      (super.noSuchMethod(Invocation.method(#isReceiptOnEmail, []),
           returnValue: false) as bool);
   @override
   bool isAddCustomerToSaleAvailable() =>
@@ -845,11 +845,11 @@ class MockProductService extends _i1.Mock implements _i15.ProductService {
       (super.noSuchMethod(Invocation.getter(#discounts),
           returnValue: <_i9.DiscountSync>[]) as List<_i9.DiscountSync>);
   @override
-  List<_i9.ProductSync> get products =>
+  List<_i9.Product> get products =>
       (super.noSuchMethod(Invocation.getter(#products),
-          returnValue: <_i9.ProductSync>[]) as List<_i9.ProductSync>);
+          returnValue: <_i9.Product>[]) as List<_i9.Product>);
   @override
-  set products(List<_i9.ProductSync>? value) =>
+  set products(List<_i9.Product>? value) =>
       super.noSuchMethod(Invocation.setter(#products, value),
           returnValueForMissingStub: null);
   @override
@@ -863,7 +863,7 @@ class MockProductService extends _i1.Mock implements _i15.ProductService {
   dynamic setProductUnit({String? unit}) =>
       super.noSuchMethod(Invocation.method(#setProductUnit, [], {#unit: unit}));
   @override
-  dynamic setCurrentProduct({_i9.ProductSync? product}) => super.noSuchMethod(
+  dynamic setCurrentProduct({_i9.Product? product}) => super.noSuchMethod(
       Invocation.method(#setCurrentProduct, [], {#product: product}));
   @override
   _i11.Future<void> variantsProduct({int? productId}) => (super.noSuchMethod(
@@ -871,11 +871,11 @@ class MockProductService extends _i1.Mock implements _i15.ProductService {
       returnValue: Future<void>.value(),
       returnValueForMissingStub: Future<void>.value()) as _i11.Future<void>);
   @override
-  _i11.Stream<List<_i9.ProductSync>> loadProducts({int? branchId}) =>
+  _i11.Stream<List<_i9.Product>> loadProducts({int? branchId}) =>
       (super.noSuchMethod(
               Invocation.method(#loadProducts, [], {#branchId: branchId}),
-              returnValue: Stream<List<_i9.ProductSync>>.empty())
-          as _i11.Stream<List<_i9.ProductSync>>);
+              returnValue: Stream<List<_i9.Product>>.empty())
+          as _i11.Stream<List<_i9.Product>>);
   @override
   _i11.Future<void> filtterProduct({String? searchKey, int? branchId}) =>
       (super.noSuchMethod(
@@ -885,11 +885,11 @@ class MockProductService extends _i1.Mock implements _i15.ProductService {
               returnValueForMissingStub: Future<void>.value())
           as _i11.Future<void>);
   @override
-  _i11.Future<_i9.ProductSync?> getProductByBarCode({String? code}) =>
+  _i11.Future<_i9.Product?> getProductByBarCode({String? code}) =>
       (super.noSuchMethod(
               Invocation.method(#getProductByBarCode, [], {#code: code}),
-              returnValue: Future<_i9.ProductSync?>.value())
-          as _i11.Future<_i9.ProductSync?>);
+              returnValue: Future<_i9.Product?>.value())
+          as _i11.Future<_i9.Product?>);
   @override
   _i11.Future<List<_i9.Stock?>> loadStockByProductId({int? productId}) => (super
       .noSuchMethod(

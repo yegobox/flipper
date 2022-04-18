@@ -40,7 +40,7 @@ class HttpUpload implements UploadT {
       final String fileName = _path!.split('/').removeLast();
       final String storagePath = _path.replaceAll('/' + fileName, '');
       // final Document productUpdated = _databaseService.getById(id: product.id);
-      // _state.setProduct(product: ProductSync.fromMap(productUpdated.map));
+      // _state.setProduct(product: Product.fromMap(productUpdated.map));
       // final bool internetAvailable = await isInternetAvailable();
       log.i('we got here');
       log.i(fileName);
@@ -129,7 +129,7 @@ class MobileUpload implements UploadT {
         try {
           final UploadResponse uploadResponse =
               uploadResponseFromJson(result.response!);
-          ProductSync? product =
+          Product? product =
               await ProxyService.isarApi.getProduct(id: productId);
           // Map map = product!.toJson();
           product!.picture = uploadResponse.url;
@@ -137,7 +137,7 @@ class MobileUpload implements UploadT {
           product.hasPicture = true;
           log.i(productId);
           ProxyService.isarApi.update(data: product, endPoint: 'product');
-          ProductSync? kProduct =
+          Product? kProduct =
               await ProxyService.isarApi.getProduct(id: productId);
           ProxyService.productService
               .setCurrentProduct(product: kProduct!); //refresh data!

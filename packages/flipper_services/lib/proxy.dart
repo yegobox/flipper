@@ -27,6 +27,7 @@ import 'country_service.dart';
 import 'locator.dart';
 import 'product_service.dart';
 import 'package:flipper_models/interface.dart';
+import 'package:flipper_models/tax_api.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 
@@ -63,9 +64,11 @@ final SystemTime _systemTime = locator<SystemTime>();
 final EventService _event = locator<EventService>();
 final BillingService _billingService = locator<BillingService>();
 final IsarApiInterface _isarApi = locator<IsarApiInterface>();
+final TaxApi _taxApi = locator<TaxApi>();
 
 abstract class ProxyService {
   static Api get api => _apiService;
+  static TaxApi get tax => _taxApi;
   static IsarApiInterface get isarApi => _isarApi;
   static EventService get event => _event;
   static Crash get crash => _crash;

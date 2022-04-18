@@ -8,7 +8,7 @@
 
 import 'package:flipper_models/isar_models.dart';
 
-abstract class TaxInterface {
+abstract class TaxApi {
   Future<bool> saveItem({required Variant variation});
   Future<bool> saveStock({required Stock stock});
   Future<bool> initApi({
@@ -21,8 +21,16 @@ abstract class TaxInterface {
     required String bhfId,
     String lastReqDt,
   });
-  Future<bool> savePurchases({
+  // Right now saving purchase is not supported.
+  // will do later. (umuntu avuye kurangura.)
+  // Future<bool> savePurchases({
+  //   required Order order,
+  //   required List<OrderItem> items,
+  // });
+  Future<bool> createReceipt({
+    Customer? customer,
     required Order order,
     required List<OrderItem> items,
+    re,
   });
 }

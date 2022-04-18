@@ -153,7 +153,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   }
 
   ///list products availabe for sell
-  Future<List<ProductSync>> products() async {
+  Future<List<Product>> products() async {
     int branchId = ProxyService.box.read(key: 'branchId');
     return await ProxyService.isarApi.productsFuture(branchId: branchId);
   }
@@ -250,8 +250,8 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         for (OrderItem item in existOrders[0].orderItems) {
           if (item.variantId == variationId) {
             item
-              ..count = item.count + quantity.toDouble()
-              ..price = (item.count + quantity.toDouble()) *
+              ..qty = item.qty + quantity.toDouble()
+              ..price = (item.qty + quantity.toDouble()) *
                   (amountTotal / quantity.toDouble())
               ..variantId = variationId
               ..orderId = existOrders[0].id
@@ -272,7 +272,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         // log.w(exist_orders.length);
         if (existOrderItem == null) {
           OrderItem item = OrderItem()
-            ..count = quantity.toDouble()
+            ..qty = quantity.toDouble()
             ..price =
                 (quantity.toDouble()) * (amountTotal / quantity.toDouble())
             ..variantId = variationId

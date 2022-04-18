@@ -26,7 +26,7 @@ class ProductRow extends StatelessWidget {
   final String name;
   final bool hasImage;
   final String? imageUrl;
-  final ProductSync product;
+  final Product product;
   final Function delete;
   final Function addToMenu;
   final Function edit;

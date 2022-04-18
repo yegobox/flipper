@@ -67,7 +67,7 @@ class OrderSummary extends StatelessWidget {
                 ),
                 const Text(' '),
                 Text(
-                  item.count.toInt().toString(),
+                  item.qty.toInt().toString(),
                 )
               ],
             ),

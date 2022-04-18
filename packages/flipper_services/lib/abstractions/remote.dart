@@ -25,4 +25,5 @@ abstract class Remote {
   bool isFacebookLoginAvailable();
   bool isResetSettingEnabled();
   bool isLinkedDeviceAvailable();
+  String supportLine();
 }

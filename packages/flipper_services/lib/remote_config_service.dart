@@ -33,6 +33,7 @@ class RemoteConfigService implements Remote {
       'isLinkedDeviceAvailable': true,
       'isTwitterLoginAvailable': false,
       'isFacebookLoginAvailable': false,
+      'supportLine': "+250783054874",
     });
   }
 
@@ -209,6 +210,11 @@ class RemoteConfigService implements Remote {
   bool isTwitterLoginAvailable() {
     return remoteConfig.getBool('isTwitterLoginAvailable');
   }
+
+  @override
+  String supportLine() {
+    return remoteConfig.getString('supportLine');
+  }
 }
 
 class RemoteConfigWindows implements Remote {
@@ -346,5 +352,10 @@ class RemoteConfigWindows implements Remote {
   @override
   bool isTwitterLoginAvailable() {
     return false;
+  }
+
+  @override
+  String supportLine() {
+    return "+250783054874";
   }
 }

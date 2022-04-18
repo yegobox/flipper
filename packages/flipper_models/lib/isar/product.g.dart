@@ -17,40 +17,39 @@ extension GetProductCollection on Isar {
 final ProductSchema = CollectionSchema(
   name: 'Product',
   schema:
-      '{"name":"Product","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"barCode","type":"String"},{"name":"channels","type":"StringList"},{"name":"color","type":"String"},{"name":"createdAt","type":"String"},{"name":"currentUpdate","type":"Bool"},{"name":"description","type":"String"},{"name":"draft","type":"Bool"},{"name":"expiryDate","type":"String"},{"name":"fbranchId","type":"Long"},{"name":"fbusinessId","type":"Long"},{"name":"fcategoryId","type":"String"},{"name":"fsupplierId","type":"String"},{"name":"ftaxId","type":"String"},{"name":"hasPicture","type":"Bool"},{"name":"imageLocal","type":"Bool"},{"name":"imageUrl","type":"String"},{"name":"migrated","type":"Bool"},{"name":"name","type":"String"},{"name":"synced","type":"Bool"},{"name":"table","type":"String"},{"name":"unit","type":"String"}],"indexes":[],"links":[]}',
+      '{"name":"Product","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"barCode","type":"String"},{"name":"branchId","type":"Long"},{"name":"businessId","type":"Long"},{"name":"categoryId","type":"String"},{"name":"color","type":"String"},{"name":"createdAt","type":"String"},{"name":"currentUpdate","type":"Bool"},{"name":"description","type":"String"},{"name":"draft","type":"Bool"},{"name":"expiryDate","type":"String"},{"name":"hasPicture","type":"Bool"},{"name":"imageLocal","type":"Bool"},{"name":"imageUrl","type":"String"},{"name":"name","type":"String"},{"name":"picture","type":"String"},{"name":"supplierId","type":"String"},{"name":"synced","type":"Bool"},{"name":"table","type":"String"},{"name":"taxId","type":"String"},{"name":"unit","type":"String"}],"indexes":[],"links":[{"name":"variants","target":"Variant"}]}',
   nativeAdapter: const _ProductNativeAdapter(),
   webAdapter: const _ProductWebAdapter(),
   idName: 'id',
   propertyIds: {
     'active': 0,
     'barCode': 1,
-    'channels': 2,
-    'color': 3,
-    'createdAt': 4,
-    'currentUpdate': 5,
-    'description': 6,
-    'draft': 7,
-    'expiryDate': 8,
-    'fbranchId': 9,
-    'fbusinessId': 10,
-    'fcategoryId': 11,
-    'fsupplierId': 12,
-    'ftaxId': 13,
-    'hasPicture': 14,
-    'imageLocal': 15,
-    'imageUrl': 16,
-    'migrated': 17,
-    'name': 18,
-    'synced': 19,
-    'table': 20,
-    'unit': 21
+    'branchId': 2,
+    'businessId': 3,
+    'categoryId': 4,
+    'color': 5,
+    'createdAt': 6,
+    'currentUpdate': 7,
+    'description': 8,
+    'draft': 9,
+    'expiryDate': 10,
+    'hasPicture': 11,
+    'imageLocal': 12,
+    'imageUrl': 13,
+    'name': 14,
+    'picture': 15,
+    'supplierId': 16,
+    'synced': 17,
+    'table': 18,
+    'taxId': 19,
+    'unit': 20
   },
-  listProperties: {'channels'},
+  listProperties: {},
   indexIds: {},
   indexTypes: {},
-  linkIds: {},
+  linkIds: {'variants': 0},
   backlinkIds: {},
-  linkedCollections: [],
+  linkedCollections: ['Variant'],
   getId: (obj) {
     if (obj.id == Isar.autoIncrement) {
       return null;
@@ -59,7 +58,7 @@ final ProductSchema = CollectionSchema(
     }
   },
   setId: (obj, id) => obj.id = id,
-  getLinks: (obj) => [],
+  getLinks: (obj) => [obj.variants],
   version: 2,
 );
 
@@ -71,62 +70,58 @@ class _ProductWebAdapter extends IsarWebTypeAdapter<Product> {
     final jsObj = IsarNative.newJsObject();
     IsarNative.jsObjectSet(jsObj, 'active', object.active);
     IsarNative.jsObjectSet(jsObj, 'barCode', object.barCode);
-    IsarNative.jsObjectSet(jsObj, 'channels', object.channels);
+    IsarNative.jsObjectSet(jsObj, 'branchId', object.branchId);
+    IsarNative.jsObjectSet(jsObj, 'businessId', object.businessId);
+    IsarNative.jsObjectSet(jsObj, 'categoryId', object.categoryId);
     IsarNative.jsObjectSet(jsObj, 'color', object.color);
     IsarNative.jsObjectSet(jsObj, 'createdAt', object.createdAt);
     IsarNative.jsObjectSet(jsObj, 'currentUpdate', object.currentUpdate);
     IsarNative.jsObjectSet(jsObj, 'description', object.description);
     IsarNative.jsObjectSet(jsObj, 'draft', object.draft);
     IsarNative.jsObjectSet(jsObj, 'expiryDate', object.expiryDate);
-    IsarNative.jsObjectSet(jsObj, 'fbranchId', object.fbranchId);
-    IsarNative.jsObjectSet(jsObj, 'fbusinessId', object.fbusinessId);
-    IsarNative.jsObjectSet(jsObj, 'fcategoryId', object.fcategoryId);
-    IsarNative.jsObjectSet(jsObj, 'fsupplierId', object.fsupplierId);
-    IsarNative.jsObjectSet(jsObj, 'ftaxId', object.ftaxId);
     IsarNative.jsObjectSet(jsObj, 'hasPicture', object.hasPicture);
     IsarNative.jsObjectSet(jsObj, 'id', object.id);
     IsarNative.jsObjectSet(jsObj, 'imageLocal', object.imageLocal);
     IsarNative.jsObjectSet(jsObj, 'imageUrl', object.imageUrl);
-    IsarNative.jsObjectSet(jsObj, 'migrated', object.migrated);
     IsarNative.jsObjectSet(jsObj, 'name', object.name);
+    IsarNative.jsObjectSet(jsObj, 'picture', object.picture);
+    IsarNative.jsObjectSet(jsObj, 'supplierId', object.supplierId);
     IsarNative.jsObjectSet(jsObj, 'synced', object.synced);
     IsarNative.jsObjectSet(jsObj, 'table', object.table);
+    IsarNative.jsObjectSet(jsObj, 'taxId', object.taxId);
     IsarNative.jsObjectSet(jsObj, 'unit', object.unit);
     return jsObj;
   }
 
   @override
   Product deserialize(IsarCollection<Product> collection, dynamic jsObj) {
-    final object = Product(
-      active: IsarNative.jsObjectGet(jsObj, 'active') ?? false,
-      barCode: IsarNative.jsObjectGet(jsObj, 'barCode'),
-      channels: (IsarNative.jsObjectGet(jsObj, 'channels') as List?)
-          ?.map((e) => e ?? '')
-          .toList()
-          .cast<String>(),
-      color: IsarNative.jsObjectGet(jsObj, 'color') ?? '',
-      createdAt: IsarNative.jsObjectGet(jsObj, 'createdAt'),
-      currentUpdate: IsarNative.jsObjectGet(jsObj, 'currentUpdate'),
-      description: IsarNative.jsObjectGet(jsObj, 'description'),
-      draft: IsarNative.jsObjectGet(jsObj, 'draft'),
-      expiryDate: IsarNative.jsObjectGet(jsObj, 'expiryDate'),
-      fbranchId:
-          IsarNative.jsObjectGet(jsObj, 'fbranchId') ?? double.negativeInfinity,
-      fbusinessId: IsarNative.jsObjectGet(jsObj, 'fbusinessId') ??
-          double.negativeInfinity,
-      fcategoryId: IsarNative.jsObjectGet(jsObj, 'fcategoryId'),
-      fsupplierId: IsarNative.jsObjectGet(jsObj, 'fsupplierId'),
-      ftaxId: IsarNative.jsObjectGet(jsObj, 'ftaxId'),
-      hasPicture: IsarNative.jsObjectGet(jsObj, 'hasPicture') ?? false,
-      id: IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity,
-      imageLocal: IsarNative.jsObjectGet(jsObj, 'imageLocal'),
-      imageUrl: IsarNative.jsObjectGet(jsObj, 'imageUrl'),
-      migrated: IsarNative.jsObjectGet(jsObj, 'migrated'),
-      name: IsarNative.jsObjectGet(jsObj, 'name') ?? '',
-      synced: IsarNative.jsObjectGet(jsObj, 'synced'),
-      table: IsarNative.jsObjectGet(jsObj, 'table') ?? '',
-      unit: IsarNative.jsObjectGet(jsObj, 'unit') ?? '',
-    );
+    final object = Product();
+    object.active = IsarNative.jsObjectGet(jsObj, 'active') ?? false;
+    object.barCode = IsarNative.jsObjectGet(jsObj, 'barCode');
+    object.branchId =
+        IsarNative.jsObjectGet(jsObj, 'branchId') ?? double.negativeInfinity;
+    object.businessId =
+        IsarNative.jsObjectGet(jsObj, 'businessId') ?? double.negativeInfinity;
+    object.categoryId = IsarNative.jsObjectGet(jsObj, 'categoryId');
+    object.color = IsarNative.jsObjectGet(jsObj, 'color') ?? '';
+    object.createdAt = IsarNative.jsObjectGet(jsObj, 'createdAt');
+    object.currentUpdate = IsarNative.jsObjectGet(jsObj, 'currentUpdate');
+    object.description = IsarNative.jsObjectGet(jsObj, 'description');
+    object.draft = IsarNative.jsObjectGet(jsObj, 'draft');
+    object.expiryDate = IsarNative.jsObjectGet(jsObj, 'expiryDate');
+    object.hasPicture = IsarNative.jsObjectGet(jsObj, 'hasPicture') ?? false;
+    object.id = IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity;
+    object.imageLocal = IsarNative.jsObjectGet(jsObj, 'imageLocal');
+    object.imageUrl = IsarNative.jsObjectGet(jsObj, 'imageUrl');
+    object.name = IsarNative.jsObjectGet(jsObj, 'name') ?? '';
+    object.picture = IsarNative.jsObjectGet(jsObj, 'picture');
+    object.supplierId = IsarNative.jsObjectGet(jsObj, 'supplierId');
+    object.synced = IsarNative.jsObjectGet(jsObj, 'synced');
+    object.table = IsarNative.jsObjectGet(jsObj, 'table');
+    object.taxId = IsarNative.jsObjectGet(jsObj, 'taxId');
+    object.unit = IsarNative.jsObjectGet(jsObj, 'unit');
+    attachLinks(collection.isar,
+        IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity, object);
     return object;
   }
 
@@ -137,11 +132,14 @@ class _ProductWebAdapter extends IsarWebTypeAdapter<Product> {
         return (IsarNative.jsObjectGet(jsObj, 'active') ?? false) as P;
       case 'barCode':
         return (IsarNative.jsObjectGet(jsObj, 'barCode')) as P;
-      case 'channels':
-        return ((IsarNative.jsObjectGet(jsObj, 'channels') as List?)
-            ?.map((e) => e ?? '')
-            .toList()
-            .cast<String>()) as P;
+      case 'branchId':
+        return (IsarNative.jsObjectGet(jsObj, 'branchId') ??
+            double.negativeInfinity) as P;
+      case 'businessId':
+        return (IsarNative.jsObjectGet(jsObj, 'businessId') ??
+            double.negativeInfinity) as P;
+      case 'categoryId':
+        return (IsarNative.jsObjectGet(jsObj, 'categoryId')) as P;
       case 'color':
         return (IsarNative.jsObjectGet(jsObj, 'color') ?? '') as P;
       case 'createdAt':
@@ -154,18 +152,6 @@ class _ProductWebAdapter extends IsarWebTypeAdapter<Product> {
         return (IsarNative.jsObjectGet(jsObj, 'draft')) as P;
       case 'expiryDate':
         return (IsarNative.jsObjectGet(jsObj, 'expiryDate')) as P;
-      case 'fbranchId':
-        return (IsarNative.jsObjectGet(jsObj, 'fbranchId') ??
-            double.negativeInfinity) as P;
-      case 'fbusinessId':
-        return (IsarNative.jsObjectGet(jsObj, 'fbusinessId') ??
-            double.negativeInfinity) as P;
-      case 'fcategoryId':
-        return (IsarNative.jsObjectGet(jsObj, 'fcategoryId')) as P;
-      case 'fsupplierId':
-        return (IsarNative.jsObjectGet(jsObj, 'fsupplierId')) as P;
-      case 'ftaxId':
-        return (IsarNative.jsObjectGet(jsObj, 'ftaxId')) as P;
       case 'hasPicture':
         return (IsarNative.jsObjectGet(jsObj, 'hasPicture') ?? false) as P;
       case 'id':
@@ -175,23 +161,35 @@ class _ProductWebAdapter extends IsarWebTypeAdapter<Product> {
         return (IsarNative.jsObjectGet(jsObj, 'imageLocal')) as P;
       case 'imageUrl':
         return (IsarNative.jsObjectGet(jsObj, 'imageUrl')) as P;
-      case 'migrated':
-        return (IsarNative.jsObjectGet(jsObj, 'migrated')) as P;
       case 'name':
         return (IsarNative.jsObjectGet(jsObj, 'name') ?? '') as P;
+      case 'picture':
+        return (IsarNative.jsObjectGet(jsObj, 'picture')) as P;
+      case 'supplierId':
+        return (IsarNative.jsObjectGet(jsObj, 'supplierId')) as P;
       case 'synced':
         return (IsarNative.jsObjectGet(jsObj, 'synced')) as P;
       case 'table':
-        return (IsarNative.jsObjectGet(jsObj, 'table') ?? '') as P;
+        return (IsarNative.jsObjectGet(jsObj, 'table')) as P;
+      case 'taxId':
+        return (IsarNative.jsObjectGet(jsObj, 'taxId')) as P;
       case 'unit':
-        return (IsarNative.jsObjectGet(jsObj, 'unit') ?? '') as P;
+        return (IsarNative.jsObjectGet(jsObj, 'unit')) as P;
       default:
         throw 'Illegal propertyName';
     }
   }
 
   @override
-  void attachLinks(Isar isar, int id, Product object) {}
+  void attachLinks(Isar isar, int id, Product object) {
+    object.variants.attach(
+      id,
+      isar.products,
+      isar.getCollection<Variant>('Variant'),
+      'variants',
+      false,
+    );
+  }
 }
 
 class _ProductNativeAdapter extends IsarNativeTypeAdapter<Product> {
@@ -209,88 +207,86 @@ class _ProductNativeAdapter extends IsarNativeTypeAdapter<Product> {
       _barCode = IsarBinaryWriter.utf8Encoder.convert(value1);
     }
     dynamicSize += (_barCode?.length ?? 0) as int;
-    final value2 = object.channels;
-    dynamicSize += (value2?.length ?? 0) * 8;
-    List<IsarUint8List?>? bytesList2;
-    if (value2 != null) {
-      bytesList2 = [];
-      for (var str in value2) {
-        final bytes = IsarBinaryWriter.utf8Encoder.convert(str);
-        bytesList2.add(bytes);
-        dynamicSize += bytes.length as int;
-      }
-    }
-    final _channels = bytesList2;
-    final value3 = object.color;
-    final _color = IsarBinaryWriter.utf8Encoder.convert(value3);
-    dynamicSize += (_color.length) as int;
-    final value4 = object.createdAt;
-    IsarUint8List? _createdAt;
+    final value2 = object.branchId;
+    final _branchId = value2;
+    final value3 = object.businessId;
+    final _businessId = value3;
+    final value4 = object.categoryId;
+    IsarUint8List? _categoryId;
     if (value4 != null) {
-      _createdAt = IsarBinaryWriter.utf8Encoder.convert(value4);
+      _categoryId = IsarBinaryWriter.utf8Encoder.convert(value4);
+    }
+    dynamicSize += (_categoryId?.length ?? 0) as int;
+    final value5 = object.color;
+    final _color = IsarBinaryWriter.utf8Encoder.convert(value5);
+    dynamicSize += (_color.length) as int;
+    final value6 = object.createdAt;
+    IsarUint8List? _createdAt;
+    if (value6 != null) {
+      _createdAt = IsarBinaryWriter.utf8Encoder.convert(value6);
     }
     dynamicSize += (_createdAt?.length ?? 0) as int;
-    final value5 = object.currentUpdate;
-    final _currentUpdate = value5;
-    final value6 = object.description;
+    final value7 = object.currentUpdate;
+    final _currentUpdate = value7;
+    final value8 = object.description;
     IsarUint8List? _description;
-    if (value6 != null) {
-      _description = IsarBinaryWriter.utf8Encoder.convert(value6);
+    if (value8 != null) {
+      _description = IsarBinaryWriter.utf8Encoder.convert(value8);
     }
     dynamicSize += (_description?.length ?? 0) as int;
-    final value7 = object.draft;
-    final _draft = value7;
-    final value8 = object.expiryDate;
+    final value9 = object.draft;
+    final _draft = value9;
+    final value10 = object.expiryDate;
     IsarUint8List? _expiryDate;
-    if (value8 != null) {
-      _expiryDate = IsarBinaryWriter.utf8Encoder.convert(value8);
+    if (value10 != null) {
+      _expiryDate = IsarBinaryWriter.utf8Encoder.convert(value10);
     }
     dynamicSize += (_expiryDate?.length ?? 0) as int;
-    final value9 = object.fbranchId;
-    final _fbranchId = value9;
-    final value10 = object.fbusinessId;
-    final _fbusinessId = value10;
-    final value11 = object.fcategoryId;
-    IsarUint8List? _fcategoryId;
-    if (value11 != null) {
-      _fcategoryId = IsarBinaryWriter.utf8Encoder.convert(value11);
-    }
-    dynamicSize += (_fcategoryId?.length ?? 0) as int;
-    final value12 = object.fsupplierId;
-    IsarUint8List? _fsupplierId;
-    if (value12 != null) {
-      _fsupplierId = IsarBinaryWriter.utf8Encoder.convert(value12);
-    }
-    dynamicSize += (_fsupplierId?.length ?? 0) as int;
-    final value13 = object.ftaxId;
-    IsarUint8List? _ftaxId;
-    if (value13 != null) {
-      _ftaxId = IsarBinaryWriter.utf8Encoder.convert(value13);
-    }
-    dynamicSize += (_ftaxId?.length ?? 0) as int;
-    final value14 = object.hasPicture;
-    final _hasPicture = value14;
-    final value15 = object.imageLocal;
-    final _imageLocal = value15;
-    final value16 = object.imageUrl;
+    final value11 = object.hasPicture;
+    final _hasPicture = value11;
+    final value12 = object.imageLocal;
+    final _imageLocal = value12;
+    final value13 = object.imageUrl;
     IsarUint8List? _imageUrl;
-    if (value16 != null) {
-      _imageUrl = IsarBinaryWriter.utf8Encoder.convert(value16);
+    if (value13 != null) {
+      _imageUrl = IsarBinaryWriter.utf8Encoder.convert(value13);
     }
     dynamicSize += (_imageUrl?.length ?? 0) as int;
-    final value17 = object.migrated;
-    final _migrated = value17;
-    final value18 = object.name;
-    final _name = IsarBinaryWriter.utf8Encoder.convert(value18);
+    final value14 = object.name;
+    final _name = IsarBinaryWriter.utf8Encoder.convert(value14);
     dynamicSize += (_name.length) as int;
-    final value19 = object.synced;
-    final _synced = value19;
-    final value20 = object.table;
-    final _table = IsarBinaryWriter.utf8Encoder.convert(value20);
-    dynamicSize += (_table.length) as int;
-    final value21 = object.unit;
-    final _unit = IsarBinaryWriter.utf8Encoder.convert(value21);
-    dynamicSize += (_unit.length) as int;
+    final value15 = object.picture;
+    IsarUint8List? _picture;
+    if (value15 != null) {
+      _picture = IsarBinaryWriter.utf8Encoder.convert(value15);
+    }
+    dynamicSize += (_picture?.length ?? 0) as int;
+    final value16 = object.supplierId;
+    IsarUint8List? _supplierId;
+    if (value16 != null) {
+      _supplierId = IsarBinaryWriter.utf8Encoder.convert(value16);
+    }
+    dynamicSize += (_supplierId?.length ?? 0) as int;
+    final value17 = object.synced;
+    final _synced = value17;
+    final value18 = object.table;
+    IsarUint8List? _table;
+    if (value18 != null) {
+      _table = IsarBinaryWriter.utf8Encoder.convert(value18);
+    }
+    dynamicSize += (_table?.length ?? 0) as int;
+    final value19 = object.taxId;
+    IsarUint8List? _taxId;
+    if (value19 != null) {
+      _taxId = IsarBinaryWriter.utf8Encoder.convert(value19);
+    }
+    dynamicSize += (_taxId?.length ?? 0) as int;
+    final value20 = object.unit;
+    IsarUint8List? _unit;
+    if (value20 != null) {
+      _unit = IsarBinaryWriter.utf8Encoder.convert(value20);
+    }
+    dynamicSize += (_unit?.length ?? 0) as int;
     final size = staticSize + dynamicSize;
 
     rawObj.buffer = alloc(size);
@@ -299,56 +295,54 @@ class _ProductNativeAdapter extends IsarNativeTypeAdapter<Product> {
     final writer = IsarBinaryWriter(buffer, staticSize);
     writer.writeBool(offsets[0], _active);
     writer.writeBytes(offsets[1], _barCode);
-    writer.writeStringList(offsets[2], _channels);
-    writer.writeBytes(offsets[3], _color);
-    writer.writeBytes(offsets[4], _createdAt);
-    writer.writeBool(offsets[5], _currentUpdate);
-    writer.writeBytes(offsets[6], _description);
-    writer.writeBool(offsets[7], _draft);
-    writer.writeBytes(offsets[8], _expiryDate);
-    writer.writeLong(offsets[9], _fbranchId);
-    writer.writeLong(offsets[10], _fbusinessId);
-    writer.writeBytes(offsets[11], _fcategoryId);
-    writer.writeBytes(offsets[12], _fsupplierId);
-    writer.writeBytes(offsets[13], _ftaxId);
-    writer.writeBool(offsets[14], _hasPicture);
-    writer.writeBool(offsets[15], _imageLocal);
-    writer.writeBytes(offsets[16], _imageUrl);
-    writer.writeBool(offsets[17], _migrated);
-    writer.writeBytes(offsets[18], _name);
-    writer.writeBool(offsets[19], _synced);
-    writer.writeBytes(offsets[20], _table);
-    writer.writeBytes(offsets[21], _unit);
+    writer.writeLong(offsets[2], _branchId);
+    writer.writeLong(offsets[3], _businessId);
+    writer.writeBytes(offsets[4], _categoryId);
+    writer.writeBytes(offsets[5], _color);
+    writer.writeBytes(offsets[6], _createdAt);
+    writer.writeBool(offsets[7], _currentUpdate);
+    writer.writeBytes(offsets[8], _description);
+    writer.writeBool(offsets[9], _draft);
+    writer.writeBytes(offsets[10], _expiryDate);
+    writer.writeBool(offsets[11], _hasPicture);
+    writer.writeBool(offsets[12], _imageLocal);
+    writer.writeBytes(offsets[13], _imageUrl);
+    writer.writeBytes(offsets[14], _name);
+    writer.writeBytes(offsets[15], _picture);
+    writer.writeBytes(offsets[16], _supplierId);
+    writer.writeBool(offsets[17], _synced);
+    writer.writeBytes(offsets[18], _table);
+    writer.writeBytes(offsets[19], _taxId);
+    writer.writeBytes(offsets[20], _unit);
   }
 
   @override
   Product deserialize(IsarCollection<Product> collection, int id,
       IsarBinaryReader reader, List<int> offsets) {
-    final object = Product(
-      active: reader.readBool(offsets[0]),
-      barCode: reader.readStringOrNull(offsets[1]),
-      channels: reader.readStringList(offsets[2]),
-      color: reader.readString(offsets[3]),
-      createdAt: reader.readStringOrNull(offsets[4]),
-      currentUpdate: reader.readBoolOrNull(offsets[5]),
-      description: reader.readStringOrNull(offsets[6]),
-      draft: reader.readBoolOrNull(offsets[7]),
-      expiryDate: reader.readStringOrNull(offsets[8]),
-      fbranchId: reader.readLong(offsets[9]),
-      fbusinessId: reader.readLong(offsets[10]),
-      fcategoryId: reader.readStringOrNull(offsets[11]),
-      fsupplierId: reader.readStringOrNull(offsets[12]),
-      ftaxId: reader.readStringOrNull(offsets[13]),
-      hasPicture: reader.readBool(offsets[14]),
-      id: id,
-      imageLocal: reader.readBoolOrNull(offsets[15]),
-      imageUrl: reader.readStringOrNull(offsets[16]),
-      migrated: reader.readBoolOrNull(offsets[17]),
-      name: reader.readString(offsets[18]),
-      synced: reader.readBoolOrNull(offsets[19]),
-      table: reader.readString(offsets[20]),
-      unit: reader.readString(offsets[21]),
-    );
+    final object = Product();
+    object.active = reader.readBool(offsets[0]);
+    object.barCode = reader.readStringOrNull(offsets[1]);
+    object.branchId = reader.readLong(offsets[2]);
+    object.businessId = reader.readLong(offsets[3]);
+    object.categoryId = reader.readStringOrNull(offsets[4]);
+    object.color = reader.readString(offsets[5]);
+    object.createdAt = reader.readStringOrNull(offsets[6]);
+    object.currentUpdate = reader.readBoolOrNull(offsets[7]);
+    object.description = reader.readStringOrNull(offsets[8]);
+    object.draft = reader.readBoolOrNull(offsets[9]);
+    object.expiryDate = reader.readStringOrNull(offsets[10]);
+    object.hasPicture = reader.readBool(offsets[11]);
+    object.id = id;
+    object.imageLocal = reader.readBoolOrNull(offsets[12]);
+    object.imageUrl = reader.readStringOrNull(offsets[13]);
+    object.name = reader.readString(offsets[14]);
+    object.picture = reader.readStringOrNull(offsets[15]);
+    object.supplierId = reader.readStringOrNull(offsets[16]);
+    object.synced = reader.readBoolOrNull(offsets[17]);
+    object.table = reader.readStringOrNull(offsets[18]);
+    object.taxId = reader.readStringOrNull(offsets[19]);
+    object.unit = reader.readStringOrNull(offsets[20]);
+    attachLinks(collection.isar, id, object);
     return object;
   }
 
@@ -363,13 +357,13 @@ class _ProductNativeAdapter extends IsarNativeTypeAdapter<Product> {
       case 1:
         return (reader.readStringOrNull(offset)) as P;
       case 2:
-        return (reader.readStringList(offset)) as P;
+        return (reader.readLong(offset)) as P;
       case 3:
-        return (reader.readString(offset)) as P;
+        return (reader.readLong(offset)) as P;
       case 4:
         return (reader.readStringOrNull(offset)) as P;
       case 5:
-        return (reader.readBoolOrNull(offset)) as P;
+        return (reader.readString(offset)) as P;
       case 6:
         return (reader.readStringOrNull(offset)) as P;
       case 7:
@@ -377,38 +371,44 @@ class _ProductNativeAdapter extends IsarNativeTypeAdapter<Product> {
       case 8:
         return (reader.readStringOrNull(offset)) as P;
       case 9:
-        return (reader.readLong(offset)) as P;
+        return (reader.readBoolOrNull(offset)) as P;
       case 10:
-        return (reader.readLong(offset)) as P;
+        return (reader.readStringOrNull(offset)) as P;
       case 11:
-        return (reader.readStringOrNull(offset)) as P;
+        return (reader.readBool(offset)) as P;
       case 12:
-        return (reader.readStringOrNull(offset)) as P;
+        return (reader.readBoolOrNull(offset)) as P;
       case 13:
         return (reader.readStringOrNull(offset)) as P;
       case 14:
-        return (reader.readBool(offset)) as P;
+        return (reader.readString(offset)) as P;
       case 15:
-        return (reader.readBoolOrNull(offset)) as P;
+        return (reader.readStringOrNull(offset)) as P;
       case 16:
         return (reader.readStringOrNull(offset)) as P;
       case 17:
         return (reader.readBoolOrNull(offset)) as P;
       case 18:
-        return (reader.readString(offset)) as P;
+        return (reader.readStringOrNull(offset)) as P;
       case 19:
-        return (reader.readBoolOrNull(offset)) as P;
+        return (reader.readStringOrNull(offset)) as P;
       case 20:
-        return (reader.readString(offset)) as P;
-      case 21:
-        return (reader.readString(offset)) as P;
+        return (reader.readStringOrNull(offset)) as P;
       default:
         throw 'Illegal propertyIndex';
     }
   }
 
   @override
-  void attachLinks(Isar isar, int id, Product object) {}
+  void attachLinks(Isar isar, int id, Product object) {
+    object.variants.attach(
+      id,
+      isar.products,
+      isar.getCollection<Variant>('Variant'),
+      'variants',
+      false,
+    );
+  }
 }
 
 extension ProductQueryWhereSort on QueryBuilder<Product, Product, QWhere> {
@@ -612,35 +612,123 @@ extension ProductQueryFilter
     ));
   }
 
-  QueryBuilder<Product, Product, QAfterFilterCondition> channelsIsNull() {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.isNull,
-      property: 'channels',
-      value: null,
-    ));
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> channelsAnyIsNull() {
+  QueryBuilder<Product, Product, QAfterFilterCondition> branchIdEqualTo(
+      int value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
-      property: 'channels',
+      property: 'branchId',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> branchIdGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.gt,
+      include: include,
+      property: 'branchId',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> branchIdLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.lt,
+      include: include,
+      property: 'branchId',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> branchIdBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition.between(
+      property: 'branchId',
+      lower: lower,
+      includeLower: includeLower,
+      upper: upper,
+      includeUpper: includeUpper,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> businessIdEqualTo(
+      int value) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.eq,
+      property: 'businessId',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> businessIdGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.gt,
+      include: include,
+      property: 'businessId',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> businessIdLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.lt,
+      include: include,
+      property: 'businessId',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> businessIdBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition.between(
+      property: 'businessId',
+      lower: lower,
+      includeLower: includeLower,
+      upper: upper,
+      includeUpper: includeUpper,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> categoryIdIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'categoryId',
       value: null,
     ));
   }
 
-  QueryBuilder<Product, Product, QAfterFilterCondition> channelsAnyEqualTo(
+  QueryBuilder<Product, Product, QAfterFilterCondition> categoryIdEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
-      property: 'channels',
+      property: 'categoryId',
       value: value,
       caseSensitive: caseSensitive,
     ));
   }
 
-  QueryBuilder<Product, Product, QAfterFilterCondition> channelsAnyGreaterThan(
+  QueryBuilder<Product, Product, QAfterFilterCondition> categoryIdGreaterThan(
     String? value, {
     bool caseSensitive = true,
     bool include = false,
@@ -648,13 +736,13 @@ extension ProductQueryFilter
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.gt,
       include: include,
-      property: 'channels',
+      property: 'categoryId',
       value: value,
       caseSensitive: caseSensitive,
     ));
   }
 
-  QueryBuilder<Product, Product, QAfterFilterCondition> channelsAnyLessThan(
+  QueryBuilder<Product, Product, QAfterFilterCondition> categoryIdLessThan(
     String? value, {
     bool caseSensitive = true,
     bool include = false,
@@ -662,13 +750,13 @@ extension ProductQueryFilter
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.lt,
       include: include,
-      property: 'channels',
+      property: 'categoryId',
       value: value,
       caseSensitive: caseSensitive,
     ));
   }
 
-  QueryBuilder<Product, Product, QAfterFilterCondition> channelsAnyBetween(
+  QueryBuilder<Product, Product, QAfterFilterCondition> categoryIdBetween(
     String? lower,
     String? upper, {
     bool caseSensitive = true,
@@ -676,7 +764,7 @@ extension ProductQueryFilter
     bool includeUpper = true,
   }) {
     return addFilterConditionInternal(FilterCondition.between(
-      property: 'channels',
+      property: 'categoryId',
       lower: lower,
       includeLower: includeLower,
       upper: upper,
@@ -685,47 +773,47 @@ extension ProductQueryFilter
     ));
   }
 
-  QueryBuilder<Product, Product, QAfterFilterCondition> channelsAnyStartsWith(
+  QueryBuilder<Product, Product, QAfterFilterCondition> categoryIdStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.startsWith,
-      property: 'channels',
+      property: 'categoryId',
       value: value,
       caseSensitive: caseSensitive,
     ));
   }
 
-  QueryBuilder<Product, Product, QAfterFilterCondition> channelsAnyEndsWith(
+  QueryBuilder<Product, Product, QAfterFilterCondition> categoryIdEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.endsWith,
-      property: 'channels',
+      property: 'categoryId',
       value: value,
       caseSensitive: caseSensitive,
     ));
   }
 
-  QueryBuilder<Product, Product, QAfterFilterCondition> channelsAnyContains(
+  QueryBuilder<Product, Product, QAfterFilterCondition> categoryIdContains(
       String value,
       {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.contains,
-      property: 'channels',
+      property: 'categoryId',
       value: value,
       caseSensitive: caseSensitive,
     ));
   }
 
-  QueryBuilder<Product, Product, QAfterFilterCondition> channelsAnyMatches(
+  QueryBuilder<Product, Product, QAfterFilterCondition> categoryIdMatches(
       String pattern,
       {bool caseSensitive = true}) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.matches,
-      property: 'channels',
+      property: 'categoryId',
       value: pattern,
       caseSensitive: caseSensitive,
     ));
@@ -1201,435 +1289,6 @@ extension ProductQueryFilter
     ));
   }
 
-  QueryBuilder<Product, Product, QAfterFilterCondition> fbranchIdEqualTo(
-      int value) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'fbranchId',
-      value: value,
-    ));
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> fbranchIdGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'fbranchId',
-      value: value,
-    ));
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> fbranchIdLessThan(
-    int value, {
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'fbranchId',
-      value: value,
-    ));
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> fbranchIdBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'fbranchId',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-    ));
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> fbusinessIdEqualTo(
-      int value) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'fbusinessId',
-      value: value,
-    ));
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> fbusinessIdGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'fbusinessId',
-      value: value,
-    ));
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> fbusinessIdLessThan(
-    int value, {
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'fbusinessId',
-      value: value,
-    ));
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> fbusinessIdBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'fbusinessId',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-    ));
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> fcategoryIdIsNull() {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.isNull,
-      property: 'fcategoryId',
-      value: null,
-    ));
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> fcategoryIdEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'fcategoryId',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> fcategoryIdGreaterThan(
-    String? value, {
-    bool caseSensitive = true,
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'fcategoryId',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> fcategoryIdLessThan(
-    String? value, {
-    bool caseSensitive = true,
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'fcategoryId',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> fcategoryIdBetween(
-    String? lower,
-    String? upper, {
-    bool caseSensitive = true,
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'fcategoryId',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> fcategoryIdStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.startsWith,
-      property: 'fcategoryId',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> fcategoryIdEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.endsWith,
-      property: 'fcategoryId',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> fcategoryIdContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.contains,
-      property: 'fcategoryId',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> fcategoryIdMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.matches,
-      property: 'fcategoryId',
-      value: pattern,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> fsupplierIdIsNull() {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.isNull,
-      property: 'fsupplierId',
-      value: null,
-    ));
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> fsupplierIdEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'fsupplierId',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> fsupplierIdGreaterThan(
-    String? value, {
-    bool caseSensitive = true,
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'fsupplierId',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> fsupplierIdLessThan(
-    String? value, {
-    bool caseSensitive = true,
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'fsupplierId',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> fsupplierIdBetween(
-    String? lower,
-    String? upper, {
-    bool caseSensitive = true,
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'fsupplierId',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> fsupplierIdStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.startsWith,
-      property: 'fsupplierId',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> fsupplierIdEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.endsWith,
-      property: 'fsupplierId',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> fsupplierIdContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.contains,
-      property: 'fsupplierId',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> fsupplierIdMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.matches,
-      property: 'fsupplierId',
-      value: pattern,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> ftaxIdIsNull() {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.isNull,
-      property: 'ftaxId',
-      value: null,
-    ));
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> ftaxIdEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'ftaxId',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> ftaxIdGreaterThan(
-    String? value, {
-    bool caseSensitive = true,
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'ftaxId',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> ftaxIdLessThan(
-    String? value, {
-    bool caseSensitive = true,
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'ftaxId',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> ftaxIdBetween(
-    String? lower,
-    String? upper, {
-    bool caseSensitive = true,
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'ftaxId',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> ftaxIdStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.startsWith,
-      property: 'ftaxId',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> ftaxIdEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.endsWith,
-      property: 'ftaxId',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> ftaxIdContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.contains,
-      property: 'ftaxId',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> ftaxIdMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.matches,
-      property: 'ftaxId',
-      value: pattern,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
   QueryBuilder<Product, Product, QAfterFilterCondition> hasPictureEqualTo(
       bool value) {
     return addFilterConditionInternal(FilterCondition(
@@ -1814,23 +1473,6 @@ extension ProductQueryFilter
     ));
   }
 
-  QueryBuilder<Product, Product, QAfterFilterCondition> migratedIsNull() {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.isNull,
-      property: 'migrated',
-      value: null,
-    ));
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> migratedEqualTo(
-      bool? value) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'migrated',
-      value: value,
-    ));
-  }
-
   QueryBuilder<Product, Product, QAfterFilterCondition> nameEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1934,6 +1576,228 @@ extension ProductQueryFilter
     ));
   }
 
+  QueryBuilder<Product, Product, QAfterFilterCondition> pictureIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'picture',
+      value: null,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> pictureEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.eq,
+      property: 'picture',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> pictureGreaterThan(
+    String? value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.gt,
+      include: include,
+      property: 'picture',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> pictureLessThan(
+    String? value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.lt,
+      include: include,
+      property: 'picture',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> pictureBetween(
+    String? lower,
+    String? upper, {
+    bool caseSensitive = true,
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition.between(
+      property: 'picture',
+      lower: lower,
+      includeLower: includeLower,
+      upper: upper,
+      includeUpper: includeUpper,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> pictureStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.startsWith,
+      property: 'picture',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> pictureEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.endsWith,
+      property: 'picture',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> pictureContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.contains,
+      property: 'picture',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> pictureMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.matches,
+      property: 'picture',
+      value: pattern,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> supplierIdIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'supplierId',
+      value: null,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> supplierIdEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.eq,
+      property: 'supplierId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> supplierIdGreaterThan(
+    String? value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.gt,
+      include: include,
+      property: 'supplierId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> supplierIdLessThan(
+    String? value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.lt,
+      include: include,
+      property: 'supplierId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> supplierIdBetween(
+    String? lower,
+    String? upper, {
+    bool caseSensitive = true,
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition.between(
+      property: 'supplierId',
+      lower: lower,
+      includeLower: includeLower,
+      upper: upper,
+      includeUpper: includeUpper,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> supplierIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.startsWith,
+      property: 'supplierId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> supplierIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.endsWith,
+      property: 'supplierId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> supplierIdContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.contains,
+      property: 'supplierId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> supplierIdMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.matches,
+      property: 'supplierId',
+      value: pattern,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
   QueryBuilder<Product, Product, QAfterFilterCondition> syncedIsNull() {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.isNull,
@@ -1951,8 +1815,16 @@ extension ProductQueryFilter
     ));
   }
 
+  QueryBuilder<Product, Product, QAfterFilterCondition> tableIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'table',
+      value: null,
+    ));
+  }
+
   QueryBuilder<Product, Product, QAfterFilterCondition> tableEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return addFilterConditionInternal(FilterCondition(
@@ -1964,7 +1836,7 @@ extension ProductQueryFilter
   }
 
   QueryBuilder<Product, Product, QAfterFilterCondition> tableGreaterThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
     bool include = false,
   }) {
@@ -1978,7 +1850,7 @@ extension ProductQueryFilter
   }
 
   QueryBuilder<Product, Product, QAfterFilterCondition> tableLessThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
     bool include = false,
   }) {
@@ -1992,8 +1864,8 @@ extension ProductQueryFilter
   }
 
   QueryBuilder<Product, Product, QAfterFilterCondition> tableBetween(
-    String lower,
-    String upper, {
+    String? lower,
+    String? upper, {
     bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
@@ -2054,8 +1926,127 @@ extension ProductQueryFilter
     ));
   }
 
-  QueryBuilder<Product, Product, QAfterFilterCondition> unitEqualTo(
+  QueryBuilder<Product, Product, QAfterFilterCondition> taxIdIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'taxId',
+      value: null,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> taxIdEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.eq,
+      property: 'taxId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> taxIdGreaterThan(
+    String? value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.gt,
+      include: include,
+      property: 'taxId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> taxIdLessThan(
+    String? value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.lt,
+      include: include,
+      property: 'taxId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> taxIdBetween(
+    String? lower,
+    String? upper, {
+    bool caseSensitive = true,
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition.between(
+      property: 'taxId',
+      lower: lower,
+      includeLower: includeLower,
+      upper: upper,
+      includeUpper: includeUpper,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> taxIdStartsWith(
     String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.startsWith,
+      property: 'taxId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> taxIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.endsWith,
+      property: 'taxId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> taxIdContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.contains,
+      property: 'taxId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> taxIdMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.matches,
+      property: 'taxId',
+      value: pattern,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> unitIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'unit',
+      value: null,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> unitEqualTo(
+    String? value, {
     bool caseSensitive = true,
   }) {
     return addFilterConditionInternal(FilterCondition(
@@ -2067,7 +2058,7 @@ extension ProductQueryFilter
   }
 
   QueryBuilder<Product, Product, QAfterFilterCondition> unitGreaterThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
     bool include = false,
   }) {
@@ -2081,7 +2072,7 @@ extension ProductQueryFilter
   }
 
   QueryBuilder<Product, Product, QAfterFilterCondition> unitLessThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
     bool include = false,
   }) {
@@ -2095,8 +2086,8 @@ extension ProductQueryFilter
   }
 
   QueryBuilder<Product, Product, QAfterFilterCondition> unitBetween(
-    String lower,
-    String upper, {
+    String? lower,
+    String? upper, {
     bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
@@ -2175,6 +2166,30 @@ extension ProductQueryWhereSortBy on QueryBuilder<Product, Product, QSortBy> {
     return addSortByInternal('barCode', Sort.desc);
   }
 
+  QueryBuilder<Product, Product, QAfterSortBy> sortByBranchId() {
+    return addSortByInternal('branchId', Sort.asc);
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> sortByBranchIdDesc() {
+    return addSortByInternal('branchId', Sort.desc);
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> sortByBusinessId() {
+    return addSortByInternal('businessId', Sort.asc);
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> sortByBusinessIdDesc() {
+    return addSortByInternal('businessId', Sort.desc);
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> sortByCategoryId() {
+    return addSortByInternal('categoryId', Sort.asc);
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> sortByCategoryIdDesc() {
+    return addSortByInternal('categoryId', Sort.desc);
+  }
+
   QueryBuilder<Product, Product, QAfterSortBy> sortByColor() {
     return addSortByInternal('color', Sort.asc);
   }
@@ -2223,46 +2238,6 @@ extension ProductQueryWhereSortBy on QueryBuilder<Product, Product, QSortBy> {
     return addSortByInternal('expiryDate', Sort.desc);
   }
 
-  QueryBuilder<Product, Product, QAfterSortBy> sortByFbranchId() {
-    return addSortByInternal('fbranchId', Sort.asc);
-  }
-
-  QueryBuilder<Product, Product, QAfterSortBy> sortByFbranchIdDesc() {
-    return addSortByInternal('fbranchId', Sort.desc);
-  }
-
-  QueryBuilder<Product, Product, QAfterSortBy> sortByFbusinessId() {
-    return addSortByInternal('fbusinessId', Sort.asc);
-  }
-
-  QueryBuilder<Product, Product, QAfterSortBy> sortByFbusinessIdDesc() {
-    return addSortByInternal('fbusinessId', Sort.desc);
-  }
-
-  QueryBuilder<Product, Product, QAfterSortBy> sortByFcategoryId() {
-    return addSortByInternal('fcategoryId', Sort.asc);
-  }
-
-  QueryBuilder<Product, Product, QAfterSortBy> sortByFcategoryIdDesc() {
-    return addSortByInternal('fcategoryId', Sort.desc);
-  }
-
-  QueryBuilder<Product, Product, QAfterSortBy> sortByFsupplierId() {
-    return addSortByInternal('fsupplierId', Sort.asc);
-  }
-
-  QueryBuilder<Product, Product, QAfterSortBy> sortByFsupplierIdDesc() {
-    return addSortByInternal('fsupplierId', Sort.desc);
-  }
-
-  QueryBuilder<Product, Product, QAfterSortBy> sortByFtaxId() {
-    return addSortByInternal('ftaxId', Sort.asc);
-  }
-
-  QueryBuilder<Product, Product, QAfterSortBy> sortByFtaxIdDesc() {
-    return addSortByInternal('ftaxId', Sort.desc);
-  }
-
   QueryBuilder<Product, Product, QAfterSortBy> sortByHasPicture() {
     return addSortByInternal('hasPicture', Sort.asc);
   }
@@ -2295,20 +2270,28 @@ extension ProductQueryWhereSortBy on QueryBuilder<Product, Product, QSortBy> {
     return addSortByInternal('imageUrl', Sort.desc);
   }
 
-  QueryBuilder<Product, Product, QAfterSortBy> sortByMigrated() {
-    return addSortByInternal('migrated', Sort.asc);
-  }
-
-  QueryBuilder<Product, Product, QAfterSortBy> sortByMigratedDesc() {
-    return addSortByInternal('migrated', Sort.desc);
-  }
-
   QueryBuilder<Product, Product, QAfterSortBy> sortByName() {
     return addSortByInternal('name', Sort.asc);
   }
 
   QueryBuilder<Product, Product, QAfterSortBy> sortByNameDesc() {
     return addSortByInternal('name', Sort.desc);
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> sortByPicture() {
+    return addSortByInternal('picture', Sort.asc);
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> sortByPictureDesc() {
+    return addSortByInternal('picture', Sort.desc);
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> sortBySupplierId() {
+    return addSortByInternal('supplierId', Sort.asc);
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> sortBySupplierIdDesc() {
+    return addSortByInternal('supplierId', Sort.desc);
   }
 
   QueryBuilder<Product, Product, QAfterSortBy> sortBySynced() {
@@ -2325,6 +2308,14 @@ extension ProductQueryWhereSortBy on QueryBuilder<Product, Product, QSortBy> {
 
   QueryBuilder<Product, Product, QAfterSortBy> sortByTableDesc() {
     return addSortByInternal('table', Sort.desc);
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> sortByTaxId() {
+    return addSortByInternal('taxId', Sort.asc);
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> sortByTaxIdDesc() {
+    return addSortByInternal('taxId', Sort.desc);
   }
 
   QueryBuilder<Product, Product, QAfterSortBy> sortByUnit() {
@@ -2352,6 +2343,30 @@ extension ProductQueryWhereSortThenBy
 
   QueryBuilder<Product, Product, QAfterSortBy> thenByBarCodeDesc() {
     return addSortByInternal('barCode', Sort.desc);
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> thenByBranchId() {
+    return addSortByInternal('branchId', Sort.asc);
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> thenByBranchIdDesc() {
+    return addSortByInternal('branchId', Sort.desc);
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> thenByBusinessId() {
+    return addSortByInternal('businessId', Sort.asc);
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> thenByBusinessIdDesc() {
+    return addSortByInternal('businessId', Sort.desc);
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> thenByCategoryId() {
+    return addSortByInternal('categoryId', Sort.asc);
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> thenByCategoryIdDesc() {
+    return addSortByInternal('categoryId', Sort.desc);
   }
 
   QueryBuilder<Product, Product, QAfterSortBy> thenByColor() {
@@ -2402,46 +2417,6 @@ extension ProductQueryWhereSortThenBy
     return addSortByInternal('expiryDate', Sort.desc);
   }
 
-  QueryBuilder<Product, Product, QAfterSortBy> thenByFbranchId() {
-    return addSortByInternal('fbranchId', Sort.asc);
-  }
-
-  QueryBuilder<Product, Product, QAfterSortBy> thenByFbranchIdDesc() {
-    return addSortByInternal('fbranchId', Sort.desc);
-  }
-
-  QueryBuilder<Product, Product, QAfterSortBy> thenByFbusinessId() {
-    return addSortByInternal('fbusinessId', Sort.asc);
-  }
-
-  QueryBuilder<Product, Product, QAfterSortBy> thenByFbusinessIdDesc() {
-    return addSortByInternal('fbusinessId', Sort.desc);
-  }
-
-  QueryBuilder<Product, Product, QAfterSortBy> thenByFcategoryId() {
-    return addSortByInternal('fcategoryId', Sort.asc);
-  }
-
-  QueryBuilder<Product, Product, QAfterSortBy> thenByFcategoryIdDesc() {
-    return addSortByInternal('fcategoryId', Sort.desc);
-  }
-
-  QueryBuilder<Product, Product, QAfterSortBy> thenByFsupplierId() {
-    return addSortByInternal('fsupplierId', Sort.asc);
-  }
-
-  QueryBuilder<Product, Product, QAfterSortBy> thenByFsupplierIdDesc() {
-    return addSortByInternal('fsupplierId', Sort.desc);
-  }
-
-  QueryBuilder<Product, Product, QAfterSortBy> thenByFtaxId() {
-    return addSortByInternal('ftaxId', Sort.asc);
-  }
-
-  QueryBuilder<Product, Product, QAfterSortBy> thenByFtaxIdDesc() {
-    return addSortByInternal('ftaxId', Sort.desc);
-  }
-
   QueryBuilder<Product, Product, QAfterSortBy> thenByHasPicture() {
     return addSortByInternal('hasPicture', Sort.asc);
   }
@@ -2474,20 +2449,28 @@ extension ProductQueryWhereSortThenBy
     return addSortByInternal('imageUrl', Sort.desc);
   }
 
-  QueryBuilder<Product, Product, QAfterSortBy> thenByMigrated() {
-    return addSortByInternal('migrated', Sort.asc);
-  }
-
-  QueryBuilder<Product, Product, QAfterSortBy> thenByMigratedDesc() {
-    return addSortByInternal('migrated', Sort.desc);
-  }
-
   QueryBuilder<Product, Product, QAfterSortBy> thenByName() {
     return addSortByInternal('name', Sort.asc);
   }
 
   QueryBuilder<Product, Product, QAfterSortBy> thenByNameDesc() {
     return addSortByInternal('name', Sort.desc);
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> thenByPicture() {
+    return addSortByInternal('picture', Sort.asc);
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> thenByPictureDesc() {
+    return addSortByInternal('picture', Sort.desc);
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> thenBySupplierId() {
+    return addSortByInternal('supplierId', Sort.asc);
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> thenBySupplierIdDesc() {
+    return addSortByInternal('supplierId', Sort.desc);
   }
 
   QueryBuilder<Product, Product, QAfterSortBy> thenBySynced() {
@@ -2504,6 +2487,14 @@ extension ProductQueryWhereSortThenBy
 
   QueryBuilder<Product, Product, QAfterSortBy> thenByTableDesc() {
     return addSortByInternal('table', Sort.desc);
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> thenByTaxId() {
+    return addSortByInternal('taxId', Sort.asc);
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> thenByTaxIdDesc() {
+    return addSortByInternal('taxId', Sort.desc);
   }
 
   QueryBuilder<Product, Product, QAfterSortBy> thenByUnit() {
@@ -2524,6 +2515,19 @@ extension ProductQueryWhereDistinct
   QueryBuilder<Product, Product, QDistinct> distinctByBarCode(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('barCode', caseSensitive: caseSensitive);
+  }
+
+  QueryBuilder<Product, Product, QDistinct> distinctByBranchId() {
+    return addDistinctByInternal('branchId');
+  }
+
+  QueryBuilder<Product, Product, QDistinct> distinctByBusinessId() {
+    return addDistinctByInternal('businessId');
+  }
+
+  QueryBuilder<Product, Product, QDistinct> distinctByCategoryId(
+      {bool caseSensitive = true}) {
+    return addDistinctByInternal('categoryId', caseSensitive: caseSensitive);
   }
 
   QueryBuilder<Product, Product, QDistinct> distinctByColor(
@@ -2554,29 +2558,6 @@ extension ProductQueryWhereDistinct
     return addDistinctByInternal('expiryDate', caseSensitive: caseSensitive);
   }
 
-  QueryBuilder<Product, Product, QDistinct> distinctByFbranchId() {
-    return addDistinctByInternal('fbranchId');
-  }
-
-  QueryBuilder<Product, Product, QDistinct> distinctByFbusinessId() {
-    return addDistinctByInternal('fbusinessId');
-  }
-
-  QueryBuilder<Product, Product, QDistinct> distinctByFcategoryId(
-      {bool caseSensitive = true}) {
-    return addDistinctByInternal('fcategoryId', caseSensitive: caseSensitive);
-  }
-
-  QueryBuilder<Product, Product, QDistinct> distinctByFsupplierId(
-      {bool caseSensitive = true}) {
-    return addDistinctByInternal('fsupplierId', caseSensitive: caseSensitive);
-  }
-
-  QueryBuilder<Product, Product, QDistinct> distinctByFtaxId(
-      {bool caseSensitive = true}) {
-    return addDistinctByInternal('ftaxId', caseSensitive: caseSensitive);
-  }
-
   QueryBuilder<Product, Product, QDistinct> distinctByHasPicture() {
     return addDistinctByInternal('hasPicture');
   }
@@ -2594,13 +2575,19 @@ extension ProductQueryWhereDistinct
     return addDistinctByInternal('imageUrl', caseSensitive: caseSensitive);
   }
 
-  QueryBuilder<Product, Product, QDistinct> distinctByMigrated() {
-    return addDistinctByInternal('migrated');
-  }
-
   QueryBuilder<Product, Product, QDistinct> distinctByName(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('name', caseSensitive: caseSensitive);
+  }
+
+  QueryBuilder<Product, Product, QDistinct> distinctByPicture(
+      {bool caseSensitive = true}) {
+    return addDistinctByInternal('picture', caseSensitive: caseSensitive);
+  }
+
+  QueryBuilder<Product, Product, QDistinct> distinctBySupplierId(
+      {bool caseSensitive = true}) {
+    return addDistinctByInternal('supplierId', caseSensitive: caseSensitive);
   }
 
   QueryBuilder<Product, Product, QDistinct> distinctBySynced() {
@@ -2610,6 +2597,11 @@ extension ProductQueryWhereDistinct
   QueryBuilder<Product, Product, QDistinct> distinctByTable(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('table', caseSensitive: caseSensitive);
+  }
+
+  QueryBuilder<Product, Product, QDistinct> distinctByTaxId(
+      {bool caseSensitive = true}) {
+    return addDistinctByInternal('taxId', caseSensitive: caseSensitive);
   }
 
   QueryBuilder<Product, Product, QDistinct> distinctByUnit(
@@ -2628,8 +2620,16 @@ extension ProductQueryProperty
     return addPropertyNameInternal('barCode');
   }
 
-  QueryBuilder<Product, List<String>?, QQueryOperations> channelsProperty() {
-    return addPropertyNameInternal('channels');
+  QueryBuilder<Product, int, QQueryOperations> branchIdProperty() {
+    return addPropertyNameInternal('branchId');
+  }
+
+  QueryBuilder<Product, int, QQueryOperations> businessIdProperty() {
+    return addPropertyNameInternal('businessId');
+  }
+
+  QueryBuilder<Product, String?, QQueryOperations> categoryIdProperty() {
+    return addPropertyNameInternal('categoryId');
   }
 
   QueryBuilder<Product, String, QQueryOperations> colorProperty() {
@@ -2656,26 +2656,6 @@ extension ProductQueryProperty
     return addPropertyNameInternal('expiryDate');
   }
 
-  QueryBuilder<Product, int, QQueryOperations> fbranchIdProperty() {
-    return addPropertyNameInternal('fbranchId');
-  }
-
-  QueryBuilder<Product, int, QQueryOperations> fbusinessIdProperty() {
-    return addPropertyNameInternal('fbusinessId');
-  }
-
-  QueryBuilder<Product, String?, QQueryOperations> fcategoryIdProperty() {
-    return addPropertyNameInternal('fcategoryId');
-  }
-
-  QueryBuilder<Product, String?, QQueryOperations> fsupplierIdProperty() {
-    return addPropertyNameInternal('fsupplierId');
-  }
-
-  QueryBuilder<Product, String?, QQueryOperations> ftaxIdProperty() {
-    return addPropertyNameInternal('ftaxId');
-  }
-
   QueryBuilder<Product, bool, QQueryOperations> hasPictureProperty() {
     return addPropertyNameInternal('hasPicture');
   }
@@ -2692,23 +2672,31 @@ extension ProductQueryProperty
     return addPropertyNameInternal('imageUrl');
   }
 
-  QueryBuilder<Product, bool?, QQueryOperations> migratedProperty() {
-    return addPropertyNameInternal('migrated');
-  }
-
   QueryBuilder<Product, String, QQueryOperations> nameProperty() {
     return addPropertyNameInternal('name');
+  }
+
+  QueryBuilder<Product, String?, QQueryOperations> pictureProperty() {
+    return addPropertyNameInternal('picture');
+  }
+
+  QueryBuilder<Product, String?, QQueryOperations> supplierIdProperty() {
+    return addPropertyNameInternal('supplierId');
   }
 
   QueryBuilder<Product, bool?, QQueryOperations> syncedProperty() {
     return addPropertyNameInternal('synced');
   }
 
-  QueryBuilder<Product, String, QQueryOperations> tableProperty() {
+  QueryBuilder<Product, String?, QQueryOperations> tableProperty() {
     return addPropertyNameInternal('table');
   }
 
-  QueryBuilder<Product, String, QQueryOperations> unitProperty() {
+  QueryBuilder<Product, String?, QQueryOperations> taxIdProperty() {
+    return addPropertyNameInternal('taxId');
+  }
+
+  QueryBuilder<Product, String?, QQueryOperations> unitProperty() {
     return addPropertyNameInternal('unit');
   }
 }

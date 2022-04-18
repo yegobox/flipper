@@ -1,4 +1,4 @@
-import './variant_sync.dart';
+import 'variant.dart';
 
 final variationMock = Variant()
   ..id = DateTime.now().millisecondsSinceEpoch

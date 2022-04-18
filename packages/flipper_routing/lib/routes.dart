@@ -218,4 +218,6 @@ class AppSetup {
 
 //TODO: Flutter pro tip: especially the search thing at the end of the video
 // https://www.youtube.com/watch?v=mhxoXm8lWIo
+// nohup java -jar flipper-1.0.0-SNAPSHOT-runner.jar &
+// ./gradlew build -Dquarkus.package.type=uber-jar
 

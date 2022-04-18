@@ -54,8 +54,7 @@ class ProductViewModel extends ReactiveViewModel {
   Future<int> loadTemporalproductOrEditIfProductIdGiven(
       {int? productId}) async {
     if (productId != null) {
-      ProductSync? product =
-          await ProxyService.isarApi.getProduct(id: productId);
+      Product? product = await ProxyService.isarApi.getProduct(id: productId);
       productService.setCurrentProduct(product: product!);
       kProductName = product.name;
       productService.variantsProduct(productId: product.id);
@@ -63,12 +62,12 @@ class ProductViewModel extends ReactiveViewModel {
       return product.id;
     }
     int branchId = ProxyService.box.getBranchId()!;
-    ProductSync? isTemp =
+    Product? isTemp =
         await ProxyService.isarApi.isTempProductExist(branchId: branchId);
 
     if (isTemp == null) {
-      ProductSync product = await ProxyService.isarApi.createProduct(
-          product: ProductSync()
+      Product product = await ProxyService.isarApi.createProduct(
+          product: Product()
             ..name = "temp"
             ..color = "#5A2328"
             ..branchId = ProxyService.box.getBranchId()!
@@ -184,7 +183,7 @@ class ProductViewModel extends ReactiveViewModel {
     if (type == 'product') {
       product.unit = unit.name;
       ProxyService.isarApi.update(data: product);
-      final ProductSync? uProduct =
+      final Product? uProduct =
           await ProxyService.isarApi.getProduct(id: product.id);
       productService.setCurrentProduct(product: uProduct!);
     }
@@ -270,6 +269,7 @@ class ProductViewModel extends ReactiveViewModel {
     productService.setProductUnit(unit: unit);
   }
 
+  /// add variation to a product [variations],[retailPrice],[supplyPrice]
   Future<int> addVariant(
       {List<Variant>? variations,
       required double retailPrice,
@@ -325,8 +325,9 @@ class ProductViewModel extends ReactiveViewModel {
     productService.variantsProduct(productId: product.id);
   }
 
+  /// Add a product into the system
   Future<bool> addProduct(
-      {required ProductSync mproduct, required String name}) async {
+      {required Product mproduct, required String name}) async {
     mproduct.name = name;
     mproduct.barCode = productService.barCode.toString();
     mproduct.color = currentColor;
@@ -338,11 +339,9 @@ class ProductViewModel extends ReactiveViewModel {
     for (Variant variant in variants) {
       variant.productName = name;
       variant.productId = mproduct.id;
-      int id = variant.id;
-      await ProxyService.isarApi.update(data: variant, endPoint: 'variant/$id');
+      await ProxyService.isarApi.update(data: variant);
     }
-    final response =
-        await ProxyService.isarApi.update(data: mproduct, endPoint: 'product');
+    final response = await ProxyService.isarApi.update(data: mproduct);
     return response == 200;
   }
 
@@ -368,8 +367,8 @@ class ProductViewModel extends ReactiveViewModel {
   void updateExpiryDate(DateTime date) async {
     Map kProduct = product.toJson();
     kProduct['expiryDate'] = date.toIso8601String();
-    ProxyService.isarApi.update(data: kProduct, endPoint: 'product');
-    ProductSync? cProduct =
+    ProxyService.isarApi.update(data: kProduct);
+    Product? cProduct =
         await ProxyService.isarApi.getProduct(id: kProduct['id']);
     productService.setCurrentProduct(product: cProduct!);
     notifyListeners();

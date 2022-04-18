@@ -46,6 +46,7 @@ class _FlipperAppState extends State<FlipperApp> {
   @override
   void initState() {
     ProxyService.event.connect();
+    ProxyService.firestore.configureEbm();
 
     ProxyService.remoteConfig.config();
     ProxyService.remoteConfig.setDefault();

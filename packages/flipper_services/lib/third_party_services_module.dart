@@ -1,3 +1,5 @@
+import 'package:flipper_models/tax_api.dart';
+import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
 import 'package:flipper_services/abstractions/analytic.dart';
 import 'package:flipper_services/abstractions/printer.dart';
@@ -187,6 +189,16 @@ abstract class ThirdPartyServicesModule {
   }
 
   @lazySingleton
+  TaxApi get taxApi {
+    late TaxApi apiService;
+
+    /// TODOwhen we support more country we can switch
+    /// based on the business location.
+    apiService = RWTax();
+    return apiService;
+  }
+
+  @lazySingleton
   IsarApiInterface get isarApi {
     late IsarApiInterface isarApi;
     isarApi = IsarAPI();
@@ -291,6 +303,8 @@ class WindowsBlueToothPrinterService implements Printer {
 
   @override
   Future<List?> blueTooths() async {
+    return null;
+
     // TODO: implement getBluetooths
     // throw UnimplementedError();
   }

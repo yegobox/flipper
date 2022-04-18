@@ -6,9 +6,9 @@ import 'package:go_router/go_router.dart';
 class SectionSelectUnit extends StatelessWidget {
   const SectionSelectUnit({Key? key, required this.product, required this.type})
       : super(key: key);
-  final ProductSync product;
+  final Product product;
   final String type;
-  Text unitSelector(ProductSync units) {
+  Text unitSelector(Product units) {
     late Text text = const Text('Select Unit');
 
     if (product.unit != '') {

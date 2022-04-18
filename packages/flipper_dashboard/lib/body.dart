@@ -34,7 +34,7 @@ class _BodyWidgetState extends State<BodyWidget> {
     return SafeArea(
       child: Column(
         children: [
-          if (widget.model.tab != 1 && widget.model.tab != 3) header(context),
+          if (widget.model.tab != 1 && widget.model.tab != 2) header(context),
           if (widget.model.tab == 1 && widget.model.tab != 3 && !isDesktopOrWeb)
             header(context),
           if (widget.model.tab == 0) KeyPadView(model: widget.model),
@@ -56,7 +56,6 @@ class _BodyWidgetState extends State<BodyWidget> {
                       ),
                     ),
                   ),
-          if (widget.model.tab == 2) const Flexible(child: ProductView()),
           if (!isDesktopOrWeb && widget.model.tab == 1)
             const Flexible(child: ProductView()),
           if (widget.model.tab == 2 && !isDesktopOrWeb)

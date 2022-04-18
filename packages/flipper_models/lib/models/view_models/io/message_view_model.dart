@@ -1,7 +1,8 @@
+// ignore_for_file: overridden_fields
+
 library flipper_models;
 
-import 'package:flipper_models/models/models.dart';
-
+import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:stacked/stacked.dart';
 
@@ -12,14 +13,14 @@ import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
-import 'package:uuid/uuid.dart';
 
 class MessageViewModel extends BusinessHomeViewModel {
   //save chat_data in a list
   List<String> chat_data = [];
 
+  @override
   final log = getLogger('MessageViewModel');
-  Business? user = null;
+  Business? user;
   void messages() {
     // ProxyService.isarApi.conversationStreamList();
   }
@@ -53,7 +54,7 @@ class MessageViewModel extends BusinessHomeViewModel {
   final appService = locator<AppService>();
   List<Contact> dataList = [];
   final ItemScrollController itemScrollController = ItemScrollController();
-  Business? business = null;
+  Business? business;
   void loadContacts() async {
     // int id = ProxyService.box.read(key: 'businessId');
     // business = ProxyService.isarApi.getBusinessById(id: id);
@@ -145,11 +146,12 @@ class MessageViewModel extends BusinessHomeViewModel {
     required int conversationId,
   }) async {
     int senderId = ProxyService.box.read(key: 'businessId');
-    Business business = ProxyService.api.getBusinessById(id: senderId);
+    Business? business =
+        await ProxyService.isarApi.getBusinessById(id: senderId);
 
     Map<String, dynamic> author = types.User(
       id: senderId.toString(),
-      firstName: business.name,
+      firstName: business?.name,
     ).toJson();
     // Message kMessage = Message(
     //   status: 'online',
@@ -182,7 +184,7 @@ class MessageViewModel extends BusinessHomeViewModel {
   ///so we have to make sure before the user or business start to chat bot have arleady saved
   ///the business on local
   void loadSenderBusiness({required int senderId}) async {
-    user = ProxyService.api.getBusinessById(id: senderId);
+    user = await ProxyService.isarApi.getBusinessById(id: senderId);
     notifyListeners();
   }
 

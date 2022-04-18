@@ -10,7 +10,7 @@ import 'package:overlay_support/overlay_support.dart';
 
 class Sell extends StatefulWidget {
   const Sell({Key? key, required this.product}) : super(key: key);
-  final ProductSync product;
+  final Product product;
 
   @override
   State<Sell> createState() => _SellState();

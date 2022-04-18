@@ -464,9 +464,9 @@ class _ResponsiveScaffoldState extends State<ResponsiveScaffold> {
         // in the 2nd part of the Row.
         Expanded(
           child: Scaffold(
-            appBar: (widget.model.tab != 1 && widget.model.tab != 3) ||
+            appBar: (widget.model.tab != 1 && widget.model.tab != 2) ||
                     (widget.model.tab == 1 &&
-                        widget.model.tab != 3 &&
+                        widget.model.tab != 2 &&
                         !isDesktopOrWeb)
                 ? AppBar(
                     // systemOverlayStyle: SystemUiOverlayStyle.light,
@@ -492,8 +492,9 @@ class _ResponsiveScaffoldState extends State<ResponsiveScaffold> {
                     preferredSize: const Size.fromHeight(0.0),
                     child: AppBar(
                       automaticallyImplyLeading: false, // hides leading widget
-                      flexibleSpace: const SizedBox.shrink(),
-                    )),
+                      flexibleSpace: const Text('hello'),
+                    ),
+                  ),
             // The menu content when used in the Drawer.
             drawer: ConstrainedBox(
               // We use the same size on the drawer that we have on our menu.

@@ -15,7 +15,7 @@ enum Pickup { lafayette, jefferson }
 
 class Sell extends StatelessWidget {
   Sell({Key? key, required this.product}) : super(key: key);
-  final ProductSync product;
+  final Product product;
   final ForHere forHere = ForHere.lafayette;
   final ToGo toGo = ToGo.lafayette;
   final log = getLogger('Sell');
@@ -550,7 +550,7 @@ class Sell extends StatelessWidget {
                                       ),
                                     ),
                                   )
-                                : SizedBox.shrink();
+                                : const SizedBox.shrink();
                           }),
                       Container(
                         child: Row(children: [

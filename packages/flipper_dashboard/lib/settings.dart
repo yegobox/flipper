@@ -64,6 +64,23 @@ class SettingPage extends StatelessWidget {
                                     "/devices/" + model.pin!.pin.toString());
                               },
                             ),
+                            SettingsTile(
+                              title: "Tax Configuration",
+                              leading: const CircleAvatar(
+                                backgroundColor: Colors.white,
+                                child: Icon(
+                                  Icons.calculate,
+                                  color: Colors.green,
+                                ),
+                              ),
+                              trailing: Icon(
+                                Icons.arrow_forward_ios,
+                                color: Theme.of(context).primaryColor,
+                              ),
+                              onPressed: (BuildContext context) {
+                                GoRouter.of(context).push("/tax_config");
+                              },
+                            )
                           ],
                         ),
                       ],

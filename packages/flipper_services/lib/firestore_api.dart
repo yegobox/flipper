@@ -1,10 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_services/proxy.dart';
 import 'exceptions/firestore_api_exception.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flutter_firebase_chat_core/flutter_firebase_chat_core.dart';
-import 'package:flipper_models/models/models.dart';
 
 // https://medium.com/firebase-tips-tricks/how-to-use-cloud-firestore-in-flutter-9ea80593ca40
 abstract class FlipperFirestore {
@@ -19,6 +19,7 @@ abstract class FlipperFirestore {
   void pushProducts({required int branchId});
   void pushVariations({required int branchId, required List<Variant> products});
   void pushStock({required int branchId, required List<Stock> products});
+  void configureEbm();
 }
 
 class UnSupportedFirestoreApi implements FlipperFirestore {
@@ -79,6 +80,11 @@ class UnSupportedFirestoreApi implements FlipperFirestore {
       {required int branchId, required List<Variant> products}) {
     // TODO: implement pushVariations
   }
+
+  @override
+  void configureEbm() {
+    // TODO: implement configureEbm
+  }
 }
 
 class FirestoreApi implements FlipperFirestore {
@@ -113,7 +119,7 @@ class FirestoreApi implements FlipperFirestore {
       final userDoc = await usersCollection.doc(userId).get();
       if (!userDoc.exists) {
         log.v('We have no user with id $userId in our database');
-        return null;
+        return;
       }
 
       final userData = userDoc.data();
@@ -187,48 +193,8 @@ class FirestoreApi implements FlipperFirestore {
 
   @override
   void pullProducts({required int branchId}) {
-    CollectionReference reference =
-        FirebaseFirestore.instance.collection('products');
-    reference.snapshots().listen((querySnapshot) {
-      querySnapshot.docChanges.forEach((change) {
-        if (change.type == DocumentChangeType.added) {
-          Map<dynamic, dynamic> data =
-              change.doc.data() as Map<dynamic, dynamic>;
-
-          ProductSync p = ProductSync.fromJson(data);
-
-          var id = branchId.toString() + '-' + p.id.toString();
-          FirebaseFirestore.instance
-              .collection('products/${id}/variations')
-              .get()
-              .then((value) {
-            value.docs.forEach((element) {
-              Map<dynamic, dynamic> data = element.data();
-              Variant variation = Variant.fromJson(data);
-              FirebaseFirestore.instance
-                  .collection('products/${id}/variations/${variation.id}/stock')
-                  .get()
-                  .then((value) {
-                value.docs.forEach((element) {
-                  Map<dynamic, dynamic> data = element.data();
-                  Stock s = Stock.fromJson(data);
-                  // ProxyService.api
-                  //     .syncProduct(product: p, variant: variation, stock: s);
-                });
-              });
-            });
-          });
-        }
-        if (change.type == DocumentChangeType.modified) {
-          log.d('firestore:modified triggered');
-          // ProxyService.isarApi.updateProduct(product: change.document.data());
-        }
-        if (change.type == DocumentChangeType.removed) {
-          log.d('firestore:removed triggered');
-          // ProxyService.isarApi.deleteProduct(product: change.document.data());
-        }
-      });
-    });
+    // return unImplemented();
+    throw UnimplementedError();
   }
 
   /// this method is only used when the product is first created
@@ -238,47 +204,7 @@ class FirestoreApi implements FlipperFirestore {
   /// by each variation get stock and push it also.
   @override
   void pushProducts({required int branchId}) async {
-    // ProxyService.api
-    //     .productStreams(branchId: branchId)
-    //     .listen((List<ProductSync> products) async {
-    //   // loop each product and insert  in firestore
-    //   for (ProductSync product in products) {
-    //     // insert product
-    //     var id = branchId.toString() + '-' + product.id.toString();
-    //     FirebaseFirestore.instance
-    //         .collection('products')
-    //         .doc(id)
-    //         .set(product.toJson())
-    //         .then((v) {
-    //       for (Variant variation in product.variations) {
-    //         FirebaseFirestore.instance
-    //             .collection('products')
-    //             .doc(id)
-    //             .collection('variations')
-    //             .doc(variation.id.toString())
-    //             .set(variation.toJson());
-    //         // ignore: unnecessary_null_comparison
-    //         if (variation.stock != null) {
-    //           // TODOon web the relationship will always be null as we are using mock
-    //           if (!isWeb) {
-    //             FirebaseFirestore.instance
-    //                 .collection('products')
-    //                 .doc(id)
-    //                 .collection('variations')
-    //                 .doc(variation.id.toString())
-    //                 .collection('stock')
-    //                 .doc(variation.stock.target!.id.toString())
-    //                 .set(variation.stock.target!.toJson());
-    //           }
-    //         }
-    //       }
-    //     });
-    //     Map p = product.toJson();
-    //     p['synced'] = true;
-    //     //update product
-    //     await ProxyService.isarApi.update(data: p, endPoint: 'product');
-    //   }
-    // });
+    throw UnimplementedError();
   }
 
   @override
@@ -290,5 +216,29 @@ class FirestoreApi implements FlipperFirestore {
   void pushVariations(
       {required int branchId, required List<Variant> products}) {
     // TODO: implement pushVariations
+  }
+
+  @override
+  void configureEbm() {
+    String userId = ProxyService.box.getUserId()!;
+    FirebaseFirestore.instance
+        .collection('ebm')
+        .where('userId', isEqualTo: userId)
+        .snapshots()
+        .listen((querySnapshot) {
+      for (var change in querySnapshot.docChanges) {
+        if (change.type == DocumentChangeType.added) {
+          Map<String, dynamic> data = change.doc.data() as Map<String, dynamic>;
+          Ebm ebm = Ebm.fromJson(data);
+          log.i(ebm.userId);
+          ProxyService.isarApi.update(data: ebm);
+        }
+        if (change.type == DocumentChangeType.modified) {
+          Map<String, dynamic> data = change.doc.data() as Map<String, dynamic>;
+          Ebm ebm = Ebm.fromJson(data);
+          ProxyService.isarApi.update(data: ebm);
+        }
+      }
+    });
   }
 }

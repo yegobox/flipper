@@ -9,7 +9,7 @@ part of 'customer.dart';
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast
 
 extension GetCustomerSyncCollection on Isar {
-  IsarCollection<CustomerSync> get customerSyncs {
+  IsarCollection<CustomerSync> get customers {
     return getCollection('CustomerSync');
   }
 }

@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'package:flipper_models/isar_models.dart';
-import 'package:flipper_models/tax_interface.dart';
+import 'package:flipper_models/tax_api.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
 
-class RWTax implements TaxInterface {
+class RWTax implements TaxApi {
   String apihub = "https://turbo.yegobox.com";
   String itemPrefix = "flipper-";
 
@@ -81,7 +81,9 @@ class RWTax implements TaxInterface {
     request.body = json.encode({
       "tin": business!.tinNumber,
       "bhfId": business.bhfId,
+      // item code
       "itemCd": itemPrefix + variation.id.toString(),
+      // item clasification code
       "itemClsCd": itemPrefix + variation.id.toString(),
       // Item Type code
       "itemTyCd": "1",
@@ -135,46 +137,49 @@ class RWTax implements TaxInterface {
     http.StreamedResponse response = await request.send();
 
     if (response.statusCode == 200) {
-      print(await response.stream.bytesToString());
+      // print(await response.stream.bytesToString());
       return Future.value(true);
     } else {
-      print(response.reasonPhrase);
+      // print(response.reasonPhrase);
       return Future.value(false);
     }
   }
 
   @override
-  Future<bool> savePurchases({
-    required Order order,
-    required List<OrderItem> items,
-  }) async {
+  Future<bool> createReceipt(
+      {Customer? customer,
+      required Order order,
+      required List<OrderItem> items,
+      re}) async {
     Business? business = await ProxyService.isarApi.getBusiness();
     var headers = {'Content-Type': 'application/json'};
     var request =
-        http.Request('POST', Uri.parse(apihub + 'trnsPurchase/savePurchases'));
+        http.Request('POST', Uri.parse(apihub + 'trnsSales/saveSales'));
     request.body = json.encode({
       "tin": business!.tinNumber,
       "bhfId": business.bhfId,
       "invcNo": order.id + DateTime.now().millisecond,
       "orgInvcNo": 0,
-      "spplrTin": null,
-      "spplrBhfId": null,
-      "spplrNm": null,
-      "spplrInvcNo": null,
-      "regTyCd": "M",
-      "pchsTyCd": "N",
-      "rcptTyCd": "P",
+      "custTin": customer == null ? "" : customer.tinNumber,
+      "custNm": customer == null ? "" : customer.name,
+      "salesTyCd": "N",
+      "rcptTyCd": "S",
       "pmtTyCd": "01",
-      "pchsSttsCd": "02",
-      "cfmDt": "20200127210300",
-      "pchsDt": "20200127",
-      "wrhsDt": "",
-      "cnclReqDt": "",
-      "cnclDt": "",
-      "rfdDt": "",
+      "salesSttsCd": "02",
+      // Validated Date
+      // yyyMMddhhmmss
+      "cfmDt": "20210709120300",
+      "salesDt": "20210709",
+      // Stock Released Date
+      // YYYY-MM-DD HH24:MI:SS
+      "stockRlsDt": "20210709120300",
+      // "cnclReqDt": null,
+      // "cnclDt": null,
+      // "rfdDt": null,
+      // "rfdRsnCd": null,
       "totItemCnt": 2,
       "taxblAmtA": 0,
-      "taxblAmtB": 10500,
+      "taxblAmtB": 250000,
       "taxblAmtC": 0,
       "taxblAmtD": 0,
       "taxRtA": 0,
@@ -182,51 +187,81 @@ class RWTax implements TaxInterface {
       "taxRtC": 0,
       "taxRtD": 0,
       "taxAmtA": 0,
-      "taxAmtB": 1890,
+      "taxAmtB": 94576,
       "taxAmtC": 0,
       "taxAmtD": 0,
-      "totTaxblAmt": order.subTotal,
-      "totTaxAmt": 1890,
-      // is Total Taxable Amount different from totTaxblAmt Total Tax amount (totTaxAmt)?
-      "totAmt": order.subTotal,
+      "totTaxblAmt": 250000,
+      "totTaxAmt": 38135,
+      "totAmt": 250000,
+      "prchrAcptcYn": "N",
       "remark": null,
-      "modrId": 123,
-      "modrNm": "name",
-      "regrId": 1,
-      "regrNm": "name",
-      "itemList": items
-      // "itemList": [
-      //   {
-      //     "itemSeq": 1,
-      //     "itemCd": "RW1NTXU0000001",
-      //     "itemClsCd": "5059690800",
-      //     "itemNm": "test item 1",
-      //     "bcd": "",
-      //     "spplrItemClsCd": null,
-      //     "spplrItemCd": null,
-      //     "spplrItemNm": null,
-      //     "pkgUnitCd": "NT",
-      //     "pkg": 2,
-      //     "qtyUnitCd": "U",
-      //     "qty": 2,
-      //     "prc": 3500,
-      //     "splyAmt": 7000,
-      //     "dcRt": 0,
-      //     "dcAmt": 0,
-      //     "taxblAmt": 7000,
-      //     "taxTyCd": "B",
-      //     "taxAmt": 1260,
-      //     "totAmt": 7000,
-      //     "itemExprDt": null
-      //   }
-      // ]
+      "regrId": "11999",
+      "regrNm": "Test VSDC",
+      // Modifier ID
+      "modrId": order.id,
+      // Modifier name
+      "modrNm": order.id + order.branchId,
+      "receipt": {
+        // Current Receipt number
+        "curRcptNo": 1,
+        // Total Receipt Number
+        "totRcptNo": 1,
+        "custTin": customer == null ? "" : customer.tinNumber,
+        "custMblNo": customer == null ? "" : customer.phone,
+        "rptNo": 248,
+        "rcptPbctDt": "20201118120300",
+        "intrlData": itemPrefix +
+            order.id.toString() +
+            DateTime.now().millisecond.toString(),
+        "rcptSign":
+            itemPrefix + order.id.toString() + DateTime.now().toString(),
+        // "jrnl": "",
+        "trdeNm": business.name,
+        "adrs": business.adrs,
+        "topMsg": "Shopwithus",
+        "btmMsg": "Welcome",
+        // Whether buyers receive item or not. default to Y es
+        "prchrAcptcYn": "Y"
+      },
+      "itemList": [
+        {
+          "itemSeq": 1,
+          "itemCd": "RW1NTXU0000001",
+          "itemClsCd": "5059690800",
+          "itemNm": "OutDoorUnit",
+          "bcd": null,
+          "pkgUnitCd": "NT",
+          "pkg": 1,
+          "qtyUnitCd": "U",
+          "qty": 1,
+          // unit price, no
+          "prc": 200000,
+          // supply amount, no
+          "splyAmt": 200000,
+          // discount rate, no
+          "dcRt": 0,
+          // discount amount, no
+          "dcAmt": 0,
+          "isrccCd": null,
+          "isrccNm": null,
+          "isrcRt": null,
+          "isrcAmt": null,
+          "taxTyCd": "B",
+          // no, taxable amount
+          "taxblAmt": 200000,
+          // Tax, amount
+          "taxAmt": 30508,
+          // total amount
+          "totAmt": 200000
+        }
+      ]
     });
     request.headers.addAll(headers);
 
     http.StreamedResponse response = await request.send();
 
     if (response.statusCode == 200) {
-      print(await response.stream.bytesToString());
+      // print(await response.stream.bytesToString());
       return Future.value(true);
     } else {
       return Future.value(false);

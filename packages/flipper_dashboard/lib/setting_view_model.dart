@@ -211,6 +211,16 @@ class SettingViewModel extends ReactiveViewModel {
     }
   }
 
+  bool _isEbmActive = false;
+
+  /// create setter and getter for the _isProceeding
+  bool get isEbmActive => _isEbmActive;
+  // now create setter
+  set isEbmActive(bool value) {
+    _isEbmActive = value;
+    notifyListeners();
+  }
+
   void setIsprocessing({required bool value}) {
     _isProceeding = value;
     notifyListeners();
