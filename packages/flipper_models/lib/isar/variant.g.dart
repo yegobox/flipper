@@ -17,44 +17,54 @@ extension GetVariantCollection on Isar {
 final VariantSchema = CollectionSchema(
   name: 'Variant',
   schema:
-      '{"name":"Variant","idName":"id","properties":[{"name":"bcd","type":"String"},{"name":"branchId","type":"Long"},{"name":"channels","type":"StringList"},{"name":"isrcAmt","type":"String"},{"name":"isrcRt","type":"String"},{"name":"isrccCd","type":"String"},{"name":"isrccNm","type":"String"},{"name":"itemCd","type":"String"},{"name":"itemClsCd","type":"String"},{"name":"itemNm","type":"String"},{"name":"itemSeq","type":"String"},{"name":"itemStdNm","type":"String"},{"name":"itemTyCd","type":"String"},{"name":"migrated","type":"Bool"},{"name":"name","type":"String"},{"name":"orgnNatCd","type":"String"},{"name":"pkg","type":"String"},{"name":"pkgUnitCd","type":"String"},{"name":"prc","type":"Double"},{"name":"productId","type":"Long"},{"name":"productName","type":"String"},{"name":"qty","type":"Double"},{"name":"qtyUnitCd","type":"String"},{"name":"retailPrice","type":"Double"},{"name":"sku","type":"String"},{"name":"splyAmt","type":"Double"},{"name":"supplyPrice","type":"Double"},{"name":"synced","type":"Bool"},{"name":"table","type":"String"},{"name":"taxName","type":"String"},{"name":"taxPercentage","type":"Double"},{"name":"taxTyCd","type":"String"},{"name":"unit","type":"String"}],"indexes":[],"links":[]}',
+      '{"name":"Variant","idName":"id","properties":[{"name":"addInfo","type":"String"},{"name":"bcd","type":"String"},{"name":"bhfId","type":"String"},{"name":"branchId","type":"Long"},{"name":"channels","type":"StringList"},{"name":"dftPrc","type":"Double"},{"name":"isrcAmt","type":"String"},{"name":"isrcAplcbYn","type":"String"},{"name":"isrcRt","type":"String"},{"name":"isrccCd","type":"String"},{"name":"isrccNm","type":"String"},{"name":"itemCd","type":"String"},{"name":"itemClsCd","type":"String"},{"name":"itemNm","type":"String"},{"name":"itemSeq","type":"String"},{"name":"itemStdNm","type":"String"},{"name":"itemTyCd","type":"String"},{"name":"migrated","type":"Bool"},{"name":"modrId","type":"String"},{"name":"modrNm","type":"String"},{"name":"name","type":"String"},{"name":"orgnNatCd","type":"String"},{"name":"pkg","type":"String"},{"name":"pkgUnitCd","type":"String"},{"name":"prc","type":"Double"},{"name":"productId","type":"Long"},{"name":"productName","type":"String"},{"name":"qty","type":"Double"},{"name":"qtyUnitCd","type":"String"},{"name":"regrId","type":"String"},{"name":"regrNm","type":"String"},{"name":"retailPrice","type":"Double"},{"name":"sku","type":"String"},{"name":"splyAmt","type":"Double"},{"name":"supplyPrice","type":"Double"},{"name":"synced","type":"Bool"},{"name":"table","type":"String"},{"name":"taxName","type":"String"},{"name":"taxPercentage","type":"Double"},{"name":"taxTyCd","type":"String"},{"name":"tin","type":"Long"},{"name":"unit","type":"String"},{"name":"useYn","type":"String"}],"indexes":[],"links":[]}',
   nativeAdapter: const _VariantNativeAdapter(),
   webAdapter: const _VariantWebAdapter(),
   idName: 'id',
   propertyIds: {
-    'bcd': 0,
-    'branchId': 1,
-    'channels': 2,
-    'isrcAmt': 3,
-    'isrcRt': 4,
-    'isrccCd': 5,
-    'isrccNm': 6,
-    'itemCd': 7,
-    'itemClsCd': 8,
-    'itemNm': 9,
-    'itemSeq': 10,
-    'itemStdNm': 11,
-    'itemTyCd': 12,
-    'migrated': 13,
-    'name': 14,
-    'orgnNatCd': 15,
-    'pkg': 16,
-    'pkgUnitCd': 17,
-    'prc': 18,
-    'productId': 19,
-    'productName': 20,
-    'qty': 21,
-    'qtyUnitCd': 22,
-    'retailPrice': 23,
-    'sku': 24,
-    'splyAmt': 25,
-    'supplyPrice': 26,
-    'synced': 27,
-    'table': 28,
-    'taxName': 29,
-    'taxPercentage': 30,
-    'taxTyCd': 31,
-    'unit': 32
+    'addInfo': 0,
+    'bcd': 1,
+    'bhfId': 2,
+    'branchId': 3,
+    'channels': 4,
+    'dftPrc': 5,
+    'isrcAmt': 6,
+    'isrcAplcbYn': 7,
+    'isrcRt': 8,
+    'isrccCd': 9,
+    'isrccNm': 10,
+    'itemCd': 11,
+    'itemClsCd': 12,
+    'itemNm': 13,
+    'itemSeq': 14,
+    'itemStdNm': 15,
+    'itemTyCd': 16,
+    'migrated': 17,
+    'modrId': 18,
+    'modrNm': 19,
+    'name': 20,
+    'orgnNatCd': 21,
+    'pkg': 22,
+    'pkgUnitCd': 23,
+    'prc': 24,
+    'productId': 25,
+    'productName': 26,
+    'qty': 27,
+    'qtyUnitCd': 28,
+    'regrId': 29,
+    'regrNm': 30,
+    'retailPrice': 31,
+    'sku': 32,
+    'splyAmt': 33,
+    'supplyPrice': 34,
+    'synced': 35,
+    'table': 36,
+    'taxName': 37,
+    'taxPercentage': 38,
+    'taxTyCd': 39,
+    'tin': 40,
+    'unit': 41,
+    'useYn': 42
   },
   listProperties: {'channels'},
   indexIds: {},
@@ -80,11 +90,15 @@ class _VariantWebAdapter extends IsarWebTypeAdapter<Variant> {
   @override
   Object serialize(IsarCollection<Variant> collection, Variant object) {
     final jsObj = IsarNative.newJsObject();
+    IsarNative.jsObjectSet(jsObj, 'addInfo', object.addInfo);
     IsarNative.jsObjectSet(jsObj, 'bcd', object.bcd);
+    IsarNative.jsObjectSet(jsObj, 'bhfId', object.bhfId);
     IsarNative.jsObjectSet(jsObj, 'branchId', object.branchId);
     IsarNative.jsObjectSet(jsObj, 'channels', object.channels);
+    IsarNative.jsObjectSet(jsObj, 'dftPrc', object.dftPrc);
     IsarNative.jsObjectSet(jsObj, 'id', object.id);
     IsarNative.jsObjectSet(jsObj, 'isrcAmt', object.isrcAmt);
+    IsarNative.jsObjectSet(jsObj, 'isrcAplcbYn', object.isrcAplcbYn);
     IsarNative.jsObjectSet(jsObj, 'isrcRt', object.isrcRt);
     IsarNative.jsObjectSet(jsObj, 'isrccCd', object.isrccCd);
     IsarNative.jsObjectSet(jsObj, 'isrccNm', object.isrccNm);
@@ -95,6 +109,8 @@ class _VariantWebAdapter extends IsarWebTypeAdapter<Variant> {
     IsarNative.jsObjectSet(jsObj, 'itemStdNm', object.itemStdNm);
     IsarNative.jsObjectSet(jsObj, 'itemTyCd', object.itemTyCd);
     IsarNative.jsObjectSet(jsObj, 'migrated', object.migrated);
+    IsarNative.jsObjectSet(jsObj, 'modrId', object.modrId);
+    IsarNative.jsObjectSet(jsObj, 'modrNm', object.modrNm);
     IsarNative.jsObjectSet(jsObj, 'name', object.name);
     IsarNative.jsObjectSet(jsObj, 'orgnNatCd', object.orgnNatCd);
     IsarNative.jsObjectSet(jsObj, 'pkg', object.pkg);
@@ -104,6 +120,8 @@ class _VariantWebAdapter extends IsarWebTypeAdapter<Variant> {
     IsarNative.jsObjectSet(jsObj, 'productName', object.productName);
     IsarNative.jsObjectSet(jsObj, 'qty', object.qty);
     IsarNative.jsObjectSet(jsObj, 'qtyUnitCd', object.qtyUnitCd);
+    IsarNative.jsObjectSet(jsObj, 'regrId', object.regrId);
+    IsarNative.jsObjectSet(jsObj, 'regrNm', object.regrNm);
     IsarNative.jsObjectSet(jsObj, 'retailPrice', object.retailPrice);
     IsarNative.jsObjectSet(jsObj, 'sku', object.sku);
     IsarNative.jsObjectSet(jsObj, 'splyAmt', object.splyAmt);
@@ -113,22 +131,28 @@ class _VariantWebAdapter extends IsarWebTypeAdapter<Variant> {
     IsarNative.jsObjectSet(jsObj, 'taxName', object.taxName);
     IsarNative.jsObjectSet(jsObj, 'taxPercentage', object.taxPercentage);
     IsarNative.jsObjectSet(jsObj, 'taxTyCd', object.taxTyCd);
+    IsarNative.jsObjectSet(jsObj, 'tin', object.tin);
     IsarNative.jsObjectSet(jsObj, 'unit', object.unit);
+    IsarNative.jsObjectSet(jsObj, 'useYn', object.useYn);
     return jsObj;
   }
 
   @override
   Variant deserialize(IsarCollection<Variant> collection, dynamic jsObj) {
     final object = Variant();
+    object.addInfo = IsarNative.jsObjectGet(jsObj, 'addInfo');
     object.bcd = IsarNative.jsObjectGet(jsObj, 'bcd');
+    object.bhfId = IsarNative.jsObjectGet(jsObj, 'bhfId');
     object.branchId =
         IsarNative.jsObjectGet(jsObj, 'branchId') ?? double.negativeInfinity;
     object.channels = (IsarNative.jsObjectGet(jsObj, 'channels') as List?)
         ?.map((e) => e ?? '')
         .toList()
         .cast<String>();
+    object.dftPrc = IsarNative.jsObjectGet(jsObj, 'dftPrc');
     object.id = IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity;
     object.isrcAmt = IsarNative.jsObjectGet(jsObj, 'isrcAmt');
+    object.isrcAplcbYn = IsarNative.jsObjectGet(jsObj, 'isrcAplcbYn');
     object.isrcRt = IsarNative.jsObjectGet(jsObj, 'isrcRt');
     object.isrccCd = IsarNative.jsObjectGet(jsObj, 'isrccCd');
     object.isrccNm = IsarNative.jsObjectGet(jsObj, 'isrccNm');
@@ -139,6 +163,8 @@ class _VariantWebAdapter extends IsarWebTypeAdapter<Variant> {
     object.itemStdNm = IsarNative.jsObjectGet(jsObj, 'itemStdNm');
     object.itemTyCd = IsarNative.jsObjectGet(jsObj, 'itemTyCd');
     object.migrated = IsarNative.jsObjectGet(jsObj, 'migrated');
+    object.modrId = IsarNative.jsObjectGet(jsObj, 'modrId');
+    object.modrNm = IsarNative.jsObjectGet(jsObj, 'modrNm');
     object.name = IsarNative.jsObjectGet(jsObj, 'name') ?? '';
     object.orgnNatCd = IsarNative.jsObjectGet(jsObj, 'orgnNatCd');
     object.pkg = IsarNative.jsObjectGet(jsObj, 'pkg');
@@ -149,6 +175,8 @@ class _VariantWebAdapter extends IsarWebTypeAdapter<Variant> {
     object.productName = IsarNative.jsObjectGet(jsObj, 'productName') ?? '';
     object.qty = IsarNative.jsObjectGet(jsObj, 'qty');
     object.qtyUnitCd = IsarNative.jsObjectGet(jsObj, 'qtyUnitCd');
+    object.regrId = IsarNative.jsObjectGet(jsObj, 'regrId');
+    object.regrNm = IsarNative.jsObjectGet(jsObj, 'regrNm');
     object.retailPrice =
         IsarNative.jsObjectGet(jsObj, 'retailPrice') ?? double.negativeInfinity;
     object.sku = IsarNative.jsObjectGet(jsObj, 'sku') ?? '';
@@ -160,15 +188,21 @@ class _VariantWebAdapter extends IsarWebTypeAdapter<Variant> {
     object.taxName = IsarNative.jsObjectGet(jsObj, 'taxName');
     object.taxPercentage = IsarNative.jsObjectGet(jsObj, 'taxPercentage');
     object.taxTyCd = IsarNative.jsObjectGet(jsObj, 'taxTyCd');
+    object.tin = IsarNative.jsObjectGet(jsObj, 'tin');
     object.unit = IsarNative.jsObjectGet(jsObj, 'unit') ?? '';
+    object.useYn = IsarNative.jsObjectGet(jsObj, 'useYn');
     return object;
   }
 
   @override
   P deserializeProperty<P>(Object jsObj, String propertyName) {
     switch (propertyName) {
+      case 'addInfo':
+        return (IsarNative.jsObjectGet(jsObj, 'addInfo')) as P;
       case 'bcd':
         return (IsarNative.jsObjectGet(jsObj, 'bcd')) as P;
+      case 'bhfId':
+        return (IsarNative.jsObjectGet(jsObj, 'bhfId')) as P;
       case 'branchId':
         return (IsarNative.jsObjectGet(jsObj, 'branchId') ??
             double.negativeInfinity) as P;
@@ -177,11 +211,15 @@ class _VariantWebAdapter extends IsarWebTypeAdapter<Variant> {
             ?.map((e) => e ?? '')
             .toList()
             .cast<String>()) as P;
+      case 'dftPrc':
+        return (IsarNative.jsObjectGet(jsObj, 'dftPrc')) as P;
       case 'id':
         return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
             as P;
       case 'isrcAmt':
         return (IsarNative.jsObjectGet(jsObj, 'isrcAmt')) as P;
+      case 'isrcAplcbYn':
+        return (IsarNative.jsObjectGet(jsObj, 'isrcAplcbYn')) as P;
       case 'isrcRt':
         return (IsarNative.jsObjectGet(jsObj, 'isrcRt')) as P;
       case 'isrccCd':
@@ -202,6 +240,10 @@ class _VariantWebAdapter extends IsarWebTypeAdapter<Variant> {
         return (IsarNative.jsObjectGet(jsObj, 'itemTyCd')) as P;
       case 'migrated':
         return (IsarNative.jsObjectGet(jsObj, 'migrated')) as P;
+      case 'modrId':
+        return (IsarNative.jsObjectGet(jsObj, 'modrId')) as P;
+      case 'modrNm':
+        return (IsarNative.jsObjectGet(jsObj, 'modrNm')) as P;
       case 'name':
         return (IsarNative.jsObjectGet(jsObj, 'name') ?? '') as P;
       case 'orgnNatCd':
@@ -221,6 +263,10 @@ class _VariantWebAdapter extends IsarWebTypeAdapter<Variant> {
         return (IsarNative.jsObjectGet(jsObj, 'qty')) as P;
       case 'qtyUnitCd':
         return (IsarNative.jsObjectGet(jsObj, 'qtyUnitCd')) as P;
+      case 'regrId':
+        return (IsarNative.jsObjectGet(jsObj, 'regrId')) as P;
+      case 'regrNm':
+        return (IsarNative.jsObjectGet(jsObj, 'regrNm')) as P;
       case 'retailPrice':
         return (IsarNative.jsObjectGet(jsObj, 'retailPrice') ??
             double.negativeInfinity) as P;
@@ -241,8 +287,12 @@ class _VariantWebAdapter extends IsarWebTypeAdapter<Variant> {
         return (IsarNative.jsObjectGet(jsObj, 'taxPercentage')) as P;
       case 'taxTyCd':
         return (IsarNative.jsObjectGet(jsObj, 'taxTyCd')) as P;
+      case 'tin':
+        return (IsarNative.jsObjectGet(jsObj, 'tin')) as P;
       case 'unit':
         return (IsarNative.jsObjectGet(jsObj, 'unit') ?? '') as P;
+      case 'useYn':
+        return (IsarNative.jsObjectGet(jsObj, 'useYn')) as P;
       default:
         throw 'Illegal propertyName';
     }
@@ -259,234 +309,306 @@ class _VariantNativeAdapter extends IsarNativeTypeAdapter<Variant> {
   void serialize(IsarCollection<Variant> collection, IsarRawObject rawObj,
       Variant object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
     var dynamicSize = 0;
-    final value0 = object.bcd;
-    IsarUint8List? _bcd;
+    final value0 = object.addInfo;
+    IsarUint8List? _addInfo;
     if (value0 != null) {
-      _bcd = IsarBinaryWriter.utf8Encoder.convert(value0);
+      _addInfo = IsarBinaryWriter.utf8Encoder.convert(value0);
+    }
+    dynamicSize += (_addInfo?.length ?? 0) as int;
+    final value1 = object.bcd;
+    IsarUint8List? _bcd;
+    if (value1 != null) {
+      _bcd = IsarBinaryWriter.utf8Encoder.convert(value1);
     }
     dynamicSize += (_bcd?.length ?? 0) as int;
-    final value1 = object.branchId;
-    final _branchId = value1;
-    final value2 = object.channels;
-    dynamicSize += (value2?.length ?? 0) * 8;
-    List<IsarUint8List?>? bytesList2;
+    final value2 = object.bhfId;
+    IsarUint8List? _bhfId;
     if (value2 != null) {
-      bytesList2 = [];
-      for (var str in value2) {
+      _bhfId = IsarBinaryWriter.utf8Encoder.convert(value2);
+    }
+    dynamicSize += (_bhfId?.length ?? 0) as int;
+    final value3 = object.branchId;
+    final _branchId = value3;
+    final value4 = object.channels;
+    dynamicSize += (value4?.length ?? 0) * 8;
+    List<IsarUint8List?>? bytesList4;
+    if (value4 != null) {
+      bytesList4 = [];
+      for (var str in value4) {
         final bytes = IsarBinaryWriter.utf8Encoder.convert(str);
-        bytesList2.add(bytes);
+        bytesList4.add(bytes);
         dynamicSize += bytes.length as int;
       }
     }
-    final _channels = bytesList2;
-    final value3 = object.isrcAmt;
+    final _channels = bytesList4;
+    final value5 = object.dftPrc;
+    final _dftPrc = value5;
+    final value6 = object.isrcAmt;
     IsarUint8List? _isrcAmt;
-    if (value3 != null) {
-      _isrcAmt = IsarBinaryWriter.utf8Encoder.convert(value3);
+    if (value6 != null) {
+      _isrcAmt = IsarBinaryWriter.utf8Encoder.convert(value6);
     }
     dynamicSize += (_isrcAmt?.length ?? 0) as int;
-    final value4 = object.isrcRt;
+    final value7 = object.isrcAplcbYn;
+    IsarUint8List? _isrcAplcbYn;
+    if (value7 != null) {
+      _isrcAplcbYn = IsarBinaryWriter.utf8Encoder.convert(value7);
+    }
+    dynamicSize += (_isrcAplcbYn?.length ?? 0) as int;
+    final value8 = object.isrcRt;
     IsarUint8List? _isrcRt;
-    if (value4 != null) {
-      _isrcRt = IsarBinaryWriter.utf8Encoder.convert(value4);
+    if (value8 != null) {
+      _isrcRt = IsarBinaryWriter.utf8Encoder.convert(value8);
     }
     dynamicSize += (_isrcRt?.length ?? 0) as int;
-    final value5 = object.isrccCd;
+    final value9 = object.isrccCd;
     IsarUint8List? _isrccCd;
-    if (value5 != null) {
-      _isrccCd = IsarBinaryWriter.utf8Encoder.convert(value5);
+    if (value9 != null) {
+      _isrccCd = IsarBinaryWriter.utf8Encoder.convert(value9);
     }
     dynamicSize += (_isrccCd?.length ?? 0) as int;
-    final value6 = object.isrccNm;
+    final value10 = object.isrccNm;
     IsarUint8List? _isrccNm;
-    if (value6 != null) {
-      _isrccNm = IsarBinaryWriter.utf8Encoder.convert(value6);
+    if (value10 != null) {
+      _isrccNm = IsarBinaryWriter.utf8Encoder.convert(value10);
     }
     dynamicSize += (_isrccNm?.length ?? 0) as int;
-    final value7 = object.itemCd;
+    final value11 = object.itemCd;
     IsarUint8List? _itemCd;
-    if (value7 != null) {
-      _itemCd = IsarBinaryWriter.utf8Encoder.convert(value7);
+    if (value11 != null) {
+      _itemCd = IsarBinaryWriter.utf8Encoder.convert(value11);
     }
     dynamicSize += (_itemCd?.length ?? 0) as int;
-    final value8 = object.itemClsCd;
+    final value12 = object.itemClsCd;
     IsarUint8List? _itemClsCd;
-    if (value8 != null) {
-      _itemClsCd = IsarBinaryWriter.utf8Encoder.convert(value8);
+    if (value12 != null) {
+      _itemClsCd = IsarBinaryWriter.utf8Encoder.convert(value12);
     }
     dynamicSize += (_itemClsCd?.length ?? 0) as int;
-    final value9 = object.itemNm;
+    final value13 = object.itemNm;
     IsarUint8List? _itemNm;
-    if (value9 != null) {
-      _itemNm = IsarBinaryWriter.utf8Encoder.convert(value9);
+    if (value13 != null) {
+      _itemNm = IsarBinaryWriter.utf8Encoder.convert(value13);
     }
     dynamicSize += (_itemNm?.length ?? 0) as int;
-    final value10 = object.itemSeq;
+    final value14 = object.itemSeq;
     IsarUint8List? _itemSeq;
-    if (value10 != null) {
-      _itemSeq = IsarBinaryWriter.utf8Encoder.convert(value10);
+    if (value14 != null) {
+      _itemSeq = IsarBinaryWriter.utf8Encoder.convert(value14);
     }
     dynamicSize += (_itemSeq?.length ?? 0) as int;
-    final value11 = object.itemStdNm;
+    final value15 = object.itemStdNm;
     IsarUint8List? _itemStdNm;
-    if (value11 != null) {
-      _itemStdNm = IsarBinaryWriter.utf8Encoder.convert(value11);
+    if (value15 != null) {
+      _itemStdNm = IsarBinaryWriter.utf8Encoder.convert(value15);
     }
     dynamicSize += (_itemStdNm?.length ?? 0) as int;
-    final value12 = object.itemTyCd;
+    final value16 = object.itemTyCd;
     IsarUint8List? _itemTyCd;
-    if (value12 != null) {
-      _itemTyCd = IsarBinaryWriter.utf8Encoder.convert(value12);
+    if (value16 != null) {
+      _itemTyCd = IsarBinaryWriter.utf8Encoder.convert(value16);
     }
     dynamicSize += (_itemTyCd?.length ?? 0) as int;
-    final value13 = object.migrated;
-    final _migrated = value13;
-    final value14 = object.name;
-    final _name = IsarBinaryWriter.utf8Encoder.convert(value14);
+    final value17 = object.migrated;
+    final _migrated = value17;
+    final value18 = object.modrId;
+    IsarUint8List? _modrId;
+    if (value18 != null) {
+      _modrId = IsarBinaryWriter.utf8Encoder.convert(value18);
+    }
+    dynamicSize += (_modrId?.length ?? 0) as int;
+    final value19 = object.modrNm;
+    IsarUint8List? _modrNm;
+    if (value19 != null) {
+      _modrNm = IsarBinaryWriter.utf8Encoder.convert(value19);
+    }
+    dynamicSize += (_modrNm?.length ?? 0) as int;
+    final value20 = object.name;
+    final _name = IsarBinaryWriter.utf8Encoder.convert(value20);
     dynamicSize += (_name.length) as int;
-    final value15 = object.orgnNatCd;
+    final value21 = object.orgnNatCd;
     IsarUint8List? _orgnNatCd;
-    if (value15 != null) {
-      _orgnNatCd = IsarBinaryWriter.utf8Encoder.convert(value15);
+    if (value21 != null) {
+      _orgnNatCd = IsarBinaryWriter.utf8Encoder.convert(value21);
     }
     dynamicSize += (_orgnNatCd?.length ?? 0) as int;
-    final value16 = object.pkg;
+    final value22 = object.pkg;
     IsarUint8List? _pkg;
-    if (value16 != null) {
-      _pkg = IsarBinaryWriter.utf8Encoder.convert(value16);
+    if (value22 != null) {
+      _pkg = IsarBinaryWriter.utf8Encoder.convert(value22);
     }
     dynamicSize += (_pkg?.length ?? 0) as int;
-    final value17 = object.pkgUnitCd;
+    final value23 = object.pkgUnitCd;
     IsarUint8List? _pkgUnitCd;
-    if (value17 != null) {
-      _pkgUnitCd = IsarBinaryWriter.utf8Encoder.convert(value17);
+    if (value23 != null) {
+      _pkgUnitCd = IsarBinaryWriter.utf8Encoder.convert(value23);
     }
     dynamicSize += (_pkgUnitCd?.length ?? 0) as int;
-    final value18 = object.prc;
-    final _prc = value18;
-    final value19 = object.productId;
-    final _productId = value19;
-    final value20 = object.productName;
-    final _productName = IsarBinaryWriter.utf8Encoder.convert(value20);
+    final value24 = object.prc;
+    final _prc = value24;
+    final value25 = object.productId;
+    final _productId = value25;
+    final value26 = object.productName;
+    final _productName = IsarBinaryWriter.utf8Encoder.convert(value26);
     dynamicSize += (_productName.length) as int;
-    final value21 = object.qty;
-    final _qty = value21;
-    final value22 = object.qtyUnitCd;
+    final value27 = object.qty;
+    final _qty = value27;
+    final value28 = object.qtyUnitCd;
     IsarUint8List? _qtyUnitCd;
-    if (value22 != null) {
-      _qtyUnitCd = IsarBinaryWriter.utf8Encoder.convert(value22);
+    if (value28 != null) {
+      _qtyUnitCd = IsarBinaryWriter.utf8Encoder.convert(value28);
     }
     dynamicSize += (_qtyUnitCd?.length ?? 0) as int;
-    final value23 = object.retailPrice;
-    final _retailPrice = value23;
-    final value24 = object.sku;
-    final _sku = IsarBinaryWriter.utf8Encoder.convert(value24);
-    dynamicSize += (_sku.length) as int;
-    final value25 = object.splyAmt;
-    final _splyAmt = value25;
-    final value26 = object.supplyPrice;
-    final _supplyPrice = value26;
-    final value27 = object.synced;
-    final _synced = value27;
-    final value28 = object.table;
-    final _table = IsarBinaryWriter.utf8Encoder.convert(value28);
-    dynamicSize += (_table.length) as int;
-    final value29 = object.taxName;
-    IsarUint8List? _taxName;
+    final value29 = object.regrId;
+    IsarUint8List? _regrId;
     if (value29 != null) {
-      _taxName = IsarBinaryWriter.utf8Encoder.convert(value29);
+      _regrId = IsarBinaryWriter.utf8Encoder.convert(value29);
+    }
+    dynamicSize += (_regrId?.length ?? 0) as int;
+    final value30 = object.regrNm;
+    IsarUint8List? _regrNm;
+    if (value30 != null) {
+      _regrNm = IsarBinaryWriter.utf8Encoder.convert(value30);
+    }
+    dynamicSize += (_regrNm?.length ?? 0) as int;
+    final value31 = object.retailPrice;
+    final _retailPrice = value31;
+    final value32 = object.sku;
+    final _sku = IsarBinaryWriter.utf8Encoder.convert(value32);
+    dynamicSize += (_sku.length) as int;
+    final value33 = object.splyAmt;
+    final _splyAmt = value33;
+    final value34 = object.supplyPrice;
+    final _supplyPrice = value34;
+    final value35 = object.synced;
+    final _synced = value35;
+    final value36 = object.table;
+    final _table = IsarBinaryWriter.utf8Encoder.convert(value36);
+    dynamicSize += (_table.length) as int;
+    final value37 = object.taxName;
+    IsarUint8List? _taxName;
+    if (value37 != null) {
+      _taxName = IsarBinaryWriter.utf8Encoder.convert(value37);
     }
     dynamicSize += (_taxName?.length ?? 0) as int;
-    final value30 = object.taxPercentage;
-    final _taxPercentage = value30;
-    final value31 = object.taxTyCd;
+    final value38 = object.taxPercentage;
+    final _taxPercentage = value38;
+    final value39 = object.taxTyCd;
     IsarUint8List? _taxTyCd;
-    if (value31 != null) {
-      _taxTyCd = IsarBinaryWriter.utf8Encoder.convert(value31);
+    if (value39 != null) {
+      _taxTyCd = IsarBinaryWriter.utf8Encoder.convert(value39);
     }
     dynamicSize += (_taxTyCd?.length ?? 0) as int;
-    final value32 = object.unit;
-    final _unit = IsarBinaryWriter.utf8Encoder.convert(value32);
+    final value40 = object.tin;
+    final _tin = value40;
+    final value41 = object.unit;
+    final _unit = IsarBinaryWriter.utf8Encoder.convert(value41);
     dynamicSize += (_unit.length) as int;
+    final value42 = object.useYn;
+    IsarUint8List? _useYn;
+    if (value42 != null) {
+      _useYn = IsarBinaryWriter.utf8Encoder.convert(value42);
+    }
+    dynamicSize += (_useYn?.length ?? 0) as int;
     final size = staticSize + dynamicSize;
 
     rawObj.buffer = alloc(size);
     rawObj.buffer_length = size;
     final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
     final writer = IsarBinaryWriter(buffer, staticSize);
-    writer.writeBytes(offsets[0], _bcd);
-    writer.writeLong(offsets[1], _branchId);
-    writer.writeStringList(offsets[2], _channels);
-    writer.writeBytes(offsets[3], _isrcAmt);
-    writer.writeBytes(offsets[4], _isrcRt);
-    writer.writeBytes(offsets[5], _isrccCd);
-    writer.writeBytes(offsets[6], _isrccNm);
-    writer.writeBytes(offsets[7], _itemCd);
-    writer.writeBytes(offsets[8], _itemClsCd);
-    writer.writeBytes(offsets[9], _itemNm);
-    writer.writeBytes(offsets[10], _itemSeq);
-    writer.writeBytes(offsets[11], _itemStdNm);
-    writer.writeBytes(offsets[12], _itemTyCd);
-    writer.writeBool(offsets[13], _migrated);
-    writer.writeBytes(offsets[14], _name);
-    writer.writeBytes(offsets[15], _orgnNatCd);
-    writer.writeBytes(offsets[16], _pkg);
-    writer.writeBytes(offsets[17], _pkgUnitCd);
-    writer.writeDouble(offsets[18], _prc);
-    writer.writeLong(offsets[19], _productId);
-    writer.writeBytes(offsets[20], _productName);
-    writer.writeDouble(offsets[21], _qty);
-    writer.writeBytes(offsets[22], _qtyUnitCd);
-    writer.writeDouble(offsets[23], _retailPrice);
-    writer.writeBytes(offsets[24], _sku);
-    writer.writeDouble(offsets[25], _splyAmt);
-    writer.writeDouble(offsets[26], _supplyPrice);
-    writer.writeBool(offsets[27], _synced);
-    writer.writeBytes(offsets[28], _table);
-    writer.writeBytes(offsets[29], _taxName);
-    writer.writeDouble(offsets[30], _taxPercentage);
-    writer.writeBytes(offsets[31], _taxTyCd);
-    writer.writeBytes(offsets[32], _unit);
+    writer.writeBytes(offsets[0], _addInfo);
+    writer.writeBytes(offsets[1], _bcd);
+    writer.writeBytes(offsets[2], _bhfId);
+    writer.writeLong(offsets[3], _branchId);
+    writer.writeStringList(offsets[4], _channels);
+    writer.writeDouble(offsets[5], _dftPrc);
+    writer.writeBytes(offsets[6], _isrcAmt);
+    writer.writeBytes(offsets[7], _isrcAplcbYn);
+    writer.writeBytes(offsets[8], _isrcRt);
+    writer.writeBytes(offsets[9], _isrccCd);
+    writer.writeBytes(offsets[10], _isrccNm);
+    writer.writeBytes(offsets[11], _itemCd);
+    writer.writeBytes(offsets[12], _itemClsCd);
+    writer.writeBytes(offsets[13], _itemNm);
+    writer.writeBytes(offsets[14], _itemSeq);
+    writer.writeBytes(offsets[15], _itemStdNm);
+    writer.writeBytes(offsets[16], _itemTyCd);
+    writer.writeBool(offsets[17], _migrated);
+    writer.writeBytes(offsets[18], _modrId);
+    writer.writeBytes(offsets[19], _modrNm);
+    writer.writeBytes(offsets[20], _name);
+    writer.writeBytes(offsets[21], _orgnNatCd);
+    writer.writeBytes(offsets[22], _pkg);
+    writer.writeBytes(offsets[23], _pkgUnitCd);
+    writer.writeDouble(offsets[24], _prc);
+    writer.writeLong(offsets[25], _productId);
+    writer.writeBytes(offsets[26], _productName);
+    writer.writeDouble(offsets[27], _qty);
+    writer.writeBytes(offsets[28], _qtyUnitCd);
+    writer.writeBytes(offsets[29], _regrId);
+    writer.writeBytes(offsets[30], _regrNm);
+    writer.writeDouble(offsets[31], _retailPrice);
+    writer.writeBytes(offsets[32], _sku);
+    writer.writeDouble(offsets[33], _splyAmt);
+    writer.writeDouble(offsets[34], _supplyPrice);
+    writer.writeBool(offsets[35], _synced);
+    writer.writeBytes(offsets[36], _table);
+    writer.writeBytes(offsets[37], _taxName);
+    writer.writeDouble(offsets[38], _taxPercentage);
+    writer.writeBytes(offsets[39], _taxTyCd);
+    writer.writeLong(offsets[40], _tin);
+    writer.writeBytes(offsets[41], _unit);
+    writer.writeBytes(offsets[42], _useYn);
   }
 
   @override
   Variant deserialize(IsarCollection<Variant> collection, int id,
       IsarBinaryReader reader, List<int> offsets) {
     final object = Variant();
-    object.bcd = reader.readStringOrNull(offsets[0]);
-    object.branchId = reader.readLong(offsets[1]);
-    object.channels = reader.readStringList(offsets[2]);
+    object.addInfo = reader.readStringOrNull(offsets[0]);
+    object.bcd = reader.readStringOrNull(offsets[1]);
+    object.bhfId = reader.readStringOrNull(offsets[2]);
+    object.branchId = reader.readLong(offsets[3]);
+    object.channels = reader.readStringList(offsets[4]);
+    object.dftPrc = reader.readDoubleOrNull(offsets[5]);
     object.id = id;
-    object.isrcAmt = reader.readStringOrNull(offsets[3]);
-    object.isrcRt = reader.readStringOrNull(offsets[4]);
-    object.isrccCd = reader.readStringOrNull(offsets[5]);
-    object.isrccNm = reader.readStringOrNull(offsets[6]);
-    object.itemCd = reader.readStringOrNull(offsets[7]);
-    object.itemClsCd = reader.readStringOrNull(offsets[8]);
-    object.itemNm = reader.readStringOrNull(offsets[9]);
-    object.itemSeq = reader.readStringOrNull(offsets[10]);
-    object.itemStdNm = reader.readStringOrNull(offsets[11]);
-    object.itemTyCd = reader.readStringOrNull(offsets[12]);
-    object.migrated = reader.readBoolOrNull(offsets[13]);
-    object.name = reader.readString(offsets[14]);
-    object.orgnNatCd = reader.readStringOrNull(offsets[15]);
-    object.pkg = reader.readStringOrNull(offsets[16]);
-    object.pkgUnitCd = reader.readStringOrNull(offsets[17]);
-    object.prc = reader.readDoubleOrNull(offsets[18]);
-    object.productId = reader.readLong(offsets[19]);
-    object.productName = reader.readString(offsets[20]);
-    object.qty = reader.readDoubleOrNull(offsets[21]);
-    object.qtyUnitCd = reader.readStringOrNull(offsets[22]);
-    object.retailPrice = reader.readDouble(offsets[23]);
-    object.sku = reader.readString(offsets[24]);
-    object.splyAmt = reader.readDoubleOrNull(offsets[25]);
-    object.supplyPrice = reader.readDouble(offsets[26]);
-    object.synced = reader.readBoolOrNull(offsets[27]);
-    object.table = reader.readString(offsets[28]);
-    object.taxName = reader.readStringOrNull(offsets[29]);
-    object.taxPercentage = reader.readDoubleOrNull(offsets[30]);
-    object.taxTyCd = reader.readStringOrNull(offsets[31]);
-    object.unit = reader.readString(offsets[32]);
+    object.isrcAmt = reader.readStringOrNull(offsets[6]);
+    object.isrcAplcbYn = reader.readStringOrNull(offsets[7]);
+    object.isrcRt = reader.readStringOrNull(offsets[8]);
+    object.isrccCd = reader.readStringOrNull(offsets[9]);
+    object.isrccNm = reader.readStringOrNull(offsets[10]);
+    object.itemCd = reader.readStringOrNull(offsets[11]);
+    object.itemClsCd = reader.readStringOrNull(offsets[12]);
+    object.itemNm = reader.readStringOrNull(offsets[13]);
+    object.itemSeq = reader.readStringOrNull(offsets[14]);
+    object.itemStdNm = reader.readStringOrNull(offsets[15]);
+    object.itemTyCd = reader.readStringOrNull(offsets[16]);
+    object.migrated = reader.readBoolOrNull(offsets[17]);
+    object.modrId = reader.readStringOrNull(offsets[18]);
+    object.modrNm = reader.readStringOrNull(offsets[19]);
+    object.name = reader.readString(offsets[20]);
+    object.orgnNatCd = reader.readStringOrNull(offsets[21]);
+    object.pkg = reader.readStringOrNull(offsets[22]);
+    object.pkgUnitCd = reader.readStringOrNull(offsets[23]);
+    object.prc = reader.readDoubleOrNull(offsets[24]);
+    object.productId = reader.readLong(offsets[25]);
+    object.productName = reader.readString(offsets[26]);
+    object.qty = reader.readDoubleOrNull(offsets[27]);
+    object.qtyUnitCd = reader.readStringOrNull(offsets[28]);
+    object.regrId = reader.readStringOrNull(offsets[29]);
+    object.regrNm = reader.readStringOrNull(offsets[30]);
+    object.retailPrice = reader.readDouble(offsets[31]);
+    object.sku = reader.readString(offsets[32]);
+    object.splyAmt = reader.readDoubleOrNull(offsets[33]);
+    object.supplyPrice = reader.readDouble(offsets[34]);
+    object.synced = reader.readBoolOrNull(offsets[35]);
+    object.table = reader.readString(offsets[36]);
+    object.taxName = reader.readStringOrNull(offsets[37]);
+    object.taxPercentage = reader.readDoubleOrNull(offsets[38]);
+    object.taxTyCd = reader.readStringOrNull(offsets[39]);
+    object.tin = reader.readLongOrNull(offsets[40]);
+    object.unit = reader.readString(offsets[41]);
+    object.useYn = reader.readStringOrNull(offsets[42]);
     return object;
   }
 
@@ -499,15 +621,15 @@ class _VariantNativeAdapter extends IsarNativeTypeAdapter<Variant> {
       case 0:
         return (reader.readStringOrNull(offset)) as P;
       case 1:
-        return (reader.readLong(offset)) as P;
+        return (reader.readStringOrNull(offset)) as P;
       case 2:
-        return (reader.readStringList(offset)) as P;
+        return (reader.readStringOrNull(offset)) as P;
       case 3:
-        return (reader.readStringOrNull(offset)) as P;
+        return (reader.readLong(offset)) as P;
       case 4:
-        return (reader.readStringOrNull(offset)) as P;
+        return (reader.readStringList(offset)) as P;
       case 5:
-        return (reader.readStringOrNull(offset)) as P;
+        return (reader.readDoubleOrNull(offset)) as P;
       case 6:
         return (reader.readStringOrNull(offset)) as P;
       case 7:
@@ -523,45 +645,65 @@ class _VariantNativeAdapter extends IsarNativeTypeAdapter<Variant> {
       case 12:
         return (reader.readStringOrNull(offset)) as P;
       case 13:
-        return (reader.readBoolOrNull(offset)) as P;
+        return (reader.readStringOrNull(offset)) as P;
       case 14:
-        return (reader.readString(offset)) as P;
+        return (reader.readStringOrNull(offset)) as P;
       case 15:
         return (reader.readStringOrNull(offset)) as P;
       case 16:
         return (reader.readStringOrNull(offset)) as P;
       case 17:
-        return (reader.readStringOrNull(offset)) as P;
+        return (reader.readBoolOrNull(offset)) as P;
       case 18:
-        return (reader.readDoubleOrNull(offset)) as P;
+        return (reader.readStringOrNull(offset)) as P;
       case 19:
-        return (reader.readLong(offset)) as P;
+        return (reader.readStringOrNull(offset)) as P;
       case 20:
         return (reader.readString(offset)) as P;
       case 21:
-        return (reader.readDoubleOrNull(offset)) as P;
+        return (reader.readStringOrNull(offset)) as P;
       case 22:
         return (reader.readStringOrNull(offset)) as P;
       case 23:
-        return (reader.readDouble(offset)) as P;
+        return (reader.readStringOrNull(offset)) as P;
       case 24:
-        return (reader.readString(offset)) as P;
-      case 25:
         return (reader.readDoubleOrNull(offset)) as P;
+      case 25:
+        return (reader.readLong(offset)) as P;
       case 26:
-        return (reader.readDouble(offset)) as P;
-      case 27:
-        return (reader.readBoolOrNull(offset)) as P;
-      case 28:
         return (reader.readString(offset)) as P;
+      case 27:
+        return (reader.readDoubleOrNull(offset)) as P;
+      case 28:
+        return (reader.readStringOrNull(offset)) as P;
       case 29:
         return (reader.readStringOrNull(offset)) as P;
       case 30:
-        return (reader.readDoubleOrNull(offset)) as P;
-      case 31:
         return (reader.readStringOrNull(offset)) as P;
+      case 31:
+        return (reader.readDouble(offset)) as P;
       case 32:
         return (reader.readString(offset)) as P;
+      case 33:
+        return (reader.readDoubleOrNull(offset)) as P;
+      case 34:
+        return (reader.readDouble(offset)) as P;
+      case 35:
+        return (reader.readBoolOrNull(offset)) as P;
+      case 36:
+        return (reader.readString(offset)) as P;
+      case 37:
+        return (reader.readStringOrNull(offset)) as P;
+      case 38:
+        return (reader.readDoubleOrNull(offset)) as P;
+      case 39:
+        return (reader.readStringOrNull(offset)) as P;
+      case 40:
+        return (reader.readLongOrNull(offset)) as P;
+      case 41:
+        return (reader.readString(offset)) as P;
+      case 42:
+        return (reader.readStringOrNull(offset)) as P;
       default:
         throw 'Illegal propertyIndex';
     }
@@ -652,6 +794,117 @@ extension VariantQueryWhere on QueryBuilder<Variant, Variant, QWhereClause> {
 
 extension VariantQueryFilter
     on QueryBuilder<Variant, Variant, QFilterCondition> {
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> addInfoIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'addInfo',
+      value: null,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> addInfoEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.eq,
+      property: 'addInfo',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> addInfoGreaterThan(
+    String? value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.gt,
+      include: include,
+      property: 'addInfo',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> addInfoLessThan(
+    String? value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.lt,
+      include: include,
+      property: 'addInfo',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> addInfoBetween(
+    String? lower,
+    String? upper, {
+    bool caseSensitive = true,
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition.between(
+      property: 'addInfo',
+      lower: lower,
+      includeLower: includeLower,
+      upper: upper,
+      includeUpper: includeUpper,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> addInfoStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.startsWith,
+      property: 'addInfo',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> addInfoEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.endsWith,
+      property: 'addInfo',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> addInfoContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.contains,
+      property: 'addInfo',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> addInfoMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.matches,
+      property: 'addInfo',
+      value: pattern,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
   QueryBuilder<Variant, Variant, QAfterFilterCondition> bcdIsNull() {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.isNull,
@@ -758,6 +1011,117 @@ extension VariantQueryFilter
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.matches,
       property: 'bcd',
+      value: pattern,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> bhfIdIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'bhfId',
+      value: null,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> bhfIdEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.eq,
+      property: 'bhfId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> bhfIdGreaterThan(
+    String? value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.gt,
+      include: include,
+      property: 'bhfId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> bhfIdLessThan(
+    String? value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.lt,
+      include: include,
+      property: 'bhfId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> bhfIdBetween(
+    String? lower,
+    String? upper, {
+    bool caseSensitive = true,
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition.between(
+      property: 'bhfId',
+      lower: lower,
+      includeLower: includeLower,
+      upper: upper,
+      includeUpper: includeUpper,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> bhfIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.startsWith,
+      property: 'bhfId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> bhfIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.endsWith,
+      property: 'bhfId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> bhfIdContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.contains,
+      property: 'bhfId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> bhfIdMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.matches,
+      property: 'bhfId',
       value: pattern,
       caseSensitive: caseSensitive,
     ));
@@ -930,6 +1294,45 @@ extension VariantQueryFilter
     ));
   }
 
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> dftPrcIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'dftPrc',
+      value: null,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> dftPrcGreaterThan(
+      double? value) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.gt,
+      include: false,
+      property: 'dftPrc',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> dftPrcLessThan(
+      double? value) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.lt,
+      include: false,
+      property: 'dftPrc',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> dftPrcBetween(
+      double? lower, double? upper) {
+    return addFilterConditionInternal(FilterCondition.between(
+      property: 'dftPrc',
+      lower: lower,
+      includeLower: false,
+      upper: upper,
+      includeUpper: false,
+    ));
+  }
+
   QueryBuilder<Variant, Variant, QAfterFilterCondition> idEqualTo(int value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
@@ -1083,6 +1486,117 @@ extension VariantQueryFilter
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.matches,
       property: 'isrcAmt',
+      value: pattern,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> isrcAplcbYnIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'isrcAplcbYn',
+      value: null,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> isrcAplcbYnEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.eq,
+      property: 'isrcAplcbYn',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> isrcAplcbYnGreaterThan(
+    String? value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.gt,
+      include: include,
+      property: 'isrcAplcbYn',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> isrcAplcbYnLessThan(
+    String? value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.lt,
+      include: include,
+      property: 'isrcAplcbYn',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> isrcAplcbYnBetween(
+    String? lower,
+    String? upper, {
+    bool caseSensitive = true,
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition.between(
+      property: 'isrcAplcbYn',
+      lower: lower,
+      includeLower: includeLower,
+      upper: upper,
+      includeUpper: includeUpper,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> isrcAplcbYnStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.startsWith,
+      property: 'isrcAplcbYn',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> isrcAplcbYnEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.endsWith,
+      property: 'isrcAplcbYn',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> isrcAplcbYnContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.contains,
+      property: 'isrcAplcbYn',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> isrcAplcbYnMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.matches,
+      property: 'isrcAplcbYn',
       value: pattern,
       caseSensitive: caseSensitive,
     ));
@@ -2104,6 +2618,228 @@ extension VariantQueryFilter
     ));
   }
 
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> modrIdIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'modrId',
+      value: null,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> modrIdEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.eq,
+      property: 'modrId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> modrIdGreaterThan(
+    String? value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.gt,
+      include: include,
+      property: 'modrId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> modrIdLessThan(
+    String? value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.lt,
+      include: include,
+      property: 'modrId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> modrIdBetween(
+    String? lower,
+    String? upper, {
+    bool caseSensitive = true,
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition.between(
+      property: 'modrId',
+      lower: lower,
+      includeLower: includeLower,
+      upper: upper,
+      includeUpper: includeUpper,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> modrIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.startsWith,
+      property: 'modrId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> modrIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.endsWith,
+      property: 'modrId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> modrIdContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.contains,
+      property: 'modrId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> modrIdMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.matches,
+      property: 'modrId',
+      value: pattern,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> modrNmIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'modrNm',
+      value: null,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> modrNmEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.eq,
+      property: 'modrNm',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> modrNmGreaterThan(
+    String? value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.gt,
+      include: include,
+      property: 'modrNm',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> modrNmLessThan(
+    String? value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.lt,
+      include: include,
+      property: 'modrNm',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> modrNmBetween(
+    String? lower,
+    String? upper, {
+    bool caseSensitive = true,
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition.between(
+      property: 'modrNm',
+      lower: lower,
+      includeLower: includeLower,
+      upper: upper,
+      includeUpper: includeUpper,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> modrNmStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.startsWith,
+      property: 'modrNm',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> modrNmEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.endsWith,
+      property: 'modrNm',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> modrNmContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.contains,
+      property: 'modrNm',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> modrNmMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.matches,
+      property: 'modrNm',
+      value: pattern,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
   QueryBuilder<Variant, Variant, QAfterFilterCondition> nameEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -2880,6 +3616,228 @@ extension VariantQueryFilter
     ));
   }
 
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> regrIdIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'regrId',
+      value: null,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> regrIdEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.eq,
+      property: 'regrId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> regrIdGreaterThan(
+    String? value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.gt,
+      include: include,
+      property: 'regrId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> regrIdLessThan(
+    String? value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.lt,
+      include: include,
+      property: 'regrId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> regrIdBetween(
+    String? lower,
+    String? upper, {
+    bool caseSensitive = true,
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition.between(
+      property: 'regrId',
+      lower: lower,
+      includeLower: includeLower,
+      upper: upper,
+      includeUpper: includeUpper,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> regrIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.startsWith,
+      property: 'regrId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> regrIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.endsWith,
+      property: 'regrId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> regrIdContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.contains,
+      property: 'regrId',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> regrIdMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.matches,
+      property: 'regrId',
+      value: pattern,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> regrNmIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'regrNm',
+      value: null,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> regrNmEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.eq,
+      property: 'regrNm',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> regrNmGreaterThan(
+    String? value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.gt,
+      include: include,
+      property: 'regrNm',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> regrNmLessThan(
+    String? value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.lt,
+      include: include,
+      property: 'regrNm',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> regrNmBetween(
+    String? lower,
+    String? upper, {
+    bool caseSensitive = true,
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition.between(
+      property: 'regrNm',
+      lower: lower,
+      includeLower: includeLower,
+      upper: upper,
+      includeUpper: includeUpper,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> regrNmStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.startsWith,
+      property: 'regrNm',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> regrNmEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.endsWith,
+      property: 'regrNm',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> regrNmContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.contains,
+      property: 'regrNm',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> regrNmMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.matches,
+      property: 'regrNm',
+      value: pattern,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
   QueryBuilder<Variant, Variant, QAfterFilterCondition> retailPriceGreaterThan(
       double value) {
     return addFilterConditionInternal(FilterCondition(
@@ -3465,6 +4423,61 @@ extension VariantQueryFilter
     ));
   }
 
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> tinIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'tin',
+      value: null,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> tinEqualTo(int? value) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.eq,
+      property: 'tin',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> tinGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.gt,
+      include: include,
+      property: 'tin',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> tinLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.lt,
+      include: include,
+      property: 'tin',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> tinBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition.between(
+      property: 'tin',
+      lower: lower,
+      includeLower: includeLower,
+      upper: upper,
+      includeUpper: includeUpper,
+    ));
+  }
+
   QueryBuilder<Variant, Variant, QAfterFilterCondition> unitEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -3567,9 +4580,128 @@ extension VariantQueryFilter
       caseSensitive: caseSensitive,
     ));
   }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> useYnIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'useYn',
+      value: null,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> useYnEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.eq,
+      property: 'useYn',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> useYnGreaterThan(
+    String? value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.gt,
+      include: include,
+      property: 'useYn',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> useYnLessThan(
+    String? value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.lt,
+      include: include,
+      property: 'useYn',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> useYnBetween(
+    String? lower,
+    String? upper, {
+    bool caseSensitive = true,
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition.between(
+      property: 'useYn',
+      lower: lower,
+      includeLower: includeLower,
+      upper: upper,
+      includeUpper: includeUpper,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> useYnStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.startsWith,
+      property: 'useYn',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> useYnEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.endsWith,
+      property: 'useYn',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> useYnContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.contains,
+      property: 'useYn',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> useYnMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.matches,
+      property: 'useYn',
+      value: pattern,
+      caseSensitive: caseSensitive,
+    ));
+  }
 }
 
 extension VariantQueryWhereSortBy on QueryBuilder<Variant, Variant, QSortBy> {
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByAddInfo() {
+    return addSortByInternal('addInfo', Sort.asc);
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByAddInfoDesc() {
+    return addSortByInternal('addInfo', Sort.desc);
+  }
+
   QueryBuilder<Variant, Variant, QAfterSortBy> sortByBcd() {
     return addSortByInternal('bcd', Sort.asc);
   }
@@ -3578,12 +4710,28 @@ extension VariantQueryWhereSortBy on QueryBuilder<Variant, Variant, QSortBy> {
     return addSortByInternal('bcd', Sort.desc);
   }
 
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByBhfId() {
+    return addSortByInternal('bhfId', Sort.asc);
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByBhfIdDesc() {
+    return addSortByInternal('bhfId', Sort.desc);
+  }
+
   QueryBuilder<Variant, Variant, QAfterSortBy> sortByBranchId() {
     return addSortByInternal('branchId', Sort.asc);
   }
 
   QueryBuilder<Variant, Variant, QAfterSortBy> sortByBranchIdDesc() {
     return addSortByInternal('branchId', Sort.desc);
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByDftPrc() {
+    return addSortByInternal('dftPrc', Sort.asc);
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByDftPrcDesc() {
+    return addSortByInternal('dftPrc', Sort.desc);
   }
 
   QueryBuilder<Variant, Variant, QAfterSortBy> sortById() {
@@ -3600,6 +4748,14 @@ extension VariantQueryWhereSortBy on QueryBuilder<Variant, Variant, QSortBy> {
 
   QueryBuilder<Variant, Variant, QAfterSortBy> sortByIsrcAmtDesc() {
     return addSortByInternal('isrcAmt', Sort.desc);
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByIsrcAplcbYn() {
+    return addSortByInternal('isrcAplcbYn', Sort.asc);
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByIsrcAplcbYnDesc() {
+    return addSortByInternal('isrcAplcbYn', Sort.desc);
   }
 
   QueryBuilder<Variant, Variant, QAfterSortBy> sortByIsrcRt() {
@@ -3682,6 +4838,22 @@ extension VariantQueryWhereSortBy on QueryBuilder<Variant, Variant, QSortBy> {
     return addSortByInternal('migrated', Sort.desc);
   }
 
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByModrId() {
+    return addSortByInternal('modrId', Sort.asc);
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByModrIdDesc() {
+    return addSortByInternal('modrId', Sort.desc);
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByModrNm() {
+    return addSortByInternal('modrNm', Sort.asc);
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByModrNmDesc() {
+    return addSortByInternal('modrNm', Sort.desc);
+  }
+
   QueryBuilder<Variant, Variant, QAfterSortBy> sortByName() {
     return addSortByInternal('name', Sort.asc);
   }
@@ -3752,6 +4924,22 @@ extension VariantQueryWhereSortBy on QueryBuilder<Variant, Variant, QSortBy> {
 
   QueryBuilder<Variant, Variant, QAfterSortBy> sortByQtyUnitCdDesc() {
     return addSortByInternal('qtyUnitCd', Sort.desc);
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByRegrId() {
+    return addSortByInternal('regrId', Sort.asc);
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByRegrIdDesc() {
+    return addSortByInternal('regrId', Sort.desc);
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByRegrNm() {
+    return addSortByInternal('regrNm', Sort.asc);
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByRegrNmDesc() {
+    return addSortByInternal('regrNm', Sort.desc);
   }
 
   QueryBuilder<Variant, Variant, QAfterSortBy> sortByRetailPrice() {
@@ -3826,6 +5014,14 @@ extension VariantQueryWhereSortBy on QueryBuilder<Variant, Variant, QSortBy> {
     return addSortByInternal('taxTyCd', Sort.desc);
   }
 
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByTin() {
+    return addSortByInternal('tin', Sort.asc);
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByTinDesc() {
+    return addSortByInternal('tin', Sort.desc);
+  }
+
   QueryBuilder<Variant, Variant, QAfterSortBy> sortByUnit() {
     return addSortByInternal('unit', Sort.asc);
   }
@@ -3833,10 +5029,26 @@ extension VariantQueryWhereSortBy on QueryBuilder<Variant, Variant, QSortBy> {
   QueryBuilder<Variant, Variant, QAfterSortBy> sortByUnitDesc() {
     return addSortByInternal('unit', Sort.desc);
   }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByUseYn() {
+    return addSortByInternal('useYn', Sort.asc);
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByUseYnDesc() {
+    return addSortByInternal('useYn', Sort.desc);
+  }
 }
 
 extension VariantQueryWhereSortThenBy
     on QueryBuilder<Variant, Variant, QSortThenBy> {
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByAddInfo() {
+    return addSortByInternal('addInfo', Sort.asc);
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByAddInfoDesc() {
+    return addSortByInternal('addInfo', Sort.desc);
+  }
+
   QueryBuilder<Variant, Variant, QAfterSortBy> thenByBcd() {
     return addSortByInternal('bcd', Sort.asc);
   }
@@ -3845,12 +5057,28 @@ extension VariantQueryWhereSortThenBy
     return addSortByInternal('bcd', Sort.desc);
   }
 
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByBhfId() {
+    return addSortByInternal('bhfId', Sort.asc);
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByBhfIdDesc() {
+    return addSortByInternal('bhfId', Sort.desc);
+  }
+
   QueryBuilder<Variant, Variant, QAfterSortBy> thenByBranchId() {
     return addSortByInternal('branchId', Sort.asc);
   }
 
   QueryBuilder<Variant, Variant, QAfterSortBy> thenByBranchIdDesc() {
     return addSortByInternal('branchId', Sort.desc);
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByDftPrc() {
+    return addSortByInternal('dftPrc', Sort.asc);
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByDftPrcDesc() {
+    return addSortByInternal('dftPrc', Sort.desc);
   }
 
   QueryBuilder<Variant, Variant, QAfterSortBy> thenById() {
@@ -3867,6 +5095,14 @@ extension VariantQueryWhereSortThenBy
 
   QueryBuilder<Variant, Variant, QAfterSortBy> thenByIsrcAmtDesc() {
     return addSortByInternal('isrcAmt', Sort.desc);
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByIsrcAplcbYn() {
+    return addSortByInternal('isrcAplcbYn', Sort.asc);
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByIsrcAplcbYnDesc() {
+    return addSortByInternal('isrcAplcbYn', Sort.desc);
   }
 
   QueryBuilder<Variant, Variant, QAfterSortBy> thenByIsrcRt() {
@@ -3949,6 +5185,22 @@ extension VariantQueryWhereSortThenBy
     return addSortByInternal('migrated', Sort.desc);
   }
 
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByModrId() {
+    return addSortByInternal('modrId', Sort.asc);
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByModrIdDesc() {
+    return addSortByInternal('modrId', Sort.desc);
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByModrNm() {
+    return addSortByInternal('modrNm', Sort.asc);
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByModrNmDesc() {
+    return addSortByInternal('modrNm', Sort.desc);
+  }
+
   QueryBuilder<Variant, Variant, QAfterSortBy> thenByName() {
     return addSortByInternal('name', Sort.asc);
   }
@@ -4019,6 +5271,22 @@ extension VariantQueryWhereSortThenBy
 
   QueryBuilder<Variant, Variant, QAfterSortBy> thenByQtyUnitCdDesc() {
     return addSortByInternal('qtyUnitCd', Sort.desc);
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByRegrId() {
+    return addSortByInternal('regrId', Sort.asc);
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByRegrIdDesc() {
+    return addSortByInternal('regrId', Sort.desc);
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByRegrNm() {
+    return addSortByInternal('regrNm', Sort.asc);
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByRegrNmDesc() {
+    return addSortByInternal('regrNm', Sort.desc);
   }
 
   QueryBuilder<Variant, Variant, QAfterSortBy> thenByRetailPrice() {
@@ -4093,6 +5361,14 @@ extension VariantQueryWhereSortThenBy
     return addSortByInternal('taxTyCd', Sort.desc);
   }
 
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByTin() {
+    return addSortByInternal('tin', Sort.asc);
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByTinDesc() {
+    return addSortByInternal('tin', Sort.desc);
+  }
+
   QueryBuilder<Variant, Variant, QAfterSortBy> thenByUnit() {
     return addSortByInternal('unit', Sort.asc);
   }
@@ -4100,17 +5376,39 @@ extension VariantQueryWhereSortThenBy
   QueryBuilder<Variant, Variant, QAfterSortBy> thenByUnitDesc() {
     return addSortByInternal('unit', Sort.desc);
   }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByUseYn() {
+    return addSortByInternal('useYn', Sort.asc);
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByUseYnDesc() {
+    return addSortByInternal('useYn', Sort.desc);
+  }
 }
 
 extension VariantQueryWhereDistinct
     on QueryBuilder<Variant, Variant, QDistinct> {
+  QueryBuilder<Variant, Variant, QDistinct> distinctByAddInfo(
+      {bool caseSensitive = true}) {
+    return addDistinctByInternal('addInfo', caseSensitive: caseSensitive);
+  }
+
   QueryBuilder<Variant, Variant, QDistinct> distinctByBcd(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('bcd', caseSensitive: caseSensitive);
   }
 
+  QueryBuilder<Variant, Variant, QDistinct> distinctByBhfId(
+      {bool caseSensitive = true}) {
+    return addDistinctByInternal('bhfId', caseSensitive: caseSensitive);
+  }
+
   QueryBuilder<Variant, Variant, QDistinct> distinctByBranchId() {
     return addDistinctByInternal('branchId');
+  }
+
+  QueryBuilder<Variant, Variant, QDistinct> distinctByDftPrc() {
+    return addDistinctByInternal('dftPrc');
   }
 
   QueryBuilder<Variant, Variant, QDistinct> distinctById() {
@@ -4120,6 +5418,11 @@ extension VariantQueryWhereDistinct
   QueryBuilder<Variant, Variant, QDistinct> distinctByIsrcAmt(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('isrcAmt', caseSensitive: caseSensitive);
+  }
+
+  QueryBuilder<Variant, Variant, QDistinct> distinctByIsrcAplcbYn(
+      {bool caseSensitive = true}) {
+    return addDistinctByInternal('isrcAplcbYn', caseSensitive: caseSensitive);
   }
 
   QueryBuilder<Variant, Variant, QDistinct> distinctByIsrcRt(
@@ -4171,6 +5474,16 @@ extension VariantQueryWhereDistinct
     return addDistinctByInternal('migrated');
   }
 
+  QueryBuilder<Variant, Variant, QDistinct> distinctByModrId(
+      {bool caseSensitive = true}) {
+    return addDistinctByInternal('modrId', caseSensitive: caseSensitive);
+  }
+
+  QueryBuilder<Variant, Variant, QDistinct> distinctByModrNm(
+      {bool caseSensitive = true}) {
+    return addDistinctByInternal('modrNm', caseSensitive: caseSensitive);
+  }
+
   QueryBuilder<Variant, Variant, QDistinct> distinctByName(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('name', caseSensitive: caseSensitive);
@@ -4213,6 +5526,16 @@ extension VariantQueryWhereDistinct
     return addDistinctByInternal('qtyUnitCd', caseSensitive: caseSensitive);
   }
 
+  QueryBuilder<Variant, Variant, QDistinct> distinctByRegrId(
+      {bool caseSensitive = true}) {
+    return addDistinctByInternal('regrId', caseSensitive: caseSensitive);
+  }
+
+  QueryBuilder<Variant, Variant, QDistinct> distinctByRegrNm(
+      {bool caseSensitive = true}) {
+    return addDistinctByInternal('regrNm', caseSensitive: caseSensitive);
+  }
+
   QueryBuilder<Variant, Variant, QDistinct> distinctByRetailPrice() {
     return addDistinctByInternal('retailPrice');
   }
@@ -4253,16 +5576,33 @@ extension VariantQueryWhereDistinct
     return addDistinctByInternal('taxTyCd', caseSensitive: caseSensitive);
   }
 
+  QueryBuilder<Variant, Variant, QDistinct> distinctByTin() {
+    return addDistinctByInternal('tin');
+  }
+
   QueryBuilder<Variant, Variant, QDistinct> distinctByUnit(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('unit', caseSensitive: caseSensitive);
+  }
+
+  QueryBuilder<Variant, Variant, QDistinct> distinctByUseYn(
+      {bool caseSensitive = true}) {
+    return addDistinctByInternal('useYn', caseSensitive: caseSensitive);
   }
 }
 
 extension VariantQueryProperty
     on QueryBuilder<Variant, Variant, QQueryProperty> {
+  QueryBuilder<Variant, String?, QQueryOperations> addInfoProperty() {
+    return addPropertyNameInternal('addInfo');
+  }
+
   QueryBuilder<Variant, String?, QQueryOperations> bcdProperty() {
     return addPropertyNameInternal('bcd');
+  }
+
+  QueryBuilder<Variant, String?, QQueryOperations> bhfIdProperty() {
+    return addPropertyNameInternal('bhfId');
   }
 
   QueryBuilder<Variant, int, QQueryOperations> branchIdProperty() {
@@ -4273,12 +5613,20 @@ extension VariantQueryProperty
     return addPropertyNameInternal('channels');
   }
 
+  QueryBuilder<Variant, double?, QQueryOperations> dftPrcProperty() {
+    return addPropertyNameInternal('dftPrc');
+  }
+
   QueryBuilder<Variant, int, QQueryOperations> idProperty() {
     return addPropertyNameInternal('id');
   }
 
   QueryBuilder<Variant, String?, QQueryOperations> isrcAmtProperty() {
     return addPropertyNameInternal('isrcAmt');
+  }
+
+  QueryBuilder<Variant, String?, QQueryOperations> isrcAplcbYnProperty() {
+    return addPropertyNameInternal('isrcAplcbYn');
   }
 
   QueryBuilder<Variant, String?, QQueryOperations> isrcRtProperty() {
@@ -4321,6 +5669,14 @@ extension VariantQueryProperty
     return addPropertyNameInternal('migrated');
   }
 
+  QueryBuilder<Variant, String?, QQueryOperations> modrIdProperty() {
+    return addPropertyNameInternal('modrId');
+  }
+
+  QueryBuilder<Variant, String?, QQueryOperations> modrNmProperty() {
+    return addPropertyNameInternal('modrNm');
+  }
+
   QueryBuilder<Variant, String, QQueryOperations> nameProperty() {
     return addPropertyNameInternal('name');
   }
@@ -4355,6 +5711,14 @@ extension VariantQueryProperty
 
   QueryBuilder<Variant, String?, QQueryOperations> qtyUnitCdProperty() {
     return addPropertyNameInternal('qtyUnitCd');
+  }
+
+  QueryBuilder<Variant, String?, QQueryOperations> regrIdProperty() {
+    return addPropertyNameInternal('regrId');
+  }
+
+  QueryBuilder<Variant, String?, QQueryOperations> regrNmProperty() {
+    return addPropertyNameInternal('regrNm');
   }
 
   QueryBuilder<Variant, double, QQueryOperations> retailPriceProperty() {
@@ -4393,7 +5757,15 @@ extension VariantQueryProperty
     return addPropertyNameInternal('taxTyCd');
   }
 
+  QueryBuilder<Variant, int?, QQueryOperations> tinProperty() {
+    return addPropertyNameInternal('tin');
+  }
+
   QueryBuilder<Variant, String, QQueryOperations> unitProperty() {
     return addPropertyNameInternal('unit');
+  }
+
+  QueryBuilder<Variant, String?, QQueryOperations> useYnProperty() {
+    return addPropertyNameInternal('useYn');
   }
 }

@@ -16,8 +16,8 @@ class RWTax implements TaxApi {
   }) async {
     String? token = ProxyService.box.read(key: 'bearerToken');
     var headers = {'Authorization': token!, 'Content-Type': 'application/json'};
-    var request = http.Request('POST',
-        Uri.parse('https://apihub.yegobox.com/initializer/selectInitInfo'));
+    var request =
+        http.Request('POST', Uri.parse(apihub + 'initializer/selectInitInfo'));
     request.body =
         json.encode({"tin": tinNumber, "bhfId": bhfId, "dvcSrlNo": dvcSrlNo});
     request.headers.addAll(headers);
@@ -39,20 +39,20 @@ class RWTax implements TaxApi {
   /// @[rsdQty] is the remaining stock of the item.
   @override
   Future<bool> saveStock({required Stock stock}) async {
-    Business? business = await ProxyService.isarApi.getBusiness();
     var headers = {'Content-Type': 'application/json'};
+    Variant? variant =
+        await ProxyService.isarApi.getVariantById(id: stock.variantId);
     var request = http.Request(
         'POST', Uri.parse(apihub + '/stockMaster/saveStockMaster'));
     request.body = json.encode({
-      "tin": business!.tinNumber,
-      "bhfId": business.bhfId,
-      "itemCd": itemPrefix + stock.variantId.toString(),
-      // remaining stock
+      "tin": variant?.tin,
+      "bhfId": variant?.bhfId,
+      "itemCd": variant?.itemCd,
       "rsdQty": stock.currentStock,
-      "modrNm": stock.productId,
-      "regrId": stock.productId,
-      "regrNm": stock.productId,
-      "modrId": stock.id
+      "modrNm": variant?.modrNm,
+      "regrId": variant?.regrId,
+      "regrNm": variant?.regrNm,
+      "modrId": variant?.modrId
     });
     request.headers.addAll(headers);
 
@@ -75,38 +75,11 @@ class RWTax implements TaxApi {
   /// After saving item then we can use items/selectItems endPoint to get the item information. of item saved before
   @override
   Future<bool> saveItem({required Variant variation}) async {
-    Business? business = await ProxyService.isarApi.getBusiness();
     var headers = {'Content-Type': 'application/json'};
     var request = http.Request('POST', Uri.parse(apihub + '/items/saveItems'));
-    request.body = json.encode({
-      "tin": business!.tinNumber,
-      "bhfId": business.bhfId,
-      // item code
-      "itemCd": itemPrefix + variation.id.toString(),
-      // item clasification code
-      "itemClsCd": itemPrefix + variation.id.toString(),
-      // Item Type code
-      "itemTyCd": "1",
-      "itemNm": variation.name,
-      "itemStdNm": variation.name,
-      // Origin place code
-      "orgnNatCd": "RW",
-      // package unit code
-      "pkgUnitCd": "NT",
-      // Quantity unit code
-      "qtyUnitCd": "CA",
-      "taxTyCd": "B",
-      "dftPrc": 400.0,
-      "addInfo": "A",
-      // insurance applicable
-      "isrcAplcbYn": "N",
-      // Used
-      "useYn": "N",
-      "regrId": variation.id,
-      "regrNm": variation.name,
-      "modrId": variation.id,
-      "modrNm": variation.name
-    });
+    // TODO:text if variation.toJson() is having data
+    request.body = json.encode(variation.toJson());
+
     request.headers.addAll(headers);
 
     http.StreamedResponse response = await request.send();
@@ -152,6 +125,13 @@ class RWTax implements TaxApi {
       required List<OrderItem> items,
       re}) async {
     Business? business = await ProxyService.isarApi.getBusiness();
+    // TODO:get the tax calculation right!
+    String date = DateTime.now()
+        .toString()
+        .replaceAll(":", "")
+        .replaceAll("-", "")
+        .replaceAll(" ", "")
+        .substring(0, 14);
     var headers = {'Content-Type': 'application/json'};
     var request =
         http.Request('POST', Uri.parse(apihub + 'trnsSales/saveSales'));
@@ -166,20 +146,16 @@ class RWTax implements TaxApi {
       "rcptTyCd": "S",
       "pmtTyCd": "01",
       "salesSttsCd": "02",
-      // Validated Date
-      // yyyMMddhhmmss
-      "cfmDt": "20210709120300",
-      "salesDt": "20210709",
-      // Stock Released Date
-      // YYYY-MM-DD HH24:MI:SS
-      "stockRlsDt": "20210709120300",
-      // "cnclReqDt": null,
-      // "cnclDt": null,
-      // "rfdDt": null,
-      // "rfdRsnCd": null,
+      "cfmDt": date,
+      "salesDt": date.substring(0, 8),
+      "stockRlsDt": date,
+      "cnclReqDt": null,
+      "cnclDt": null,
+      "rfdDt": null,
+      "rfdRsnCd": null,
       "totItemCnt": 2,
       "taxblAmtA": 0,
-      "taxblAmtB": 250000,
+      "taxblAmtB": order.subTotal,
       "taxblAmtC": 0,
       "taxblAmtD": 0,
       "taxRtA": 0,
@@ -192,69 +168,36 @@ class RWTax implements TaxApi {
       "taxAmtD": 0,
       "totTaxblAmt": 250000,
       "totTaxAmt": 38135,
-      "totAmt": 250000,
+      "totAmt": order.subTotal,
       "prchrAcptcYn": "N",
       "remark": null,
-      "regrId": "11999",
-      "regrNm": "Test VSDC",
-      // Modifier ID
+      "regrId": order.id,
+      "regrNm": order.id,
       "modrId": order.id,
-      // Modifier name
       "modrNm": order.id + order.branchId,
       "receipt": {
         // Current Receipt number
-        "curRcptNo": 1,
+        "curRcptNo": order.id,
         // Total Receipt Number
         "totRcptNo": 1,
         "custTin": customer == null ? "" : customer.tinNumber,
         "custMblNo": customer == null ? "" : customer.phone,
-        "rptNo": 248,
-        "rcptPbctDt": "20201118120300",
+        "rptNo": date,
+        "rcptPbctDt": date,
         "intrlData": itemPrefix +
             order.id.toString() +
             DateTime.now().millisecond.toString(),
         "rcptSign":
             itemPrefix + order.id.toString() + DateTime.now().toString(),
-        // "jrnl": "",
+        "jrnl": "",
         "trdeNm": business.name,
         "adrs": business.adrs,
-        "topMsg": "Shopwithus",
+        "topMsg": "Shop with us",
         "btmMsg": "Welcome",
         // Whether buyers receive item or not. default to Y es
         "prchrAcptcYn": "Y"
       },
-      "itemList": [
-        {
-          "itemSeq": 1,
-          "itemCd": "RW1NTXU0000001",
-          "itemClsCd": "5059690800",
-          "itemNm": "OutDoorUnit",
-          "bcd": null,
-          "pkgUnitCd": "NT",
-          "pkg": 1,
-          "qtyUnitCd": "U",
-          "qty": 1,
-          // unit price, no
-          "prc": 200000,
-          // supply amount, no
-          "splyAmt": 200000,
-          // discount rate, no
-          "dcRt": 0,
-          // discount amount, no
-          "dcAmt": 0,
-          "isrccCd": null,
-          "isrccNm": null,
-          "isrcRt": null,
-          "isrcAmt": null,
-          "taxTyCd": "B",
-          // no, taxable amount
-          "taxblAmt": 200000,
-          // Tax, amount
-          "taxAmt": 30508,
-          // total amount
-          "totAmt": 200000
-        }
-      ]
+      "itemList": items
     });
     request.headers.addAll(headers);
 

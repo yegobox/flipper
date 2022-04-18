@@ -524,6 +524,8 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<Product> createProduct({required Product product}) async {
+    Business? business = await getBusiness();
+    String itemPrefix = "flipper-";
     product.active = false;
     product.id = DateTime.now().microsecondsSinceEpoch;
     product.description = 'description';
@@ -551,6 +553,28 @@ class IsarAPI implements IsarApiInterface {
         ..taxName = 'N/A'
         ..taxPercentage = 0
         ..retailPrice = 0
+        // RRA fields
+        ..bhfId = business?.bhfId
+        ..tin = business?.tinNumber
+        ..itemCd = itemPrefix + DateTime.now().microsecondsSinceEpoch.toString()
+        ..itemClsCd =
+            itemPrefix + DateTime.now().microsecondsSinceEpoch.toString()
+        ..itemTyCd = "1"
+        ..itemNm = "Regular"
+        ..itemStdNm = "Regular"
+        ..orgnNatCd = "RW"
+        ..pkgUnitCd = "NT"
+        ..qtyUnitCd = "CA"
+        ..taxTyCd = "B"
+        ..dftPrc = 0.0
+        ..addInfo = "A"
+        ..isrcAplcbYn = "N"
+        ..useYn = "N"
+        ..regrId = itemPrefix + DateTime.now().microsecondsSinceEpoch.toString()
+        ..regrNm = "Regular"
+        ..modrId = itemPrefix + DateTime.now().microsecondsSinceEpoch.toString()
+        ..modrNm = "Regular"
+        // RRA fields ends
         ..supplyPrice = 0.0,
     );
     await isar.writeTxn((isar) async {
@@ -1494,6 +1518,13 @@ class IsarAPI implements IsarApiInterface {
           .orderIdEqualTo(orderId)
           .build()
           .findAll();
+    });
+  }
+
+  @override
+  Future<Variant?> getVariantById({required int id}) async {
+    return isar.writeTxn((isar) async {
+      return await isar.variants.filter().idEqualTo(id).build().findFirst();
     });
   }
 }

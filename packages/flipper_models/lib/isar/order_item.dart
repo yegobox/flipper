@@ -19,6 +19,8 @@ class OrderItem {
   late double remainingStock;
   late String createdAt;
   late String updatedAt;
+
+  // RRA fields
   // discount rate
   double? dcRt;
   // discount amount
@@ -69,4 +71,14 @@ class OrderItem {
   double? prc;
   // supply amount
   double? splyAmt;
+  int? tin;
+  String? bhfId;
+  double? dftPrc;
+  String? addInfo;
+  String? isrcAplcbYn;
+  String? useYn;
+  String? regrId;
+  String? regrNm;
+  String? modrId;
+  String? modrNm;
 }

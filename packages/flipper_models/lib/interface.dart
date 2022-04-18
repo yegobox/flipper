@@ -172,4 +172,5 @@ abstract class IsarApiInterface {
 
   /// get a list of orderItems given orderId
   Future<List<OrderItem>> orderItems({required int orderId});
+  Future<Variant?> getVariantById({required int id});
 }
