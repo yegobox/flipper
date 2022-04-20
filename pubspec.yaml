@@ -46,7 +46,7 @@ dependencies:
   firebase_auth_desktop: ^0.1.1-dev.6
   firebase_core: ^1.14.0
   firebase_core_desktop: ^0.1.1-dev.3
-  flutterfire_ui: ^0.4.0+2
+  flutterfire_ui: ^0.4.0-dev-19
   get_storage: ^2.0.3
   firebase_auth: ^3.3.5
   google_fonts: ^2.1.0
