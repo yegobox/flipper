@@ -1149,10 +1149,10 @@ packages:
   flutterfire_ui:
     dependency: "direct main"
     description:
-      name: flutterfire_ui
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.4.0+2"
+      path: "packages/flutterfire_ui"
+      relative: true
+    source: path
+    version: "0.4.0-dev-19"
   font_awesome_flutter:
     dependency: transitive
     description:

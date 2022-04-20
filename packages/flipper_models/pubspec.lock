@@ -1095,12 +1095,12 @@ packages:
     source: sdk
     version: "0.0.0"
   flutterfire_ui:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: flutterfire_ui
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.4.0+2"
+      path: "../flutterfire_ui"
+      relative: true
+    source: path
+    version: "0.4.0-dev-19"
   font_awesome_flutter:
     dependency: transitive
     description:
