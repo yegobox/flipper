@@ -129,14 +129,14 @@ void main() {
 //       expect(product, isA<Product>());
 
 //       List<Variant> variants =
-//           await api.variants(branchId: 11, productId: product.id);
+//           await api.variants(branchId: 11, productId: product.id!);
 //       expect(variants, isA<List<Variant>>());
 
 //       Stock stock = await api.stockByVariantId(variantId: variants[0].id);
 
 //       expect(stock, isA<Stock>());
 
-//       final delete = await api.delete(id: product.id, endPoint: 'product');
+//       final delete = await api.delete(id: product.id!, endPoint: 'product');
 //       expect(delete, isA<bool>());
 //       final delete1 = await api.delete(id: variants[0].id, endPoint: 'variant');
 //       expect(delete1, isA<bool>());

@@ -16,7 +16,7 @@ class ListUnits extends StatelessWidget {
         GestureDetector(
           onTap: () {
             model.saveFocusedUnit(
-                newUnit: model.units[i], id: model.product.id, type: type);
+                newUnit: model.units[i], id: model.product.id!, type: type);
           },
           child: ListTile(
             title: Text(
@@ -28,7 +28,7 @@ class ListUnits extends StatelessWidget {
               groupValue: model.units[i].active ? model.units[i].id : 0,
               onChanged: (value) {
                 model.saveFocusedUnit(
-                    newUnit: model.units[i], id: model.product.id, type: type);
+                    newUnit: model.units[i], id: model.product.id!, type: type);
               },
             ),
           ),

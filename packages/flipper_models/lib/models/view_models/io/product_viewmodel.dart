@@ -51,15 +51,14 @@ class ProductViewModel extends ReactiveViewModel {
   /// the same product will be use if it is still temp product
   ///
   String kProductName = 'null';
-  Future<int> loadTemporalproductOrEditIfProductIdGiven(
-      {int? productId}) async {
+  Future<int> getTempOrCreateProduct({int? productId}) async {
     if (productId != null) {
       Product? product = await ProxyService.isarApi.getProduct(id: productId);
       productService.setCurrentProduct(product: product!);
       kProductName = product.name;
-      productService.variantsProduct(productId: product.id);
+      productService.variantsProduct(productId: product.id!);
       notifyListeners();
-      return product.id;
+      return product.id!;
     }
     int branchId = ProxyService.box.getBranchId()!;
     Product? isTemp =
@@ -72,19 +71,19 @@ class ProductViewModel extends ReactiveViewModel {
             ..color = "#5A2328"
             ..branchId = ProxyService.box.getBranchId()!
             ..businessId = ProxyService.box.getBusinessId()!);
-      productService.variantsProduct(productId: product.id);
+      await productService.variantsProduct(productId: product.id!);
 
       productService.setCurrentProduct(product: product);
       kProductName = product.name;
+      log.i(product.id!);
       notifyListeners();
-      return product.id;
+      return product.id!;
     }
-
     productService.setCurrentProduct(product: isTemp);
-    productService.variantsProduct(productId: isTemp.id);
+    await productService.variantsProduct(productId: isTemp.id!);
     notifyListeners();
-
-    return isTemp.id;
+    log.i(isTemp.id);
+    return isTemp.id!;
   }
 
   void isPriceSet(bool price) {
@@ -141,9 +140,7 @@ class ProductViewModel extends ReactiveViewModel {
         cat.focused = !cat.focused;
         cat.branchId = branchId;
         cat.active = !cat.active;
-        int categoryId = category.id;
         await ProxyService.isarApi.update(
-          endPoint: 'category/$categoryId',
           data: cat,
         );
       }
@@ -153,9 +150,7 @@ class ProductViewModel extends ReactiveViewModel {
     cat.focused = !cat.focused;
     cat.active = !cat.active;
     cat.branchId = branchId;
-    int categoryId = category.id;
     await ProxyService.isarApi.update(
-      endPoint: 'category/$categoryId',
       data: cat,
     );
     _appService.loadCategories();
@@ -184,7 +179,7 @@ class ProductViewModel extends ReactiveViewModel {
       product.unit = unit.name;
       ProxyService.isarApi.update(data: product);
       final Product? uProduct =
-          await ProxyService.isarApi.getProduct(id: product.id);
+          await ProxyService.isarApi.getProduct(id: product.id!);
       productService.setCurrentProduct(product: uProduct!);
     }
     if (type == 'variant') {
@@ -199,14 +194,13 @@ class ProductViewModel extends ReactiveViewModel {
     if (_stockValue != null) {
       Stock? stock =
           await ProxyService.isarApi.stockByVariantId(variantId: variantId);
-      // Map data = stock;
-      stock!.currentStock = _stockValue!;
-      final int stockId = stock.id;
 
-      ProxyService.isarApi.update(data: stock, endPoint: 'stock/$stockId');
-      productService.variantsProduct(productId: product.id);
+      stock!.currentStock = _stockValue!;
+
+      ProxyService.isarApi.update(data: stock);
+      productService.variantsProduct(productId: product.id!);
     }
-    productService.variantsProduct(productId: product.id);
+    productService.variantsProduct(productId: product.id!);
   }
 
   double? _stockValue;
@@ -222,7 +216,7 @@ class ProductViewModel extends ReactiveViewModel {
     if (variant!.name != 'Regular') {
       ProxyService.isarApi.delete(id: id, endPoint: 'variation');
       //this will reload the variations remain
-      loadTemporalproductOrEditIfProductIdGiven();
+      getTempOrCreateProduct();
     }
   }
 
@@ -322,7 +316,7 @@ class ProductViewModel extends ReactiveViewModel {
         }
       }
     }
-    productService.variantsProduct(productId: product.id);
+    productService.variantsProduct(productId: product.id!);
   }
 
   /// Add a product into the system
@@ -334,11 +328,11 @@ class ProductViewModel extends ReactiveViewModel {
     mproduct.color = currentColor;
     mproduct.draft = false;
     List<Variant> variants = await ProxyService.isarApi
-        .getVariantByProductId(productId: mproduct.id);
+        .getVariantByProductId(productId: mproduct.id!);
 
     for (Variant variant in variants) {
       variant.productName = name;
-      variant.productId = mproduct.id;
+      variant.productId = mproduct.id!;
       await ProxyService.isarApi.update(data: variant);
     }
     final response = await ProxyService.isarApi.update(data: mproduct);

@@ -145,21 +145,16 @@ class FirestoreApi implements FlipperFirestore {
     // business['chatUid'] = user!.uid;
     // log.i(business);
     if (business['id'] is int) {
-      ProxyService.isarApi
-          .updateBusiness(id: business['id'], business: business);
+      // to avoid unneccessary database api calls
+      // call this only when a user log in and it is on Monday
+      final today = DateTime.now().weekday;
+      if (today == 1) {
+        ProxyService.isarApi
+            .updateBusiness(id: business['id'], business: business);
 
-      //this update local database
-      ProxyService.isarApi.update(
-          data: business, endPoint: 'businesses/' + business['id'].toString());
+        ProxyService.isarApi.update(data: business);
+      }
     }
-
-    //old way!
-    // createUser(user: userId, token: token!);
-    // try {
-    //   await usersCollection.doc(userId).update({
-    //     'tokens': FieldValue.arrayUnion([token]),
-    //   });
-    // } catch (e) {}
   }
 
   @override

@@ -199,16 +199,16 @@ void main() async {
           ),
         ),
         GoRoute(
-          path: '/product',
-          name: 'product',
+          path: '/create/:handle',
+          name: 'create',
           pageBuilder: (context, state) => MaterialPage(
             key: state.pageKey,
             child: const AddProductView(),
           ),
         ),
         GoRoute(
-          path: '/product/:id',
-          name: 'editProduct',
+          path: '/edit/:handle/:id',
+          name: 'edit',
           pageBuilder: (context, state) => MaterialPage(
             key: state.pageKey,
             child: AddProductView(

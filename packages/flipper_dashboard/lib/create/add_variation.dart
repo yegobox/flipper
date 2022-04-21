@@ -55,7 +55,7 @@ class _AddVariationState extends State<AddVariation> {
                     ..sku = sku
                     ..retailPrice = double.parse(retailController.text)
                     ..supplyPrice = double.parse(costController.text)
-                    ..productId = model.product.id
+                    ..productId = model.product.id!
                     ..unit = model.productService.currentUnit!
                     ..productName = model.product.name
                     ..branchId = model.productService.branchId!
@@ -69,7 +69,7 @@ class _AddVariationState extends State<AddVariation> {
                       retailPrice: double.parse(retailController.text),
                       supplyPrice: double.parse(costController.text));
                   model.productService
-                      .variantsProduct(productId: model.product.id);
+                      .variantsProduct(productId: model.product.id!);
                   GoRouter.of(context).pop();
                 }
               },

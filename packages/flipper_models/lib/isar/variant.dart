@@ -14,15 +14,12 @@ class Variant {
   late int productId;
   late String unit;
   late String table;
-  late List<String>? channels;
   late String productName;
   late int branchId;
   late String? taxName;
   late double? taxPercentage;
   late double supplyPrice;
   late double retailPrice;
-  late bool? synced;
-  late bool? migrated;
 
   // add RRA fields
   String? itemSeq;
@@ -79,15 +76,12 @@ class Variant {
         'productId': productId,
         'unit': unit,
         'table': table,
-        'channels': channels,
         'productName': productName,
         'branchId': branchId,
         'taxName': taxName,
         'taxPercentage': taxPercentage,
         'supplyPrice': supplyPrice,
         'retailPrice': retailPrice,
-        'synced': synced,
-        'migrated': migrated,
         'itemSeq': itemSeq,
         'isrccCd': isrccCd,
         'isrccNm': isrccNm,

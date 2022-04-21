@@ -5,6 +5,7 @@
 // **************************************************************************
 
 import 'package:flipper_models/interface.dart' as _i16;
+import 'package:flipper_models/tax_api.dart' as _i29;
 import 'package:get_it/get_it.dart' as _i1;
 import 'package:injectable/injectable.dart' as _i2;
 
@@ -18,7 +19,7 @@ import 'abstractions/share.dart' as _i26;
 import 'abstractions/storage.dart' as _i20;
 import 'abstractions/sync.dart' as _i27;
 import 'abstractions/system_time.dart' as _i28;
-import 'abstractions/upload.dart' as _i29;
+import 'abstractions/upload.dart' as _i30;
 import 'analytic_service.dart' as _i4;
 import 'app_service.dart' as _i6;
 import 'billing_service.dart' as _i7;
@@ -35,7 +36,7 @@ import 'local_notification_service.dart' as _i18;
 import 'product_service.dart' as _i22;
 import 'setting_service.dart' as _i25;
 import 'third_party_services_module.dart'
-    as _i30; // ignore_for_file: unnecessary_lambdas
+    as _i31; // ignore_for_file: unnecessary_lambdas
 
 // ignore_for_file: lines_longer_than_80_chars
 /// initializes the registration of provided dependencies inside of [GetIt]
@@ -82,11 +83,12 @@ _i1.GetIt $initGetIt(_i1.GetIt get,
   gh.lazySingleton<_i27.SyncApiInterface>(
       () => thirdPartyServicesModule.syncApi);
   gh.lazySingleton<_i28.SystemTime>(() => thirdPartyServicesModule.systemTime);
-  gh.lazySingleton<_i29.UploadT>(() => thirdPartyServicesModule.upload);
+  gh.lazySingleton<_i29.TaxApi>(() => thirdPartyServicesModule.taxApiService);
+  gh.lazySingleton<_i30.UploadT>(() => thirdPartyServicesModule.upload);
   return get;
 }
 
-class _$ThirdPartyServicesModule extends _i30.ThirdPartyServicesModule {
+class _$ThirdPartyServicesModule extends _i31.ThirdPartyServicesModule {
   @override
   _i4.AnalyticService get analytic => _i4.AnalyticService();
   @override

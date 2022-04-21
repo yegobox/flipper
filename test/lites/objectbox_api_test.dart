@@ -136,18 +136,18 @@ void main() {
     // final date = DateTime.now().toIso8601String();
     // kProduct['expiryDate'] = date;
     // api.update(data: kProduct, endPoint: 'product');
-    // ProductSync? fProduct = await api.getProduct(id: product.id);
+    // ProductSync? fProduct = await api.getProduct(id: product.id!);
     // expect(fProduct!.expiryDate, date);
     // //load variants too just!
     // List<Variant> variants =
-    //     await api.variants(branchId: 11, productId: product.id);
+    //     await api.variants(branchId: 11, productId: product.id!);
     // expect(variants.isEmpty, false);
   });
   test('create a custom product', () async {
     // Directory dir = await getApplicationDocumentsDirectory();
     // ObjectBoxApi api = new ObjectBoxApi(dir: dir);
     // ProductSync product = await api.createProduct(product: customProductMock);
-    // ProductSync? getProduct = await api.getProduct(id: product.id);
+    // ProductSync? getProduct = await api.getProduct(id: product.id!);
     // expect(getProduct!.name, 'Custom Amount');
     // expect(product.name, 'Custom Amount');
     expect(200, 200);

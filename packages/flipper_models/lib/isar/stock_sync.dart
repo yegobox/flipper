@@ -9,6 +9,7 @@ class Stock {
   late int branchId;
   late int variantId;
   double? lowStock;
+
   late double currentStock;
   double? supplyPrice;
   double? retailPrice;
@@ -16,5 +17,10 @@ class Stock {
   bool? showLowStockAlert;
   late int productId;
   bool? active;
+
+  /// the value of stock is currentStock * retailPrice
   double? value;
+
+  // RRA fields
+  double? rsdQty;
 }

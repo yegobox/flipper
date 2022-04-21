@@ -591,72 +591,70 @@ class Sell extends StatelessWidget {
   Widget build(BuildContext context) {
     return ViewModelBuilder<BusinessHomeViewModel>.reactive(
         onModelReady: (model) async {
-          await model.getVariants(productId: product.id);
+          await model.getVariants(productId: product.id!);
         },
         viewModelBuilder: () => BusinessHomeViewModel(),
         builder: (context, model, child) {
-          return Container(
-            child: Scaffold(
-              backgroundColor: Colors.white,
-              appBar: CustomAppBar(
-                onPop: () {
-                  GoRouter.of(context).pop();
-                },
-                title: buildTitle(model),
-                rightActionButtonName: 'Save',
-                disableButton: false,
-                showActionButton: true,
-                onPressedCallback: () async {
-                  await model.saveOrder(
-                    variationId: model.checked,
-                    amount: model.amountTotal,
-                  );
-                  GoRouter.of(context).pop();
-                },
-                // actionButtonName: 'Add',
-                icon: Icons.close,
-                multi: 1,
-                bottomSpacer: 49,
-              ),
-              body: Container(
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(18.0, 30.0, 18.0, 2.0),
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            Text(
-                              product.name,
-                              style: GoogleFonts.rubik(
-                                textStyle: TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 14.0,
-                                    color: Colors.grey[800]),
-                              ),
+          return Scaffold(
+            backgroundColor: Colors.white,
+            appBar: CustomAppBar(
+              onPop: () {
+                GoRouter.of(context).pop();
+              },
+              title: buildTitle(model),
+              rightActionButtonName: 'Save',
+              disableButton: false,
+              showActionButton: true,
+              onPressedCallback: () async {
+                await model.saveOrder(
+                  variationId: model.checked,
+                  amount: model.amountTotal,
+                );
+                GoRouter.of(context).pop();
+              },
+              // actionButtonName: 'Add',
+              icon: Icons.close,
+              multi: 1,
+              bottomSpacer: 49,
+            ),
+            body: Container(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(18.0, 30.0, 18.0, 2.0),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            product.name,
+                            style: GoogleFonts.rubik(
+                              textStyle: TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 14.0,
+                                  color: Colors.grey[800]),
                             ),
-                            const SizedBox(
-                              height: 4.0,
+                          ),
+                          const SizedBox(
+                            height: 4.0,
+                          ),
+                          Text(
+                            '  CHOOSE ONE',
+                            style: GoogleFonts.rubik(
+                              textStyle: TextStyle(
+                                  fontSize: 11.0, color: Colors.grey[700]),
                             ),
-                            Text(
-                              '  CHOOSE ONE',
-                              style: GoogleFonts.rubik(
-                                textStyle: TextStyle(
-                                    fontSize: 11.0, color: Colors.grey[700]),
-                              ),
-                            )
-                          ],
-                        ),
+                          )
+                        ],
+                      ),
 
-                        ListView(
-                          shrinkWrap: true,
-                          children: variant(model: model),
-                        ),
+                      ListView(
+                        shrinkWrap: true,
+                        children: variant(model: model),
+                      ),
 
-                        // endloop  == start/and discounts
-                        Quantity(context: context, model: model),
-                      ],
-                    ),
+                      // endloop  == start/and discounts
+                      Quantity(context: context, model: model),
+                    ],
                   ),
                 ),
               ),

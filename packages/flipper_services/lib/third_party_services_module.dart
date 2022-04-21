@@ -189,13 +189,13 @@ abstract class ThirdPartyServicesModule {
   }
 
   @lazySingleton
-  TaxApi get taxApi {
-    late TaxApi apiService;
+  TaxApi get taxApiService {
+    late TaxApi taxApiService;
 
     /// TODOwhen we support more country we can switch
     /// based on the business location.
-    apiService = RWTax();
-    return apiService;
+    taxApiService = RWTax();
+    return taxApiService;
   }
 
   @lazySingleton

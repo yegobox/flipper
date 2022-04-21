@@ -707,6 +707,10 @@ class MockRemote extends _i1.Mock implements _i13.Remote {
   bool isLinkedDeviceAvailable() =>
       (super.noSuchMethod(Invocation.method(#isLinkedDeviceAvailable, []),
           returnValue: false) as bool);
+  @override
+  String supportLine() =>
+      (super.noSuchMethod(Invocation.method(#supportLine, []), returnValue: '')
+          as String);
 }
 
 /// A class which mocks [FirebaseMessaging].

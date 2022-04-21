@@ -110,7 +110,7 @@ class _ProductWebAdapter extends IsarWebTypeAdapter<Product> {
     object.draft = IsarNative.jsObjectGet(jsObj, 'draft');
     object.expiryDate = IsarNative.jsObjectGet(jsObj, 'expiryDate');
     object.hasPicture = IsarNative.jsObjectGet(jsObj, 'hasPicture') ?? false;
-    object.id = IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity;
+    object.id = IsarNative.jsObjectGet(jsObj, 'id');
     object.imageLocal = IsarNative.jsObjectGet(jsObj, 'imageLocal');
     object.imageUrl = IsarNative.jsObjectGet(jsObj, 'imageUrl');
     object.name = IsarNative.jsObjectGet(jsObj, 'name') ?? '';
@@ -120,8 +120,7 @@ class _ProductWebAdapter extends IsarWebTypeAdapter<Product> {
     object.table = IsarNative.jsObjectGet(jsObj, 'table');
     object.taxId = IsarNative.jsObjectGet(jsObj, 'taxId');
     object.unit = IsarNative.jsObjectGet(jsObj, 'unit');
-    attachLinks(collection.isar,
-        IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity, object);
+    attachLinks(collection.isar, IsarNative.jsObjectGet(jsObj, 'id'), object);
     return object;
   }
 
@@ -155,8 +154,7 @@ class _ProductWebAdapter extends IsarWebTypeAdapter<Product> {
       case 'hasPicture':
         return (IsarNative.jsObjectGet(jsObj, 'hasPicture') ?? false) as P;
       case 'id':
-        return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
-            as P;
+        return (IsarNative.jsObjectGet(jsObj, 'id')) as P;
       case 'imageLocal':
         return (IsarNative.jsObjectGet(jsObj, 'imageLocal')) as P;
       case 'imageUrl':
@@ -418,7 +416,7 @@ extension ProductQueryWhereSort on QueryBuilder<Product, Product, QWhere> {
 }
 
 extension ProductQueryWhere on QueryBuilder<Product, Product, QWhereClause> {
-  QueryBuilder<Product, Product, QAfterWhereClause> idEqualTo(int id) {
+  QueryBuilder<Product, Product, QAfterWhereClause> idEqualTo(int? id) {
     return addWhereClauseInternal(WhereClause(
       indexName: null,
       lower: [id],
@@ -428,7 +426,7 @@ extension ProductQueryWhere on QueryBuilder<Product, Product, QWhereClause> {
     ));
   }
 
-  QueryBuilder<Product, Product, QAfterWhereClause> idNotEqualTo(int id) {
+  QueryBuilder<Product, Product, QAfterWhereClause> idNotEqualTo(int? id) {
     if (whereSortInternal == Sort.asc) {
       return addWhereClauseInternal(WhereClause(
         indexName: null,
@@ -453,7 +451,7 @@ extension ProductQueryWhere on QueryBuilder<Product, Product, QWhereClause> {
   }
 
   QueryBuilder<Product, Product, QAfterWhereClause> idGreaterThan(
-    int id, {
+    int? id, {
     bool include = false,
   }) {
     return addWhereClauseInternal(WhereClause(
@@ -464,7 +462,7 @@ extension ProductQueryWhere on QueryBuilder<Product, Product, QWhereClause> {
   }
 
   QueryBuilder<Product, Product, QAfterWhereClause> idLessThan(
-    int id, {
+    int? id, {
     bool include = false,
   }) {
     return addWhereClauseInternal(WhereClause(
@@ -475,8 +473,8 @@ extension ProductQueryWhere on QueryBuilder<Product, Product, QWhereClause> {
   }
 
   QueryBuilder<Product, Product, QAfterWhereClause> idBetween(
-    int lowerId,
-    int upperId, {
+    int? lowerId,
+    int? upperId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -1298,7 +1296,15 @@ extension ProductQueryFilter
     ));
   }
 
-  QueryBuilder<Product, Product, QAfterFilterCondition> idEqualTo(int value) {
+  QueryBuilder<Product, Product, QAfterFilterCondition> idIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'id',
+      value: null,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> idEqualTo(int? value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
       property: 'id',
@@ -1307,7 +1313,7 @@ extension ProductQueryFilter
   }
 
   QueryBuilder<Product, Product, QAfterFilterCondition> idGreaterThan(
-    int value, {
+    int? value, {
     bool include = false,
   }) {
     return addFilterConditionInternal(FilterCondition(
@@ -1319,7 +1325,7 @@ extension ProductQueryFilter
   }
 
   QueryBuilder<Product, Product, QAfterFilterCondition> idLessThan(
-    int value, {
+    int? value, {
     bool include = false,
   }) {
     return addFilterConditionInternal(FilterCondition(
@@ -1331,8 +1337,8 @@ extension ProductQueryFilter
   }
 
   QueryBuilder<Product, Product, QAfterFilterCondition> idBetween(
-    int lower,
-    int upper, {
+    int? lower,
+    int? upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -2660,7 +2666,7 @@ extension ProductQueryProperty
     return addPropertyNameInternal('hasPicture');
   }
 
-  QueryBuilder<Product, int, QQueryOperations> idProperty() {
+  QueryBuilder<Product, int?, QQueryOperations> idProperty() {
     return addPropertyNameInternal('id');
   }
 

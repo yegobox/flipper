@@ -31,7 +31,7 @@ class AddProductButtons extends StatelessWidget {
                   child: GElevatedButton(
                     'Add Product',
                     onPressed: () {
-                      GoRouter.of(context).push(Routes.product);
+                      GoRouter.of(context).push(Routes.create + "/product");
                     },
                   ),
                 ),

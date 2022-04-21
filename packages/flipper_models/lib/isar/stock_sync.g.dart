@@ -17,7 +17,7 @@ extension GetStockCollection on Isar {
 final StockSchema = CollectionSchema(
   name: 'Stock',
   schema:
-      '{"name":"Stock","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"canTrackingStock","type":"Bool"},{"name":"currentStock","type":"Double"},{"name":"lowStock","type":"Double"},{"name":"productId","type":"Long"},{"name":"retailPrice","type":"Double"},{"name":"showLowStockAlert","type":"Bool"},{"name":"supplyPrice","type":"Double"},{"name":"value","type":"Double"},{"name":"variantId","type":"Long"}],"indexes":[],"links":[]}',
+      '{"name":"Stock","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"canTrackingStock","type":"Bool"},{"name":"currentStock","type":"Double"},{"name":"lowStock","type":"Double"},{"name":"productId","type":"Long"},{"name":"retailPrice","type":"Double"},{"name":"rsdQty","type":"Double"},{"name":"showLowStockAlert","type":"Bool"},{"name":"supplyPrice","type":"Double"},{"name":"value","type":"Double"},{"name":"variantId","type":"Long"}],"indexes":[],"links":[]}',
   nativeAdapter: const _StockNativeAdapter(),
   webAdapter: const _StockWebAdapter(),
   idName: 'id',
@@ -29,10 +29,11 @@ final StockSchema = CollectionSchema(
     'lowStock': 4,
     'productId': 5,
     'retailPrice': 6,
-    'showLowStockAlert': 7,
-    'supplyPrice': 8,
-    'value': 9,
-    'variantId': 10
+    'rsdQty': 7,
+    'showLowStockAlert': 8,
+    'supplyPrice': 9,
+    'value': 10,
+    'variantId': 11
   },
   listProperties: {},
   indexIds: {},
@@ -66,6 +67,7 @@ class _StockWebAdapter extends IsarWebTypeAdapter<Stock> {
     IsarNative.jsObjectSet(jsObj, 'lowStock', object.lowStock);
     IsarNative.jsObjectSet(jsObj, 'productId', object.productId);
     IsarNative.jsObjectSet(jsObj, 'retailPrice', object.retailPrice);
+    IsarNative.jsObjectSet(jsObj, 'rsdQty', object.rsdQty);
     IsarNative.jsObjectSet(
         jsObj, 'showLowStockAlert', object.showLowStockAlert);
     IsarNative.jsObjectSet(jsObj, 'supplyPrice', object.supplyPrice);
@@ -88,6 +90,7 @@ class _StockWebAdapter extends IsarWebTypeAdapter<Stock> {
     object.productId =
         IsarNative.jsObjectGet(jsObj, 'productId') ?? double.negativeInfinity;
     object.retailPrice = IsarNative.jsObjectGet(jsObj, 'retailPrice');
+    object.rsdQty = IsarNative.jsObjectGet(jsObj, 'rsdQty');
     object.showLowStockAlert =
         IsarNative.jsObjectGet(jsObj, 'showLowStockAlert');
     object.supplyPrice = IsarNative.jsObjectGet(jsObj, 'supplyPrice');
@@ -120,6 +123,8 @@ class _StockWebAdapter extends IsarWebTypeAdapter<Stock> {
             double.negativeInfinity) as P;
       case 'retailPrice':
         return (IsarNative.jsObjectGet(jsObj, 'retailPrice')) as P;
+      case 'rsdQty':
+        return (IsarNative.jsObjectGet(jsObj, 'rsdQty')) as P;
       case 'showLowStockAlert':
         return (IsarNative.jsObjectGet(jsObj, 'showLowStockAlert')) as P;
       case 'supplyPrice':
@@ -159,14 +164,16 @@ class _StockNativeAdapter extends IsarNativeTypeAdapter<Stock> {
     final _productId = value5;
     final value6 = object.retailPrice;
     final _retailPrice = value6;
-    final value7 = object.showLowStockAlert;
-    final _showLowStockAlert = value7;
-    final value8 = object.supplyPrice;
-    final _supplyPrice = value8;
-    final value9 = object.value;
-    final _value = value9;
-    final value10 = object.variantId;
-    final _variantId = value10;
+    final value7 = object.rsdQty;
+    final _rsdQty = value7;
+    final value8 = object.showLowStockAlert;
+    final _showLowStockAlert = value8;
+    final value9 = object.supplyPrice;
+    final _supplyPrice = value9;
+    final value10 = object.value;
+    final _value = value10;
+    final value11 = object.variantId;
+    final _variantId = value11;
     final size = staticSize + dynamicSize;
 
     rawObj.buffer = alloc(size);
@@ -180,10 +187,11 @@ class _StockNativeAdapter extends IsarNativeTypeAdapter<Stock> {
     writer.writeDouble(offsets[4], _lowStock);
     writer.writeLong(offsets[5], _productId);
     writer.writeDouble(offsets[6], _retailPrice);
-    writer.writeBool(offsets[7], _showLowStockAlert);
-    writer.writeDouble(offsets[8], _supplyPrice);
-    writer.writeDouble(offsets[9], _value);
-    writer.writeLong(offsets[10], _variantId);
+    writer.writeDouble(offsets[7], _rsdQty);
+    writer.writeBool(offsets[8], _showLowStockAlert);
+    writer.writeDouble(offsets[9], _supplyPrice);
+    writer.writeDouble(offsets[10], _value);
+    writer.writeLong(offsets[11], _variantId);
   }
 
   @override
@@ -198,10 +206,11 @@ class _StockNativeAdapter extends IsarNativeTypeAdapter<Stock> {
     object.lowStock = reader.readDoubleOrNull(offsets[4]);
     object.productId = reader.readLong(offsets[5]);
     object.retailPrice = reader.readDoubleOrNull(offsets[6]);
-    object.showLowStockAlert = reader.readBoolOrNull(offsets[7]);
-    object.supplyPrice = reader.readDoubleOrNull(offsets[8]);
-    object.value = reader.readDoubleOrNull(offsets[9]);
-    object.variantId = reader.readLong(offsets[10]);
+    object.rsdQty = reader.readDoubleOrNull(offsets[7]);
+    object.showLowStockAlert = reader.readBoolOrNull(offsets[8]);
+    object.supplyPrice = reader.readDoubleOrNull(offsets[9]);
+    object.value = reader.readDoubleOrNull(offsets[10]);
+    object.variantId = reader.readLong(offsets[11]);
     return object;
   }
 
@@ -226,12 +235,14 @@ class _StockNativeAdapter extends IsarNativeTypeAdapter<Stock> {
       case 6:
         return (reader.readDoubleOrNull(offset)) as P;
       case 7:
-        return (reader.readBoolOrNull(offset)) as P;
-      case 8:
         return (reader.readDoubleOrNull(offset)) as P;
+      case 8:
+        return (reader.readBoolOrNull(offset)) as P;
       case 9:
         return (reader.readDoubleOrNull(offset)) as P;
       case 10:
+        return (reader.readDoubleOrNull(offset)) as P;
+      case 11:
         return (reader.readLong(offset)) as P;
       default:
         throw 'Illegal propertyIndex';
@@ -606,6 +617,45 @@ extension StockQueryFilter on QueryBuilder<Stock, Stock, QFilterCondition> {
     ));
   }
 
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> rsdQtyIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'rsdQty',
+      value: null,
+    ));
+  }
+
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> rsdQtyGreaterThan(
+      double? value) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.gt,
+      include: false,
+      property: 'rsdQty',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> rsdQtyLessThan(
+      double? value) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.lt,
+      include: false,
+      property: 'rsdQty',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> rsdQtyBetween(
+      double? lower, double? upper) {
+    return addFilterConditionInternal(FilterCondition.between(
+      property: 'rsdQty',
+      lower: lower,
+      includeLower: false,
+      upper: upper,
+      includeUpper: false,
+    ));
+  }
+
   QueryBuilder<Stock, Stock, QAfterFilterCondition> showLowStockAlertIsNull() {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.isNull,
@@ -815,6 +865,14 @@ extension StockQueryWhereSortBy on QueryBuilder<Stock, Stock, QSortBy> {
     return addSortByInternal('retailPrice', Sort.desc);
   }
 
+  QueryBuilder<Stock, Stock, QAfterSortBy> sortByRsdQty() {
+    return addSortByInternal('rsdQty', Sort.asc);
+  }
+
+  QueryBuilder<Stock, Stock, QAfterSortBy> sortByRsdQtyDesc() {
+    return addSortByInternal('rsdQty', Sort.desc);
+  }
+
   QueryBuilder<Stock, Stock, QAfterSortBy> sortByShowLowStockAlert() {
     return addSortByInternal('showLowStockAlert', Sort.asc);
   }
@@ -913,6 +971,14 @@ extension StockQueryWhereSortThenBy on QueryBuilder<Stock, Stock, QSortThenBy> {
     return addSortByInternal('retailPrice', Sort.desc);
   }
 
+  QueryBuilder<Stock, Stock, QAfterSortBy> thenByRsdQty() {
+    return addSortByInternal('rsdQty', Sort.asc);
+  }
+
+  QueryBuilder<Stock, Stock, QAfterSortBy> thenByRsdQtyDesc() {
+    return addSortByInternal('rsdQty', Sort.desc);
+  }
+
   QueryBuilder<Stock, Stock, QAfterSortBy> thenByShowLowStockAlert() {
     return addSortByInternal('showLowStockAlert', Sort.asc);
   }
@@ -979,6 +1045,10 @@ extension StockQueryWhereDistinct on QueryBuilder<Stock, Stock, QDistinct> {
     return addDistinctByInternal('retailPrice');
   }
 
+  QueryBuilder<Stock, Stock, QDistinct> distinctByRsdQty() {
+    return addDistinctByInternal('rsdQty');
+  }
+
   QueryBuilder<Stock, Stock, QDistinct> distinctByShowLowStockAlert() {
     return addDistinctByInternal('showLowStockAlert');
   }
@@ -1027,6 +1097,10 @@ extension StockQueryProperty on QueryBuilder<Stock, Stock, QQueryProperty> {
 
   QueryBuilder<Stock, double?, QQueryOperations> retailPriceProperty() {
     return addPropertyNameInternal('retailPrice');
+  }
+
+  QueryBuilder<Stock, double?, QQueryOperations> rsdQtyProperty() {
+    return addPropertyNameInternal('rsdQty');
   }
 
   QueryBuilder<Stock, bool?, QQueryOperations> showLowStockAlertProperty() {

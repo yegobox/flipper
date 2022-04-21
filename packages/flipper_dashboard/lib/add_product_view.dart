@@ -59,8 +59,7 @@ class _AddProductViewState extends State<AddProductView> {
           });
         }
 
-        await model.loadTemporalproductOrEditIfProductIdGiven(
-            productId: widget.productId);
+        await model.getTempOrCreateProduct(productId: widget.productId);
         model.loadCategories();
         model.loadColors();
         model.loadUnits();
@@ -233,7 +232,7 @@ class _AddProductViewState extends State<AddProductView> {
                         child: const Text('Add Variation'),
                         onPressed: () {
                           model.navigateAddVariation(
-                              context: context, productId: model.product.id);
+                              context: context, productId: model.product.id!);
                         },
                       ),
                     ),

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:flipper_services/proxy.dart';
@@ -44,23 +45,17 @@ class RWTax implements TaxApi {
         await ProxyService.isarApi.getVariantById(id: stock.variantId);
     var request = http.Request(
         'POST', Uri.parse(apihub + '/stockMaster/saveStockMaster'));
-    request.body = json.encode({
-      "tin": variant?.tin,
-      "bhfId": variant?.bhfId,
-      "itemCd": variant?.itemCd,
-      "rsdQty": stock.currentStock,
-      "modrNm": variant?.modrNm,
-      "regrId": variant?.regrId,
-      "regrNm": variant?.regrNm,
-      "modrId": variant?.modrId
-    });
+    request.body = json.encode(variant?.toJson());
     request.headers.addAll(headers);
 
     http.StreamedResponse response = await request.send();
 
     if (response.statusCode == 200) {
+      // log(variant!.toJson().toString());
+      // log(await response.stream.bytesToString());
       return Future.value(true);
     } else {
+      log(response.reasonPhrase!);
       return Future.value(false);
     }
   }
@@ -77,7 +72,7 @@ class RWTax implements TaxApi {
   Future<bool> saveItem({required Variant variation}) async {
     var headers = {'Content-Type': 'application/json'};
     var request = http.Request('POST', Uri.parse(apihub + '/items/saveItems'));
-    // TODO:text if variation.toJson() is having data
+
     request.body = json.encode(variation.toJson());
 
     request.headers.addAll(headers);
@@ -85,6 +80,7 @@ class RWTax implements TaxApi {
     http.StreamedResponse response = await request.send();
 
     if (response.statusCode == 200) {
+      log(await response.stream.bytesToString());
       return Future.value(true);
     } else {
       return Future.value(false);
@@ -125,7 +121,7 @@ class RWTax implements TaxApi {
       required List<OrderItem> items,
       re}) async {
     Business? business = await ProxyService.isarApi.getBusiness();
-    // TODO:get the tax calculation right!
+
     String date = DateTime.now()
         .toString()
         .replaceAll(":", "")
@@ -163,11 +159,11 @@ class RWTax implements TaxApi {
       "taxRtC": 0,
       "taxRtD": 0,
       "taxAmtA": 0,
-      "taxAmtB": 94576,
+      "taxAmtB": order.subTotal * 18 / 118,
       "taxAmtC": 0,
       "taxAmtD": 0,
-      "totTaxblAmt": 250000,
-      "totTaxAmt": 38135,
+      "totTaxblAmt": order.subTotal,
+      "totTaxAmt": order.subTotal * 18 / 118,
       "totAmt": order.subTotal,
       "prchrAcptcYn": "N",
       "remark": null,

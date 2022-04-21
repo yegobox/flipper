@@ -141,8 +141,12 @@ class IsarAPI implements IsarApiInterface {
         return isar.orders.get(id);
       });
       // get stock by variation.id
-      Stock stock =
-          isar.stocks.filter().variantIdEqualTo(variation.id).findFirstSync()!;
+      Stock? stock = await isar.writeTxn((isar) async {
+        return await isar.stocks
+            .filter()
+            .variantIdEqualTo(variation.id)
+            .findFirst();
+      });
 
       createdOrder!.orderItems.add(OrderItem()
         ..qty = price
@@ -155,7 +159,7 @@ class IsarAPI implements IsarApiInterface {
         ..orderId = createdOrder.id
         ..createdAt = DateTime.now().toIso8601String()
         ..updatedAt = DateTime.now().toIso8601String()
-        ..remainingStock = stock.currentStock - quantity.toInt());
+        ..remainingStock = stock!.currentStock - quantity.toInt());
       await isar.writeTxn((isar) async {
         return createdOrder.orderItems.save();
       });
@@ -525,9 +529,8 @@ class IsarAPI implements IsarApiInterface {
   @override
   Future<Product> createProduct({required Product product}) async {
     Business? business = await getBusiness();
-    String itemPrefix = "flipper-";
+    String itemPrefix = "flip-";
     product.active = false;
-    product.id = DateTime.now().microsecondsSinceEpoch;
     product.description = 'description';
     product.color = '#5A2328';
     product.hasPicture = false;
@@ -535,6 +538,8 @@ class IsarAPI implements IsarApiInterface {
     product.branchId = ProxyService.box.getBranchId()!;
 
     final int branchId = ProxyService.box.getBranchId()!;
+    String clip = itemPrefix +
+        DateTime.now().microsecondsSinceEpoch.toString().substring(0, 5);
 
     Product? kProduct = await isar.writeTxn((isar) async {
       int id = await isar.products.put(product, saveLinks: true);
@@ -545,7 +550,7 @@ class IsarAPI implements IsarApiInterface {
       Variant()
         ..name = 'Regular'
         ..sku = 'sku'
-        ..productId = kProduct.id
+        ..productId = kProduct.id!
         ..unit = 'Per Item'
         ..table = 'variants'
         ..productName = product.name
@@ -556,9 +561,8 @@ class IsarAPI implements IsarApiInterface {
         // RRA fields
         ..bhfId = business?.bhfId
         ..tin = business?.tinNumber
-        ..itemCd = itemPrefix + DateTime.now().microsecondsSinceEpoch.toString()
-        ..itemClsCd =
-            itemPrefix + DateTime.now().microsecondsSinceEpoch.toString()
+        ..itemCd = clip
+        ..itemClsCd = clip
         ..itemTyCd = "1"
         ..itemNm = "Regular"
         ..itemStdNm = "Regular"
@@ -570,9 +574,9 @@ class IsarAPI implements IsarApiInterface {
         ..addInfo = "A"
         ..isrcAplcbYn = "N"
         ..useYn = "N"
-        ..regrId = itemPrefix + DateTime.now().microsecondsSinceEpoch.toString()
+        ..regrId = clip
         ..regrNm = "Regular"
-        ..modrId = itemPrefix + DateTime.now().microsecondsSinceEpoch.toString()
+        ..modrId = clip
         ..modrNm = "Regular"
         // RRA fields ends
         ..supplyPrice = 0.0,
@@ -582,7 +586,7 @@ class IsarAPI implements IsarApiInterface {
     });
 
     Variant? variant = await isar.writeTxn((isar) async {
-      return isar.variants.filter().productIdEqualTo(kProduct.id).findFirst();
+      return isar.variants.filter().productIdEqualTo(kProduct.id!).findFirst();
     });
 
     Stock stock = Stock()
@@ -593,17 +597,20 @@ class IsarAPI implements IsarApiInterface {
       ..variantId = variant!.id
       ..supplyPrice = 0.0
       ..retailPrice = 0.0
-      ..lowStock = 10.0
+      ..lowStock = 10.0 // default static
       ..canTrackingStock = true
       ..showLowStockAlert = true
-      ..value = 300.0
+      // normaly this should be currentStock * retailPrice
+      ..value = variant.retailPrice * 0.0
       ..active = false
-      ..productId = kProduct.id;
+      ..productId = kProduct.id!
+      ..rsdQty = 0.0;
 
     await isar.writeTxn((isar) async {
       return isar.stocks.put(stock);
     });
     if (await isTaxEnabled()) {
+      log.i('Tax Enabled');
       //TODOsave the variant as EBM item
       ProxyService.tax.saveItem(variation: variant);
       ProxyService.tax.saveStock(stock: stock);
@@ -794,11 +801,11 @@ class IsarAPI implements IsarApiInterface {
     if (product == null) {
       Product p = await buildProductObject(branchId, businessId);
       return isar.writeTxn((isar) async {
-        return isar.variants.filter().productIdEqualTo(p.id).findFirst();
+        return isar.variants.filter().productIdEqualTo(p.id!).findFirst();
       });
     } else {
       return isar.writeTxn((isar) async {
-        return isar.variants.filter().productIdEqualTo(product.id).findFirst();
+        return isar.variants.filter().productIdEqualTo(product.id!).findFirst();
       });
     }
   }
@@ -1031,7 +1038,11 @@ class IsarAPI implements IsarApiInterface {
   @override
   Future<Product?> isTempProductExist({required int branchId}) {
     return isar.writeTxn((isar) {
-      return isar.products.filter().branchIdEqualTo(branchId).findFirst();
+      return isar.products
+          .filter()
+          .nameContains("temp")
+          // .branchIdEqualTo(branchId)
+          .findFirst();
     });
   }
 
@@ -1412,11 +1423,7 @@ class IsarAPI implements IsarApiInterface {
   @override
   Future<Variant?> variant({required int variantId}) async {
     return await isar.writeTxn((isar) async {
-      return await isar.variants
-          .filter()
-          .idEqualTo(variantId)
-          .build()
-          .findFirst();
+      return await isar.variants.filter().idEqualTo(variantId).findFirst();
     });
   }
 
@@ -1426,9 +1433,8 @@ class IsarAPI implements IsarApiInterface {
     return await isar.writeTxn((isar) async {
       return await isar.variants
           .filter()
-          .branchIdEqualTo(branchId)
           .productIdEqualTo(productId)
-          .build()
+          .branchIdEqualTo(branchId)
           .findAll();
     });
   }
@@ -1524,7 +1530,7 @@ class IsarAPI implements IsarApiInterface {
   @override
   Future<Variant?> getVariantById({required int id}) async {
     return isar.writeTxn((isar) async {
-      return await isar.variants.filter().idEqualTo(id).build().findFirst();
+      return await isar.variants.filter().idEqualTo(id).findFirst();
     });
   }
 }

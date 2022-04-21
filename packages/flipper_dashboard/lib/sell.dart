@@ -248,7 +248,7 @@ class _SellState extends State<Sell> {
         ///start by clearning the previous amountTotal and Quantity as it is confusing some time!
         model.clearPreviousSaleCounts();
         model.toggleCheckbox(variantId: -1);
-        await model.getVariants(productId: widget.product.id);
+        await model.getVariants(productId: widget.product.id!);
       },
       viewModelBuilder: () => BusinessHomeViewModel(),
       builder: (context, model, child) {

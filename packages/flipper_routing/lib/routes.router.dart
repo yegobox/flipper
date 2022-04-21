@@ -7,7 +7,7 @@ class Routes {
   static const String signup = '/signup';
   static const String home = '/home';
   static const String login = '/login';
-  static const String product = '/product';
+  static const String create = '/create';
   static const String addProductModal = '/addProductModal';
   static const String discount = '/discount';
   static const String categories = '/categories';

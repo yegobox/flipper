@@ -17,7 +17,7 @@ class CronService {
   final cron = Cron();
   final settingService = locator<SettingsService>();
   final printer = locator<Printer>();
-  final log = getLogger('flipper.services.report');
+  final log = getLogger('CronService');
 
   /// This is the report mainly for yegobox|flipper business
   /// the report shall help the company know what customers are selling
@@ -62,7 +62,6 @@ class CronService {
     String? token;
     if (!Platform.isWindows) {
       token = await FirebaseMessaging.instance.getToken();
-      log.e("DeviceToken:" + token!);
 
       Map updatedBusiness = business!.toJson();
       updatedBusiness['deviceToken'] = token.toString();

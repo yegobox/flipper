@@ -79,7 +79,7 @@ void main() {
 //     expect(product, isA<Product>());
 
 //     List<Variant> variations =
-//         await api.variants(branchId: 11, productId: product.id);
+//         await api.variants(branchId: 11, productId: product.id!);
 
 //     expect(variations, isA<List<Variant>>());
 
