@@ -36,8 +36,8 @@ class ProductService with ReactiveServiceMixin {
     notifyListeners();
   }
 
-  String? get userId => ProxyService.box.read(key: 'userId');
-  int? get branchId => ProxyService.box.read(key: 'branchId');
+  String? get userId => ProxyService.box.getUserId();
+  int? get branchId => ProxyService.box.getBranchId()!;
 
   setProductUnit({required String unit}) {
     _currentUnit = unit;
@@ -51,13 +51,8 @@ class ProductService with ReactiveServiceMixin {
   List<Variant>? get variants => _variants.value;
 
   Future<void> variantsProduct({required int productId}) async {
-    //final int? branchId = ProxyService.box.getBranchId()!;
-    Product? product = await ProxyService.isarApi.getProduct(id: productId);
-    // _variants.value = await ProxyService.isarApi
-    //     .variants(branchId: branchId!, productId: productId);
-    product!.variants.load();
-    _variants.value = product.variants.toList();
-    log.i(_variants.value.length.toString());
+    _variants.value = await ProxyService.isarApi
+        .variants(branchId: branchId!, productId: productId);
   }
 
   /// load discounts  in a list merge them with products make discount be at the top.

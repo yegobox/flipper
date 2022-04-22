@@ -1431,11 +1431,7 @@ class IsarAPI implements IsarApiInterface {
   Future<List<Variant>> variants(
       {required int branchId, required int productId}) async {
     return await isar.writeTxn((isar) async {
-      return await isar.variants
-          .filter()
-          .productIdEqualTo(productId)
-          .branchIdEqualTo(branchId)
-          .findAll();
+      return await isar.variants.filter().productIdEqualTo(productId).findAll();
     });
   }
 
