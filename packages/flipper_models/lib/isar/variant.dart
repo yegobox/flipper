@@ -68,6 +68,9 @@ class Variant {
   String? regrNm;
   String? modrId;
   String? modrNm;
+
+  /// property for stock but presented here for easy
+  double? rsdQty;
   // toJson helper
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -111,5 +114,6 @@ class Variant {
         'regrNm': regrNm,
         'modrId': modrId,
         'modrNm': modrNm,
+        "rsdQty": rsdQty,
       };
 }

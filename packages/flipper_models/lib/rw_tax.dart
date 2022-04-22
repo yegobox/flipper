@@ -35,9 +35,13 @@ class RWTax implements TaxApi {
   }
 
   /// save or update stock of item saved before.
+  /// so it is an item i.e variant we pass back
   /// The API will not fail even if the item Code @[itemCd] is not found
   /// in a ist of saved Item.
   /// @[rsdQty] is the remaining stock of the item.
+  /// it is very important to note that given on how RRA data is structured
+  /// we ended up mixing data for stock and variant but data stay in related model
+  /// we just borrow properties to simplify the accesibility
   @override
   Future<bool> saveStock({required Stock stock}) async {
     var headers = {'Content-Type': 'application/json'};
@@ -45,13 +49,13 @@ class RWTax implements TaxApi {
         await ProxyService.isarApi.getVariantById(id: stock.variantId);
     var request = http.Request(
         'POST', Uri.parse(apihub + '/stockMaster/saveStockMaster'));
+    variant?.rsdQty = stock.rsdQty;
     request.body = json.encode(variant?.toJson());
     request.headers.addAll(headers);
-
+    // log(variant!.toJson().toString());
     http.StreamedResponse response = await request.send();
 
     if (response.statusCode == 200) {
-      // log(variant!.toJson().toString());
       // log(await response.stream.bytesToString());
       return Future.value(true);
     } else {
@@ -72,7 +76,7 @@ class RWTax implements TaxApi {
   Future<bool> saveItem({required Variant variation}) async {
     var headers = {'Content-Type': 'application/json'};
     var request = http.Request('POST', Uri.parse(apihub + '/items/saveItems'));
-    log(variation.toJson().toString());
+    // log(variation.toJson().toString());
     request.body = json.encode(variation.toJson());
 
     request.headers.addAll(headers);
@@ -80,7 +84,7 @@ class RWTax implements TaxApi {
     http.StreamedResponse response = await request.send();
 
     if (response.statusCode == 200) {
-      log(await response.stream.bytesToString());
+      // log(await response.stream.bytesToString());
       return Future.value(true);
     } else {
       return Future.value(false);

@@ -17,7 +17,7 @@ extension GetVariantCollection on Isar {
 final VariantSchema = CollectionSchema(
   name: 'Variant',
   schema:
-      '{"name":"Variant","idName":"id","properties":[{"name":"addInfo","type":"String"},{"name":"bcd","type":"String"},{"name":"bhfId","type":"String"},{"name":"branchId","type":"Long"},{"name":"dftPrc","type":"Double"},{"name":"isrcAmt","type":"String"},{"name":"isrcAplcbYn","type":"String"},{"name":"isrcRt","type":"String"},{"name":"isrccCd","type":"String"},{"name":"isrccNm","type":"String"},{"name":"itemCd","type":"String"},{"name":"itemClsCd","type":"String"},{"name":"itemNm","type":"String"},{"name":"itemSeq","type":"String"},{"name":"itemStdNm","type":"String"},{"name":"itemTyCd","type":"String"},{"name":"modrId","type":"String"},{"name":"modrNm","type":"String"},{"name":"name","type":"String"},{"name":"orgnNatCd","type":"String"},{"name":"pkg","type":"String"},{"name":"pkgUnitCd","type":"String"},{"name":"prc","type":"Double"},{"name":"productId","type":"Long"},{"name":"productName","type":"String"},{"name":"qty","type":"Double"},{"name":"qtyUnitCd","type":"String"},{"name":"regrId","type":"String"},{"name":"regrNm","type":"String"},{"name":"retailPrice","type":"Double"},{"name":"sku","type":"String"},{"name":"splyAmt","type":"Double"},{"name":"supplyPrice","type":"Double"},{"name":"table","type":"String"},{"name":"taxName","type":"String"},{"name":"taxPercentage","type":"Double"},{"name":"taxTyCd","type":"String"},{"name":"tin","type":"Long"},{"name":"unit","type":"String"},{"name":"useYn","type":"String"}],"indexes":[],"links":[]}',
+      '{"name":"Variant","idName":"id","properties":[{"name":"addInfo","type":"String"},{"name":"bcd","type":"String"},{"name":"bhfId","type":"String"},{"name":"branchId","type":"Long"},{"name":"dftPrc","type":"Double"},{"name":"isrcAmt","type":"String"},{"name":"isrcAplcbYn","type":"String"},{"name":"isrcRt","type":"String"},{"name":"isrccCd","type":"String"},{"name":"isrccNm","type":"String"},{"name":"itemCd","type":"String"},{"name":"itemClsCd","type":"String"},{"name":"itemNm","type":"String"},{"name":"itemSeq","type":"String"},{"name":"itemStdNm","type":"String"},{"name":"itemTyCd","type":"String"},{"name":"modrId","type":"String"},{"name":"modrNm","type":"String"},{"name":"name","type":"String"},{"name":"orgnNatCd","type":"String"},{"name":"pkg","type":"String"},{"name":"pkgUnitCd","type":"String"},{"name":"prc","type":"Double"},{"name":"productId","type":"Long"},{"name":"productName","type":"String"},{"name":"qty","type":"Double"},{"name":"qtyUnitCd","type":"String"},{"name":"regrId","type":"String"},{"name":"regrNm","type":"String"},{"name":"retailPrice","type":"Double"},{"name":"rsdQty","type":"Double"},{"name":"sku","type":"String"},{"name":"splyAmt","type":"Double"},{"name":"supplyPrice","type":"Double"},{"name":"table","type":"String"},{"name":"taxName","type":"String"},{"name":"taxPercentage","type":"Double"},{"name":"taxTyCd","type":"String"},{"name":"tin","type":"Long"},{"name":"unit","type":"String"},{"name":"useYn","type":"String"}],"indexes":[],"links":[]}',
   nativeAdapter: const _VariantNativeAdapter(),
   webAdapter: const _VariantWebAdapter(),
   idName: 'id',
@@ -52,16 +52,17 @@ final VariantSchema = CollectionSchema(
     'regrId': 27,
     'regrNm': 28,
     'retailPrice': 29,
-    'sku': 30,
-    'splyAmt': 31,
-    'supplyPrice': 32,
-    'table': 33,
-    'taxName': 34,
-    'taxPercentage': 35,
-    'taxTyCd': 36,
-    'tin': 37,
-    'unit': 38,
-    'useYn': 39
+    'rsdQty': 30,
+    'sku': 31,
+    'splyAmt': 32,
+    'supplyPrice': 33,
+    'table': 34,
+    'taxName': 35,
+    'taxPercentage': 36,
+    'taxTyCd': 37,
+    'tin': 38,
+    'unit': 39,
+    'useYn': 40
   },
   listProperties: {},
   indexIds: {},
@@ -118,6 +119,7 @@ class _VariantWebAdapter extends IsarWebTypeAdapter<Variant> {
     IsarNative.jsObjectSet(jsObj, 'regrId', object.regrId);
     IsarNative.jsObjectSet(jsObj, 'regrNm', object.regrNm);
     IsarNative.jsObjectSet(jsObj, 'retailPrice', object.retailPrice);
+    IsarNative.jsObjectSet(jsObj, 'rsdQty', object.rsdQty);
     IsarNative.jsObjectSet(jsObj, 'sku', object.sku);
     IsarNative.jsObjectSet(jsObj, 'splyAmt', object.splyAmt);
     IsarNative.jsObjectSet(jsObj, 'supplyPrice', object.supplyPrice);
@@ -168,6 +170,7 @@ class _VariantWebAdapter extends IsarWebTypeAdapter<Variant> {
     object.regrNm = IsarNative.jsObjectGet(jsObj, 'regrNm');
     object.retailPrice =
         IsarNative.jsObjectGet(jsObj, 'retailPrice') ?? double.negativeInfinity;
+    object.rsdQty = IsarNative.jsObjectGet(jsObj, 'rsdQty');
     object.sku = IsarNative.jsObjectGet(jsObj, 'sku') ?? '';
     object.splyAmt = IsarNative.jsObjectGet(jsObj, 'splyAmt');
     object.supplyPrice =
@@ -251,6 +254,8 @@ class _VariantWebAdapter extends IsarWebTypeAdapter<Variant> {
       case 'retailPrice':
         return (IsarNative.jsObjectGet(jsObj, 'retailPrice') ??
             double.negativeInfinity) as P;
+      case 'rsdQty':
+        return (IsarNative.jsObjectGet(jsObj, 'rsdQty')) as P;
       case 'sku':
         return (IsarNative.jsObjectGet(jsObj, 'sku') ?? '') as P;
       case 'splyAmt':
@@ -438,39 +443,41 @@ class _VariantNativeAdapter extends IsarNativeTypeAdapter<Variant> {
     dynamicSize += (_regrNm?.length ?? 0) as int;
     final value29 = object.retailPrice;
     final _retailPrice = value29;
-    final value30 = object.sku;
-    final _sku = IsarBinaryWriter.utf8Encoder.convert(value30);
+    final value30 = object.rsdQty;
+    final _rsdQty = value30;
+    final value31 = object.sku;
+    final _sku = IsarBinaryWriter.utf8Encoder.convert(value31);
     dynamicSize += (_sku.length) as int;
-    final value31 = object.splyAmt;
-    final _splyAmt = value31;
-    final value32 = object.supplyPrice;
-    final _supplyPrice = value32;
-    final value33 = object.table;
-    final _table = IsarBinaryWriter.utf8Encoder.convert(value33);
+    final value32 = object.splyAmt;
+    final _splyAmt = value32;
+    final value33 = object.supplyPrice;
+    final _supplyPrice = value33;
+    final value34 = object.table;
+    final _table = IsarBinaryWriter.utf8Encoder.convert(value34);
     dynamicSize += (_table.length) as int;
-    final value34 = object.taxName;
+    final value35 = object.taxName;
     IsarUint8List? _taxName;
-    if (value34 != null) {
-      _taxName = IsarBinaryWriter.utf8Encoder.convert(value34);
+    if (value35 != null) {
+      _taxName = IsarBinaryWriter.utf8Encoder.convert(value35);
     }
     dynamicSize += (_taxName?.length ?? 0) as int;
-    final value35 = object.taxPercentage;
-    final _taxPercentage = value35;
-    final value36 = object.taxTyCd;
+    final value36 = object.taxPercentage;
+    final _taxPercentage = value36;
+    final value37 = object.taxTyCd;
     IsarUint8List? _taxTyCd;
-    if (value36 != null) {
-      _taxTyCd = IsarBinaryWriter.utf8Encoder.convert(value36);
+    if (value37 != null) {
+      _taxTyCd = IsarBinaryWriter.utf8Encoder.convert(value37);
     }
     dynamicSize += (_taxTyCd?.length ?? 0) as int;
-    final value37 = object.tin;
-    final _tin = value37;
-    final value38 = object.unit;
-    final _unit = IsarBinaryWriter.utf8Encoder.convert(value38);
+    final value38 = object.tin;
+    final _tin = value38;
+    final value39 = object.unit;
+    final _unit = IsarBinaryWriter.utf8Encoder.convert(value39);
     dynamicSize += (_unit.length) as int;
-    final value39 = object.useYn;
+    final value40 = object.useYn;
     IsarUint8List? _useYn;
-    if (value39 != null) {
-      _useYn = IsarBinaryWriter.utf8Encoder.convert(value39);
+    if (value40 != null) {
+      _useYn = IsarBinaryWriter.utf8Encoder.convert(value40);
     }
     dynamicSize += (_useYn?.length ?? 0) as int;
     final size = staticSize + dynamicSize;
@@ -509,16 +516,17 @@ class _VariantNativeAdapter extends IsarNativeTypeAdapter<Variant> {
     writer.writeBytes(offsets[27], _regrId);
     writer.writeBytes(offsets[28], _regrNm);
     writer.writeDouble(offsets[29], _retailPrice);
-    writer.writeBytes(offsets[30], _sku);
-    writer.writeDouble(offsets[31], _splyAmt);
-    writer.writeDouble(offsets[32], _supplyPrice);
-    writer.writeBytes(offsets[33], _table);
-    writer.writeBytes(offsets[34], _taxName);
-    writer.writeDouble(offsets[35], _taxPercentage);
-    writer.writeBytes(offsets[36], _taxTyCd);
-    writer.writeLong(offsets[37], _tin);
-    writer.writeBytes(offsets[38], _unit);
-    writer.writeBytes(offsets[39], _useYn);
+    writer.writeDouble(offsets[30], _rsdQty);
+    writer.writeBytes(offsets[31], _sku);
+    writer.writeDouble(offsets[32], _splyAmt);
+    writer.writeDouble(offsets[33], _supplyPrice);
+    writer.writeBytes(offsets[34], _table);
+    writer.writeBytes(offsets[35], _taxName);
+    writer.writeDouble(offsets[36], _taxPercentage);
+    writer.writeBytes(offsets[37], _taxTyCd);
+    writer.writeLong(offsets[38], _tin);
+    writer.writeBytes(offsets[39], _unit);
+    writer.writeBytes(offsets[40], _useYn);
   }
 
   @override
@@ -556,16 +564,17 @@ class _VariantNativeAdapter extends IsarNativeTypeAdapter<Variant> {
     object.regrId = reader.readStringOrNull(offsets[27]);
     object.regrNm = reader.readStringOrNull(offsets[28]);
     object.retailPrice = reader.readDouble(offsets[29]);
-    object.sku = reader.readString(offsets[30]);
-    object.splyAmt = reader.readDoubleOrNull(offsets[31]);
-    object.supplyPrice = reader.readDouble(offsets[32]);
-    object.table = reader.readString(offsets[33]);
-    object.taxName = reader.readStringOrNull(offsets[34]);
-    object.taxPercentage = reader.readDoubleOrNull(offsets[35]);
-    object.taxTyCd = reader.readStringOrNull(offsets[36]);
-    object.tin = reader.readLongOrNull(offsets[37]);
-    object.unit = reader.readString(offsets[38]);
-    object.useYn = reader.readStringOrNull(offsets[39]);
+    object.rsdQty = reader.readDoubleOrNull(offsets[30]);
+    object.sku = reader.readString(offsets[31]);
+    object.splyAmt = reader.readDoubleOrNull(offsets[32]);
+    object.supplyPrice = reader.readDouble(offsets[33]);
+    object.table = reader.readString(offsets[34]);
+    object.taxName = reader.readStringOrNull(offsets[35]);
+    object.taxPercentage = reader.readDoubleOrNull(offsets[36]);
+    object.taxTyCd = reader.readStringOrNull(offsets[37]);
+    object.tin = reader.readLongOrNull(offsets[38]);
+    object.unit = reader.readString(offsets[39]);
+    object.useYn = reader.readStringOrNull(offsets[40]);
     return object;
   }
 
@@ -636,24 +645,26 @@ class _VariantNativeAdapter extends IsarNativeTypeAdapter<Variant> {
       case 29:
         return (reader.readDouble(offset)) as P;
       case 30:
-        return (reader.readString(offset)) as P;
+        return (reader.readDoubleOrNull(offset)) as P;
       case 31:
-        return (reader.readDoubleOrNull(offset)) as P;
+        return (reader.readString(offset)) as P;
       case 32:
-        return (reader.readDouble(offset)) as P;
-      case 33:
-        return (reader.readString(offset)) as P;
-      case 34:
-        return (reader.readStringOrNull(offset)) as P;
-      case 35:
         return (reader.readDoubleOrNull(offset)) as P;
-      case 36:
-        return (reader.readStringOrNull(offset)) as P;
-      case 37:
-        return (reader.readLongOrNull(offset)) as P;
-      case 38:
+      case 33:
+        return (reader.readDouble(offset)) as P;
+      case 34:
         return (reader.readString(offset)) as P;
+      case 35:
+        return (reader.readStringOrNull(offset)) as P;
+      case 36:
+        return (reader.readDoubleOrNull(offset)) as P;
+      case 37:
+        return (reader.readStringOrNull(offset)) as P;
+      case 38:
+        return (reader.readLongOrNull(offset)) as P;
       case 39:
+        return (reader.readString(offset)) as P;
+      case 40:
         return (reader.readStringOrNull(offset)) as P;
       default:
         throw 'Illegal propertyIndex';
@@ -3684,6 +3695,45 @@ extension VariantQueryFilter
     ));
   }
 
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> rsdQtyIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'rsdQty',
+      value: null,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> rsdQtyGreaterThan(
+      double? value) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.gt,
+      include: false,
+      property: 'rsdQty',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> rsdQtyLessThan(
+      double? value) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.lt,
+      include: false,
+      property: 'rsdQty',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> rsdQtyBetween(
+      double? lower, double? upper) {
+    return addFilterConditionInternal(FilterCondition.between(
+      property: 'rsdQty',
+      lower: lower,
+      includeLower: false,
+      upper: upper,
+      includeUpper: false,
+    ));
+  }
+
   QueryBuilder<Variant, Variant, QAfterFilterCondition> skuEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -4740,6 +4790,14 @@ extension VariantQueryWhereSortBy on QueryBuilder<Variant, Variant, QSortBy> {
     return addSortByInternal('retailPrice', Sort.desc);
   }
 
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByRsdQty() {
+    return addSortByInternal('rsdQty', Sort.asc);
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByRsdQtyDesc() {
+    return addSortByInternal('rsdQty', Sort.desc);
+  }
+
   QueryBuilder<Variant, Variant, QAfterSortBy> sortBySku() {
     return addSortByInternal('sku', Sort.asc);
   }
@@ -5071,6 +5129,14 @@ extension VariantQueryWhereSortThenBy
     return addSortByInternal('retailPrice', Sort.desc);
   }
 
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByRsdQty() {
+    return addSortByInternal('rsdQty', Sort.asc);
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByRsdQtyDesc() {
+    return addSortByInternal('rsdQty', Sort.desc);
+  }
+
   QueryBuilder<Variant, Variant, QAfterSortBy> thenBySku() {
     return addSortByInternal('sku', Sort.asc);
   }
@@ -5302,6 +5368,10 @@ extension VariantQueryWhereDistinct
     return addDistinctByInternal('retailPrice');
   }
 
+  QueryBuilder<Variant, Variant, QDistinct> distinctByRsdQty() {
+    return addDistinctByInternal('rsdQty');
+  }
+
   QueryBuilder<Variant, Variant, QDistinct> distinctBySku(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('sku', caseSensitive: caseSensitive);
@@ -5473,6 +5543,10 @@ extension VariantQueryProperty
 
   QueryBuilder<Variant, double, QQueryOperations> retailPriceProperty() {
     return addPropertyNameInternal('retailPrice');
+  }
+
+  QueryBuilder<Variant, double?, QQueryOperations> rsdQtyProperty() {
+    return addPropertyNameInternal('rsdQty');
   }
 
   QueryBuilder<Variant, String, QQueryOperations> skuProperty() {
