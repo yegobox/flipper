@@ -562,7 +562,8 @@ class IsarAPI implements IsarApiInterface {
         ..bhfId = business?.bhfId
         ..tin = business?.tinNumber
         ..itemCd = clip
-        ..itemClsCd = clip
+        // TODOask about item clasification code, it seems to be static
+        ..itemClsCd = "5020230602"
         ..itemTyCd = "1"
         ..itemNm = "Regular"
         ..itemStdNm = "Regular"

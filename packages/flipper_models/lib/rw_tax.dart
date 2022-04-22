@@ -72,7 +72,7 @@ class RWTax implements TaxApi {
   Future<bool> saveItem({required Variant variation}) async {
     var headers = {'Content-Type': 'application/json'};
     var request = http.Request('POST', Uri.parse(apihub + '/items/saveItems'));
-
+    log(variation.toJson().toString());
     request.body = json.encode(variation.toJson());
 
     request.headers.addAll(headers);

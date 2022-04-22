@@ -110,5 +110,6 @@ class Variant {
         'regrId': regrId,
         'regrNm': regrNm,
         'modrId': modrId,
+        'modrNm': modrNm,
       };
 }
