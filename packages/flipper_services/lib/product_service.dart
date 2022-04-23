@@ -88,7 +88,7 @@ class ProductService with ReactiveServiceMixin {
   List<Stock?> get stocks => _stocks;
   Future<List<Stock?>> loadStockByProductId({required int productId}) async {
     _stocks = await ProxyService.isarApi.stocks(productId: productId);
-    log.i("stock::${_stocks[0]!.retailPrice}");
+    // log.i("stock::${_stocks[0]!.retailPrice}");
     return stocks;
   }
 

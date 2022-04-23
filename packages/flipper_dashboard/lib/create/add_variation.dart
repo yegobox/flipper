@@ -3,6 +3,7 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_dashboard/create/section_select_unit.dart';
 import 'package:flipper_dashboard/customappbar.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:stacked/stacked.dart';
@@ -47,6 +48,13 @@ class _AddVariationState extends State<AddVariation> {
               disableButton: model.lock,
               rightActionButtonName: 'Save',
               onPressedCallback: () async {
+                Business? business = await ProxyService.isarApi.getBusiness();
+                String itemPrefix = "flip-";
+                String clip = itemPrefix +
+                    DateTime.now()
+                        .microsecondsSinceEpoch
+                        .toString()
+                        .substring(0, 5);
                 if (AddVariation._formKey.currentState!.validate()) {
                   final variantId = DateTime.now().millisecondsSinceEpoch;
                   List<Variant> variations = [];
@@ -61,7 +69,33 @@ class _AddVariationState extends State<AddVariation> {
                     ..branchId = model.productService.branchId!
                     ..id = variantId
                     ..table = AppTables.variation
-                    ..taxName = 'N/A'; //TODOreplace with branch/business config
+                    // RRA fields
+                    ..bhfId = business?.bhfId
+                    ..tin = business?.tinNumber
+                    ..itemCd = clip
+                    // TODOask about item clasification code, it seems to be static
+                    ..itemClsCd = "5020230602"
+                    ..itemTyCd = "1"
+                    ..itemNm = "Regular"
+                    ..itemStdNm = "Regular"
+                    ..orgnNatCd = "RW"
+                    ..pkgUnitCd = "NT"
+                    ..qtyUnitCd = "CA"
+                    ..taxTyCd = "B"
+                    ..dftPrc = 0.0
+                    ..addInfo = "A"
+                    ..isrcAplcbYn = "N"
+                    ..useYn = "N"
+                    ..regrId = clip
+                    ..regrNm = "Regular"
+                    ..modrId = clip
+                    ..modrNm = "Regular"
+                    ..pkg = "1"
+                    ..itemSeq = "1"
+                    ..splyAmt = 0.0
+                    // RRA fields ends
+                    //TODOreplace with branch/business config
+                    ..taxName = 'N/A';
 
                   variations.add(data);
                   await model.addVariant(

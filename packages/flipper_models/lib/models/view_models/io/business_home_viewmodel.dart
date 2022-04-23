@@ -247,17 +247,54 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       if (existOrders.isNotEmpty) {
         /// if order exist then we need to update the orderItem that match with the item we want to update with new count
         /// if orderItem does not exist then we need to create a new orderItem
-        for (OrderItem item in existOrders[0].orderItems) {
+        for (OrderItem item in existOrders.first.orderItems) {
           if (item.variantId == variationId) {
             item
               ..qty = item.qty + quantity.toDouble()
               ..price = (item.qty + quantity.toDouble()) *
                   (amountTotal / quantity.toDouble())
               ..variantId = variationId
-              ..orderId = existOrders[0].id
+              ..orderId = existOrders.first.id
               ..name = name
               ..createdAt = item.createdAt
               ..updatedAt = item.updatedAt
+
+              /// RRA fields dutira muri variants (rent from variant model)
+              ..dcRt = 0.0
+              ..dcAmt = 0.0
+              ..taxblAmt = existOrders.first.subTotal
+              ..taxAmt = double.parse(
+                  (variation.retailPrice * 18 / 118).toStringAsFixed(2))
+              ..totAmt = variation.retailPrice
+              ..itemSeq = variation.itemSeq
+              ..isrccCd = variation.isrccCd
+              ..isrccNm = variation.isrccNm
+              ..isrcRt = variation.isrcRt
+              ..isrcAmt = variation.isrcAmt
+              ..taxTyCd = variation.taxTyCd
+              ..bcd = variation.bcd
+              ..itemClsCd = variation.itemClsCd
+              ..itemTyCd = variation.itemTyCd
+              ..itemStdNm = variation.itemStdNm
+              ..orgnNatCd = variation.orgnNatCd
+              ..pkg = variation.pkg
+              ..itemCd = variation.itemCd
+              ..pkgUnitCd = variation.pkgUnitCd
+              ..qtyUnitCd = variation.qtyUnitCd
+              ..itemNm = variation.itemNm
+              ..prc = variation.prc
+              ..splyAmt = variation.splyAmt
+              ..tin = variation.tin
+              ..bhfId = variation.bhfId
+              ..dftPrc = variation.dftPrc
+              ..addInfo = variation.addInfo
+              ..isrcAplcbYn = variation.isrcAplcbYn
+              ..useYn = variation.useYn
+              ..regrId = variation.regrId
+              ..regrNm = variation.regrNm
+              ..modrId = variation.modrId
+              ..modrNm = variation.modrNm
+              // end of fields twakuye muri variants
               ..remainingStock = stock!.currentStock - quantity;
 
             ProxyService.isarApi.update(data: item);
@@ -268,7 +305,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         /// existOrderItem will return null which will go to adding item api.
         OrderItem? existOrderItem = await ProxyService.isarApi
             .getOrderItemByVariantId(
-                variantId: variationId, orderId: existOrders[0].id);
+                variantId: variationId, orderId: existOrders.first.id);
         // log.w(exist_orders.length);
         if (existOrderItem == null) {
           OrderItem item = OrderItem()
@@ -279,12 +316,50 @@ class BusinessHomeViewModel extends ReactiveViewModel {
             ..name = name
             ..discount = 0.0
             ..reported = false
-            ..orderId = existOrders[0].id
+            ..orderId = existOrders.first.id
             ..createdAt = DateTime.now().toString()
             ..updatedAt = DateTime.now().toString()
+
+            /// RRA fields dutira muri variants (rent from variant model)
+            ..dcRt = 0.0
+            ..dcAmt = 0.0
+            ..taxblAmt = existOrders.first.subTotal
+            ..taxAmt = double.parse(
+                (variation.retailPrice * 18 / 118).toStringAsFixed(2))
+            ..totAmt = variation.retailPrice
+            ..itemSeq = variation.itemSeq
+            ..isrccCd = variation.isrccCd
+            ..isrccNm = variation.isrccNm
+            ..isrcRt = variation.isrcRt
+            ..isrcAmt = variation.isrcAmt
+            ..taxTyCd = variation.taxTyCd
+            ..bcd = variation.bcd
+            ..itemClsCd = variation.itemClsCd
+            ..itemTyCd = variation.itemTyCd
+            ..itemStdNm = variation.itemStdNm
+            ..orgnNatCd = variation.orgnNatCd
+            ..pkg = variation.pkg
+            ..itemCd = variation.itemCd
+            ..pkgUnitCd = variation.pkgUnitCd
+            ..qtyUnitCd = variation.qtyUnitCd
+            ..itemNm = variation.itemNm
+            ..prc = variation.prc
+            ..splyAmt = variation.splyAmt
+            ..tin = variation.tin
+            ..bhfId = variation.bhfId
+            ..dftPrc = variation.dftPrc
+            ..addInfo = variation.addInfo
+            ..isrcAplcbYn = variation.isrcAplcbYn
+            ..useYn = variation.useYn
+            ..regrId = variation.regrId
+            ..regrNm = variation.regrNm
+            ..modrId = variation.modrId
+            ..modrNm = variation.modrNm
+            // end of fields twakuye muri variants
             ..remainingStock = stock!.currentStock - quantity;
 
-          ProxyService.isarApi.addOrderItem(order: existOrders[0], item: item);
+          ProxyService.isarApi
+              .addOrderItem(order: existOrders.first, item: item);
         }
       } else {
         await ProxyService.isarApi.createOrder(

@@ -198,6 +198,9 @@ class ProductViewModel extends ReactiveViewModel {
       stock!.currentStock = _stockValue!;
 
       ProxyService.isarApi.update(data: stock);
+      if (await ProxyService.isarApi.isTaxEnabled()) {
+        ProxyService.tax.saveStock(stock: stock);
+      }
       productService.variantsProduct(productId: product.id!);
     }
     productService.variantsProduct(productId: product.id!);
@@ -332,8 +335,13 @@ class ProductViewModel extends ReactiveViewModel {
 
     for (Variant variant in variants) {
       variant.productName = name;
+      variant.prc = variant.retailPrice;
       variant.productId = mproduct.id!;
+      variant.pkgUnitCd = "NT";
       await ProxyService.isarApi.update(data: variant);
+      if (await ProxyService.isarApi.isTaxEnabled()) {
+        ProxyService.tax.saveItem(variation: variant);
+      }
     }
     final response = await ProxyService.isarApi.update(data: mproduct);
     return response == 200;
@@ -389,7 +397,7 @@ class ProductViewModel extends ReactiveViewModel {
   /// loop through order's items and update item with discount in consideration
   /// a discount can not go beyond the item's price
   Future<bool> applyDiscount({required DiscountSync discount}) async {
-    int branchId = ProxyService.box.read(key: 'branchId');
+    int branchId = ProxyService.box.getBranchId()!;
     Order? order = await ProxyService.keypad.getOrder(branchId: branchId);
 
     if (order != null) {

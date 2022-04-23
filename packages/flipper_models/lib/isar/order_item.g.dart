@@ -180,7 +180,7 @@ class _OrderItemWebAdapter extends IsarWebTypeAdapter<OrderItem> {
     object.regrNm = IsarNative.jsObjectGet(jsObj, 'regrNm');
     object.remainingStock = IsarNative.jsObjectGet(jsObj, 'remainingStock') ??
         double.negativeInfinity;
-    object.reported = IsarNative.jsObjectGet(jsObj, 'reported') ?? false;
+    object.reported = IsarNative.jsObjectGet(jsObj, 'reported');
     object.splyAmt = IsarNative.jsObjectGet(jsObj, 'splyAmt');
     object.taxAmt = IsarNative.jsObjectGet(jsObj, 'taxAmt');
     object.taxTyCd = IsarNative.jsObjectGet(jsObj, 'taxTyCd');
@@ -272,7 +272,7 @@ class _OrderItemWebAdapter extends IsarWebTypeAdapter<OrderItem> {
         return (IsarNative.jsObjectGet(jsObj, 'remainingStock') ??
             double.negativeInfinity) as P;
       case 'reported':
-        return (IsarNative.jsObjectGet(jsObj, 'reported') ?? false) as P;
+        return (IsarNative.jsObjectGet(jsObj, 'reported')) as P;
       case 'splyAmt':
         return (IsarNative.jsObjectGet(jsObj, 'splyAmt')) as P;
       case 'taxAmt':
@@ -591,7 +591,7 @@ class _OrderItemNativeAdapter extends IsarNativeTypeAdapter<OrderItem> {
     object.regrId = reader.readStringOrNull(offsets[30]);
     object.regrNm = reader.readStringOrNull(offsets[31]);
     object.remainingStock = reader.readDouble(offsets[32]);
-    object.reported = reader.readBool(offsets[33]);
+    object.reported = reader.readBoolOrNull(offsets[33]);
     object.splyAmt = reader.readDoubleOrNull(offsets[34]);
     object.taxAmt = reader.readDoubleOrNull(offsets[35]);
     object.taxTyCd = reader.readStringOrNull(offsets[36]);
@@ -678,7 +678,7 @@ class _OrderItemNativeAdapter extends IsarNativeTypeAdapter<OrderItem> {
       case 32:
         return (reader.readDouble(offset)) as P;
       case 33:
-        return (reader.readBool(offset)) as P;
+        return (reader.readBoolOrNull(offset)) as P;
       case 34:
         return (reader.readDoubleOrNull(offset)) as P;
       case 35:
@@ -3832,8 +3832,16 @@ extension OrderItemQueryFilter
     ));
   }
 
+  QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition> reportedIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'reported',
+      value: null,
+    ));
+  }
+
   QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition> reportedEqualTo(
-      bool value) {
+      bool? value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
       property: 'reported',
@@ -5615,7 +5623,7 @@ extension OrderItemQueryProperty
     return addPropertyNameInternal('remainingStock');
   }
 
-  QueryBuilder<OrderItem, bool, QQueryOperations> reportedProperty() {
+  QueryBuilder<OrderItem, bool?, QQueryOperations> reportedProperty() {
     return addPropertyNameInternal('reported');
   }
 

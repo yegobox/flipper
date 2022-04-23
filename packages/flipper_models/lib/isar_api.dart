@@ -104,7 +104,7 @@ class IsarAPI implements IsarApiInterface {
 
     final String orderNumber = const Uuid().v1().substring(0, 8);
 
-    int branchId = 1;
+    int branchId = ProxyService.box.getBranchId()!;
     String name = '';
     Order? existOrder = await pendingOrderExist(branchId: branchId);
     if (variation.name == 'Regular') {
@@ -156,6 +156,44 @@ class IsarAPI implements IsarApiInterface {
         ..reported = false
         ..variantId = variation.id
         ..price = price
+
+        /// RRA fields dutira muri variants (rent from variant model)
+        ..dcRt = 0.0
+        ..dcAmt = 0.0
+        ..taxblAmt = order.subTotal
+        ..taxAmt =
+            double.parse((variation.retailPrice * 18 / 118).toStringAsFixed(2))
+        ..totAmt = variation.retailPrice
+        ..itemSeq = variation.itemSeq
+        ..isrccCd = variation.isrccCd
+        ..isrccNm = variation.isrccNm
+        ..isrcRt = variation.isrcRt
+        ..isrcAmt = variation.isrcAmt
+        ..taxTyCd = variation.taxTyCd
+        ..bcd = variation.bcd
+        ..itemClsCd = variation.itemClsCd
+        ..itemTyCd = variation.itemTyCd
+        ..itemStdNm = variation.itemStdNm
+        ..orgnNatCd = variation.orgnNatCd
+        ..pkg = variation.pkg
+        ..itemCd = variation.itemCd
+        ..pkgUnitCd = variation.pkgUnitCd
+        ..qtyUnitCd = variation.qtyUnitCd
+        ..itemNm = variation.itemNm
+        ..prc = variation.prc
+        ..splyAmt = variation.splyAmt
+        ..tin = variation.tin
+        ..bhfId = variation.bhfId
+        ..dftPrc = variation.dftPrc
+        ..addInfo = variation.addInfo
+        ..isrcAplcbYn = variation.isrcAplcbYn
+        ..useYn = variation.useYn
+        ..regrId = variation.regrId
+        ..regrNm = variation.regrNm
+        ..modrId = variation.modrId
+        ..modrNm = variation.modrNm
+
+        /// end of RRA fields
         ..orderId = createdOrder.id
         ..createdAt = DateTime.now().toIso8601String()
         ..updatedAt = DateTime.now().toIso8601String()
@@ -279,6 +317,9 @@ class IsarAPI implements IsarApiInterface {
     await isar.writeTxn((isar) async {
       for (Variant variation in data) {
         // save variation to db
+        // FIXMEneed to know if all item will have same itemClsCd
+        variation.itemClsCd = "5020230602";
+        variation.pkg = "1";
         int variantId = await isar.variants.put(variation);
         final stockId = DateTime.now().millisecondsSinceEpoch;
         final stock = Stock()
@@ -409,7 +450,7 @@ class IsarAPI implements IsarApiInterface {
     // update order in isar db
     await isar.writeTxn((isar) async {
       int id = await isar.orders.put(order);
-      return isar.orders.getSync(id)!;
+      return isar.orders.get(id);
     });
   }
 
@@ -530,6 +571,8 @@ class IsarAPI implements IsarApiInterface {
   Future<Product> createProduct({required Product product}) async {
     Business? business = await getBusiness();
     String itemPrefix = "flip-";
+    String clip = itemPrefix +
+        DateTime.now().microsecondsSinceEpoch.toString().substring(0, 5);
     product.active = false;
     product.description = 'description';
     product.color = '#5A2328';
@@ -538,8 +581,6 @@ class IsarAPI implements IsarApiInterface {
     product.branchId = ProxyService.box.getBranchId()!;
 
     final int branchId = ProxyService.box.getBranchId()!;
-    String clip = itemPrefix +
-        DateTime.now().microsecondsSinceEpoch.toString().substring(0, 5);
 
     Product? kProduct = await isar.writeTxn((isar) async {
       int id = await isar.products.put(product, saveLinks: true);
@@ -579,6 +620,9 @@ class IsarAPI implements IsarApiInterface {
         ..regrNm = "Regular"
         ..modrId = clip
         ..modrNm = "Regular"
+        ..pkg = "1"
+        ..itemSeq = "1"
+        ..splyAmt = 0.0
         // RRA fields ends
         ..supplyPrice = 0.0,
     );
@@ -610,15 +654,11 @@ class IsarAPI implements IsarApiInterface {
     await isar.writeTxn((isar) async {
       return isar.stocks.put(stock);
     });
-    if (await isTaxEnabled()) {
-      log.i('Tax Enabled');
-      //TODOsave the variant as EBM item
-      ProxyService.tax.saveItem(variation: variant);
-      ProxyService.tax.saveStock(stock: stock);
-    }
+
     return kProduct;
   }
 
+  @override
   Future<bool> isTaxEnabled() async {
     Business? business = await getBusiness();
     bool isEbmEnabled = business?.tinNumber != null &&

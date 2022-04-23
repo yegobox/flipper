@@ -138,7 +138,10 @@ class _AfterSaleState extends State<AfterSale> {
                                                             .orderItems(
                                                                 orderId: widget
                                                                     .order.id);
-// TODO: continue working on receipt.
+                                                    ProxyService.tax
+                                                        .createReceipt(
+                                                            order: widget.order,
+                                                            items: items);
                                                     // Print print = Print();
                                                     // print.feed(items);
                                                     // print.print(

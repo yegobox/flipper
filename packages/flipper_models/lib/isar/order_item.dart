@@ -11,10 +11,10 @@ class OrderItem {
   // quantity
   late double qty;
   late double price;
-  late double? discount;
+  double? discount;
 
   String? type;
-  late bool reported;
+  bool? reported;
 
   late double remainingStock;
   late String createdAt;
@@ -68,6 +68,7 @@ class OrderItem {
   // same as name but for rra happiness
   String? itemNm;
   // unit price
+  // check if prc is saved as same as retailPrice
   double? prc;
   // supply amount
   double? splyAmt;
@@ -81,4 +82,52 @@ class OrderItem {
   String? regrNm;
   String? modrId;
   String? modrNm;
+
+  // to json
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'orderId': orderId,
+        'variantId': variantId,
+        'qty': qty,
+        'price': price,
+        'discount': discount,
+        'type': type,
+        'reported': reported,
+        'remainingStock': remainingStock,
+        'createdAt': createdAt,
+        'updatedAt': updatedAt,
+        'dcRt': dcRt,
+        'dcAmt': dcAmt,
+        'taxblAmt': taxblAmt,
+        'taxAmt': taxAmt,
+        'totAmt': totAmt,
+        'itemSeq': itemSeq,
+        'isrccCd': isrccCd,
+        'isrccNm': isrccNm,
+        'isrcRt': isrcRt,
+        'isrcAmt': isrcAmt,
+        'taxTyCd': taxTyCd,
+        'bcd': bcd,
+        'itemClsCd': itemClsCd,
+        'itemTyCd': itemTyCd,
+        'itemStdNm': itemStdNm,
+        'orgnNatCd': orgnNatCd,
+        'pkg': pkg,
+        'itemCd': itemCd,
+        'pkgUnitCd': pkgUnitCd,
+        'qtyUnitCd': qtyUnitCd,
+        'itemNm': itemNm,
+        'prc': prc,
+        'splyAmt': splyAmt,
+        'tin': tin,
+        'bhfId': bhfId,
+        'dftPrc': dftPrc,
+        'addInfo': addInfo,
+        'isrcAplcbYn': isrcAplcbYn,
+        'useYn': useYn,
+        'regrId': regrId,
+        'regrNm': regrNm,
+        'modrId': modrId,
+      };
 }

@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 
 class RWTax implements TaxApi {
   String apihub = "https://turbo.yegobox.com";
-  String itemPrefix = "flipper-";
+  String itemPrefix = "flip-";
 
   @override
   Future<bool> initApi({
@@ -56,7 +56,7 @@ class RWTax implements TaxApi {
     http.StreamedResponse response = await request.send();
 
     if (response.statusCode == 200) {
-      // log(await response.stream.bytesToString());
+      log(await response.stream.bytesToString());
       return Future.value(true);
     } else {
       log(response.reasonPhrase!);
@@ -84,7 +84,7 @@ class RWTax implements TaxApi {
     http.StreamedResponse response = await request.send();
 
     if (response.statusCode == 200) {
-      // log(await response.stream.bytesToString());
+      log(await response.stream.bytesToString());
       return Future.value(true);
     } else {
       return Future.value(false);
@@ -134,11 +134,16 @@ class RWTax implements TaxApi {
         .substring(0, 14);
     var headers = {'Content-Type': 'application/json'};
     var request =
-        http.Request('POST', Uri.parse(apihub + 'trnsSales/saveSales'));
+        http.Request('POST', Uri.parse(apihub + '/trnsSales/saveSales'));
+    List<Map<String, dynamic>> itemsList = [];
+    for (var item in items) {
+      itemsList.add(item.toJson());
+    }
+
     request.body = json.encode({
       "tin": business!.tinNumber,
       "bhfId": business.bhfId,
-      "invcNo": order.id + DateTime.now().millisecond,
+      "invcNo": order.id + DateTime.now().microsecond,
       "orgInvcNo": 0,
       "custTin": customer == null ? "" : customer.tinNumber,
       "custNm": customer == null ? "" : customer.name,
@@ -153,7 +158,7 @@ class RWTax implements TaxApi {
       "cnclDt": null,
       "rfdDt": null,
       "rfdRsnCd": null,
-      "totItemCnt": 2,
+      "totItemCnt": itemsList.length,
       "taxblAmtA": 0,
       "taxblAmtB": order.subTotal,
       "taxblAmtC": 0,
@@ -163,11 +168,11 @@ class RWTax implements TaxApi {
       "taxRtC": 0,
       "taxRtD": 0,
       "taxAmtA": 0,
-      "taxAmtB": order.subTotal * 18 / 118,
+      "taxAmtB": (order.subTotal * 18 / 118).toStringAsFixed(2),
       "taxAmtC": 0,
       "taxAmtD": 0,
       "totTaxblAmt": order.subTotal,
-      "totTaxAmt": order.subTotal * 18 / 118,
+      "totTaxAmt": (order.subTotal * 18 / 118).toStringAsFixed(2),
       "totAmt": order.subTotal,
       "prchrAcptcYn": "N",
       "remark": null,
@@ -186,9 +191,10 @@ class RWTax implements TaxApi {
         "rcptPbctDt": date,
         "intrlData": itemPrefix +
             order.id.toString() +
-            DateTime.now().millisecond.toString(),
-        "rcptSign":
-            itemPrefix + order.id.toString() + DateTime.now().toString(),
+            DateTime.now().microsecondsSinceEpoch.toString().substring(0, 10),
+        "rcptSign": itemPrefix +
+            order.id.toString() +
+            DateTime.now().microsecondsSinceEpoch.toString().substring(0, 11),
         "jrnl": "",
         "trdeNm": business.name,
         "adrs": business.adrs,
@@ -197,14 +203,14 @@ class RWTax implements TaxApi {
         // Whether buyers receive item or not. default to Y es
         "prchrAcptcYn": "Y"
       },
-      "itemList": items
+      "itemList": itemsList
     });
     request.headers.addAll(headers);
 
     http.StreamedResponse response = await request.send();
 
     if (response.statusCode == 200) {
-      // print(await response.stream.bytesToString());
+      log(await response.stream.bytesToString());
       return Future.value(true);
     } else {
       return Future.value(false);
