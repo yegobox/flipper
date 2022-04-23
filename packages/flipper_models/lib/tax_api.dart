@@ -7,6 +7,7 @@
 // ->
 
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/receipt_signature.dart';
 
 abstract class TaxApi {
   Future<bool> saveItem({required Variant variation});
@@ -27,7 +28,7 @@ abstract class TaxApi {
   //   required Order order,
   //   required List<OrderItem> items,
   // });
-  Future<bool> createReceipt({
+  Future<ReceiptSignature?> createReceipt({
     Customer? customer,
     required Order order,
     required List<OrderItem> items,

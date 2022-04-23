@@ -1,3 +1,4 @@
+import 'package:flipper_models/receipt_signature.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_services/proxy.dart';
@@ -138,10 +139,15 @@ class _AfterSaleState extends State<AfterSale> {
                                                             .orderItems(
                                                                 orderId: widget
                                                                     .order.id);
-                                                    ProxyService.tax
-                                                        .createReceipt(
-                                                            order: widget.order,
-                                                            items: items);
+                                                    ReceiptSignature?
+                                                        receiptSignature =
+                                                        await ProxyService.tax
+                                                            .createReceipt(
+                                                                order: widget
+                                                                    .order,
+                                                                items: items);
+                                                    log.i(receiptSignature!
+                                                        .toJson());
                                                     // Print print = Print();
                                                     // print.feed(items);
                                                     // print.print(

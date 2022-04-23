@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/receipt_signature.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
@@ -119,7 +120,7 @@ class RWTax implements TaxApi {
   }
 
   @override
-  Future<bool> createReceipt(
+  Future<ReceiptSignature?> createReceipt(
       {Customer? customer,
       required Order order,
       required List<OrderItem> items,
@@ -210,10 +211,10 @@ class RWTax implements TaxApi {
     http.StreamedResponse response = await request.send();
 
     if (response.statusCode == 200) {
-      log(await response.stream.bytesToString());
-      return Future.value(true);
+      return Future.value(ReceiptSignature.fromJson(
+          json.decode(await response.stream.bytesToString())));
     } else {
-      return Future.value(false);
+      return null;
     }
   }
 }
