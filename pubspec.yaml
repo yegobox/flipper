@@ -128,3 +128,4 @@ flutter:
           weight: 500
 generate: true
 # https://flutter.dev/docs/perf/deferred-components (getting ready with way forward.)
+# flutter pub run flutter_launcher_icons:main
