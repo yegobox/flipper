@@ -6,20 +6,16 @@ part of flipper_models;
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable
 
 extension GetProfileCollection on Isar {
-  IsarCollection<Profile> get profiles {
-    return getCollection('Profile');
-  }
+  IsarCollection<Profile> get profiles => getCollection();
 }
 
-final ProfileSchema = CollectionSchema(
+const ProfileSchema = CollectionSchema(
   name: 'Profile',
   schema:
       '{"name":"Profile","idName":"id","properties":[{"name":"about","type":"String"},{"name":"address","type":"String"},{"name":"businessId","type":"Long"},{"name":"cell","type":"String"},{"name":"city","type":"String"},{"name":"country","type":"String"},{"name":"coverPic","type":"String"},{"name":"district","type":"String"},{"name":"email","type":"String"},{"name":"livingAt","type":"String"},{"name":"name","type":"String"},{"name":"nationalId","type":"String"},{"name":"phone","type":"String"},{"name":"pincode","type":"String"},{"name":"profilePic","type":"String"},{"name":"state","type":"String"},{"name":"vaccinationCode","type":"String"}],"indexes":[],"links":[]}',
-  nativeAdapter: const _ProfileNativeAdapter(),
-  webAdapter: const _ProfileWebAdapter(),
   idName: 'id',
   propertyIds: {
     'about': 0,
@@ -42,364 +38,352 @@ final ProfileSchema = CollectionSchema(
   },
   listProperties: {},
   indexIds: {},
-  indexTypes: {},
+  indexValueTypes: {},
   linkIds: {},
-  backlinkIds: {},
-  linkedCollections: [],
-  getId: (obj) {
-    if (obj.id == Isar.autoIncrement) {
-      return null;
-    } else {
-      return obj.id;
-    }
-  },
-  setId: (obj, id) => obj.id = id,
-  getLinks: (obj) => [],
-  version: 2,
+  backlinkLinkNames: {},
+  getId: _profileGetId,
+  setId: _profileSetId,
+  getLinks: _profileGetLinks,
+  attachLinks: _profileAttachLinks,
+  serializeNative: _profileSerializeNative,
+  deserializeNative: _profileDeserializeNative,
+  deserializePropNative: _profileDeserializePropNative,
+  serializeWeb: _profileSerializeWeb,
+  deserializeWeb: _profileDeserializeWeb,
+  deserializePropWeb: _profileDeserializePropWeb,
+  version: 3,
 );
 
-class _ProfileWebAdapter extends IsarWebTypeAdapter<Profile> {
-  const _ProfileWebAdapter();
-
-  @override
-  Object serialize(IsarCollection<Profile> collection, Profile object) {
-    final jsObj = IsarNative.newJsObject();
-    IsarNative.jsObjectSet(jsObj, 'about', object.about);
-    IsarNative.jsObjectSet(jsObj, 'address', object.address);
-    IsarNative.jsObjectSet(jsObj, 'businessId', object.businessId);
-    IsarNative.jsObjectSet(jsObj, 'cell', object.cell);
-    IsarNative.jsObjectSet(jsObj, 'city', object.city);
-    IsarNative.jsObjectSet(jsObj, 'country', object.country);
-    IsarNative.jsObjectSet(jsObj, 'coverPic', object.coverPic);
-    IsarNative.jsObjectSet(jsObj, 'district', object.district);
-    IsarNative.jsObjectSet(jsObj, 'email', object.email);
-    IsarNative.jsObjectSet(jsObj, 'id', object.id);
-    IsarNative.jsObjectSet(jsObj, 'livingAt', object.livingAt);
-    IsarNative.jsObjectSet(jsObj, 'name', object.name);
-    IsarNative.jsObjectSet(jsObj, 'nationalId', object.nationalId);
-    IsarNative.jsObjectSet(jsObj, 'phone', object.phone);
-    IsarNative.jsObjectSet(jsObj, 'pincode', object.pincode);
-    IsarNative.jsObjectSet(jsObj, 'profilePic', object.profilePic);
-    IsarNative.jsObjectSet(jsObj, 'state', object.state);
-    IsarNative.jsObjectSet(jsObj, 'vaccinationCode', object.vaccinationCode);
-    return jsObj;
+int? _profileGetId(Profile object) {
+  if (object.id == Isar.autoIncrement) {
+    return null;
+  } else {
+    return object.id;
   }
-
-  @override
-  Profile deserialize(IsarCollection<Profile> collection, dynamic jsObj) {
-    final object = Profile(
-      about: IsarNative.jsObjectGet(jsObj, 'about'),
-      address: IsarNative.jsObjectGet(jsObj, 'address'),
-      businessId: IsarNative.jsObjectGet(jsObj, 'businessId') ??
-          double.negativeInfinity,
-      cell: IsarNative.jsObjectGet(jsObj, 'cell') ?? '',
-      city: IsarNative.jsObjectGet(jsObj, 'city'),
-      country: IsarNative.jsObjectGet(jsObj, 'country') ?? '',
-      coverPic: IsarNative.jsObjectGet(jsObj, 'coverPic'),
-      district: IsarNative.jsObjectGet(jsObj, 'district') ?? '',
-      email: IsarNative.jsObjectGet(jsObj, 'email') ?? '',
-      id: IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity,
-      livingAt: IsarNative.jsObjectGet(jsObj, 'livingAt') ?? '',
-      name: IsarNative.jsObjectGet(jsObj, 'name') ?? '',
-      nationalId: IsarNative.jsObjectGet(jsObj, 'nationalId') ?? '',
-      phone: IsarNative.jsObjectGet(jsObj, 'phone') ?? '',
-      pincode: IsarNative.jsObjectGet(jsObj, 'pincode'),
-      profilePic: IsarNative.jsObjectGet(jsObj, 'profilePic'),
-      state: IsarNative.jsObjectGet(jsObj, 'state'),
-      vaccinationCode: IsarNative.jsObjectGet(jsObj, 'vaccinationCode') ?? '',
-    );
-    return object;
-  }
-
-  @override
-  P deserializeProperty<P>(Object jsObj, String propertyName) {
-    switch (propertyName) {
-      case 'about':
-        return (IsarNative.jsObjectGet(jsObj, 'about')) as P;
-      case 'address':
-        return (IsarNative.jsObjectGet(jsObj, 'address')) as P;
-      case 'businessId':
-        return (IsarNative.jsObjectGet(jsObj, 'businessId') ??
-            double.negativeInfinity) as P;
-      case 'cell':
-        return (IsarNative.jsObjectGet(jsObj, 'cell') ?? '') as P;
-      case 'city':
-        return (IsarNative.jsObjectGet(jsObj, 'city')) as P;
-      case 'country':
-        return (IsarNative.jsObjectGet(jsObj, 'country') ?? '') as P;
-      case 'coverPic':
-        return (IsarNative.jsObjectGet(jsObj, 'coverPic')) as P;
-      case 'district':
-        return (IsarNative.jsObjectGet(jsObj, 'district') ?? '') as P;
-      case 'email':
-        return (IsarNative.jsObjectGet(jsObj, 'email') ?? '') as P;
-      case 'id':
-        return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
-            as P;
-      case 'livingAt':
-        return (IsarNative.jsObjectGet(jsObj, 'livingAt') ?? '') as P;
-      case 'name':
-        return (IsarNative.jsObjectGet(jsObj, 'name') ?? '') as P;
-      case 'nationalId':
-        return (IsarNative.jsObjectGet(jsObj, 'nationalId') ?? '') as P;
-      case 'phone':
-        return (IsarNative.jsObjectGet(jsObj, 'phone') ?? '') as P;
-      case 'pincode':
-        return (IsarNative.jsObjectGet(jsObj, 'pincode')) as P;
-      case 'profilePic':
-        return (IsarNative.jsObjectGet(jsObj, 'profilePic')) as P;
-      case 'state':
-        return (IsarNative.jsObjectGet(jsObj, 'state')) as P;
-      case 'vaccinationCode':
-        return (IsarNative.jsObjectGet(jsObj, 'vaccinationCode') ?? '') as P;
-      default:
-        throw 'Illegal propertyName';
-    }
-  }
-
-  @override
-  void attachLinks(Isar isar, int id, Profile object) {}
 }
 
-class _ProfileNativeAdapter extends IsarNativeTypeAdapter<Profile> {
-  const _ProfileNativeAdapter();
-
-  @override
-  void serialize(IsarCollection<Profile> collection, IsarRawObject rawObj,
-      Profile object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
-    var dynamicSize = 0;
-    final value0 = object.about;
-    IsarUint8List? _about;
-    if (value0 != null) {
-      _about = IsarBinaryWriter.utf8Encoder.convert(value0);
-    }
-    dynamicSize += (_about?.length ?? 0) as int;
-    final value1 = object.address;
-    IsarUint8List? _address;
-    if (value1 != null) {
-      _address = IsarBinaryWriter.utf8Encoder.convert(value1);
-    }
-    dynamicSize += (_address?.length ?? 0) as int;
-    final value2 = object.businessId;
-    final _businessId = value2;
-    final value3 = object.cell;
-    final _cell = IsarBinaryWriter.utf8Encoder.convert(value3);
-    dynamicSize += (_cell.length) as int;
-    final value4 = object.city;
-    IsarUint8List? _city;
-    if (value4 != null) {
-      _city = IsarBinaryWriter.utf8Encoder.convert(value4);
-    }
-    dynamicSize += (_city?.length ?? 0) as int;
-    final value5 = object.country;
-    final _country = IsarBinaryWriter.utf8Encoder.convert(value5);
-    dynamicSize += (_country.length) as int;
-    final value6 = object.coverPic;
-    IsarUint8List? _coverPic;
-    if (value6 != null) {
-      _coverPic = IsarBinaryWriter.utf8Encoder.convert(value6);
-    }
-    dynamicSize += (_coverPic?.length ?? 0) as int;
-    final value7 = object.district;
-    final _district = IsarBinaryWriter.utf8Encoder.convert(value7);
-    dynamicSize += (_district.length) as int;
-    final value8 = object.email;
-    final _email = IsarBinaryWriter.utf8Encoder.convert(value8);
-    dynamicSize += (_email.length) as int;
-    final value9 = object.livingAt;
-    final _livingAt = IsarBinaryWriter.utf8Encoder.convert(value9);
-    dynamicSize += (_livingAt.length) as int;
-    final value10 = object.name;
-    final _name = IsarBinaryWriter.utf8Encoder.convert(value10);
-    dynamicSize += (_name.length) as int;
-    final value11 = object.nationalId;
-    final _nationalId = IsarBinaryWriter.utf8Encoder.convert(value11);
-    dynamicSize += (_nationalId.length) as int;
-    final value12 = object.phone;
-    final _phone = IsarBinaryWriter.utf8Encoder.convert(value12);
-    dynamicSize += (_phone.length) as int;
-    final value13 = object.pincode;
-    IsarUint8List? _pincode;
-    if (value13 != null) {
-      _pincode = IsarBinaryWriter.utf8Encoder.convert(value13);
-    }
-    dynamicSize += (_pincode?.length ?? 0) as int;
-    final value14 = object.profilePic;
-    IsarUint8List? _profilePic;
-    if (value14 != null) {
-      _profilePic = IsarBinaryWriter.utf8Encoder.convert(value14);
-    }
-    dynamicSize += (_profilePic?.length ?? 0) as int;
-    final value15 = object.state;
-    IsarUint8List? _state;
-    if (value15 != null) {
-      _state = IsarBinaryWriter.utf8Encoder.convert(value15);
-    }
-    dynamicSize += (_state?.length ?? 0) as int;
-    final value16 = object.vaccinationCode;
-    final _vaccinationCode = IsarBinaryWriter.utf8Encoder.convert(value16);
-    dynamicSize += (_vaccinationCode.length) as int;
-    final size = staticSize + dynamicSize;
-
-    rawObj.buffer = alloc(size);
-    rawObj.buffer_length = size;
-    final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
-    final writer = IsarBinaryWriter(buffer, staticSize);
-    writer.writeBytes(offsets[0], _about);
-    writer.writeBytes(offsets[1], _address);
-    writer.writeLong(offsets[2], _businessId);
-    writer.writeBytes(offsets[3], _cell);
-    writer.writeBytes(offsets[4], _city);
-    writer.writeBytes(offsets[5], _country);
-    writer.writeBytes(offsets[6], _coverPic);
-    writer.writeBytes(offsets[7], _district);
-    writer.writeBytes(offsets[8], _email);
-    writer.writeBytes(offsets[9], _livingAt);
-    writer.writeBytes(offsets[10], _name);
-    writer.writeBytes(offsets[11], _nationalId);
-    writer.writeBytes(offsets[12], _phone);
-    writer.writeBytes(offsets[13], _pincode);
-    writer.writeBytes(offsets[14], _profilePic);
-    writer.writeBytes(offsets[15], _state);
-    writer.writeBytes(offsets[16], _vaccinationCode);
-  }
-
-  @override
-  Profile deserialize(IsarCollection<Profile> collection, int id,
-      IsarBinaryReader reader, List<int> offsets) {
-    final object = Profile(
-      about: reader.readStringOrNull(offsets[0]),
-      address: reader.readStringOrNull(offsets[1]),
-      businessId: reader.readLong(offsets[2]),
-      cell: reader.readString(offsets[3]),
-      city: reader.readStringOrNull(offsets[4]),
-      country: reader.readString(offsets[5]),
-      coverPic: reader.readStringOrNull(offsets[6]),
-      district: reader.readString(offsets[7]),
-      email: reader.readString(offsets[8]),
-      id: id,
-      livingAt: reader.readString(offsets[9]),
-      name: reader.readString(offsets[10]),
-      nationalId: reader.readString(offsets[11]),
-      phone: reader.readString(offsets[12]),
-      pincode: reader.readStringOrNull(offsets[13]),
-      profilePic: reader.readStringOrNull(offsets[14]),
-      state: reader.readStringOrNull(offsets[15]),
-      vaccinationCode: reader.readString(offsets[16]),
-    );
-    return object;
-  }
-
-  @override
-  P deserializeProperty<P>(
-      int id, IsarBinaryReader reader, int propertyIndex, int offset) {
-    switch (propertyIndex) {
-      case -1:
-        return id as P;
-      case 0:
-        return (reader.readStringOrNull(offset)) as P;
-      case 1:
-        return (reader.readStringOrNull(offset)) as P;
-      case 2:
-        return (reader.readLong(offset)) as P;
-      case 3:
-        return (reader.readString(offset)) as P;
-      case 4:
-        return (reader.readStringOrNull(offset)) as P;
-      case 5:
-        return (reader.readString(offset)) as P;
-      case 6:
-        return (reader.readStringOrNull(offset)) as P;
-      case 7:
-        return (reader.readString(offset)) as P;
-      case 8:
-        return (reader.readString(offset)) as P;
-      case 9:
-        return (reader.readString(offset)) as P;
-      case 10:
-        return (reader.readString(offset)) as P;
-      case 11:
-        return (reader.readString(offset)) as P;
-      case 12:
-        return (reader.readString(offset)) as P;
-      case 13:
-        return (reader.readStringOrNull(offset)) as P;
-      case 14:
-        return (reader.readStringOrNull(offset)) as P;
-      case 15:
-        return (reader.readStringOrNull(offset)) as P;
-      case 16:
-        return (reader.readString(offset)) as P;
-      default:
-        throw 'Illegal propertyIndex';
-    }
-  }
-
-  @override
-  void attachLinks(Isar isar, int id, Profile object) {}
+void _profileSetId(Profile object, int id) {
+  object.id = id;
 }
+
+List<IsarLinkBase> _profileGetLinks(Profile object) {
+  return [];
+}
+
+void _profileSerializeNative(
+    IsarCollection<Profile> collection,
+    IsarRawObject rawObj,
+    Profile object,
+    int staticSize,
+    List<int> offsets,
+    AdapterAlloc alloc) {
+  var dynamicSize = 0;
+  final value0 = object.about;
+  IsarUint8List? _about;
+  if (value0 != null) {
+    _about = IsarBinaryWriter.utf8Encoder.convert(value0);
+  }
+  dynamicSize += (_about?.length ?? 0) as int;
+  final value1 = object.address;
+  IsarUint8List? _address;
+  if (value1 != null) {
+    _address = IsarBinaryWriter.utf8Encoder.convert(value1);
+  }
+  dynamicSize += (_address?.length ?? 0) as int;
+  final value2 = object.businessId;
+  final _businessId = value2;
+  final value3 = object.cell;
+  final _cell = IsarBinaryWriter.utf8Encoder.convert(value3);
+  dynamicSize += (_cell.length) as int;
+  final value4 = object.city;
+  IsarUint8List? _city;
+  if (value4 != null) {
+    _city = IsarBinaryWriter.utf8Encoder.convert(value4);
+  }
+  dynamicSize += (_city?.length ?? 0) as int;
+  final value5 = object.country;
+  final _country = IsarBinaryWriter.utf8Encoder.convert(value5);
+  dynamicSize += (_country.length) as int;
+  final value6 = object.coverPic;
+  IsarUint8List? _coverPic;
+  if (value6 != null) {
+    _coverPic = IsarBinaryWriter.utf8Encoder.convert(value6);
+  }
+  dynamicSize += (_coverPic?.length ?? 0) as int;
+  final value7 = object.district;
+  final _district = IsarBinaryWriter.utf8Encoder.convert(value7);
+  dynamicSize += (_district.length) as int;
+  final value8 = object.email;
+  final _email = IsarBinaryWriter.utf8Encoder.convert(value8);
+  dynamicSize += (_email.length) as int;
+  final value9 = object.livingAt;
+  final _livingAt = IsarBinaryWriter.utf8Encoder.convert(value9);
+  dynamicSize += (_livingAt.length) as int;
+  final value10 = object.name;
+  final _name = IsarBinaryWriter.utf8Encoder.convert(value10);
+  dynamicSize += (_name.length) as int;
+  final value11 = object.nationalId;
+  final _nationalId = IsarBinaryWriter.utf8Encoder.convert(value11);
+  dynamicSize += (_nationalId.length) as int;
+  final value12 = object.phone;
+  final _phone = IsarBinaryWriter.utf8Encoder.convert(value12);
+  dynamicSize += (_phone.length) as int;
+  final value13 = object.pincode;
+  IsarUint8List? _pincode;
+  if (value13 != null) {
+    _pincode = IsarBinaryWriter.utf8Encoder.convert(value13);
+  }
+  dynamicSize += (_pincode?.length ?? 0) as int;
+  final value14 = object.profilePic;
+  IsarUint8List? _profilePic;
+  if (value14 != null) {
+    _profilePic = IsarBinaryWriter.utf8Encoder.convert(value14);
+  }
+  dynamicSize += (_profilePic?.length ?? 0) as int;
+  final value15 = object.state;
+  IsarUint8List? _state;
+  if (value15 != null) {
+    _state = IsarBinaryWriter.utf8Encoder.convert(value15);
+  }
+  dynamicSize += (_state?.length ?? 0) as int;
+  final value16 = object.vaccinationCode;
+  final _vaccinationCode = IsarBinaryWriter.utf8Encoder.convert(value16);
+  dynamicSize += (_vaccinationCode.length) as int;
+  final size = staticSize + dynamicSize;
+
+  rawObj.buffer = alloc(size);
+  rawObj.buffer_length = size;
+  final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
+  final writer = IsarBinaryWriter(buffer, staticSize);
+  writer.writeBytes(offsets[0], _about);
+  writer.writeBytes(offsets[1], _address);
+  writer.writeLong(offsets[2], _businessId);
+  writer.writeBytes(offsets[3], _cell);
+  writer.writeBytes(offsets[4], _city);
+  writer.writeBytes(offsets[5], _country);
+  writer.writeBytes(offsets[6], _coverPic);
+  writer.writeBytes(offsets[7], _district);
+  writer.writeBytes(offsets[8], _email);
+  writer.writeBytes(offsets[9], _livingAt);
+  writer.writeBytes(offsets[10], _name);
+  writer.writeBytes(offsets[11], _nationalId);
+  writer.writeBytes(offsets[12], _phone);
+  writer.writeBytes(offsets[13], _pincode);
+  writer.writeBytes(offsets[14], _profilePic);
+  writer.writeBytes(offsets[15], _state);
+  writer.writeBytes(offsets[16], _vaccinationCode);
+}
+
+Profile _profileDeserializeNative(IsarCollection<Profile> collection, int id,
+    IsarBinaryReader reader, List<int> offsets) {
+  final object = Profile(
+    about: reader.readStringOrNull(offsets[0]),
+    address: reader.readStringOrNull(offsets[1]),
+    businessId: reader.readLong(offsets[2]),
+    cell: reader.readString(offsets[3]),
+    city: reader.readStringOrNull(offsets[4]),
+    country: reader.readString(offsets[5]),
+    coverPic: reader.readStringOrNull(offsets[6]),
+    district: reader.readString(offsets[7]),
+    email: reader.readString(offsets[8]),
+    id: id,
+    livingAt: reader.readString(offsets[9]),
+    name: reader.readString(offsets[10]),
+    nationalId: reader.readString(offsets[11]),
+    phone: reader.readString(offsets[12]),
+    pincode: reader.readStringOrNull(offsets[13]),
+    profilePic: reader.readStringOrNull(offsets[14]),
+    state: reader.readStringOrNull(offsets[15]),
+    vaccinationCode: reader.readString(offsets[16]),
+  );
+  return object;
+}
+
+P _profileDeserializePropNative<P>(
+    int id, IsarBinaryReader reader, int propertyIndex, int offset) {
+  switch (propertyIndex) {
+    case -1:
+      return id as P;
+    case 0:
+      return (reader.readStringOrNull(offset)) as P;
+    case 1:
+      return (reader.readStringOrNull(offset)) as P;
+    case 2:
+      return (reader.readLong(offset)) as P;
+    case 3:
+      return (reader.readString(offset)) as P;
+    case 4:
+      return (reader.readStringOrNull(offset)) as P;
+    case 5:
+      return (reader.readString(offset)) as P;
+    case 6:
+      return (reader.readStringOrNull(offset)) as P;
+    case 7:
+      return (reader.readString(offset)) as P;
+    case 8:
+      return (reader.readString(offset)) as P;
+    case 9:
+      return (reader.readString(offset)) as P;
+    case 10:
+      return (reader.readString(offset)) as P;
+    case 11:
+      return (reader.readString(offset)) as P;
+    case 12:
+      return (reader.readString(offset)) as P;
+    case 13:
+      return (reader.readStringOrNull(offset)) as P;
+    case 14:
+      return (reader.readStringOrNull(offset)) as P;
+    case 15:
+      return (reader.readStringOrNull(offset)) as P;
+    case 16:
+      return (reader.readString(offset)) as P;
+    default:
+      throw 'Illegal propertyIndex';
+  }
+}
+
+dynamic _profileSerializeWeb(
+    IsarCollection<Profile> collection, Profile object) {
+  final jsObj = IsarNative.newJsObject();
+  IsarNative.jsObjectSet(jsObj, 'about', object.about);
+  IsarNative.jsObjectSet(jsObj, 'address', object.address);
+  IsarNative.jsObjectSet(jsObj, 'businessId', object.businessId);
+  IsarNative.jsObjectSet(jsObj, 'cell', object.cell);
+  IsarNative.jsObjectSet(jsObj, 'city', object.city);
+  IsarNative.jsObjectSet(jsObj, 'country', object.country);
+  IsarNative.jsObjectSet(jsObj, 'coverPic', object.coverPic);
+  IsarNative.jsObjectSet(jsObj, 'district', object.district);
+  IsarNative.jsObjectSet(jsObj, 'email', object.email);
+  IsarNative.jsObjectSet(jsObj, 'id', object.id);
+  IsarNative.jsObjectSet(jsObj, 'livingAt', object.livingAt);
+  IsarNative.jsObjectSet(jsObj, 'name', object.name);
+  IsarNative.jsObjectSet(jsObj, 'nationalId', object.nationalId);
+  IsarNative.jsObjectSet(jsObj, 'phone', object.phone);
+  IsarNative.jsObjectSet(jsObj, 'pincode', object.pincode);
+  IsarNative.jsObjectSet(jsObj, 'profilePic', object.profilePic);
+  IsarNative.jsObjectSet(jsObj, 'state', object.state);
+  IsarNative.jsObjectSet(jsObj, 'vaccinationCode', object.vaccinationCode);
+  return jsObj;
+}
+
+Profile _profileDeserializeWeb(
+    IsarCollection<Profile> collection, dynamic jsObj) {
+  final object = Profile(
+    about: IsarNative.jsObjectGet(jsObj, 'about'),
+    address: IsarNative.jsObjectGet(jsObj, 'address'),
+    businessId:
+        IsarNative.jsObjectGet(jsObj, 'businessId') ?? double.negativeInfinity,
+    cell: IsarNative.jsObjectGet(jsObj, 'cell') ?? '',
+    city: IsarNative.jsObjectGet(jsObj, 'city'),
+    country: IsarNative.jsObjectGet(jsObj, 'country') ?? '',
+    coverPic: IsarNative.jsObjectGet(jsObj, 'coverPic'),
+    district: IsarNative.jsObjectGet(jsObj, 'district') ?? '',
+    email: IsarNative.jsObjectGet(jsObj, 'email') ?? '',
+    id: IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity,
+    livingAt: IsarNative.jsObjectGet(jsObj, 'livingAt') ?? '',
+    name: IsarNative.jsObjectGet(jsObj, 'name') ?? '',
+    nationalId: IsarNative.jsObjectGet(jsObj, 'nationalId') ?? '',
+    phone: IsarNative.jsObjectGet(jsObj, 'phone') ?? '',
+    pincode: IsarNative.jsObjectGet(jsObj, 'pincode'),
+    profilePic: IsarNative.jsObjectGet(jsObj, 'profilePic'),
+    state: IsarNative.jsObjectGet(jsObj, 'state'),
+    vaccinationCode: IsarNative.jsObjectGet(jsObj, 'vaccinationCode') ?? '',
+  );
+  return object;
+}
+
+P _profileDeserializePropWeb<P>(Object jsObj, String propertyName) {
+  switch (propertyName) {
+    case 'about':
+      return (IsarNative.jsObjectGet(jsObj, 'about')) as P;
+    case 'address':
+      return (IsarNative.jsObjectGet(jsObj, 'address')) as P;
+    case 'businessId':
+      return (IsarNative.jsObjectGet(jsObj, 'businessId') ??
+          double.negativeInfinity) as P;
+    case 'cell':
+      return (IsarNative.jsObjectGet(jsObj, 'cell') ?? '') as P;
+    case 'city':
+      return (IsarNative.jsObjectGet(jsObj, 'city')) as P;
+    case 'country':
+      return (IsarNative.jsObjectGet(jsObj, 'country') ?? '') as P;
+    case 'coverPic':
+      return (IsarNative.jsObjectGet(jsObj, 'coverPic')) as P;
+    case 'district':
+      return (IsarNative.jsObjectGet(jsObj, 'district') ?? '') as P;
+    case 'email':
+      return (IsarNative.jsObjectGet(jsObj, 'email') ?? '') as P;
+    case 'id':
+      return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
+          as P;
+    case 'livingAt':
+      return (IsarNative.jsObjectGet(jsObj, 'livingAt') ?? '') as P;
+    case 'name':
+      return (IsarNative.jsObjectGet(jsObj, 'name') ?? '') as P;
+    case 'nationalId':
+      return (IsarNative.jsObjectGet(jsObj, 'nationalId') ?? '') as P;
+    case 'phone':
+      return (IsarNative.jsObjectGet(jsObj, 'phone') ?? '') as P;
+    case 'pincode':
+      return (IsarNative.jsObjectGet(jsObj, 'pincode')) as P;
+    case 'profilePic':
+      return (IsarNative.jsObjectGet(jsObj, 'profilePic')) as P;
+    case 'state':
+      return (IsarNative.jsObjectGet(jsObj, 'state')) as P;
+    case 'vaccinationCode':
+      return (IsarNative.jsObjectGet(jsObj, 'vaccinationCode') ?? '') as P;
+    default:
+      throw 'Illegal propertyName';
+  }
+}
+
+void _profileAttachLinks(IsarCollection col, int id, Profile object) {}
 
 extension ProfileQueryWhereSort on QueryBuilder<Profile, Profile, QWhere> {
   QueryBuilder<Profile, Profile, QAfterWhere> anyId() {
-    return addWhereClauseInternal(const WhereClause(indexName: null));
+    return addWhereClauseInternal(const IdWhereClause.any());
   }
 }
 
 extension ProfileQueryWhere on QueryBuilder<Profile, Profile, QWhereClause> {
   QueryBuilder<Profile, Profile, QAfterWhereClause> idEqualTo(int id) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [id],
+    return addWhereClauseInternal(IdWhereClause.between(
+      lower: id,
       includeLower: true,
-      upper: [id],
+      upper: id,
       includeUpper: true,
     ));
   }
 
   QueryBuilder<Profile, Profile, QAfterWhereClause> idNotEqualTo(int id) {
     if (whereSortInternal == Sort.asc) {
-      return addWhereClauseInternal(WhereClause(
-        indexName: null,
-        upper: [id],
-        includeUpper: false,
-      )).addWhereClauseInternal(WhereClause(
-        indexName: null,
-        lower: [id],
-        includeLower: false,
-      ));
+      return addWhereClauseInternal(
+        IdWhereClause.lessThan(upper: id, includeUpper: false),
+      ).addWhereClauseInternal(
+        IdWhereClause.greaterThan(lower: id, includeLower: false),
+      );
     } else {
-      return addWhereClauseInternal(WhereClause(
-        indexName: null,
-        lower: [id],
-        includeLower: false,
-      )).addWhereClauseInternal(WhereClause(
-        indexName: null,
-        upper: [id],
-        includeUpper: false,
-      ));
+      return addWhereClauseInternal(
+        IdWhereClause.greaterThan(lower: id, includeLower: false),
+      ).addWhereClauseInternal(
+        IdWhereClause.lessThan(upper: id, includeUpper: false),
+      );
     }
   }
 
-  QueryBuilder<Profile, Profile, QAfterWhereClause> idGreaterThan(
-    int id, {
-    bool include = false,
-  }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [id],
-      includeLower: include,
-    ));
+  QueryBuilder<Profile, Profile, QAfterWhereClause> idGreaterThan(int id,
+      {bool include = false}) {
+    return addWhereClauseInternal(
+      IdWhereClause.greaterThan(lower: id, includeLower: include),
+    );
   }
 
-  QueryBuilder<Profile, Profile, QAfterWhereClause> idLessThan(
-    int id, {
-    bool include = false,
-  }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      upper: [id],
-      includeUpper: include,
-    ));
+  QueryBuilder<Profile, Profile, QAfterWhereClause> idLessThan(int id,
+      {bool include = false}) {
+    return addWhereClauseInternal(
+      IdWhereClause.lessThan(upper: id, includeUpper: include),
+    );
   }
 
   QueryBuilder<Profile, Profile, QAfterWhereClause> idBetween(
@@ -408,11 +392,10 @@ extension ProfileQueryWhere on QueryBuilder<Profile, Profile, QWhereClause> {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [lowerId],
+    return addWhereClauseInternal(IdWhereClause.between(
+      lower: lowerId,
       includeLower: includeLower,
-      upper: [upperId],
+      upper: upperId,
       includeUpper: includeUpper,
     ));
   }
@@ -2221,6 +2204,9 @@ extension ProfileQueryFilter
     ));
   }
 }
+
+extension ProfileQueryLinks
+    on QueryBuilder<Profile, Profile, QFilterCondition> {}
 
 extension ProfileQueryWhereSortBy on QueryBuilder<Profile, Profile, QSortBy> {
   QueryBuilder<Profile, Profile, QAfterSortBy> sortByAbout() {

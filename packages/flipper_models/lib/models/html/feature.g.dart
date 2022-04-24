@@ -6,184 +6,168 @@ part of 'feature.dart';
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable
 
 extension GetFeatureCollection on Isar {
-  IsarCollection<Feature> get features {
-    return getCollection('Feature');
-  }
+  IsarCollection<Feature> get features => getCollection();
 }
 
-final FeatureSchema = CollectionSchema(
+const FeatureSchema = CollectionSchema(
   name: 'Feature',
   schema:
       '{"name":"Feature","idName":"id","properties":[{"name":"name","type":"String"}],"indexes":[],"links":[]}',
-  nativeAdapter: const _FeatureNativeAdapter(),
-  webAdapter: const _FeatureWebAdapter(),
   idName: 'id',
   propertyIds: {'name': 0},
   listProperties: {},
   indexIds: {},
-  indexTypes: {},
+  indexValueTypes: {},
   linkIds: {},
-  backlinkIds: {},
-  linkedCollections: [],
-  getId: (obj) {
-    if (obj.id == Isar.autoIncrement) {
-      return null;
-    } else {
-      return obj.id;
-    }
-  },
-  setId: (obj, id) => obj.id = id,
-  getLinks: (obj) => [],
-  version: 2,
+  backlinkLinkNames: {},
+  getId: _featureGetId,
+  setId: _featureSetId,
+  getLinks: _featureGetLinks,
+  attachLinks: _featureAttachLinks,
+  serializeNative: _featureSerializeNative,
+  deserializeNative: _featureDeserializeNative,
+  deserializePropNative: _featureDeserializePropNative,
+  serializeWeb: _featureSerializeWeb,
+  deserializeWeb: _featureDeserializeWeb,
+  deserializePropWeb: _featureDeserializePropWeb,
+  version: 3,
 );
 
-class _FeatureWebAdapter extends IsarWebTypeAdapter<Feature> {
-  const _FeatureWebAdapter();
-
-  @override
-  Object serialize(IsarCollection<Feature> collection, Feature object) {
-    final jsObj = IsarNative.newJsObject();
-    IsarNative.jsObjectSet(jsObj, 'id', object.id);
-    IsarNative.jsObjectSet(jsObj, 'name', object.name);
-    return jsObj;
+int? _featureGetId(Feature object) {
+  if (object.id == Isar.autoIncrement) {
+    return null;
+  } else {
+    return object.id;
   }
-
-  @override
-  Feature deserialize(IsarCollection<Feature> collection, dynamic jsObj) {
-    final object = Feature(
-      id: IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity,
-      name: IsarNative.jsObjectGet(jsObj, 'name') ?? '',
-    );
-    return object;
-  }
-
-  @override
-  P deserializeProperty<P>(Object jsObj, String propertyName) {
-    switch (propertyName) {
-      case 'id':
-        return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
-            as P;
-      case 'name':
-        return (IsarNative.jsObjectGet(jsObj, 'name') ?? '') as P;
-      default:
-        throw 'Illegal propertyName';
-    }
-  }
-
-  @override
-  void attachLinks(Isar isar, int id, Feature object) {}
 }
 
-class _FeatureNativeAdapter extends IsarNativeTypeAdapter<Feature> {
-  const _FeatureNativeAdapter();
-
-  @override
-  void serialize(IsarCollection<Feature> collection, IsarRawObject rawObj,
-      Feature object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
-    var dynamicSize = 0;
-    final value0 = object.name;
-    final _name = IsarBinaryWriter.utf8Encoder.convert(value0);
-    dynamicSize += (_name.length) as int;
-    final size = staticSize + dynamicSize;
-
-    rawObj.buffer = alloc(size);
-    rawObj.buffer_length = size;
-    final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
-    final writer = IsarBinaryWriter(buffer, staticSize);
-    writer.writeBytes(offsets[0], _name);
-  }
-
-  @override
-  Feature deserialize(IsarCollection<Feature> collection, int id,
-      IsarBinaryReader reader, List<int> offsets) {
-    final object = Feature(
-      id: id,
-      name: reader.readString(offsets[0]),
-    );
-    return object;
-  }
-
-  @override
-  P deserializeProperty<P>(
-      int id, IsarBinaryReader reader, int propertyIndex, int offset) {
-    switch (propertyIndex) {
-      case -1:
-        return id as P;
-      case 0:
-        return (reader.readString(offset)) as P;
-      default:
-        throw 'Illegal propertyIndex';
-    }
-  }
-
-  @override
-  void attachLinks(Isar isar, int id, Feature object) {}
+void _featureSetId(Feature object, int id) {
+  object.id = id;
 }
+
+List<IsarLinkBase> _featureGetLinks(Feature object) {
+  return [];
+}
+
+void _featureSerializeNative(
+    IsarCollection<Feature> collection,
+    IsarRawObject rawObj,
+    Feature object,
+    int staticSize,
+    List<int> offsets,
+    AdapterAlloc alloc) {
+  var dynamicSize = 0;
+  final value0 = object.name;
+  final _name = IsarBinaryWriter.utf8Encoder.convert(value0);
+  dynamicSize += (_name.length) as int;
+  final size = staticSize + dynamicSize;
+
+  rawObj.buffer = alloc(size);
+  rawObj.buffer_length = size;
+  final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
+  final writer = IsarBinaryWriter(buffer, staticSize);
+  writer.writeBytes(offsets[0], _name);
+}
+
+Feature _featureDeserializeNative(IsarCollection<Feature> collection, int id,
+    IsarBinaryReader reader, List<int> offsets) {
+  final object = Feature(
+    id: id,
+    name: reader.readString(offsets[0]),
+  );
+  return object;
+}
+
+P _featureDeserializePropNative<P>(
+    int id, IsarBinaryReader reader, int propertyIndex, int offset) {
+  switch (propertyIndex) {
+    case -1:
+      return id as P;
+    case 0:
+      return (reader.readString(offset)) as P;
+    default:
+      throw 'Illegal propertyIndex';
+  }
+}
+
+dynamic _featureSerializeWeb(
+    IsarCollection<Feature> collection, Feature object) {
+  final jsObj = IsarNative.newJsObject();
+  IsarNative.jsObjectSet(jsObj, 'id', object.id);
+  IsarNative.jsObjectSet(jsObj, 'name', object.name);
+  return jsObj;
+}
+
+Feature _featureDeserializeWeb(
+    IsarCollection<Feature> collection, dynamic jsObj) {
+  final object = Feature(
+    id: IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity,
+    name: IsarNative.jsObjectGet(jsObj, 'name') ?? '',
+  );
+  return object;
+}
+
+P _featureDeserializePropWeb<P>(Object jsObj, String propertyName) {
+  switch (propertyName) {
+    case 'id':
+      return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
+          as P;
+    case 'name':
+      return (IsarNative.jsObjectGet(jsObj, 'name') ?? '') as P;
+    default:
+      throw 'Illegal propertyName';
+  }
+}
+
+void _featureAttachLinks(IsarCollection col, int id, Feature object) {}
 
 extension FeatureQueryWhereSort on QueryBuilder<Feature, Feature, QWhere> {
   QueryBuilder<Feature, Feature, QAfterWhere> anyId() {
-    return addWhereClauseInternal(const WhereClause(indexName: null));
+    return addWhereClauseInternal(const IdWhereClause.any());
   }
 }
 
 extension FeatureQueryWhere on QueryBuilder<Feature, Feature, QWhereClause> {
   QueryBuilder<Feature, Feature, QAfterWhereClause> idEqualTo(int id) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [id],
+    return addWhereClauseInternal(IdWhereClause.between(
+      lower: id,
       includeLower: true,
-      upper: [id],
+      upper: id,
       includeUpper: true,
     ));
   }
 
   QueryBuilder<Feature, Feature, QAfterWhereClause> idNotEqualTo(int id) {
     if (whereSortInternal == Sort.asc) {
-      return addWhereClauseInternal(WhereClause(
-        indexName: null,
-        upper: [id],
-        includeUpper: false,
-      )).addWhereClauseInternal(WhereClause(
-        indexName: null,
-        lower: [id],
-        includeLower: false,
-      ));
+      return addWhereClauseInternal(
+        IdWhereClause.lessThan(upper: id, includeUpper: false),
+      ).addWhereClauseInternal(
+        IdWhereClause.greaterThan(lower: id, includeLower: false),
+      );
     } else {
-      return addWhereClauseInternal(WhereClause(
-        indexName: null,
-        lower: [id],
-        includeLower: false,
-      )).addWhereClauseInternal(WhereClause(
-        indexName: null,
-        upper: [id],
-        includeUpper: false,
-      ));
+      return addWhereClauseInternal(
+        IdWhereClause.greaterThan(lower: id, includeLower: false),
+      ).addWhereClauseInternal(
+        IdWhereClause.lessThan(upper: id, includeUpper: false),
+      );
     }
   }
 
-  QueryBuilder<Feature, Feature, QAfterWhereClause> idGreaterThan(
-    int id, {
-    bool include = false,
-  }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [id],
-      includeLower: include,
-    ));
+  QueryBuilder<Feature, Feature, QAfterWhereClause> idGreaterThan(int id,
+      {bool include = false}) {
+    return addWhereClauseInternal(
+      IdWhereClause.greaterThan(lower: id, includeLower: include),
+    );
   }
 
-  QueryBuilder<Feature, Feature, QAfterWhereClause> idLessThan(
-    int id, {
-    bool include = false,
-  }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      upper: [id],
-      includeUpper: include,
-    ));
+  QueryBuilder<Feature, Feature, QAfterWhereClause> idLessThan(int id,
+      {bool include = false}) {
+    return addWhereClauseInternal(
+      IdWhereClause.lessThan(upper: id, includeUpper: include),
+    );
   }
 
   QueryBuilder<Feature, Feature, QAfterWhereClause> idBetween(
@@ -192,11 +176,10 @@ extension FeatureQueryWhere on QueryBuilder<Feature, Feature, QWhereClause> {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [lowerId],
+    return addWhereClauseInternal(IdWhereClause.between(
+      lower: lowerId,
       includeLower: includeLower,
-      upper: [upperId],
+      upper: upperId,
       includeUpper: includeUpper,
     ));
   }
@@ -354,6 +337,9 @@ extension FeatureQueryFilter
     ));
   }
 }
+
+extension FeatureQueryLinks
+    on QueryBuilder<Feature, Feature, QFilterCondition> {}
 
 extension FeatureQueryWhereSortBy on QueryBuilder<Feature, Feature, QSortBy> {
   QueryBuilder<Feature, Feature, QAfterSortBy> sortById() {

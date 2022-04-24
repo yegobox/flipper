@@ -6,135 +6,132 @@ part of flipper_models;
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable
 
 extension GetPermissionsyncCollection on Isar {
-  IsarCollection<Permissionsync> get permissionsyncs {
-    return getCollection('Permissionsync');
-  }
+  IsarCollection<Permissionsync> get permissionsyncs => getCollection();
 }
 
-final PermissionsyncSchema = CollectionSchema(
+const PermissionsyncSchema = CollectionSchema(
   name: 'Permissionsync',
   schema:
       '{"name":"Permissionsync","idName":"id","properties":[{"name":"name","type":"String"}],"indexes":[],"links":[]}',
-  nativeAdapter: const _PermissionsyncNativeAdapter(),
-  webAdapter: const _PermissionsyncWebAdapter(),
   idName: 'id',
   propertyIds: {'name': 0},
   listProperties: {},
   indexIds: {},
-  indexTypes: {},
+  indexValueTypes: {},
   linkIds: {},
-  backlinkIds: {},
-  linkedCollections: [],
-  getId: (obj) {
-    if (obj.id == Isar.autoIncrement) {
-      return null;
-    } else {
-      return obj.id;
-    }
-  },
-  setId: (obj, id) => obj.id = id,
-  getLinks: (obj) => [],
-  version: 2,
+  backlinkLinkNames: {},
+  getId: _permissionsyncGetId,
+  setId: _permissionsyncSetId,
+  getLinks: _permissionsyncGetLinks,
+  attachLinks: _permissionsyncAttachLinks,
+  serializeNative: _permissionsyncSerializeNative,
+  deserializeNative: _permissionsyncDeserializeNative,
+  deserializePropNative: _permissionsyncDeserializePropNative,
+  serializeWeb: _permissionsyncSerializeWeb,
+  deserializeWeb: _permissionsyncDeserializeWeb,
+  deserializePropWeb: _permissionsyncDeserializePropWeb,
+  version: 3,
 );
 
-class _PermissionsyncWebAdapter extends IsarWebTypeAdapter<Permissionsync> {
-  const _PermissionsyncWebAdapter();
-
-  @override
-  Object serialize(
-      IsarCollection<Permissionsync> collection, Permissionsync object) {
-    final jsObj = IsarNative.newJsObject();
-    IsarNative.jsObjectSet(jsObj, 'id', object.id);
-    IsarNative.jsObjectSet(jsObj, 'name', object.name);
-    return jsObj;
+int? _permissionsyncGetId(Permissionsync object) {
+  if (object.id == Isar.autoIncrement) {
+    return null;
+  } else {
+    return object.id;
   }
-
-  @override
-  Permissionsync deserialize(
-      IsarCollection<Permissionsync> collection, dynamic jsObj) {
-    final object = Permissionsync(
-      id: IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity,
-      name: IsarNative.jsObjectGet(jsObj, 'name') ?? '',
-    );
-    return object;
-  }
-
-  @override
-  P deserializeProperty<P>(Object jsObj, String propertyName) {
-    switch (propertyName) {
-      case 'id':
-        return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
-            as P;
-      case 'name':
-        return (IsarNative.jsObjectGet(jsObj, 'name') ?? '') as P;
-      default:
-        throw 'Illegal propertyName';
-    }
-  }
-
-  @override
-  void attachLinks(Isar isar, int id, Permissionsync object) {}
 }
 
-class _PermissionsyncNativeAdapter
-    extends IsarNativeTypeAdapter<Permissionsync> {
-  const _PermissionsyncNativeAdapter();
-
-  @override
-  void serialize(
-      IsarCollection<Permissionsync> collection,
-      IsarRawObject rawObj,
-      Permissionsync object,
-      int staticSize,
-      List<int> offsets,
-      AdapterAlloc alloc) {
-    var dynamicSize = 0;
-    final value0 = object.name;
-    final _name = IsarBinaryWriter.utf8Encoder.convert(value0);
-    dynamicSize += (_name.length) as int;
-    final size = staticSize + dynamicSize;
-
-    rawObj.buffer = alloc(size);
-    rawObj.buffer_length = size;
-    final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
-    final writer = IsarBinaryWriter(buffer, staticSize);
-    writer.writeBytes(offsets[0], _name);
-  }
-
-  @override
-  Permissionsync deserialize(IsarCollection<Permissionsync> collection, int id,
-      IsarBinaryReader reader, List<int> offsets) {
-    final object = Permissionsync(
-      id: id,
-      name: reader.readString(offsets[0]),
-    );
-    return object;
-  }
-
-  @override
-  P deserializeProperty<P>(
-      int id, IsarBinaryReader reader, int propertyIndex, int offset) {
-    switch (propertyIndex) {
-      case -1:
-        return id as P;
-      case 0:
-        return (reader.readString(offset)) as P;
-      default:
-        throw 'Illegal propertyIndex';
-    }
-  }
-
-  @override
-  void attachLinks(Isar isar, int id, Permissionsync object) {}
+void _permissionsyncSetId(Permissionsync object, int id) {
+  object.id = id;
 }
+
+List<IsarLinkBase> _permissionsyncGetLinks(Permissionsync object) {
+  return [];
+}
+
+void _permissionsyncSerializeNative(
+    IsarCollection<Permissionsync> collection,
+    IsarRawObject rawObj,
+    Permissionsync object,
+    int staticSize,
+    List<int> offsets,
+    AdapterAlloc alloc) {
+  var dynamicSize = 0;
+  final value0 = object.name;
+  final _name = IsarBinaryWriter.utf8Encoder.convert(value0);
+  dynamicSize += (_name.length) as int;
+  final size = staticSize + dynamicSize;
+
+  rawObj.buffer = alloc(size);
+  rawObj.buffer_length = size;
+  final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
+  final writer = IsarBinaryWriter(buffer, staticSize);
+  writer.writeBytes(offsets[0], _name);
+}
+
+Permissionsync _permissionsyncDeserializeNative(
+    IsarCollection<Permissionsync> collection,
+    int id,
+    IsarBinaryReader reader,
+    List<int> offsets) {
+  final object = Permissionsync(
+    id: id,
+    name: reader.readString(offsets[0]),
+  );
+  return object;
+}
+
+P _permissionsyncDeserializePropNative<P>(
+    int id, IsarBinaryReader reader, int propertyIndex, int offset) {
+  switch (propertyIndex) {
+    case -1:
+      return id as P;
+    case 0:
+      return (reader.readString(offset)) as P;
+    default:
+      throw 'Illegal propertyIndex';
+  }
+}
+
+dynamic _permissionsyncSerializeWeb(
+    IsarCollection<Permissionsync> collection, Permissionsync object) {
+  final jsObj = IsarNative.newJsObject();
+  IsarNative.jsObjectSet(jsObj, 'id', object.id);
+  IsarNative.jsObjectSet(jsObj, 'name', object.name);
+  return jsObj;
+}
+
+Permissionsync _permissionsyncDeserializeWeb(
+    IsarCollection<Permissionsync> collection, dynamic jsObj) {
+  final object = Permissionsync(
+    id: IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity,
+    name: IsarNative.jsObjectGet(jsObj, 'name') ?? '',
+  );
+  return object;
+}
+
+P _permissionsyncDeserializePropWeb<P>(Object jsObj, String propertyName) {
+  switch (propertyName) {
+    case 'id':
+      return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
+          as P;
+    case 'name':
+      return (IsarNative.jsObjectGet(jsObj, 'name') ?? '') as P;
+    default:
+      throw 'Illegal propertyName';
+  }
+}
+
+void _permissionsyncAttachLinks(
+    IsarCollection col, int id, Permissionsync object) {}
 
 extension PermissionsyncQueryWhereSort
     on QueryBuilder<Permissionsync, Permissionsync, QWhere> {
   QueryBuilder<Permissionsync, Permissionsync, QAfterWhere> anyId() {
-    return addWhereClauseInternal(const WhereClause(indexName: null));
+    return addWhereClauseInternal(const IdWhereClause.any());
   }
 }
 
@@ -142,11 +139,10 @@ extension PermissionsyncQueryWhere
     on QueryBuilder<Permissionsync, Permissionsync, QWhereClause> {
   QueryBuilder<Permissionsync, Permissionsync, QAfterWhereClause> idEqualTo(
       int id) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [id],
+    return addWhereClauseInternal(IdWhereClause.between(
+      lower: id,
       includeLower: true,
-      upper: [id],
+      upper: id,
       includeUpper: true,
     ));
   }
@@ -154,48 +150,34 @@ extension PermissionsyncQueryWhere
   QueryBuilder<Permissionsync, Permissionsync, QAfterWhereClause> idNotEqualTo(
       int id) {
     if (whereSortInternal == Sort.asc) {
-      return addWhereClauseInternal(WhereClause(
-        indexName: null,
-        upper: [id],
-        includeUpper: false,
-      )).addWhereClauseInternal(WhereClause(
-        indexName: null,
-        lower: [id],
-        includeLower: false,
-      ));
+      return addWhereClauseInternal(
+        IdWhereClause.lessThan(upper: id, includeUpper: false),
+      ).addWhereClauseInternal(
+        IdWhereClause.greaterThan(lower: id, includeLower: false),
+      );
     } else {
-      return addWhereClauseInternal(WhereClause(
-        indexName: null,
-        lower: [id],
-        includeLower: false,
-      )).addWhereClauseInternal(WhereClause(
-        indexName: null,
-        upper: [id],
-        includeUpper: false,
-      ));
+      return addWhereClauseInternal(
+        IdWhereClause.greaterThan(lower: id, includeLower: false),
+      ).addWhereClauseInternal(
+        IdWhereClause.lessThan(upper: id, includeUpper: false),
+      );
     }
   }
 
   QueryBuilder<Permissionsync, Permissionsync, QAfterWhereClause> idGreaterThan(
-    int id, {
-    bool include = false,
-  }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [id],
-      includeLower: include,
-    ));
+      int id,
+      {bool include = false}) {
+    return addWhereClauseInternal(
+      IdWhereClause.greaterThan(lower: id, includeLower: include),
+    );
   }
 
   QueryBuilder<Permissionsync, Permissionsync, QAfterWhereClause> idLessThan(
-    int id, {
-    bool include = false,
-  }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      upper: [id],
-      includeUpper: include,
-    ));
+      int id,
+      {bool include = false}) {
+    return addWhereClauseInternal(
+      IdWhereClause.lessThan(upper: id, includeUpper: include),
+    );
   }
 
   QueryBuilder<Permissionsync, Permissionsync, QAfterWhereClause> idBetween(
@@ -204,11 +186,10 @@ extension PermissionsyncQueryWhere
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [lowerId],
+    return addWhereClauseInternal(IdWhereClause.between(
+      lower: lowerId,
       includeLower: includeLower,
-      upper: [upperId],
+      upper: upperId,
       includeUpper: includeUpper,
     ));
   }
@@ -373,6 +354,9 @@ extension PermissionsyncQueryFilter
     ));
   }
 }
+
+extension PermissionsyncQueryLinks
+    on QueryBuilder<Permissionsync, Permissionsync, QFilterCondition> {}
 
 extension PermissionsyncQueryWhereSortBy
     on QueryBuilder<Permissionsync, Permissionsync, QSortBy> {

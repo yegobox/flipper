@@ -6,246 +6,198 @@ part of flipper_models;
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable
 
 extension GetTenantSyncCollection on Isar {
-  IsarCollection<TenantSync> get tenantSyncs {
-    return getCollection('TenantSync');
-  }
+  IsarCollection<TenantSync> get tenantSyncs => getCollection();
 }
 
-final TenantSyncSchema = CollectionSchema(
+const TenantSyncSchema = CollectionSchema(
   name: 'TenantSync',
   schema:
       '{"name":"TenantSync","idName":"id","properties":[{"name":"email","type":"String"},{"name":"name","type":"String"},{"name":"phoneNumber","type":"String"}],"indexes":[],"links":[{"name":"branches","target":"Branch"},{"name":"permissions","target":"Permissionsync"}]}',
-  nativeAdapter: const _TenantSyncNativeAdapter(),
-  webAdapter: const _TenantSyncWebAdapter(),
   idName: 'id',
   propertyIds: {'email': 0, 'name': 1, 'phoneNumber': 2},
   listProperties: {},
   indexIds: {},
-  indexTypes: {},
+  indexValueTypes: {},
   linkIds: {'branches': 0, 'permissions': 1},
-  backlinkIds: {},
-  linkedCollections: ['Branch', 'Permissionsync'],
-  getId: (obj) {
-    if (obj.id == Isar.autoIncrement) {
-      return null;
-    } else {
-      return obj.id;
-    }
-  },
-  setId: (obj, id) => obj.id = id,
-  getLinks: (obj) => [obj.branches, obj.permissions],
-  version: 2,
+  backlinkLinkNames: {},
+  getId: _tenantSyncGetId,
+  setId: _tenantSyncSetId,
+  getLinks: _tenantSyncGetLinks,
+  attachLinks: _tenantSyncAttachLinks,
+  serializeNative: _tenantSyncSerializeNative,
+  deserializeNative: _tenantSyncDeserializeNative,
+  deserializePropNative: _tenantSyncDeserializePropNative,
+  serializeWeb: _tenantSyncSerializeWeb,
+  deserializeWeb: _tenantSyncDeserializeWeb,
+  deserializePropWeb: _tenantSyncDeserializePropWeb,
+  version: 3,
 );
 
-class _TenantSyncWebAdapter extends IsarWebTypeAdapter<TenantSync> {
-  const _TenantSyncWebAdapter();
-
-  @override
-  Object serialize(IsarCollection<TenantSync> collection, TenantSync object) {
-    final jsObj = IsarNative.newJsObject();
-    IsarNative.jsObjectSet(jsObj, 'email', object.email);
-    IsarNative.jsObjectSet(jsObj, 'id', object.id);
-    IsarNative.jsObjectSet(jsObj, 'name', object.name);
-    IsarNative.jsObjectSet(jsObj, 'phoneNumber', object.phoneNumber);
-    return jsObj;
-  }
-
-  @override
-  TenantSync deserialize(IsarCollection<TenantSync> collection, dynamic jsObj) {
-    final object = TenantSync(
-      email: IsarNative.jsObjectGet(jsObj, 'email') ?? '',
-      id: IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity,
-      name: IsarNative.jsObjectGet(jsObj, 'name') ?? '',
-      phoneNumber: IsarNative.jsObjectGet(jsObj, 'phoneNumber') ?? '',
-    );
-    attachLinks(collection.isar,
-        IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity, object);
-    return object;
-  }
-
-  @override
-  P deserializeProperty<P>(Object jsObj, String propertyName) {
-    switch (propertyName) {
-      case 'email':
-        return (IsarNative.jsObjectGet(jsObj, 'email') ?? '') as P;
-      case 'id':
-        return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
-            as P;
-      case 'name':
-        return (IsarNative.jsObjectGet(jsObj, 'name') ?? '') as P;
-      case 'phoneNumber':
-        return (IsarNative.jsObjectGet(jsObj, 'phoneNumber') ?? '') as P;
-      default:
-        throw 'Illegal propertyName';
-    }
-  }
-
-  @override
-  void attachLinks(Isar isar, int id, TenantSync object) {
-    object.branches.attach(
-      id,
-      isar.tenantSyncs,
-      isar.getCollection<Branch>('Branch'),
-      'branches',
-      false,
-    );
-    object.permissions.attach(
-      id,
-      isar.tenantSyncs,
-      isar.getCollection<Permissionsync>('Permissionsync'),
-      'permissions',
-      false,
-    );
+int? _tenantSyncGetId(TenantSync object) {
+  if (object.id == Isar.autoIncrement) {
+    return null;
+  } else {
+    return object.id;
   }
 }
 
-class _TenantSyncNativeAdapter extends IsarNativeTypeAdapter<TenantSync> {
-  const _TenantSyncNativeAdapter();
+void _tenantSyncSetId(TenantSync object, int id) {
+  object.id = id;
+}
 
-  @override
-  void serialize(
-      IsarCollection<TenantSync> collection,
-      IsarRawObject rawObj,
-      TenantSync object,
-      int staticSize,
-      List<int> offsets,
-      AdapterAlloc alloc) {
-    var dynamicSize = 0;
-    final value0 = object.email;
-    final _email = IsarBinaryWriter.utf8Encoder.convert(value0);
-    dynamicSize += (_email.length) as int;
-    final value1 = object.name;
-    final _name = IsarBinaryWriter.utf8Encoder.convert(value1);
-    dynamicSize += (_name.length) as int;
-    final value2 = object.phoneNumber;
-    final _phoneNumber = IsarBinaryWriter.utf8Encoder.convert(value2);
-    dynamicSize += (_phoneNumber.length) as int;
-    final size = staticSize + dynamicSize;
+List<IsarLinkBase> _tenantSyncGetLinks(TenantSync object) {
+  return [object.branches, object.permissions];
+}
 
-    rawObj.buffer = alloc(size);
-    rawObj.buffer_length = size;
-    final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
-    final writer = IsarBinaryWriter(buffer, staticSize);
-    writer.writeBytes(offsets[0], _email);
-    writer.writeBytes(offsets[1], _name);
-    writer.writeBytes(offsets[2], _phoneNumber);
+void _tenantSyncSerializeNative(
+    IsarCollection<TenantSync> collection,
+    IsarRawObject rawObj,
+    TenantSync object,
+    int staticSize,
+    List<int> offsets,
+    AdapterAlloc alloc) {
+  var dynamicSize = 0;
+  final value0 = object.email;
+  final _email = IsarBinaryWriter.utf8Encoder.convert(value0);
+  dynamicSize += (_email.length) as int;
+  final value1 = object.name;
+  final _name = IsarBinaryWriter.utf8Encoder.convert(value1);
+  dynamicSize += (_name.length) as int;
+  final value2 = object.phoneNumber;
+  final _phoneNumber = IsarBinaryWriter.utf8Encoder.convert(value2);
+  dynamicSize += (_phoneNumber.length) as int;
+  final size = staticSize + dynamicSize;
+
+  rawObj.buffer = alloc(size);
+  rawObj.buffer_length = size;
+  final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
+  final writer = IsarBinaryWriter(buffer, staticSize);
+  writer.writeBytes(offsets[0], _email);
+  writer.writeBytes(offsets[1], _name);
+  writer.writeBytes(offsets[2], _phoneNumber);
+}
+
+TenantSync _tenantSyncDeserializeNative(IsarCollection<TenantSync> collection,
+    int id, IsarBinaryReader reader, List<int> offsets) {
+  final object = TenantSync(
+    email: reader.readString(offsets[0]),
+    id: id,
+    name: reader.readString(offsets[1]),
+    phoneNumber: reader.readString(offsets[2]),
+  );
+  _tenantSyncAttachLinks(collection, id, object);
+  return object;
+}
+
+P _tenantSyncDeserializePropNative<P>(
+    int id, IsarBinaryReader reader, int propertyIndex, int offset) {
+  switch (propertyIndex) {
+    case -1:
+      return id as P;
+    case 0:
+      return (reader.readString(offset)) as P;
+    case 1:
+      return (reader.readString(offset)) as P;
+    case 2:
+      return (reader.readString(offset)) as P;
+    default:
+      throw 'Illegal propertyIndex';
   }
+}
 
-  @override
-  TenantSync deserialize(IsarCollection<TenantSync> collection, int id,
-      IsarBinaryReader reader, List<int> offsets) {
-    final object = TenantSync(
-      email: reader.readString(offsets[0]),
-      id: id,
-      name: reader.readString(offsets[1]),
-      phoneNumber: reader.readString(offsets[2]),
-    );
-    attachLinks(collection.isar, id, object);
-    return object;
-  }
+dynamic _tenantSyncSerializeWeb(
+    IsarCollection<TenantSync> collection, TenantSync object) {
+  final jsObj = IsarNative.newJsObject();
+  IsarNative.jsObjectSet(jsObj, 'email', object.email);
+  IsarNative.jsObjectSet(jsObj, 'id', object.id);
+  IsarNative.jsObjectSet(jsObj, 'name', object.name);
+  IsarNative.jsObjectSet(jsObj, 'phoneNumber', object.phoneNumber);
+  return jsObj;
+}
 
-  @override
-  P deserializeProperty<P>(
-      int id, IsarBinaryReader reader, int propertyIndex, int offset) {
-    switch (propertyIndex) {
-      case -1:
-        return id as P;
-      case 0:
-        return (reader.readString(offset)) as P;
-      case 1:
-        return (reader.readString(offset)) as P;
-      case 2:
-        return (reader.readString(offset)) as P;
-      default:
-        throw 'Illegal propertyIndex';
-    }
-  }
+TenantSync _tenantSyncDeserializeWeb(
+    IsarCollection<TenantSync> collection, dynamic jsObj) {
+  final object = TenantSync(
+    email: IsarNative.jsObjectGet(jsObj, 'email') ?? '',
+    id: IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity,
+    name: IsarNative.jsObjectGet(jsObj, 'name') ?? '',
+    phoneNumber: IsarNative.jsObjectGet(jsObj, 'phoneNumber') ?? '',
+  );
+  _tenantSyncAttachLinks(collection,
+      IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity, object);
+  return object;
+}
 
-  @override
-  void attachLinks(Isar isar, int id, TenantSync object) {
-    object.branches.attach(
-      id,
-      isar.tenantSyncs,
-      isar.getCollection<Branch>('Branch'),
-      'branches',
-      false,
-    );
-    object.permissions.attach(
-      id,
-      isar.tenantSyncs,
-      isar.getCollection<Permissionsync>('Permissionsync'),
-      'permissions',
-      false,
-    );
+P _tenantSyncDeserializePropWeb<P>(Object jsObj, String propertyName) {
+  switch (propertyName) {
+    case 'email':
+      return (IsarNative.jsObjectGet(jsObj, 'email') ?? '') as P;
+    case 'id':
+      return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
+          as P;
+    case 'name':
+      return (IsarNative.jsObjectGet(jsObj, 'name') ?? '') as P;
+    case 'phoneNumber':
+      return (IsarNative.jsObjectGet(jsObj, 'phoneNumber') ?? '') as P;
+    default:
+      throw 'Illegal propertyName';
   }
+}
+
+void _tenantSyncAttachLinks(IsarCollection col, int id, TenantSync object) {
+  object.branches.attach(col, col.isar.branchs, 'branches', id);
+  object.permissions.attach(col, col.isar.permissionsyncs, 'permissions', id);
 }
 
 extension TenantSyncQueryWhereSort
     on QueryBuilder<TenantSync, TenantSync, QWhere> {
   QueryBuilder<TenantSync, TenantSync, QAfterWhere> anyId() {
-    return addWhereClauseInternal(const WhereClause(indexName: null));
+    return addWhereClauseInternal(const IdWhereClause.any());
   }
 }
 
 extension TenantSyncQueryWhere
     on QueryBuilder<TenantSync, TenantSync, QWhereClause> {
   QueryBuilder<TenantSync, TenantSync, QAfterWhereClause> idEqualTo(int id) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [id],
+    return addWhereClauseInternal(IdWhereClause.between(
+      lower: id,
       includeLower: true,
-      upper: [id],
+      upper: id,
       includeUpper: true,
     ));
   }
 
   QueryBuilder<TenantSync, TenantSync, QAfterWhereClause> idNotEqualTo(int id) {
     if (whereSortInternal == Sort.asc) {
-      return addWhereClauseInternal(WhereClause(
-        indexName: null,
-        upper: [id],
-        includeUpper: false,
-      )).addWhereClauseInternal(WhereClause(
-        indexName: null,
-        lower: [id],
-        includeLower: false,
-      ));
+      return addWhereClauseInternal(
+        IdWhereClause.lessThan(upper: id, includeUpper: false),
+      ).addWhereClauseInternal(
+        IdWhereClause.greaterThan(lower: id, includeLower: false),
+      );
     } else {
-      return addWhereClauseInternal(WhereClause(
-        indexName: null,
-        lower: [id],
-        includeLower: false,
-      )).addWhereClauseInternal(WhereClause(
-        indexName: null,
-        upper: [id],
-        includeUpper: false,
-      ));
+      return addWhereClauseInternal(
+        IdWhereClause.greaterThan(lower: id, includeLower: false),
+      ).addWhereClauseInternal(
+        IdWhereClause.lessThan(upper: id, includeUpper: false),
+      );
     }
   }
 
-  QueryBuilder<TenantSync, TenantSync, QAfterWhereClause> idGreaterThan(
-    int id, {
-    bool include = false,
-  }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [id],
-      includeLower: include,
-    ));
+  QueryBuilder<TenantSync, TenantSync, QAfterWhereClause> idGreaterThan(int id,
+      {bool include = false}) {
+    return addWhereClauseInternal(
+      IdWhereClause.greaterThan(lower: id, includeLower: include),
+    );
   }
 
-  QueryBuilder<TenantSync, TenantSync, QAfterWhereClause> idLessThan(
-    int id, {
-    bool include = false,
-  }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      upper: [id],
-      includeUpper: include,
-    ));
+  QueryBuilder<TenantSync, TenantSync, QAfterWhereClause> idLessThan(int id,
+      {bool include = false}) {
+    return addWhereClauseInternal(
+      IdWhereClause.lessThan(upper: id, includeUpper: include),
+    );
   }
 
   QueryBuilder<TenantSync, TenantSync, QAfterWhereClause> idBetween(
@@ -254,11 +206,10 @@ extension TenantSyncQueryWhere
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [lowerId],
+    return addWhereClauseInternal(IdWhereClause.between(
+      lower: lowerId,
       includeLower: includeLower,
-      upper: [upperId],
+      upper: upperId,
       includeUpper: includeUpper,
     ));
   }
@@ -625,6 +576,27 @@ extension TenantSyncQueryFilter
       value: pattern,
       caseSensitive: caseSensitive,
     ));
+  }
+}
+
+extension TenantSyncQueryLinks
+    on QueryBuilder<TenantSync, TenantSync, QFilterCondition> {
+  QueryBuilder<TenantSync, TenantSync, QAfterFilterCondition> branches(
+      FilterQuery<Branch> q) {
+    return linkInternal(
+      isar.branchs,
+      q,
+      'branches',
+    );
+  }
+
+  QueryBuilder<TenantSync, TenantSync, QAfterFilterCondition> permissions(
+      FilterQuery<Permissionsync> q) {
+    return linkInternal(
+      isar.permissionsyncs,
+      q,
+      'permissions',
+    );
   }
 }
 

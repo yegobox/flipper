@@ -15,6 +15,7 @@ import 'package:flipper_services/event_service.dart';
 import 'package:flipper_services/mobile_upload.dart';
 import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/analytic_service.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/remote_config_service.dart';
 import 'package:flipper_services/cron_service.dart';
 import 'package:flipper_services/setting_service.dart';
@@ -189,20 +190,21 @@ abstract class ThirdPartyServicesModule {
   }
 
   @lazySingleton
+  IsarApiInterface get isarApi {
+    late IsarApiInterface isarApi;
+    isarApi = IsarAPI();
+    return isarApi;
+  }
+
+  @lazySingleton
   TaxApi get taxApiService {
     late TaxApi taxApiService;
 
     /// TODOwhen we support more country we can switch
     /// based on the business location.
-    taxApiService = RWTax();
+    String? serverUrl = ProxyService.box.getServerUrl();
+    taxApiService = RWTax(apihub: serverUrl ?? "https://turbo.yegobox.com");
     return taxApiService;
-  }
-
-  @lazySingleton
-  IsarApiInterface get isarApi {
-    late IsarApiInterface isarApi;
-    isarApi = IsarAPI();
-    return isarApi;
   }
 
   @lazySingleton

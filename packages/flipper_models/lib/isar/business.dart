@@ -61,6 +61,7 @@ class Business {
     this.dvcSrlNo,
     this.adrs,
     this.taxEnabled,
+    this.taxServerUrl,
   });
   late int id = Isar.autoIncrement;
   String? name;
@@ -102,6 +103,7 @@ class Business {
   // address
   String? adrs;
   bool? taxEnabled;
+  String? taxServerUrl;
   Map<String, dynamic> toJson() => {
         "id": int.parse(id.toString()),
         "name": name,
@@ -141,6 +143,7 @@ class Business {
         "dvcSrlNo": dvcSrlNo,
         "adrs": adrs,
         "taxEnabled": taxEnabled,
+        "taxServerUrl": taxServerUrl,
       };
   Business.fromJson(Map<String, dynamic> json)
       : id = json["id"],
@@ -179,5 +182,6 @@ class Business {
         bhfId = json["bhfId"],
         dvcSrlNo = json["dvcSrlNo"],
         adrs = json["adrs"],
-        taxEnabled = json["taxEnabled"];
+        taxEnabled = json["taxEnabled"],
+        taxServerUrl = json["taxServerUrl"];
 }

@@ -7,8 +7,10 @@ import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
 
 class RWTax implements TaxApi {
-  String apihub = "https://turbo.yegobox.com";
   String itemPrefix = "flip-";
+  late String apihub;
+
+  RWTax({required this.apihub});
 
   @override
   Future<bool> initApi({

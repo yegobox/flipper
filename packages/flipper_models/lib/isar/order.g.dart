@@ -6,20 +6,16 @@ part of 'order.dart';
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable
 
 extension GetOrderCollection on Isar {
-  IsarCollection<Order> get orders {
-    return getCollection('Order');
-  }
+  IsarCollection<Order> get orders => getCollection();
 }
 
-final OrderSchema = CollectionSchema(
+const OrderSchema = CollectionSchema(
   name: 'Order',
   schema:
       '{"name":"Order","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"cashReceived","type":"Double"},{"name":"createdAt","type":"String"},{"name":"customerChangeDue","type":"Double"},{"name":"customerId","type":"Long"},{"name":"draft","type":"Bool"},{"name":"note","type":"String"},{"name":"orderNumber","type":"String"},{"name":"orderType","type":"String"},{"name":"paymentType","type":"String"},{"name":"reference","type":"String"},{"name":"reported","type":"Bool"},{"name":"status","type":"String"},{"name":"subTotal","type":"Double"},{"name":"updatedAt","type":"String"}],"indexes":[],"links":[{"name":"orderItems","target":"OrderItem"}]}',
-  nativeAdapter: const _OrderNativeAdapter(),
-  webAdapter: const _OrderWebAdapter(),
   idName: 'id',
   propertyIds: {
     'active': 0,
@@ -41,356 +37,327 @@ final OrderSchema = CollectionSchema(
   },
   listProperties: {},
   indexIds: {},
-  indexTypes: {},
+  indexValueTypes: {},
   linkIds: {'orderItems': 0},
-  backlinkIds: {},
-  linkedCollections: ['OrderItem'],
-  getId: (obj) {
-    if (obj.id == Isar.autoIncrement) {
-      return null;
-    } else {
-      return obj.id;
-    }
-  },
-  setId: (obj, id) => obj.id = id,
-  getLinks: (obj) => [obj.orderItems],
-  version: 2,
+  backlinkLinkNames: {},
+  getId: _orderGetId,
+  setId: _orderSetId,
+  getLinks: _orderGetLinks,
+  attachLinks: _orderAttachLinks,
+  serializeNative: _orderSerializeNative,
+  deserializeNative: _orderDeserializeNative,
+  deserializePropNative: _orderDeserializePropNative,
+  serializeWeb: _orderSerializeWeb,
+  deserializeWeb: _orderDeserializeWeb,
+  deserializePropWeb: _orderDeserializePropWeb,
+  version: 3,
 );
 
-class _OrderWebAdapter extends IsarWebTypeAdapter<Order> {
-  const _OrderWebAdapter();
-
-  @override
-  Object serialize(IsarCollection<Order> collection, Order object) {
-    final jsObj = IsarNative.newJsObject();
-    IsarNative.jsObjectSet(jsObj, 'active', object.active);
-    IsarNative.jsObjectSet(jsObj, 'branchId', object.branchId);
-    IsarNative.jsObjectSet(jsObj, 'cashReceived', object.cashReceived);
-    IsarNative.jsObjectSet(jsObj, 'createdAt', object.createdAt);
-    IsarNative.jsObjectSet(
-        jsObj, 'customerChangeDue', object.customerChangeDue);
-    IsarNative.jsObjectSet(jsObj, 'customerId', object.customerId);
-    IsarNative.jsObjectSet(jsObj, 'draft', object.draft);
-    IsarNative.jsObjectSet(jsObj, 'id', object.id);
-    IsarNative.jsObjectSet(jsObj, 'note', object.note);
-    IsarNative.jsObjectSet(jsObj, 'orderNumber', object.orderNumber);
-    IsarNative.jsObjectSet(jsObj, 'orderType', object.orderType);
-    IsarNative.jsObjectSet(jsObj, 'paymentType', object.paymentType);
-    IsarNative.jsObjectSet(jsObj, 'reference', object.reference);
-    IsarNative.jsObjectSet(jsObj, 'reported', object.reported);
-    IsarNative.jsObjectSet(jsObj, 'status', object.status);
-    IsarNative.jsObjectSet(jsObj, 'subTotal', object.subTotal);
-    IsarNative.jsObjectSet(jsObj, 'updatedAt', object.updatedAt);
-    return jsObj;
-  }
-
-  @override
-  Order deserialize(IsarCollection<Order> collection, dynamic jsObj) {
-    final object = Order();
-    object.active = IsarNative.jsObjectGet(jsObj, 'active') ?? false;
-    object.branchId =
-        IsarNative.jsObjectGet(jsObj, 'branchId') ?? double.negativeInfinity;
-    object.cashReceived = IsarNative.jsObjectGet(jsObj, 'cashReceived') ??
-        double.negativeInfinity;
-    object.createdAt = IsarNative.jsObjectGet(jsObj, 'createdAt') ?? '';
-    object.customerChangeDue =
-        IsarNative.jsObjectGet(jsObj, 'customerChangeDue') ??
-            double.negativeInfinity;
-    object.customerId = IsarNative.jsObjectGet(jsObj, 'customerId');
-    object.draft = IsarNative.jsObjectGet(jsObj, 'draft') ?? false;
-    object.id = IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity;
-    object.note = IsarNative.jsObjectGet(jsObj, 'note');
-    object.orderNumber = IsarNative.jsObjectGet(jsObj, 'orderNumber') ?? '';
-    object.orderType = IsarNative.jsObjectGet(jsObj, 'orderType') ?? '';
-    object.paymentType = IsarNative.jsObjectGet(jsObj, 'paymentType') ?? '';
-    object.reference = IsarNative.jsObjectGet(jsObj, 'reference') ?? '';
-    object.reported = IsarNative.jsObjectGet(jsObj, 'reported');
-    object.status = IsarNative.jsObjectGet(jsObj, 'status') ?? '';
-    object.subTotal =
-        IsarNative.jsObjectGet(jsObj, 'subTotal') ?? double.negativeInfinity;
-    object.updatedAt = IsarNative.jsObjectGet(jsObj, 'updatedAt');
-    attachLinks(collection.isar,
-        IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity, object);
-    return object;
-  }
-
-  @override
-  P deserializeProperty<P>(Object jsObj, String propertyName) {
-    switch (propertyName) {
-      case 'active':
-        return (IsarNative.jsObjectGet(jsObj, 'active') ?? false) as P;
-      case 'branchId':
-        return (IsarNative.jsObjectGet(jsObj, 'branchId') ??
-            double.negativeInfinity) as P;
-      case 'cashReceived':
-        return (IsarNative.jsObjectGet(jsObj, 'cashReceived') ??
-            double.negativeInfinity) as P;
-      case 'createdAt':
-        return (IsarNative.jsObjectGet(jsObj, 'createdAt') ?? '') as P;
-      case 'customerChangeDue':
-        return (IsarNative.jsObjectGet(jsObj, 'customerChangeDue') ??
-            double.negativeInfinity) as P;
-      case 'customerId':
-        return (IsarNative.jsObjectGet(jsObj, 'customerId')) as P;
-      case 'draft':
-        return (IsarNative.jsObjectGet(jsObj, 'draft') ?? false) as P;
-      case 'id':
-        return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
-            as P;
-      case 'note':
-        return (IsarNative.jsObjectGet(jsObj, 'note')) as P;
-      case 'orderNumber':
-        return (IsarNative.jsObjectGet(jsObj, 'orderNumber') ?? '') as P;
-      case 'orderType':
-        return (IsarNative.jsObjectGet(jsObj, 'orderType') ?? '') as P;
-      case 'paymentType':
-        return (IsarNative.jsObjectGet(jsObj, 'paymentType') ?? '') as P;
-      case 'reference':
-        return (IsarNative.jsObjectGet(jsObj, 'reference') ?? '') as P;
-      case 'reported':
-        return (IsarNative.jsObjectGet(jsObj, 'reported')) as P;
-      case 'status':
-        return (IsarNative.jsObjectGet(jsObj, 'status') ?? '') as P;
-      case 'subTotal':
-        return (IsarNative.jsObjectGet(jsObj, 'subTotal') ??
-            double.negativeInfinity) as P;
-      case 'updatedAt':
-        return (IsarNative.jsObjectGet(jsObj, 'updatedAt')) as P;
-      default:
-        throw 'Illegal propertyName';
-    }
-  }
-
-  @override
-  void attachLinks(Isar isar, int id, Order object) {
-    object.orderItems.attach(
-      id,
-      isar.orders,
-      isar.getCollection<OrderItem>('OrderItem'),
-      'orderItems',
-      false,
-    );
+int? _orderGetId(Order object) {
+  if (object.id == Isar.autoIncrement) {
+    return null;
+  } else {
+    return object.id;
   }
 }
 
-class _OrderNativeAdapter extends IsarNativeTypeAdapter<Order> {
-  const _OrderNativeAdapter();
+void _orderSetId(Order object, int id) {
+  object.id = id;
+}
 
-  @override
-  void serialize(IsarCollection<Order> collection, IsarRawObject rawObj,
-      Order object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
-    var dynamicSize = 0;
-    final value0 = object.active;
-    final _active = value0;
-    final value1 = object.branchId;
-    final _branchId = value1;
-    final value2 = object.cashReceived;
-    final _cashReceived = value2;
-    final value3 = object.createdAt;
-    final _createdAt = IsarBinaryWriter.utf8Encoder.convert(value3);
-    dynamicSize += (_createdAt.length) as int;
-    final value4 = object.customerChangeDue;
-    final _customerChangeDue = value4;
-    final value5 = object.customerId;
-    final _customerId = value5;
-    final value6 = object.draft;
-    final _draft = value6;
-    final value7 = object.note;
-    IsarUint8List? _note;
-    if (value7 != null) {
-      _note = IsarBinaryWriter.utf8Encoder.convert(value7);
-    }
-    dynamicSize += (_note?.length ?? 0) as int;
-    final value8 = object.orderNumber;
-    final _orderNumber = IsarBinaryWriter.utf8Encoder.convert(value8);
-    dynamicSize += (_orderNumber.length) as int;
-    final value9 = object.orderType;
-    final _orderType = IsarBinaryWriter.utf8Encoder.convert(value9);
-    dynamicSize += (_orderType.length) as int;
-    final value10 = object.paymentType;
-    final _paymentType = IsarBinaryWriter.utf8Encoder.convert(value10);
-    dynamicSize += (_paymentType.length) as int;
-    final value11 = object.reference;
-    final _reference = IsarBinaryWriter.utf8Encoder.convert(value11);
-    dynamicSize += (_reference.length) as int;
-    final value12 = object.reported;
-    final _reported = value12;
-    final value13 = object.status;
-    final _status = IsarBinaryWriter.utf8Encoder.convert(value13);
-    dynamicSize += (_status.length) as int;
-    final value14 = object.subTotal;
-    final _subTotal = value14;
-    final value15 = object.updatedAt;
-    IsarUint8List? _updatedAt;
-    if (value15 != null) {
-      _updatedAt = IsarBinaryWriter.utf8Encoder.convert(value15);
-    }
-    dynamicSize += (_updatedAt?.length ?? 0) as int;
-    final size = staticSize + dynamicSize;
+List<IsarLinkBase> _orderGetLinks(Order object) {
+  return [object.orderItems];
+}
 
-    rawObj.buffer = alloc(size);
-    rawObj.buffer_length = size;
-    final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
-    final writer = IsarBinaryWriter(buffer, staticSize);
-    writer.writeBool(offsets[0], _active);
-    writer.writeLong(offsets[1], _branchId);
-    writer.writeDouble(offsets[2], _cashReceived);
-    writer.writeBytes(offsets[3], _createdAt);
-    writer.writeDouble(offsets[4], _customerChangeDue);
-    writer.writeLong(offsets[5], _customerId);
-    writer.writeBool(offsets[6], _draft);
-    writer.writeBytes(offsets[7], _note);
-    writer.writeBytes(offsets[8], _orderNumber);
-    writer.writeBytes(offsets[9], _orderType);
-    writer.writeBytes(offsets[10], _paymentType);
-    writer.writeBytes(offsets[11], _reference);
-    writer.writeBool(offsets[12], _reported);
-    writer.writeBytes(offsets[13], _status);
-    writer.writeDouble(offsets[14], _subTotal);
-    writer.writeBytes(offsets[15], _updatedAt);
+void _orderSerializeNative(
+    IsarCollection<Order> collection,
+    IsarRawObject rawObj,
+    Order object,
+    int staticSize,
+    List<int> offsets,
+    AdapterAlloc alloc) {
+  var dynamicSize = 0;
+  final value0 = object.active;
+  final _active = value0;
+  final value1 = object.branchId;
+  final _branchId = value1;
+  final value2 = object.cashReceived;
+  final _cashReceived = value2;
+  final value3 = object.createdAt;
+  final _createdAt = IsarBinaryWriter.utf8Encoder.convert(value3);
+  dynamicSize += (_createdAt.length) as int;
+  final value4 = object.customerChangeDue;
+  final _customerChangeDue = value4;
+  final value5 = object.customerId;
+  final _customerId = value5;
+  final value6 = object.draft;
+  final _draft = value6;
+  final value7 = object.note;
+  IsarUint8List? _note;
+  if (value7 != null) {
+    _note = IsarBinaryWriter.utf8Encoder.convert(value7);
   }
-
-  @override
-  Order deserialize(IsarCollection<Order> collection, int id,
-      IsarBinaryReader reader, List<int> offsets) {
-    final object = Order();
-    object.active = reader.readBool(offsets[0]);
-    object.branchId = reader.readLong(offsets[1]);
-    object.cashReceived = reader.readDouble(offsets[2]);
-    object.createdAt = reader.readString(offsets[3]);
-    object.customerChangeDue = reader.readDouble(offsets[4]);
-    object.customerId = reader.readLongOrNull(offsets[5]);
-    object.draft = reader.readBool(offsets[6]);
-    object.id = id;
-    object.note = reader.readStringOrNull(offsets[7]);
-    object.orderNumber = reader.readString(offsets[8]);
-    object.orderType = reader.readString(offsets[9]);
-    object.paymentType = reader.readString(offsets[10]);
-    object.reference = reader.readString(offsets[11]);
-    object.reported = reader.readBoolOrNull(offsets[12]);
-    object.status = reader.readString(offsets[13]);
-    object.subTotal = reader.readDouble(offsets[14]);
-    object.updatedAt = reader.readStringOrNull(offsets[15]);
-    attachLinks(collection.isar, id, object);
-    return object;
+  dynamicSize += (_note?.length ?? 0) as int;
+  final value8 = object.orderNumber;
+  final _orderNumber = IsarBinaryWriter.utf8Encoder.convert(value8);
+  dynamicSize += (_orderNumber.length) as int;
+  final value9 = object.orderType;
+  final _orderType = IsarBinaryWriter.utf8Encoder.convert(value9);
+  dynamicSize += (_orderType.length) as int;
+  final value10 = object.paymentType;
+  final _paymentType = IsarBinaryWriter.utf8Encoder.convert(value10);
+  dynamicSize += (_paymentType.length) as int;
+  final value11 = object.reference;
+  final _reference = IsarBinaryWriter.utf8Encoder.convert(value11);
+  dynamicSize += (_reference.length) as int;
+  final value12 = object.reported;
+  final _reported = value12;
+  final value13 = object.status;
+  final _status = IsarBinaryWriter.utf8Encoder.convert(value13);
+  dynamicSize += (_status.length) as int;
+  final value14 = object.subTotal;
+  final _subTotal = value14;
+  final value15 = object.updatedAt;
+  IsarUint8List? _updatedAt;
+  if (value15 != null) {
+    _updatedAt = IsarBinaryWriter.utf8Encoder.convert(value15);
   }
+  dynamicSize += (_updatedAt?.length ?? 0) as int;
+  final size = staticSize + dynamicSize;
 
-  @override
-  P deserializeProperty<P>(
-      int id, IsarBinaryReader reader, int propertyIndex, int offset) {
-    switch (propertyIndex) {
-      case -1:
-        return id as P;
-      case 0:
-        return (reader.readBool(offset)) as P;
-      case 1:
-        return (reader.readLong(offset)) as P;
-      case 2:
-        return (reader.readDouble(offset)) as P;
-      case 3:
-        return (reader.readString(offset)) as P;
-      case 4:
-        return (reader.readDouble(offset)) as P;
-      case 5:
-        return (reader.readLongOrNull(offset)) as P;
-      case 6:
-        return (reader.readBool(offset)) as P;
-      case 7:
-        return (reader.readStringOrNull(offset)) as P;
-      case 8:
-        return (reader.readString(offset)) as P;
-      case 9:
-        return (reader.readString(offset)) as P;
-      case 10:
-        return (reader.readString(offset)) as P;
-      case 11:
-        return (reader.readString(offset)) as P;
-      case 12:
-        return (reader.readBoolOrNull(offset)) as P;
-      case 13:
-        return (reader.readString(offset)) as P;
-      case 14:
-        return (reader.readDouble(offset)) as P;
-      case 15:
-        return (reader.readStringOrNull(offset)) as P;
-      default:
-        throw 'Illegal propertyIndex';
-    }
-  }
+  rawObj.buffer = alloc(size);
+  rawObj.buffer_length = size;
+  final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
+  final writer = IsarBinaryWriter(buffer, staticSize);
+  writer.writeBool(offsets[0], _active);
+  writer.writeLong(offsets[1], _branchId);
+  writer.writeDouble(offsets[2], _cashReceived);
+  writer.writeBytes(offsets[3], _createdAt);
+  writer.writeDouble(offsets[4], _customerChangeDue);
+  writer.writeLong(offsets[5], _customerId);
+  writer.writeBool(offsets[6], _draft);
+  writer.writeBytes(offsets[7], _note);
+  writer.writeBytes(offsets[8], _orderNumber);
+  writer.writeBytes(offsets[9], _orderType);
+  writer.writeBytes(offsets[10], _paymentType);
+  writer.writeBytes(offsets[11], _reference);
+  writer.writeBool(offsets[12], _reported);
+  writer.writeBytes(offsets[13], _status);
+  writer.writeDouble(offsets[14], _subTotal);
+  writer.writeBytes(offsets[15], _updatedAt);
+}
 
-  @override
-  void attachLinks(Isar isar, int id, Order object) {
-    object.orderItems.attach(
-      id,
-      isar.orders,
-      isar.getCollection<OrderItem>('OrderItem'),
-      'orderItems',
-      false,
-    );
+Order _orderDeserializeNative(IsarCollection<Order> collection, int id,
+    IsarBinaryReader reader, List<int> offsets) {
+  final object = Order();
+  object.active = reader.readBool(offsets[0]);
+  object.branchId = reader.readLong(offsets[1]);
+  object.cashReceived = reader.readDouble(offsets[2]);
+  object.createdAt = reader.readString(offsets[3]);
+  object.customerChangeDue = reader.readDouble(offsets[4]);
+  object.customerId = reader.readLongOrNull(offsets[5]);
+  object.draft = reader.readBool(offsets[6]);
+  object.id = id;
+  object.note = reader.readStringOrNull(offsets[7]);
+  object.orderNumber = reader.readString(offsets[8]);
+  object.orderType = reader.readString(offsets[9]);
+  object.paymentType = reader.readString(offsets[10]);
+  object.reference = reader.readString(offsets[11]);
+  object.reported = reader.readBoolOrNull(offsets[12]);
+  object.status = reader.readString(offsets[13]);
+  object.subTotal = reader.readDouble(offsets[14]);
+  object.updatedAt = reader.readStringOrNull(offsets[15]);
+  _orderAttachLinks(collection, id, object);
+  return object;
+}
+
+P _orderDeserializePropNative<P>(
+    int id, IsarBinaryReader reader, int propertyIndex, int offset) {
+  switch (propertyIndex) {
+    case -1:
+      return id as P;
+    case 0:
+      return (reader.readBool(offset)) as P;
+    case 1:
+      return (reader.readLong(offset)) as P;
+    case 2:
+      return (reader.readDouble(offset)) as P;
+    case 3:
+      return (reader.readString(offset)) as P;
+    case 4:
+      return (reader.readDouble(offset)) as P;
+    case 5:
+      return (reader.readLongOrNull(offset)) as P;
+    case 6:
+      return (reader.readBool(offset)) as P;
+    case 7:
+      return (reader.readStringOrNull(offset)) as P;
+    case 8:
+      return (reader.readString(offset)) as P;
+    case 9:
+      return (reader.readString(offset)) as P;
+    case 10:
+      return (reader.readString(offset)) as P;
+    case 11:
+      return (reader.readString(offset)) as P;
+    case 12:
+      return (reader.readBoolOrNull(offset)) as P;
+    case 13:
+      return (reader.readString(offset)) as P;
+    case 14:
+      return (reader.readDouble(offset)) as P;
+    case 15:
+      return (reader.readStringOrNull(offset)) as P;
+    default:
+      throw 'Illegal propertyIndex';
   }
+}
+
+dynamic _orderSerializeWeb(IsarCollection<Order> collection, Order object) {
+  final jsObj = IsarNative.newJsObject();
+  IsarNative.jsObjectSet(jsObj, 'active', object.active);
+  IsarNative.jsObjectSet(jsObj, 'branchId', object.branchId);
+  IsarNative.jsObjectSet(jsObj, 'cashReceived', object.cashReceived);
+  IsarNative.jsObjectSet(jsObj, 'createdAt', object.createdAt);
+  IsarNative.jsObjectSet(jsObj, 'customerChangeDue', object.customerChangeDue);
+  IsarNative.jsObjectSet(jsObj, 'customerId', object.customerId);
+  IsarNative.jsObjectSet(jsObj, 'draft', object.draft);
+  IsarNative.jsObjectSet(jsObj, 'id', object.id);
+  IsarNative.jsObjectSet(jsObj, 'note', object.note);
+  IsarNative.jsObjectSet(jsObj, 'orderNumber', object.orderNumber);
+  IsarNative.jsObjectSet(jsObj, 'orderType', object.orderType);
+  IsarNative.jsObjectSet(jsObj, 'paymentType', object.paymentType);
+  IsarNative.jsObjectSet(jsObj, 'reference', object.reference);
+  IsarNative.jsObjectSet(jsObj, 'reported', object.reported);
+  IsarNative.jsObjectSet(jsObj, 'status', object.status);
+  IsarNative.jsObjectSet(jsObj, 'subTotal', object.subTotal);
+  IsarNative.jsObjectSet(jsObj, 'updatedAt', object.updatedAt);
+  return jsObj;
+}
+
+Order _orderDeserializeWeb(IsarCollection<Order> collection, dynamic jsObj) {
+  final object = Order();
+  object.active = IsarNative.jsObjectGet(jsObj, 'active') ?? false;
+  object.branchId =
+      IsarNative.jsObjectGet(jsObj, 'branchId') ?? double.negativeInfinity;
+  object.cashReceived =
+      IsarNative.jsObjectGet(jsObj, 'cashReceived') ?? double.negativeInfinity;
+  object.createdAt = IsarNative.jsObjectGet(jsObj, 'createdAt') ?? '';
+  object.customerChangeDue =
+      IsarNative.jsObjectGet(jsObj, 'customerChangeDue') ??
+          double.negativeInfinity;
+  object.customerId = IsarNative.jsObjectGet(jsObj, 'customerId');
+  object.draft = IsarNative.jsObjectGet(jsObj, 'draft') ?? false;
+  object.id = IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity;
+  object.note = IsarNative.jsObjectGet(jsObj, 'note');
+  object.orderNumber = IsarNative.jsObjectGet(jsObj, 'orderNumber') ?? '';
+  object.orderType = IsarNative.jsObjectGet(jsObj, 'orderType') ?? '';
+  object.paymentType = IsarNative.jsObjectGet(jsObj, 'paymentType') ?? '';
+  object.reference = IsarNative.jsObjectGet(jsObj, 'reference') ?? '';
+  object.reported = IsarNative.jsObjectGet(jsObj, 'reported');
+  object.status = IsarNative.jsObjectGet(jsObj, 'status') ?? '';
+  object.subTotal =
+      IsarNative.jsObjectGet(jsObj, 'subTotal') ?? double.negativeInfinity;
+  object.updatedAt = IsarNative.jsObjectGet(jsObj, 'updatedAt');
+  _orderAttachLinks(collection,
+      IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity, object);
+  return object;
+}
+
+P _orderDeserializePropWeb<P>(Object jsObj, String propertyName) {
+  switch (propertyName) {
+    case 'active':
+      return (IsarNative.jsObjectGet(jsObj, 'active') ?? false) as P;
+    case 'branchId':
+      return (IsarNative.jsObjectGet(jsObj, 'branchId') ??
+          double.negativeInfinity) as P;
+    case 'cashReceived':
+      return (IsarNative.jsObjectGet(jsObj, 'cashReceived') ??
+          double.negativeInfinity) as P;
+    case 'createdAt':
+      return (IsarNative.jsObjectGet(jsObj, 'createdAt') ?? '') as P;
+    case 'customerChangeDue':
+      return (IsarNative.jsObjectGet(jsObj, 'customerChangeDue') ??
+          double.negativeInfinity) as P;
+    case 'customerId':
+      return (IsarNative.jsObjectGet(jsObj, 'customerId')) as P;
+    case 'draft':
+      return (IsarNative.jsObjectGet(jsObj, 'draft') ?? false) as P;
+    case 'id':
+      return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
+          as P;
+    case 'note':
+      return (IsarNative.jsObjectGet(jsObj, 'note')) as P;
+    case 'orderNumber':
+      return (IsarNative.jsObjectGet(jsObj, 'orderNumber') ?? '') as P;
+    case 'orderType':
+      return (IsarNative.jsObjectGet(jsObj, 'orderType') ?? '') as P;
+    case 'paymentType':
+      return (IsarNative.jsObjectGet(jsObj, 'paymentType') ?? '') as P;
+    case 'reference':
+      return (IsarNative.jsObjectGet(jsObj, 'reference') ?? '') as P;
+    case 'reported':
+      return (IsarNative.jsObjectGet(jsObj, 'reported')) as P;
+    case 'status':
+      return (IsarNative.jsObjectGet(jsObj, 'status') ?? '') as P;
+    case 'subTotal':
+      return (IsarNative.jsObjectGet(jsObj, 'subTotal') ??
+          double.negativeInfinity) as P;
+    case 'updatedAt':
+      return (IsarNative.jsObjectGet(jsObj, 'updatedAt')) as P;
+    default:
+      throw 'Illegal propertyName';
+  }
+}
+
+void _orderAttachLinks(IsarCollection col, int id, Order object) {
+  object.orderItems.attach(col, col.isar.orderItems, 'orderItems', id);
 }
 
 extension OrderQueryWhereSort on QueryBuilder<Order, Order, QWhere> {
   QueryBuilder<Order, Order, QAfterWhere> anyId() {
-    return addWhereClauseInternal(const WhereClause(indexName: null));
+    return addWhereClauseInternal(const IdWhereClause.any());
   }
 }
 
 extension OrderQueryWhere on QueryBuilder<Order, Order, QWhereClause> {
   QueryBuilder<Order, Order, QAfterWhereClause> idEqualTo(int id) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [id],
+    return addWhereClauseInternal(IdWhereClause.between(
+      lower: id,
       includeLower: true,
-      upper: [id],
+      upper: id,
       includeUpper: true,
     ));
   }
 
   QueryBuilder<Order, Order, QAfterWhereClause> idNotEqualTo(int id) {
     if (whereSortInternal == Sort.asc) {
-      return addWhereClauseInternal(WhereClause(
-        indexName: null,
-        upper: [id],
-        includeUpper: false,
-      )).addWhereClauseInternal(WhereClause(
-        indexName: null,
-        lower: [id],
-        includeLower: false,
-      ));
+      return addWhereClauseInternal(
+        IdWhereClause.lessThan(upper: id, includeUpper: false),
+      ).addWhereClauseInternal(
+        IdWhereClause.greaterThan(lower: id, includeLower: false),
+      );
     } else {
-      return addWhereClauseInternal(WhereClause(
-        indexName: null,
-        lower: [id],
-        includeLower: false,
-      )).addWhereClauseInternal(WhereClause(
-        indexName: null,
-        upper: [id],
-        includeUpper: false,
-      ));
+      return addWhereClauseInternal(
+        IdWhereClause.greaterThan(lower: id, includeLower: false),
+      ).addWhereClauseInternal(
+        IdWhereClause.lessThan(upper: id, includeUpper: false),
+      );
     }
   }
 
-  QueryBuilder<Order, Order, QAfterWhereClause> idGreaterThan(
-    int id, {
-    bool include = false,
-  }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [id],
-      includeLower: include,
-    ));
+  QueryBuilder<Order, Order, QAfterWhereClause> idGreaterThan(int id,
+      {bool include = false}) {
+    return addWhereClauseInternal(
+      IdWhereClause.greaterThan(lower: id, includeLower: include),
+    );
   }
 
-  QueryBuilder<Order, Order, QAfterWhereClause> idLessThan(
-    int id, {
-    bool include = false,
-  }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      upper: [id],
-      includeUpper: include,
-    ));
+  QueryBuilder<Order, Order, QAfterWhereClause> idLessThan(int id,
+      {bool include = false}) {
+    return addWhereClauseInternal(
+      IdWhereClause.lessThan(upper: id, includeUpper: include),
+    );
   }
 
   QueryBuilder<Order, Order, QAfterWhereClause> idBetween(
@@ -399,11 +366,10 @@ extension OrderQueryWhere on QueryBuilder<Order, Order, QWhereClause> {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [lowerId],
+    return addWhereClauseInternal(IdWhereClause.between(
+      lower: lowerId,
       includeLower: includeLower,
-      upper: [upperId],
+      upper: upperId,
       includeUpper: includeUpper,
     ));
   }
@@ -1521,6 +1487,17 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
       value: pattern,
       caseSensitive: caseSensitive,
     ));
+  }
+}
+
+extension OrderQueryLinks on QueryBuilder<Order, Order, QFilterCondition> {
+  QueryBuilder<Order, Order, QAfterFilterCondition> orderItems(
+      FilterQuery<OrderItem> q) {
+    return linkInternal(
+      isar.orderItems,
+      q,
+      'orderItems',
+    );
   }
 }
 

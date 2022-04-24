@@ -14,18 +14,21 @@ class Ebm {
     required this.tinNumber,
     required this.dvcSrlNo,
     required this.userId,
+    this.taxServerUrl,
   });
 
   String bhfId;
   int tinNumber;
   String dvcSrlNo;
   String? userId;
+  String? taxServerUrl;
 
   factory Ebm.fromJson(Map<String, dynamic> json) => Ebm(
         bhfId: json["bhfId"],
         tinNumber: json["tinNumber"],
         dvcSrlNo: json["dvcSrlNo"],
         userId: json["userId"],
+        taxServerUrl: json["taxServerUrl"],
       );
 
   Map<String, dynamic> toJson() => {
@@ -33,5 +36,6 @@ class Ebm {
         "tinNumber": tinNumber,
         "dvcSrlNo": dvcSrlNo,
         "userId": userId,
+        "taxServerUrl": taxServerUrl,
       };
 }

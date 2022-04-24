@@ -6,20 +6,16 @@ part of flipper_models;
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable
 
 extension GetBusinessCollection on Isar {
-  IsarCollection<Business> get businesss {
-    return getCollection('Business');
-  }
+  IsarCollection<Business> get businesss => getCollection();
 }
 
-final BusinessSchema = CollectionSchema(
+const BusinessSchema = CollectionSchema(
   name: 'Business',
   schema:
-      '{"name":"Business","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"adrs","type":"String"},{"name":"backUpEnabled","type":"Bool"},{"name":"backupFileId","type":"String"},{"name":"bhfId","type":"String"},{"name":"businessUrl","type":"String"},{"name":"channels","type":"StringList"},{"name":"chatUid","type":"String"},{"name":"country","type":"String"},{"name":"createdAt","type":"String"},{"name":"currency","type":"String"},{"name":"deviceToken","type":"String"},{"name":"dvcSrlNo","type":"String"},{"name":"email","type":"String"},{"name":"fcategoryId","type":"Long"},{"name":"firstName","type":"String"},{"name":"fullName","type":"String"},{"name":"hexColor","type":"String"},{"name":"imageUrl","type":"String"},{"name":"isLastSubscriptionPaymentSucceeded","type":"Bool"},{"name":"lastDbBackup","type":"String"},{"name":"lastName","type":"String"},{"name":"lastSeen","type":"Long"},{"name":"latitude","type":"String"},{"name":"longitude","type":"String"},{"name":"metadata","type":"String"},{"name":"name","type":"String"},{"name":"nextBillingDate","type":"String"},{"name":"previousBillingDate","type":"String"},{"name":"role","type":"String"},{"name":"subscriptionPlan","type":"String"},{"name":"table","type":"String"},{"name":"taxEnabled","type":"Bool"},{"name":"timeZone","type":"String"},{"name":"tinNumber","type":"Long"},{"name":"type","type":"String"},{"name":"typeId","type":"String"},{"name":"userId","type":"String"}],"indexes":[],"links":[]}',
-  nativeAdapter: const _BusinessNativeAdapter(),
-  webAdapter: const _BusinessWebAdapter(),
+      '{"name":"Business","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"adrs","type":"String"},{"name":"backUpEnabled","type":"Bool"},{"name":"backupFileId","type":"String"},{"name":"bhfId","type":"String"},{"name":"businessUrl","type":"String"},{"name":"channels","type":"StringList"},{"name":"chatUid","type":"String"},{"name":"country","type":"String"},{"name":"createdAt","type":"String"},{"name":"currency","type":"String"},{"name":"deviceToken","type":"String"},{"name":"dvcSrlNo","type":"String"},{"name":"email","type":"String"},{"name":"fcategoryId","type":"Long"},{"name":"firstName","type":"String"},{"name":"fullName","type":"String"},{"name":"hexColor","type":"String"},{"name":"imageUrl","type":"String"},{"name":"isLastSubscriptionPaymentSucceeded","type":"Bool"},{"name":"lastDbBackup","type":"String"},{"name":"lastName","type":"String"},{"name":"lastSeen","type":"Long"},{"name":"latitude","type":"String"},{"name":"longitude","type":"String"},{"name":"metadata","type":"String"},{"name":"name","type":"String"},{"name":"nextBillingDate","type":"String"},{"name":"previousBillingDate","type":"String"},{"name":"role","type":"String"},{"name":"subscriptionPlan","type":"String"},{"name":"table","type":"String"},{"name":"taxEnabled","type":"Bool"},{"name":"taxServerUrl","type":"String"},{"name":"timeZone","type":"String"},{"name":"tinNumber","type":"Long"},{"name":"type","type":"String"},{"name":"typeId","type":"String"},{"name":"userId","type":"String"}],"indexes":[],"links":[]}',
   idName: 'id',
   propertyIds: {
     'active': 0,
@@ -55,683 +51,686 @@ final BusinessSchema = CollectionSchema(
     'subscriptionPlan': 30,
     'table': 31,
     'taxEnabled': 32,
-    'timeZone': 33,
-    'tinNumber': 34,
-    'type': 35,
-    'typeId': 36,
-    'userId': 37
+    'taxServerUrl': 33,
+    'timeZone': 34,
+    'tinNumber': 35,
+    'type': 36,
+    'typeId': 37,
+    'userId': 38
   },
   listProperties: {'channels'},
   indexIds: {},
-  indexTypes: {},
+  indexValueTypes: {},
   linkIds: {},
-  backlinkIds: {},
-  linkedCollections: [],
-  getId: (obj) {
-    if (obj.id == Isar.autoIncrement) {
-      return null;
-    } else {
-      return obj.id;
-    }
-  },
-  setId: (obj, id) => obj.id = id,
-  getLinks: (obj) => [],
-  version: 2,
+  backlinkLinkNames: {},
+  getId: _businessGetId,
+  setId: _businessSetId,
+  getLinks: _businessGetLinks,
+  attachLinks: _businessAttachLinks,
+  serializeNative: _businessSerializeNative,
+  deserializeNative: _businessDeserializeNative,
+  deserializePropNative: _businessDeserializePropNative,
+  serializeWeb: _businessSerializeWeb,
+  deserializeWeb: _businessDeserializeWeb,
+  deserializePropWeb: _businessDeserializePropWeb,
+  version: 3,
 );
 
-class _BusinessWebAdapter extends IsarWebTypeAdapter<Business> {
-  const _BusinessWebAdapter();
-
-  @override
-  Object serialize(IsarCollection<Business> collection, Business object) {
-    final jsObj = IsarNative.newJsObject();
-    IsarNative.jsObjectSet(jsObj, 'active', object.active);
-    IsarNative.jsObjectSet(jsObj, 'adrs', object.adrs);
-    IsarNative.jsObjectSet(jsObj, 'backUpEnabled', object.backUpEnabled);
-    IsarNative.jsObjectSet(jsObj, 'backupFileId', object.backupFileId);
-    IsarNative.jsObjectSet(jsObj, 'bhfId', object.bhfId);
-    IsarNative.jsObjectSet(jsObj, 'businessUrl', object.businessUrl);
-    IsarNative.jsObjectSet(jsObj, 'channels', object.channels);
-    IsarNative.jsObjectSet(jsObj, 'chatUid', object.chatUid);
-    IsarNative.jsObjectSet(jsObj, 'country', object.country);
-    IsarNative.jsObjectSet(jsObj, 'createdAt', object.createdAt);
-    IsarNative.jsObjectSet(jsObj, 'currency', object.currency);
-    IsarNative.jsObjectSet(jsObj, 'deviceToken', object.deviceToken);
-    IsarNative.jsObjectSet(jsObj, 'dvcSrlNo', object.dvcSrlNo);
-    IsarNative.jsObjectSet(jsObj, 'email', object.email);
-    IsarNative.jsObjectSet(jsObj, 'fcategoryId', object.fcategoryId);
-    IsarNative.jsObjectSet(jsObj, 'firstName', object.firstName);
-    IsarNative.jsObjectSet(jsObj, 'fullName', object.fullName);
-    IsarNative.jsObjectSet(jsObj, 'hexColor', object.hexColor);
-    IsarNative.jsObjectSet(jsObj, 'id', object.id);
-    IsarNative.jsObjectSet(jsObj, 'imageUrl', object.imageUrl);
-    IsarNative.jsObjectSet(jsObj, 'isLastSubscriptionPaymentSucceeded',
-        object.isLastSubscriptionPaymentSucceeded);
-    IsarNative.jsObjectSet(jsObj, 'lastDbBackup', object.lastDbBackup);
-    IsarNative.jsObjectSet(jsObj, 'lastName', object.lastName);
-    IsarNative.jsObjectSet(jsObj, 'lastSeen', object.lastSeen);
-    IsarNative.jsObjectSet(jsObj, 'latitude', object.latitude);
-    IsarNative.jsObjectSet(jsObj, 'longitude', object.longitude);
-    IsarNative.jsObjectSet(jsObj, 'metadata', object.metadata);
-    IsarNative.jsObjectSet(jsObj, 'name', object.name);
-    IsarNative.jsObjectSet(jsObj, 'nextBillingDate', object.nextBillingDate);
-    IsarNative.jsObjectSet(
-        jsObj, 'previousBillingDate', object.previousBillingDate);
-    IsarNative.jsObjectSet(jsObj, 'role', object.role);
-    IsarNative.jsObjectSet(jsObj, 'subscriptionPlan', object.subscriptionPlan);
-    IsarNative.jsObjectSet(jsObj, 'table', object.table);
-    IsarNative.jsObjectSet(jsObj, 'taxEnabled', object.taxEnabled);
-    IsarNative.jsObjectSet(jsObj, 'timeZone', object.timeZone);
-    IsarNative.jsObjectSet(jsObj, 'tinNumber', object.tinNumber);
-    IsarNative.jsObjectSet(jsObj, 'type', object.type);
-    IsarNative.jsObjectSet(jsObj, 'typeId', object.typeId);
-    IsarNative.jsObjectSet(jsObj, 'userId', object.userId);
-    return jsObj;
+int? _businessGetId(Business object) {
+  if (object.id == Isar.autoIncrement) {
+    return null;
+  } else {
+    return object.id;
   }
+}
 
-  @override
-  Business deserialize(IsarCollection<Business> collection, dynamic jsObj) {
-    final object = Business(
-      active: IsarNative.jsObjectGet(jsObj, 'active'),
-      adrs: IsarNative.jsObjectGet(jsObj, 'adrs'),
-      backUpEnabled: IsarNative.jsObjectGet(jsObj, 'backUpEnabled'),
-      backupFileId: IsarNative.jsObjectGet(jsObj, 'backupFileId'),
-      bhfId: IsarNative.jsObjectGet(jsObj, 'bhfId'),
-      businessUrl: IsarNative.jsObjectGet(jsObj, 'businessUrl'),
-      channels: (IsarNative.jsObjectGet(jsObj, 'channels') as List?)
+void _businessSetId(Business object, int id) {
+  object.id = id;
+}
+
+List<IsarLinkBase> _businessGetLinks(Business object) {
+  return [];
+}
+
+void _businessSerializeNative(
+    IsarCollection<Business> collection,
+    IsarRawObject rawObj,
+    Business object,
+    int staticSize,
+    List<int> offsets,
+    AdapterAlloc alloc) {
+  var dynamicSize = 0;
+  final value0 = object.active;
+  final _active = value0;
+  final value1 = object.adrs;
+  IsarUint8List? _adrs;
+  if (value1 != null) {
+    _adrs = IsarBinaryWriter.utf8Encoder.convert(value1);
+  }
+  dynamicSize += (_adrs?.length ?? 0) as int;
+  final value2 = object.backUpEnabled;
+  final _backUpEnabled = value2;
+  final value3 = object.backupFileId;
+  IsarUint8List? _backupFileId;
+  if (value3 != null) {
+    _backupFileId = IsarBinaryWriter.utf8Encoder.convert(value3);
+  }
+  dynamicSize += (_backupFileId?.length ?? 0) as int;
+  final value4 = object.bhfId;
+  IsarUint8List? _bhfId;
+  if (value4 != null) {
+    _bhfId = IsarBinaryWriter.utf8Encoder.convert(value4);
+  }
+  dynamicSize += (_bhfId?.length ?? 0) as int;
+  final value5 = object.businessUrl;
+  IsarUint8List? _businessUrl;
+  if (value5 != null) {
+    _businessUrl = IsarBinaryWriter.utf8Encoder.convert(value5);
+  }
+  dynamicSize += (_businessUrl?.length ?? 0) as int;
+  final value6 = object.channels;
+  dynamicSize += (value6?.length ?? 0) * 8;
+  List<IsarUint8List?>? bytesList6;
+  if (value6 != null) {
+    bytesList6 = [];
+    for (var str in value6) {
+      final bytes = IsarBinaryWriter.utf8Encoder.convert(str);
+      bytesList6.add(bytes);
+      dynamicSize += bytes.length as int;
+    }
+  }
+  final _channels = bytesList6;
+  final value7 = object.chatUid;
+  IsarUint8List? _chatUid;
+  if (value7 != null) {
+    _chatUid = IsarBinaryWriter.utf8Encoder.convert(value7);
+  }
+  dynamicSize += (_chatUid?.length ?? 0) as int;
+  final value8 = object.country;
+  IsarUint8List? _country;
+  if (value8 != null) {
+    _country = IsarBinaryWriter.utf8Encoder.convert(value8);
+  }
+  dynamicSize += (_country?.length ?? 0) as int;
+  final value9 = object.createdAt;
+  IsarUint8List? _createdAt;
+  if (value9 != null) {
+    _createdAt = IsarBinaryWriter.utf8Encoder.convert(value9);
+  }
+  dynamicSize += (_createdAt?.length ?? 0) as int;
+  final value10 = object.currency;
+  IsarUint8List? _currency;
+  if (value10 != null) {
+    _currency = IsarBinaryWriter.utf8Encoder.convert(value10);
+  }
+  dynamicSize += (_currency?.length ?? 0) as int;
+  final value11 = object.deviceToken;
+  IsarUint8List? _deviceToken;
+  if (value11 != null) {
+    _deviceToken = IsarBinaryWriter.utf8Encoder.convert(value11);
+  }
+  dynamicSize += (_deviceToken?.length ?? 0) as int;
+  final value12 = object.dvcSrlNo;
+  IsarUint8List? _dvcSrlNo;
+  if (value12 != null) {
+    _dvcSrlNo = IsarBinaryWriter.utf8Encoder.convert(value12);
+  }
+  dynamicSize += (_dvcSrlNo?.length ?? 0) as int;
+  final value13 = object.email;
+  IsarUint8List? _email;
+  if (value13 != null) {
+    _email = IsarBinaryWriter.utf8Encoder.convert(value13);
+  }
+  dynamicSize += (_email?.length ?? 0) as int;
+  final value14 = object.fcategoryId;
+  final _fcategoryId = value14;
+  final value15 = object.firstName;
+  IsarUint8List? _firstName;
+  if (value15 != null) {
+    _firstName = IsarBinaryWriter.utf8Encoder.convert(value15);
+  }
+  dynamicSize += (_firstName?.length ?? 0) as int;
+  final value16 = object.fullName;
+  IsarUint8List? _fullName;
+  if (value16 != null) {
+    _fullName = IsarBinaryWriter.utf8Encoder.convert(value16);
+  }
+  dynamicSize += (_fullName?.length ?? 0) as int;
+  final value17 = object.hexColor;
+  IsarUint8List? _hexColor;
+  if (value17 != null) {
+    _hexColor = IsarBinaryWriter.utf8Encoder.convert(value17);
+  }
+  dynamicSize += (_hexColor?.length ?? 0) as int;
+  final value18 = object.imageUrl;
+  IsarUint8List? _imageUrl;
+  if (value18 != null) {
+    _imageUrl = IsarBinaryWriter.utf8Encoder.convert(value18);
+  }
+  dynamicSize += (_imageUrl?.length ?? 0) as int;
+  final value19 = object.isLastSubscriptionPaymentSucceeded;
+  final _isLastSubscriptionPaymentSucceeded = value19;
+  final value20 = object.lastDbBackup;
+  IsarUint8List? _lastDbBackup;
+  if (value20 != null) {
+    _lastDbBackup = IsarBinaryWriter.utf8Encoder.convert(value20);
+  }
+  dynamicSize += (_lastDbBackup?.length ?? 0) as int;
+  final value21 = object.lastName;
+  IsarUint8List? _lastName;
+  if (value21 != null) {
+    _lastName = IsarBinaryWriter.utf8Encoder.convert(value21);
+  }
+  dynamicSize += (_lastName?.length ?? 0) as int;
+  final value22 = object.lastSeen;
+  final _lastSeen = value22;
+  final value23 = object.latitude;
+  IsarUint8List? _latitude;
+  if (value23 != null) {
+    _latitude = IsarBinaryWriter.utf8Encoder.convert(value23);
+  }
+  dynamicSize += (_latitude?.length ?? 0) as int;
+  final value24 = object.longitude;
+  IsarUint8List? _longitude;
+  if (value24 != null) {
+    _longitude = IsarBinaryWriter.utf8Encoder.convert(value24);
+  }
+  dynamicSize += (_longitude?.length ?? 0) as int;
+  final value25 = object.metadata;
+  IsarUint8List? _metadata;
+  if (value25 != null) {
+    _metadata = IsarBinaryWriter.utf8Encoder.convert(value25);
+  }
+  dynamicSize += (_metadata?.length ?? 0) as int;
+  final value26 = object.name;
+  IsarUint8List? _name;
+  if (value26 != null) {
+    _name = IsarBinaryWriter.utf8Encoder.convert(value26);
+  }
+  dynamicSize += (_name?.length ?? 0) as int;
+  final value27 = object.nextBillingDate;
+  IsarUint8List? _nextBillingDate;
+  if (value27 != null) {
+    _nextBillingDate = IsarBinaryWriter.utf8Encoder.convert(value27);
+  }
+  dynamicSize += (_nextBillingDate?.length ?? 0) as int;
+  final value28 = object.previousBillingDate;
+  IsarUint8List? _previousBillingDate;
+  if (value28 != null) {
+    _previousBillingDate = IsarBinaryWriter.utf8Encoder.convert(value28);
+  }
+  dynamicSize += (_previousBillingDate?.length ?? 0) as int;
+  final value29 = object.role;
+  IsarUint8List? _role;
+  if (value29 != null) {
+    _role = IsarBinaryWriter.utf8Encoder.convert(value29);
+  }
+  dynamicSize += (_role?.length ?? 0) as int;
+  final value30 = object.subscriptionPlan;
+  IsarUint8List? _subscriptionPlan;
+  if (value30 != null) {
+    _subscriptionPlan = IsarBinaryWriter.utf8Encoder.convert(value30);
+  }
+  dynamicSize += (_subscriptionPlan?.length ?? 0) as int;
+  final value31 = object.table;
+  IsarUint8List? _table;
+  if (value31 != null) {
+    _table = IsarBinaryWriter.utf8Encoder.convert(value31);
+  }
+  dynamicSize += (_table?.length ?? 0) as int;
+  final value32 = object.taxEnabled;
+  final _taxEnabled = value32;
+  final value33 = object.taxServerUrl;
+  IsarUint8List? _taxServerUrl;
+  if (value33 != null) {
+    _taxServerUrl = IsarBinaryWriter.utf8Encoder.convert(value33);
+  }
+  dynamicSize += (_taxServerUrl?.length ?? 0) as int;
+  final value34 = object.timeZone;
+  IsarUint8List? _timeZone;
+  if (value34 != null) {
+    _timeZone = IsarBinaryWriter.utf8Encoder.convert(value34);
+  }
+  dynamicSize += (_timeZone?.length ?? 0) as int;
+  final value35 = object.tinNumber;
+  final _tinNumber = value35;
+  final value36 = object.type;
+  IsarUint8List? _type;
+  if (value36 != null) {
+    _type = IsarBinaryWriter.utf8Encoder.convert(value36);
+  }
+  dynamicSize += (_type?.length ?? 0) as int;
+  final value37 = object.typeId;
+  IsarUint8List? _typeId;
+  if (value37 != null) {
+    _typeId = IsarBinaryWriter.utf8Encoder.convert(value37);
+  }
+  dynamicSize += (_typeId?.length ?? 0) as int;
+  final value38 = object.userId;
+  IsarUint8List? _userId;
+  if (value38 != null) {
+    _userId = IsarBinaryWriter.utf8Encoder.convert(value38);
+  }
+  dynamicSize += (_userId?.length ?? 0) as int;
+  final size = staticSize + dynamicSize;
+
+  rawObj.buffer = alloc(size);
+  rawObj.buffer_length = size;
+  final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
+  final writer = IsarBinaryWriter(buffer, staticSize);
+  writer.writeBool(offsets[0], _active);
+  writer.writeBytes(offsets[1], _adrs);
+  writer.writeBool(offsets[2], _backUpEnabled);
+  writer.writeBytes(offsets[3], _backupFileId);
+  writer.writeBytes(offsets[4], _bhfId);
+  writer.writeBytes(offsets[5], _businessUrl);
+  writer.writeStringList(offsets[6], _channels);
+  writer.writeBytes(offsets[7], _chatUid);
+  writer.writeBytes(offsets[8], _country);
+  writer.writeBytes(offsets[9], _createdAt);
+  writer.writeBytes(offsets[10], _currency);
+  writer.writeBytes(offsets[11], _deviceToken);
+  writer.writeBytes(offsets[12], _dvcSrlNo);
+  writer.writeBytes(offsets[13], _email);
+  writer.writeLong(offsets[14], _fcategoryId);
+  writer.writeBytes(offsets[15], _firstName);
+  writer.writeBytes(offsets[16], _fullName);
+  writer.writeBytes(offsets[17], _hexColor);
+  writer.writeBytes(offsets[18], _imageUrl);
+  writer.writeBool(offsets[19], _isLastSubscriptionPaymentSucceeded);
+  writer.writeBytes(offsets[20], _lastDbBackup);
+  writer.writeBytes(offsets[21], _lastName);
+  writer.writeLong(offsets[22], _lastSeen);
+  writer.writeBytes(offsets[23], _latitude);
+  writer.writeBytes(offsets[24], _longitude);
+  writer.writeBytes(offsets[25], _metadata);
+  writer.writeBytes(offsets[26], _name);
+  writer.writeBytes(offsets[27], _nextBillingDate);
+  writer.writeBytes(offsets[28], _previousBillingDate);
+  writer.writeBytes(offsets[29], _role);
+  writer.writeBytes(offsets[30], _subscriptionPlan);
+  writer.writeBytes(offsets[31], _table);
+  writer.writeBool(offsets[32], _taxEnabled);
+  writer.writeBytes(offsets[33], _taxServerUrl);
+  writer.writeBytes(offsets[34], _timeZone);
+  writer.writeLong(offsets[35], _tinNumber);
+  writer.writeBytes(offsets[36], _type);
+  writer.writeBytes(offsets[37], _typeId);
+  writer.writeBytes(offsets[38], _userId);
+}
+
+Business _businessDeserializeNative(IsarCollection<Business> collection, int id,
+    IsarBinaryReader reader, List<int> offsets) {
+  final object = Business(
+    active: reader.readBoolOrNull(offsets[0]),
+    adrs: reader.readStringOrNull(offsets[1]),
+    backUpEnabled: reader.readBoolOrNull(offsets[2]),
+    backupFileId: reader.readStringOrNull(offsets[3]),
+    bhfId: reader.readStringOrNull(offsets[4]),
+    businessUrl: reader.readStringOrNull(offsets[5]),
+    channels: reader.readStringList(offsets[6]),
+    chatUid: reader.readStringOrNull(offsets[7]),
+    country: reader.readStringOrNull(offsets[8]),
+    currency: reader.readStringOrNull(offsets[10]),
+    deviceToken: reader.readStringOrNull(offsets[11]),
+    dvcSrlNo: reader.readStringOrNull(offsets[12]),
+    email: reader.readStringOrNull(offsets[13]),
+    fcategoryId: reader.readLongOrNull(offsets[14]),
+    firstName: reader.readStringOrNull(offsets[15]),
+    fullName: reader.readStringOrNull(offsets[16]),
+    hexColor: reader.readStringOrNull(offsets[17]),
+    imageUrl: reader.readStringOrNull(offsets[18]),
+    isLastSubscriptionPaymentSucceeded: reader.readBoolOrNull(offsets[19]),
+    lastDbBackup: reader.readStringOrNull(offsets[20]),
+    lastName: reader.readStringOrNull(offsets[21]),
+    lastSeen: reader.readLongOrNull(offsets[22]),
+    latitude: reader.readStringOrNull(offsets[23]),
+    longitude: reader.readStringOrNull(offsets[24]),
+    metadata: reader.readStringOrNull(offsets[25]),
+    name: reader.readStringOrNull(offsets[26]),
+    nextBillingDate: reader.readStringOrNull(offsets[27]),
+    previousBillingDate: reader.readStringOrNull(offsets[28]),
+    role: reader.readStringOrNull(offsets[29]),
+    subscriptionPlan: reader.readStringOrNull(offsets[30]),
+    table: reader.readStringOrNull(offsets[31]),
+    taxEnabled: reader.readBoolOrNull(offsets[32]),
+    taxServerUrl: reader.readStringOrNull(offsets[33]),
+    timeZone: reader.readStringOrNull(offsets[34]),
+    tinNumber: reader.readLongOrNull(offsets[35]),
+    type: reader.readStringOrNull(offsets[36]),
+    typeId: reader.readStringOrNull(offsets[37]),
+    userId: reader.readStringOrNull(offsets[38]),
+  );
+  object.createdAt = reader.readStringOrNull(offsets[9]);
+  object.id = id;
+  return object;
+}
+
+P _businessDeserializePropNative<P>(
+    int id, IsarBinaryReader reader, int propertyIndex, int offset) {
+  switch (propertyIndex) {
+    case -1:
+      return id as P;
+    case 0:
+      return (reader.readBoolOrNull(offset)) as P;
+    case 1:
+      return (reader.readStringOrNull(offset)) as P;
+    case 2:
+      return (reader.readBoolOrNull(offset)) as P;
+    case 3:
+      return (reader.readStringOrNull(offset)) as P;
+    case 4:
+      return (reader.readStringOrNull(offset)) as P;
+    case 5:
+      return (reader.readStringOrNull(offset)) as P;
+    case 6:
+      return (reader.readStringList(offset)) as P;
+    case 7:
+      return (reader.readStringOrNull(offset)) as P;
+    case 8:
+      return (reader.readStringOrNull(offset)) as P;
+    case 9:
+      return (reader.readStringOrNull(offset)) as P;
+    case 10:
+      return (reader.readStringOrNull(offset)) as P;
+    case 11:
+      return (reader.readStringOrNull(offset)) as P;
+    case 12:
+      return (reader.readStringOrNull(offset)) as P;
+    case 13:
+      return (reader.readStringOrNull(offset)) as P;
+    case 14:
+      return (reader.readLongOrNull(offset)) as P;
+    case 15:
+      return (reader.readStringOrNull(offset)) as P;
+    case 16:
+      return (reader.readStringOrNull(offset)) as P;
+    case 17:
+      return (reader.readStringOrNull(offset)) as P;
+    case 18:
+      return (reader.readStringOrNull(offset)) as P;
+    case 19:
+      return (reader.readBoolOrNull(offset)) as P;
+    case 20:
+      return (reader.readStringOrNull(offset)) as P;
+    case 21:
+      return (reader.readStringOrNull(offset)) as P;
+    case 22:
+      return (reader.readLongOrNull(offset)) as P;
+    case 23:
+      return (reader.readStringOrNull(offset)) as P;
+    case 24:
+      return (reader.readStringOrNull(offset)) as P;
+    case 25:
+      return (reader.readStringOrNull(offset)) as P;
+    case 26:
+      return (reader.readStringOrNull(offset)) as P;
+    case 27:
+      return (reader.readStringOrNull(offset)) as P;
+    case 28:
+      return (reader.readStringOrNull(offset)) as P;
+    case 29:
+      return (reader.readStringOrNull(offset)) as P;
+    case 30:
+      return (reader.readStringOrNull(offset)) as P;
+    case 31:
+      return (reader.readStringOrNull(offset)) as P;
+    case 32:
+      return (reader.readBoolOrNull(offset)) as P;
+    case 33:
+      return (reader.readStringOrNull(offset)) as P;
+    case 34:
+      return (reader.readStringOrNull(offset)) as P;
+    case 35:
+      return (reader.readLongOrNull(offset)) as P;
+    case 36:
+      return (reader.readStringOrNull(offset)) as P;
+    case 37:
+      return (reader.readStringOrNull(offset)) as P;
+    case 38:
+      return (reader.readStringOrNull(offset)) as P;
+    default:
+      throw 'Illegal propertyIndex';
+  }
+}
+
+dynamic _businessSerializeWeb(
+    IsarCollection<Business> collection, Business object) {
+  final jsObj = IsarNative.newJsObject();
+  IsarNative.jsObjectSet(jsObj, 'active', object.active);
+  IsarNative.jsObjectSet(jsObj, 'adrs', object.adrs);
+  IsarNative.jsObjectSet(jsObj, 'backUpEnabled', object.backUpEnabled);
+  IsarNative.jsObjectSet(jsObj, 'backupFileId', object.backupFileId);
+  IsarNative.jsObjectSet(jsObj, 'bhfId', object.bhfId);
+  IsarNative.jsObjectSet(jsObj, 'businessUrl', object.businessUrl);
+  IsarNative.jsObjectSet(jsObj, 'channels', object.channels);
+  IsarNative.jsObjectSet(jsObj, 'chatUid', object.chatUid);
+  IsarNative.jsObjectSet(jsObj, 'country', object.country);
+  IsarNative.jsObjectSet(jsObj, 'createdAt', object.createdAt);
+  IsarNative.jsObjectSet(jsObj, 'currency', object.currency);
+  IsarNative.jsObjectSet(jsObj, 'deviceToken', object.deviceToken);
+  IsarNative.jsObjectSet(jsObj, 'dvcSrlNo', object.dvcSrlNo);
+  IsarNative.jsObjectSet(jsObj, 'email', object.email);
+  IsarNative.jsObjectSet(jsObj, 'fcategoryId', object.fcategoryId);
+  IsarNative.jsObjectSet(jsObj, 'firstName', object.firstName);
+  IsarNative.jsObjectSet(jsObj, 'fullName', object.fullName);
+  IsarNative.jsObjectSet(jsObj, 'hexColor', object.hexColor);
+  IsarNative.jsObjectSet(jsObj, 'id', object.id);
+  IsarNative.jsObjectSet(jsObj, 'imageUrl', object.imageUrl);
+  IsarNative.jsObjectSet(jsObj, 'isLastSubscriptionPaymentSucceeded',
+      object.isLastSubscriptionPaymentSucceeded);
+  IsarNative.jsObjectSet(jsObj, 'lastDbBackup', object.lastDbBackup);
+  IsarNative.jsObjectSet(jsObj, 'lastName', object.lastName);
+  IsarNative.jsObjectSet(jsObj, 'lastSeen', object.lastSeen);
+  IsarNative.jsObjectSet(jsObj, 'latitude', object.latitude);
+  IsarNative.jsObjectSet(jsObj, 'longitude', object.longitude);
+  IsarNative.jsObjectSet(jsObj, 'metadata', object.metadata);
+  IsarNative.jsObjectSet(jsObj, 'name', object.name);
+  IsarNative.jsObjectSet(jsObj, 'nextBillingDate', object.nextBillingDate);
+  IsarNative.jsObjectSet(
+      jsObj, 'previousBillingDate', object.previousBillingDate);
+  IsarNative.jsObjectSet(jsObj, 'role', object.role);
+  IsarNative.jsObjectSet(jsObj, 'subscriptionPlan', object.subscriptionPlan);
+  IsarNative.jsObjectSet(jsObj, 'table', object.table);
+  IsarNative.jsObjectSet(jsObj, 'taxEnabled', object.taxEnabled);
+  IsarNative.jsObjectSet(jsObj, 'taxServerUrl', object.taxServerUrl);
+  IsarNative.jsObjectSet(jsObj, 'timeZone', object.timeZone);
+  IsarNative.jsObjectSet(jsObj, 'tinNumber', object.tinNumber);
+  IsarNative.jsObjectSet(jsObj, 'type', object.type);
+  IsarNative.jsObjectSet(jsObj, 'typeId', object.typeId);
+  IsarNative.jsObjectSet(jsObj, 'userId', object.userId);
+  return jsObj;
+}
+
+Business _businessDeserializeWeb(
+    IsarCollection<Business> collection, dynamic jsObj) {
+  final object = Business(
+    active: IsarNative.jsObjectGet(jsObj, 'active'),
+    adrs: IsarNative.jsObjectGet(jsObj, 'adrs'),
+    backUpEnabled: IsarNative.jsObjectGet(jsObj, 'backUpEnabled'),
+    backupFileId: IsarNative.jsObjectGet(jsObj, 'backupFileId'),
+    bhfId: IsarNative.jsObjectGet(jsObj, 'bhfId'),
+    businessUrl: IsarNative.jsObjectGet(jsObj, 'businessUrl'),
+    channels: (IsarNative.jsObjectGet(jsObj, 'channels') as List?)
+        ?.map((e) => e ?? '')
+        .toList()
+        .cast<String>(),
+    chatUid: IsarNative.jsObjectGet(jsObj, 'chatUid'),
+    country: IsarNative.jsObjectGet(jsObj, 'country'),
+    currency: IsarNative.jsObjectGet(jsObj, 'currency'),
+    deviceToken: IsarNative.jsObjectGet(jsObj, 'deviceToken'),
+    dvcSrlNo: IsarNative.jsObjectGet(jsObj, 'dvcSrlNo'),
+    email: IsarNative.jsObjectGet(jsObj, 'email'),
+    fcategoryId: IsarNative.jsObjectGet(jsObj, 'fcategoryId'),
+    firstName: IsarNative.jsObjectGet(jsObj, 'firstName'),
+    fullName: IsarNative.jsObjectGet(jsObj, 'fullName'),
+    hexColor: IsarNative.jsObjectGet(jsObj, 'hexColor'),
+    imageUrl: IsarNative.jsObjectGet(jsObj, 'imageUrl'),
+    isLastSubscriptionPaymentSucceeded:
+        IsarNative.jsObjectGet(jsObj, 'isLastSubscriptionPaymentSucceeded'),
+    lastDbBackup: IsarNative.jsObjectGet(jsObj, 'lastDbBackup'),
+    lastName: IsarNative.jsObjectGet(jsObj, 'lastName'),
+    lastSeen: IsarNative.jsObjectGet(jsObj, 'lastSeen'),
+    latitude: IsarNative.jsObjectGet(jsObj, 'latitude'),
+    longitude: IsarNative.jsObjectGet(jsObj, 'longitude'),
+    metadata: IsarNative.jsObjectGet(jsObj, 'metadata'),
+    name: IsarNative.jsObjectGet(jsObj, 'name'),
+    nextBillingDate: IsarNative.jsObjectGet(jsObj, 'nextBillingDate'),
+    previousBillingDate: IsarNative.jsObjectGet(jsObj, 'previousBillingDate'),
+    role: IsarNative.jsObjectGet(jsObj, 'role'),
+    subscriptionPlan: IsarNative.jsObjectGet(jsObj, 'subscriptionPlan'),
+    table: IsarNative.jsObjectGet(jsObj, 'table'),
+    taxEnabled: IsarNative.jsObjectGet(jsObj, 'taxEnabled'),
+    taxServerUrl: IsarNative.jsObjectGet(jsObj, 'taxServerUrl'),
+    timeZone: IsarNative.jsObjectGet(jsObj, 'timeZone'),
+    tinNumber: IsarNative.jsObjectGet(jsObj, 'tinNumber'),
+    type: IsarNative.jsObjectGet(jsObj, 'type'),
+    typeId: IsarNative.jsObjectGet(jsObj, 'typeId'),
+    userId: IsarNative.jsObjectGet(jsObj, 'userId'),
+  );
+  object.createdAt = IsarNative.jsObjectGet(jsObj, 'createdAt');
+  object.id = IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity;
+  return object;
+}
+
+P _businessDeserializePropWeb<P>(Object jsObj, String propertyName) {
+  switch (propertyName) {
+    case 'active':
+      return (IsarNative.jsObjectGet(jsObj, 'active')) as P;
+    case 'adrs':
+      return (IsarNative.jsObjectGet(jsObj, 'adrs')) as P;
+    case 'backUpEnabled':
+      return (IsarNative.jsObjectGet(jsObj, 'backUpEnabled')) as P;
+    case 'backupFileId':
+      return (IsarNative.jsObjectGet(jsObj, 'backupFileId')) as P;
+    case 'bhfId':
+      return (IsarNative.jsObjectGet(jsObj, 'bhfId')) as P;
+    case 'businessUrl':
+      return (IsarNative.jsObjectGet(jsObj, 'businessUrl')) as P;
+    case 'channels':
+      return ((IsarNative.jsObjectGet(jsObj, 'channels') as List?)
           ?.map((e) => e ?? '')
           .toList()
-          .cast<String>(),
-      chatUid: IsarNative.jsObjectGet(jsObj, 'chatUid'),
-      country: IsarNative.jsObjectGet(jsObj, 'country'),
-      currency: IsarNative.jsObjectGet(jsObj, 'currency'),
-      deviceToken: IsarNative.jsObjectGet(jsObj, 'deviceToken'),
-      dvcSrlNo: IsarNative.jsObjectGet(jsObj, 'dvcSrlNo'),
-      email: IsarNative.jsObjectGet(jsObj, 'email'),
-      fcategoryId: IsarNative.jsObjectGet(jsObj, 'fcategoryId'),
-      firstName: IsarNative.jsObjectGet(jsObj, 'firstName'),
-      fullName: IsarNative.jsObjectGet(jsObj, 'fullName'),
-      hexColor: IsarNative.jsObjectGet(jsObj, 'hexColor'),
-      imageUrl: IsarNative.jsObjectGet(jsObj, 'imageUrl'),
-      isLastSubscriptionPaymentSucceeded:
-          IsarNative.jsObjectGet(jsObj, 'isLastSubscriptionPaymentSucceeded'),
-      lastDbBackup: IsarNative.jsObjectGet(jsObj, 'lastDbBackup'),
-      lastName: IsarNative.jsObjectGet(jsObj, 'lastName'),
-      lastSeen: IsarNative.jsObjectGet(jsObj, 'lastSeen'),
-      latitude: IsarNative.jsObjectGet(jsObj, 'latitude'),
-      longitude: IsarNative.jsObjectGet(jsObj, 'longitude'),
-      metadata: IsarNative.jsObjectGet(jsObj, 'metadata'),
-      name: IsarNative.jsObjectGet(jsObj, 'name'),
-      nextBillingDate: IsarNative.jsObjectGet(jsObj, 'nextBillingDate'),
-      previousBillingDate: IsarNative.jsObjectGet(jsObj, 'previousBillingDate'),
-      role: IsarNative.jsObjectGet(jsObj, 'role'),
-      subscriptionPlan: IsarNative.jsObjectGet(jsObj, 'subscriptionPlan'),
-      table: IsarNative.jsObjectGet(jsObj, 'table'),
-      taxEnabled: IsarNative.jsObjectGet(jsObj, 'taxEnabled'),
-      timeZone: IsarNative.jsObjectGet(jsObj, 'timeZone'),
-      tinNumber: IsarNative.jsObjectGet(jsObj, 'tinNumber'),
-      type: IsarNative.jsObjectGet(jsObj, 'type'),
-      typeId: IsarNative.jsObjectGet(jsObj, 'typeId'),
-      userId: IsarNative.jsObjectGet(jsObj, 'userId'),
-    );
-    object.createdAt = IsarNative.jsObjectGet(jsObj, 'createdAt');
-    object.id = IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity;
-    return object;
+          .cast<String>()) as P;
+    case 'chatUid':
+      return (IsarNative.jsObjectGet(jsObj, 'chatUid')) as P;
+    case 'country':
+      return (IsarNative.jsObjectGet(jsObj, 'country')) as P;
+    case 'createdAt':
+      return (IsarNative.jsObjectGet(jsObj, 'createdAt')) as P;
+    case 'currency':
+      return (IsarNative.jsObjectGet(jsObj, 'currency')) as P;
+    case 'deviceToken':
+      return (IsarNative.jsObjectGet(jsObj, 'deviceToken')) as P;
+    case 'dvcSrlNo':
+      return (IsarNative.jsObjectGet(jsObj, 'dvcSrlNo')) as P;
+    case 'email':
+      return (IsarNative.jsObjectGet(jsObj, 'email')) as P;
+    case 'fcategoryId':
+      return (IsarNative.jsObjectGet(jsObj, 'fcategoryId')) as P;
+    case 'firstName':
+      return (IsarNative.jsObjectGet(jsObj, 'firstName')) as P;
+    case 'fullName':
+      return (IsarNative.jsObjectGet(jsObj, 'fullName')) as P;
+    case 'hexColor':
+      return (IsarNative.jsObjectGet(jsObj, 'hexColor')) as P;
+    case 'id':
+      return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
+          as P;
+    case 'imageUrl':
+      return (IsarNative.jsObjectGet(jsObj, 'imageUrl')) as P;
+    case 'isLastSubscriptionPaymentSucceeded':
+      return (IsarNative.jsObjectGet(
+          jsObj, 'isLastSubscriptionPaymentSucceeded')) as P;
+    case 'lastDbBackup':
+      return (IsarNative.jsObjectGet(jsObj, 'lastDbBackup')) as P;
+    case 'lastName':
+      return (IsarNative.jsObjectGet(jsObj, 'lastName')) as P;
+    case 'lastSeen':
+      return (IsarNative.jsObjectGet(jsObj, 'lastSeen')) as P;
+    case 'latitude':
+      return (IsarNative.jsObjectGet(jsObj, 'latitude')) as P;
+    case 'longitude':
+      return (IsarNative.jsObjectGet(jsObj, 'longitude')) as P;
+    case 'metadata':
+      return (IsarNative.jsObjectGet(jsObj, 'metadata')) as P;
+    case 'name':
+      return (IsarNative.jsObjectGet(jsObj, 'name')) as P;
+    case 'nextBillingDate':
+      return (IsarNative.jsObjectGet(jsObj, 'nextBillingDate')) as P;
+    case 'previousBillingDate':
+      return (IsarNative.jsObjectGet(jsObj, 'previousBillingDate')) as P;
+    case 'role':
+      return (IsarNative.jsObjectGet(jsObj, 'role')) as P;
+    case 'subscriptionPlan':
+      return (IsarNative.jsObjectGet(jsObj, 'subscriptionPlan')) as P;
+    case 'table':
+      return (IsarNative.jsObjectGet(jsObj, 'table')) as P;
+    case 'taxEnabled':
+      return (IsarNative.jsObjectGet(jsObj, 'taxEnabled')) as P;
+    case 'taxServerUrl':
+      return (IsarNative.jsObjectGet(jsObj, 'taxServerUrl')) as P;
+    case 'timeZone':
+      return (IsarNative.jsObjectGet(jsObj, 'timeZone')) as P;
+    case 'tinNumber':
+      return (IsarNative.jsObjectGet(jsObj, 'tinNumber')) as P;
+    case 'type':
+      return (IsarNative.jsObjectGet(jsObj, 'type')) as P;
+    case 'typeId':
+      return (IsarNative.jsObjectGet(jsObj, 'typeId')) as P;
+    case 'userId':
+      return (IsarNative.jsObjectGet(jsObj, 'userId')) as P;
+    default:
+      throw 'Illegal propertyName';
   }
-
-  @override
-  P deserializeProperty<P>(Object jsObj, String propertyName) {
-    switch (propertyName) {
-      case 'active':
-        return (IsarNative.jsObjectGet(jsObj, 'active')) as P;
-      case 'adrs':
-        return (IsarNative.jsObjectGet(jsObj, 'adrs')) as P;
-      case 'backUpEnabled':
-        return (IsarNative.jsObjectGet(jsObj, 'backUpEnabled')) as P;
-      case 'backupFileId':
-        return (IsarNative.jsObjectGet(jsObj, 'backupFileId')) as P;
-      case 'bhfId':
-        return (IsarNative.jsObjectGet(jsObj, 'bhfId')) as P;
-      case 'businessUrl':
-        return (IsarNative.jsObjectGet(jsObj, 'businessUrl')) as P;
-      case 'channels':
-        return ((IsarNative.jsObjectGet(jsObj, 'channels') as List?)
-            ?.map((e) => e ?? '')
-            .toList()
-            .cast<String>()) as P;
-      case 'chatUid':
-        return (IsarNative.jsObjectGet(jsObj, 'chatUid')) as P;
-      case 'country':
-        return (IsarNative.jsObjectGet(jsObj, 'country')) as P;
-      case 'createdAt':
-        return (IsarNative.jsObjectGet(jsObj, 'createdAt')) as P;
-      case 'currency':
-        return (IsarNative.jsObjectGet(jsObj, 'currency')) as P;
-      case 'deviceToken':
-        return (IsarNative.jsObjectGet(jsObj, 'deviceToken')) as P;
-      case 'dvcSrlNo':
-        return (IsarNative.jsObjectGet(jsObj, 'dvcSrlNo')) as P;
-      case 'email':
-        return (IsarNative.jsObjectGet(jsObj, 'email')) as P;
-      case 'fcategoryId':
-        return (IsarNative.jsObjectGet(jsObj, 'fcategoryId')) as P;
-      case 'firstName':
-        return (IsarNative.jsObjectGet(jsObj, 'firstName')) as P;
-      case 'fullName':
-        return (IsarNative.jsObjectGet(jsObj, 'fullName')) as P;
-      case 'hexColor':
-        return (IsarNative.jsObjectGet(jsObj, 'hexColor')) as P;
-      case 'id':
-        return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
-            as P;
-      case 'imageUrl':
-        return (IsarNative.jsObjectGet(jsObj, 'imageUrl')) as P;
-      case 'isLastSubscriptionPaymentSucceeded':
-        return (IsarNative.jsObjectGet(
-            jsObj, 'isLastSubscriptionPaymentSucceeded')) as P;
-      case 'lastDbBackup':
-        return (IsarNative.jsObjectGet(jsObj, 'lastDbBackup')) as P;
-      case 'lastName':
-        return (IsarNative.jsObjectGet(jsObj, 'lastName')) as P;
-      case 'lastSeen':
-        return (IsarNative.jsObjectGet(jsObj, 'lastSeen')) as P;
-      case 'latitude':
-        return (IsarNative.jsObjectGet(jsObj, 'latitude')) as P;
-      case 'longitude':
-        return (IsarNative.jsObjectGet(jsObj, 'longitude')) as P;
-      case 'metadata':
-        return (IsarNative.jsObjectGet(jsObj, 'metadata')) as P;
-      case 'name':
-        return (IsarNative.jsObjectGet(jsObj, 'name')) as P;
-      case 'nextBillingDate':
-        return (IsarNative.jsObjectGet(jsObj, 'nextBillingDate')) as P;
-      case 'previousBillingDate':
-        return (IsarNative.jsObjectGet(jsObj, 'previousBillingDate')) as P;
-      case 'role':
-        return (IsarNative.jsObjectGet(jsObj, 'role')) as P;
-      case 'subscriptionPlan':
-        return (IsarNative.jsObjectGet(jsObj, 'subscriptionPlan')) as P;
-      case 'table':
-        return (IsarNative.jsObjectGet(jsObj, 'table')) as P;
-      case 'taxEnabled':
-        return (IsarNative.jsObjectGet(jsObj, 'taxEnabled')) as P;
-      case 'timeZone':
-        return (IsarNative.jsObjectGet(jsObj, 'timeZone')) as P;
-      case 'tinNumber':
-        return (IsarNative.jsObjectGet(jsObj, 'tinNumber')) as P;
-      case 'type':
-        return (IsarNative.jsObjectGet(jsObj, 'type')) as P;
-      case 'typeId':
-        return (IsarNative.jsObjectGet(jsObj, 'typeId')) as P;
-      case 'userId':
-        return (IsarNative.jsObjectGet(jsObj, 'userId')) as P;
-      default:
-        throw 'Illegal propertyName';
-    }
-  }
-
-  @override
-  void attachLinks(Isar isar, int id, Business object) {}
 }
 
-class _BusinessNativeAdapter extends IsarNativeTypeAdapter<Business> {
-  const _BusinessNativeAdapter();
-
-  @override
-  void serialize(IsarCollection<Business> collection, IsarRawObject rawObj,
-      Business object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
-    var dynamicSize = 0;
-    final value0 = object.active;
-    final _active = value0;
-    final value1 = object.adrs;
-    IsarUint8List? _adrs;
-    if (value1 != null) {
-      _adrs = IsarBinaryWriter.utf8Encoder.convert(value1);
-    }
-    dynamicSize += (_adrs?.length ?? 0) as int;
-    final value2 = object.backUpEnabled;
-    final _backUpEnabled = value2;
-    final value3 = object.backupFileId;
-    IsarUint8List? _backupFileId;
-    if (value3 != null) {
-      _backupFileId = IsarBinaryWriter.utf8Encoder.convert(value3);
-    }
-    dynamicSize += (_backupFileId?.length ?? 0) as int;
-    final value4 = object.bhfId;
-    IsarUint8List? _bhfId;
-    if (value4 != null) {
-      _bhfId = IsarBinaryWriter.utf8Encoder.convert(value4);
-    }
-    dynamicSize += (_bhfId?.length ?? 0) as int;
-    final value5 = object.businessUrl;
-    IsarUint8List? _businessUrl;
-    if (value5 != null) {
-      _businessUrl = IsarBinaryWriter.utf8Encoder.convert(value5);
-    }
-    dynamicSize += (_businessUrl?.length ?? 0) as int;
-    final value6 = object.channels;
-    dynamicSize += (value6?.length ?? 0) * 8;
-    List<IsarUint8List?>? bytesList6;
-    if (value6 != null) {
-      bytesList6 = [];
-      for (var str in value6) {
-        final bytes = IsarBinaryWriter.utf8Encoder.convert(str);
-        bytesList6.add(bytes);
-        dynamicSize += bytes.length as int;
-      }
-    }
-    final _channels = bytesList6;
-    final value7 = object.chatUid;
-    IsarUint8List? _chatUid;
-    if (value7 != null) {
-      _chatUid = IsarBinaryWriter.utf8Encoder.convert(value7);
-    }
-    dynamicSize += (_chatUid?.length ?? 0) as int;
-    final value8 = object.country;
-    IsarUint8List? _country;
-    if (value8 != null) {
-      _country = IsarBinaryWriter.utf8Encoder.convert(value8);
-    }
-    dynamicSize += (_country?.length ?? 0) as int;
-    final value9 = object.createdAt;
-    IsarUint8List? _createdAt;
-    if (value9 != null) {
-      _createdAt = IsarBinaryWriter.utf8Encoder.convert(value9);
-    }
-    dynamicSize += (_createdAt?.length ?? 0) as int;
-    final value10 = object.currency;
-    IsarUint8List? _currency;
-    if (value10 != null) {
-      _currency = IsarBinaryWriter.utf8Encoder.convert(value10);
-    }
-    dynamicSize += (_currency?.length ?? 0) as int;
-    final value11 = object.deviceToken;
-    IsarUint8List? _deviceToken;
-    if (value11 != null) {
-      _deviceToken = IsarBinaryWriter.utf8Encoder.convert(value11);
-    }
-    dynamicSize += (_deviceToken?.length ?? 0) as int;
-    final value12 = object.dvcSrlNo;
-    IsarUint8List? _dvcSrlNo;
-    if (value12 != null) {
-      _dvcSrlNo = IsarBinaryWriter.utf8Encoder.convert(value12);
-    }
-    dynamicSize += (_dvcSrlNo?.length ?? 0) as int;
-    final value13 = object.email;
-    IsarUint8List? _email;
-    if (value13 != null) {
-      _email = IsarBinaryWriter.utf8Encoder.convert(value13);
-    }
-    dynamicSize += (_email?.length ?? 0) as int;
-    final value14 = object.fcategoryId;
-    final _fcategoryId = value14;
-    final value15 = object.firstName;
-    IsarUint8List? _firstName;
-    if (value15 != null) {
-      _firstName = IsarBinaryWriter.utf8Encoder.convert(value15);
-    }
-    dynamicSize += (_firstName?.length ?? 0) as int;
-    final value16 = object.fullName;
-    IsarUint8List? _fullName;
-    if (value16 != null) {
-      _fullName = IsarBinaryWriter.utf8Encoder.convert(value16);
-    }
-    dynamicSize += (_fullName?.length ?? 0) as int;
-    final value17 = object.hexColor;
-    IsarUint8List? _hexColor;
-    if (value17 != null) {
-      _hexColor = IsarBinaryWriter.utf8Encoder.convert(value17);
-    }
-    dynamicSize += (_hexColor?.length ?? 0) as int;
-    final value18 = object.imageUrl;
-    IsarUint8List? _imageUrl;
-    if (value18 != null) {
-      _imageUrl = IsarBinaryWriter.utf8Encoder.convert(value18);
-    }
-    dynamicSize += (_imageUrl?.length ?? 0) as int;
-    final value19 = object.isLastSubscriptionPaymentSucceeded;
-    final _isLastSubscriptionPaymentSucceeded = value19;
-    final value20 = object.lastDbBackup;
-    IsarUint8List? _lastDbBackup;
-    if (value20 != null) {
-      _lastDbBackup = IsarBinaryWriter.utf8Encoder.convert(value20);
-    }
-    dynamicSize += (_lastDbBackup?.length ?? 0) as int;
-    final value21 = object.lastName;
-    IsarUint8List? _lastName;
-    if (value21 != null) {
-      _lastName = IsarBinaryWriter.utf8Encoder.convert(value21);
-    }
-    dynamicSize += (_lastName?.length ?? 0) as int;
-    final value22 = object.lastSeen;
-    final _lastSeen = value22;
-    final value23 = object.latitude;
-    IsarUint8List? _latitude;
-    if (value23 != null) {
-      _latitude = IsarBinaryWriter.utf8Encoder.convert(value23);
-    }
-    dynamicSize += (_latitude?.length ?? 0) as int;
-    final value24 = object.longitude;
-    IsarUint8List? _longitude;
-    if (value24 != null) {
-      _longitude = IsarBinaryWriter.utf8Encoder.convert(value24);
-    }
-    dynamicSize += (_longitude?.length ?? 0) as int;
-    final value25 = object.metadata;
-    IsarUint8List? _metadata;
-    if (value25 != null) {
-      _metadata = IsarBinaryWriter.utf8Encoder.convert(value25);
-    }
-    dynamicSize += (_metadata?.length ?? 0) as int;
-    final value26 = object.name;
-    IsarUint8List? _name;
-    if (value26 != null) {
-      _name = IsarBinaryWriter.utf8Encoder.convert(value26);
-    }
-    dynamicSize += (_name?.length ?? 0) as int;
-    final value27 = object.nextBillingDate;
-    IsarUint8List? _nextBillingDate;
-    if (value27 != null) {
-      _nextBillingDate = IsarBinaryWriter.utf8Encoder.convert(value27);
-    }
-    dynamicSize += (_nextBillingDate?.length ?? 0) as int;
-    final value28 = object.previousBillingDate;
-    IsarUint8List? _previousBillingDate;
-    if (value28 != null) {
-      _previousBillingDate = IsarBinaryWriter.utf8Encoder.convert(value28);
-    }
-    dynamicSize += (_previousBillingDate?.length ?? 0) as int;
-    final value29 = object.role;
-    IsarUint8List? _role;
-    if (value29 != null) {
-      _role = IsarBinaryWriter.utf8Encoder.convert(value29);
-    }
-    dynamicSize += (_role?.length ?? 0) as int;
-    final value30 = object.subscriptionPlan;
-    IsarUint8List? _subscriptionPlan;
-    if (value30 != null) {
-      _subscriptionPlan = IsarBinaryWriter.utf8Encoder.convert(value30);
-    }
-    dynamicSize += (_subscriptionPlan?.length ?? 0) as int;
-    final value31 = object.table;
-    IsarUint8List? _table;
-    if (value31 != null) {
-      _table = IsarBinaryWriter.utf8Encoder.convert(value31);
-    }
-    dynamicSize += (_table?.length ?? 0) as int;
-    final value32 = object.taxEnabled;
-    final _taxEnabled = value32;
-    final value33 = object.timeZone;
-    IsarUint8List? _timeZone;
-    if (value33 != null) {
-      _timeZone = IsarBinaryWriter.utf8Encoder.convert(value33);
-    }
-    dynamicSize += (_timeZone?.length ?? 0) as int;
-    final value34 = object.tinNumber;
-    final _tinNumber = value34;
-    final value35 = object.type;
-    IsarUint8List? _type;
-    if (value35 != null) {
-      _type = IsarBinaryWriter.utf8Encoder.convert(value35);
-    }
-    dynamicSize += (_type?.length ?? 0) as int;
-    final value36 = object.typeId;
-    IsarUint8List? _typeId;
-    if (value36 != null) {
-      _typeId = IsarBinaryWriter.utf8Encoder.convert(value36);
-    }
-    dynamicSize += (_typeId?.length ?? 0) as int;
-    final value37 = object.userId;
-    IsarUint8List? _userId;
-    if (value37 != null) {
-      _userId = IsarBinaryWriter.utf8Encoder.convert(value37);
-    }
-    dynamicSize += (_userId?.length ?? 0) as int;
-    final size = staticSize + dynamicSize;
-
-    rawObj.buffer = alloc(size);
-    rawObj.buffer_length = size;
-    final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
-    final writer = IsarBinaryWriter(buffer, staticSize);
-    writer.writeBool(offsets[0], _active);
-    writer.writeBytes(offsets[1], _adrs);
-    writer.writeBool(offsets[2], _backUpEnabled);
-    writer.writeBytes(offsets[3], _backupFileId);
-    writer.writeBytes(offsets[4], _bhfId);
-    writer.writeBytes(offsets[5], _businessUrl);
-    writer.writeStringList(offsets[6], _channels);
-    writer.writeBytes(offsets[7], _chatUid);
-    writer.writeBytes(offsets[8], _country);
-    writer.writeBytes(offsets[9], _createdAt);
-    writer.writeBytes(offsets[10], _currency);
-    writer.writeBytes(offsets[11], _deviceToken);
-    writer.writeBytes(offsets[12], _dvcSrlNo);
-    writer.writeBytes(offsets[13], _email);
-    writer.writeLong(offsets[14], _fcategoryId);
-    writer.writeBytes(offsets[15], _firstName);
-    writer.writeBytes(offsets[16], _fullName);
-    writer.writeBytes(offsets[17], _hexColor);
-    writer.writeBytes(offsets[18], _imageUrl);
-    writer.writeBool(offsets[19], _isLastSubscriptionPaymentSucceeded);
-    writer.writeBytes(offsets[20], _lastDbBackup);
-    writer.writeBytes(offsets[21], _lastName);
-    writer.writeLong(offsets[22], _lastSeen);
-    writer.writeBytes(offsets[23], _latitude);
-    writer.writeBytes(offsets[24], _longitude);
-    writer.writeBytes(offsets[25], _metadata);
-    writer.writeBytes(offsets[26], _name);
-    writer.writeBytes(offsets[27], _nextBillingDate);
-    writer.writeBytes(offsets[28], _previousBillingDate);
-    writer.writeBytes(offsets[29], _role);
-    writer.writeBytes(offsets[30], _subscriptionPlan);
-    writer.writeBytes(offsets[31], _table);
-    writer.writeBool(offsets[32], _taxEnabled);
-    writer.writeBytes(offsets[33], _timeZone);
-    writer.writeLong(offsets[34], _tinNumber);
-    writer.writeBytes(offsets[35], _type);
-    writer.writeBytes(offsets[36], _typeId);
-    writer.writeBytes(offsets[37], _userId);
-  }
-
-  @override
-  Business deserialize(IsarCollection<Business> collection, int id,
-      IsarBinaryReader reader, List<int> offsets) {
-    final object = Business(
-      active: reader.readBoolOrNull(offsets[0]),
-      adrs: reader.readStringOrNull(offsets[1]),
-      backUpEnabled: reader.readBoolOrNull(offsets[2]),
-      backupFileId: reader.readStringOrNull(offsets[3]),
-      bhfId: reader.readStringOrNull(offsets[4]),
-      businessUrl: reader.readStringOrNull(offsets[5]),
-      channels: reader.readStringList(offsets[6]),
-      chatUid: reader.readStringOrNull(offsets[7]),
-      country: reader.readStringOrNull(offsets[8]),
-      currency: reader.readStringOrNull(offsets[10]),
-      deviceToken: reader.readStringOrNull(offsets[11]),
-      dvcSrlNo: reader.readStringOrNull(offsets[12]),
-      email: reader.readStringOrNull(offsets[13]),
-      fcategoryId: reader.readLongOrNull(offsets[14]),
-      firstName: reader.readStringOrNull(offsets[15]),
-      fullName: reader.readStringOrNull(offsets[16]),
-      hexColor: reader.readStringOrNull(offsets[17]),
-      imageUrl: reader.readStringOrNull(offsets[18]),
-      isLastSubscriptionPaymentSucceeded: reader.readBoolOrNull(offsets[19]),
-      lastDbBackup: reader.readStringOrNull(offsets[20]),
-      lastName: reader.readStringOrNull(offsets[21]),
-      lastSeen: reader.readLongOrNull(offsets[22]),
-      latitude: reader.readStringOrNull(offsets[23]),
-      longitude: reader.readStringOrNull(offsets[24]),
-      metadata: reader.readStringOrNull(offsets[25]),
-      name: reader.readStringOrNull(offsets[26]),
-      nextBillingDate: reader.readStringOrNull(offsets[27]),
-      previousBillingDate: reader.readStringOrNull(offsets[28]),
-      role: reader.readStringOrNull(offsets[29]),
-      subscriptionPlan: reader.readStringOrNull(offsets[30]),
-      table: reader.readStringOrNull(offsets[31]),
-      taxEnabled: reader.readBoolOrNull(offsets[32]),
-      timeZone: reader.readStringOrNull(offsets[33]),
-      tinNumber: reader.readLongOrNull(offsets[34]),
-      type: reader.readStringOrNull(offsets[35]),
-      typeId: reader.readStringOrNull(offsets[36]),
-      userId: reader.readStringOrNull(offsets[37]),
-    );
-    object.createdAt = reader.readStringOrNull(offsets[9]);
-    object.id = id;
-    return object;
-  }
-
-  @override
-  P deserializeProperty<P>(
-      int id, IsarBinaryReader reader, int propertyIndex, int offset) {
-    switch (propertyIndex) {
-      case -1:
-        return id as P;
-      case 0:
-        return (reader.readBoolOrNull(offset)) as P;
-      case 1:
-        return (reader.readStringOrNull(offset)) as P;
-      case 2:
-        return (reader.readBoolOrNull(offset)) as P;
-      case 3:
-        return (reader.readStringOrNull(offset)) as P;
-      case 4:
-        return (reader.readStringOrNull(offset)) as P;
-      case 5:
-        return (reader.readStringOrNull(offset)) as P;
-      case 6:
-        return (reader.readStringList(offset)) as P;
-      case 7:
-        return (reader.readStringOrNull(offset)) as P;
-      case 8:
-        return (reader.readStringOrNull(offset)) as P;
-      case 9:
-        return (reader.readStringOrNull(offset)) as P;
-      case 10:
-        return (reader.readStringOrNull(offset)) as P;
-      case 11:
-        return (reader.readStringOrNull(offset)) as P;
-      case 12:
-        return (reader.readStringOrNull(offset)) as P;
-      case 13:
-        return (reader.readStringOrNull(offset)) as P;
-      case 14:
-        return (reader.readLongOrNull(offset)) as P;
-      case 15:
-        return (reader.readStringOrNull(offset)) as P;
-      case 16:
-        return (reader.readStringOrNull(offset)) as P;
-      case 17:
-        return (reader.readStringOrNull(offset)) as P;
-      case 18:
-        return (reader.readStringOrNull(offset)) as P;
-      case 19:
-        return (reader.readBoolOrNull(offset)) as P;
-      case 20:
-        return (reader.readStringOrNull(offset)) as P;
-      case 21:
-        return (reader.readStringOrNull(offset)) as P;
-      case 22:
-        return (reader.readLongOrNull(offset)) as P;
-      case 23:
-        return (reader.readStringOrNull(offset)) as P;
-      case 24:
-        return (reader.readStringOrNull(offset)) as P;
-      case 25:
-        return (reader.readStringOrNull(offset)) as P;
-      case 26:
-        return (reader.readStringOrNull(offset)) as P;
-      case 27:
-        return (reader.readStringOrNull(offset)) as P;
-      case 28:
-        return (reader.readStringOrNull(offset)) as P;
-      case 29:
-        return (reader.readStringOrNull(offset)) as P;
-      case 30:
-        return (reader.readStringOrNull(offset)) as P;
-      case 31:
-        return (reader.readStringOrNull(offset)) as P;
-      case 32:
-        return (reader.readBoolOrNull(offset)) as P;
-      case 33:
-        return (reader.readStringOrNull(offset)) as P;
-      case 34:
-        return (reader.readLongOrNull(offset)) as P;
-      case 35:
-        return (reader.readStringOrNull(offset)) as P;
-      case 36:
-        return (reader.readStringOrNull(offset)) as P;
-      case 37:
-        return (reader.readStringOrNull(offset)) as P;
-      default:
-        throw 'Illegal propertyIndex';
-    }
-  }
-
-  @override
-  void attachLinks(Isar isar, int id, Business object) {}
-}
+void _businessAttachLinks(IsarCollection col, int id, Business object) {}
 
 extension BusinessQueryWhereSort on QueryBuilder<Business, Business, QWhere> {
   QueryBuilder<Business, Business, QAfterWhere> anyId() {
-    return addWhereClauseInternal(const WhereClause(indexName: null));
+    return addWhereClauseInternal(const IdWhereClause.any());
   }
 }
 
 extension BusinessQueryWhere on QueryBuilder<Business, Business, QWhereClause> {
   QueryBuilder<Business, Business, QAfterWhereClause> idEqualTo(int id) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [id],
+    return addWhereClauseInternal(IdWhereClause.between(
+      lower: id,
       includeLower: true,
-      upper: [id],
+      upper: id,
       includeUpper: true,
     ));
   }
 
   QueryBuilder<Business, Business, QAfterWhereClause> idNotEqualTo(int id) {
     if (whereSortInternal == Sort.asc) {
-      return addWhereClauseInternal(WhereClause(
-        indexName: null,
-        upper: [id],
-        includeUpper: false,
-      )).addWhereClauseInternal(WhereClause(
-        indexName: null,
-        lower: [id],
-        includeLower: false,
-      ));
+      return addWhereClauseInternal(
+        IdWhereClause.lessThan(upper: id, includeUpper: false),
+      ).addWhereClauseInternal(
+        IdWhereClause.greaterThan(lower: id, includeLower: false),
+      );
     } else {
-      return addWhereClauseInternal(WhereClause(
-        indexName: null,
-        lower: [id],
-        includeLower: false,
-      )).addWhereClauseInternal(WhereClause(
-        indexName: null,
-        upper: [id],
-        includeUpper: false,
-      ));
+      return addWhereClauseInternal(
+        IdWhereClause.greaterThan(lower: id, includeLower: false),
+      ).addWhereClauseInternal(
+        IdWhereClause.lessThan(upper: id, includeUpper: false),
+      );
     }
   }
 
-  QueryBuilder<Business, Business, QAfterWhereClause> idGreaterThan(
-    int id, {
-    bool include = false,
-  }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [id],
-      includeLower: include,
-    ));
+  QueryBuilder<Business, Business, QAfterWhereClause> idGreaterThan(int id,
+      {bool include = false}) {
+    return addWhereClauseInternal(
+      IdWhereClause.greaterThan(lower: id, includeLower: include),
+    );
   }
 
-  QueryBuilder<Business, Business, QAfterWhereClause> idLessThan(
-    int id, {
-    bool include = false,
-  }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      upper: [id],
-      includeUpper: include,
-    ));
+  QueryBuilder<Business, Business, QAfterWhereClause> idLessThan(int id,
+      {bool include = false}) {
+    return addWhereClauseInternal(
+      IdWhereClause.lessThan(upper: id, includeUpper: include),
+    );
   }
 
   QueryBuilder<Business, Business, QAfterWhereClause> idBetween(
@@ -740,11 +739,10 @@ extension BusinessQueryWhere on QueryBuilder<Business, Business, QWhereClause> {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [lowerId],
+    return addWhereClauseInternal(IdWhereClause.between(
+      lower: lowerId,
       includeLower: includeLower,
-      upper: [upperId],
+      upper: upperId,
       includeUpper: includeUpper,
     ));
   }
@@ -4009,6 +4007,119 @@ extension BusinessQueryFilter
     ));
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition> taxServerUrlIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'taxServerUrl',
+      value: null,
+    ));
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> taxServerUrlEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.eq,
+      property: 'taxServerUrl',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      taxServerUrlGreaterThan(
+    String? value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.gt,
+      include: include,
+      property: 'taxServerUrl',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> taxServerUrlLessThan(
+    String? value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.lt,
+      include: include,
+      property: 'taxServerUrl',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> taxServerUrlBetween(
+    String? lower,
+    String? upper, {
+    bool caseSensitive = true,
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition.between(
+      property: 'taxServerUrl',
+      lower: lower,
+      includeLower: includeLower,
+      upper: upper,
+      includeUpper: includeUpper,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      taxServerUrlStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.startsWith,
+      property: 'taxServerUrl',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> taxServerUrlEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.endsWith,
+      property: 'taxServerUrl',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> taxServerUrlContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.contains,
+      property: 'taxServerUrl',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> taxServerUrlMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.matches,
+      property: 'taxServerUrl',
+      value: pattern,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition> timeZoneIsNull() {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.isNull,
@@ -4510,6 +4621,9 @@ extension BusinessQueryFilter
   }
 }
 
+extension BusinessQueryLinks
+    on QueryBuilder<Business, Business, QFilterCondition> {}
+
 extension BusinessQueryWhereSortBy
     on QueryBuilder<Business, Business, QSortBy> {
   QueryBuilder<Business, Business, QAfterSortBy> sortByActive() {
@@ -4777,6 +4891,14 @@ extension BusinessQueryWhereSortBy
 
   QueryBuilder<Business, Business, QAfterSortBy> sortByTaxEnabledDesc() {
     return addSortByInternal('taxEnabled', Sort.desc);
+  }
+
+  QueryBuilder<Business, Business, QAfterSortBy> sortByTaxServerUrl() {
+    return addSortByInternal('taxServerUrl', Sort.asc);
+  }
+
+  QueryBuilder<Business, Business, QAfterSortBy> sortByTaxServerUrlDesc() {
+    return addSortByInternal('taxServerUrl', Sort.desc);
   }
 
   QueryBuilder<Business, Business, QAfterSortBy> sortByTimeZone() {
@@ -5089,6 +5211,14 @@ extension BusinessQueryWhereSortThenBy
     return addSortByInternal('taxEnabled', Sort.desc);
   }
 
+  QueryBuilder<Business, Business, QAfterSortBy> thenByTaxServerUrl() {
+    return addSortByInternal('taxServerUrl', Sort.asc);
+  }
+
+  QueryBuilder<Business, Business, QAfterSortBy> thenByTaxServerUrlDesc() {
+    return addSortByInternal('taxServerUrl', Sort.desc);
+  }
+
   QueryBuilder<Business, Business, QAfterSortBy> thenByTimeZone() {
     return addSortByInternal('timeZone', Sort.asc);
   }
@@ -5294,6 +5424,11 @@ extension BusinessQueryWhereDistinct
     return addDistinctByInternal('taxEnabled');
   }
 
+  QueryBuilder<Business, Business, QDistinct> distinctByTaxServerUrl(
+      {bool caseSensitive = true}) {
+    return addDistinctByInternal('taxServerUrl', caseSensitive: caseSensitive);
+  }
+
   QueryBuilder<Business, Business, QDistinct> distinctByTimeZone(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('timeZone', caseSensitive: caseSensitive);
@@ -5457,6 +5592,10 @@ extension BusinessQueryProperty
 
   QueryBuilder<Business, bool?, QQueryOperations> taxEnabledProperty() {
     return addPropertyNameInternal('taxEnabled');
+  }
+
+  QueryBuilder<Business, String?, QQueryOperations> taxServerUrlProperty() {
+    return addPropertyNameInternal('taxServerUrl');
   }
 
   QueryBuilder<Business, String?, QQueryOperations> timeZoneProperty() {

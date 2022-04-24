@@ -6,20 +6,16 @@ part of flipper_models;
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable
 
 extension GetStockCollection on Isar {
-  IsarCollection<Stock> get stocks {
-    return getCollection('Stock');
-  }
+  IsarCollection<Stock> get stocks => getCollection();
 }
 
-final StockSchema = CollectionSchema(
+const StockSchema = CollectionSchema(
   name: 'Stock',
   schema:
       '{"name":"Stock","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"canTrackingStock","type":"Bool"},{"name":"channels","type":"StringList"},{"name":"currentStock","type":"Double"},{"name":"fbranchId","type":"Long"},{"name":"fproductId","type":"Long"},{"name":"fvariantId","type":"Long"},{"name":"lowStock","type":"Double"},{"name":"retailPrice","type":"Double"},{"name":"showLowStockAlert","type":"Bool"},{"name":"supplyPrice","type":"Double"},{"name":"table","type":"String"},{"name":"value","type":"Double"}],"indexes":[],"links":[]}',
-  nativeAdapter: const _StockNativeAdapter(),
-  webAdapter: const _StockWebAdapter(),
   idName: 'id',
   propertyIds: {
     'active': 0,
@@ -38,320 +34,303 @@ final StockSchema = CollectionSchema(
   },
   listProperties: {'channels'},
   indexIds: {},
-  indexTypes: {},
+  indexValueTypes: {},
   linkIds: {},
-  backlinkIds: {},
-  linkedCollections: [],
-  getId: (obj) {
-    if (obj.id == Isar.autoIncrement) {
-      return null;
-    } else {
-      return obj.id;
-    }
-  },
-  setId: (obj, id) => obj.id = id,
-  getLinks: (obj) => [],
-  version: 2,
+  backlinkLinkNames: {},
+  getId: _stockGetId,
+  setId: _stockSetId,
+  getLinks: _stockGetLinks,
+  attachLinks: _stockAttachLinks,
+  serializeNative: _stockSerializeNative,
+  deserializeNative: _stockDeserializeNative,
+  deserializePropNative: _stockDeserializePropNative,
+  serializeWeb: _stockSerializeWeb,
+  deserializeWeb: _stockDeserializeWeb,
+  deserializePropWeb: _stockDeserializePropWeb,
+  version: 3,
 );
 
-class _StockWebAdapter extends IsarWebTypeAdapter<Stock> {
-  const _StockWebAdapter();
-
-  @override
-  Object serialize(IsarCollection<Stock> collection, Stock object) {
-    final jsObj = IsarNative.newJsObject();
-    IsarNative.jsObjectSet(jsObj, 'active', object.active);
-    IsarNative.jsObjectSet(jsObj, 'canTrackingStock', object.canTrackingStock);
-    IsarNative.jsObjectSet(jsObj, 'channels', object.channels);
-    IsarNative.jsObjectSet(jsObj, 'currentStock', object.currentStock);
-    IsarNative.jsObjectSet(jsObj, 'fbranchId', object.fbranchId);
-    IsarNative.jsObjectSet(jsObj, 'fproductId', object.fproductId);
-    IsarNative.jsObjectSet(jsObj, 'fvariantId', object.fvariantId);
-    IsarNative.jsObjectSet(jsObj, 'id', object.id);
-    IsarNative.jsObjectSet(jsObj, 'lowStock', object.lowStock);
-    IsarNative.jsObjectSet(jsObj, 'retailPrice', object.retailPrice);
-    IsarNative.jsObjectSet(
-        jsObj, 'showLowStockAlert', object.showLowStockAlert);
-    IsarNative.jsObjectSet(jsObj, 'supplyPrice', object.supplyPrice);
-    IsarNative.jsObjectSet(jsObj, 'table', object.table);
-    IsarNative.jsObjectSet(jsObj, 'value', object.value);
-    return jsObj;
+int? _stockGetId(Stock object) {
+  if (object.id == Isar.autoIncrement) {
+    return null;
+  } else {
+    return object.id;
   }
+}
 
-  @override
-  Stock deserialize(IsarCollection<Stock> collection, dynamic jsObj) {
-    final object = Stock(
-      active: IsarNative.jsObjectGet(jsObj, 'active'),
-      canTrackingStock:
-          IsarNative.jsObjectGet(jsObj, 'canTrackingStock') ?? false,
-      channels: (IsarNative.jsObjectGet(jsObj, 'channels') as List?)
+void _stockSetId(Stock object, int id) {
+  object.id = id;
+}
+
+List<IsarLinkBase> _stockGetLinks(Stock object) {
+  return [];
+}
+
+void _stockSerializeNative(
+    IsarCollection<Stock> collection,
+    IsarRawObject rawObj,
+    Stock object,
+    int staticSize,
+    List<int> offsets,
+    AdapterAlloc alloc) {
+  var dynamicSize = 0;
+  final value0 = object.active;
+  final _active = value0;
+  final value1 = object.canTrackingStock;
+  final _canTrackingStock = value1;
+  final value2 = object.channels;
+  dynamicSize += (value2?.length ?? 0) * 8;
+  List<IsarUint8List?>? bytesList2;
+  if (value2 != null) {
+    bytesList2 = [];
+    for (var str in value2) {
+      final bytes = IsarBinaryWriter.utf8Encoder.convert(str);
+      bytesList2.add(bytes);
+      dynamicSize += bytes.length as int;
+    }
+  }
+  final _channels = bytesList2;
+  final value3 = object.currentStock;
+  final _currentStock = value3;
+  final value4 = object.fbranchId;
+  final _fbranchId = value4;
+  final value5 = object.fproductId;
+  final _fproductId = value5;
+  final value6 = object.fvariantId;
+  final _fvariantId = value6;
+  final value7 = object.lowStock;
+  final _lowStock = value7;
+  final value8 = object.retailPrice;
+  final _retailPrice = value8;
+  final value9 = object.showLowStockAlert;
+  final _showLowStockAlert = value9;
+  final value10 = object.supplyPrice;
+  final _supplyPrice = value10;
+  final value11 = object.table;
+  final _table = IsarBinaryWriter.utf8Encoder.convert(value11);
+  dynamicSize += (_table.length) as int;
+  final value12 = object.value;
+  final _value = value12;
+  final size = staticSize + dynamicSize;
+
+  rawObj.buffer = alloc(size);
+  rawObj.buffer_length = size;
+  final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
+  final writer = IsarBinaryWriter(buffer, staticSize);
+  writer.writeBool(offsets[0], _active);
+  writer.writeBool(offsets[1], _canTrackingStock);
+  writer.writeStringList(offsets[2], _channels);
+  writer.writeDouble(offsets[3], _currentStock);
+  writer.writeLong(offsets[4], _fbranchId);
+  writer.writeLong(offsets[5], _fproductId);
+  writer.writeLong(offsets[6], _fvariantId);
+  writer.writeDouble(offsets[7], _lowStock);
+  writer.writeDouble(offsets[8], _retailPrice);
+  writer.writeBool(offsets[9], _showLowStockAlert);
+  writer.writeDouble(offsets[10], _supplyPrice);
+  writer.writeBytes(offsets[11], _table);
+  writer.writeDouble(offsets[12], _value);
+}
+
+Stock _stockDeserializeNative(IsarCollection<Stock> collection, int id,
+    IsarBinaryReader reader, List<int> offsets) {
+  final object = Stock(
+    active: reader.readBoolOrNull(offsets[0]),
+    canTrackingStock: reader.readBool(offsets[1]),
+    channels: reader.readStringList(offsets[2]),
+    currentStock: reader.readDouble(offsets[3]),
+    fbranchId: reader.readLongOrNull(offsets[4]),
+    fproductId: reader.readLong(offsets[5]),
+    fvariantId: reader.readLong(offsets[6]),
+    id: id,
+    lowStock: reader.readDouble(offsets[7]),
+    retailPrice: reader.readDouble(offsets[8]),
+    showLowStockAlert: reader.readBool(offsets[9]),
+    supplyPrice: reader.readDouble(offsets[10]),
+    table: reader.readString(offsets[11]),
+    value: reader.readDouble(offsets[12]),
+  );
+  return object;
+}
+
+P _stockDeserializePropNative<P>(
+    int id, IsarBinaryReader reader, int propertyIndex, int offset) {
+  switch (propertyIndex) {
+    case -1:
+      return id as P;
+    case 0:
+      return (reader.readBoolOrNull(offset)) as P;
+    case 1:
+      return (reader.readBool(offset)) as P;
+    case 2:
+      return (reader.readStringList(offset)) as P;
+    case 3:
+      return (reader.readDouble(offset)) as P;
+    case 4:
+      return (reader.readLongOrNull(offset)) as P;
+    case 5:
+      return (reader.readLong(offset)) as P;
+    case 6:
+      return (reader.readLong(offset)) as P;
+    case 7:
+      return (reader.readDouble(offset)) as P;
+    case 8:
+      return (reader.readDouble(offset)) as P;
+    case 9:
+      return (reader.readBool(offset)) as P;
+    case 10:
+      return (reader.readDouble(offset)) as P;
+    case 11:
+      return (reader.readString(offset)) as P;
+    case 12:
+      return (reader.readDouble(offset)) as P;
+    default:
+      throw 'Illegal propertyIndex';
+  }
+}
+
+dynamic _stockSerializeWeb(IsarCollection<Stock> collection, Stock object) {
+  final jsObj = IsarNative.newJsObject();
+  IsarNative.jsObjectSet(jsObj, 'active', object.active);
+  IsarNative.jsObjectSet(jsObj, 'canTrackingStock', object.canTrackingStock);
+  IsarNative.jsObjectSet(jsObj, 'channels', object.channels);
+  IsarNative.jsObjectSet(jsObj, 'currentStock', object.currentStock);
+  IsarNative.jsObjectSet(jsObj, 'fbranchId', object.fbranchId);
+  IsarNative.jsObjectSet(jsObj, 'fproductId', object.fproductId);
+  IsarNative.jsObjectSet(jsObj, 'fvariantId', object.fvariantId);
+  IsarNative.jsObjectSet(jsObj, 'id', object.id);
+  IsarNative.jsObjectSet(jsObj, 'lowStock', object.lowStock);
+  IsarNative.jsObjectSet(jsObj, 'retailPrice', object.retailPrice);
+  IsarNative.jsObjectSet(jsObj, 'showLowStockAlert', object.showLowStockAlert);
+  IsarNative.jsObjectSet(jsObj, 'supplyPrice', object.supplyPrice);
+  IsarNative.jsObjectSet(jsObj, 'table', object.table);
+  IsarNative.jsObjectSet(jsObj, 'value', object.value);
+  return jsObj;
+}
+
+Stock _stockDeserializeWeb(IsarCollection<Stock> collection, dynamic jsObj) {
+  final object = Stock(
+    active: IsarNative.jsObjectGet(jsObj, 'active'),
+    canTrackingStock:
+        IsarNative.jsObjectGet(jsObj, 'canTrackingStock') ?? false,
+    channels: (IsarNative.jsObjectGet(jsObj, 'channels') as List?)
+        ?.map((e) => e ?? '')
+        .toList()
+        .cast<String>(),
+    currentStock: IsarNative.jsObjectGet(jsObj, 'currentStock') ??
+        double.negativeInfinity,
+    fbranchId: IsarNative.jsObjectGet(jsObj, 'fbranchId'),
+    fproductId:
+        IsarNative.jsObjectGet(jsObj, 'fproductId') ?? double.negativeInfinity,
+    fvariantId:
+        IsarNative.jsObjectGet(jsObj, 'fvariantId') ?? double.negativeInfinity,
+    id: IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity,
+    lowStock:
+        IsarNative.jsObjectGet(jsObj, 'lowStock') ?? double.negativeInfinity,
+    retailPrice:
+        IsarNative.jsObjectGet(jsObj, 'retailPrice') ?? double.negativeInfinity,
+    showLowStockAlert:
+        IsarNative.jsObjectGet(jsObj, 'showLowStockAlert') ?? false,
+    supplyPrice:
+        IsarNative.jsObjectGet(jsObj, 'supplyPrice') ?? double.negativeInfinity,
+    table: IsarNative.jsObjectGet(jsObj, 'table') ?? '',
+    value: IsarNative.jsObjectGet(jsObj, 'value') ?? double.negativeInfinity,
+  );
+  return object;
+}
+
+P _stockDeserializePropWeb<P>(Object jsObj, String propertyName) {
+  switch (propertyName) {
+    case 'active':
+      return (IsarNative.jsObjectGet(jsObj, 'active')) as P;
+    case 'canTrackingStock':
+      return (IsarNative.jsObjectGet(jsObj, 'canTrackingStock') ?? false) as P;
+    case 'channels':
+      return ((IsarNative.jsObjectGet(jsObj, 'channels') as List?)
           ?.map((e) => e ?? '')
           .toList()
-          .cast<String>(),
-      currentStock: IsarNative.jsObjectGet(jsObj, 'currentStock') ??
-          double.negativeInfinity,
-      fbranchId: IsarNative.jsObjectGet(jsObj, 'fbranchId'),
-      fproductId: IsarNative.jsObjectGet(jsObj, 'fproductId') ??
-          double.negativeInfinity,
-      fvariantId: IsarNative.jsObjectGet(jsObj, 'fvariantId') ??
-          double.negativeInfinity,
-      id: IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity,
-      lowStock:
-          IsarNative.jsObjectGet(jsObj, 'lowStock') ?? double.negativeInfinity,
-      retailPrice: IsarNative.jsObjectGet(jsObj, 'retailPrice') ??
-          double.negativeInfinity,
-      showLowStockAlert:
-          IsarNative.jsObjectGet(jsObj, 'showLowStockAlert') ?? false,
-      supplyPrice: IsarNative.jsObjectGet(jsObj, 'supplyPrice') ??
-          double.negativeInfinity,
-      table: IsarNative.jsObjectGet(jsObj, 'table') ?? '',
-      value: IsarNative.jsObjectGet(jsObj, 'value') ?? double.negativeInfinity,
-    );
-    return object;
+          .cast<String>()) as P;
+    case 'currentStock':
+      return (IsarNative.jsObjectGet(jsObj, 'currentStock') ??
+          double.negativeInfinity) as P;
+    case 'fbranchId':
+      return (IsarNative.jsObjectGet(jsObj, 'fbranchId')) as P;
+    case 'fproductId':
+      return (IsarNative.jsObjectGet(jsObj, 'fproductId') ??
+          double.negativeInfinity) as P;
+    case 'fvariantId':
+      return (IsarNative.jsObjectGet(jsObj, 'fvariantId') ??
+          double.negativeInfinity) as P;
+    case 'id':
+      return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
+          as P;
+    case 'lowStock':
+      return (IsarNative.jsObjectGet(jsObj, 'lowStock') ??
+          double.negativeInfinity) as P;
+    case 'retailPrice':
+      return (IsarNative.jsObjectGet(jsObj, 'retailPrice') ??
+          double.negativeInfinity) as P;
+    case 'showLowStockAlert':
+      return (IsarNative.jsObjectGet(jsObj, 'showLowStockAlert') ?? false) as P;
+    case 'supplyPrice':
+      return (IsarNative.jsObjectGet(jsObj, 'supplyPrice') ??
+          double.negativeInfinity) as P;
+    case 'table':
+      return (IsarNative.jsObjectGet(jsObj, 'table') ?? '') as P;
+    case 'value':
+      return (IsarNative.jsObjectGet(jsObj, 'value') ?? double.negativeInfinity)
+          as P;
+    default:
+      throw 'Illegal propertyName';
   }
-
-  @override
-  P deserializeProperty<P>(Object jsObj, String propertyName) {
-    switch (propertyName) {
-      case 'active':
-        return (IsarNative.jsObjectGet(jsObj, 'active')) as P;
-      case 'canTrackingStock':
-        return (IsarNative.jsObjectGet(jsObj, 'canTrackingStock') ?? false)
-            as P;
-      case 'channels':
-        return ((IsarNative.jsObjectGet(jsObj, 'channels') as List?)
-            ?.map((e) => e ?? '')
-            .toList()
-            .cast<String>()) as P;
-      case 'currentStock':
-        return (IsarNative.jsObjectGet(jsObj, 'currentStock') ??
-            double.negativeInfinity) as P;
-      case 'fbranchId':
-        return (IsarNative.jsObjectGet(jsObj, 'fbranchId')) as P;
-      case 'fproductId':
-        return (IsarNative.jsObjectGet(jsObj, 'fproductId') ??
-            double.negativeInfinity) as P;
-      case 'fvariantId':
-        return (IsarNative.jsObjectGet(jsObj, 'fvariantId') ??
-            double.negativeInfinity) as P;
-      case 'id':
-        return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
-            as P;
-      case 'lowStock':
-        return (IsarNative.jsObjectGet(jsObj, 'lowStock') ??
-            double.negativeInfinity) as P;
-      case 'retailPrice':
-        return (IsarNative.jsObjectGet(jsObj, 'retailPrice') ??
-            double.negativeInfinity) as P;
-      case 'showLowStockAlert':
-        return (IsarNative.jsObjectGet(jsObj, 'showLowStockAlert') ?? false)
-            as P;
-      case 'supplyPrice':
-        return (IsarNative.jsObjectGet(jsObj, 'supplyPrice') ??
-            double.negativeInfinity) as P;
-      case 'table':
-        return (IsarNative.jsObjectGet(jsObj, 'table') ?? '') as P;
-      case 'value':
-        return (IsarNative.jsObjectGet(jsObj, 'value') ??
-            double.negativeInfinity) as P;
-      default:
-        throw 'Illegal propertyName';
-    }
-  }
-
-  @override
-  void attachLinks(Isar isar, int id, Stock object) {}
 }
 
-class _StockNativeAdapter extends IsarNativeTypeAdapter<Stock> {
-  const _StockNativeAdapter();
-
-  @override
-  void serialize(IsarCollection<Stock> collection, IsarRawObject rawObj,
-      Stock object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
-    var dynamicSize = 0;
-    final value0 = object.active;
-    final _active = value0;
-    final value1 = object.canTrackingStock;
-    final _canTrackingStock = value1;
-    final value2 = object.channels;
-    dynamicSize += (value2?.length ?? 0) * 8;
-    List<IsarUint8List?>? bytesList2;
-    if (value2 != null) {
-      bytesList2 = [];
-      for (var str in value2) {
-        final bytes = IsarBinaryWriter.utf8Encoder.convert(str);
-        bytesList2.add(bytes);
-        dynamicSize += bytes.length as int;
-      }
-    }
-    final _channels = bytesList2;
-    final value3 = object.currentStock;
-    final _currentStock = value3;
-    final value4 = object.fbranchId;
-    final _fbranchId = value4;
-    final value5 = object.fproductId;
-    final _fproductId = value5;
-    final value6 = object.fvariantId;
-    final _fvariantId = value6;
-    final value7 = object.lowStock;
-    final _lowStock = value7;
-    final value8 = object.retailPrice;
-    final _retailPrice = value8;
-    final value9 = object.showLowStockAlert;
-    final _showLowStockAlert = value9;
-    final value10 = object.supplyPrice;
-    final _supplyPrice = value10;
-    final value11 = object.table;
-    final _table = IsarBinaryWriter.utf8Encoder.convert(value11);
-    dynamicSize += (_table.length) as int;
-    final value12 = object.value;
-    final _value = value12;
-    final size = staticSize + dynamicSize;
-
-    rawObj.buffer = alloc(size);
-    rawObj.buffer_length = size;
-    final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
-    final writer = IsarBinaryWriter(buffer, staticSize);
-    writer.writeBool(offsets[0], _active);
-    writer.writeBool(offsets[1], _canTrackingStock);
-    writer.writeStringList(offsets[2], _channels);
-    writer.writeDouble(offsets[3], _currentStock);
-    writer.writeLong(offsets[4], _fbranchId);
-    writer.writeLong(offsets[5], _fproductId);
-    writer.writeLong(offsets[6], _fvariantId);
-    writer.writeDouble(offsets[7], _lowStock);
-    writer.writeDouble(offsets[8], _retailPrice);
-    writer.writeBool(offsets[9], _showLowStockAlert);
-    writer.writeDouble(offsets[10], _supplyPrice);
-    writer.writeBytes(offsets[11], _table);
-    writer.writeDouble(offsets[12], _value);
-  }
-
-  @override
-  Stock deserialize(IsarCollection<Stock> collection, int id,
-      IsarBinaryReader reader, List<int> offsets) {
-    final object = Stock(
-      active: reader.readBoolOrNull(offsets[0]),
-      canTrackingStock: reader.readBool(offsets[1]),
-      channels: reader.readStringList(offsets[2]),
-      currentStock: reader.readDouble(offsets[3]),
-      fbranchId: reader.readLongOrNull(offsets[4]),
-      fproductId: reader.readLong(offsets[5]),
-      fvariantId: reader.readLong(offsets[6]),
-      id: id,
-      lowStock: reader.readDouble(offsets[7]),
-      retailPrice: reader.readDouble(offsets[8]),
-      showLowStockAlert: reader.readBool(offsets[9]),
-      supplyPrice: reader.readDouble(offsets[10]),
-      table: reader.readString(offsets[11]),
-      value: reader.readDouble(offsets[12]),
-    );
-    return object;
-  }
-
-  @override
-  P deserializeProperty<P>(
-      int id, IsarBinaryReader reader, int propertyIndex, int offset) {
-    switch (propertyIndex) {
-      case -1:
-        return id as P;
-      case 0:
-        return (reader.readBoolOrNull(offset)) as P;
-      case 1:
-        return (reader.readBool(offset)) as P;
-      case 2:
-        return (reader.readStringList(offset)) as P;
-      case 3:
-        return (reader.readDouble(offset)) as P;
-      case 4:
-        return (reader.readLongOrNull(offset)) as P;
-      case 5:
-        return (reader.readLong(offset)) as P;
-      case 6:
-        return (reader.readLong(offset)) as P;
-      case 7:
-        return (reader.readDouble(offset)) as P;
-      case 8:
-        return (reader.readDouble(offset)) as P;
-      case 9:
-        return (reader.readBool(offset)) as P;
-      case 10:
-        return (reader.readDouble(offset)) as P;
-      case 11:
-        return (reader.readString(offset)) as P;
-      case 12:
-        return (reader.readDouble(offset)) as P;
-      default:
-        throw 'Illegal propertyIndex';
-    }
-  }
-
-  @override
-  void attachLinks(Isar isar, int id, Stock object) {}
-}
+void _stockAttachLinks(IsarCollection col, int id, Stock object) {}
 
 extension StockQueryWhereSort on QueryBuilder<Stock, Stock, QWhere> {
   QueryBuilder<Stock, Stock, QAfterWhere> anyId() {
-    return addWhereClauseInternal(const WhereClause(indexName: null));
+    return addWhereClauseInternal(const IdWhereClause.any());
   }
 }
 
 extension StockQueryWhere on QueryBuilder<Stock, Stock, QWhereClause> {
   QueryBuilder<Stock, Stock, QAfterWhereClause> idEqualTo(int id) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [id],
+    return addWhereClauseInternal(IdWhereClause.between(
+      lower: id,
       includeLower: true,
-      upper: [id],
+      upper: id,
       includeUpper: true,
     ));
   }
 
   QueryBuilder<Stock, Stock, QAfterWhereClause> idNotEqualTo(int id) {
     if (whereSortInternal == Sort.asc) {
-      return addWhereClauseInternal(WhereClause(
-        indexName: null,
-        upper: [id],
-        includeUpper: false,
-      )).addWhereClauseInternal(WhereClause(
-        indexName: null,
-        lower: [id],
-        includeLower: false,
-      ));
+      return addWhereClauseInternal(
+        IdWhereClause.lessThan(upper: id, includeUpper: false),
+      ).addWhereClauseInternal(
+        IdWhereClause.greaterThan(lower: id, includeLower: false),
+      );
     } else {
-      return addWhereClauseInternal(WhereClause(
-        indexName: null,
-        lower: [id],
-        includeLower: false,
-      )).addWhereClauseInternal(WhereClause(
-        indexName: null,
-        upper: [id],
-        includeUpper: false,
-      ));
+      return addWhereClauseInternal(
+        IdWhereClause.greaterThan(lower: id, includeLower: false),
+      ).addWhereClauseInternal(
+        IdWhereClause.lessThan(upper: id, includeUpper: false),
+      );
     }
   }
 
-  QueryBuilder<Stock, Stock, QAfterWhereClause> idGreaterThan(
-    int id, {
-    bool include = false,
-  }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [id],
-      includeLower: include,
-    ));
+  QueryBuilder<Stock, Stock, QAfterWhereClause> idGreaterThan(int id,
+      {bool include = false}) {
+    return addWhereClauseInternal(
+      IdWhereClause.greaterThan(lower: id, includeLower: include),
+    );
   }
 
-  QueryBuilder<Stock, Stock, QAfterWhereClause> idLessThan(
-    int id, {
-    bool include = false,
-  }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      upper: [id],
-      includeUpper: include,
-    ));
+  QueryBuilder<Stock, Stock, QAfterWhereClause> idLessThan(int id,
+      {bool include = false}) {
+    return addWhereClauseInternal(
+      IdWhereClause.lessThan(upper: id, includeUpper: include),
+    );
   }
 
   QueryBuilder<Stock, Stock, QAfterWhereClause> idBetween(
@@ -360,11 +339,10 @@ extension StockQueryWhere on QueryBuilder<Stock, Stock, QWhereClause> {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [lowerId],
+    return addWhereClauseInternal(IdWhereClause.between(
+      lower: lowerId,
       includeLower: includeLower,
-      upper: [upperId],
+      upper: upperId,
       includeUpper: includeUpper,
     ));
   }
@@ -979,6 +957,8 @@ extension StockQueryFilter on QueryBuilder<Stock, Stock, QFilterCondition> {
     ));
   }
 }
+
+extension StockQueryLinks on QueryBuilder<Stock, Stock, QFilterCondition> {}
 
 extension StockQueryWhereSortBy on QueryBuilder<Stock, Stock, QSortBy> {
   QueryBuilder<Stock, Stock, QAfterSortBy> sortByActive() {

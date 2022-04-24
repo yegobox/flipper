@@ -6,20 +6,16 @@ part of 'pin.dart';
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable
 
 extension GetPinCollection on Isar {
-  IsarCollection<Pin> get pins {
-    return getCollection('Pin');
-  }
+  IsarCollection<Pin> get pins => getCollection();
 }
 
-final PinSchema = CollectionSchema(
+const PinSchema = CollectionSchema(
   name: 'Pin',
   schema:
       '{"name":"Pin","idName":"id","properties":[{"name":"branchId","type":"Long"},{"name":"businessId","type":"Long"},{"name":"phoneNumber","type":"String"},{"name":"pin","type":"Long"},{"name":"userId","type":"String"}],"indexes":[],"links":[]}',
-  nativeAdapter: const _PinNativeAdapter(),
-  webAdapter: const _PinWebAdapter(),
   idName: 'id',
   propertyIds: {
     'branchId': 0,
@@ -30,212 +26,193 @@ final PinSchema = CollectionSchema(
   },
   listProperties: {},
   indexIds: {},
-  indexTypes: {},
+  indexValueTypes: {},
   linkIds: {},
-  backlinkIds: {},
-  linkedCollections: [],
-  getId: (obj) {
-    if (obj.id == Isar.autoIncrement) {
-      return null;
-    } else {
-      return obj.id;
-    }
-  },
-  setId: (obj, id) => obj.id = id,
-  getLinks: (obj) => [],
-  version: 2,
+  backlinkLinkNames: {},
+  getId: _pinGetId,
+  setId: _pinSetId,
+  getLinks: _pinGetLinks,
+  attachLinks: _pinAttachLinks,
+  serializeNative: _pinSerializeNative,
+  deserializeNative: _pinDeserializeNative,
+  deserializePropNative: _pinDeserializePropNative,
+  serializeWeb: _pinSerializeWeb,
+  deserializeWeb: _pinDeserializeWeb,
+  deserializePropWeb: _pinDeserializePropWeb,
+  version: 3,
 );
 
-class _PinWebAdapter extends IsarWebTypeAdapter<Pin> {
-  const _PinWebAdapter();
-
-  @override
-  Object serialize(IsarCollection<Pin> collection, Pin object) {
-    final jsObj = IsarNative.newJsObject();
-    IsarNative.jsObjectSet(jsObj, 'branchId', object.branchId);
-    IsarNative.jsObjectSet(jsObj, 'businessId', object.businessId);
-    IsarNative.jsObjectSet(jsObj, 'id', object.id);
-    IsarNative.jsObjectSet(jsObj, 'phoneNumber', object.phoneNumber);
-    IsarNative.jsObjectSet(jsObj, 'pin', object.pin);
-    IsarNative.jsObjectSet(jsObj, 'userId', object.userId);
-    return jsObj;
+int? _pinGetId(Pin object) {
+  if (object.id == Isar.autoIncrement) {
+    return null;
+  } else {
+    return object.id;
   }
-
-  @override
-  Pin deserialize(IsarCollection<Pin> collection, dynamic jsObj) {
-    final object = Pin(
-      branchId:
-          IsarNative.jsObjectGet(jsObj, 'branchId') ?? double.negativeInfinity,
-      businessId: IsarNative.jsObjectGet(jsObj, 'businessId') ??
-          double.negativeInfinity,
-      phoneNumber: IsarNative.jsObjectGet(jsObj, 'phoneNumber') ?? '',
-      pin: IsarNative.jsObjectGet(jsObj, 'pin') ?? double.negativeInfinity,
-      userId: IsarNative.jsObjectGet(jsObj, 'userId') ?? '',
-    );
-    object.id = IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity;
-    return object;
-  }
-
-  @override
-  P deserializeProperty<P>(Object jsObj, String propertyName) {
-    switch (propertyName) {
-      case 'branchId':
-        return (IsarNative.jsObjectGet(jsObj, 'branchId') ??
-            double.negativeInfinity) as P;
-      case 'businessId':
-        return (IsarNative.jsObjectGet(jsObj, 'businessId') ??
-            double.negativeInfinity) as P;
-      case 'id':
-        return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
-            as P;
-      case 'phoneNumber':
-        return (IsarNative.jsObjectGet(jsObj, 'phoneNumber') ?? '') as P;
-      case 'pin':
-        return (IsarNative.jsObjectGet(jsObj, 'pin') ?? double.negativeInfinity)
-            as P;
-      case 'userId':
-        return (IsarNative.jsObjectGet(jsObj, 'userId') ?? '') as P;
-      default:
-        throw 'Illegal propertyName';
-    }
-  }
-
-  @override
-  void attachLinks(Isar isar, int id, Pin object) {}
 }
 
-class _PinNativeAdapter extends IsarNativeTypeAdapter<Pin> {
-  const _PinNativeAdapter();
-
-  @override
-  void serialize(IsarCollection<Pin> collection, IsarRawObject rawObj,
-      Pin object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
-    var dynamicSize = 0;
-    final value0 = object.branchId;
-    final _branchId = value0;
-    final value1 = object.businessId;
-    final _businessId = value1;
-    final value2 = object.phoneNumber;
-    final _phoneNumber = IsarBinaryWriter.utf8Encoder.convert(value2);
-    dynamicSize += (_phoneNumber.length) as int;
-    final value3 = object.pin;
-    final _pin = value3;
-    final value4 = object.userId;
-    final _userId = IsarBinaryWriter.utf8Encoder.convert(value4);
-    dynamicSize += (_userId.length) as int;
-    final size = staticSize + dynamicSize;
-
-    rawObj.buffer = alloc(size);
-    rawObj.buffer_length = size;
-    final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
-    final writer = IsarBinaryWriter(buffer, staticSize);
-    writer.writeLong(offsets[0], _branchId);
-    writer.writeLong(offsets[1], _businessId);
-    writer.writeBytes(offsets[2], _phoneNumber);
-    writer.writeLong(offsets[3], _pin);
-    writer.writeBytes(offsets[4], _userId);
-  }
-
-  @override
-  Pin deserialize(IsarCollection<Pin> collection, int id,
-      IsarBinaryReader reader, List<int> offsets) {
-    final object = Pin(
-      branchId: reader.readLong(offsets[0]),
-      businessId: reader.readLong(offsets[1]),
-      phoneNumber: reader.readString(offsets[2]),
-      pin: reader.readLong(offsets[3]),
-      userId: reader.readString(offsets[4]),
-    );
-    object.id = id;
-    return object;
-  }
-
-  @override
-  P deserializeProperty<P>(
-      int id, IsarBinaryReader reader, int propertyIndex, int offset) {
-    switch (propertyIndex) {
-      case -1:
-        return id as P;
-      case 0:
-        return (reader.readLong(offset)) as P;
-      case 1:
-        return (reader.readLong(offset)) as P;
-      case 2:
-        return (reader.readString(offset)) as P;
-      case 3:
-        return (reader.readLong(offset)) as P;
-      case 4:
-        return (reader.readString(offset)) as P;
-      default:
-        throw 'Illegal propertyIndex';
-    }
-  }
-
-  @override
-  void attachLinks(Isar isar, int id, Pin object) {}
+void _pinSetId(Pin object, int id) {
+  object.id = id;
 }
+
+List<IsarLinkBase> _pinGetLinks(Pin object) {
+  return [];
+}
+
+void _pinSerializeNative(IsarCollection<Pin> collection, IsarRawObject rawObj,
+    Pin object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
+  var dynamicSize = 0;
+  final value0 = object.branchId;
+  final _branchId = value0;
+  final value1 = object.businessId;
+  final _businessId = value1;
+  final value2 = object.phoneNumber;
+  final _phoneNumber = IsarBinaryWriter.utf8Encoder.convert(value2);
+  dynamicSize += (_phoneNumber.length) as int;
+  final value3 = object.pin;
+  final _pin = value3;
+  final value4 = object.userId;
+  final _userId = IsarBinaryWriter.utf8Encoder.convert(value4);
+  dynamicSize += (_userId.length) as int;
+  final size = staticSize + dynamicSize;
+
+  rawObj.buffer = alloc(size);
+  rawObj.buffer_length = size;
+  final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
+  final writer = IsarBinaryWriter(buffer, staticSize);
+  writer.writeLong(offsets[0], _branchId);
+  writer.writeLong(offsets[1], _businessId);
+  writer.writeBytes(offsets[2], _phoneNumber);
+  writer.writeLong(offsets[3], _pin);
+  writer.writeBytes(offsets[4], _userId);
+}
+
+Pin _pinDeserializeNative(IsarCollection<Pin> collection, int id,
+    IsarBinaryReader reader, List<int> offsets) {
+  final object = Pin(
+    branchId: reader.readLong(offsets[0]),
+    businessId: reader.readLong(offsets[1]),
+    phoneNumber: reader.readString(offsets[2]),
+    pin: reader.readLong(offsets[3]),
+    userId: reader.readString(offsets[4]),
+  );
+  object.id = id;
+  return object;
+}
+
+P _pinDeserializePropNative<P>(
+    int id, IsarBinaryReader reader, int propertyIndex, int offset) {
+  switch (propertyIndex) {
+    case -1:
+      return id as P;
+    case 0:
+      return (reader.readLong(offset)) as P;
+    case 1:
+      return (reader.readLong(offset)) as P;
+    case 2:
+      return (reader.readString(offset)) as P;
+    case 3:
+      return (reader.readLong(offset)) as P;
+    case 4:
+      return (reader.readString(offset)) as P;
+    default:
+      throw 'Illegal propertyIndex';
+  }
+}
+
+dynamic _pinSerializeWeb(IsarCollection<Pin> collection, Pin object) {
+  final jsObj = IsarNative.newJsObject();
+  IsarNative.jsObjectSet(jsObj, 'branchId', object.branchId);
+  IsarNative.jsObjectSet(jsObj, 'businessId', object.businessId);
+  IsarNative.jsObjectSet(jsObj, 'id', object.id);
+  IsarNative.jsObjectSet(jsObj, 'phoneNumber', object.phoneNumber);
+  IsarNative.jsObjectSet(jsObj, 'pin', object.pin);
+  IsarNative.jsObjectSet(jsObj, 'userId', object.userId);
+  return jsObj;
+}
+
+Pin _pinDeserializeWeb(IsarCollection<Pin> collection, dynamic jsObj) {
+  final object = Pin(
+    branchId:
+        IsarNative.jsObjectGet(jsObj, 'branchId') ?? double.negativeInfinity,
+    businessId:
+        IsarNative.jsObjectGet(jsObj, 'businessId') ?? double.negativeInfinity,
+    phoneNumber: IsarNative.jsObjectGet(jsObj, 'phoneNumber') ?? '',
+    pin: IsarNative.jsObjectGet(jsObj, 'pin') ?? double.negativeInfinity,
+    userId: IsarNative.jsObjectGet(jsObj, 'userId') ?? '',
+  );
+  object.id = IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity;
+  return object;
+}
+
+P _pinDeserializePropWeb<P>(Object jsObj, String propertyName) {
+  switch (propertyName) {
+    case 'branchId':
+      return (IsarNative.jsObjectGet(jsObj, 'branchId') ??
+          double.negativeInfinity) as P;
+    case 'businessId':
+      return (IsarNative.jsObjectGet(jsObj, 'businessId') ??
+          double.negativeInfinity) as P;
+    case 'id':
+      return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
+          as P;
+    case 'phoneNumber':
+      return (IsarNative.jsObjectGet(jsObj, 'phoneNumber') ?? '') as P;
+    case 'pin':
+      return (IsarNative.jsObjectGet(jsObj, 'pin') ?? double.negativeInfinity)
+          as P;
+    case 'userId':
+      return (IsarNative.jsObjectGet(jsObj, 'userId') ?? '') as P;
+    default:
+      throw 'Illegal propertyName';
+  }
+}
+
+void _pinAttachLinks(IsarCollection col, int id, Pin object) {}
 
 extension PinQueryWhereSort on QueryBuilder<Pin, Pin, QWhere> {
   QueryBuilder<Pin, Pin, QAfterWhere> anyId() {
-    return addWhereClauseInternal(const WhereClause(indexName: null));
+    return addWhereClauseInternal(const IdWhereClause.any());
   }
 }
 
 extension PinQueryWhere on QueryBuilder<Pin, Pin, QWhereClause> {
   QueryBuilder<Pin, Pin, QAfterWhereClause> idEqualTo(int id) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [id],
+    return addWhereClauseInternal(IdWhereClause.between(
+      lower: id,
       includeLower: true,
-      upper: [id],
+      upper: id,
       includeUpper: true,
     ));
   }
 
   QueryBuilder<Pin, Pin, QAfterWhereClause> idNotEqualTo(int id) {
     if (whereSortInternal == Sort.asc) {
-      return addWhereClauseInternal(WhereClause(
-        indexName: null,
-        upper: [id],
-        includeUpper: false,
-      )).addWhereClauseInternal(WhereClause(
-        indexName: null,
-        lower: [id],
-        includeLower: false,
-      ));
+      return addWhereClauseInternal(
+        IdWhereClause.lessThan(upper: id, includeUpper: false),
+      ).addWhereClauseInternal(
+        IdWhereClause.greaterThan(lower: id, includeLower: false),
+      );
     } else {
-      return addWhereClauseInternal(WhereClause(
-        indexName: null,
-        lower: [id],
-        includeLower: false,
-      )).addWhereClauseInternal(WhereClause(
-        indexName: null,
-        upper: [id],
-        includeUpper: false,
-      ));
+      return addWhereClauseInternal(
+        IdWhereClause.greaterThan(lower: id, includeLower: false),
+      ).addWhereClauseInternal(
+        IdWhereClause.lessThan(upper: id, includeUpper: false),
+      );
     }
   }
 
-  QueryBuilder<Pin, Pin, QAfterWhereClause> idGreaterThan(
-    int id, {
-    bool include = false,
-  }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [id],
-      includeLower: include,
-    ));
+  QueryBuilder<Pin, Pin, QAfterWhereClause> idGreaterThan(int id,
+      {bool include = false}) {
+    return addWhereClauseInternal(
+      IdWhereClause.greaterThan(lower: id, includeLower: include),
+    );
   }
 
-  QueryBuilder<Pin, Pin, QAfterWhereClause> idLessThan(
-    int id, {
-    bool include = false,
-  }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      upper: [id],
-      includeUpper: include,
-    ));
+  QueryBuilder<Pin, Pin, QAfterWhereClause> idLessThan(int id,
+      {bool include = false}) {
+    return addWhereClauseInternal(
+      IdWhereClause.lessThan(upper: id, includeUpper: include),
+    );
   }
 
   QueryBuilder<Pin, Pin, QAfterWhereClause> idBetween(
@@ -244,11 +221,10 @@ extension PinQueryWhere on QueryBuilder<Pin, Pin, QWhereClause> {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [lowerId],
+    return addWhereClauseInternal(IdWhereClause.between(
+      lower: lowerId,
       includeLower: includeLower,
-      upper: [upperId],
+      upper: upperId,
       includeUpper: includeUpper,
     ));
   }
@@ -647,6 +623,8 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     ));
   }
 }
+
+extension PinQueryLinks on QueryBuilder<Pin, Pin, QFilterCondition> {}
 
 extension PinQueryWhereSortBy on QueryBuilder<Pin, Pin, QSortBy> {
   QueryBuilder<Pin, Pin, QAfterSortBy> sortByBranchId() {

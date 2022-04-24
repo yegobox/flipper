@@ -6,215 +6,192 @@ part of 'unit.dart';
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable
 
 extension GetUnitCollection on Isar {
-  IsarCollection<Unit> get units {
-    return getCollection('Unit');
-  }
+  IsarCollection<Unit> get units => getCollection();
 }
 
-final UnitSchema = CollectionSchema(
+const UnitSchema = CollectionSchema(
   name: 'Unit',
   schema:
       '{"name":"Unit","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"name","type":"String"},{"name":"value","type":"String"}],"indexes":[],"links":[]}',
-  nativeAdapter: const _UnitNativeAdapter(),
-  webAdapter: const _UnitWebAdapter(),
   idName: 'id',
   propertyIds: {'active': 0, 'branchId': 1, 'name': 2, 'value': 3},
   listProperties: {},
   indexIds: {},
-  indexTypes: {},
+  indexValueTypes: {},
   linkIds: {},
-  backlinkIds: {},
-  linkedCollections: [],
-  getId: (obj) {
-    if (obj.id == Isar.autoIncrement) {
-      return null;
-    } else {
-      return obj.id;
-    }
-  },
-  setId: (obj, id) => obj.id = id,
-  getLinks: (obj) => [],
-  version: 2,
+  backlinkLinkNames: {},
+  getId: _unitGetId,
+  setId: _unitSetId,
+  getLinks: _unitGetLinks,
+  attachLinks: _unitAttachLinks,
+  serializeNative: _unitSerializeNative,
+  deserializeNative: _unitDeserializeNative,
+  deserializePropNative: _unitDeserializePropNative,
+  serializeWeb: _unitSerializeWeb,
+  deserializeWeb: _unitDeserializeWeb,
+  deserializePropWeb: _unitDeserializePropWeb,
+  version: 3,
 );
 
-class _UnitWebAdapter extends IsarWebTypeAdapter<Unit> {
-  const _UnitWebAdapter();
-
-  @override
-  Object serialize(IsarCollection<Unit> collection, Unit object) {
-    final jsObj = IsarNative.newJsObject();
-    IsarNative.jsObjectSet(jsObj, 'active', object.active);
-    IsarNative.jsObjectSet(jsObj, 'branchId', object.branchId);
-    IsarNative.jsObjectSet(jsObj, 'id', object.id);
-    IsarNative.jsObjectSet(jsObj, 'name', object.name);
-    IsarNative.jsObjectSet(jsObj, 'value', object.value);
-    return jsObj;
+int? _unitGetId(Unit object) {
+  if (object.id == Isar.autoIncrement) {
+    return null;
+  } else {
+    return object.id;
   }
-
-  @override
-  Unit deserialize(IsarCollection<Unit> collection, dynamic jsObj) {
-    final object = Unit();
-    object.active = IsarNative.jsObjectGet(jsObj, 'active') ?? false;
-    object.branchId =
-        IsarNative.jsObjectGet(jsObj, 'branchId') ?? double.negativeInfinity;
-    object.id = IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity;
-    object.name = IsarNative.jsObjectGet(jsObj, 'name') ?? '';
-    object.value = IsarNative.jsObjectGet(jsObj, 'value') ?? '';
-    return object;
-  }
-
-  @override
-  P deserializeProperty<P>(Object jsObj, String propertyName) {
-    switch (propertyName) {
-      case 'active':
-        return (IsarNative.jsObjectGet(jsObj, 'active') ?? false) as P;
-      case 'branchId':
-        return (IsarNative.jsObjectGet(jsObj, 'branchId') ??
-            double.negativeInfinity) as P;
-      case 'id':
-        return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
-            as P;
-      case 'name':
-        return (IsarNative.jsObjectGet(jsObj, 'name') ?? '') as P;
-      case 'value':
-        return (IsarNative.jsObjectGet(jsObj, 'value') ?? '') as P;
-      default:
-        throw 'Illegal propertyName';
-    }
-  }
-
-  @override
-  void attachLinks(Isar isar, int id, Unit object) {}
 }
 
-class _UnitNativeAdapter extends IsarNativeTypeAdapter<Unit> {
-  const _UnitNativeAdapter();
-
-  @override
-  void serialize(IsarCollection<Unit> collection, IsarRawObject rawObj,
-      Unit object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
-    var dynamicSize = 0;
-    final value0 = object.active;
-    final _active = value0;
-    final value1 = object.branchId;
-    final _branchId = value1;
-    final value2 = object.name;
-    final _name = IsarBinaryWriter.utf8Encoder.convert(value2);
-    dynamicSize += (_name.length) as int;
-    final value3 = object.value;
-    final _value = IsarBinaryWriter.utf8Encoder.convert(value3);
-    dynamicSize += (_value.length) as int;
-    final size = staticSize + dynamicSize;
-
-    rawObj.buffer = alloc(size);
-    rawObj.buffer_length = size;
-    final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
-    final writer = IsarBinaryWriter(buffer, staticSize);
-    writer.writeBool(offsets[0], _active);
-    writer.writeLong(offsets[1], _branchId);
-    writer.writeBytes(offsets[2], _name);
-    writer.writeBytes(offsets[3], _value);
-  }
-
-  @override
-  Unit deserialize(IsarCollection<Unit> collection, int id,
-      IsarBinaryReader reader, List<int> offsets) {
-    final object = Unit();
-    object.active = reader.readBool(offsets[0]);
-    object.branchId = reader.readLong(offsets[1]);
-    object.id = id;
-    object.name = reader.readString(offsets[2]);
-    object.value = reader.readString(offsets[3]);
-    return object;
-  }
-
-  @override
-  P deserializeProperty<P>(
-      int id, IsarBinaryReader reader, int propertyIndex, int offset) {
-    switch (propertyIndex) {
-      case -1:
-        return id as P;
-      case 0:
-        return (reader.readBool(offset)) as P;
-      case 1:
-        return (reader.readLong(offset)) as P;
-      case 2:
-        return (reader.readString(offset)) as P;
-      case 3:
-        return (reader.readString(offset)) as P;
-      default:
-        throw 'Illegal propertyIndex';
-    }
-  }
-
-  @override
-  void attachLinks(Isar isar, int id, Unit object) {}
+void _unitSetId(Unit object, int id) {
+  object.id = id;
 }
+
+List<IsarLinkBase> _unitGetLinks(Unit object) {
+  return [];
+}
+
+void _unitSerializeNative(IsarCollection<Unit> collection, IsarRawObject rawObj,
+    Unit object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
+  var dynamicSize = 0;
+  final value0 = object.active;
+  final _active = value0;
+  final value1 = object.branchId;
+  final _branchId = value1;
+  final value2 = object.name;
+  final _name = IsarBinaryWriter.utf8Encoder.convert(value2);
+  dynamicSize += (_name.length) as int;
+  final value3 = object.value;
+  final _value = IsarBinaryWriter.utf8Encoder.convert(value3);
+  dynamicSize += (_value.length) as int;
+  final size = staticSize + dynamicSize;
+
+  rawObj.buffer = alloc(size);
+  rawObj.buffer_length = size;
+  final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
+  final writer = IsarBinaryWriter(buffer, staticSize);
+  writer.writeBool(offsets[0], _active);
+  writer.writeLong(offsets[1], _branchId);
+  writer.writeBytes(offsets[2], _name);
+  writer.writeBytes(offsets[3], _value);
+}
+
+Unit _unitDeserializeNative(IsarCollection<Unit> collection, int id,
+    IsarBinaryReader reader, List<int> offsets) {
+  final object = Unit();
+  object.active = reader.readBool(offsets[0]);
+  object.branchId = reader.readLong(offsets[1]);
+  object.id = id;
+  object.name = reader.readString(offsets[2]);
+  object.value = reader.readString(offsets[3]);
+  return object;
+}
+
+P _unitDeserializePropNative<P>(
+    int id, IsarBinaryReader reader, int propertyIndex, int offset) {
+  switch (propertyIndex) {
+    case -1:
+      return id as P;
+    case 0:
+      return (reader.readBool(offset)) as P;
+    case 1:
+      return (reader.readLong(offset)) as P;
+    case 2:
+      return (reader.readString(offset)) as P;
+    case 3:
+      return (reader.readString(offset)) as P;
+    default:
+      throw 'Illegal propertyIndex';
+  }
+}
+
+dynamic _unitSerializeWeb(IsarCollection<Unit> collection, Unit object) {
+  final jsObj = IsarNative.newJsObject();
+  IsarNative.jsObjectSet(jsObj, 'active', object.active);
+  IsarNative.jsObjectSet(jsObj, 'branchId', object.branchId);
+  IsarNative.jsObjectSet(jsObj, 'id', object.id);
+  IsarNative.jsObjectSet(jsObj, 'name', object.name);
+  IsarNative.jsObjectSet(jsObj, 'value', object.value);
+  return jsObj;
+}
+
+Unit _unitDeserializeWeb(IsarCollection<Unit> collection, dynamic jsObj) {
+  final object = Unit();
+  object.active = IsarNative.jsObjectGet(jsObj, 'active') ?? false;
+  object.branchId =
+      IsarNative.jsObjectGet(jsObj, 'branchId') ?? double.negativeInfinity;
+  object.id = IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity;
+  object.name = IsarNative.jsObjectGet(jsObj, 'name') ?? '';
+  object.value = IsarNative.jsObjectGet(jsObj, 'value') ?? '';
+  return object;
+}
+
+P _unitDeserializePropWeb<P>(Object jsObj, String propertyName) {
+  switch (propertyName) {
+    case 'active':
+      return (IsarNative.jsObjectGet(jsObj, 'active') ?? false) as P;
+    case 'branchId':
+      return (IsarNative.jsObjectGet(jsObj, 'branchId') ??
+          double.negativeInfinity) as P;
+    case 'id':
+      return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
+          as P;
+    case 'name':
+      return (IsarNative.jsObjectGet(jsObj, 'name') ?? '') as P;
+    case 'value':
+      return (IsarNative.jsObjectGet(jsObj, 'value') ?? '') as P;
+    default:
+      throw 'Illegal propertyName';
+  }
+}
+
+void _unitAttachLinks(IsarCollection col, int id, Unit object) {}
 
 extension UnitQueryWhereSort on QueryBuilder<Unit, Unit, QWhere> {
   QueryBuilder<Unit, Unit, QAfterWhere> anyId() {
-    return addWhereClauseInternal(const WhereClause(indexName: null));
+    return addWhereClauseInternal(const IdWhereClause.any());
   }
 }
 
 extension UnitQueryWhere on QueryBuilder<Unit, Unit, QWhereClause> {
   QueryBuilder<Unit, Unit, QAfterWhereClause> idEqualTo(int id) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [id],
+    return addWhereClauseInternal(IdWhereClause.between(
+      lower: id,
       includeLower: true,
-      upper: [id],
+      upper: id,
       includeUpper: true,
     ));
   }
 
   QueryBuilder<Unit, Unit, QAfterWhereClause> idNotEqualTo(int id) {
     if (whereSortInternal == Sort.asc) {
-      return addWhereClauseInternal(WhereClause(
-        indexName: null,
-        upper: [id],
-        includeUpper: false,
-      )).addWhereClauseInternal(WhereClause(
-        indexName: null,
-        lower: [id],
-        includeLower: false,
-      ));
+      return addWhereClauseInternal(
+        IdWhereClause.lessThan(upper: id, includeUpper: false),
+      ).addWhereClauseInternal(
+        IdWhereClause.greaterThan(lower: id, includeLower: false),
+      );
     } else {
-      return addWhereClauseInternal(WhereClause(
-        indexName: null,
-        lower: [id],
-        includeLower: false,
-      )).addWhereClauseInternal(WhereClause(
-        indexName: null,
-        upper: [id],
-        includeUpper: false,
-      ));
+      return addWhereClauseInternal(
+        IdWhereClause.greaterThan(lower: id, includeLower: false),
+      ).addWhereClauseInternal(
+        IdWhereClause.lessThan(upper: id, includeUpper: false),
+      );
     }
   }
 
-  QueryBuilder<Unit, Unit, QAfterWhereClause> idGreaterThan(
-    int id, {
-    bool include = false,
-  }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [id],
-      includeLower: include,
-    ));
+  QueryBuilder<Unit, Unit, QAfterWhereClause> idGreaterThan(int id,
+      {bool include = false}) {
+    return addWhereClauseInternal(
+      IdWhereClause.greaterThan(lower: id, includeLower: include),
+    );
   }
 
-  QueryBuilder<Unit, Unit, QAfterWhereClause> idLessThan(
-    int id, {
-    bool include = false,
-  }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      upper: [id],
-      includeUpper: include,
-    ));
+  QueryBuilder<Unit, Unit, QAfterWhereClause> idLessThan(int id,
+      {bool include = false}) {
+    return addWhereClauseInternal(
+      IdWhereClause.lessThan(upper: id, includeUpper: include),
+    );
   }
 
   QueryBuilder<Unit, Unit, QAfterWhereClause> idBetween(
@@ -223,11 +200,10 @@ extension UnitQueryWhere on QueryBuilder<Unit, Unit, QWhereClause> {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [lowerId],
+    return addWhereClauseInternal(IdWhereClause.between(
+      lower: lowerId,
       includeLower: includeLower,
-      upper: [upperId],
+      upper: upperId,
       includeUpper: includeUpper,
     ));
   }
@@ -538,6 +514,8 @@ extension UnitQueryFilter on QueryBuilder<Unit, Unit, QFilterCondition> {
     ));
   }
 }
+
+extension UnitQueryLinks on QueryBuilder<Unit, Unit, QFilterCondition> {}
 
 extension UnitQueryWhereSortBy on QueryBuilder<Unit, Unit, QSortBy> {
   QueryBuilder<Unit, Unit, QAfterSortBy> sortByActive() {

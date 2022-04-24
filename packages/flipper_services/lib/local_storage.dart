@@ -43,4 +43,9 @@ class LocalStorageImpl implements LocalStorage {
   bool getNeedAccountLinkWithPhone() {
     return box.read('needLinkPhoneNumber') ?? false;
   }
+
+  @override
+  String? getServerUrl() {
+    return box.read('serverUrl');
+  }
 }

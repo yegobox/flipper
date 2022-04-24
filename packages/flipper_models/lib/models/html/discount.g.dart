@@ -6,156 +6,154 @@ part of 'discount.dart';
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable
 
 extension GetDiscountSyncCollection on Isar {
-  IsarCollection<DiscountSync> get discountSyncs {
-    return getCollection('DiscountSync');
-  }
+  IsarCollection<DiscountSync> get discountSyncs => getCollection();
 }
 
-final DiscountSyncSchema = CollectionSchema(
+const DiscountSyncSchema = CollectionSchema(
   name: 'DiscountSync',
   schema:
       '{"name":"DiscountSync","idName":"id","properties":[{"name":"amount","type":"Long"},{"name":"branchId","type":"Long"},{"name":"name","type":"String"}],"indexes":[],"links":[]}',
-  nativeAdapter: const _DiscountSyncNativeAdapter(),
-  webAdapter: const _DiscountSyncWebAdapter(),
   idName: 'id',
   propertyIds: {'amount': 0, 'branchId': 1, 'name': 2},
   listProperties: {},
   indexIds: {},
-  indexTypes: {},
+  indexValueTypes: {},
   linkIds: {},
-  backlinkIds: {},
-  linkedCollections: [],
-  getId: (obj) {
-    if (obj.id == Isar.autoIncrement) {
-      return null;
-    } else {
-      return obj.id;
-    }
-  },
-  setId: (obj, id) => obj.id = id,
-  getLinks: (obj) => [],
-  version: 2,
+  backlinkLinkNames: {},
+  getId: _discountSyncGetId,
+  setId: _discountSyncSetId,
+  getLinks: _discountSyncGetLinks,
+  attachLinks: _discountSyncAttachLinks,
+  serializeNative: _discountSyncSerializeNative,
+  deserializeNative: _discountSyncDeserializeNative,
+  deserializePropNative: _discountSyncDeserializePropNative,
+  serializeWeb: _discountSyncSerializeWeb,
+  deserializeWeb: _discountSyncDeserializeWeb,
+  deserializePropWeb: _discountSyncDeserializePropWeb,
+  version: 3,
 );
 
-class _DiscountSyncWebAdapter extends IsarWebTypeAdapter<DiscountSync> {
-  const _DiscountSyncWebAdapter();
-
-  @override
-  Object serialize(
-      IsarCollection<DiscountSync> collection, DiscountSync object) {
-    final jsObj = IsarNative.newJsObject();
-    IsarNative.jsObjectSet(jsObj, 'amount', object.amount);
-    IsarNative.jsObjectSet(jsObj, 'branchId', object.branchId);
-    IsarNative.jsObjectSet(jsObj, 'id', object.id);
-    IsarNative.jsObjectSet(jsObj, 'name', object.name);
-    return jsObj;
+int? _discountSyncGetId(DiscountSync object) {
+  if (object.id == Isar.autoIncrement) {
+    return null;
+  } else {
+    return object.id;
   }
-
-  @override
-  DiscountSync deserialize(
-      IsarCollection<DiscountSync> collection, dynamic jsObj) {
-    final object = DiscountSync(
-      amount: IsarNative.jsObjectGet(jsObj, 'amount'),
-      branchId:
-          IsarNative.jsObjectGet(jsObj, 'branchId') ?? double.negativeInfinity,
-      id: IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity,
-      name: IsarNative.jsObjectGet(jsObj, 'name') ?? '',
-    );
-    return object;
-  }
-
-  @override
-  P deserializeProperty<P>(Object jsObj, String propertyName) {
-    switch (propertyName) {
-      case 'amount':
-        return (IsarNative.jsObjectGet(jsObj, 'amount')) as P;
-      case 'branchId':
-        return (IsarNative.jsObjectGet(jsObj, 'branchId') ??
-            double.negativeInfinity) as P;
-      case 'id':
-        return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
-            as P;
-      case 'name':
-        return (IsarNative.jsObjectGet(jsObj, 'name') ?? '') as P;
-      default:
-        throw 'Illegal propertyName';
-    }
-  }
-
-  @override
-  void attachLinks(Isar isar, int id, DiscountSync object) {}
 }
 
-class _DiscountSyncNativeAdapter extends IsarNativeTypeAdapter<DiscountSync> {
-  const _DiscountSyncNativeAdapter();
-
-  @override
-  void serialize(
-      IsarCollection<DiscountSync> collection,
-      IsarRawObject rawObj,
-      DiscountSync object,
-      int staticSize,
-      List<int> offsets,
-      AdapterAlloc alloc) {
-    var dynamicSize = 0;
-    final value0 = object.amount;
-    final _amount = value0;
-    final value1 = object.branchId;
-    final _branchId = value1;
-    final value2 = object.name;
-    final _name = IsarBinaryWriter.utf8Encoder.convert(value2);
-    dynamicSize += (_name.length) as int;
-    final size = staticSize + dynamicSize;
-
-    rawObj.buffer = alloc(size);
-    rawObj.buffer_length = size;
-    final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
-    final writer = IsarBinaryWriter(buffer, staticSize);
-    writer.writeLong(offsets[0], _amount);
-    writer.writeLong(offsets[1], _branchId);
-    writer.writeBytes(offsets[2], _name);
-  }
-
-  @override
-  DiscountSync deserialize(IsarCollection<DiscountSync> collection, int id,
-      IsarBinaryReader reader, List<int> offsets) {
-    final object = DiscountSync(
-      amount: reader.readLongOrNull(offsets[0]),
-      branchId: reader.readLong(offsets[1]),
-      id: id,
-      name: reader.readString(offsets[2]),
-    );
-    return object;
-  }
-
-  @override
-  P deserializeProperty<P>(
-      int id, IsarBinaryReader reader, int propertyIndex, int offset) {
-    switch (propertyIndex) {
-      case -1:
-        return id as P;
-      case 0:
-        return (reader.readLongOrNull(offset)) as P;
-      case 1:
-        return (reader.readLong(offset)) as P;
-      case 2:
-        return (reader.readString(offset)) as P;
-      default:
-        throw 'Illegal propertyIndex';
-    }
-  }
-
-  @override
-  void attachLinks(Isar isar, int id, DiscountSync object) {}
+void _discountSyncSetId(DiscountSync object, int id) {
+  object.id = id;
 }
+
+List<IsarLinkBase> _discountSyncGetLinks(DiscountSync object) {
+  return [];
+}
+
+void _discountSyncSerializeNative(
+    IsarCollection<DiscountSync> collection,
+    IsarRawObject rawObj,
+    DiscountSync object,
+    int staticSize,
+    List<int> offsets,
+    AdapterAlloc alloc) {
+  var dynamicSize = 0;
+  final value0 = object.amount;
+  final _amount = value0;
+  final value1 = object.branchId;
+  final _branchId = value1;
+  final value2 = object.name;
+  final _name = IsarBinaryWriter.utf8Encoder.convert(value2);
+  dynamicSize += (_name.length) as int;
+  final size = staticSize + dynamicSize;
+
+  rawObj.buffer = alloc(size);
+  rawObj.buffer_length = size;
+  final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
+  final writer = IsarBinaryWriter(buffer, staticSize);
+  writer.writeLong(offsets[0], _amount);
+  writer.writeLong(offsets[1], _branchId);
+  writer.writeBytes(offsets[2], _name);
+}
+
+DiscountSync _discountSyncDeserializeNative(
+    IsarCollection<DiscountSync> collection,
+    int id,
+    IsarBinaryReader reader,
+    List<int> offsets) {
+  final object = DiscountSync(
+    amount: reader.readLongOrNull(offsets[0]),
+    branchId: reader.readLong(offsets[1]),
+    id: id,
+    name: reader.readString(offsets[2]),
+  );
+  return object;
+}
+
+P _discountSyncDeserializePropNative<P>(
+    int id, IsarBinaryReader reader, int propertyIndex, int offset) {
+  switch (propertyIndex) {
+    case -1:
+      return id as P;
+    case 0:
+      return (reader.readLongOrNull(offset)) as P;
+    case 1:
+      return (reader.readLong(offset)) as P;
+    case 2:
+      return (reader.readString(offset)) as P;
+    default:
+      throw 'Illegal propertyIndex';
+  }
+}
+
+dynamic _discountSyncSerializeWeb(
+    IsarCollection<DiscountSync> collection, DiscountSync object) {
+  final jsObj = IsarNative.newJsObject();
+  IsarNative.jsObjectSet(jsObj, 'amount', object.amount);
+  IsarNative.jsObjectSet(jsObj, 'branchId', object.branchId);
+  IsarNative.jsObjectSet(jsObj, 'id', object.id);
+  IsarNative.jsObjectSet(jsObj, 'name', object.name);
+  return jsObj;
+}
+
+DiscountSync _discountSyncDeserializeWeb(
+    IsarCollection<DiscountSync> collection, dynamic jsObj) {
+  final object = DiscountSync(
+    amount: IsarNative.jsObjectGet(jsObj, 'amount'),
+    branchId:
+        IsarNative.jsObjectGet(jsObj, 'branchId') ?? double.negativeInfinity,
+    id: IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity,
+    name: IsarNative.jsObjectGet(jsObj, 'name') ?? '',
+  );
+  return object;
+}
+
+P _discountSyncDeserializePropWeb<P>(Object jsObj, String propertyName) {
+  switch (propertyName) {
+    case 'amount':
+      return (IsarNative.jsObjectGet(jsObj, 'amount')) as P;
+    case 'branchId':
+      return (IsarNative.jsObjectGet(jsObj, 'branchId') ??
+          double.negativeInfinity) as P;
+    case 'id':
+      return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
+          as P;
+    case 'name':
+      return (IsarNative.jsObjectGet(jsObj, 'name') ?? '') as P;
+    default:
+      throw 'Illegal propertyName';
+  }
+}
+
+void _discountSyncAttachLinks(
+    IsarCollection col, int id, DiscountSync object) {}
 
 extension DiscountSyncQueryWhereSort
     on QueryBuilder<DiscountSync, DiscountSync, QWhere> {
   QueryBuilder<DiscountSync, DiscountSync, QAfterWhere> anyId() {
-    return addWhereClauseInternal(const WhereClause(indexName: null));
+    return addWhereClauseInternal(const IdWhereClause.any());
   }
 }
 
@@ -163,11 +161,10 @@ extension DiscountSyncQueryWhere
     on QueryBuilder<DiscountSync, DiscountSync, QWhereClause> {
   QueryBuilder<DiscountSync, DiscountSync, QAfterWhereClause> idEqualTo(
       int id) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [id],
+    return addWhereClauseInternal(IdWhereClause.between(
+      lower: id,
       includeLower: true,
-      upper: [id],
+      upper: id,
       includeUpper: true,
     ));
   }
@@ -175,48 +172,33 @@ extension DiscountSyncQueryWhere
   QueryBuilder<DiscountSync, DiscountSync, QAfterWhereClause> idNotEqualTo(
       int id) {
     if (whereSortInternal == Sort.asc) {
-      return addWhereClauseInternal(WhereClause(
-        indexName: null,
-        upper: [id],
-        includeUpper: false,
-      )).addWhereClauseInternal(WhereClause(
-        indexName: null,
-        lower: [id],
-        includeLower: false,
-      ));
+      return addWhereClauseInternal(
+        IdWhereClause.lessThan(upper: id, includeUpper: false),
+      ).addWhereClauseInternal(
+        IdWhereClause.greaterThan(lower: id, includeLower: false),
+      );
     } else {
-      return addWhereClauseInternal(WhereClause(
-        indexName: null,
-        lower: [id],
-        includeLower: false,
-      )).addWhereClauseInternal(WhereClause(
-        indexName: null,
-        upper: [id],
-        includeUpper: false,
-      ));
+      return addWhereClauseInternal(
+        IdWhereClause.greaterThan(lower: id, includeLower: false),
+      ).addWhereClauseInternal(
+        IdWhereClause.lessThan(upper: id, includeUpper: false),
+      );
     }
   }
 
   QueryBuilder<DiscountSync, DiscountSync, QAfterWhereClause> idGreaterThan(
-    int id, {
-    bool include = false,
-  }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [id],
-      includeLower: include,
-    ));
+      int id,
+      {bool include = false}) {
+    return addWhereClauseInternal(
+      IdWhereClause.greaterThan(lower: id, includeLower: include),
+    );
   }
 
-  QueryBuilder<DiscountSync, DiscountSync, QAfterWhereClause> idLessThan(
-    int id, {
-    bool include = false,
-  }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      upper: [id],
-      includeUpper: include,
-    ));
+  QueryBuilder<DiscountSync, DiscountSync, QAfterWhereClause> idLessThan(int id,
+      {bool include = false}) {
+    return addWhereClauseInternal(
+      IdWhereClause.lessThan(upper: id, includeUpper: include),
+    );
   }
 
   QueryBuilder<DiscountSync, DiscountSync, QAfterWhereClause> idBetween(
@@ -225,11 +207,10 @@ extension DiscountSyncQueryWhere
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [lowerId],
+    return addWhereClauseInternal(IdWhereClause.between(
+      lower: lowerId,
       includeLower: includeLower,
-      upper: [upperId],
+      upper: upperId,
       includeUpper: includeUpper,
     ));
   }
@@ -500,6 +481,9 @@ extension DiscountSyncQueryFilter
     ));
   }
 }
+
+extension DiscountSyncQueryLinks
+    on QueryBuilder<DiscountSync, DiscountSync, QFilterCondition> {}
 
 extension DiscountSyncQueryWhereSortBy
     on QueryBuilder<DiscountSync, DiscountSync, QSortBy> {

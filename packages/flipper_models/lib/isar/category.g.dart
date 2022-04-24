@@ -6,20 +6,16 @@ part of flipper_models;
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable
 
 extension GetCategoryCollection on Isar {
-  IsarCollection<Category> get categorys {
-    return getCollection('Category');
-  }
+  IsarCollection<Category> get categorys => getCollection();
 }
 
-final CategorySchema = CollectionSchema(
+const CategorySchema = CollectionSchema(
   name: 'Category',
   schema:
       '{"name":"Category","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"focused","type":"Bool"},{"name":"name","type":"String"},{"name":"table","type":"String"}],"indexes":[],"links":[]}',
-  nativeAdapter: const _CategoryNativeAdapter(),
-  webAdapter: const _CategoryWebAdapter(),
   idName: 'id',
   propertyIds: {
     'active': 0,
@@ -30,210 +26,198 @@ final CategorySchema = CollectionSchema(
   },
   listProperties: {},
   indexIds: {},
-  indexTypes: {},
+  indexValueTypes: {},
   linkIds: {},
-  backlinkIds: {},
-  linkedCollections: [],
-  getId: (obj) {
-    if (obj.id == Isar.autoIncrement) {
-      return null;
-    } else {
-      return obj.id;
-    }
-  },
-  setId: (obj, id) => obj.id = id,
-  getLinks: (obj) => [],
-  version: 2,
+  backlinkLinkNames: {},
+  getId: _categoryGetId,
+  setId: _categorySetId,
+  getLinks: _categoryGetLinks,
+  attachLinks: _categoryAttachLinks,
+  serializeNative: _categorySerializeNative,
+  deserializeNative: _categoryDeserializeNative,
+  deserializePropNative: _categoryDeserializePropNative,
+  serializeWeb: _categorySerializeWeb,
+  deserializeWeb: _categoryDeserializeWeb,
+  deserializePropWeb: _categoryDeserializePropWeb,
+  version: 3,
 );
 
-class _CategoryWebAdapter extends IsarWebTypeAdapter<Category> {
-  const _CategoryWebAdapter();
-
-  @override
-  Object serialize(IsarCollection<Category> collection, Category object) {
-    final jsObj = IsarNative.newJsObject();
-    IsarNative.jsObjectSet(jsObj, 'active', object.active);
-    IsarNative.jsObjectSet(jsObj, 'branchId', object.branchId);
-    IsarNative.jsObjectSet(jsObj, 'focused', object.focused);
-    IsarNative.jsObjectSet(jsObj, 'id', object.id);
-    IsarNative.jsObjectSet(jsObj, 'name', object.name);
-    IsarNative.jsObjectSet(jsObj, 'table', object.table);
-    return jsObj;
+int? _categoryGetId(Category object) {
+  if (object.id == Isar.autoIncrement) {
+    return null;
+  } else {
+    return object.id;
   }
-
-  @override
-  Category deserialize(IsarCollection<Category> collection, dynamic jsObj) {
-    final object = Category();
-    object.active = IsarNative.jsObjectGet(jsObj, 'active') ?? false;
-    object.branchId =
-        IsarNative.jsObjectGet(jsObj, 'branchId') ?? double.negativeInfinity;
-    object.focused = IsarNative.jsObjectGet(jsObj, 'focused') ?? false;
-    object.id = IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity;
-    object.name = IsarNative.jsObjectGet(jsObj, 'name') ?? '';
-    object.table = IsarNative.jsObjectGet(jsObj, 'table');
-    return object;
-  }
-
-  @override
-  P deserializeProperty<P>(Object jsObj, String propertyName) {
-    switch (propertyName) {
-      case 'active':
-        return (IsarNative.jsObjectGet(jsObj, 'active') ?? false) as P;
-      case 'branchId':
-        return (IsarNative.jsObjectGet(jsObj, 'branchId') ??
-            double.negativeInfinity) as P;
-      case 'focused':
-        return (IsarNative.jsObjectGet(jsObj, 'focused') ?? false) as P;
-      case 'id':
-        return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
-            as P;
-      case 'name':
-        return (IsarNative.jsObjectGet(jsObj, 'name') ?? '') as P;
-      case 'table':
-        return (IsarNative.jsObjectGet(jsObj, 'table')) as P;
-      default:
-        throw 'Illegal propertyName';
-    }
-  }
-
-  @override
-  void attachLinks(Isar isar, int id, Category object) {}
 }
 
-class _CategoryNativeAdapter extends IsarNativeTypeAdapter<Category> {
-  const _CategoryNativeAdapter();
-
-  @override
-  void serialize(IsarCollection<Category> collection, IsarRawObject rawObj,
-      Category object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
-    var dynamicSize = 0;
-    final value0 = object.active;
-    final _active = value0;
-    final value1 = object.branchId;
-    final _branchId = value1;
-    final value2 = object.focused;
-    final _focused = value2;
-    final value3 = object.name;
-    final _name = IsarBinaryWriter.utf8Encoder.convert(value3);
-    dynamicSize += (_name.length) as int;
-    final value4 = object.table;
-    IsarUint8List? _table;
-    if (value4 != null) {
-      _table = IsarBinaryWriter.utf8Encoder.convert(value4);
-    }
-    dynamicSize += (_table?.length ?? 0) as int;
-    final size = staticSize + dynamicSize;
-
-    rawObj.buffer = alloc(size);
-    rawObj.buffer_length = size;
-    final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
-    final writer = IsarBinaryWriter(buffer, staticSize);
-    writer.writeBool(offsets[0], _active);
-    writer.writeLong(offsets[1], _branchId);
-    writer.writeBool(offsets[2], _focused);
-    writer.writeBytes(offsets[3], _name);
-    writer.writeBytes(offsets[4], _table);
-  }
-
-  @override
-  Category deserialize(IsarCollection<Category> collection, int id,
-      IsarBinaryReader reader, List<int> offsets) {
-    final object = Category();
-    object.active = reader.readBool(offsets[0]);
-    object.branchId = reader.readLong(offsets[1]);
-    object.focused = reader.readBool(offsets[2]);
-    object.id = id;
-    object.name = reader.readString(offsets[3]);
-    object.table = reader.readStringOrNull(offsets[4]);
-    return object;
-  }
-
-  @override
-  P deserializeProperty<P>(
-      int id, IsarBinaryReader reader, int propertyIndex, int offset) {
-    switch (propertyIndex) {
-      case -1:
-        return id as P;
-      case 0:
-        return (reader.readBool(offset)) as P;
-      case 1:
-        return (reader.readLong(offset)) as P;
-      case 2:
-        return (reader.readBool(offset)) as P;
-      case 3:
-        return (reader.readString(offset)) as P;
-      case 4:
-        return (reader.readStringOrNull(offset)) as P;
-      default:
-        throw 'Illegal propertyIndex';
-    }
-  }
-
-  @override
-  void attachLinks(Isar isar, int id, Category object) {}
+void _categorySetId(Category object, int id) {
+  object.id = id;
 }
+
+List<IsarLinkBase> _categoryGetLinks(Category object) {
+  return [];
+}
+
+void _categorySerializeNative(
+    IsarCollection<Category> collection,
+    IsarRawObject rawObj,
+    Category object,
+    int staticSize,
+    List<int> offsets,
+    AdapterAlloc alloc) {
+  var dynamicSize = 0;
+  final value0 = object.active;
+  final _active = value0;
+  final value1 = object.branchId;
+  final _branchId = value1;
+  final value2 = object.focused;
+  final _focused = value2;
+  final value3 = object.name;
+  final _name = IsarBinaryWriter.utf8Encoder.convert(value3);
+  dynamicSize += (_name.length) as int;
+  final value4 = object.table;
+  IsarUint8List? _table;
+  if (value4 != null) {
+    _table = IsarBinaryWriter.utf8Encoder.convert(value4);
+  }
+  dynamicSize += (_table?.length ?? 0) as int;
+  final size = staticSize + dynamicSize;
+
+  rawObj.buffer = alloc(size);
+  rawObj.buffer_length = size;
+  final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
+  final writer = IsarBinaryWriter(buffer, staticSize);
+  writer.writeBool(offsets[0], _active);
+  writer.writeLong(offsets[1], _branchId);
+  writer.writeBool(offsets[2], _focused);
+  writer.writeBytes(offsets[3], _name);
+  writer.writeBytes(offsets[4], _table);
+}
+
+Category _categoryDeserializeNative(IsarCollection<Category> collection, int id,
+    IsarBinaryReader reader, List<int> offsets) {
+  final object = Category();
+  object.active = reader.readBool(offsets[0]);
+  object.branchId = reader.readLong(offsets[1]);
+  object.focused = reader.readBool(offsets[2]);
+  object.id = id;
+  object.name = reader.readString(offsets[3]);
+  object.table = reader.readStringOrNull(offsets[4]);
+  return object;
+}
+
+P _categoryDeserializePropNative<P>(
+    int id, IsarBinaryReader reader, int propertyIndex, int offset) {
+  switch (propertyIndex) {
+    case -1:
+      return id as P;
+    case 0:
+      return (reader.readBool(offset)) as P;
+    case 1:
+      return (reader.readLong(offset)) as P;
+    case 2:
+      return (reader.readBool(offset)) as P;
+    case 3:
+      return (reader.readString(offset)) as P;
+    case 4:
+      return (reader.readStringOrNull(offset)) as P;
+    default:
+      throw 'Illegal propertyIndex';
+  }
+}
+
+dynamic _categorySerializeWeb(
+    IsarCollection<Category> collection, Category object) {
+  final jsObj = IsarNative.newJsObject();
+  IsarNative.jsObjectSet(jsObj, 'active', object.active);
+  IsarNative.jsObjectSet(jsObj, 'branchId', object.branchId);
+  IsarNative.jsObjectSet(jsObj, 'focused', object.focused);
+  IsarNative.jsObjectSet(jsObj, 'id', object.id);
+  IsarNative.jsObjectSet(jsObj, 'name', object.name);
+  IsarNative.jsObjectSet(jsObj, 'table', object.table);
+  return jsObj;
+}
+
+Category _categoryDeserializeWeb(
+    IsarCollection<Category> collection, dynamic jsObj) {
+  final object = Category();
+  object.active = IsarNative.jsObjectGet(jsObj, 'active') ?? false;
+  object.branchId =
+      IsarNative.jsObjectGet(jsObj, 'branchId') ?? double.negativeInfinity;
+  object.focused = IsarNative.jsObjectGet(jsObj, 'focused') ?? false;
+  object.id = IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity;
+  object.name = IsarNative.jsObjectGet(jsObj, 'name') ?? '';
+  object.table = IsarNative.jsObjectGet(jsObj, 'table');
+  return object;
+}
+
+P _categoryDeserializePropWeb<P>(Object jsObj, String propertyName) {
+  switch (propertyName) {
+    case 'active':
+      return (IsarNative.jsObjectGet(jsObj, 'active') ?? false) as P;
+    case 'branchId':
+      return (IsarNative.jsObjectGet(jsObj, 'branchId') ??
+          double.negativeInfinity) as P;
+    case 'focused':
+      return (IsarNative.jsObjectGet(jsObj, 'focused') ?? false) as P;
+    case 'id':
+      return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
+          as P;
+    case 'name':
+      return (IsarNative.jsObjectGet(jsObj, 'name') ?? '') as P;
+    case 'table':
+      return (IsarNative.jsObjectGet(jsObj, 'table')) as P;
+    default:
+      throw 'Illegal propertyName';
+  }
+}
+
+void _categoryAttachLinks(IsarCollection col, int id, Category object) {}
 
 extension CategoryQueryWhereSort on QueryBuilder<Category, Category, QWhere> {
   QueryBuilder<Category, Category, QAfterWhere> anyId() {
-    return addWhereClauseInternal(const WhereClause(indexName: null));
+    return addWhereClauseInternal(const IdWhereClause.any());
   }
 }
 
 extension CategoryQueryWhere on QueryBuilder<Category, Category, QWhereClause> {
   QueryBuilder<Category, Category, QAfterWhereClause> idEqualTo(int id) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [id],
+    return addWhereClauseInternal(IdWhereClause.between(
+      lower: id,
       includeLower: true,
-      upper: [id],
+      upper: id,
       includeUpper: true,
     ));
   }
 
   QueryBuilder<Category, Category, QAfterWhereClause> idNotEqualTo(int id) {
     if (whereSortInternal == Sort.asc) {
-      return addWhereClauseInternal(WhereClause(
-        indexName: null,
-        upper: [id],
-        includeUpper: false,
-      )).addWhereClauseInternal(WhereClause(
-        indexName: null,
-        lower: [id],
-        includeLower: false,
-      ));
+      return addWhereClauseInternal(
+        IdWhereClause.lessThan(upper: id, includeUpper: false),
+      ).addWhereClauseInternal(
+        IdWhereClause.greaterThan(lower: id, includeLower: false),
+      );
     } else {
-      return addWhereClauseInternal(WhereClause(
-        indexName: null,
-        lower: [id],
-        includeLower: false,
-      )).addWhereClauseInternal(WhereClause(
-        indexName: null,
-        upper: [id],
-        includeUpper: false,
-      ));
+      return addWhereClauseInternal(
+        IdWhereClause.greaterThan(lower: id, includeLower: false),
+      ).addWhereClauseInternal(
+        IdWhereClause.lessThan(upper: id, includeUpper: false),
+      );
     }
   }
 
-  QueryBuilder<Category, Category, QAfterWhereClause> idGreaterThan(
-    int id, {
-    bool include = false,
-  }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [id],
-      includeLower: include,
-    ));
+  QueryBuilder<Category, Category, QAfterWhereClause> idGreaterThan(int id,
+      {bool include = false}) {
+    return addWhereClauseInternal(
+      IdWhereClause.greaterThan(lower: id, includeLower: include),
+    );
   }
 
-  QueryBuilder<Category, Category, QAfterWhereClause> idLessThan(
-    int id, {
-    bool include = false,
-  }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      upper: [id],
-      includeUpper: include,
-    ));
+  QueryBuilder<Category, Category, QAfterWhereClause> idLessThan(int id,
+      {bool include = false}) {
+    return addWhereClauseInternal(
+      IdWhereClause.lessThan(upper: id, includeUpper: include),
+    );
   }
 
   QueryBuilder<Category, Category, QAfterWhereClause> idBetween(
@@ -242,11 +226,10 @@ extension CategoryQueryWhere on QueryBuilder<Category, Category, QWhereClause> {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [lowerId],
+    return addWhereClauseInternal(IdWhereClause.between(
+      lower: lowerId,
       includeLower: includeLower,
-      upper: [upperId],
+      upper: upperId,
       includeUpper: includeUpper,
     ));
   }
@@ -581,6 +564,9 @@ extension CategoryQueryFilter
     ));
   }
 }
+
+extension CategoryQueryLinks
+    on QueryBuilder<Category, Category, QFilterCondition> {}
 
 extension CategoryQueryWhereSortBy
     on QueryBuilder<Category, Category, QSortBy> {

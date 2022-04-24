@@ -6,20 +6,16 @@ part of 'conversation.dart';
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable
 
 extension GetConversationCollection on Isar {
-  IsarCollection<Conversation> get conversations {
-    return getCollection('Conversation');
-  }
+  IsarCollection<Conversation> get conversations => getCollection();
 }
 
-final ConversationSchema = CollectionSchema(
+const ConversationSchema = CollectionSchema(
   name: 'Conversation',
   schema:
       '{"name":"Conversation","idName":"id","properties":[{"name":"createdAt","type":"Long"},{"name":"dbAvatars","type":"String"},{"name":"delivered","type":"Bool"},{"name":"lastMessage","type":"String"},{"name":"receiverId","type":"Long"},{"name":"senderId","type":"Long"},{"name":"senderName","type":"String"},{"name":"status","type":"String"}],"indexes":[],"links":[]}',
-  nativeAdapter: const _ConversationNativeAdapter(),
-  webAdapter: const _ConversationWebAdapter(),
   idName: 'id',
   propertyIds: {
     'createdAt': 0,
@@ -33,197 +29,199 @@ final ConversationSchema = CollectionSchema(
   },
   listProperties: {},
   indexIds: {},
-  indexTypes: {},
+  indexValueTypes: {},
   linkIds: {},
-  backlinkIds: {},
-  linkedCollections: [],
-  getId: (obj) {
-    if (obj.id == Isar.autoIncrement) {
-      return null;
-    } else {
-      return obj.id;
-    }
-  },
-  setId: (obj, id) => obj.id = id,
-  getLinks: (obj) => [],
-  version: 2,
+  backlinkLinkNames: {},
+  getId: _conversationGetId,
+  setId: _conversationSetId,
+  getLinks: _conversationGetLinks,
+  attachLinks: _conversationAttachLinks,
+  serializeNative: _conversationSerializeNative,
+  deserializeNative: _conversationDeserializeNative,
+  deserializePropNative: _conversationDeserializePropNative,
+  serializeWeb: _conversationSerializeWeb,
+  deserializeWeb: _conversationDeserializeWeb,
+  deserializePropWeb: _conversationDeserializePropWeb,
+  version: 3,
 );
 
-class _ConversationWebAdapter extends IsarWebTypeAdapter<Conversation> {
-  const _ConversationWebAdapter();
-
-  @override
-  Object serialize(
-      IsarCollection<Conversation> collection, Conversation object) {
-    final jsObj = IsarNative.newJsObject();
-    IsarNative.jsObjectSet(jsObj, 'createdAt', object.createdAt);
-    IsarNative.jsObjectSet(jsObj, 'dbAvatars', object.dbAvatars);
-    IsarNative.jsObjectSet(jsObj, 'delivered', object.delivered);
-    IsarNative.jsObjectSet(jsObj, 'id', object.id);
-    IsarNative.jsObjectSet(jsObj, 'lastMessage', object.lastMessage);
-    IsarNative.jsObjectSet(jsObj, 'receiverId', object.receiverId);
-    IsarNative.jsObjectSet(jsObj, 'senderId', object.senderId);
-    IsarNative.jsObjectSet(jsObj, 'senderName', object.senderName);
-    IsarNative.jsObjectSet(jsObj, 'status', object.status);
-    return jsObj;
+int? _conversationGetId(Conversation object) {
+  if (object.id == Isar.autoIncrement) {
+    return null;
+  } else {
+    return object.id;
   }
-
-  @override
-  Conversation deserialize(
-      IsarCollection<Conversation> collection, dynamic jsObj) {
-    final object = Conversation();
-    object.createdAt =
-        IsarNative.jsObjectGet(jsObj, 'createdAt') ?? double.negativeInfinity;
-    object.delivered = IsarNative.jsObjectGet(jsObj, 'delivered') ?? false;
-    object.id = IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity;
-    object.lastMessage = IsarNative.jsObjectGet(jsObj, 'lastMessage');
-    object.receiverId =
-        IsarNative.jsObjectGet(jsObj, 'receiverId') ?? double.negativeInfinity;
-    object.senderId =
-        IsarNative.jsObjectGet(jsObj, 'senderId') ?? double.negativeInfinity;
-    object.senderName = IsarNative.jsObjectGet(jsObj, 'senderName') ?? '';
-    object.status = IsarNative.jsObjectGet(jsObj, 'status') ?? '';
-    return object;
-  }
-
-  @override
-  P deserializeProperty<P>(Object jsObj, String propertyName) {
-    switch (propertyName) {
-      case 'createdAt':
-        return (IsarNative.jsObjectGet(jsObj, 'createdAt') ??
-            double.negativeInfinity) as P;
-      case 'dbAvatars':
-        return (IsarNative.jsObjectGet(jsObj, 'dbAvatars')) as P;
-      case 'delivered':
-        return (IsarNative.jsObjectGet(jsObj, 'delivered') ?? false) as P;
-      case 'id':
-        return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
-            as P;
-      case 'lastMessage':
-        return (IsarNative.jsObjectGet(jsObj, 'lastMessage')) as P;
-      case 'receiverId':
-        return (IsarNative.jsObjectGet(jsObj, 'receiverId') ??
-            double.negativeInfinity) as P;
-      case 'senderId':
-        return (IsarNative.jsObjectGet(jsObj, 'senderId') ??
-            double.negativeInfinity) as P;
-      case 'senderName':
-        return (IsarNative.jsObjectGet(jsObj, 'senderName') ?? '') as P;
-      case 'status':
-        return (IsarNative.jsObjectGet(jsObj, 'status') ?? '') as P;
-      default:
-        throw 'Illegal propertyName';
-    }
-  }
-
-  @override
-  void attachLinks(Isar isar, int id, Conversation object) {}
 }
 
-class _ConversationNativeAdapter extends IsarNativeTypeAdapter<Conversation> {
-  const _ConversationNativeAdapter();
-
-  @override
-  void serialize(
-      IsarCollection<Conversation> collection,
-      IsarRawObject rawObj,
-      Conversation object,
-      int staticSize,
-      List<int> offsets,
-      AdapterAlloc alloc) {
-    var dynamicSize = 0;
-    final value0 = object.createdAt;
-    final _createdAt = value0;
-    final value1 = object.dbAvatars;
-    IsarUint8List? _dbAvatars;
-    if (value1 != null) {
-      _dbAvatars = IsarBinaryWriter.utf8Encoder.convert(value1);
-    }
-    dynamicSize += (_dbAvatars?.length ?? 0) as int;
-    final value2 = object.delivered;
-    final _delivered = value2;
-    final value3 = object.lastMessage;
-    IsarUint8List? _lastMessage;
-    if (value3 != null) {
-      _lastMessage = IsarBinaryWriter.utf8Encoder.convert(value3);
-    }
-    dynamicSize += (_lastMessage?.length ?? 0) as int;
-    final value4 = object.receiverId;
-    final _receiverId = value4;
-    final value5 = object.senderId;
-    final _senderId = value5;
-    final value6 = object.senderName;
-    final _senderName = IsarBinaryWriter.utf8Encoder.convert(value6);
-    dynamicSize += (_senderName.length) as int;
-    final value7 = object.status;
-    final _status = IsarBinaryWriter.utf8Encoder.convert(value7);
-    dynamicSize += (_status.length) as int;
-    final size = staticSize + dynamicSize;
-
-    rawObj.buffer = alloc(size);
-    rawObj.buffer_length = size;
-    final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
-    final writer = IsarBinaryWriter(buffer, staticSize);
-    writer.writeLong(offsets[0], _createdAt);
-    writer.writeBytes(offsets[1], _dbAvatars);
-    writer.writeBool(offsets[2], _delivered);
-    writer.writeBytes(offsets[3], _lastMessage);
-    writer.writeLong(offsets[4], _receiverId);
-    writer.writeLong(offsets[5], _senderId);
-    writer.writeBytes(offsets[6], _senderName);
-    writer.writeBytes(offsets[7], _status);
-  }
-
-  @override
-  Conversation deserialize(IsarCollection<Conversation> collection, int id,
-      IsarBinaryReader reader, List<int> offsets) {
-    final object = Conversation();
-    object.createdAt = reader.readLong(offsets[0]);
-    object.delivered = reader.readBool(offsets[2]);
-    object.id = id;
-    object.lastMessage = reader.readStringOrNull(offsets[3]);
-    object.receiverId = reader.readLong(offsets[4]);
-    object.senderId = reader.readLong(offsets[5]);
-    object.senderName = reader.readString(offsets[6]);
-    object.status = reader.readString(offsets[7]);
-    return object;
-  }
-
-  @override
-  P deserializeProperty<P>(
-      int id, IsarBinaryReader reader, int propertyIndex, int offset) {
-    switch (propertyIndex) {
-      case -1:
-        return id as P;
-      case 0:
-        return (reader.readLong(offset)) as P;
-      case 1:
-        return (reader.readStringOrNull(offset)) as P;
-      case 2:
-        return (reader.readBool(offset)) as P;
-      case 3:
-        return (reader.readStringOrNull(offset)) as P;
-      case 4:
-        return (reader.readLong(offset)) as P;
-      case 5:
-        return (reader.readLong(offset)) as P;
-      case 6:
-        return (reader.readString(offset)) as P;
-      case 7:
-        return (reader.readString(offset)) as P;
-      default:
-        throw 'Illegal propertyIndex';
-    }
-  }
-
-  @override
-  void attachLinks(Isar isar, int id, Conversation object) {}
+void _conversationSetId(Conversation object, int id) {
+  object.id = id;
 }
+
+List<IsarLinkBase> _conversationGetLinks(Conversation object) {
+  return [];
+}
+
+void _conversationSerializeNative(
+    IsarCollection<Conversation> collection,
+    IsarRawObject rawObj,
+    Conversation object,
+    int staticSize,
+    List<int> offsets,
+    AdapterAlloc alloc) {
+  var dynamicSize = 0;
+  final value0 = object.createdAt;
+  final _createdAt = value0;
+  final value1 = object.dbAvatars;
+  IsarUint8List? _dbAvatars;
+  if (value1 != null) {
+    _dbAvatars = IsarBinaryWriter.utf8Encoder.convert(value1);
+  }
+  dynamicSize += (_dbAvatars?.length ?? 0) as int;
+  final value2 = object.delivered;
+  final _delivered = value2;
+  final value3 = object.lastMessage;
+  IsarUint8List? _lastMessage;
+  if (value3 != null) {
+    _lastMessage = IsarBinaryWriter.utf8Encoder.convert(value3);
+  }
+  dynamicSize += (_lastMessage?.length ?? 0) as int;
+  final value4 = object.receiverId;
+  final _receiverId = value4;
+  final value5 = object.senderId;
+  final _senderId = value5;
+  final value6 = object.senderName;
+  final _senderName = IsarBinaryWriter.utf8Encoder.convert(value6);
+  dynamicSize += (_senderName.length) as int;
+  final value7 = object.status;
+  final _status = IsarBinaryWriter.utf8Encoder.convert(value7);
+  dynamicSize += (_status.length) as int;
+  final size = staticSize + dynamicSize;
+
+  rawObj.buffer = alloc(size);
+  rawObj.buffer_length = size;
+  final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
+  final writer = IsarBinaryWriter(buffer, staticSize);
+  writer.writeLong(offsets[0], _createdAt);
+  writer.writeBytes(offsets[1], _dbAvatars);
+  writer.writeBool(offsets[2], _delivered);
+  writer.writeBytes(offsets[3], _lastMessage);
+  writer.writeLong(offsets[4], _receiverId);
+  writer.writeLong(offsets[5], _senderId);
+  writer.writeBytes(offsets[6], _senderName);
+  writer.writeBytes(offsets[7], _status);
+}
+
+Conversation _conversationDeserializeNative(
+    IsarCollection<Conversation> collection,
+    int id,
+    IsarBinaryReader reader,
+    List<int> offsets) {
+  final object = Conversation();
+  object.createdAt = reader.readLong(offsets[0]);
+  object.delivered = reader.readBool(offsets[2]);
+  object.id = id;
+  object.lastMessage = reader.readStringOrNull(offsets[3]);
+  object.receiverId = reader.readLong(offsets[4]);
+  object.senderId = reader.readLong(offsets[5]);
+  object.senderName = reader.readString(offsets[6]);
+  object.status = reader.readString(offsets[7]);
+  return object;
+}
+
+P _conversationDeserializePropNative<P>(
+    int id, IsarBinaryReader reader, int propertyIndex, int offset) {
+  switch (propertyIndex) {
+    case -1:
+      return id as P;
+    case 0:
+      return (reader.readLong(offset)) as P;
+    case 1:
+      return (reader.readStringOrNull(offset)) as P;
+    case 2:
+      return (reader.readBool(offset)) as P;
+    case 3:
+      return (reader.readStringOrNull(offset)) as P;
+    case 4:
+      return (reader.readLong(offset)) as P;
+    case 5:
+      return (reader.readLong(offset)) as P;
+    case 6:
+      return (reader.readString(offset)) as P;
+    case 7:
+      return (reader.readString(offset)) as P;
+    default:
+      throw 'Illegal propertyIndex';
+  }
+}
+
+dynamic _conversationSerializeWeb(
+    IsarCollection<Conversation> collection, Conversation object) {
+  final jsObj = IsarNative.newJsObject();
+  IsarNative.jsObjectSet(jsObj, 'createdAt', object.createdAt);
+  IsarNative.jsObjectSet(jsObj, 'dbAvatars', object.dbAvatars);
+  IsarNative.jsObjectSet(jsObj, 'delivered', object.delivered);
+  IsarNative.jsObjectSet(jsObj, 'id', object.id);
+  IsarNative.jsObjectSet(jsObj, 'lastMessage', object.lastMessage);
+  IsarNative.jsObjectSet(jsObj, 'receiverId', object.receiverId);
+  IsarNative.jsObjectSet(jsObj, 'senderId', object.senderId);
+  IsarNative.jsObjectSet(jsObj, 'senderName', object.senderName);
+  IsarNative.jsObjectSet(jsObj, 'status', object.status);
+  return jsObj;
+}
+
+Conversation _conversationDeserializeWeb(
+    IsarCollection<Conversation> collection, dynamic jsObj) {
+  final object = Conversation();
+  object.createdAt =
+      IsarNative.jsObjectGet(jsObj, 'createdAt') ?? double.negativeInfinity;
+  object.delivered = IsarNative.jsObjectGet(jsObj, 'delivered') ?? false;
+  object.id = IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity;
+  object.lastMessage = IsarNative.jsObjectGet(jsObj, 'lastMessage');
+  object.receiverId =
+      IsarNative.jsObjectGet(jsObj, 'receiverId') ?? double.negativeInfinity;
+  object.senderId =
+      IsarNative.jsObjectGet(jsObj, 'senderId') ?? double.negativeInfinity;
+  object.senderName = IsarNative.jsObjectGet(jsObj, 'senderName') ?? '';
+  object.status = IsarNative.jsObjectGet(jsObj, 'status') ?? '';
+  return object;
+}
+
+P _conversationDeserializePropWeb<P>(Object jsObj, String propertyName) {
+  switch (propertyName) {
+    case 'createdAt':
+      return (IsarNative.jsObjectGet(jsObj, 'createdAt') ??
+          double.negativeInfinity) as P;
+    case 'dbAvatars':
+      return (IsarNative.jsObjectGet(jsObj, 'dbAvatars')) as P;
+    case 'delivered':
+      return (IsarNative.jsObjectGet(jsObj, 'delivered') ?? false) as P;
+    case 'id':
+      return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
+          as P;
+    case 'lastMessage':
+      return (IsarNative.jsObjectGet(jsObj, 'lastMessage')) as P;
+    case 'receiverId':
+      return (IsarNative.jsObjectGet(jsObj, 'receiverId') ??
+          double.negativeInfinity) as P;
+    case 'senderId':
+      return (IsarNative.jsObjectGet(jsObj, 'senderId') ??
+          double.negativeInfinity) as P;
+    case 'senderName':
+      return (IsarNative.jsObjectGet(jsObj, 'senderName') ?? '') as P;
+    case 'status':
+      return (IsarNative.jsObjectGet(jsObj, 'status') ?? '') as P;
+    default:
+      throw 'Illegal propertyName';
+  }
+}
+
+void _conversationAttachLinks(
+    IsarCollection col, int id, Conversation object) {}
 
 extension ConversationQueryWhereSort
     on QueryBuilder<Conversation, Conversation, QWhere> {
   QueryBuilder<Conversation, Conversation, QAfterWhere> anyId() {
-    return addWhereClauseInternal(const WhereClause(indexName: null));
+    return addWhereClauseInternal(const IdWhereClause.any());
   }
 }
 
@@ -231,11 +229,10 @@ extension ConversationQueryWhere
     on QueryBuilder<Conversation, Conversation, QWhereClause> {
   QueryBuilder<Conversation, Conversation, QAfterWhereClause> idEqualTo(
       int id) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [id],
+    return addWhereClauseInternal(IdWhereClause.between(
+      lower: id,
       includeLower: true,
-      upper: [id],
+      upper: id,
       includeUpper: true,
     ));
   }
@@ -243,48 +240,33 @@ extension ConversationQueryWhere
   QueryBuilder<Conversation, Conversation, QAfterWhereClause> idNotEqualTo(
       int id) {
     if (whereSortInternal == Sort.asc) {
-      return addWhereClauseInternal(WhereClause(
-        indexName: null,
-        upper: [id],
-        includeUpper: false,
-      )).addWhereClauseInternal(WhereClause(
-        indexName: null,
-        lower: [id],
-        includeLower: false,
-      ));
+      return addWhereClauseInternal(
+        IdWhereClause.lessThan(upper: id, includeUpper: false),
+      ).addWhereClauseInternal(
+        IdWhereClause.greaterThan(lower: id, includeLower: false),
+      );
     } else {
-      return addWhereClauseInternal(WhereClause(
-        indexName: null,
-        lower: [id],
-        includeLower: false,
-      )).addWhereClauseInternal(WhereClause(
-        indexName: null,
-        upper: [id],
-        includeUpper: false,
-      ));
+      return addWhereClauseInternal(
+        IdWhereClause.greaterThan(lower: id, includeLower: false),
+      ).addWhereClauseInternal(
+        IdWhereClause.lessThan(upper: id, includeUpper: false),
+      );
     }
   }
 
   QueryBuilder<Conversation, Conversation, QAfterWhereClause> idGreaterThan(
-    int id, {
-    bool include = false,
-  }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [id],
-      includeLower: include,
-    ));
+      int id,
+      {bool include = false}) {
+    return addWhereClauseInternal(
+      IdWhereClause.greaterThan(lower: id, includeLower: include),
+    );
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterWhereClause> idLessThan(
-    int id, {
-    bool include = false,
-  }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      upper: [id],
-      includeUpper: include,
-    ));
+  QueryBuilder<Conversation, Conversation, QAfterWhereClause> idLessThan(int id,
+      {bool include = false}) {
+    return addWhereClauseInternal(
+      IdWhereClause.lessThan(upper: id, includeUpper: include),
+    );
   }
 
   QueryBuilder<Conversation, Conversation, QAfterWhereClause> idBetween(
@@ -293,11 +275,10 @@ extension ConversationQueryWhere
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [lowerId],
+    return addWhereClauseInternal(IdWhereClause.between(
+      lower: lowerId,
       includeLower: includeLower,
-      upper: [upperId],
+      upper: upperId,
       includeUpper: includeUpper,
     ));
   }
@@ -960,6 +941,9 @@ extension ConversationQueryFilter
     ));
   }
 }
+
+extension ConversationQueryLinks
+    on QueryBuilder<Conversation, Conversation, QFilterCondition> {}
 
 extension ConversationQueryWhereSortBy
     on QueryBuilder<Conversation, Conversation, QSortBy> {

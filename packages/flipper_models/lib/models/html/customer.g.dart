@@ -6,20 +6,16 @@ part of 'customer.dart';
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable
 
 extension GetCustomerSyncCollection on Isar {
-  IsarCollection<CustomerSync> get customers {
-    return getCollection('CustomerSync');
-  }
+  IsarCollection<CustomerSync> get customerSyncs => getCollection();
 }
 
-final CustomerSyncSchema = CollectionSchema(
+const CustomerSyncSchema = CollectionSchema(
   name: 'CustomerSync',
   schema:
       '{"name":"CustomerSync","idName":"id","properties":[{"name":"address","type":"String"},{"name":"branchId","type":"Long"},{"name":"email","type":"String"},{"name":"name","type":"String"},{"name":"orderId","type":"Long"},{"name":"phone","type":"String"},{"name":"updatedAt","type":"String"}],"indexes":[],"links":[]}',
-  nativeAdapter: const _CustomerSyncNativeAdapter(),
-  webAdapter: const _CustomerSyncWebAdapter(),
   idName: 'id',
   propertyIds: {
     'address': 0,
@@ -32,187 +28,189 @@ final CustomerSyncSchema = CollectionSchema(
   },
   listProperties: {},
   indexIds: {},
-  indexTypes: {},
+  indexValueTypes: {},
   linkIds: {},
-  backlinkIds: {},
-  linkedCollections: [],
-  getId: (obj) {
-    if (obj.id == Isar.autoIncrement) {
-      return null;
-    } else {
-      return obj.id;
-    }
-  },
-  setId: (obj, id) => obj.id = id,
-  getLinks: (obj) => [],
-  version: 2,
+  backlinkLinkNames: {},
+  getId: _customerSyncGetId,
+  setId: _customerSyncSetId,
+  getLinks: _customerSyncGetLinks,
+  attachLinks: _customerSyncAttachLinks,
+  serializeNative: _customerSyncSerializeNative,
+  deserializeNative: _customerSyncDeserializeNative,
+  deserializePropNative: _customerSyncDeserializePropNative,
+  serializeWeb: _customerSyncSerializeWeb,
+  deserializeWeb: _customerSyncDeserializeWeb,
+  deserializePropWeb: _customerSyncDeserializePropWeb,
+  version: 3,
 );
 
-class _CustomerSyncWebAdapter extends IsarWebTypeAdapter<CustomerSync> {
-  const _CustomerSyncWebAdapter();
-
-  @override
-  Object serialize(
-      IsarCollection<CustomerSync> collection, CustomerSync object) {
-    final jsObj = IsarNative.newJsObject();
-    IsarNative.jsObjectSet(jsObj, 'address', object.address);
-    IsarNative.jsObjectSet(jsObj, 'branchId', object.branchId);
-    IsarNative.jsObjectSet(jsObj, 'email', object.email);
-    IsarNative.jsObjectSet(jsObj, 'id', object.id);
-    IsarNative.jsObjectSet(jsObj, 'name', object.name);
-    IsarNative.jsObjectSet(jsObj, 'orderId', object.orderId);
-    IsarNative.jsObjectSet(jsObj, 'phone', object.phone);
-    IsarNative.jsObjectSet(jsObj, 'updatedAt', object.updatedAt);
-    return jsObj;
+int? _customerSyncGetId(CustomerSync object) {
+  if (object.id == Isar.autoIncrement) {
+    return null;
+  } else {
+    return object.id;
   }
-
-  @override
-  CustomerSync deserialize(
-      IsarCollection<CustomerSync> collection, dynamic jsObj) {
-    final object = CustomerSync(
-      address: IsarNative.jsObjectGet(jsObj, 'address') ?? '',
-      branchId:
-          IsarNative.jsObjectGet(jsObj, 'branchId') ?? double.negativeInfinity,
-      email: IsarNative.jsObjectGet(jsObj, 'email') ?? '',
-      id: IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity,
-      name: IsarNative.jsObjectGet(jsObj, 'name') ?? '',
-      orderId:
-          IsarNative.jsObjectGet(jsObj, 'orderId') ?? double.negativeInfinity,
-      phone: IsarNative.jsObjectGet(jsObj, 'phone') ?? '',
-      updatedAt: IsarNative.jsObjectGet(jsObj, 'updatedAt'),
-    );
-    return object;
-  }
-
-  @override
-  P deserializeProperty<P>(Object jsObj, String propertyName) {
-    switch (propertyName) {
-      case 'address':
-        return (IsarNative.jsObjectGet(jsObj, 'address') ?? '') as P;
-      case 'branchId':
-        return (IsarNative.jsObjectGet(jsObj, 'branchId') ??
-            double.negativeInfinity) as P;
-      case 'email':
-        return (IsarNative.jsObjectGet(jsObj, 'email') ?? '') as P;
-      case 'id':
-        return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
-            as P;
-      case 'name':
-        return (IsarNative.jsObjectGet(jsObj, 'name') ?? '') as P;
-      case 'orderId':
-        return (IsarNative.jsObjectGet(jsObj, 'orderId') ??
-            double.negativeInfinity) as P;
-      case 'phone':
-        return (IsarNative.jsObjectGet(jsObj, 'phone') ?? '') as P;
-      case 'updatedAt':
-        return (IsarNative.jsObjectGet(jsObj, 'updatedAt')) as P;
-      default:
-        throw 'Illegal propertyName';
-    }
-  }
-
-  @override
-  void attachLinks(Isar isar, int id, CustomerSync object) {}
 }
 
-class _CustomerSyncNativeAdapter extends IsarNativeTypeAdapter<CustomerSync> {
-  const _CustomerSyncNativeAdapter();
-
-  @override
-  void serialize(
-      IsarCollection<CustomerSync> collection,
-      IsarRawObject rawObj,
-      CustomerSync object,
-      int staticSize,
-      List<int> offsets,
-      AdapterAlloc alloc) {
-    var dynamicSize = 0;
-    final value0 = object.address;
-    final _address = IsarBinaryWriter.utf8Encoder.convert(value0);
-    dynamicSize += (_address.length) as int;
-    final value1 = object.branchId;
-    final _branchId = value1;
-    final value2 = object.email;
-    final _email = IsarBinaryWriter.utf8Encoder.convert(value2);
-    dynamicSize += (_email.length) as int;
-    final value3 = object.name;
-    final _name = IsarBinaryWriter.utf8Encoder.convert(value3);
-    dynamicSize += (_name.length) as int;
-    final value4 = object.orderId;
-    final _orderId = value4;
-    final value5 = object.phone;
-    final _phone = IsarBinaryWriter.utf8Encoder.convert(value5);
-    dynamicSize += (_phone.length) as int;
-    final value6 = object.updatedAt;
-    IsarUint8List? _updatedAt;
-    if (value6 != null) {
-      _updatedAt = IsarBinaryWriter.utf8Encoder.convert(value6);
-    }
-    dynamicSize += (_updatedAt?.length ?? 0) as int;
-    final size = staticSize + dynamicSize;
-
-    rawObj.buffer = alloc(size);
-    rawObj.buffer_length = size;
-    final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
-    final writer = IsarBinaryWriter(buffer, staticSize);
-    writer.writeBytes(offsets[0], _address);
-    writer.writeLong(offsets[1], _branchId);
-    writer.writeBytes(offsets[2], _email);
-    writer.writeBytes(offsets[3], _name);
-    writer.writeLong(offsets[4], _orderId);
-    writer.writeBytes(offsets[5], _phone);
-    writer.writeBytes(offsets[6], _updatedAt);
-  }
-
-  @override
-  CustomerSync deserialize(IsarCollection<CustomerSync> collection, int id,
-      IsarBinaryReader reader, List<int> offsets) {
-    final object = CustomerSync(
-      address: reader.readString(offsets[0]),
-      branchId: reader.readLong(offsets[1]),
-      email: reader.readString(offsets[2]),
-      id: id,
-      name: reader.readString(offsets[3]),
-      orderId: reader.readLong(offsets[4]),
-      phone: reader.readString(offsets[5]),
-      updatedAt: reader.readStringOrNull(offsets[6]),
-    );
-    return object;
-  }
-
-  @override
-  P deserializeProperty<P>(
-      int id, IsarBinaryReader reader, int propertyIndex, int offset) {
-    switch (propertyIndex) {
-      case -1:
-        return id as P;
-      case 0:
-        return (reader.readString(offset)) as P;
-      case 1:
-        return (reader.readLong(offset)) as P;
-      case 2:
-        return (reader.readString(offset)) as P;
-      case 3:
-        return (reader.readString(offset)) as P;
-      case 4:
-        return (reader.readLong(offset)) as P;
-      case 5:
-        return (reader.readString(offset)) as P;
-      case 6:
-        return (reader.readStringOrNull(offset)) as P;
-      default:
-        throw 'Illegal propertyIndex';
-    }
-  }
-
-  @override
-  void attachLinks(Isar isar, int id, CustomerSync object) {}
+void _customerSyncSetId(CustomerSync object, int id) {
+  object.id = id;
 }
+
+List<IsarLinkBase> _customerSyncGetLinks(CustomerSync object) {
+  return [];
+}
+
+void _customerSyncSerializeNative(
+    IsarCollection<CustomerSync> collection,
+    IsarRawObject rawObj,
+    CustomerSync object,
+    int staticSize,
+    List<int> offsets,
+    AdapterAlloc alloc) {
+  var dynamicSize = 0;
+  final value0 = object.address;
+  final _address = IsarBinaryWriter.utf8Encoder.convert(value0);
+  dynamicSize += (_address.length) as int;
+  final value1 = object.branchId;
+  final _branchId = value1;
+  final value2 = object.email;
+  final _email = IsarBinaryWriter.utf8Encoder.convert(value2);
+  dynamicSize += (_email.length) as int;
+  final value3 = object.name;
+  final _name = IsarBinaryWriter.utf8Encoder.convert(value3);
+  dynamicSize += (_name.length) as int;
+  final value4 = object.orderId;
+  final _orderId = value4;
+  final value5 = object.phone;
+  final _phone = IsarBinaryWriter.utf8Encoder.convert(value5);
+  dynamicSize += (_phone.length) as int;
+  final value6 = object.updatedAt;
+  IsarUint8List? _updatedAt;
+  if (value6 != null) {
+    _updatedAt = IsarBinaryWriter.utf8Encoder.convert(value6);
+  }
+  dynamicSize += (_updatedAt?.length ?? 0) as int;
+  final size = staticSize + dynamicSize;
+
+  rawObj.buffer = alloc(size);
+  rawObj.buffer_length = size;
+  final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
+  final writer = IsarBinaryWriter(buffer, staticSize);
+  writer.writeBytes(offsets[0], _address);
+  writer.writeLong(offsets[1], _branchId);
+  writer.writeBytes(offsets[2], _email);
+  writer.writeBytes(offsets[3], _name);
+  writer.writeLong(offsets[4], _orderId);
+  writer.writeBytes(offsets[5], _phone);
+  writer.writeBytes(offsets[6], _updatedAt);
+}
+
+CustomerSync _customerSyncDeserializeNative(
+    IsarCollection<CustomerSync> collection,
+    int id,
+    IsarBinaryReader reader,
+    List<int> offsets) {
+  final object = CustomerSync(
+    address: reader.readString(offsets[0]),
+    branchId: reader.readLong(offsets[1]),
+    email: reader.readString(offsets[2]),
+    id: id,
+    name: reader.readString(offsets[3]),
+    orderId: reader.readLong(offsets[4]),
+    phone: reader.readString(offsets[5]),
+    updatedAt: reader.readStringOrNull(offsets[6]),
+  );
+  return object;
+}
+
+P _customerSyncDeserializePropNative<P>(
+    int id, IsarBinaryReader reader, int propertyIndex, int offset) {
+  switch (propertyIndex) {
+    case -1:
+      return id as P;
+    case 0:
+      return (reader.readString(offset)) as P;
+    case 1:
+      return (reader.readLong(offset)) as P;
+    case 2:
+      return (reader.readString(offset)) as P;
+    case 3:
+      return (reader.readString(offset)) as P;
+    case 4:
+      return (reader.readLong(offset)) as P;
+    case 5:
+      return (reader.readString(offset)) as P;
+    case 6:
+      return (reader.readStringOrNull(offset)) as P;
+    default:
+      throw 'Illegal propertyIndex';
+  }
+}
+
+dynamic _customerSyncSerializeWeb(
+    IsarCollection<CustomerSync> collection, CustomerSync object) {
+  final jsObj = IsarNative.newJsObject();
+  IsarNative.jsObjectSet(jsObj, 'address', object.address);
+  IsarNative.jsObjectSet(jsObj, 'branchId', object.branchId);
+  IsarNative.jsObjectSet(jsObj, 'email', object.email);
+  IsarNative.jsObjectSet(jsObj, 'id', object.id);
+  IsarNative.jsObjectSet(jsObj, 'name', object.name);
+  IsarNative.jsObjectSet(jsObj, 'orderId', object.orderId);
+  IsarNative.jsObjectSet(jsObj, 'phone', object.phone);
+  IsarNative.jsObjectSet(jsObj, 'updatedAt', object.updatedAt);
+  return jsObj;
+}
+
+CustomerSync _customerSyncDeserializeWeb(
+    IsarCollection<CustomerSync> collection, dynamic jsObj) {
+  final object = CustomerSync(
+    address: IsarNative.jsObjectGet(jsObj, 'address') ?? '',
+    branchId:
+        IsarNative.jsObjectGet(jsObj, 'branchId') ?? double.negativeInfinity,
+    email: IsarNative.jsObjectGet(jsObj, 'email') ?? '',
+    id: IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity,
+    name: IsarNative.jsObjectGet(jsObj, 'name') ?? '',
+    orderId:
+        IsarNative.jsObjectGet(jsObj, 'orderId') ?? double.negativeInfinity,
+    phone: IsarNative.jsObjectGet(jsObj, 'phone') ?? '',
+    updatedAt: IsarNative.jsObjectGet(jsObj, 'updatedAt'),
+  );
+  return object;
+}
+
+P _customerSyncDeserializePropWeb<P>(Object jsObj, String propertyName) {
+  switch (propertyName) {
+    case 'address':
+      return (IsarNative.jsObjectGet(jsObj, 'address') ?? '') as P;
+    case 'branchId':
+      return (IsarNative.jsObjectGet(jsObj, 'branchId') ??
+          double.negativeInfinity) as P;
+    case 'email':
+      return (IsarNative.jsObjectGet(jsObj, 'email') ?? '') as P;
+    case 'id':
+      return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
+          as P;
+    case 'name':
+      return (IsarNative.jsObjectGet(jsObj, 'name') ?? '') as P;
+    case 'orderId':
+      return (IsarNative.jsObjectGet(jsObj, 'orderId') ??
+          double.negativeInfinity) as P;
+    case 'phone':
+      return (IsarNative.jsObjectGet(jsObj, 'phone') ?? '') as P;
+    case 'updatedAt':
+      return (IsarNative.jsObjectGet(jsObj, 'updatedAt')) as P;
+    default:
+      throw 'Illegal propertyName';
+  }
+}
+
+void _customerSyncAttachLinks(
+    IsarCollection col, int id, CustomerSync object) {}
 
 extension CustomerSyncQueryWhereSort
     on QueryBuilder<CustomerSync, CustomerSync, QWhere> {
   QueryBuilder<CustomerSync, CustomerSync, QAfterWhere> anyId() {
-    return addWhereClauseInternal(const WhereClause(indexName: null));
+    return addWhereClauseInternal(const IdWhereClause.any());
   }
 }
 
@@ -220,11 +218,10 @@ extension CustomerSyncQueryWhere
     on QueryBuilder<CustomerSync, CustomerSync, QWhereClause> {
   QueryBuilder<CustomerSync, CustomerSync, QAfterWhereClause> idEqualTo(
       int id) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [id],
+    return addWhereClauseInternal(IdWhereClause.between(
+      lower: id,
       includeLower: true,
-      upper: [id],
+      upper: id,
       includeUpper: true,
     ));
   }
@@ -232,48 +229,33 @@ extension CustomerSyncQueryWhere
   QueryBuilder<CustomerSync, CustomerSync, QAfterWhereClause> idNotEqualTo(
       int id) {
     if (whereSortInternal == Sort.asc) {
-      return addWhereClauseInternal(WhereClause(
-        indexName: null,
-        upper: [id],
-        includeUpper: false,
-      )).addWhereClauseInternal(WhereClause(
-        indexName: null,
-        lower: [id],
-        includeLower: false,
-      ));
+      return addWhereClauseInternal(
+        IdWhereClause.lessThan(upper: id, includeUpper: false),
+      ).addWhereClauseInternal(
+        IdWhereClause.greaterThan(lower: id, includeLower: false),
+      );
     } else {
-      return addWhereClauseInternal(WhereClause(
-        indexName: null,
-        lower: [id],
-        includeLower: false,
-      )).addWhereClauseInternal(WhereClause(
-        indexName: null,
-        upper: [id],
-        includeUpper: false,
-      ));
+      return addWhereClauseInternal(
+        IdWhereClause.greaterThan(lower: id, includeLower: false),
+      ).addWhereClauseInternal(
+        IdWhereClause.lessThan(upper: id, includeUpper: false),
+      );
     }
   }
 
   QueryBuilder<CustomerSync, CustomerSync, QAfterWhereClause> idGreaterThan(
-    int id, {
-    bool include = false,
-  }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [id],
-      includeLower: include,
-    ));
+      int id,
+      {bool include = false}) {
+    return addWhereClauseInternal(
+      IdWhereClause.greaterThan(lower: id, includeLower: include),
+    );
   }
 
-  QueryBuilder<CustomerSync, CustomerSync, QAfterWhereClause> idLessThan(
-    int id, {
-    bool include = false,
-  }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      upper: [id],
-      includeUpper: include,
-    ));
+  QueryBuilder<CustomerSync, CustomerSync, QAfterWhereClause> idLessThan(int id,
+      {bool include = false}) {
+    return addWhereClauseInternal(
+      IdWhereClause.lessThan(upper: id, includeUpper: include),
+    );
   }
 
   QueryBuilder<CustomerSync, CustomerSync, QAfterWhereClause> idBetween(
@@ -282,11 +264,10 @@ extension CustomerSyncQueryWhere
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [lowerId],
+    return addWhereClauseInternal(IdWhereClause.between(
+      lower: lowerId,
       includeLower: includeLower,
-      upper: [upperId],
+      upper: upperId,
       includeUpper: includeUpper,
     ));
   }
@@ -982,6 +963,9 @@ extension CustomerSyncQueryFilter
     ));
   }
 }
+
+extension CustomerSyncQueryLinks
+    on QueryBuilder<CustomerSync, CustomerSync, QFilterCondition> {}
 
 extension CustomerSyncQueryWhereSortBy
     on QueryBuilder<CustomerSync, CustomerSync, QSortBy> {

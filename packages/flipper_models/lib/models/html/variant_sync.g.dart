@@ -6,20 +6,16 @@ part of flipper_models;
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable
 
 extension GetVariantCollection on Isar {
-  IsarCollection<Variant> get variants {
-    return getCollection('Variant');
-  }
+  IsarCollection<Variant> get variants => getCollection();
 }
 
-final VariantSchema = CollectionSchema(
+const VariantSchema = CollectionSchema(
   name: 'Variant',
   schema:
       '{"name":"Variant","idName":"id","properties":[{"name":"channels","type":"StringList"},{"name":"fbranchId","type":"Long"},{"name":"fproductId","type":"Long"},{"name":"name","type":"String"},{"name":"productName","type":"String"},{"name":"retailPrice","type":"Double"},{"name":"sku","type":"String"},{"name":"supplyPrice","type":"Double"},{"name":"synced","type":"Bool"},{"name":"table","type":"String"},{"name":"taxName","type":"String"},{"name":"taxPercentage","type":"Double"},{"name":"unit","type":"String"}],"indexes":[],"links":[]}',
-  nativeAdapter: const _VariantNativeAdapter(),
-  webAdapter: const _VariantWebAdapter(),
   idName: 'id',
   propertyIds: {
     'channels': 0,
@@ -38,318 +34,306 @@ final VariantSchema = CollectionSchema(
   },
   listProperties: {'channels'},
   indexIds: {},
-  indexTypes: {},
+  indexValueTypes: {},
   linkIds: {},
-  backlinkIds: {},
-  linkedCollections: [],
-  getId: (obj) {
-    if (obj.id == Isar.autoIncrement) {
-      return null;
-    } else {
-      return obj.id;
-    }
-  },
-  setId: (obj, id) => obj.id = id,
-  getLinks: (obj) => [],
-  version: 2,
+  backlinkLinkNames: {},
+  getId: _variantGetId,
+  setId: _variantSetId,
+  getLinks: _variantGetLinks,
+  attachLinks: _variantAttachLinks,
+  serializeNative: _variantSerializeNative,
+  deserializeNative: _variantDeserializeNative,
+  deserializePropNative: _variantDeserializePropNative,
+  serializeWeb: _variantSerializeWeb,
+  deserializeWeb: _variantDeserializeWeb,
+  deserializePropWeb: _variantDeserializePropWeb,
+  version: 3,
 );
 
-class _VariantWebAdapter extends IsarWebTypeAdapter<Variant> {
-  const _VariantWebAdapter();
-
-  @override
-  Object serialize(IsarCollection<Variant> collection, Variant object) {
-    final jsObj = IsarNative.newJsObject();
-    IsarNative.jsObjectSet(jsObj, 'channels', object.channels);
-    IsarNative.jsObjectSet(jsObj, 'fbranchId', object.fbranchId);
-    IsarNative.jsObjectSet(jsObj, 'fproductId', object.fproductId);
-    IsarNative.jsObjectSet(jsObj, 'id', object.id);
-    IsarNative.jsObjectSet(jsObj, 'name', object.name);
-    IsarNative.jsObjectSet(jsObj, 'productName', object.productName);
-    IsarNative.jsObjectSet(jsObj, 'retailPrice', object.retailPrice);
-    IsarNative.jsObjectSet(jsObj, 'sku', object.sku);
-    IsarNative.jsObjectSet(jsObj, 'supplyPrice', object.supplyPrice);
-    IsarNative.jsObjectSet(jsObj, 'synced', object.synced);
-    IsarNative.jsObjectSet(jsObj, 'table', object.table);
-    IsarNative.jsObjectSet(jsObj, 'taxName', object.taxName);
-    IsarNative.jsObjectSet(jsObj, 'taxPercentage', object.taxPercentage);
-    IsarNative.jsObjectSet(jsObj, 'unit', object.unit);
-    return jsObj;
+int? _variantGetId(Variant object) {
+  if (object.id == Isar.autoIncrement) {
+    return null;
+  } else {
+    return object.id;
   }
+}
 
-  @override
-  Variant deserialize(IsarCollection<Variant> collection, dynamic jsObj) {
-    final object = Variant(
-      channels: (IsarNative.jsObjectGet(jsObj, 'channels') as List?)
+void _variantSetId(Variant object, int id) {
+  object.id = id;
+}
+
+List<IsarLinkBase> _variantGetLinks(Variant object) {
+  return [];
+}
+
+void _variantSerializeNative(
+    IsarCollection<Variant> collection,
+    IsarRawObject rawObj,
+    Variant object,
+    int staticSize,
+    List<int> offsets,
+    AdapterAlloc alloc) {
+  var dynamicSize = 0;
+  final value0 = object.channels;
+  dynamicSize += (value0?.length ?? 0) * 8;
+  List<IsarUint8List?>? bytesList0;
+  if (value0 != null) {
+    bytesList0 = [];
+    for (var str in value0) {
+      final bytes = IsarBinaryWriter.utf8Encoder.convert(str);
+      bytesList0.add(bytes);
+      dynamicSize += bytes.length as int;
+    }
+  }
+  final _channels = bytesList0;
+  final value1 = object.fbranchId;
+  final _fbranchId = value1;
+  final value2 = object.fproductId;
+  final _fproductId = value2;
+  final value3 = object.name;
+  final _name = IsarBinaryWriter.utf8Encoder.convert(value3);
+  dynamicSize += (_name.length) as int;
+  final value4 = object.productName;
+  final _productName = IsarBinaryWriter.utf8Encoder.convert(value4);
+  dynamicSize += (_productName.length) as int;
+  final value5 = object.retailPrice;
+  final _retailPrice = value5;
+  final value6 = object.sku;
+  final _sku = IsarBinaryWriter.utf8Encoder.convert(value6);
+  dynamicSize += (_sku.length) as int;
+  final value7 = object.supplyPrice;
+  final _supplyPrice = value7;
+  final value8 = object.synced;
+  final _synced = value8;
+  final value9 = object.table;
+  final _table = IsarBinaryWriter.utf8Encoder.convert(value9);
+  dynamicSize += (_table.length) as int;
+  final value10 = object.taxName;
+  IsarUint8List? _taxName;
+  if (value10 != null) {
+    _taxName = IsarBinaryWriter.utf8Encoder.convert(value10);
+  }
+  dynamicSize += (_taxName?.length ?? 0) as int;
+  final value11 = object.taxPercentage;
+  final _taxPercentage = value11;
+  final value12 = object.unit;
+  final _unit = IsarBinaryWriter.utf8Encoder.convert(value12);
+  dynamicSize += (_unit.length) as int;
+  final size = staticSize + dynamicSize;
+
+  rawObj.buffer = alloc(size);
+  rawObj.buffer_length = size;
+  final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
+  final writer = IsarBinaryWriter(buffer, staticSize);
+  writer.writeStringList(offsets[0], _channels);
+  writer.writeLong(offsets[1], _fbranchId);
+  writer.writeLong(offsets[2], _fproductId);
+  writer.writeBytes(offsets[3], _name);
+  writer.writeBytes(offsets[4], _productName);
+  writer.writeDouble(offsets[5], _retailPrice);
+  writer.writeBytes(offsets[6], _sku);
+  writer.writeDouble(offsets[7], _supplyPrice);
+  writer.writeBool(offsets[8], _synced);
+  writer.writeBytes(offsets[9], _table);
+  writer.writeBytes(offsets[10], _taxName);
+  writer.writeDouble(offsets[11], _taxPercentage);
+  writer.writeBytes(offsets[12], _unit);
+}
+
+Variant _variantDeserializeNative(IsarCollection<Variant> collection, int id,
+    IsarBinaryReader reader, List<int> offsets) {
+  final object = Variant(
+    channels: reader.readStringList(offsets[0]),
+    fbranchId: reader.readLong(offsets[1]),
+    fproductId: reader.readLong(offsets[2]),
+    id: id,
+    name: reader.readString(offsets[3]),
+    productName: reader.readString(offsets[4]),
+    retailPrice: reader.readDouble(offsets[5]),
+    sku: reader.readString(offsets[6]),
+    supplyPrice: reader.readDouble(offsets[7]),
+    synced: reader.readBoolOrNull(offsets[8]),
+    table: reader.readString(offsets[9]),
+    taxName: reader.readStringOrNull(offsets[10]),
+    taxPercentage: reader.readDoubleOrNull(offsets[11]),
+    unit: reader.readString(offsets[12]),
+  );
+  return object;
+}
+
+P _variantDeserializePropNative<P>(
+    int id, IsarBinaryReader reader, int propertyIndex, int offset) {
+  switch (propertyIndex) {
+    case -1:
+      return id as P;
+    case 0:
+      return (reader.readStringList(offset)) as P;
+    case 1:
+      return (reader.readLong(offset)) as P;
+    case 2:
+      return (reader.readLong(offset)) as P;
+    case 3:
+      return (reader.readString(offset)) as P;
+    case 4:
+      return (reader.readString(offset)) as P;
+    case 5:
+      return (reader.readDouble(offset)) as P;
+    case 6:
+      return (reader.readString(offset)) as P;
+    case 7:
+      return (reader.readDouble(offset)) as P;
+    case 8:
+      return (reader.readBoolOrNull(offset)) as P;
+    case 9:
+      return (reader.readString(offset)) as P;
+    case 10:
+      return (reader.readStringOrNull(offset)) as P;
+    case 11:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 12:
+      return (reader.readString(offset)) as P;
+    default:
+      throw 'Illegal propertyIndex';
+  }
+}
+
+dynamic _variantSerializeWeb(
+    IsarCollection<Variant> collection, Variant object) {
+  final jsObj = IsarNative.newJsObject();
+  IsarNative.jsObjectSet(jsObj, 'channels', object.channels);
+  IsarNative.jsObjectSet(jsObj, 'fbranchId', object.fbranchId);
+  IsarNative.jsObjectSet(jsObj, 'fproductId', object.fproductId);
+  IsarNative.jsObjectSet(jsObj, 'id', object.id);
+  IsarNative.jsObjectSet(jsObj, 'name', object.name);
+  IsarNative.jsObjectSet(jsObj, 'productName', object.productName);
+  IsarNative.jsObjectSet(jsObj, 'retailPrice', object.retailPrice);
+  IsarNative.jsObjectSet(jsObj, 'sku', object.sku);
+  IsarNative.jsObjectSet(jsObj, 'supplyPrice', object.supplyPrice);
+  IsarNative.jsObjectSet(jsObj, 'synced', object.synced);
+  IsarNative.jsObjectSet(jsObj, 'table', object.table);
+  IsarNative.jsObjectSet(jsObj, 'taxName', object.taxName);
+  IsarNative.jsObjectSet(jsObj, 'taxPercentage', object.taxPercentage);
+  IsarNative.jsObjectSet(jsObj, 'unit', object.unit);
+  return jsObj;
+}
+
+Variant _variantDeserializeWeb(
+    IsarCollection<Variant> collection, dynamic jsObj) {
+  final object = Variant(
+    channels: (IsarNative.jsObjectGet(jsObj, 'channels') as List?)
+        ?.map((e) => e ?? '')
+        .toList()
+        .cast<String>(),
+    fbranchId:
+        IsarNative.jsObjectGet(jsObj, 'fbranchId') ?? double.negativeInfinity,
+    fproductId:
+        IsarNative.jsObjectGet(jsObj, 'fproductId') ?? double.negativeInfinity,
+    id: IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity,
+    name: IsarNative.jsObjectGet(jsObj, 'name') ?? '',
+    productName: IsarNative.jsObjectGet(jsObj, 'productName') ?? '',
+    retailPrice:
+        IsarNative.jsObjectGet(jsObj, 'retailPrice') ?? double.negativeInfinity,
+    sku: IsarNative.jsObjectGet(jsObj, 'sku') ?? '',
+    supplyPrice:
+        IsarNative.jsObjectGet(jsObj, 'supplyPrice') ?? double.negativeInfinity,
+    synced: IsarNative.jsObjectGet(jsObj, 'synced'),
+    table: IsarNative.jsObjectGet(jsObj, 'table') ?? '',
+    taxName: IsarNative.jsObjectGet(jsObj, 'taxName'),
+    taxPercentage: IsarNative.jsObjectGet(jsObj, 'taxPercentage'),
+    unit: IsarNative.jsObjectGet(jsObj, 'unit') ?? '',
+  );
+  return object;
+}
+
+P _variantDeserializePropWeb<P>(Object jsObj, String propertyName) {
+  switch (propertyName) {
+    case 'channels':
+      return ((IsarNative.jsObjectGet(jsObj, 'channels') as List?)
           ?.map((e) => e ?? '')
           .toList()
-          .cast<String>(),
-      fbranchId:
-          IsarNative.jsObjectGet(jsObj, 'fbranchId') ?? double.negativeInfinity,
-      fproductId: IsarNative.jsObjectGet(jsObj, 'fproductId') ??
-          double.negativeInfinity,
-      id: IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity,
-      name: IsarNative.jsObjectGet(jsObj, 'name') ?? '',
-      productName: IsarNative.jsObjectGet(jsObj, 'productName') ?? '',
-      retailPrice: IsarNative.jsObjectGet(jsObj, 'retailPrice') ??
-          double.negativeInfinity,
-      sku: IsarNative.jsObjectGet(jsObj, 'sku') ?? '',
-      supplyPrice: IsarNative.jsObjectGet(jsObj, 'supplyPrice') ??
-          double.negativeInfinity,
-      synced: IsarNative.jsObjectGet(jsObj, 'synced'),
-      table: IsarNative.jsObjectGet(jsObj, 'table') ?? '',
-      taxName: IsarNative.jsObjectGet(jsObj, 'taxName'),
-      taxPercentage: IsarNative.jsObjectGet(jsObj, 'taxPercentage'),
-      unit: IsarNative.jsObjectGet(jsObj, 'unit') ?? '',
-    );
-    return object;
+          .cast<String>()) as P;
+    case 'fbranchId':
+      return (IsarNative.jsObjectGet(jsObj, 'fbranchId') ??
+          double.negativeInfinity) as P;
+    case 'fproductId':
+      return (IsarNative.jsObjectGet(jsObj, 'fproductId') ??
+          double.negativeInfinity) as P;
+    case 'id':
+      return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
+          as P;
+    case 'name':
+      return (IsarNative.jsObjectGet(jsObj, 'name') ?? '') as P;
+    case 'productName':
+      return (IsarNative.jsObjectGet(jsObj, 'productName') ?? '') as P;
+    case 'retailPrice':
+      return (IsarNative.jsObjectGet(jsObj, 'retailPrice') ??
+          double.negativeInfinity) as P;
+    case 'sku':
+      return (IsarNative.jsObjectGet(jsObj, 'sku') ?? '') as P;
+    case 'supplyPrice':
+      return (IsarNative.jsObjectGet(jsObj, 'supplyPrice') ??
+          double.negativeInfinity) as P;
+    case 'synced':
+      return (IsarNative.jsObjectGet(jsObj, 'synced')) as P;
+    case 'table':
+      return (IsarNative.jsObjectGet(jsObj, 'table') ?? '') as P;
+    case 'taxName':
+      return (IsarNative.jsObjectGet(jsObj, 'taxName')) as P;
+    case 'taxPercentage':
+      return (IsarNative.jsObjectGet(jsObj, 'taxPercentage')) as P;
+    case 'unit':
+      return (IsarNative.jsObjectGet(jsObj, 'unit') ?? '') as P;
+    default:
+      throw 'Illegal propertyName';
   }
-
-  @override
-  P deserializeProperty<P>(Object jsObj, String propertyName) {
-    switch (propertyName) {
-      case 'channels':
-        return ((IsarNative.jsObjectGet(jsObj, 'channels') as List?)
-            ?.map((e) => e ?? '')
-            .toList()
-            .cast<String>()) as P;
-      case 'fbranchId':
-        return (IsarNative.jsObjectGet(jsObj, 'fbranchId') ??
-            double.negativeInfinity) as P;
-      case 'fproductId':
-        return (IsarNative.jsObjectGet(jsObj, 'fproductId') ??
-            double.negativeInfinity) as P;
-      case 'id':
-        return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
-            as P;
-      case 'name':
-        return (IsarNative.jsObjectGet(jsObj, 'name') ?? '') as P;
-      case 'productName':
-        return (IsarNative.jsObjectGet(jsObj, 'productName') ?? '') as P;
-      case 'retailPrice':
-        return (IsarNative.jsObjectGet(jsObj, 'retailPrice') ??
-            double.negativeInfinity) as P;
-      case 'sku':
-        return (IsarNative.jsObjectGet(jsObj, 'sku') ?? '') as P;
-      case 'supplyPrice':
-        return (IsarNative.jsObjectGet(jsObj, 'supplyPrice') ??
-            double.negativeInfinity) as P;
-      case 'synced':
-        return (IsarNative.jsObjectGet(jsObj, 'synced')) as P;
-      case 'table':
-        return (IsarNative.jsObjectGet(jsObj, 'table') ?? '') as P;
-      case 'taxName':
-        return (IsarNative.jsObjectGet(jsObj, 'taxName')) as P;
-      case 'taxPercentage':
-        return (IsarNative.jsObjectGet(jsObj, 'taxPercentage')) as P;
-      case 'unit':
-        return (IsarNative.jsObjectGet(jsObj, 'unit') ?? '') as P;
-      default:
-        throw 'Illegal propertyName';
-    }
-  }
-
-  @override
-  void attachLinks(Isar isar, int id, Variant object) {}
 }
 
-class _VariantNativeAdapter extends IsarNativeTypeAdapter<Variant> {
-  const _VariantNativeAdapter();
-
-  @override
-  void serialize(IsarCollection<Variant> collection, IsarRawObject rawObj,
-      Variant object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
-    var dynamicSize = 0;
-    final value0 = object.channels;
-    dynamicSize += (value0?.length ?? 0) * 8;
-    List<IsarUint8List?>? bytesList0;
-    if (value0 != null) {
-      bytesList0 = [];
-      for (var str in value0) {
-        final bytes = IsarBinaryWriter.utf8Encoder.convert(str);
-        bytesList0.add(bytes);
-        dynamicSize += bytes.length as int;
-      }
-    }
-    final _channels = bytesList0;
-    final value1 = object.fbranchId;
-    final _fbranchId = value1;
-    final value2 = object.fproductId;
-    final _fproductId = value2;
-    final value3 = object.name;
-    final _name = IsarBinaryWriter.utf8Encoder.convert(value3);
-    dynamicSize += (_name.length) as int;
-    final value4 = object.productName;
-    final _productName = IsarBinaryWriter.utf8Encoder.convert(value4);
-    dynamicSize += (_productName.length) as int;
-    final value5 = object.retailPrice;
-    final _retailPrice = value5;
-    final value6 = object.sku;
-    final _sku = IsarBinaryWriter.utf8Encoder.convert(value6);
-    dynamicSize += (_sku.length) as int;
-    final value7 = object.supplyPrice;
-    final _supplyPrice = value7;
-    final value8 = object.synced;
-    final _synced = value8;
-    final value9 = object.table;
-    final _table = IsarBinaryWriter.utf8Encoder.convert(value9);
-    dynamicSize += (_table.length) as int;
-    final value10 = object.taxName;
-    IsarUint8List? _taxName;
-    if (value10 != null) {
-      _taxName = IsarBinaryWriter.utf8Encoder.convert(value10);
-    }
-    dynamicSize += (_taxName?.length ?? 0) as int;
-    final value11 = object.taxPercentage;
-    final _taxPercentage = value11;
-    final value12 = object.unit;
-    final _unit = IsarBinaryWriter.utf8Encoder.convert(value12);
-    dynamicSize += (_unit.length) as int;
-    final size = staticSize + dynamicSize;
-
-    rawObj.buffer = alloc(size);
-    rawObj.buffer_length = size;
-    final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
-    final writer = IsarBinaryWriter(buffer, staticSize);
-    writer.writeStringList(offsets[0], _channels);
-    writer.writeLong(offsets[1], _fbranchId);
-    writer.writeLong(offsets[2], _fproductId);
-    writer.writeBytes(offsets[3], _name);
-    writer.writeBytes(offsets[4], _productName);
-    writer.writeDouble(offsets[5], _retailPrice);
-    writer.writeBytes(offsets[6], _sku);
-    writer.writeDouble(offsets[7], _supplyPrice);
-    writer.writeBool(offsets[8], _synced);
-    writer.writeBytes(offsets[9], _table);
-    writer.writeBytes(offsets[10], _taxName);
-    writer.writeDouble(offsets[11], _taxPercentage);
-    writer.writeBytes(offsets[12], _unit);
-  }
-
-  @override
-  Variant deserialize(IsarCollection<Variant> collection, int id,
-      IsarBinaryReader reader, List<int> offsets) {
-    final object = Variant(
-      channels: reader.readStringList(offsets[0]),
-      fbranchId: reader.readLong(offsets[1]),
-      fproductId: reader.readLong(offsets[2]),
-      id: id,
-      name: reader.readString(offsets[3]),
-      productName: reader.readString(offsets[4]),
-      retailPrice: reader.readDouble(offsets[5]),
-      sku: reader.readString(offsets[6]),
-      supplyPrice: reader.readDouble(offsets[7]),
-      synced: reader.readBoolOrNull(offsets[8]),
-      table: reader.readString(offsets[9]),
-      taxName: reader.readStringOrNull(offsets[10]),
-      taxPercentage: reader.readDoubleOrNull(offsets[11]),
-      unit: reader.readString(offsets[12]),
-    );
-    return object;
-  }
-
-  @override
-  P deserializeProperty<P>(
-      int id, IsarBinaryReader reader, int propertyIndex, int offset) {
-    switch (propertyIndex) {
-      case -1:
-        return id as P;
-      case 0:
-        return (reader.readStringList(offset)) as P;
-      case 1:
-        return (reader.readLong(offset)) as P;
-      case 2:
-        return (reader.readLong(offset)) as P;
-      case 3:
-        return (reader.readString(offset)) as P;
-      case 4:
-        return (reader.readString(offset)) as P;
-      case 5:
-        return (reader.readDouble(offset)) as P;
-      case 6:
-        return (reader.readString(offset)) as P;
-      case 7:
-        return (reader.readDouble(offset)) as P;
-      case 8:
-        return (reader.readBoolOrNull(offset)) as P;
-      case 9:
-        return (reader.readString(offset)) as P;
-      case 10:
-        return (reader.readStringOrNull(offset)) as P;
-      case 11:
-        return (reader.readDoubleOrNull(offset)) as P;
-      case 12:
-        return (reader.readString(offset)) as P;
-      default:
-        throw 'Illegal propertyIndex';
-    }
-  }
-
-  @override
-  void attachLinks(Isar isar, int id, Variant object) {}
-}
+void _variantAttachLinks(IsarCollection col, int id, Variant object) {}
 
 extension VariantQueryWhereSort on QueryBuilder<Variant, Variant, QWhere> {
   QueryBuilder<Variant, Variant, QAfterWhere> anyId() {
-    return addWhereClauseInternal(const WhereClause(indexName: null));
+    return addWhereClauseInternal(const IdWhereClause.any());
   }
 }
 
 extension VariantQueryWhere on QueryBuilder<Variant, Variant, QWhereClause> {
   QueryBuilder<Variant, Variant, QAfterWhereClause> idEqualTo(int id) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [id],
+    return addWhereClauseInternal(IdWhereClause.between(
+      lower: id,
       includeLower: true,
-      upper: [id],
+      upper: id,
       includeUpper: true,
     ));
   }
 
   QueryBuilder<Variant, Variant, QAfterWhereClause> idNotEqualTo(int id) {
     if (whereSortInternal == Sort.asc) {
-      return addWhereClauseInternal(WhereClause(
-        indexName: null,
-        upper: [id],
-        includeUpper: false,
-      )).addWhereClauseInternal(WhereClause(
-        indexName: null,
-        lower: [id],
-        includeLower: false,
-      ));
+      return addWhereClauseInternal(
+        IdWhereClause.lessThan(upper: id, includeUpper: false),
+      ).addWhereClauseInternal(
+        IdWhereClause.greaterThan(lower: id, includeLower: false),
+      );
     } else {
-      return addWhereClauseInternal(WhereClause(
-        indexName: null,
-        lower: [id],
-        includeLower: false,
-      )).addWhereClauseInternal(WhereClause(
-        indexName: null,
-        upper: [id],
-        includeUpper: false,
-      ));
+      return addWhereClauseInternal(
+        IdWhereClause.greaterThan(lower: id, includeLower: false),
+      ).addWhereClauseInternal(
+        IdWhereClause.lessThan(upper: id, includeUpper: false),
+      );
     }
   }
 
-  QueryBuilder<Variant, Variant, QAfterWhereClause> idGreaterThan(
-    int id, {
-    bool include = false,
-  }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [id],
-      includeLower: include,
-    ));
+  QueryBuilder<Variant, Variant, QAfterWhereClause> idGreaterThan(int id,
+      {bool include = false}) {
+    return addWhereClauseInternal(
+      IdWhereClause.greaterThan(lower: id, includeLower: include),
+    );
   }
 
-  QueryBuilder<Variant, Variant, QAfterWhereClause> idLessThan(
-    int id, {
-    bool include = false,
-  }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      upper: [id],
-      includeUpper: include,
-    ));
+  QueryBuilder<Variant, Variant, QAfterWhereClause> idLessThan(int id,
+      {bool include = false}) {
+    return addWhereClauseInternal(
+      IdWhereClause.lessThan(upper: id, includeUpper: include),
+    );
   }
 
   QueryBuilder<Variant, Variant, QAfterWhereClause> idBetween(
@@ -358,11 +342,10 @@ extension VariantQueryWhere on QueryBuilder<Variant, Variant, QWhereClause> {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [lowerId],
+    return addWhereClauseInternal(IdWhereClause.between(
+      lower: lowerId,
       includeLower: includeLower,
-      upper: [upperId],
+      upper: upperId,
       includeUpper: includeUpper,
     ));
   }
@@ -1376,6 +1359,9 @@ extension VariantQueryFilter
     ));
   }
 }
+
+extension VariantQueryLinks
+    on QueryBuilder<Variant, Variant, QFilterCondition> {}
 
 extension VariantQueryWhereSortBy on QueryBuilder<Variant, Variant, QSortBy> {
   QueryBuilder<Variant, Variant, QAfterSortBy> sortByFbranchId() {

@@ -6,20 +6,16 @@ part of 'payment.dart';
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable
 
 extension GetPaymentCollection on Isar {
-  IsarCollection<Payment> get payments {
-    return getCollection('Payment');
-  }
+  IsarCollection<Payment> get payments => getCollection();
 }
 
-final PaymentSchema = CollectionSchema(
+const PaymentSchema = CollectionSchema(
   name: 'Payment',
   schema:
       '{"name":"Payment","idName":"id","properties":[{"name":"amount","type":"Long"},{"name":"createdAt","type":"Long"},{"name":"interval","type":"Long"},{"name":"itemName","type":"String"},{"name":"note","type":"String"},{"name":"paymentType","type":"String"},{"name":"phoneNumber","type":"String"},{"name":"requestGuid","type":"String"},{"name":"userId","type":"Long"}],"indexes":[],"links":[]}',
-  nativeAdapter: const _PaymentNativeAdapter(),
-  webAdapter: const _PaymentWebAdapter(),
   idName: 'id',
   propertyIds: {
     'amount': 0,
@@ -34,258 +30,244 @@ final PaymentSchema = CollectionSchema(
   },
   listProperties: {},
   indexIds: {},
-  indexTypes: {},
+  indexValueTypes: {},
   linkIds: {},
-  backlinkIds: {},
-  linkedCollections: [],
-  getId: (obj) {
-    if (obj.id == Isar.autoIncrement) {
-      return null;
-    } else {
-      return obj.id;
-    }
-  },
-  setId: (obj, id) => obj.id = id,
-  getLinks: (obj) => [],
-  version: 2,
+  backlinkLinkNames: {},
+  getId: _paymentGetId,
+  setId: _paymentSetId,
+  getLinks: _paymentGetLinks,
+  attachLinks: _paymentAttachLinks,
+  serializeNative: _paymentSerializeNative,
+  deserializeNative: _paymentDeserializeNative,
+  deserializePropNative: _paymentDeserializePropNative,
+  serializeWeb: _paymentSerializeWeb,
+  deserializeWeb: _paymentDeserializeWeb,
+  deserializePropWeb: _paymentDeserializePropWeb,
+  version: 3,
 );
 
-class _PaymentWebAdapter extends IsarWebTypeAdapter<Payment> {
-  const _PaymentWebAdapter();
-
-  @override
-  Object serialize(IsarCollection<Payment> collection, Payment object) {
-    final jsObj = IsarNative.newJsObject();
-    IsarNative.jsObjectSet(jsObj, 'amount', object.amount);
-    IsarNative.jsObjectSet(jsObj, 'createdAt', object.createdAt);
-    IsarNative.jsObjectSet(jsObj, 'id', object.id);
-    IsarNative.jsObjectSet(jsObj, 'interval', object.interval);
-    IsarNative.jsObjectSet(jsObj, 'itemName', object.itemName);
-    IsarNative.jsObjectSet(jsObj, 'note', object.note);
-    IsarNative.jsObjectSet(jsObj, 'paymentType', object.paymentType);
-    IsarNative.jsObjectSet(jsObj, 'phoneNumber', object.phoneNumber);
-    IsarNative.jsObjectSet(jsObj, 'requestGuid', object.requestGuid);
-    IsarNative.jsObjectSet(jsObj, 'userId', object.userId);
-    return jsObj;
+int? _paymentGetId(Payment object) {
+  if (object.id == Isar.autoIncrement) {
+    return null;
+  } else {
+    return object.id;
   }
-
-  @override
-  Payment deserialize(IsarCollection<Payment> collection, dynamic jsObj) {
-    final object = Payment(
-      amount:
-          IsarNative.jsObjectGet(jsObj, 'amount') ?? double.negativeInfinity,
-      createdAt:
-          IsarNative.jsObjectGet(jsObj, 'createdAt') ?? double.negativeInfinity,
-      id: IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity,
-      interval:
-          IsarNative.jsObjectGet(jsObj, 'interval') ?? double.negativeInfinity,
-      itemName: IsarNative.jsObjectGet(jsObj, 'itemName') ?? '',
-      note: IsarNative.jsObjectGet(jsObj, 'note') ?? '',
-      paymentType: IsarNative.jsObjectGet(jsObj, 'paymentType') ?? '',
-      phoneNumber: IsarNative.jsObjectGet(jsObj, 'phoneNumber') ?? '',
-      requestGuid: IsarNative.jsObjectGet(jsObj, 'requestGuid') ?? '',
-      userId:
-          IsarNative.jsObjectGet(jsObj, 'userId') ?? double.negativeInfinity,
-    );
-    return object;
-  }
-
-  @override
-  P deserializeProperty<P>(Object jsObj, String propertyName) {
-    switch (propertyName) {
-      case 'amount':
-        return (IsarNative.jsObjectGet(jsObj, 'amount') ??
-            double.negativeInfinity) as P;
-      case 'createdAt':
-        return (IsarNative.jsObjectGet(jsObj, 'createdAt') ??
-            double.negativeInfinity) as P;
-      case 'id':
-        return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
-            as P;
-      case 'interval':
-        return (IsarNative.jsObjectGet(jsObj, 'interval') ??
-            double.negativeInfinity) as P;
-      case 'itemName':
-        return (IsarNative.jsObjectGet(jsObj, 'itemName') ?? '') as P;
-      case 'note':
-        return (IsarNative.jsObjectGet(jsObj, 'note') ?? '') as P;
-      case 'paymentType':
-        return (IsarNative.jsObjectGet(jsObj, 'paymentType') ?? '') as P;
-      case 'phoneNumber':
-        return (IsarNative.jsObjectGet(jsObj, 'phoneNumber') ?? '') as P;
-      case 'requestGuid':
-        return (IsarNative.jsObjectGet(jsObj, 'requestGuid') ?? '') as P;
-      case 'userId':
-        return (IsarNative.jsObjectGet(jsObj, 'userId') ??
-            double.negativeInfinity) as P;
-      default:
-        throw 'Illegal propertyName';
-    }
-  }
-
-  @override
-  void attachLinks(Isar isar, int id, Payment object) {}
 }
 
-class _PaymentNativeAdapter extends IsarNativeTypeAdapter<Payment> {
-  const _PaymentNativeAdapter();
-
-  @override
-  void serialize(IsarCollection<Payment> collection, IsarRawObject rawObj,
-      Payment object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
-    var dynamicSize = 0;
-    final value0 = object.amount;
-    final _amount = value0;
-    final value1 = object.createdAt;
-    final _createdAt = value1;
-    final value2 = object.interval;
-    final _interval = value2;
-    final value3 = object.itemName;
-    final _itemName = IsarBinaryWriter.utf8Encoder.convert(value3);
-    dynamicSize += (_itemName.length) as int;
-    final value4 = object.note;
-    final _note = IsarBinaryWriter.utf8Encoder.convert(value4);
-    dynamicSize += (_note.length) as int;
-    final value5 = object.paymentType;
-    final _paymentType = IsarBinaryWriter.utf8Encoder.convert(value5);
-    dynamicSize += (_paymentType.length) as int;
-    final value6 = object.phoneNumber;
-    final _phoneNumber = IsarBinaryWriter.utf8Encoder.convert(value6);
-    dynamicSize += (_phoneNumber.length) as int;
-    final value7 = object.requestGuid;
-    final _requestGuid = IsarBinaryWriter.utf8Encoder.convert(value7);
-    dynamicSize += (_requestGuid.length) as int;
-    final value8 = object.userId;
-    final _userId = value8;
-    final size = staticSize + dynamicSize;
-
-    rawObj.buffer = alloc(size);
-    rawObj.buffer_length = size;
-    final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
-    final writer = IsarBinaryWriter(buffer, staticSize);
-    writer.writeLong(offsets[0], _amount);
-    writer.writeLong(offsets[1], _createdAt);
-    writer.writeLong(offsets[2], _interval);
-    writer.writeBytes(offsets[3], _itemName);
-    writer.writeBytes(offsets[4], _note);
-    writer.writeBytes(offsets[5], _paymentType);
-    writer.writeBytes(offsets[6], _phoneNumber);
-    writer.writeBytes(offsets[7], _requestGuid);
-    writer.writeLong(offsets[8], _userId);
-  }
-
-  @override
-  Payment deserialize(IsarCollection<Payment> collection, int id,
-      IsarBinaryReader reader, List<int> offsets) {
-    final object = Payment(
-      amount: reader.readLong(offsets[0]),
-      createdAt: reader.readLong(offsets[1]),
-      id: id,
-      interval: reader.readLong(offsets[2]),
-      itemName: reader.readString(offsets[3]),
-      note: reader.readString(offsets[4]),
-      paymentType: reader.readString(offsets[5]),
-      phoneNumber: reader.readString(offsets[6]),
-      requestGuid: reader.readString(offsets[7]),
-      userId: reader.readLong(offsets[8]),
-    );
-    return object;
-  }
-
-  @override
-  P deserializeProperty<P>(
-      int id, IsarBinaryReader reader, int propertyIndex, int offset) {
-    switch (propertyIndex) {
-      case -1:
-        return id as P;
-      case 0:
-        return (reader.readLong(offset)) as P;
-      case 1:
-        return (reader.readLong(offset)) as P;
-      case 2:
-        return (reader.readLong(offset)) as P;
-      case 3:
-        return (reader.readString(offset)) as P;
-      case 4:
-        return (reader.readString(offset)) as P;
-      case 5:
-        return (reader.readString(offset)) as P;
-      case 6:
-        return (reader.readString(offset)) as P;
-      case 7:
-        return (reader.readString(offset)) as P;
-      case 8:
-        return (reader.readLong(offset)) as P;
-      default:
-        throw 'Illegal propertyIndex';
-    }
-  }
-
-  @override
-  void attachLinks(Isar isar, int id, Payment object) {}
+void _paymentSetId(Payment object, int id) {
+  object.id = id;
 }
+
+List<IsarLinkBase> _paymentGetLinks(Payment object) {
+  return [];
+}
+
+void _paymentSerializeNative(
+    IsarCollection<Payment> collection,
+    IsarRawObject rawObj,
+    Payment object,
+    int staticSize,
+    List<int> offsets,
+    AdapterAlloc alloc) {
+  var dynamicSize = 0;
+  final value0 = object.amount;
+  final _amount = value0;
+  final value1 = object.createdAt;
+  final _createdAt = value1;
+  final value2 = object.interval;
+  final _interval = value2;
+  final value3 = object.itemName;
+  final _itemName = IsarBinaryWriter.utf8Encoder.convert(value3);
+  dynamicSize += (_itemName.length) as int;
+  final value4 = object.note;
+  final _note = IsarBinaryWriter.utf8Encoder.convert(value4);
+  dynamicSize += (_note.length) as int;
+  final value5 = object.paymentType;
+  final _paymentType = IsarBinaryWriter.utf8Encoder.convert(value5);
+  dynamicSize += (_paymentType.length) as int;
+  final value6 = object.phoneNumber;
+  final _phoneNumber = IsarBinaryWriter.utf8Encoder.convert(value6);
+  dynamicSize += (_phoneNumber.length) as int;
+  final value7 = object.requestGuid;
+  final _requestGuid = IsarBinaryWriter.utf8Encoder.convert(value7);
+  dynamicSize += (_requestGuid.length) as int;
+  final value8 = object.userId;
+  final _userId = value8;
+  final size = staticSize + dynamicSize;
+
+  rawObj.buffer = alloc(size);
+  rawObj.buffer_length = size;
+  final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
+  final writer = IsarBinaryWriter(buffer, staticSize);
+  writer.writeLong(offsets[0], _amount);
+  writer.writeLong(offsets[1], _createdAt);
+  writer.writeLong(offsets[2], _interval);
+  writer.writeBytes(offsets[3], _itemName);
+  writer.writeBytes(offsets[4], _note);
+  writer.writeBytes(offsets[5], _paymentType);
+  writer.writeBytes(offsets[6], _phoneNumber);
+  writer.writeBytes(offsets[7], _requestGuid);
+  writer.writeLong(offsets[8], _userId);
+}
+
+Payment _paymentDeserializeNative(IsarCollection<Payment> collection, int id,
+    IsarBinaryReader reader, List<int> offsets) {
+  final object = Payment(
+    amount: reader.readLong(offsets[0]),
+    createdAt: reader.readLong(offsets[1]),
+    id: id,
+    interval: reader.readLong(offsets[2]),
+    itemName: reader.readString(offsets[3]),
+    note: reader.readString(offsets[4]),
+    paymentType: reader.readString(offsets[5]),
+    phoneNumber: reader.readString(offsets[6]),
+    requestGuid: reader.readString(offsets[7]),
+    userId: reader.readLong(offsets[8]),
+  );
+  return object;
+}
+
+P _paymentDeserializePropNative<P>(
+    int id, IsarBinaryReader reader, int propertyIndex, int offset) {
+  switch (propertyIndex) {
+    case -1:
+      return id as P;
+    case 0:
+      return (reader.readLong(offset)) as P;
+    case 1:
+      return (reader.readLong(offset)) as P;
+    case 2:
+      return (reader.readLong(offset)) as P;
+    case 3:
+      return (reader.readString(offset)) as P;
+    case 4:
+      return (reader.readString(offset)) as P;
+    case 5:
+      return (reader.readString(offset)) as P;
+    case 6:
+      return (reader.readString(offset)) as P;
+    case 7:
+      return (reader.readString(offset)) as P;
+    case 8:
+      return (reader.readLong(offset)) as P;
+    default:
+      throw 'Illegal propertyIndex';
+  }
+}
+
+dynamic _paymentSerializeWeb(
+    IsarCollection<Payment> collection, Payment object) {
+  final jsObj = IsarNative.newJsObject();
+  IsarNative.jsObjectSet(jsObj, 'amount', object.amount);
+  IsarNative.jsObjectSet(jsObj, 'createdAt', object.createdAt);
+  IsarNative.jsObjectSet(jsObj, 'id', object.id);
+  IsarNative.jsObjectSet(jsObj, 'interval', object.interval);
+  IsarNative.jsObjectSet(jsObj, 'itemName', object.itemName);
+  IsarNative.jsObjectSet(jsObj, 'note', object.note);
+  IsarNative.jsObjectSet(jsObj, 'paymentType', object.paymentType);
+  IsarNative.jsObjectSet(jsObj, 'phoneNumber', object.phoneNumber);
+  IsarNative.jsObjectSet(jsObj, 'requestGuid', object.requestGuid);
+  IsarNative.jsObjectSet(jsObj, 'userId', object.userId);
+  return jsObj;
+}
+
+Payment _paymentDeserializeWeb(
+    IsarCollection<Payment> collection, dynamic jsObj) {
+  final object = Payment(
+    amount: IsarNative.jsObjectGet(jsObj, 'amount') ?? double.negativeInfinity,
+    createdAt:
+        IsarNative.jsObjectGet(jsObj, 'createdAt') ?? double.negativeInfinity,
+    id: IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity,
+    interval:
+        IsarNative.jsObjectGet(jsObj, 'interval') ?? double.negativeInfinity,
+    itemName: IsarNative.jsObjectGet(jsObj, 'itemName') ?? '',
+    note: IsarNative.jsObjectGet(jsObj, 'note') ?? '',
+    paymentType: IsarNative.jsObjectGet(jsObj, 'paymentType') ?? '',
+    phoneNumber: IsarNative.jsObjectGet(jsObj, 'phoneNumber') ?? '',
+    requestGuid: IsarNative.jsObjectGet(jsObj, 'requestGuid') ?? '',
+    userId: IsarNative.jsObjectGet(jsObj, 'userId') ?? double.negativeInfinity,
+  );
+  return object;
+}
+
+P _paymentDeserializePropWeb<P>(Object jsObj, String propertyName) {
+  switch (propertyName) {
+    case 'amount':
+      return (IsarNative.jsObjectGet(jsObj, 'amount') ??
+          double.negativeInfinity) as P;
+    case 'createdAt':
+      return (IsarNative.jsObjectGet(jsObj, 'createdAt') ??
+          double.negativeInfinity) as P;
+    case 'id':
+      return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
+          as P;
+    case 'interval':
+      return (IsarNative.jsObjectGet(jsObj, 'interval') ??
+          double.negativeInfinity) as P;
+    case 'itemName':
+      return (IsarNative.jsObjectGet(jsObj, 'itemName') ?? '') as P;
+    case 'note':
+      return (IsarNative.jsObjectGet(jsObj, 'note') ?? '') as P;
+    case 'paymentType':
+      return (IsarNative.jsObjectGet(jsObj, 'paymentType') ?? '') as P;
+    case 'phoneNumber':
+      return (IsarNative.jsObjectGet(jsObj, 'phoneNumber') ?? '') as P;
+    case 'requestGuid':
+      return (IsarNative.jsObjectGet(jsObj, 'requestGuid') ?? '') as P;
+    case 'userId':
+      return (IsarNative.jsObjectGet(jsObj, 'userId') ??
+          double.negativeInfinity) as P;
+    default:
+      throw 'Illegal propertyName';
+  }
+}
+
+void _paymentAttachLinks(IsarCollection col, int id, Payment object) {}
 
 extension PaymentQueryWhereSort on QueryBuilder<Payment, Payment, QWhere> {
   QueryBuilder<Payment, Payment, QAfterWhere> anyId() {
-    return addWhereClauseInternal(const WhereClause(indexName: null));
+    return addWhereClauseInternal(const IdWhereClause.any());
   }
 }
 
 extension PaymentQueryWhere on QueryBuilder<Payment, Payment, QWhereClause> {
   QueryBuilder<Payment, Payment, QAfterWhereClause> idEqualTo(int id) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [id],
+    return addWhereClauseInternal(IdWhereClause.between(
+      lower: id,
       includeLower: true,
-      upper: [id],
+      upper: id,
       includeUpper: true,
     ));
   }
 
   QueryBuilder<Payment, Payment, QAfterWhereClause> idNotEqualTo(int id) {
     if (whereSortInternal == Sort.asc) {
-      return addWhereClauseInternal(WhereClause(
-        indexName: null,
-        upper: [id],
-        includeUpper: false,
-      )).addWhereClauseInternal(WhereClause(
-        indexName: null,
-        lower: [id],
-        includeLower: false,
-      ));
+      return addWhereClauseInternal(
+        IdWhereClause.lessThan(upper: id, includeUpper: false),
+      ).addWhereClauseInternal(
+        IdWhereClause.greaterThan(lower: id, includeLower: false),
+      );
     } else {
-      return addWhereClauseInternal(WhereClause(
-        indexName: null,
-        lower: [id],
-        includeLower: false,
-      )).addWhereClauseInternal(WhereClause(
-        indexName: null,
-        upper: [id],
-        includeUpper: false,
-      ));
+      return addWhereClauseInternal(
+        IdWhereClause.greaterThan(lower: id, includeLower: false),
+      ).addWhereClauseInternal(
+        IdWhereClause.lessThan(upper: id, includeUpper: false),
+      );
     }
   }
 
-  QueryBuilder<Payment, Payment, QAfterWhereClause> idGreaterThan(
-    int id, {
-    bool include = false,
-  }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [id],
-      includeLower: include,
-    ));
+  QueryBuilder<Payment, Payment, QAfterWhereClause> idGreaterThan(int id,
+      {bool include = false}) {
+    return addWhereClauseInternal(
+      IdWhereClause.greaterThan(lower: id, includeLower: include),
+    );
   }
 
-  QueryBuilder<Payment, Payment, QAfterWhereClause> idLessThan(
-    int id, {
-    bool include = false,
-  }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      upper: [id],
-      includeUpper: include,
-    ));
+  QueryBuilder<Payment, Payment, QAfterWhereClause> idLessThan(int id,
+      {bool include = false}) {
+    return addWhereClauseInternal(
+      IdWhereClause.lessThan(upper: id, includeUpper: include),
+    );
   }
 
   QueryBuilder<Payment, Payment, QAfterWhereClause> idBetween(
@@ -294,11 +276,10 @@ extension PaymentQueryWhere on QueryBuilder<Payment, Payment, QWhereClause> {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [lowerId],
+    return addWhereClauseInternal(IdWhereClause.between(
+      lower: lowerId,
       includeLower: includeLower,
-      upper: [upperId],
+      upper: upperId,
       includeUpper: includeUpper,
     ));
   }
@@ -1060,6 +1041,9 @@ extension PaymentQueryFilter
     ));
   }
 }
+
+extension PaymentQueryLinks
+    on QueryBuilder<Payment, Payment, QFilterCondition> {}
 
 extension PaymentQueryWhereSortBy on QueryBuilder<Payment, Payment, QSortBy> {
   QueryBuilder<Payment, Payment, QAfterSortBy> sortByAmount() {

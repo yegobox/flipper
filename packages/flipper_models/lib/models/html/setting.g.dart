@@ -6,20 +6,16 @@ part of 'setting.dart';
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable
 
 extension GetSettingCollection on Isar {
-  IsarCollection<Setting> get settings {
-    return getCollection('Setting');
-  }
+  IsarCollection<Setting> get settings => getCollection();
 }
 
-final SettingSchema = CollectionSchema(
+const SettingSchema = CollectionSchema(
   name: 'Setting',
   schema:
       '{"name":"Setting","idName":"id","properties":[{"name":"attendnaceDocCreated","type":"Bool"},{"name":"autoPrint","type":"Bool"},{"name":"defaultLanguage","type":"String"},{"name":"email","type":"String"},{"name":"googleSheetDocCreated","type":"Bool"},{"name":"hasPin","type":"String"},{"name":"isAttendanceEnabled","type":"Bool"},{"name":"openReceiptFileOSaleComplete","type":"Bool"},{"name":"sendDailyReport","type":"Bool"},{"name":"userId","type":"Long"}],"indexes":[],"links":[]}',
-  nativeAdapter: const _SettingNativeAdapter(),
-  webAdapter: const _SettingWebAdapter(),
   idName: 'id',
   propertyIds: {
     'attendnaceDocCreated': 0,
@@ -35,271 +31,257 @@ final SettingSchema = CollectionSchema(
   },
   listProperties: {},
   indexIds: {},
-  indexTypes: {},
+  indexValueTypes: {},
   linkIds: {},
-  backlinkIds: {},
-  linkedCollections: [],
-  getId: (obj) {
-    if (obj.id == Isar.autoIncrement) {
-      return null;
-    } else {
-      return obj.id;
-    }
-  },
-  setId: (obj, id) => obj.id = id,
-  getLinks: (obj) => [],
-  version: 2,
+  backlinkLinkNames: {},
+  getId: _settingGetId,
+  setId: _settingSetId,
+  getLinks: _settingGetLinks,
+  attachLinks: _settingAttachLinks,
+  serializeNative: _settingSerializeNative,
+  deserializeNative: _settingDeserializeNative,
+  deserializePropNative: _settingDeserializePropNative,
+  serializeWeb: _settingSerializeWeb,
+  deserializeWeb: _settingDeserializeWeb,
+  deserializePropWeb: _settingDeserializePropWeb,
+  version: 3,
 );
 
-class _SettingWebAdapter extends IsarWebTypeAdapter<Setting> {
-  const _SettingWebAdapter();
-
-  @override
-  Object serialize(IsarCollection<Setting> collection, Setting object) {
-    final jsObj = IsarNative.newJsObject();
-    IsarNative.jsObjectSet(
-        jsObj, 'attendnaceDocCreated', object.attendnaceDocCreated);
-    IsarNative.jsObjectSet(jsObj, 'autoPrint', object.autoPrint);
-    IsarNative.jsObjectSet(jsObj, 'defaultLanguage', object.defaultLanguage);
-    IsarNative.jsObjectSet(jsObj, 'email', object.email);
-    IsarNative.jsObjectSet(
-        jsObj, 'googleSheetDocCreated', object.googleSheetDocCreated);
-    IsarNative.jsObjectSet(jsObj, 'hasPin', object.hasPin);
-    IsarNative.jsObjectSet(jsObj, 'id', object.id);
-    IsarNative.jsObjectSet(
-        jsObj, 'isAttendanceEnabled', object.isAttendanceEnabled);
-    IsarNative.jsObjectSet(jsObj, 'openReceiptFileOSaleComplete',
-        object.openReceiptFileOSaleComplete);
-    IsarNative.jsObjectSet(jsObj, 'sendDailyReport', object.sendDailyReport);
-    IsarNative.jsObjectSet(jsObj, 'userId', object.userId);
-    return jsObj;
+int? _settingGetId(Setting object) {
+  if (object.id == Isar.autoIncrement) {
+    return null;
+  } else {
+    return object.id;
   }
-
-  @override
-  Setting deserialize(IsarCollection<Setting> collection, dynamic jsObj) {
-    final object = Setting(
-      attendnaceDocCreated:
-          IsarNative.jsObjectGet(jsObj, 'attendnaceDocCreated'),
-      autoPrint: IsarNative.jsObjectGet(jsObj, 'autoPrint'),
-      defaultLanguage: IsarNative.jsObjectGet(jsObj, 'defaultLanguage'),
-      email: IsarNative.jsObjectGet(jsObj, 'email') ?? '',
-      googleSheetDocCreated:
-          IsarNative.jsObjectGet(jsObj, 'googleSheetDocCreated'),
-      hasPin: IsarNative.jsObjectGet(jsObj, 'hasPin') ?? '',
-      id: IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity,
-      isAttendanceEnabled: IsarNative.jsObjectGet(jsObj, 'isAttendanceEnabled'),
-      openReceiptFileOSaleComplete:
-          IsarNative.jsObjectGet(jsObj, 'openReceiptFileOSaleComplete'),
-      sendDailyReport: IsarNative.jsObjectGet(jsObj, 'sendDailyReport'),
-      userId:
-          IsarNative.jsObjectGet(jsObj, 'userId') ?? double.negativeInfinity,
-    );
-    return object;
-  }
-
-  @override
-  P deserializeProperty<P>(Object jsObj, String propertyName) {
-    switch (propertyName) {
-      case 'attendnaceDocCreated':
-        return (IsarNative.jsObjectGet(jsObj, 'attendnaceDocCreated')) as P;
-      case 'autoPrint':
-        return (IsarNative.jsObjectGet(jsObj, 'autoPrint')) as P;
-      case 'defaultLanguage':
-        return (IsarNative.jsObjectGet(jsObj, 'defaultLanguage')) as P;
-      case 'email':
-        return (IsarNative.jsObjectGet(jsObj, 'email') ?? '') as P;
-      case 'googleSheetDocCreated':
-        return (IsarNative.jsObjectGet(jsObj, 'googleSheetDocCreated')) as P;
-      case 'hasPin':
-        return (IsarNative.jsObjectGet(jsObj, 'hasPin') ?? '') as P;
-      case 'id':
-        return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
-            as P;
-      case 'isAttendanceEnabled':
-        return (IsarNative.jsObjectGet(jsObj, 'isAttendanceEnabled')) as P;
-      case 'openReceiptFileOSaleComplete':
-        return (IsarNative.jsObjectGet(jsObj, 'openReceiptFileOSaleComplete'))
-            as P;
-      case 'sendDailyReport':
-        return (IsarNative.jsObjectGet(jsObj, 'sendDailyReport')) as P;
-      case 'userId':
-        return (IsarNative.jsObjectGet(jsObj, 'userId') ??
-            double.negativeInfinity) as P;
-      default:
-        throw 'Illegal propertyName';
-    }
-  }
-
-  @override
-  void attachLinks(Isar isar, int id, Setting object) {}
 }
 
-class _SettingNativeAdapter extends IsarNativeTypeAdapter<Setting> {
-  const _SettingNativeAdapter();
-
-  @override
-  void serialize(IsarCollection<Setting> collection, IsarRawObject rawObj,
-      Setting object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
-    var dynamicSize = 0;
-    final value0 = object.attendnaceDocCreated;
-    final _attendnaceDocCreated = value0;
-    final value1 = object.autoPrint;
-    final _autoPrint = value1;
-    final value2 = object.defaultLanguage;
-    IsarUint8List? _defaultLanguage;
-    if (value2 != null) {
-      _defaultLanguage = IsarBinaryWriter.utf8Encoder.convert(value2);
-    }
-    dynamicSize += (_defaultLanguage?.length ?? 0) as int;
-    final value3 = object.email;
-    final _email = IsarBinaryWriter.utf8Encoder.convert(value3);
-    dynamicSize += (_email.length) as int;
-    final value4 = object.googleSheetDocCreated;
-    final _googleSheetDocCreated = value4;
-    final value5 = object.hasPin;
-    final _hasPin = IsarBinaryWriter.utf8Encoder.convert(value5);
-    dynamicSize += (_hasPin.length) as int;
-    final value6 = object.isAttendanceEnabled;
-    final _isAttendanceEnabled = value6;
-    final value7 = object.openReceiptFileOSaleComplete;
-    final _openReceiptFileOSaleComplete = value7;
-    final value8 = object.sendDailyReport;
-    final _sendDailyReport = value8;
-    final value9 = object.userId;
-    final _userId = value9;
-    final size = staticSize + dynamicSize;
-
-    rawObj.buffer = alloc(size);
-    rawObj.buffer_length = size;
-    final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
-    final writer = IsarBinaryWriter(buffer, staticSize);
-    writer.writeBool(offsets[0], _attendnaceDocCreated);
-    writer.writeBool(offsets[1], _autoPrint);
-    writer.writeBytes(offsets[2], _defaultLanguage);
-    writer.writeBytes(offsets[3], _email);
-    writer.writeBool(offsets[4], _googleSheetDocCreated);
-    writer.writeBytes(offsets[5], _hasPin);
-    writer.writeBool(offsets[6], _isAttendanceEnabled);
-    writer.writeBool(offsets[7], _openReceiptFileOSaleComplete);
-    writer.writeBool(offsets[8], _sendDailyReport);
-    writer.writeLong(offsets[9], _userId);
-  }
-
-  @override
-  Setting deserialize(IsarCollection<Setting> collection, int id,
-      IsarBinaryReader reader, List<int> offsets) {
-    final object = Setting(
-      attendnaceDocCreated: reader.readBoolOrNull(offsets[0]),
-      autoPrint: reader.readBoolOrNull(offsets[1]),
-      defaultLanguage: reader.readStringOrNull(offsets[2]),
-      email: reader.readString(offsets[3]),
-      googleSheetDocCreated: reader.readBoolOrNull(offsets[4]),
-      hasPin: reader.readString(offsets[5]),
-      id: id,
-      isAttendanceEnabled: reader.readBoolOrNull(offsets[6]),
-      openReceiptFileOSaleComplete: reader.readBoolOrNull(offsets[7]),
-      sendDailyReport: reader.readBoolOrNull(offsets[8]),
-      userId: reader.readLong(offsets[9]),
-    );
-    return object;
-  }
-
-  @override
-  P deserializeProperty<P>(
-      int id, IsarBinaryReader reader, int propertyIndex, int offset) {
-    switch (propertyIndex) {
-      case -1:
-        return id as P;
-      case 0:
-        return (reader.readBoolOrNull(offset)) as P;
-      case 1:
-        return (reader.readBoolOrNull(offset)) as P;
-      case 2:
-        return (reader.readStringOrNull(offset)) as P;
-      case 3:
-        return (reader.readString(offset)) as P;
-      case 4:
-        return (reader.readBoolOrNull(offset)) as P;
-      case 5:
-        return (reader.readString(offset)) as P;
-      case 6:
-        return (reader.readBoolOrNull(offset)) as P;
-      case 7:
-        return (reader.readBoolOrNull(offset)) as P;
-      case 8:
-        return (reader.readBoolOrNull(offset)) as P;
-      case 9:
-        return (reader.readLong(offset)) as P;
-      default:
-        throw 'Illegal propertyIndex';
-    }
-  }
-
-  @override
-  void attachLinks(Isar isar, int id, Setting object) {}
+void _settingSetId(Setting object, int id) {
+  object.id = id;
 }
+
+List<IsarLinkBase> _settingGetLinks(Setting object) {
+  return [];
+}
+
+void _settingSerializeNative(
+    IsarCollection<Setting> collection,
+    IsarRawObject rawObj,
+    Setting object,
+    int staticSize,
+    List<int> offsets,
+    AdapterAlloc alloc) {
+  var dynamicSize = 0;
+  final value0 = object.attendnaceDocCreated;
+  final _attendnaceDocCreated = value0;
+  final value1 = object.autoPrint;
+  final _autoPrint = value1;
+  final value2 = object.defaultLanguage;
+  IsarUint8List? _defaultLanguage;
+  if (value2 != null) {
+    _defaultLanguage = IsarBinaryWriter.utf8Encoder.convert(value2);
+  }
+  dynamicSize += (_defaultLanguage?.length ?? 0) as int;
+  final value3 = object.email;
+  final _email = IsarBinaryWriter.utf8Encoder.convert(value3);
+  dynamicSize += (_email.length) as int;
+  final value4 = object.googleSheetDocCreated;
+  final _googleSheetDocCreated = value4;
+  final value5 = object.hasPin;
+  final _hasPin = IsarBinaryWriter.utf8Encoder.convert(value5);
+  dynamicSize += (_hasPin.length) as int;
+  final value6 = object.isAttendanceEnabled;
+  final _isAttendanceEnabled = value6;
+  final value7 = object.openReceiptFileOSaleComplete;
+  final _openReceiptFileOSaleComplete = value7;
+  final value8 = object.sendDailyReport;
+  final _sendDailyReport = value8;
+  final value9 = object.userId;
+  final _userId = value9;
+  final size = staticSize + dynamicSize;
+
+  rawObj.buffer = alloc(size);
+  rawObj.buffer_length = size;
+  final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
+  final writer = IsarBinaryWriter(buffer, staticSize);
+  writer.writeBool(offsets[0], _attendnaceDocCreated);
+  writer.writeBool(offsets[1], _autoPrint);
+  writer.writeBytes(offsets[2], _defaultLanguage);
+  writer.writeBytes(offsets[3], _email);
+  writer.writeBool(offsets[4], _googleSheetDocCreated);
+  writer.writeBytes(offsets[5], _hasPin);
+  writer.writeBool(offsets[6], _isAttendanceEnabled);
+  writer.writeBool(offsets[7], _openReceiptFileOSaleComplete);
+  writer.writeBool(offsets[8], _sendDailyReport);
+  writer.writeLong(offsets[9], _userId);
+}
+
+Setting _settingDeserializeNative(IsarCollection<Setting> collection, int id,
+    IsarBinaryReader reader, List<int> offsets) {
+  final object = Setting(
+    attendnaceDocCreated: reader.readBoolOrNull(offsets[0]),
+    autoPrint: reader.readBoolOrNull(offsets[1]),
+    defaultLanguage: reader.readStringOrNull(offsets[2]),
+    email: reader.readString(offsets[3]),
+    googleSheetDocCreated: reader.readBoolOrNull(offsets[4]),
+    hasPin: reader.readString(offsets[5]),
+    id: id,
+    isAttendanceEnabled: reader.readBoolOrNull(offsets[6]),
+    openReceiptFileOSaleComplete: reader.readBoolOrNull(offsets[7]),
+    sendDailyReport: reader.readBoolOrNull(offsets[8]),
+    userId: reader.readLong(offsets[9]),
+  );
+  return object;
+}
+
+P _settingDeserializePropNative<P>(
+    int id, IsarBinaryReader reader, int propertyIndex, int offset) {
+  switch (propertyIndex) {
+    case -1:
+      return id as P;
+    case 0:
+      return (reader.readBoolOrNull(offset)) as P;
+    case 1:
+      return (reader.readBoolOrNull(offset)) as P;
+    case 2:
+      return (reader.readStringOrNull(offset)) as P;
+    case 3:
+      return (reader.readString(offset)) as P;
+    case 4:
+      return (reader.readBoolOrNull(offset)) as P;
+    case 5:
+      return (reader.readString(offset)) as P;
+    case 6:
+      return (reader.readBoolOrNull(offset)) as P;
+    case 7:
+      return (reader.readBoolOrNull(offset)) as P;
+    case 8:
+      return (reader.readBoolOrNull(offset)) as P;
+    case 9:
+      return (reader.readLong(offset)) as P;
+    default:
+      throw 'Illegal propertyIndex';
+  }
+}
+
+dynamic _settingSerializeWeb(
+    IsarCollection<Setting> collection, Setting object) {
+  final jsObj = IsarNative.newJsObject();
+  IsarNative.jsObjectSet(
+      jsObj, 'attendnaceDocCreated', object.attendnaceDocCreated);
+  IsarNative.jsObjectSet(jsObj, 'autoPrint', object.autoPrint);
+  IsarNative.jsObjectSet(jsObj, 'defaultLanguage', object.defaultLanguage);
+  IsarNative.jsObjectSet(jsObj, 'email', object.email);
+  IsarNative.jsObjectSet(
+      jsObj, 'googleSheetDocCreated', object.googleSheetDocCreated);
+  IsarNative.jsObjectSet(jsObj, 'hasPin', object.hasPin);
+  IsarNative.jsObjectSet(jsObj, 'id', object.id);
+  IsarNative.jsObjectSet(
+      jsObj, 'isAttendanceEnabled', object.isAttendanceEnabled);
+  IsarNative.jsObjectSet(jsObj, 'openReceiptFileOSaleComplete',
+      object.openReceiptFileOSaleComplete);
+  IsarNative.jsObjectSet(jsObj, 'sendDailyReport', object.sendDailyReport);
+  IsarNative.jsObjectSet(jsObj, 'userId', object.userId);
+  return jsObj;
+}
+
+Setting _settingDeserializeWeb(
+    IsarCollection<Setting> collection, dynamic jsObj) {
+  final object = Setting(
+    attendnaceDocCreated: IsarNative.jsObjectGet(jsObj, 'attendnaceDocCreated'),
+    autoPrint: IsarNative.jsObjectGet(jsObj, 'autoPrint'),
+    defaultLanguage: IsarNative.jsObjectGet(jsObj, 'defaultLanguage'),
+    email: IsarNative.jsObjectGet(jsObj, 'email') ?? '',
+    googleSheetDocCreated:
+        IsarNative.jsObjectGet(jsObj, 'googleSheetDocCreated'),
+    hasPin: IsarNative.jsObjectGet(jsObj, 'hasPin') ?? '',
+    id: IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity,
+    isAttendanceEnabled: IsarNative.jsObjectGet(jsObj, 'isAttendanceEnabled'),
+    openReceiptFileOSaleComplete:
+        IsarNative.jsObjectGet(jsObj, 'openReceiptFileOSaleComplete'),
+    sendDailyReport: IsarNative.jsObjectGet(jsObj, 'sendDailyReport'),
+    userId: IsarNative.jsObjectGet(jsObj, 'userId') ?? double.negativeInfinity,
+  );
+  return object;
+}
+
+P _settingDeserializePropWeb<P>(Object jsObj, String propertyName) {
+  switch (propertyName) {
+    case 'attendnaceDocCreated':
+      return (IsarNative.jsObjectGet(jsObj, 'attendnaceDocCreated')) as P;
+    case 'autoPrint':
+      return (IsarNative.jsObjectGet(jsObj, 'autoPrint')) as P;
+    case 'defaultLanguage':
+      return (IsarNative.jsObjectGet(jsObj, 'defaultLanguage')) as P;
+    case 'email':
+      return (IsarNative.jsObjectGet(jsObj, 'email') ?? '') as P;
+    case 'googleSheetDocCreated':
+      return (IsarNative.jsObjectGet(jsObj, 'googleSheetDocCreated')) as P;
+    case 'hasPin':
+      return (IsarNative.jsObjectGet(jsObj, 'hasPin') ?? '') as P;
+    case 'id':
+      return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
+          as P;
+    case 'isAttendanceEnabled':
+      return (IsarNative.jsObjectGet(jsObj, 'isAttendanceEnabled')) as P;
+    case 'openReceiptFileOSaleComplete':
+      return (IsarNative.jsObjectGet(jsObj, 'openReceiptFileOSaleComplete'))
+          as P;
+    case 'sendDailyReport':
+      return (IsarNative.jsObjectGet(jsObj, 'sendDailyReport')) as P;
+    case 'userId':
+      return (IsarNative.jsObjectGet(jsObj, 'userId') ??
+          double.negativeInfinity) as P;
+    default:
+      throw 'Illegal propertyName';
+  }
+}
+
+void _settingAttachLinks(IsarCollection col, int id, Setting object) {}
 
 extension SettingQueryWhereSort on QueryBuilder<Setting, Setting, QWhere> {
   QueryBuilder<Setting, Setting, QAfterWhere> anyId() {
-    return addWhereClauseInternal(const WhereClause(indexName: null));
+    return addWhereClauseInternal(const IdWhereClause.any());
   }
 }
 
 extension SettingQueryWhere on QueryBuilder<Setting, Setting, QWhereClause> {
   QueryBuilder<Setting, Setting, QAfterWhereClause> idEqualTo(int id) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [id],
+    return addWhereClauseInternal(IdWhereClause.between(
+      lower: id,
       includeLower: true,
-      upper: [id],
+      upper: id,
       includeUpper: true,
     ));
   }
 
   QueryBuilder<Setting, Setting, QAfterWhereClause> idNotEqualTo(int id) {
     if (whereSortInternal == Sort.asc) {
-      return addWhereClauseInternal(WhereClause(
-        indexName: null,
-        upper: [id],
-        includeUpper: false,
-      )).addWhereClauseInternal(WhereClause(
-        indexName: null,
-        lower: [id],
-        includeLower: false,
-      ));
+      return addWhereClauseInternal(
+        IdWhereClause.lessThan(upper: id, includeUpper: false),
+      ).addWhereClauseInternal(
+        IdWhereClause.greaterThan(lower: id, includeLower: false),
+      );
     } else {
-      return addWhereClauseInternal(WhereClause(
-        indexName: null,
-        lower: [id],
-        includeLower: false,
-      )).addWhereClauseInternal(WhereClause(
-        indexName: null,
-        upper: [id],
-        includeUpper: false,
-      ));
+      return addWhereClauseInternal(
+        IdWhereClause.greaterThan(lower: id, includeLower: false),
+      ).addWhereClauseInternal(
+        IdWhereClause.lessThan(upper: id, includeUpper: false),
+      );
     }
   }
 
-  QueryBuilder<Setting, Setting, QAfterWhereClause> idGreaterThan(
-    int id, {
-    bool include = false,
-  }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [id],
-      includeLower: include,
-    ));
+  QueryBuilder<Setting, Setting, QAfterWhereClause> idGreaterThan(int id,
+      {bool include = false}) {
+    return addWhereClauseInternal(
+      IdWhereClause.greaterThan(lower: id, includeLower: include),
+    );
   }
 
-  QueryBuilder<Setting, Setting, QAfterWhereClause> idLessThan(
-    int id, {
-    bool include = false,
-  }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      upper: [id],
-      includeUpper: include,
-    ));
+  QueryBuilder<Setting, Setting, QAfterWhereClause> idLessThan(int id,
+      {bool include = false}) {
+    return addWhereClauseInternal(
+      IdWhereClause.lessThan(upper: id, includeUpper: include),
+    );
   }
 
   QueryBuilder<Setting, Setting, QAfterWhereClause> idBetween(
@@ -308,11 +290,10 @@ extension SettingQueryWhere on QueryBuilder<Setting, Setting, QWhereClause> {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [lowerId],
+    return addWhereClauseInternal(IdWhereClause.between(
+      lower: lowerId,
       includeLower: includeLower,
-      upper: [upperId],
+      upper: upperId,
       includeUpper: includeUpper,
     ));
   }
@@ -842,6 +823,9 @@ extension SettingQueryFilter
     ));
   }
 }
+
+extension SettingQueryLinks
+    on QueryBuilder<Setting, Setting, QFilterCondition> {}
 
 extension SettingQueryWhereSortBy on QueryBuilder<Setting, Setting, QSortBy> {
   QueryBuilder<Setting, Setting, QAfterSortBy> sortByAttendnaceDocCreated() {

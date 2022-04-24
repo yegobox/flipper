@@ -6,20 +6,16 @@ part of 'customer.dart';
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable
 
 extension GetCustomerCollection on Isar {
-  IsarCollection<Customer> get customers {
-    return getCollection('Customer');
-  }
+  IsarCollection<Customer> get customers => getCollection();
 }
 
-final CustomerSchema = CollectionSchema(
+const CustomerSchema = CollectionSchema(
   name: 'Customer',
   schema:
       '{"name":"Customer","idName":"id","properties":[{"name":"address","type":"String"},{"name":"branchId","type":"Long"},{"name":"email","type":"String"},{"name":"name","type":"String"},{"name":"orderId","type":"Long"},{"name":"phone","type":"String"},{"name":"updatedAt","type":"String"}],"indexes":[],"links":[]}',
-  nativeAdapter: const _CustomerNativeAdapter(),
-  webAdapter: const _CustomerWebAdapter(),
   idName: 'id',
   propertyIds: {
     'address': 0,
@@ -32,238 +28,226 @@ final CustomerSchema = CollectionSchema(
   },
   listProperties: {},
   indexIds: {},
-  indexTypes: {},
+  indexValueTypes: {},
   linkIds: {},
-  backlinkIds: {},
-  linkedCollections: [],
-  getId: (obj) {
-    if (obj.id == Isar.autoIncrement) {
-      return null;
-    } else {
-      return obj.id;
-    }
-  },
-  setId: (obj, id) => obj.id = id,
-  getLinks: (obj) => [],
-  version: 2,
+  backlinkLinkNames: {},
+  getId: _customerGetId,
+  setId: _customerSetId,
+  getLinks: _customerGetLinks,
+  attachLinks: _customerAttachLinks,
+  serializeNative: _customerSerializeNative,
+  deserializeNative: _customerDeserializeNative,
+  deserializePropNative: _customerDeserializePropNative,
+  serializeWeb: _customerSerializeWeb,
+  deserializeWeb: _customerDeserializeWeb,
+  deserializePropWeb: _customerDeserializePropWeb,
+  version: 3,
 );
 
-class _CustomerWebAdapter extends IsarWebTypeAdapter<Customer> {
-  const _CustomerWebAdapter();
-
-  @override
-  Object serialize(IsarCollection<Customer> collection, Customer object) {
-    final jsObj = IsarNative.newJsObject();
-    IsarNative.jsObjectSet(jsObj, 'address', object.address);
-    IsarNative.jsObjectSet(jsObj, 'branchId', object.branchId);
-    IsarNative.jsObjectSet(jsObj, 'email', object.email);
-    IsarNative.jsObjectSet(jsObj, 'id', object.id);
-    IsarNative.jsObjectSet(jsObj, 'name', object.name);
-    IsarNative.jsObjectSet(jsObj, 'orderId', object.orderId);
-    IsarNative.jsObjectSet(jsObj, 'phone', object.phone);
-    IsarNative.jsObjectSet(jsObj, 'updatedAt', object.updatedAt);
-    return jsObj;
+int? _customerGetId(Customer object) {
+  if (object.id == Isar.autoIncrement) {
+    return null;
+  } else {
+    return object.id;
   }
-
-  @override
-  Customer deserialize(IsarCollection<Customer> collection, dynamic jsObj) {
-    final object = Customer();
-    object.address = IsarNative.jsObjectGet(jsObj, 'address');
-    object.branchId =
-        IsarNative.jsObjectGet(jsObj, 'branchId') ?? double.negativeInfinity;
-    object.email = IsarNative.jsObjectGet(jsObj, 'email') ?? '';
-    object.id = IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity;
-    object.name = IsarNative.jsObjectGet(jsObj, 'name') ?? '';
-    object.orderId =
-        IsarNative.jsObjectGet(jsObj, 'orderId') ?? double.negativeInfinity;
-    object.phone = IsarNative.jsObjectGet(jsObj, 'phone') ?? '';
-    object.updatedAt = IsarNative.jsObjectGet(jsObj, 'updatedAt');
-    return object;
-  }
-
-  @override
-  P deserializeProperty<P>(Object jsObj, String propertyName) {
-    switch (propertyName) {
-      case 'address':
-        return (IsarNative.jsObjectGet(jsObj, 'address')) as P;
-      case 'branchId':
-        return (IsarNative.jsObjectGet(jsObj, 'branchId') ??
-            double.negativeInfinity) as P;
-      case 'email':
-        return (IsarNative.jsObjectGet(jsObj, 'email') ?? '') as P;
-      case 'id':
-        return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
-            as P;
-      case 'name':
-        return (IsarNative.jsObjectGet(jsObj, 'name') ?? '') as P;
-      case 'orderId':
-        return (IsarNative.jsObjectGet(jsObj, 'orderId') ??
-            double.negativeInfinity) as P;
-      case 'phone':
-        return (IsarNative.jsObjectGet(jsObj, 'phone') ?? '') as P;
-      case 'updatedAt':
-        return (IsarNative.jsObjectGet(jsObj, 'updatedAt')) as P;
-      default:
-        throw 'Illegal propertyName';
-    }
-  }
-
-  @override
-  void attachLinks(Isar isar, int id, Customer object) {}
 }
 
-class _CustomerNativeAdapter extends IsarNativeTypeAdapter<Customer> {
-  const _CustomerNativeAdapter();
-
-  @override
-  void serialize(IsarCollection<Customer> collection, IsarRawObject rawObj,
-      Customer object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
-    var dynamicSize = 0;
-    final value0 = object.address;
-    IsarUint8List? _address;
-    if (value0 != null) {
-      _address = IsarBinaryWriter.utf8Encoder.convert(value0);
-    }
-    dynamicSize += (_address?.length ?? 0) as int;
-    final value1 = object.branchId;
-    final _branchId = value1;
-    final value2 = object.email;
-    final _email = IsarBinaryWriter.utf8Encoder.convert(value2);
-    dynamicSize += (_email.length) as int;
-    final value3 = object.name;
-    final _name = IsarBinaryWriter.utf8Encoder.convert(value3);
-    dynamicSize += (_name.length) as int;
-    final value4 = object.orderId;
-    final _orderId = value4;
-    final value5 = object.phone;
-    final _phone = IsarBinaryWriter.utf8Encoder.convert(value5);
-    dynamicSize += (_phone.length) as int;
-    final value6 = object.updatedAt;
-    IsarUint8List? _updatedAt;
-    if (value6 != null) {
-      _updatedAt = IsarBinaryWriter.utf8Encoder.convert(value6);
-    }
-    dynamicSize += (_updatedAt?.length ?? 0) as int;
-    final size = staticSize + dynamicSize;
-
-    rawObj.buffer = alloc(size);
-    rawObj.buffer_length = size;
-    final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
-    final writer = IsarBinaryWriter(buffer, staticSize);
-    writer.writeBytes(offsets[0], _address);
-    writer.writeLong(offsets[1], _branchId);
-    writer.writeBytes(offsets[2], _email);
-    writer.writeBytes(offsets[3], _name);
-    writer.writeLong(offsets[4], _orderId);
-    writer.writeBytes(offsets[5], _phone);
-    writer.writeBytes(offsets[6], _updatedAt);
-  }
-
-  @override
-  Customer deserialize(IsarCollection<Customer> collection, int id,
-      IsarBinaryReader reader, List<int> offsets) {
-    final object = Customer();
-    object.address = reader.readStringOrNull(offsets[0]);
-    object.branchId = reader.readLong(offsets[1]);
-    object.email = reader.readString(offsets[2]);
-    object.id = id;
-    object.name = reader.readString(offsets[3]);
-    object.orderId = reader.readLong(offsets[4]);
-    object.phone = reader.readString(offsets[5]);
-    object.updatedAt = reader.readStringOrNull(offsets[6]);
-    return object;
-  }
-
-  @override
-  P deserializeProperty<P>(
-      int id, IsarBinaryReader reader, int propertyIndex, int offset) {
-    switch (propertyIndex) {
-      case -1:
-        return id as P;
-      case 0:
-        return (reader.readStringOrNull(offset)) as P;
-      case 1:
-        return (reader.readLong(offset)) as P;
-      case 2:
-        return (reader.readString(offset)) as P;
-      case 3:
-        return (reader.readString(offset)) as P;
-      case 4:
-        return (reader.readLong(offset)) as P;
-      case 5:
-        return (reader.readString(offset)) as P;
-      case 6:
-        return (reader.readStringOrNull(offset)) as P;
-      default:
-        throw 'Illegal propertyIndex';
-    }
-  }
-
-  @override
-  void attachLinks(Isar isar, int id, Customer object) {}
+void _customerSetId(Customer object, int id) {
+  object.id = id;
 }
+
+List<IsarLinkBase> _customerGetLinks(Customer object) {
+  return [];
+}
+
+void _customerSerializeNative(
+    IsarCollection<Customer> collection,
+    IsarRawObject rawObj,
+    Customer object,
+    int staticSize,
+    List<int> offsets,
+    AdapterAlloc alloc) {
+  var dynamicSize = 0;
+  final value0 = object.address;
+  IsarUint8List? _address;
+  if (value0 != null) {
+    _address = IsarBinaryWriter.utf8Encoder.convert(value0);
+  }
+  dynamicSize += (_address?.length ?? 0) as int;
+  final value1 = object.branchId;
+  final _branchId = value1;
+  final value2 = object.email;
+  final _email = IsarBinaryWriter.utf8Encoder.convert(value2);
+  dynamicSize += (_email.length) as int;
+  final value3 = object.name;
+  final _name = IsarBinaryWriter.utf8Encoder.convert(value3);
+  dynamicSize += (_name.length) as int;
+  final value4 = object.orderId;
+  final _orderId = value4;
+  final value5 = object.phone;
+  final _phone = IsarBinaryWriter.utf8Encoder.convert(value5);
+  dynamicSize += (_phone.length) as int;
+  final value6 = object.updatedAt;
+  IsarUint8List? _updatedAt;
+  if (value6 != null) {
+    _updatedAt = IsarBinaryWriter.utf8Encoder.convert(value6);
+  }
+  dynamicSize += (_updatedAt?.length ?? 0) as int;
+  final size = staticSize + dynamicSize;
+
+  rawObj.buffer = alloc(size);
+  rawObj.buffer_length = size;
+  final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
+  final writer = IsarBinaryWriter(buffer, staticSize);
+  writer.writeBytes(offsets[0], _address);
+  writer.writeLong(offsets[1], _branchId);
+  writer.writeBytes(offsets[2], _email);
+  writer.writeBytes(offsets[3], _name);
+  writer.writeLong(offsets[4], _orderId);
+  writer.writeBytes(offsets[5], _phone);
+  writer.writeBytes(offsets[6], _updatedAt);
+}
+
+Customer _customerDeserializeNative(IsarCollection<Customer> collection, int id,
+    IsarBinaryReader reader, List<int> offsets) {
+  final object = Customer();
+  object.address = reader.readStringOrNull(offsets[0]);
+  object.branchId = reader.readLong(offsets[1]);
+  object.email = reader.readString(offsets[2]);
+  object.id = id;
+  object.name = reader.readString(offsets[3]);
+  object.orderId = reader.readLong(offsets[4]);
+  object.phone = reader.readString(offsets[5]);
+  object.updatedAt = reader.readStringOrNull(offsets[6]);
+  return object;
+}
+
+P _customerDeserializePropNative<P>(
+    int id, IsarBinaryReader reader, int propertyIndex, int offset) {
+  switch (propertyIndex) {
+    case -1:
+      return id as P;
+    case 0:
+      return (reader.readStringOrNull(offset)) as P;
+    case 1:
+      return (reader.readLong(offset)) as P;
+    case 2:
+      return (reader.readString(offset)) as P;
+    case 3:
+      return (reader.readString(offset)) as P;
+    case 4:
+      return (reader.readLong(offset)) as P;
+    case 5:
+      return (reader.readString(offset)) as P;
+    case 6:
+      return (reader.readStringOrNull(offset)) as P;
+    default:
+      throw 'Illegal propertyIndex';
+  }
+}
+
+dynamic _customerSerializeWeb(
+    IsarCollection<Customer> collection, Customer object) {
+  final jsObj = IsarNative.newJsObject();
+  IsarNative.jsObjectSet(jsObj, 'address', object.address);
+  IsarNative.jsObjectSet(jsObj, 'branchId', object.branchId);
+  IsarNative.jsObjectSet(jsObj, 'email', object.email);
+  IsarNative.jsObjectSet(jsObj, 'id', object.id);
+  IsarNative.jsObjectSet(jsObj, 'name', object.name);
+  IsarNative.jsObjectSet(jsObj, 'orderId', object.orderId);
+  IsarNative.jsObjectSet(jsObj, 'phone', object.phone);
+  IsarNative.jsObjectSet(jsObj, 'updatedAt', object.updatedAt);
+  return jsObj;
+}
+
+Customer _customerDeserializeWeb(
+    IsarCollection<Customer> collection, dynamic jsObj) {
+  final object = Customer();
+  object.address = IsarNative.jsObjectGet(jsObj, 'address');
+  object.branchId =
+      IsarNative.jsObjectGet(jsObj, 'branchId') ?? double.negativeInfinity;
+  object.email = IsarNative.jsObjectGet(jsObj, 'email') ?? '';
+  object.id = IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity;
+  object.name = IsarNative.jsObjectGet(jsObj, 'name') ?? '';
+  object.orderId =
+      IsarNative.jsObjectGet(jsObj, 'orderId') ?? double.negativeInfinity;
+  object.phone = IsarNative.jsObjectGet(jsObj, 'phone') ?? '';
+  object.updatedAt = IsarNative.jsObjectGet(jsObj, 'updatedAt');
+  return object;
+}
+
+P _customerDeserializePropWeb<P>(Object jsObj, String propertyName) {
+  switch (propertyName) {
+    case 'address':
+      return (IsarNative.jsObjectGet(jsObj, 'address')) as P;
+    case 'branchId':
+      return (IsarNative.jsObjectGet(jsObj, 'branchId') ??
+          double.negativeInfinity) as P;
+    case 'email':
+      return (IsarNative.jsObjectGet(jsObj, 'email') ?? '') as P;
+    case 'id':
+      return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
+          as P;
+    case 'name':
+      return (IsarNative.jsObjectGet(jsObj, 'name') ?? '') as P;
+    case 'orderId':
+      return (IsarNative.jsObjectGet(jsObj, 'orderId') ??
+          double.negativeInfinity) as P;
+    case 'phone':
+      return (IsarNative.jsObjectGet(jsObj, 'phone') ?? '') as P;
+    case 'updatedAt':
+      return (IsarNative.jsObjectGet(jsObj, 'updatedAt')) as P;
+    default:
+      throw 'Illegal propertyName';
+  }
+}
+
+void _customerAttachLinks(IsarCollection col, int id, Customer object) {}
 
 extension CustomerQueryWhereSort on QueryBuilder<Customer, Customer, QWhere> {
   QueryBuilder<Customer, Customer, QAfterWhere> anyId() {
-    return addWhereClauseInternal(const WhereClause(indexName: null));
+    return addWhereClauseInternal(const IdWhereClause.any());
   }
 }
 
 extension CustomerQueryWhere on QueryBuilder<Customer, Customer, QWhereClause> {
   QueryBuilder<Customer, Customer, QAfterWhereClause> idEqualTo(int id) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [id],
+    return addWhereClauseInternal(IdWhereClause.between(
+      lower: id,
       includeLower: true,
-      upper: [id],
+      upper: id,
       includeUpper: true,
     ));
   }
 
   QueryBuilder<Customer, Customer, QAfterWhereClause> idNotEqualTo(int id) {
     if (whereSortInternal == Sort.asc) {
-      return addWhereClauseInternal(WhereClause(
-        indexName: null,
-        upper: [id],
-        includeUpper: false,
-      )).addWhereClauseInternal(WhereClause(
-        indexName: null,
-        lower: [id],
-        includeLower: false,
-      ));
+      return addWhereClauseInternal(
+        IdWhereClause.lessThan(upper: id, includeUpper: false),
+      ).addWhereClauseInternal(
+        IdWhereClause.greaterThan(lower: id, includeLower: false),
+      );
     } else {
-      return addWhereClauseInternal(WhereClause(
-        indexName: null,
-        lower: [id],
-        includeLower: false,
-      )).addWhereClauseInternal(WhereClause(
-        indexName: null,
-        upper: [id],
-        includeUpper: false,
-      ));
+      return addWhereClauseInternal(
+        IdWhereClause.greaterThan(lower: id, includeLower: false),
+      ).addWhereClauseInternal(
+        IdWhereClause.lessThan(upper: id, includeUpper: false),
+      );
     }
   }
 
-  QueryBuilder<Customer, Customer, QAfterWhereClause> idGreaterThan(
-    int id, {
-    bool include = false,
-  }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [id],
-      includeLower: include,
-    ));
+  QueryBuilder<Customer, Customer, QAfterWhereClause> idGreaterThan(int id,
+      {bool include = false}) {
+    return addWhereClauseInternal(
+      IdWhereClause.greaterThan(lower: id, includeLower: include),
+    );
   }
 
-  QueryBuilder<Customer, Customer, QAfterWhereClause> idLessThan(
-    int id, {
-    bool include = false,
-  }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      upper: [id],
-      includeUpper: include,
-    ));
+  QueryBuilder<Customer, Customer, QAfterWhereClause> idLessThan(int id,
+      {bool include = false}) {
+    return addWhereClauseInternal(
+      IdWhereClause.lessThan(upper: id, includeUpper: include),
+    );
   }
 
   QueryBuilder<Customer, Customer, QAfterWhereClause> idBetween(
@@ -272,11 +256,10 @@ extension CustomerQueryWhere on QueryBuilder<Customer, Customer, QWhereClause> {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [lowerId],
+    return addWhereClauseInternal(IdWhereClause.between(
+      lower: lowerId,
       includeLower: includeLower,
-      upper: [upperId],
+      upper: upperId,
       includeUpper: includeUpper,
     ));
   }
@@ -958,6 +941,9 @@ extension CustomerQueryFilter
     ));
   }
 }
+
+extension CustomerQueryLinks
+    on QueryBuilder<Customer, Customer, QFilterCondition> {}
 
 extension CustomerQueryWhereSortBy
     on QueryBuilder<Customer, Customer, QSortBy> {

@@ -6,20 +6,16 @@ part of flipper_models;
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable
 
 extension GetPColorCollection on Isar {
-  IsarCollection<PColor> get pColors {
-    return getCollection('PColor');
-  }
+  IsarCollection<PColor> get pColors => getCollection();
 }
 
-final PColorSchema = CollectionSchema(
+const PColorSchema = CollectionSchema(
   name: 'PColor',
   schema:
       '{"name":"PColor","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"channels","type":"StringList"},{"name":"colors","type":"StringList"},{"name":"name","type":"String"},{"name":"table","type":"String"}],"indexes":[],"links":[]}',
-  nativeAdapter: const _PColorNativeAdapter(),
-  webAdapter: const _PColorWebAdapter(),
   idName: 'id',
   propertyIds: {
     'active': 0,
@@ -31,253 +27,239 @@ final PColorSchema = CollectionSchema(
   },
   listProperties: {'channels', 'colors'},
   indexIds: {},
-  indexTypes: {},
+  indexValueTypes: {},
   linkIds: {},
-  backlinkIds: {},
-  linkedCollections: [],
-  getId: (obj) {
-    if (obj.id == Isar.autoIncrement) {
-      return null;
-    } else {
-      return obj.id;
-    }
-  },
-  setId: (obj, id) => obj.id = id,
-  getLinks: (obj) => [],
-  version: 2,
+  backlinkLinkNames: {},
+  getId: _pColorGetId,
+  setId: _pColorSetId,
+  getLinks: _pColorGetLinks,
+  attachLinks: _pColorAttachLinks,
+  serializeNative: _pColorSerializeNative,
+  deserializeNative: _pColorDeserializeNative,
+  deserializePropNative: _pColorDeserializePropNative,
+  serializeWeb: _pColorSerializeWeb,
+  deserializeWeb: _pColorDeserializeWeb,
+  deserializePropWeb: _pColorDeserializePropWeb,
+  version: 3,
 );
 
-class _PColorWebAdapter extends IsarWebTypeAdapter<PColor> {
-  const _PColorWebAdapter();
-
-  @override
-  Object serialize(IsarCollection<PColor> collection, PColor object) {
-    final jsObj = IsarNative.newJsObject();
-    IsarNative.jsObjectSet(jsObj, 'active', object.active);
-    IsarNative.jsObjectSet(jsObj, 'branchId', object.branchId);
-    IsarNative.jsObjectSet(jsObj, 'channels', object.channels);
-    IsarNative.jsObjectSet(jsObj, 'colors', object.colors);
-    IsarNative.jsObjectSet(jsObj, 'id', object.id);
-    IsarNative.jsObjectSet(jsObj, 'name', object.name);
-    IsarNative.jsObjectSet(jsObj, 'table', object.table);
-    return jsObj;
+int? _pColorGetId(PColor object) {
+  if (object.id == Isar.autoIncrement) {
+    return null;
+  } else {
+    return object.id;
   }
-
-  @override
-  PColor deserialize(IsarCollection<PColor> collection, dynamic jsObj) {
-    final object = PColor();
-    object.active = IsarNative.jsObjectGet(jsObj, 'active') ?? false;
-    object.branchId = IsarNative.jsObjectGet(jsObj, 'branchId');
-    object.channels = (IsarNative.jsObjectGet(jsObj, 'channels') as List?)
-        ?.map((e) => e ?? '')
-        .toList()
-        .cast<String>();
-    object.colors = (IsarNative.jsObjectGet(jsObj, 'colors') as List?)
-        ?.map((e) => e ?? '')
-        .toList()
-        .cast<String>();
-    object.id = IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity;
-    object.name = IsarNative.jsObjectGet(jsObj, 'name');
-    object.table = IsarNative.jsObjectGet(jsObj, 'table');
-    return object;
-  }
-
-  @override
-  P deserializeProperty<P>(Object jsObj, String propertyName) {
-    switch (propertyName) {
-      case 'active':
-        return (IsarNative.jsObjectGet(jsObj, 'active') ?? false) as P;
-      case 'branchId':
-        return (IsarNative.jsObjectGet(jsObj, 'branchId')) as P;
-      case 'channels':
-        return ((IsarNative.jsObjectGet(jsObj, 'channels') as List?)
-            ?.map((e) => e ?? '')
-            .toList()
-            .cast<String>()) as P;
-      case 'colors':
-        return ((IsarNative.jsObjectGet(jsObj, 'colors') as List?)
-            ?.map((e) => e ?? '')
-            .toList()
-            .cast<String>()) as P;
-      case 'id':
-        return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
-            as P;
-      case 'name':
-        return (IsarNative.jsObjectGet(jsObj, 'name')) as P;
-      case 'table':
-        return (IsarNative.jsObjectGet(jsObj, 'table')) as P;
-      default:
-        throw 'Illegal propertyName';
-    }
-  }
-
-  @override
-  void attachLinks(Isar isar, int id, PColor object) {}
 }
 
-class _PColorNativeAdapter extends IsarNativeTypeAdapter<PColor> {
-  const _PColorNativeAdapter();
-
-  @override
-  void serialize(IsarCollection<PColor> collection, IsarRawObject rawObj,
-      PColor object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
-    var dynamicSize = 0;
-    final value0 = object.active;
-    final _active = value0;
-    final value1 = object.branchId;
-    final _branchId = value1;
-    final value2 = object.channels;
-    dynamicSize += (value2?.length ?? 0) * 8;
-    List<IsarUint8List?>? bytesList2;
-    if (value2 != null) {
-      bytesList2 = [];
-      for (var str in value2) {
-        final bytes = IsarBinaryWriter.utf8Encoder.convert(str);
-        bytesList2.add(bytes);
-        dynamicSize += bytes.length as int;
-      }
-    }
-    final _channels = bytesList2;
-    final value3 = object.colors;
-    dynamicSize += (value3?.length ?? 0) * 8;
-    List<IsarUint8List?>? bytesList3;
-    if (value3 != null) {
-      bytesList3 = [];
-      for (var str in value3) {
-        final bytes = IsarBinaryWriter.utf8Encoder.convert(str);
-        bytesList3.add(bytes);
-        dynamicSize += bytes.length as int;
-      }
-    }
-    final _colors = bytesList3;
-    final value4 = object.name;
-    IsarUint8List? _name;
-    if (value4 != null) {
-      _name = IsarBinaryWriter.utf8Encoder.convert(value4);
-    }
-    dynamicSize += (_name?.length ?? 0) as int;
-    final value5 = object.table;
-    IsarUint8List? _table;
-    if (value5 != null) {
-      _table = IsarBinaryWriter.utf8Encoder.convert(value5);
-    }
-    dynamicSize += (_table?.length ?? 0) as int;
-    final size = staticSize + dynamicSize;
-
-    rawObj.buffer = alloc(size);
-    rawObj.buffer_length = size;
-    final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
-    final writer = IsarBinaryWriter(buffer, staticSize);
-    writer.writeBool(offsets[0], _active);
-    writer.writeLong(offsets[1], _branchId);
-    writer.writeStringList(offsets[2], _channels);
-    writer.writeStringList(offsets[3], _colors);
-    writer.writeBytes(offsets[4], _name);
-    writer.writeBytes(offsets[5], _table);
-  }
-
-  @override
-  PColor deserialize(IsarCollection<PColor> collection, int id,
-      IsarBinaryReader reader, List<int> offsets) {
-    final object = PColor();
-    object.active = reader.readBool(offsets[0]);
-    object.branchId = reader.readLongOrNull(offsets[1]);
-    object.channels = reader.readStringList(offsets[2]);
-    object.colors = reader.readStringList(offsets[3]);
-    object.id = id;
-    object.name = reader.readStringOrNull(offsets[4]);
-    object.table = reader.readStringOrNull(offsets[5]);
-    return object;
-  }
-
-  @override
-  P deserializeProperty<P>(
-      int id, IsarBinaryReader reader, int propertyIndex, int offset) {
-    switch (propertyIndex) {
-      case -1:
-        return id as P;
-      case 0:
-        return (reader.readBool(offset)) as P;
-      case 1:
-        return (reader.readLongOrNull(offset)) as P;
-      case 2:
-        return (reader.readStringList(offset)) as P;
-      case 3:
-        return (reader.readStringList(offset)) as P;
-      case 4:
-        return (reader.readStringOrNull(offset)) as P;
-      case 5:
-        return (reader.readStringOrNull(offset)) as P;
-      default:
-        throw 'Illegal propertyIndex';
-    }
-  }
-
-  @override
-  void attachLinks(Isar isar, int id, PColor object) {}
+void _pColorSetId(PColor object, int id) {
+  object.id = id;
 }
+
+List<IsarLinkBase> _pColorGetLinks(PColor object) {
+  return [];
+}
+
+void _pColorSerializeNative(
+    IsarCollection<PColor> collection,
+    IsarRawObject rawObj,
+    PColor object,
+    int staticSize,
+    List<int> offsets,
+    AdapterAlloc alloc) {
+  var dynamicSize = 0;
+  final value0 = object.active;
+  final _active = value0;
+  final value1 = object.branchId;
+  final _branchId = value1;
+  final value2 = object.channels;
+  dynamicSize += (value2?.length ?? 0) * 8;
+  List<IsarUint8List?>? bytesList2;
+  if (value2 != null) {
+    bytesList2 = [];
+    for (var str in value2) {
+      final bytes = IsarBinaryWriter.utf8Encoder.convert(str);
+      bytesList2.add(bytes);
+      dynamicSize += bytes.length as int;
+    }
+  }
+  final _channels = bytesList2;
+  final value3 = object.colors;
+  dynamicSize += (value3?.length ?? 0) * 8;
+  List<IsarUint8List?>? bytesList3;
+  if (value3 != null) {
+    bytesList3 = [];
+    for (var str in value3) {
+      final bytes = IsarBinaryWriter.utf8Encoder.convert(str);
+      bytesList3.add(bytes);
+      dynamicSize += bytes.length as int;
+    }
+  }
+  final _colors = bytesList3;
+  final value4 = object.name;
+  IsarUint8List? _name;
+  if (value4 != null) {
+    _name = IsarBinaryWriter.utf8Encoder.convert(value4);
+  }
+  dynamicSize += (_name?.length ?? 0) as int;
+  final value5 = object.table;
+  IsarUint8List? _table;
+  if (value5 != null) {
+    _table = IsarBinaryWriter.utf8Encoder.convert(value5);
+  }
+  dynamicSize += (_table?.length ?? 0) as int;
+  final size = staticSize + dynamicSize;
+
+  rawObj.buffer = alloc(size);
+  rawObj.buffer_length = size;
+  final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
+  final writer = IsarBinaryWriter(buffer, staticSize);
+  writer.writeBool(offsets[0], _active);
+  writer.writeLong(offsets[1], _branchId);
+  writer.writeStringList(offsets[2], _channels);
+  writer.writeStringList(offsets[3], _colors);
+  writer.writeBytes(offsets[4], _name);
+  writer.writeBytes(offsets[5], _table);
+}
+
+PColor _pColorDeserializeNative(IsarCollection<PColor> collection, int id,
+    IsarBinaryReader reader, List<int> offsets) {
+  final object = PColor();
+  object.active = reader.readBool(offsets[0]);
+  object.branchId = reader.readLongOrNull(offsets[1]);
+  object.channels = reader.readStringList(offsets[2]);
+  object.colors = reader.readStringList(offsets[3]);
+  object.id = id;
+  object.name = reader.readStringOrNull(offsets[4]);
+  object.table = reader.readStringOrNull(offsets[5]);
+  return object;
+}
+
+P _pColorDeserializePropNative<P>(
+    int id, IsarBinaryReader reader, int propertyIndex, int offset) {
+  switch (propertyIndex) {
+    case -1:
+      return id as P;
+    case 0:
+      return (reader.readBool(offset)) as P;
+    case 1:
+      return (reader.readLongOrNull(offset)) as P;
+    case 2:
+      return (reader.readStringList(offset)) as P;
+    case 3:
+      return (reader.readStringList(offset)) as P;
+    case 4:
+      return (reader.readStringOrNull(offset)) as P;
+    case 5:
+      return (reader.readStringOrNull(offset)) as P;
+    default:
+      throw 'Illegal propertyIndex';
+  }
+}
+
+dynamic _pColorSerializeWeb(IsarCollection<PColor> collection, PColor object) {
+  final jsObj = IsarNative.newJsObject();
+  IsarNative.jsObjectSet(jsObj, 'active', object.active);
+  IsarNative.jsObjectSet(jsObj, 'branchId', object.branchId);
+  IsarNative.jsObjectSet(jsObj, 'channels', object.channels);
+  IsarNative.jsObjectSet(jsObj, 'colors', object.colors);
+  IsarNative.jsObjectSet(jsObj, 'id', object.id);
+  IsarNative.jsObjectSet(jsObj, 'name', object.name);
+  IsarNative.jsObjectSet(jsObj, 'table', object.table);
+  return jsObj;
+}
+
+PColor _pColorDeserializeWeb(IsarCollection<PColor> collection, dynamic jsObj) {
+  final object = PColor();
+  object.active = IsarNative.jsObjectGet(jsObj, 'active') ?? false;
+  object.branchId = IsarNative.jsObjectGet(jsObj, 'branchId');
+  object.channels = (IsarNative.jsObjectGet(jsObj, 'channels') as List?)
+      ?.map((e) => e ?? '')
+      .toList()
+      .cast<String>();
+  object.colors = (IsarNative.jsObjectGet(jsObj, 'colors') as List?)
+      ?.map((e) => e ?? '')
+      .toList()
+      .cast<String>();
+  object.id = IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity;
+  object.name = IsarNative.jsObjectGet(jsObj, 'name');
+  object.table = IsarNative.jsObjectGet(jsObj, 'table');
+  return object;
+}
+
+P _pColorDeserializePropWeb<P>(Object jsObj, String propertyName) {
+  switch (propertyName) {
+    case 'active':
+      return (IsarNative.jsObjectGet(jsObj, 'active') ?? false) as P;
+    case 'branchId':
+      return (IsarNative.jsObjectGet(jsObj, 'branchId')) as P;
+    case 'channels':
+      return ((IsarNative.jsObjectGet(jsObj, 'channels') as List?)
+          ?.map((e) => e ?? '')
+          .toList()
+          .cast<String>()) as P;
+    case 'colors':
+      return ((IsarNative.jsObjectGet(jsObj, 'colors') as List?)
+          ?.map((e) => e ?? '')
+          .toList()
+          .cast<String>()) as P;
+    case 'id':
+      return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
+          as P;
+    case 'name':
+      return (IsarNative.jsObjectGet(jsObj, 'name')) as P;
+    case 'table':
+      return (IsarNative.jsObjectGet(jsObj, 'table')) as P;
+    default:
+      throw 'Illegal propertyName';
+  }
+}
+
+void _pColorAttachLinks(IsarCollection col, int id, PColor object) {}
 
 extension PColorQueryWhereSort on QueryBuilder<PColor, PColor, QWhere> {
   QueryBuilder<PColor, PColor, QAfterWhere> anyId() {
-    return addWhereClauseInternal(const WhereClause(indexName: null));
+    return addWhereClauseInternal(const IdWhereClause.any());
   }
 }
 
 extension PColorQueryWhere on QueryBuilder<PColor, PColor, QWhereClause> {
   QueryBuilder<PColor, PColor, QAfterWhereClause> idEqualTo(int id) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [id],
+    return addWhereClauseInternal(IdWhereClause.between(
+      lower: id,
       includeLower: true,
-      upper: [id],
+      upper: id,
       includeUpper: true,
     ));
   }
 
   QueryBuilder<PColor, PColor, QAfterWhereClause> idNotEqualTo(int id) {
     if (whereSortInternal == Sort.asc) {
-      return addWhereClauseInternal(WhereClause(
-        indexName: null,
-        upper: [id],
-        includeUpper: false,
-      )).addWhereClauseInternal(WhereClause(
-        indexName: null,
-        lower: [id],
-        includeLower: false,
-      ));
+      return addWhereClauseInternal(
+        IdWhereClause.lessThan(upper: id, includeUpper: false),
+      ).addWhereClauseInternal(
+        IdWhereClause.greaterThan(lower: id, includeLower: false),
+      );
     } else {
-      return addWhereClauseInternal(WhereClause(
-        indexName: null,
-        lower: [id],
-        includeLower: false,
-      )).addWhereClauseInternal(WhereClause(
-        indexName: null,
-        upper: [id],
-        includeUpper: false,
-      ));
+      return addWhereClauseInternal(
+        IdWhereClause.greaterThan(lower: id, includeLower: false),
+      ).addWhereClauseInternal(
+        IdWhereClause.lessThan(upper: id, includeUpper: false),
+      );
     }
   }
 
-  QueryBuilder<PColor, PColor, QAfterWhereClause> idGreaterThan(
-    int id, {
-    bool include = false,
-  }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [id],
-      includeLower: include,
-    ));
+  QueryBuilder<PColor, PColor, QAfterWhereClause> idGreaterThan(int id,
+      {bool include = false}) {
+    return addWhereClauseInternal(
+      IdWhereClause.greaterThan(lower: id, includeLower: include),
+    );
   }
 
-  QueryBuilder<PColor, PColor, QAfterWhereClause> idLessThan(
-    int id, {
-    bool include = false,
-  }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      upper: [id],
-      includeUpper: include,
-    ));
+  QueryBuilder<PColor, PColor, QAfterWhereClause> idLessThan(int id,
+      {bool include = false}) {
+    return addWhereClauseInternal(
+      IdWhereClause.lessThan(upper: id, includeUpper: include),
+    );
   }
 
   QueryBuilder<PColor, PColor, QAfterWhereClause> idBetween(
@@ -286,11 +268,10 @@ extension PColorQueryWhere on QueryBuilder<PColor, PColor, QWhereClause> {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [lowerId],
+    return addWhereClauseInternal(IdWhereClause.between(
+      lower: lowerId,
       includeLower: includeLower,
-      upper: [upperId],
+      upper: upperId,
       includeUpper: includeUpper,
     ));
   }
@@ -868,6 +849,8 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
     ));
   }
 }
+
+extension PColorQueryLinks on QueryBuilder<PColor, PColor, QFilterCondition> {}
 
 extension PColorQueryWhereSortBy on QueryBuilder<PColor, PColor, QSortBy> {
   QueryBuilder<PColor, PColor, QAfterSortBy> sortByActive() {

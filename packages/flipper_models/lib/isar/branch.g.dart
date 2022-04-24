@@ -6,20 +6,16 @@ part of flipper_models;
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable
 
 extension GetBranchCollection on Isar {
-  IsarCollection<Branch> get branchs {
-    return getCollection('Branch');
-  }
+  IsarCollection<Branch> get branchs => getCollection();
 }
 
-final BranchSchema = CollectionSchema(
+const BranchSchema = CollectionSchema(
   name: 'Branch',
   schema:
       '{"name":"Branch","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"description","type":"String"},{"name":"fbusinessId","type":"Long"},{"name":"latitude","type":"String"},{"name":"longitude","type":"String"},{"name":"name","type":"String"},{"name":"table","type":"String"}],"indexes":[],"links":[]}',
-  nativeAdapter: const _BranchNativeAdapter(),
-  webAdapter: const _BranchWebAdapter(),
   idName: 'id',
   propertyIds: {
     'active': 0,
@@ -32,257 +28,242 @@ final BranchSchema = CollectionSchema(
   },
   listProperties: {},
   indexIds: {},
-  indexTypes: {},
+  indexValueTypes: {},
   linkIds: {},
-  backlinkIds: {},
-  linkedCollections: [],
-  getId: (obj) {
-    if (obj.id == Isar.autoIncrement) {
-      return null;
-    } else {
-      return obj.id;
-    }
-  },
-  setId: (obj, id) => obj.id = id,
-  getLinks: (obj) => [],
-  version: 2,
+  backlinkLinkNames: {},
+  getId: _branchGetId,
+  setId: _branchSetId,
+  getLinks: _branchGetLinks,
+  attachLinks: _branchAttachLinks,
+  serializeNative: _branchSerializeNative,
+  deserializeNative: _branchDeserializeNative,
+  deserializePropNative: _branchDeserializePropNative,
+  serializeWeb: _branchSerializeWeb,
+  deserializeWeb: _branchDeserializeWeb,
+  deserializePropWeb: _branchDeserializePropWeb,
+  version: 3,
 );
 
-class _BranchWebAdapter extends IsarWebTypeAdapter<Branch> {
-  const _BranchWebAdapter();
-
-  @override
-  Object serialize(IsarCollection<Branch> collection, Branch object) {
-    final jsObj = IsarNative.newJsObject();
-    IsarNative.jsObjectSet(jsObj, 'active', object.active);
-    IsarNative.jsObjectSet(jsObj, 'description', object.description);
-    IsarNative.jsObjectSet(jsObj, 'fbusinessId', object.fbusinessId);
-    IsarNative.jsObjectSet(jsObj, 'id', object.id);
-    IsarNative.jsObjectSet(jsObj, 'latitude', object.latitude);
-    IsarNative.jsObjectSet(jsObj, 'longitude', object.longitude);
-    IsarNative.jsObjectSet(jsObj, 'name', object.name);
-    IsarNative.jsObjectSet(jsObj, 'table', object.table);
-    return jsObj;
+int? _branchGetId(Branch object) {
+  if (object.id == Isar.autoIncrement) {
+    return null;
+  } else {
+    return object.id;
   }
-
-  @override
-  Branch deserialize(IsarCollection<Branch> collection, dynamic jsObj) {
-    final object = Branch(
-      active: IsarNative.jsObjectGet(jsObj, 'active'),
-      description: IsarNative.jsObjectGet(jsObj, 'description'),
-      fbusinessId: IsarNative.jsObjectGet(jsObj, 'fbusinessId'),
-      id: IsarNative.jsObjectGet(jsObj, 'id'),
-      latitude: IsarNative.jsObjectGet(jsObj, 'latitude'),
-      longitude: IsarNative.jsObjectGet(jsObj, 'longitude'),
-      name: IsarNative.jsObjectGet(jsObj, 'name'),
-      table: IsarNative.jsObjectGet(jsObj, 'table'),
-    );
-    return object;
-  }
-
-  @override
-  P deserializeProperty<P>(Object jsObj, String propertyName) {
-    switch (propertyName) {
-      case 'active':
-        return (IsarNative.jsObjectGet(jsObj, 'active')) as P;
-      case 'description':
-        return (IsarNative.jsObjectGet(jsObj, 'description')) as P;
-      case 'fbusinessId':
-        return (IsarNative.jsObjectGet(jsObj, 'fbusinessId')) as P;
-      case 'id':
-        return (IsarNative.jsObjectGet(jsObj, 'id')) as P;
-      case 'latitude':
-        return (IsarNative.jsObjectGet(jsObj, 'latitude')) as P;
-      case 'longitude':
-        return (IsarNative.jsObjectGet(jsObj, 'longitude')) as P;
-      case 'name':
-        return (IsarNative.jsObjectGet(jsObj, 'name')) as P;
-      case 'table':
-        return (IsarNative.jsObjectGet(jsObj, 'table')) as P;
-      default:
-        throw 'Illegal propertyName';
-    }
-  }
-
-  @override
-  void attachLinks(Isar isar, int id, Branch object) {}
 }
 
-class _BranchNativeAdapter extends IsarNativeTypeAdapter<Branch> {
-  const _BranchNativeAdapter();
-
-  @override
-  void serialize(IsarCollection<Branch> collection, IsarRawObject rawObj,
-      Branch object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
-    var dynamicSize = 0;
-    final value0 = object.active;
-    final _active = value0;
-    final value1 = object.description;
-    IsarUint8List? _description;
-    if (value1 != null) {
-      _description = IsarBinaryWriter.utf8Encoder.convert(value1);
-    }
-    dynamicSize += (_description?.length ?? 0) as int;
-    final value2 = object.fbusinessId;
-    final _fbusinessId = value2;
-    final value3 = object.latitude;
-    IsarUint8List? _latitude;
-    if (value3 != null) {
-      _latitude = IsarBinaryWriter.utf8Encoder.convert(value3);
-    }
-    dynamicSize += (_latitude?.length ?? 0) as int;
-    final value4 = object.longitude;
-    IsarUint8List? _longitude;
-    if (value4 != null) {
-      _longitude = IsarBinaryWriter.utf8Encoder.convert(value4);
-    }
-    dynamicSize += (_longitude?.length ?? 0) as int;
-    final value5 = object.name;
-    IsarUint8List? _name;
-    if (value5 != null) {
-      _name = IsarBinaryWriter.utf8Encoder.convert(value5);
-    }
-    dynamicSize += (_name?.length ?? 0) as int;
-    final value6 = object.table;
-    IsarUint8List? _table;
-    if (value6 != null) {
-      _table = IsarBinaryWriter.utf8Encoder.convert(value6);
-    }
-    dynamicSize += (_table?.length ?? 0) as int;
-    final size = staticSize + dynamicSize;
-
-    rawObj.buffer = alloc(size);
-    rawObj.buffer_length = size;
-    final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
-    final writer = IsarBinaryWriter(buffer, staticSize);
-    writer.writeBool(offsets[0], _active);
-    writer.writeBytes(offsets[1], _description);
-    writer.writeLong(offsets[2], _fbusinessId);
-    writer.writeBytes(offsets[3], _latitude);
-    writer.writeBytes(offsets[4], _longitude);
-    writer.writeBytes(offsets[5], _name);
-    writer.writeBytes(offsets[6], _table);
-  }
-
-  @override
-  Branch deserialize(IsarCollection<Branch> collection, int id,
-      IsarBinaryReader reader, List<int> offsets) {
-    final object = Branch(
-      active: reader.readBoolOrNull(offsets[0]),
-      description: reader.readStringOrNull(offsets[1]),
-      fbusinessId: reader.readLongOrNull(offsets[2]),
-      id: id,
-      latitude: reader.readStringOrNull(offsets[3]),
-      longitude: reader.readStringOrNull(offsets[4]),
-      name: reader.readStringOrNull(offsets[5]),
-      table: reader.readStringOrNull(offsets[6]),
-    );
-    return object;
-  }
-
-  @override
-  P deserializeProperty<P>(
-      int id, IsarBinaryReader reader, int propertyIndex, int offset) {
-    switch (propertyIndex) {
-      case -1:
-        return id as P;
-      case 0:
-        return (reader.readBoolOrNull(offset)) as P;
-      case 1:
-        return (reader.readStringOrNull(offset)) as P;
-      case 2:
-        return (reader.readLongOrNull(offset)) as P;
-      case 3:
-        return (reader.readStringOrNull(offset)) as P;
-      case 4:
-        return (reader.readStringOrNull(offset)) as P;
-      case 5:
-        return (reader.readStringOrNull(offset)) as P;
-      case 6:
-        return (reader.readStringOrNull(offset)) as P;
-      default:
-        throw 'Illegal propertyIndex';
-    }
-  }
-
-  @override
-  void attachLinks(Isar isar, int id, Branch object) {}
+void _branchSetId(Branch object, int id) {
+  object.id = id;
 }
+
+List<IsarLinkBase> _branchGetLinks(Branch object) {
+  return [];
+}
+
+void _branchSerializeNative(
+    IsarCollection<Branch> collection,
+    IsarRawObject rawObj,
+    Branch object,
+    int staticSize,
+    List<int> offsets,
+    AdapterAlloc alloc) {
+  var dynamicSize = 0;
+  final value0 = object.active;
+  final _active = value0;
+  final value1 = object.description;
+  IsarUint8List? _description;
+  if (value1 != null) {
+    _description = IsarBinaryWriter.utf8Encoder.convert(value1);
+  }
+  dynamicSize += (_description?.length ?? 0) as int;
+  final value2 = object.fbusinessId;
+  final _fbusinessId = value2;
+  final value3 = object.latitude;
+  IsarUint8List? _latitude;
+  if (value3 != null) {
+    _latitude = IsarBinaryWriter.utf8Encoder.convert(value3);
+  }
+  dynamicSize += (_latitude?.length ?? 0) as int;
+  final value4 = object.longitude;
+  IsarUint8List? _longitude;
+  if (value4 != null) {
+    _longitude = IsarBinaryWriter.utf8Encoder.convert(value4);
+  }
+  dynamicSize += (_longitude?.length ?? 0) as int;
+  final value5 = object.name;
+  IsarUint8List? _name;
+  if (value5 != null) {
+    _name = IsarBinaryWriter.utf8Encoder.convert(value5);
+  }
+  dynamicSize += (_name?.length ?? 0) as int;
+  final value6 = object.table;
+  IsarUint8List? _table;
+  if (value6 != null) {
+    _table = IsarBinaryWriter.utf8Encoder.convert(value6);
+  }
+  dynamicSize += (_table?.length ?? 0) as int;
+  final size = staticSize + dynamicSize;
+
+  rawObj.buffer = alloc(size);
+  rawObj.buffer_length = size;
+  final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
+  final writer = IsarBinaryWriter(buffer, staticSize);
+  writer.writeBool(offsets[0], _active);
+  writer.writeBytes(offsets[1], _description);
+  writer.writeLong(offsets[2], _fbusinessId);
+  writer.writeBytes(offsets[3], _latitude);
+  writer.writeBytes(offsets[4], _longitude);
+  writer.writeBytes(offsets[5], _name);
+  writer.writeBytes(offsets[6], _table);
+}
+
+Branch _branchDeserializeNative(IsarCollection<Branch> collection, int id,
+    IsarBinaryReader reader, List<int> offsets) {
+  final object = Branch(
+    active: reader.readBoolOrNull(offsets[0]),
+    description: reader.readStringOrNull(offsets[1]),
+    fbusinessId: reader.readLongOrNull(offsets[2]),
+    id: id,
+    latitude: reader.readStringOrNull(offsets[3]),
+    longitude: reader.readStringOrNull(offsets[4]),
+    name: reader.readStringOrNull(offsets[5]),
+    table: reader.readStringOrNull(offsets[6]),
+  );
+  return object;
+}
+
+P _branchDeserializePropNative<P>(
+    int id, IsarBinaryReader reader, int propertyIndex, int offset) {
+  switch (propertyIndex) {
+    case -1:
+      return id as P;
+    case 0:
+      return (reader.readBoolOrNull(offset)) as P;
+    case 1:
+      return (reader.readStringOrNull(offset)) as P;
+    case 2:
+      return (reader.readLongOrNull(offset)) as P;
+    case 3:
+      return (reader.readStringOrNull(offset)) as P;
+    case 4:
+      return (reader.readStringOrNull(offset)) as P;
+    case 5:
+      return (reader.readStringOrNull(offset)) as P;
+    case 6:
+      return (reader.readStringOrNull(offset)) as P;
+    default:
+      throw 'Illegal propertyIndex';
+  }
+}
+
+dynamic _branchSerializeWeb(IsarCollection<Branch> collection, Branch object) {
+  final jsObj = IsarNative.newJsObject();
+  IsarNative.jsObjectSet(jsObj, 'active', object.active);
+  IsarNative.jsObjectSet(jsObj, 'description', object.description);
+  IsarNative.jsObjectSet(jsObj, 'fbusinessId', object.fbusinessId);
+  IsarNative.jsObjectSet(jsObj, 'id', object.id);
+  IsarNative.jsObjectSet(jsObj, 'latitude', object.latitude);
+  IsarNative.jsObjectSet(jsObj, 'longitude', object.longitude);
+  IsarNative.jsObjectSet(jsObj, 'name', object.name);
+  IsarNative.jsObjectSet(jsObj, 'table', object.table);
+  return jsObj;
+}
+
+Branch _branchDeserializeWeb(IsarCollection<Branch> collection, dynamic jsObj) {
+  final object = Branch(
+    active: IsarNative.jsObjectGet(jsObj, 'active'),
+    description: IsarNative.jsObjectGet(jsObj, 'description'),
+    fbusinessId: IsarNative.jsObjectGet(jsObj, 'fbusinessId'),
+    id: IsarNative.jsObjectGet(jsObj, 'id'),
+    latitude: IsarNative.jsObjectGet(jsObj, 'latitude'),
+    longitude: IsarNative.jsObjectGet(jsObj, 'longitude'),
+    name: IsarNative.jsObjectGet(jsObj, 'name'),
+    table: IsarNative.jsObjectGet(jsObj, 'table'),
+  );
+  return object;
+}
+
+P _branchDeserializePropWeb<P>(Object jsObj, String propertyName) {
+  switch (propertyName) {
+    case 'active':
+      return (IsarNative.jsObjectGet(jsObj, 'active')) as P;
+    case 'description':
+      return (IsarNative.jsObjectGet(jsObj, 'description')) as P;
+    case 'fbusinessId':
+      return (IsarNative.jsObjectGet(jsObj, 'fbusinessId')) as P;
+    case 'id':
+      return (IsarNative.jsObjectGet(jsObj, 'id')) as P;
+    case 'latitude':
+      return (IsarNative.jsObjectGet(jsObj, 'latitude')) as P;
+    case 'longitude':
+      return (IsarNative.jsObjectGet(jsObj, 'longitude')) as P;
+    case 'name':
+      return (IsarNative.jsObjectGet(jsObj, 'name')) as P;
+    case 'table':
+      return (IsarNative.jsObjectGet(jsObj, 'table')) as P;
+    default:
+      throw 'Illegal propertyName';
+  }
+}
+
+void _branchAttachLinks(IsarCollection col, int id, Branch object) {}
 
 extension BranchQueryWhereSort on QueryBuilder<Branch, Branch, QWhere> {
   QueryBuilder<Branch, Branch, QAfterWhere> anyId() {
-    return addWhereClauseInternal(const WhereClause(indexName: null));
+    return addWhereClauseInternal(const IdWhereClause.any());
   }
 }
 
 extension BranchQueryWhere on QueryBuilder<Branch, Branch, QWhereClause> {
-  QueryBuilder<Branch, Branch, QAfterWhereClause> idEqualTo(int? id) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [id],
+  QueryBuilder<Branch, Branch, QAfterWhereClause> idEqualTo(int id) {
+    return addWhereClauseInternal(IdWhereClause.between(
+      lower: id,
       includeLower: true,
-      upper: [id],
+      upper: id,
       includeUpper: true,
     ));
   }
 
-  QueryBuilder<Branch, Branch, QAfterWhereClause> idNotEqualTo(int? id) {
+  QueryBuilder<Branch, Branch, QAfterWhereClause> idNotEqualTo(int id) {
     if (whereSortInternal == Sort.asc) {
-      return addWhereClauseInternal(WhereClause(
-        indexName: null,
-        upper: [id],
-        includeUpper: false,
-      )).addWhereClauseInternal(WhereClause(
-        indexName: null,
-        lower: [id],
-        includeLower: false,
-      ));
+      return addWhereClauseInternal(
+        IdWhereClause.lessThan(upper: id, includeUpper: false),
+      ).addWhereClauseInternal(
+        IdWhereClause.greaterThan(lower: id, includeLower: false),
+      );
     } else {
-      return addWhereClauseInternal(WhereClause(
-        indexName: null,
-        lower: [id],
-        includeLower: false,
-      )).addWhereClauseInternal(WhereClause(
-        indexName: null,
-        upper: [id],
-        includeUpper: false,
-      ));
+      return addWhereClauseInternal(
+        IdWhereClause.greaterThan(lower: id, includeLower: false),
+      ).addWhereClauseInternal(
+        IdWhereClause.lessThan(upper: id, includeUpper: false),
+      );
     }
   }
 
-  QueryBuilder<Branch, Branch, QAfterWhereClause> idGreaterThan(
-    int? id, {
-    bool include = false,
-  }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [id],
-      includeLower: include,
-    ));
+  QueryBuilder<Branch, Branch, QAfterWhereClause> idGreaterThan(int id,
+      {bool include = false}) {
+    return addWhereClauseInternal(
+      IdWhereClause.greaterThan(lower: id, includeLower: include),
+    );
   }
 
-  QueryBuilder<Branch, Branch, QAfterWhereClause> idLessThan(
-    int? id, {
-    bool include = false,
-  }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      upper: [id],
-      includeUpper: include,
-    ));
+  QueryBuilder<Branch, Branch, QAfterWhereClause> idLessThan(int id,
+      {bool include = false}) {
+    return addWhereClauseInternal(
+      IdWhereClause.lessThan(upper: id, includeUpper: include),
+    );
   }
 
   QueryBuilder<Branch, Branch, QAfterWhereClause> idBetween(
-    int? lowerId,
-    int? upperId, {
+    int lowerId,
+    int upperId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [lowerId],
+    return addWhereClauseInternal(IdWhereClause.between(
+      lower: lowerId,
       includeLower: includeLower,
-      upper: [upperId],
+      upper: upperId,
       includeUpper: includeUpper,
     ));
   }
@@ -971,6 +952,8 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     ));
   }
 }
+
+extension BranchQueryLinks on QueryBuilder<Branch, Branch, QFilterCondition> {}
 
 extension BranchQueryWhereSortBy on QueryBuilder<Branch, Branch, QSortBy> {
   QueryBuilder<Branch, Branch, QAfterSortBy> sortByActive() {

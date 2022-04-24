@@ -4,7 +4,6 @@
 
 import 'dart:convert';
 
-import 'package:flipper_models/models/models.dart';
 import 'package:isar/isar.dart';
 part 'voucher.g.dart';
 
@@ -29,7 +28,7 @@ class Voucher {
   late bool used;
   late int createdAt;
   late int usedAt;
-  final features = IsarLinks<Feature>();
+  // final features = IsarLinks<Feature>();
   late String descriptor;
 
   factory Voucher.fromMap(Map<String, dynamic> json) => Voucher(

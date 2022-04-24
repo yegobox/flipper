@@ -1405,6 +1405,7 @@ class IsarAPI implements IsarApiInterface {
     if (data is Ebm) {
       final ebm = data;
       await isar.writeTxn((isar) async {
+        ProxyService.box.write(key: "serverUrl", value: ebm.taxServerUrl);
         Business? business = await isar.businesss
             .filter()
             .userIdEqualTo(ebm.userId)
@@ -1414,6 +1415,7 @@ class IsarAPI implements IsarApiInterface {
           ?..dvcSrlNo = ebm.dvcSrlNo
           ..tinNumber = ebm.tinNumber
           ..bhfId = ebm.bhfId
+          ..taxServerUrl = ebm.taxServerUrl
           ..taxEnabled = true;
         return await isar.businesss.put(business!);
       });

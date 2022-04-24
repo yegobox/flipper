@@ -6,20 +6,16 @@ part of flipper_models;
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable
 
 extension GetProductCollection on Isar {
-  IsarCollection<Product> get products {
-    return getCollection('Product');
-  }
+  IsarCollection<Product> get products => getCollection();
 }
 
-final ProductSchema = CollectionSchema(
+const ProductSchema = CollectionSchema(
   name: 'Product',
   schema:
       '{"name":"Product","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"barCode","type":"String"},{"name":"branchId","type":"Long"},{"name":"businessId","type":"Long"},{"name":"categoryId","type":"String"},{"name":"color","type":"String"},{"name":"createdAt","type":"String"},{"name":"currentUpdate","type":"Bool"},{"name":"description","type":"String"},{"name":"draft","type":"Bool"},{"name":"expiryDate","type":"String"},{"name":"hasPicture","type":"Bool"},{"name":"imageLocal","type":"Bool"},{"name":"imageUrl","type":"String"},{"name":"name","type":"String"},{"name":"picture","type":"String"},{"name":"supplierId","type":"String"},{"name":"synced","type":"Bool"},{"name":"table","type":"String"},{"name":"taxId","type":"String"},{"name":"unit","type":"String"}],"indexes":[],"links":[{"name":"variants","target":"Variant"}]}',
-  nativeAdapter: const _ProductNativeAdapter(),
-  webAdapter: const _ProductWebAdapter(),
   idName: 'id',
   propertyIds: {
     'active': 0,
@@ -46,443 +42,416 @@ final ProductSchema = CollectionSchema(
   },
   listProperties: {},
   indexIds: {},
-  indexTypes: {},
+  indexValueTypes: {},
   linkIds: {'variants': 0},
-  backlinkIds: {},
-  linkedCollections: ['Variant'],
-  getId: (obj) {
-    if (obj.id == Isar.autoIncrement) {
-      return null;
-    } else {
-      return obj.id;
-    }
-  },
-  setId: (obj, id) => obj.id = id,
-  getLinks: (obj) => [obj.variants],
-  version: 2,
+  backlinkLinkNames: {},
+  getId: _productGetId,
+  setId: _productSetId,
+  getLinks: _productGetLinks,
+  attachLinks: _productAttachLinks,
+  serializeNative: _productSerializeNative,
+  deserializeNative: _productDeserializeNative,
+  deserializePropNative: _productDeserializePropNative,
+  serializeWeb: _productSerializeWeb,
+  deserializeWeb: _productDeserializeWeb,
+  deserializePropWeb: _productDeserializePropWeb,
+  version: 3,
 );
 
-class _ProductWebAdapter extends IsarWebTypeAdapter<Product> {
-  const _ProductWebAdapter();
-
-  @override
-  Object serialize(IsarCollection<Product> collection, Product object) {
-    final jsObj = IsarNative.newJsObject();
-    IsarNative.jsObjectSet(jsObj, 'active', object.active);
-    IsarNative.jsObjectSet(jsObj, 'barCode', object.barCode);
-    IsarNative.jsObjectSet(jsObj, 'branchId', object.branchId);
-    IsarNative.jsObjectSet(jsObj, 'businessId', object.businessId);
-    IsarNative.jsObjectSet(jsObj, 'categoryId', object.categoryId);
-    IsarNative.jsObjectSet(jsObj, 'color', object.color);
-    IsarNative.jsObjectSet(jsObj, 'createdAt', object.createdAt);
-    IsarNative.jsObjectSet(jsObj, 'currentUpdate', object.currentUpdate);
-    IsarNative.jsObjectSet(jsObj, 'description', object.description);
-    IsarNative.jsObjectSet(jsObj, 'draft', object.draft);
-    IsarNative.jsObjectSet(jsObj, 'expiryDate', object.expiryDate);
-    IsarNative.jsObjectSet(jsObj, 'hasPicture', object.hasPicture);
-    IsarNative.jsObjectSet(jsObj, 'id', object.id);
-    IsarNative.jsObjectSet(jsObj, 'imageLocal', object.imageLocal);
-    IsarNative.jsObjectSet(jsObj, 'imageUrl', object.imageUrl);
-    IsarNative.jsObjectSet(jsObj, 'name', object.name);
-    IsarNative.jsObjectSet(jsObj, 'picture', object.picture);
-    IsarNative.jsObjectSet(jsObj, 'supplierId', object.supplierId);
-    IsarNative.jsObjectSet(jsObj, 'synced', object.synced);
-    IsarNative.jsObjectSet(jsObj, 'table', object.table);
-    IsarNative.jsObjectSet(jsObj, 'taxId', object.taxId);
-    IsarNative.jsObjectSet(jsObj, 'unit', object.unit);
-    return jsObj;
-  }
-
-  @override
-  Product deserialize(IsarCollection<Product> collection, dynamic jsObj) {
-    final object = Product();
-    object.active = IsarNative.jsObjectGet(jsObj, 'active') ?? false;
-    object.barCode = IsarNative.jsObjectGet(jsObj, 'barCode');
-    object.branchId =
-        IsarNative.jsObjectGet(jsObj, 'branchId') ?? double.negativeInfinity;
-    object.businessId =
-        IsarNative.jsObjectGet(jsObj, 'businessId') ?? double.negativeInfinity;
-    object.categoryId = IsarNative.jsObjectGet(jsObj, 'categoryId');
-    object.color = IsarNative.jsObjectGet(jsObj, 'color') ?? '';
-    object.createdAt = IsarNative.jsObjectGet(jsObj, 'createdAt');
-    object.currentUpdate = IsarNative.jsObjectGet(jsObj, 'currentUpdate');
-    object.description = IsarNative.jsObjectGet(jsObj, 'description');
-    object.draft = IsarNative.jsObjectGet(jsObj, 'draft');
-    object.expiryDate = IsarNative.jsObjectGet(jsObj, 'expiryDate');
-    object.hasPicture = IsarNative.jsObjectGet(jsObj, 'hasPicture') ?? false;
-    object.id = IsarNative.jsObjectGet(jsObj, 'id');
-    object.imageLocal = IsarNative.jsObjectGet(jsObj, 'imageLocal');
-    object.imageUrl = IsarNative.jsObjectGet(jsObj, 'imageUrl');
-    object.name = IsarNative.jsObjectGet(jsObj, 'name') ?? '';
-    object.picture = IsarNative.jsObjectGet(jsObj, 'picture');
-    object.supplierId = IsarNative.jsObjectGet(jsObj, 'supplierId');
-    object.synced = IsarNative.jsObjectGet(jsObj, 'synced');
-    object.table = IsarNative.jsObjectGet(jsObj, 'table');
-    object.taxId = IsarNative.jsObjectGet(jsObj, 'taxId');
-    object.unit = IsarNative.jsObjectGet(jsObj, 'unit');
-    attachLinks(collection.isar, IsarNative.jsObjectGet(jsObj, 'id'), object);
-    return object;
-  }
-
-  @override
-  P deserializeProperty<P>(Object jsObj, String propertyName) {
-    switch (propertyName) {
-      case 'active':
-        return (IsarNative.jsObjectGet(jsObj, 'active') ?? false) as P;
-      case 'barCode':
-        return (IsarNative.jsObjectGet(jsObj, 'barCode')) as P;
-      case 'branchId':
-        return (IsarNative.jsObjectGet(jsObj, 'branchId') ??
-            double.negativeInfinity) as P;
-      case 'businessId':
-        return (IsarNative.jsObjectGet(jsObj, 'businessId') ??
-            double.negativeInfinity) as P;
-      case 'categoryId':
-        return (IsarNative.jsObjectGet(jsObj, 'categoryId')) as P;
-      case 'color':
-        return (IsarNative.jsObjectGet(jsObj, 'color') ?? '') as P;
-      case 'createdAt':
-        return (IsarNative.jsObjectGet(jsObj, 'createdAt')) as P;
-      case 'currentUpdate':
-        return (IsarNative.jsObjectGet(jsObj, 'currentUpdate')) as P;
-      case 'description':
-        return (IsarNative.jsObjectGet(jsObj, 'description')) as P;
-      case 'draft':
-        return (IsarNative.jsObjectGet(jsObj, 'draft')) as P;
-      case 'expiryDate':
-        return (IsarNative.jsObjectGet(jsObj, 'expiryDate')) as P;
-      case 'hasPicture':
-        return (IsarNative.jsObjectGet(jsObj, 'hasPicture') ?? false) as P;
-      case 'id':
-        return (IsarNative.jsObjectGet(jsObj, 'id')) as P;
-      case 'imageLocal':
-        return (IsarNative.jsObjectGet(jsObj, 'imageLocal')) as P;
-      case 'imageUrl':
-        return (IsarNative.jsObjectGet(jsObj, 'imageUrl')) as P;
-      case 'name':
-        return (IsarNative.jsObjectGet(jsObj, 'name') ?? '') as P;
-      case 'picture':
-        return (IsarNative.jsObjectGet(jsObj, 'picture')) as P;
-      case 'supplierId':
-        return (IsarNative.jsObjectGet(jsObj, 'supplierId')) as P;
-      case 'synced':
-        return (IsarNative.jsObjectGet(jsObj, 'synced')) as P;
-      case 'table':
-        return (IsarNative.jsObjectGet(jsObj, 'table')) as P;
-      case 'taxId':
-        return (IsarNative.jsObjectGet(jsObj, 'taxId')) as P;
-      case 'unit':
-        return (IsarNative.jsObjectGet(jsObj, 'unit')) as P;
-      default:
-        throw 'Illegal propertyName';
-    }
-  }
-
-  @override
-  void attachLinks(Isar isar, int id, Product object) {
-    object.variants.attach(
-      id,
-      isar.products,
-      isar.getCollection<Variant>('Variant'),
-      'variants',
-      false,
-    );
+int? _productGetId(Product object) {
+  if (object.id == Isar.autoIncrement) {
+    return null;
+  } else {
+    return object.id;
   }
 }
 
-class _ProductNativeAdapter extends IsarNativeTypeAdapter<Product> {
-  const _ProductNativeAdapter();
+void _productSetId(Product object, int id) {
+  object.id = id;
+}
 
-  @override
-  void serialize(IsarCollection<Product> collection, IsarRawObject rawObj,
-      Product object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
-    var dynamicSize = 0;
-    final value0 = object.active;
-    final _active = value0;
-    final value1 = object.barCode;
-    IsarUint8List? _barCode;
-    if (value1 != null) {
-      _barCode = IsarBinaryWriter.utf8Encoder.convert(value1);
-    }
-    dynamicSize += (_barCode?.length ?? 0) as int;
-    final value2 = object.branchId;
-    final _branchId = value2;
-    final value3 = object.businessId;
-    final _businessId = value3;
-    final value4 = object.categoryId;
-    IsarUint8List? _categoryId;
-    if (value4 != null) {
-      _categoryId = IsarBinaryWriter.utf8Encoder.convert(value4);
-    }
-    dynamicSize += (_categoryId?.length ?? 0) as int;
-    final value5 = object.color;
-    final _color = IsarBinaryWriter.utf8Encoder.convert(value5);
-    dynamicSize += (_color.length) as int;
-    final value6 = object.createdAt;
-    IsarUint8List? _createdAt;
-    if (value6 != null) {
-      _createdAt = IsarBinaryWriter.utf8Encoder.convert(value6);
-    }
-    dynamicSize += (_createdAt?.length ?? 0) as int;
-    final value7 = object.currentUpdate;
-    final _currentUpdate = value7;
-    final value8 = object.description;
-    IsarUint8List? _description;
-    if (value8 != null) {
-      _description = IsarBinaryWriter.utf8Encoder.convert(value8);
-    }
-    dynamicSize += (_description?.length ?? 0) as int;
-    final value9 = object.draft;
-    final _draft = value9;
-    final value10 = object.expiryDate;
-    IsarUint8List? _expiryDate;
-    if (value10 != null) {
-      _expiryDate = IsarBinaryWriter.utf8Encoder.convert(value10);
-    }
-    dynamicSize += (_expiryDate?.length ?? 0) as int;
-    final value11 = object.hasPicture;
-    final _hasPicture = value11;
-    final value12 = object.imageLocal;
-    final _imageLocal = value12;
-    final value13 = object.imageUrl;
-    IsarUint8List? _imageUrl;
-    if (value13 != null) {
-      _imageUrl = IsarBinaryWriter.utf8Encoder.convert(value13);
-    }
-    dynamicSize += (_imageUrl?.length ?? 0) as int;
-    final value14 = object.name;
-    final _name = IsarBinaryWriter.utf8Encoder.convert(value14);
-    dynamicSize += (_name.length) as int;
-    final value15 = object.picture;
-    IsarUint8List? _picture;
-    if (value15 != null) {
-      _picture = IsarBinaryWriter.utf8Encoder.convert(value15);
-    }
-    dynamicSize += (_picture?.length ?? 0) as int;
-    final value16 = object.supplierId;
-    IsarUint8List? _supplierId;
-    if (value16 != null) {
-      _supplierId = IsarBinaryWriter.utf8Encoder.convert(value16);
-    }
-    dynamicSize += (_supplierId?.length ?? 0) as int;
-    final value17 = object.synced;
-    final _synced = value17;
-    final value18 = object.table;
-    IsarUint8List? _table;
-    if (value18 != null) {
-      _table = IsarBinaryWriter.utf8Encoder.convert(value18);
-    }
-    dynamicSize += (_table?.length ?? 0) as int;
-    final value19 = object.taxId;
-    IsarUint8List? _taxId;
-    if (value19 != null) {
-      _taxId = IsarBinaryWriter.utf8Encoder.convert(value19);
-    }
-    dynamicSize += (_taxId?.length ?? 0) as int;
-    final value20 = object.unit;
-    IsarUint8List? _unit;
-    if (value20 != null) {
-      _unit = IsarBinaryWriter.utf8Encoder.convert(value20);
-    }
-    dynamicSize += (_unit?.length ?? 0) as int;
-    final size = staticSize + dynamicSize;
+List<IsarLinkBase> _productGetLinks(Product object) {
+  return [object.variants];
+}
 
-    rawObj.buffer = alloc(size);
-    rawObj.buffer_length = size;
-    final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
-    final writer = IsarBinaryWriter(buffer, staticSize);
-    writer.writeBool(offsets[0], _active);
-    writer.writeBytes(offsets[1], _barCode);
-    writer.writeLong(offsets[2], _branchId);
-    writer.writeLong(offsets[3], _businessId);
-    writer.writeBytes(offsets[4], _categoryId);
-    writer.writeBytes(offsets[5], _color);
-    writer.writeBytes(offsets[6], _createdAt);
-    writer.writeBool(offsets[7], _currentUpdate);
-    writer.writeBytes(offsets[8], _description);
-    writer.writeBool(offsets[9], _draft);
-    writer.writeBytes(offsets[10], _expiryDate);
-    writer.writeBool(offsets[11], _hasPicture);
-    writer.writeBool(offsets[12], _imageLocal);
-    writer.writeBytes(offsets[13], _imageUrl);
-    writer.writeBytes(offsets[14], _name);
-    writer.writeBytes(offsets[15], _picture);
-    writer.writeBytes(offsets[16], _supplierId);
-    writer.writeBool(offsets[17], _synced);
-    writer.writeBytes(offsets[18], _table);
-    writer.writeBytes(offsets[19], _taxId);
-    writer.writeBytes(offsets[20], _unit);
+void _productSerializeNative(
+    IsarCollection<Product> collection,
+    IsarRawObject rawObj,
+    Product object,
+    int staticSize,
+    List<int> offsets,
+    AdapterAlloc alloc) {
+  var dynamicSize = 0;
+  final value0 = object.active;
+  final _active = value0;
+  final value1 = object.barCode;
+  IsarUint8List? _barCode;
+  if (value1 != null) {
+    _barCode = IsarBinaryWriter.utf8Encoder.convert(value1);
   }
-
-  @override
-  Product deserialize(IsarCollection<Product> collection, int id,
-      IsarBinaryReader reader, List<int> offsets) {
-    final object = Product();
-    object.active = reader.readBool(offsets[0]);
-    object.barCode = reader.readStringOrNull(offsets[1]);
-    object.branchId = reader.readLong(offsets[2]);
-    object.businessId = reader.readLong(offsets[3]);
-    object.categoryId = reader.readStringOrNull(offsets[4]);
-    object.color = reader.readString(offsets[5]);
-    object.createdAt = reader.readStringOrNull(offsets[6]);
-    object.currentUpdate = reader.readBoolOrNull(offsets[7]);
-    object.description = reader.readStringOrNull(offsets[8]);
-    object.draft = reader.readBoolOrNull(offsets[9]);
-    object.expiryDate = reader.readStringOrNull(offsets[10]);
-    object.hasPicture = reader.readBool(offsets[11]);
-    object.id = id;
-    object.imageLocal = reader.readBoolOrNull(offsets[12]);
-    object.imageUrl = reader.readStringOrNull(offsets[13]);
-    object.name = reader.readString(offsets[14]);
-    object.picture = reader.readStringOrNull(offsets[15]);
-    object.supplierId = reader.readStringOrNull(offsets[16]);
-    object.synced = reader.readBoolOrNull(offsets[17]);
-    object.table = reader.readStringOrNull(offsets[18]);
-    object.taxId = reader.readStringOrNull(offsets[19]);
-    object.unit = reader.readStringOrNull(offsets[20]);
-    attachLinks(collection.isar, id, object);
-    return object;
+  dynamicSize += (_barCode?.length ?? 0) as int;
+  final value2 = object.branchId;
+  final _branchId = value2;
+  final value3 = object.businessId;
+  final _businessId = value3;
+  final value4 = object.categoryId;
+  IsarUint8List? _categoryId;
+  if (value4 != null) {
+    _categoryId = IsarBinaryWriter.utf8Encoder.convert(value4);
   }
-
-  @override
-  P deserializeProperty<P>(
-      int id, IsarBinaryReader reader, int propertyIndex, int offset) {
-    switch (propertyIndex) {
-      case -1:
-        return id as P;
-      case 0:
-        return (reader.readBool(offset)) as P;
-      case 1:
-        return (reader.readStringOrNull(offset)) as P;
-      case 2:
-        return (reader.readLong(offset)) as P;
-      case 3:
-        return (reader.readLong(offset)) as P;
-      case 4:
-        return (reader.readStringOrNull(offset)) as P;
-      case 5:
-        return (reader.readString(offset)) as P;
-      case 6:
-        return (reader.readStringOrNull(offset)) as P;
-      case 7:
-        return (reader.readBoolOrNull(offset)) as P;
-      case 8:
-        return (reader.readStringOrNull(offset)) as P;
-      case 9:
-        return (reader.readBoolOrNull(offset)) as P;
-      case 10:
-        return (reader.readStringOrNull(offset)) as P;
-      case 11:
-        return (reader.readBool(offset)) as P;
-      case 12:
-        return (reader.readBoolOrNull(offset)) as P;
-      case 13:
-        return (reader.readStringOrNull(offset)) as P;
-      case 14:
-        return (reader.readString(offset)) as P;
-      case 15:
-        return (reader.readStringOrNull(offset)) as P;
-      case 16:
-        return (reader.readStringOrNull(offset)) as P;
-      case 17:
-        return (reader.readBoolOrNull(offset)) as P;
-      case 18:
-        return (reader.readStringOrNull(offset)) as P;
-      case 19:
-        return (reader.readStringOrNull(offset)) as P;
-      case 20:
-        return (reader.readStringOrNull(offset)) as P;
-      default:
-        throw 'Illegal propertyIndex';
-    }
+  dynamicSize += (_categoryId?.length ?? 0) as int;
+  final value5 = object.color;
+  final _color = IsarBinaryWriter.utf8Encoder.convert(value5);
+  dynamicSize += (_color.length) as int;
+  final value6 = object.createdAt;
+  IsarUint8List? _createdAt;
+  if (value6 != null) {
+    _createdAt = IsarBinaryWriter.utf8Encoder.convert(value6);
   }
-
-  @override
-  void attachLinks(Isar isar, int id, Product object) {
-    object.variants.attach(
-      id,
-      isar.products,
-      isar.getCollection<Variant>('Variant'),
-      'variants',
-      false,
-    );
+  dynamicSize += (_createdAt?.length ?? 0) as int;
+  final value7 = object.currentUpdate;
+  final _currentUpdate = value7;
+  final value8 = object.description;
+  IsarUint8List? _description;
+  if (value8 != null) {
+    _description = IsarBinaryWriter.utf8Encoder.convert(value8);
   }
+  dynamicSize += (_description?.length ?? 0) as int;
+  final value9 = object.draft;
+  final _draft = value9;
+  final value10 = object.expiryDate;
+  IsarUint8List? _expiryDate;
+  if (value10 != null) {
+    _expiryDate = IsarBinaryWriter.utf8Encoder.convert(value10);
+  }
+  dynamicSize += (_expiryDate?.length ?? 0) as int;
+  final value11 = object.hasPicture;
+  final _hasPicture = value11;
+  final value12 = object.imageLocal;
+  final _imageLocal = value12;
+  final value13 = object.imageUrl;
+  IsarUint8List? _imageUrl;
+  if (value13 != null) {
+    _imageUrl = IsarBinaryWriter.utf8Encoder.convert(value13);
+  }
+  dynamicSize += (_imageUrl?.length ?? 0) as int;
+  final value14 = object.name;
+  final _name = IsarBinaryWriter.utf8Encoder.convert(value14);
+  dynamicSize += (_name.length) as int;
+  final value15 = object.picture;
+  IsarUint8List? _picture;
+  if (value15 != null) {
+    _picture = IsarBinaryWriter.utf8Encoder.convert(value15);
+  }
+  dynamicSize += (_picture?.length ?? 0) as int;
+  final value16 = object.supplierId;
+  IsarUint8List? _supplierId;
+  if (value16 != null) {
+    _supplierId = IsarBinaryWriter.utf8Encoder.convert(value16);
+  }
+  dynamicSize += (_supplierId?.length ?? 0) as int;
+  final value17 = object.synced;
+  final _synced = value17;
+  final value18 = object.table;
+  IsarUint8List? _table;
+  if (value18 != null) {
+    _table = IsarBinaryWriter.utf8Encoder.convert(value18);
+  }
+  dynamicSize += (_table?.length ?? 0) as int;
+  final value19 = object.taxId;
+  IsarUint8List? _taxId;
+  if (value19 != null) {
+    _taxId = IsarBinaryWriter.utf8Encoder.convert(value19);
+  }
+  dynamicSize += (_taxId?.length ?? 0) as int;
+  final value20 = object.unit;
+  IsarUint8List? _unit;
+  if (value20 != null) {
+    _unit = IsarBinaryWriter.utf8Encoder.convert(value20);
+  }
+  dynamicSize += (_unit?.length ?? 0) as int;
+  final size = staticSize + dynamicSize;
+
+  rawObj.buffer = alloc(size);
+  rawObj.buffer_length = size;
+  final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
+  final writer = IsarBinaryWriter(buffer, staticSize);
+  writer.writeBool(offsets[0], _active);
+  writer.writeBytes(offsets[1], _barCode);
+  writer.writeLong(offsets[2], _branchId);
+  writer.writeLong(offsets[3], _businessId);
+  writer.writeBytes(offsets[4], _categoryId);
+  writer.writeBytes(offsets[5], _color);
+  writer.writeBytes(offsets[6], _createdAt);
+  writer.writeBool(offsets[7], _currentUpdate);
+  writer.writeBytes(offsets[8], _description);
+  writer.writeBool(offsets[9], _draft);
+  writer.writeBytes(offsets[10], _expiryDate);
+  writer.writeBool(offsets[11], _hasPicture);
+  writer.writeBool(offsets[12], _imageLocal);
+  writer.writeBytes(offsets[13], _imageUrl);
+  writer.writeBytes(offsets[14], _name);
+  writer.writeBytes(offsets[15], _picture);
+  writer.writeBytes(offsets[16], _supplierId);
+  writer.writeBool(offsets[17], _synced);
+  writer.writeBytes(offsets[18], _table);
+  writer.writeBytes(offsets[19], _taxId);
+  writer.writeBytes(offsets[20], _unit);
+}
+
+Product _productDeserializeNative(IsarCollection<Product> collection, int id,
+    IsarBinaryReader reader, List<int> offsets) {
+  final object = Product();
+  object.active = reader.readBool(offsets[0]);
+  object.barCode = reader.readStringOrNull(offsets[1]);
+  object.branchId = reader.readLong(offsets[2]);
+  object.businessId = reader.readLong(offsets[3]);
+  object.categoryId = reader.readStringOrNull(offsets[4]);
+  object.color = reader.readString(offsets[5]);
+  object.createdAt = reader.readStringOrNull(offsets[6]);
+  object.currentUpdate = reader.readBoolOrNull(offsets[7]);
+  object.description = reader.readStringOrNull(offsets[8]);
+  object.draft = reader.readBoolOrNull(offsets[9]);
+  object.expiryDate = reader.readStringOrNull(offsets[10]);
+  object.hasPicture = reader.readBool(offsets[11]);
+  object.id = id;
+  object.imageLocal = reader.readBoolOrNull(offsets[12]);
+  object.imageUrl = reader.readStringOrNull(offsets[13]);
+  object.name = reader.readString(offsets[14]);
+  object.picture = reader.readStringOrNull(offsets[15]);
+  object.supplierId = reader.readStringOrNull(offsets[16]);
+  object.synced = reader.readBoolOrNull(offsets[17]);
+  object.table = reader.readStringOrNull(offsets[18]);
+  object.taxId = reader.readStringOrNull(offsets[19]);
+  object.unit = reader.readStringOrNull(offsets[20]);
+  _productAttachLinks(collection, id, object);
+  return object;
+}
+
+P _productDeserializePropNative<P>(
+    int id, IsarBinaryReader reader, int propertyIndex, int offset) {
+  switch (propertyIndex) {
+    case -1:
+      return id as P;
+    case 0:
+      return (reader.readBool(offset)) as P;
+    case 1:
+      return (reader.readStringOrNull(offset)) as P;
+    case 2:
+      return (reader.readLong(offset)) as P;
+    case 3:
+      return (reader.readLong(offset)) as P;
+    case 4:
+      return (reader.readStringOrNull(offset)) as P;
+    case 5:
+      return (reader.readString(offset)) as P;
+    case 6:
+      return (reader.readStringOrNull(offset)) as P;
+    case 7:
+      return (reader.readBoolOrNull(offset)) as P;
+    case 8:
+      return (reader.readStringOrNull(offset)) as P;
+    case 9:
+      return (reader.readBoolOrNull(offset)) as P;
+    case 10:
+      return (reader.readStringOrNull(offset)) as P;
+    case 11:
+      return (reader.readBool(offset)) as P;
+    case 12:
+      return (reader.readBoolOrNull(offset)) as P;
+    case 13:
+      return (reader.readStringOrNull(offset)) as P;
+    case 14:
+      return (reader.readString(offset)) as P;
+    case 15:
+      return (reader.readStringOrNull(offset)) as P;
+    case 16:
+      return (reader.readStringOrNull(offset)) as P;
+    case 17:
+      return (reader.readBoolOrNull(offset)) as P;
+    case 18:
+      return (reader.readStringOrNull(offset)) as P;
+    case 19:
+      return (reader.readStringOrNull(offset)) as P;
+    case 20:
+      return (reader.readStringOrNull(offset)) as P;
+    default:
+      throw 'Illegal propertyIndex';
+  }
+}
+
+dynamic _productSerializeWeb(
+    IsarCollection<Product> collection, Product object) {
+  final jsObj = IsarNative.newJsObject();
+  IsarNative.jsObjectSet(jsObj, 'active', object.active);
+  IsarNative.jsObjectSet(jsObj, 'barCode', object.barCode);
+  IsarNative.jsObjectSet(jsObj, 'branchId', object.branchId);
+  IsarNative.jsObjectSet(jsObj, 'businessId', object.businessId);
+  IsarNative.jsObjectSet(jsObj, 'categoryId', object.categoryId);
+  IsarNative.jsObjectSet(jsObj, 'color', object.color);
+  IsarNative.jsObjectSet(jsObj, 'createdAt', object.createdAt);
+  IsarNative.jsObjectSet(jsObj, 'currentUpdate', object.currentUpdate);
+  IsarNative.jsObjectSet(jsObj, 'description', object.description);
+  IsarNative.jsObjectSet(jsObj, 'draft', object.draft);
+  IsarNative.jsObjectSet(jsObj, 'expiryDate', object.expiryDate);
+  IsarNative.jsObjectSet(jsObj, 'hasPicture', object.hasPicture);
+  IsarNative.jsObjectSet(jsObj, 'id', object.id);
+  IsarNative.jsObjectSet(jsObj, 'imageLocal', object.imageLocal);
+  IsarNative.jsObjectSet(jsObj, 'imageUrl', object.imageUrl);
+  IsarNative.jsObjectSet(jsObj, 'name', object.name);
+  IsarNative.jsObjectSet(jsObj, 'picture', object.picture);
+  IsarNative.jsObjectSet(jsObj, 'supplierId', object.supplierId);
+  IsarNative.jsObjectSet(jsObj, 'synced', object.synced);
+  IsarNative.jsObjectSet(jsObj, 'table', object.table);
+  IsarNative.jsObjectSet(jsObj, 'taxId', object.taxId);
+  IsarNative.jsObjectSet(jsObj, 'unit', object.unit);
+  return jsObj;
+}
+
+Product _productDeserializeWeb(
+    IsarCollection<Product> collection, dynamic jsObj) {
+  final object = Product();
+  object.active = IsarNative.jsObjectGet(jsObj, 'active') ?? false;
+  object.barCode = IsarNative.jsObjectGet(jsObj, 'barCode');
+  object.branchId =
+      IsarNative.jsObjectGet(jsObj, 'branchId') ?? double.negativeInfinity;
+  object.businessId =
+      IsarNative.jsObjectGet(jsObj, 'businessId') ?? double.negativeInfinity;
+  object.categoryId = IsarNative.jsObjectGet(jsObj, 'categoryId');
+  object.color = IsarNative.jsObjectGet(jsObj, 'color') ?? '';
+  object.createdAt = IsarNative.jsObjectGet(jsObj, 'createdAt');
+  object.currentUpdate = IsarNative.jsObjectGet(jsObj, 'currentUpdate');
+  object.description = IsarNative.jsObjectGet(jsObj, 'description');
+  object.draft = IsarNative.jsObjectGet(jsObj, 'draft');
+  object.expiryDate = IsarNative.jsObjectGet(jsObj, 'expiryDate');
+  object.hasPicture = IsarNative.jsObjectGet(jsObj, 'hasPicture') ?? false;
+  object.id = IsarNative.jsObjectGet(jsObj, 'id');
+  object.imageLocal = IsarNative.jsObjectGet(jsObj, 'imageLocal');
+  object.imageUrl = IsarNative.jsObjectGet(jsObj, 'imageUrl');
+  object.name = IsarNative.jsObjectGet(jsObj, 'name') ?? '';
+  object.picture = IsarNative.jsObjectGet(jsObj, 'picture');
+  object.supplierId = IsarNative.jsObjectGet(jsObj, 'supplierId');
+  object.synced = IsarNative.jsObjectGet(jsObj, 'synced');
+  object.table = IsarNative.jsObjectGet(jsObj, 'table');
+  object.taxId = IsarNative.jsObjectGet(jsObj, 'taxId');
+  object.unit = IsarNative.jsObjectGet(jsObj, 'unit');
+  _productAttachLinks(collection, IsarNative.jsObjectGet(jsObj, 'id'), object);
+  return object;
+}
+
+P _productDeserializePropWeb<P>(Object jsObj, String propertyName) {
+  switch (propertyName) {
+    case 'active':
+      return (IsarNative.jsObjectGet(jsObj, 'active') ?? false) as P;
+    case 'barCode':
+      return (IsarNative.jsObjectGet(jsObj, 'barCode')) as P;
+    case 'branchId':
+      return (IsarNative.jsObjectGet(jsObj, 'branchId') ??
+          double.negativeInfinity) as P;
+    case 'businessId':
+      return (IsarNative.jsObjectGet(jsObj, 'businessId') ??
+          double.negativeInfinity) as P;
+    case 'categoryId':
+      return (IsarNative.jsObjectGet(jsObj, 'categoryId')) as P;
+    case 'color':
+      return (IsarNative.jsObjectGet(jsObj, 'color') ?? '') as P;
+    case 'createdAt':
+      return (IsarNative.jsObjectGet(jsObj, 'createdAt')) as P;
+    case 'currentUpdate':
+      return (IsarNative.jsObjectGet(jsObj, 'currentUpdate')) as P;
+    case 'description':
+      return (IsarNative.jsObjectGet(jsObj, 'description')) as P;
+    case 'draft':
+      return (IsarNative.jsObjectGet(jsObj, 'draft')) as P;
+    case 'expiryDate':
+      return (IsarNative.jsObjectGet(jsObj, 'expiryDate')) as P;
+    case 'hasPicture':
+      return (IsarNative.jsObjectGet(jsObj, 'hasPicture') ?? false) as P;
+    case 'id':
+      return (IsarNative.jsObjectGet(jsObj, 'id')) as P;
+    case 'imageLocal':
+      return (IsarNative.jsObjectGet(jsObj, 'imageLocal')) as P;
+    case 'imageUrl':
+      return (IsarNative.jsObjectGet(jsObj, 'imageUrl')) as P;
+    case 'name':
+      return (IsarNative.jsObjectGet(jsObj, 'name') ?? '') as P;
+    case 'picture':
+      return (IsarNative.jsObjectGet(jsObj, 'picture')) as P;
+    case 'supplierId':
+      return (IsarNative.jsObjectGet(jsObj, 'supplierId')) as P;
+    case 'synced':
+      return (IsarNative.jsObjectGet(jsObj, 'synced')) as P;
+    case 'table':
+      return (IsarNative.jsObjectGet(jsObj, 'table')) as P;
+    case 'taxId':
+      return (IsarNative.jsObjectGet(jsObj, 'taxId')) as P;
+    case 'unit':
+      return (IsarNative.jsObjectGet(jsObj, 'unit')) as P;
+    default:
+      throw 'Illegal propertyName';
+  }
+}
+
+void _productAttachLinks(IsarCollection col, int id, Product object) {
+  object.variants.attach(col, col.isar.variants, 'variants', id);
 }
 
 extension ProductQueryWhereSort on QueryBuilder<Product, Product, QWhere> {
   QueryBuilder<Product, Product, QAfterWhere> anyId() {
-    return addWhereClauseInternal(const WhereClause(indexName: null));
+    return addWhereClauseInternal(const IdWhereClause.any());
   }
 }
 
 extension ProductQueryWhere on QueryBuilder<Product, Product, QWhereClause> {
-  QueryBuilder<Product, Product, QAfterWhereClause> idEqualTo(int? id) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [id],
+  QueryBuilder<Product, Product, QAfterWhereClause> idEqualTo(int id) {
+    return addWhereClauseInternal(IdWhereClause.between(
+      lower: id,
       includeLower: true,
-      upper: [id],
+      upper: id,
       includeUpper: true,
     ));
   }
 
-  QueryBuilder<Product, Product, QAfterWhereClause> idNotEqualTo(int? id) {
+  QueryBuilder<Product, Product, QAfterWhereClause> idNotEqualTo(int id) {
     if (whereSortInternal == Sort.asc) {
-      return addWhereClauseInternal(WhereClause(
-        indexName: null,
-        upper: [id],
-        includeUpper: false,
-      )).addWhereClauseInternal(WhereClause(
-        indexName: null,
-        lower: [id],
-        includeLower: false,
-      ));
+      return addWhereClauseInternal(
+        IdWhereClause.lessThan(upper: id, includeUpper: false),
+      ).addWhereClauseInternal(
+        IdWhereClause.greaterThan(lower: id, includeLower: false),
+      );
     } else {
-      return addWhereClauseInternal(WhereClause(
-        indexName: null,
-        lower: [id],
-        includeLower: false,
-      )).addWhereClauseInternal(WhereClause(
-        indexName: null,
-        upper: [id],
-        includeUpper: false,
-      ));
+      return addWhereClauseInternal(
+        IdWhereClause.greaterThan(lower: id, includeLower: false),
+      ).addWhereClauseInternal(
+        IdWhereClause.lessThan(upper: id, includeUpper: false),
+      );
     }
   }
 
-  QueryBuilder<Product, Product, QAfterWhereClause> idGreaterThan(
-    int? id, {
-    bool include = false,
-  }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [id],
-      includeLower: include,
-    ));
+  QueryBuilder<Product, Product, QAfterWhereClause> idGreaterThan(int id,
+      {bool include = false}) {
+    return addWhereClauseInternal(
+      IdWhereClause.greaterThan(lower: id, includeLower: include),
+    );
   }
 
-  QueryBuilder<Product, Product, QAfterWhereClause> idLessThan(
-    int? id, {
-    bool include = false,
-  }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      upper: [id],
-      includeUpper: include,
-    ));
+  QueryBuilder<Product, Product, QAfterWhereClause> idLessThan(int id,
+      {bool include = false}) {
+    return addWhereClauseInternal(
+      IdWhereClause.lessThan(upper: id, includeUpper: include),
+    );
   }
 
   QueryBuilder<Product, Product, QAfterWhereClause> idBetween(
-    int? lowerId,
-    int? upperId, {
+    int lowerId,
+    int upperId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addWhereClauseInternal(WhereClause(
-      indexName: null,
-      lower: [lowerId],
+    return addWhereClauseInternal(IdWhereClause.between(
+      lower: lowerId,
       includeLower: includeLower,
-      upper: [upperId],
+      upper: upperId,
       includeUpper: includeUpper,
     ));
   }
@@ -2152,6 +2121,18 @@ extension ProductQueryFilter
       value: pattern,
       caseSensitive: caseSensitive,
     ));
+  }
+}
+
+extension ProductQueryLinks
+    on QueryBuilder<Product, Product, QFilterCondition> {
+  QueryBuilder<Product, Product, QAfterFilterCondition> variants(
+      FilterQuery<Variant> q) {
+    return linkInternal(
+      isar.variants,
+      q,
+      'variants',
+    );
   }
 }
 
