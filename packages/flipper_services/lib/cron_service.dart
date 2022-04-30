@@ -5,7 +5,6 @@ import 'package:cron/cron.dart';
 import 'package:flipper_models/isar_models.dart';
 // import 'package:flipper_models/order_item.dart';
 import 'package:flipper_services/abstractions/printer.dart';
-import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/routes.logger.dart';
@@ -97,8 +96,8 @@ class CronService {
       ProxyService.billing.monitorSubscription(userId: int.parse(userId));
       ProxyService.box.remove(key: 'checkIn');
       if (await settingService.isDailyReportEnabled()) {
-        List<Order> completedOrders =
-            await ProxyService.isarApi.getOrderByStatus(status: completeStatus);
+        List<Order> completedOrders = await ProxyService.isarApi
+            .completedOrders(branchId: ProxyService.box.getBranchId()!);
 
         for (Order completedOrder in completedOrders) {
           completedOrder.reported = true;

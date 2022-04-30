@@ -82,18 +82,19 @@ class IsarAPI implements IsarApiInterface {
     });
   }
 
-  Future<Order?> pendingOrderExist({required int branchId}) async {
+  @override
+  Future<Order?> pendingOrder({required int branchId}) async {
     return isar.writeTxn((isar) async {
       return isar.orders
           .filter()
           .branchIdEqualTo(branchId)
-          .statusEqualTo('pending')
+          .statusEqualTo(pendingStatus)
           .findFirst();
     });
   }
 
   @override
-  Future<Order> createOrder(
+  Future<Order> manageOrder(
       {required double customAmount,
       required Variant variation,
       required double price,
@@ -106,7 +107,7 @@ class IsarAPI implements IsarApiInterface {
 
     int branchId = ProxyService.box.getBranchId()!;
     String name = '';
-    Order? existOrder = await pendingOrderExist(branchId: branchId);
+    Order? existOrder = await pendingOrder(branchId: branchId);
     if (variation.name == 'Regular') {
       if (variation.productName != 'Custom Amount') {
         name = variation.productName + '(Regular)';
@@ -124,7 +125,7 @@ class IsarAPI implements IsarApiInterface {
       final order = Order()
         ..reference = ref
         ..orderNumber = orderNumber
-        ..status = 'pending'
+        ..status = pendingStatus
         ..orderType = orderType
         ..active = true
         ..draft = true
@@ -962,13 +963,6 @@ class IsarAPI implements IsarApiInterface {
   }
 
   @override
-  Future<List<Order>> getOrderByStatus({required String status}) {
-    return isar.writeTxn((isar) async {
-      return isar.orders.filter().statusEqualTo(status).findAll();
-    });
-  }
-
-  @override
   Future<OrderItem?> getOrderItem({required int id}) {
     return isar.writeTxn((isar) {
       return isar.orderItems.get(id);
@@ -1167,19 +1161,20 @@ class IsarAPI implements IsarApiInterface {
     return isar.writeTxn((isar) async {
       return isar.orders
           .filter()
-          .statusEqualTo('pending')
+          .statusEqualTo(pendingStatus)
           .branchIdEqualTo(branchId)
           .findFirst();
     });
   }
 
   @override
-  Future<List<Order>> orders({required int branchId}) {
+  Future<List<Order>> completedOrders(
+      {required int branchId, String? status = completeStatus}) {
     return isar.writeTxn((isar) async {
       return isar.orders
           .filter()
           .branchIdEqualTo(branchId)
-          .statusEqualTo('pending')
+          .statusEqualTo(status!)
           .findAll();
     });
   }

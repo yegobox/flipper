@@ -103,12 +103,9 @@ class KeyPadService with ReactiveServiceMixin {
     log.d('getOrder: $order');
     if (order != null) {
       await order.orderItems.load();
-      log.d(order.orderItems);
       _countOrderItems.value = order.orderItems.length;
     }
-
     _order.value = order;
-
     return order;
   }
 

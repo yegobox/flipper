@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 String appFont = 'HelveticaNeuea';
 String dbName = 'main';
 String parkedStatus = 'parked';
-String pendingStatus = 'pending';
+const String pendingStatus = 'pending';
 String addBarCode = 'addBarCode';
 String attendance = 'attendance';
 String login = 'login';
 String selling = 'selling';
-String completeStatus = 'completed';
+const String completeStatus = 'completed';
 const double kPadding = 10.0;
 const Color purpleLight = Color(0XFF1e224c);
 

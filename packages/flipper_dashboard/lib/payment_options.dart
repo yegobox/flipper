@@ -69,8 +69,10 @@ class Payments extends StatelessWidget {
                         children: [
                           GestureDetector(
                             onTap: () {
-                              GoRouter.of(context)
-                                  .push(Routes.collect + "/cash", extra: order);
+                              GoRouter.of(context).push(
+                                Routes.collect + "/cash",
+                                extra: order,
+                              );
                             },
                             child: const ListTile(
                               leading: Text(
@@ -92,8 +94,10 @@ class Payments extends StatelessWidget {
                                   kDebugMode
                               ? GestureDetector(
                                   onTap: () {
-                                    GoRouter.of(context)
-                                        .push(Routes.collect + "/spenn");
+                                    GoRouter.of(context).push(
+                                      Routes.collect + "/spenn",
+                                      extra: order,
+                                    );
                                   },
                                   child: const ListTile(
                                     leading: Text(

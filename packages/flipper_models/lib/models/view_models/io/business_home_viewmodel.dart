@@ -96,7 +96,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   }
 
   void addKey(String key) async {
-    int branchId = ProxyService.box.read(key: 'branchId');
+    int branchId = ProxyService.box.getBranchId()!;
     if (key == 'C') {
       ProxyService.keypad.pop();
     } else if (key == '+') {
@@ -105,15 +105,27 @@ class BusinessHomeViewModel extends ReactiveViewModel {
             await ProxyService.isarApi.getCustomProductVariant();
 
         double amount = double.parse(ProxyService.keypad.key);
-
-        await ProxyService.isarApi.createOrder(
-          customAmount: amount,
-          variation: variation!,
-          price: double.parse(ProxyService.keypad.key),
-          //default on keypad
-          quantity: 1,
-        );
-        Order? order = await ProxyService.keypad.getOrder(branchId: branchId);
+        Order? order =
+            await ProxyService.isarApi.pendingOrder(branchId: branchId);
+        if (order == null) {
+          //create order
+          await ProxyService.isarApi.manageOrder(
+            customAmount: amount,
+            variation: variation!,
+            price: double.parse(ProxyService.keypad.key),
+            //default on keypad
+            quantity: 1,
+          );
+        } else {
+          // update the order.
+          await ProxyService.isarApi.manageOrder(
+            customAmount: amount,
+            variation: variation!,
+            price: double.parse(ProxyService.keypad.key),
+            //default on keypad
+            quantity: 1,
+          );
+        }
 
         keypad.setCount(count: order != null ? order.orderItems.length : 0);
 
@@ -130,15 +142,20 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   }
 
   Future<void> currentOrder() async {
-    int branchId = ProxyService.box.read(key: 'branchId');
-    Order? od = await ProxyService.keypad.getOrder(branchId: branchId);
+    int branchId = ProxyService.box.getBranchId()!;
+    Order? od = await ProxyService.isarApi.pendingOrder(branchId: branchId);
+    log.e(od);
     keypad.setCount(count: 0);
     if (od != null) {
       keypad.setOrder(od);
       if (od.orderItems.isNotEmpty) {
         keypad.setCount(count: od.orderItems.length);
       }
+      keypad.setTotalPayable(amount: od.subTotal);
+    } else {
+      keypad.setTotalPayable(amount: 0.0);
     }
+
     notifyListeners();
   }
 
@@ -209,7 +226,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   }
 
   Future<List<Variant>> getVariants({required int productId}) async {
-    int branchId = ProxyService.box.read(key: 'branchId');
+    int branchId = ProxyService.box.getBranchId()!;
     _variants = await ProxyService.isarApi
         .variants(branchId: branchId, productId: productId);
     notifyListeners();
@@ -241,9 +258,9 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         name = variation.productName + '(${variation.name})';
       }
 
-      /// if variation given given exist in the orderItems then we update the order with new count
+      /// if variation  given it exist in the orderItems then we update the order with new count
       List<Order> existOrders =
-          await ProxyService.isarApi.orders(branchId: branchId);
+          await ProxyService.isarApi.completedOrders(branchId: branchId);
       if (existOrders.isNotEmpty) {
         /// if order exist then we need to update the orderItem that match with the item we want to update with new count
         /// if orderItem does not exist then we need to create a new orderItem
@@ -362,7 +379,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
               .addOrderItem(order: existOrders.first, item: item);
         }
       } else {
-        await ProxyService.isarApi.createOrder(
+        await ProxyService.isarApi.manageOrder(
           customAmount: amountTotal,
           variation: variation,
           price: amountTotal,
@@ -486,9 +503,9 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   Future resumeOrder({required int ticketId}) async {
     Order? _order = await ProxyService.isarApi.getOrderById(id: ticketId);
-    // Map map = _order.toJson();
+
     _order!.status = pendingStatus;
-    await ProxyService.isarApi.update(data: _order, endPoint: 'order');
+    await ProxyService.isarApi.update(data: _order);
     await keypad.getTickets();
     await keypad.getOrder(branchId: ProxyService.box.read(key: 'branchId'));
     await currentOrder();
@@ -569,8 +586,9 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   List<OrderItem> orderItems = [];
 
   void loadReport() async {
+    int branchId = ProxyService.box.getBranchId()!;
     List<Order> completedOrders =
-        await ProxyService.isarApi.getOrderByStatus(status: completeStatus);
+        await ProxyService.isarApi.completedOrders(branchId: branchId);
     for (Order completedOrder in completedOrders) {
       orderItems.addAll(completedOrder.orderItems);
     }

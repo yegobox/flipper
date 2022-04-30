@@ -1,8 +1,10 @@
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_services/constants.dart';
 
 abstract class IsarApiInterface {
   Future<List<Product>> products({required int branchId});
   Future<int> signup({required Map business});
+  Future<Order?> pendingOrder({required int branchId});
   Future<SyncF> login({required String userPhone});
   Future<Business> getOnlineBusiness({required String userId});
   Future<Business> getLocalOrOnlineBusiness({required String userId});
@@ -51,7 +53,7 @@ abstract class IsarApiInterface {
 
   ///create an order if no pending order exist should create a new one
   ///then if it exist should return the existing one!
-  Future<Order> createOrder({
+  Future<Order> manageOrder({
     required double customAmount,
     required Variant variation,
     required double price,
@@ -60,7 +62,8 @@ abstract class IsarApiInterface {
     double quantity = 1,
   });
 
-  Future<List<Order>> orders({required int branchId});
+  Future<List<Order>> completedOrders(
+      {required int branchId, String? status = completeStatus});
   Future<Order?> order({required int branchId});
   Future<OrderItem?> getOrderItem({required int id});
 
@@ -97,7 +100,7 @@ abstract class IsarApiInterface {
   Future<Order?> getOrderById({required int id});
   Future<List<Order>> tickets();
   Future<List<Variant>> getVariantByProductId({required int productId});
-  Future<List<Order>> getOrderByStatus({required String status});
+
   Future<int> sendReport({required List<OrderItem> orderItems});
   Future<void> createGoogleSheetDoc({required String email});
   Future<Business?> getBusinessById({required int id});

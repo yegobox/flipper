@@ -143,6 +143,7 @@ class _FlipperAppState extends State<FlipperApp> {
     return ViewModelBuilder<BusinessHomeViewModel>.reactive(
       viewModelBuilder: () => BusinessHomeViewModel(),
       onModelReady: (model) {
+        model.currentOrder();
         ProxyService.notification.initialize(context);
         ProxyService.notification.listen(context);
         ProxyService.dynamicLink.handleDynamicLink(context);
