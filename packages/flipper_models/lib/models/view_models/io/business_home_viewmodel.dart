@@ -127,7 +127,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
           );
         }
 
-        keypad.setCount(count: order != null ? order.orderItems.length : 0);
+        keypad.setCount(count: order != null ? order.orderItems.length : 10);
 
         updatePayable();
         ProxyService.keypad.reset();
@@ -148,6 +148,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     keypad.setCount(count: 0);
     if (od != null) {
       keypad.setOrder(od);
+      await od.orderItems.load();
       if (od.orderItems.isNotEmpty) {
         keypad.setCount(count: od.orderItems.length);
       }

@@ -13,6 +13,12 @@ class KeyPadService with ReactiveServiceMixin {
 
   get count => _count.value;
 
+  // keypad.count
+
+  setCount({required int count}) {
+    _count.value = count;
+  }
+
   final _quantity = ReactiveValue<int>(1);
 
   get quantity => _quantity.value;
@@ -50,12 +56,6 @@ class KeyPadService with ReactiveServiceMixin {
 
   void toggleCheckbox({required int variantId}) {
     _check.value = variantId;
-  }
-
-  // keypad.count
-
-  setCount({required int count}) {
-    _count.value = count;
   }
 
   final _tickets = ReactiveValue<List<Order>>([]);

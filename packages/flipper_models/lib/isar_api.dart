@@ -209,6 +209,12 @@ class IsarAPI implements IsarApiInterface {
         return isar.stocks.filter().variantIdEqualTo(variation.id).findFirst();
       });
 
+      /// update the order with subTotal given to new orderItem added to order
+      existOrder.subTotal = existOrder.subTotal + (price * quantity);
+      // save order to db
+      await isar.writeTxn((isar) async {
+        await isar.orders.put(existOrder, saveLinks: true);
+      });
       existOrder.orderItems.add(OrderItem()
         ..qty = quantity
         ..name = name
