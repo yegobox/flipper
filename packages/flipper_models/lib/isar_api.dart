@@ -890,11 +890,8 @@ class IsarAPI implements IsarApiInterface {
   @override
   Stream<Customer?> getCustomerByOrderId({required int id}) {
     return isar.customers
-        .filter()
-        .idEqualTo(id)
-        .build()
-        .watch(initialReturn: true)
-        .asyncMap((event) => event.first);
+        .watchObject(id, initialReturn: true)
+        .asyncMap((event) => event);
   }
 
   @override
@@ -1466,7 +1463,7 @@ class IsarAPI implements IsarApiInterface {
   @override
   Future<Variant?> variant({required int variantId}) async {
     return await isar.writeTxn((isar) async {
-      return await isar.variants.filter().idEqualTo(variantId).findFirst();
+      return await isar.variants.get(variantId);
     });
   }
 
@@ -1569,7 +1566,7 @@ class IsarAPI implements IsarApiInterface {
   @override
   Future<Variant?> getVariantById({required int id}) async {
     return isar.writeTxn((isar) async {
-      return await isar.variants.filter().idEqualTo(id).findFirst();
+      return await isar.variants.get(id);
     });
   }
 }

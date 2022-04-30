@@ -6,12 +6,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:number_display/number_display.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'customappbar.dart';
 import 'package:google_ui/google_ui.dart';
 import 'package:go_router/go_router.dart';
+import 'package:receipt/print.dart';
 
 class AfterSale extends StatefulWidget {
   const AfterSale(
@@ -133,6 +135,10 @@ class _AfterSaleState extends State<AfterSale> {
                                                 child: GOutlinedButton(
                                                   'Print Now',
                                                   onPressed: () async {
+                                                    Business? business =
+                                                        await ProxyService
+                                                            .isarApi
+                                                            .getBusiness();
                                                     List<OrderItem> items =
                                                         await ProxyService
                                                             .isarApi
@@ -146,22 +152,72 @@ class _AfterSaleState extends State<AfterSale> {
                                                                 order: widget
                                                                     .order,
                                                                 items: items);
-                                                    log.i(receiptSignature!
-                                                        .toJson());
-                                                    // Print print = Print();
-                                                    // print.feed(items);
-                                                    // print.print(
-                                                    //   grandTotal: 500,
-                                                    //   currencySymbol: "RW",
-                                                    //   info: "Richie",
-                                                    //   taxId: "342",
-                                                    //   receiverName: "Richie",
-                                                    //   receiverMail:
-                                                    //       "info@yegobox.com",
-                                                    //   receiverPhone:
-                                                    //       "+250788854800",
-                                                    //   email: "info@yegobox.com",
-                                                    // );
+                                                    Print print = Print();
+                                                    print.feed(items);
+                                                    print.print(
+                                                      grandTotal:
+                                                          widget.order.subTotal,
+                                                      currencySymbol: "RW",
+                                                      totalAEx: 0,
+                                                      totalB18: (widget.order
+                                                                  .subTotal *
+                                                              18 /
+                                                              118)
+                                                          .toStringAsFixed(2),
+                                                      totalB:
+                                                          widget.order.subTotal,
+                                                      totalTax: (widget.order
+                                                                  .subTotal *
+                                                              18 /
+                                                              118)
+                                                          .toStringAsFixed(2),
+                                                      cash:
+                                                          widget.order.subTotal,
+                                                      received:
+                                                          widget.order.subTotal,
+                                                      payMode: "Cash",
+                                                      bank: "-",
+                                                      mrc: receiptSignature!
+                                                          .data.mrcNo,
+                                                      internalData:
+                                                          receiptSignature
+                                                              .data.intrlData,
+                                                      // https://github.com/theyakka/qr.flutter/issues/4
+                                                      receiptQrCode:
+                                                          QrImageView(
+                                                        data: '000',
+                                                        version:
+                                                            QrVersions.auto,
+                                                        size: 200.0,
+                                                      ),
+                                                      receiptSignature:
+                                                          receiptSignature
+                                                              .data.rcptSign,
+                                                      cashierName:
+                                                          business!.name!,
+                                                      sdcId: receiptSignature
+                                                          .data.sdcId,
+                                                      sdcReceiptNum:
+                                                          receiptSignature
+                                                              .data.rcptNo
+                                                              .toString(),
+                                                      invoiceNum:
+                                                          receiptSignature
+                                                              .data.totRcptNo,
+                                                      brandName: business.name!,
+                                                      brandAddress:
+                                                          business.adrs ??
+                                                              "No address",
+                                                      brandTel: ProxyService.box
+                                                          .getUserPhone()!,
+                                                      brandTIN: business
+                                                          .tinNumber
+                                                          .toString(),
+                                                      brandDescription:
+                                                          business.name!,
+                                                      brandFooter:
+                                                          "Shop with us",
+                                                    );
                                                   },
                                                 ),
                                               ),

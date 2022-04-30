@@ -134,7 +134,7 @@ class KeyPadService with ReactiveServiceMixin {
     _quantity.value = 0;
     _quantity.value = qty!;
     log.i(quantity);
-    // notifyListeners();
+    notifyListeners();
   }
 
   void increaseQty() {

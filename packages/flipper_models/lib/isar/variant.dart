@@ -9,6 +9,7 @@ part 'variant.g.dart';
 @Collection()
 class Variant {
   late int id = Isar.autoIncrement;
+  // int? id = Isar.autoIncrement;
   late String name;
   late String sku;
   late int productId;
