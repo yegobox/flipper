@@ -90,20 +90,15 @@ class _BodyWidgetState extends State<BodyWidget> {
             );
           }
         },
-        tickets: widget.model.tickets.isEmpty
-            ? 0
-            : widget.model.tickets.length.toDouble(),
-        orders: widget.model.kOrder != null
-            ? widget.model.kOrder!.orderItems.length
-            : 0,
-        duePay: widget.model.kOrder != null
-            ? widget.model.totalPayable.toDouble()
-            : 0.00,
+        tickets: widget.model.keypad.tickets.length.toDouble(),
+        orders: widget.model.keypad.itemsOnSale,
+        duePay: widget.model.kOrder?.subTotal,
         ticketHandler: () async {
           await widget.model.keypad.getTickets();
           await widget.model.keypad
               .getOrder(branchId: ProxyService.box.getBranchId()!);
-          if (widget.model.kOrder == null && widget.model.tickets.isNotEmpty) {
+          if (widget.model.kOrder == null &&
+              widget.model.keypad.tickets.isNotEmpty) {
             //then we know we need to resume.
             //TODOfix this on desktop is not showing.
             FlipperBottomSheet.showTicketsToSaleBottomSheet(

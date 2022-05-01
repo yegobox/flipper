@@ -64,7 +64,6 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   late String? latitude;
 
   Order? get kOrder => keypad.order;
-  List<Order> get tickets => keypad.tickets;
 
   double get amountTotal => keypad.amountTotal;
 
@@ -201,12 +200,15 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     }
   }
 
+  /// setAmount is the amount shown on top of product when increasing the quantity
   void customQtyIncrease(int quantity) {
     ProxyService.keypad.customQtyIncrease(qty: quantity);
     if (_currentItemStock != null) {
       keypad.setAmount(amount: _currentItemStock!.retailPrice! * quantity);
     }
   }
+
+  /// setAmount is the amount shown on top of product when increasing the quantity
 
   void increaseQty(Function callback) {
     ProxyService.keypad.increaseQty();
@@ -216,6 +218,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     callback(keypad.quantity);
   }
 
+  /// setAmount is the amount shown on top of product when increasing the quantity
   void setAmount({required double amount}) {
     ProxyService.keypad.setAmount(amount: amount);
   }

@@ -128,7 +128,7 @@ class FlipperBottomSheet {
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: ListView(
-                  children: model.tickets
+                  children: model.keypad.tickets
                       .map((ticket) => SizedBox(
                             height: 120,
                             width: double.infinity,
@@ -194,6 +194,7 @@ class FlipperBottomSheet {
                       if (value!.isEmpty) {
                         return 'Note is required';
                       }
+                      return null;
                     },
                     decoration: InputDecoration(
                       hintText: 'Add note',

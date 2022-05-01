@@ -15,7 +15,7 @@ class PayableView extends StatelessWidget {
       : super(key: key);
   final double tickets;
   final int orders;
-  final double duePay;
+  final double? duePay;
   final Function onClick;
   final Function ticketHandler;
 
@@ -42,7 +42,6 @@ class PayableView extends StatelessWidget {
               ),
             ),
           ),
-          
           Expanded(
             child: InkWell(
               onTap: () {
@@ -58,7 +57,7 @@ class PayableView extends StatelessWidget {
                     onClick();
                   },
                   child: callCharge(
-                    payable: duePay,
+                    payable: duePay ?? 0.00,
                     context: context,
                   ),
                 ),

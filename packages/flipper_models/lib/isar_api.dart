@@ -878,7 +878,7 @@ class IsarAPI implements IsarApiInterface {
           ..taxId = "XX"
           ..imageLocal = false
           ..businessId = businessId
-          ..name = "temp"
+          ..name = "Custom Amount"
           ..description = "L"
           ..active = true
           ..hasPicture = false

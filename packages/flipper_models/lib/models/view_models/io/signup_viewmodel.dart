@@ -160,7 +160,7 @@ class SignupViewModel extends FormViewModel {
       //now create a default custom product
       await ProxyService.isarApi.createProduct(
           product: Product()
-            ..name = "custom"
+            ..name = "Custom Amount"
             ..color = "#5A2328"
             ..branchId = ProxyService.box.getBranchId()!
             ..businessId = ProxyService.box.getBusinessId()!);

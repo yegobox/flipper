@@ -13,8 +13,6 @@ class KeyPadService with ReactiveServiceMixin {
 
   get itemsOnSale => _itemsOnSale.value;
 
-  // keypad.count
-
   setItemsOnSale({required int count}) {
     _itemsOnSale.value = count;
   }

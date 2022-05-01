@@ -28,8 +28,23 @@ class OrderSummary extends StatelessWidget {
             // A motion is a widget used to control how the pane animates.
             motion: const ScrollMotion(),
 
-            // A pane can dismiss the Slidable.
-            dismissible: DismissiblePane(onDismissed: () {}),
+            // All actions are defined in the children parameter.
+            children: [
+              // A SlidableAction can have an icon and/or a label.
+              SlidableAction(
+                onPressed: (_) {
+                  model.deleteOrderItem(id: item.id, context: context);
+                },
+                backgroundColor: const Color(0xFFFE4A49),
+                foregroundColor: Colors.white,
+                icon: Icons.delete,
+                label: 'Delete',
+              ),
+            ],
+          ),
+          startActionPane: ActionPane(
+            // A motion is a widget used to control how the pane animates.
+            motion: const ScrollMotion(),
 
             // All actions are defined in the children parameter.
             children: [
@@ -45,7 +60,6 @@ class OrderSummary extends StatelessWidget {
               ),
             ],
           ),
-
           child: ListTile(
             contentPadding: const EdgeInsets.only(left: 40.0, right: 40.0),
             trailing: Text(

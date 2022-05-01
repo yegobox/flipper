@@ -7,7 +7,7 @@ import 'package:flipper_models/models/html/stock_sync.dart';
 // import 'package:flipper_services/app_service.dart';
 
 // final AppService _appService = locator<AppService>();
-final customProductMock = new ProductSync(
+final customProductMock = ProductSync(
   id: DateTime.now().millisecondsSinceEpoch,
   draft: true,
   currentUpdate: true,
@@ -44,7 +44,7 @@ final customProductMock = new ProductSync(
       target: ''),
 );
 
-final productMock = new ProductSync(
+final productMock = ProductSync(
   fbranchId: 10,
   draft: true,
   currentUpdate: true,
