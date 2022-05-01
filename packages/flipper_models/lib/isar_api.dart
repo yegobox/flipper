@@ -462,12 +462,12 @@ class IsarAPI implements IsarApiInterface {
   @override
   Future<void> collectCashPayment(
       {required double cashReceived, required Order order}) async {
-    order.status = 'complete';
+    order.status = completeStatus;
     order.reported = false;
     order.cashReceived = cashReceived;
     // update order in isar db
     await isar.writeTxn((isar) async {
-      int id = await isar.orders.put(order);
+      int id = await isar.orders.put(order, saveLinks: true);
       return isar.orders.get(id);
     });
   }

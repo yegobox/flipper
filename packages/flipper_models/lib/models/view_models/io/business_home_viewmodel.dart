@@ -140,6 +140,27 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   }
 
   Future<void> currentOrder() async {
+    keypad.setItemsOnSale(count: 0);
+    keypad.setTotalPayable(amount: 0.0);
+    // static code for adaption
+    // Order? od = await ProxyService.isarApi
+    //     .pendingOrder(branchId: ProxyService.box.getBranchId()!);
+    // log.e(od);
+    // if (od != null) {
+    //   keypad.setOrder(od);
+    //   await od.orderItems.load();
+    //   if (od.orderItems.isNotEmpty) {
+    //     keypad.setItemsOnSale(count: od.orderItems.length);
+    //   }
+    //   keypad.setTotalPayable(amount: od.subTotal);
+    // } else {
+    //   keypad.setItemsOnSale(count: 0);
+    //   keypad.setTotalPayable(amount: 0.0);
+    // }
+    // notifyListeners();
+    // done a static method to deal with when the'
+
+    // a streaming option.
     int branchId = ProxyService.box.getBranchId()!;
     ProxyService.isarApi
         .pendingOrderStream(branchId: branchId)
@@ -153,6 +174,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         }
         keypad.setTotalPayable(amount: od.subTotal);
       } else {
+        keypad.setItemsOnSale(count: 0);
         keypad.setTotalPayable(amount: 0.0);
       }
       notifyListeners();

@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/customappbar.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:number_display/number_display.dart';
@@ -33,7 +34,13 @@ class OrderSummary extends StatelessWidget {
               // A SlidableAction can have an icon and/or a label.
               SlidableAction(
                 onPressed: (_) {
+                  // TODOwhen deleting the item from summary
+                  // then also remove it's total contribution from the order's subTotal
+                  model.kOrder!.subTotal =
+                      model.kOrder!.subTotal - (item.price * item.qty);
+                  ProxyService.isarApi.update(data: model.kOrder);
                   model.deleteOrderItem(id: item.id, context: context);
+                  model.currentOrder();
                 },
                 backgroundColor: const Color(0xFFFE4A49),
                 foregroundColor: Colors.white,
@@ -51,7 +58,11 @@ class OrderSummary extends StatelessWidget {
               // A SlidableAction can have an icon and/or a label.
               SlidableAction(
                 onPressed: (_) {
+                  model.kOrder!.subTotal =
+                      model.kOrder!.subTotal - (item.price * item.qty);
+                  ProxyService.isarApi.update(data: model.kOrder);
                   model.deleteOrderItem(id: item.id, context: context);
+                  model.currentOrder();
                 },
                 backgroundColor: const Color(0xFFFE4A49),
                 foregroundColor: Colors.white,
