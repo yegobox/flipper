@@ -9,7 +9,9 @@ class Order {
   late int id = Isar.autoIncrement;
   late String reference;
   late String orderNumber;
+  @Index()
   late int branchId;
+  @Index(composite: [CompositeIndex('branchId')])
   late String status;
   late String orderType;
   late bool active;
@@ -24,4 +26,24 @@ class Order {
   int? customerId;
   String? note;
   final orderItems = IsarLinks<OrderItem>();
+  // toJson helper
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'reference': reference,
+        'orderNumber': orderNumber,
+        'branchId': branchId,
+        'status': status,
+        'orderType': orderType,
+        'active': active,
+        'draft': draft,
+        'subTotal': subTotal,
+        'paymentType': paymentType,
+        'cashReceived': cashReceived,
+        'customerChangeDue': customerChangeDue,
+        'createdAt': createdAt,
+        'updatedAt': updatedAt,
+        'reported': reported,
+        'customerId': customerId,
+        'note': note
+      };
 }

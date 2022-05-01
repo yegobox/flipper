@@ -142,38 +142,17 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   Future<void> currentOrder() async {
     keypad.setItemsOnSale(count: 0);
     keypad.setTotalPayable(amount: 0.0);
-    // static code for adaption
-    // Order? od = await ProxyService.isarApi
-    //     .pendingOrder(branchId: ProxyService.box.getBranchId()!);
-    // log.e(od);
-    // if (od != null) {
-    //   keypad.setOrder(od);
-    //   await od.orderItems.load();
-    //   if (od.orderItems.isNotEmpty) {
-    //     keypad.setItemsOnSale(count: od.orderItems.length);
-    //   }
-    //   keypad.setTotalPayable(amount: od.subTotal);
-    // } else {
-    //   keypad.setItemsOnSale(count: 0);
-    //   keypad.setTotalPayable(amount: 0.0);
-    // }
-    // notifyListeners();
-    // done a static method to deal with when the'
 
-    // a streaming option.
-    int branchId = ProxyService.box.getBranchId()!;
-    ProxyService.isarApi
-        .pendingOrderStream(branchId: branchId)
-        .listen((od) async {
-      log.e(od);
-      if (od != null) {
-        keypad.setOrder(od);
-        await od.orderItems.load();
-        if (od.orderItems.isNotEmpty) {
-          keypad.setItemsOnSale(count: od.orderItems.length);
+    ProxyService.isarApi.pendingOrderStream().listen((order) async {
+      if (order != null && order.status == pendingStatus) {
+        keypad.setOrder(order);
+        await order.orderItems.load();
+        if (order.orderItems.isNotEmpty) {
+          keypad.setItemsOnSale(count: order.orderItems.length);
         }
-        keypad.setTotalPayable(amount: od.subTotal);
+        keypad.setTotalPayable(amount: order.subTotal);
       } else {
+        keypad.setOrder(null);
         keypad.setItemsOnSale(count: 0);
         keypad.setTotalPayable(amount: 0.0);
       }
@@ -276,36 +255,37 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       Variant? variation = await ProxyService.isarApi.variant(
         variantId: variationId,
       );
-      log.i(variation!.name);
+
       String name = '';
-      if (variation.name == 'Regular') {
+      if (variation!.name == 'Regular') {
         name = variation.productName + '(Regular)';
       } else {
         name = variation.productName + '(${variation.name})';
       }
 
-      /// if variation  given it exist in the orderItems then we update the order with new count
-      List<Order> existOrders =
-          await ProxyService.isarApi.completedOrders(branchId: branchId);
-      if (existOrders.isNotEmpty) {
+      /// if variation  given it exist in the orderItems of currentPending order then we update the order with new count
+      Order? pendingOrder =
+          await ProxyService.isarApi.pendingOrder(branchId: branchId);
+      log.i(pendingOrder?.toJson());
+      if (pendingOrder != null) {
         /// if order exist then we need to update the orderItem that match with the item we want to update with new count
         /// if orderItem does not exist then we need to create a new orderItem
-        for (OrderItem item in existOrders.first.orderItems) {
+        await pendingOrder.orderItems.load();
+        for (OrderItem item in pendingOrder.orderItems) {
           if (item.variantId == variationId) {
             item
               ..qty = item.qty + quantity.toDouble()
               ..price = (item.qty + quantity.toDouble()) *
                   (amountTotal / quantity.toDouble())
               ..variantId = variationId
-              ..orderId = existOrders.first.id
+              ..orderId = pendingOrder.id
               ..name = name
               ..createdAt = item.createdAt
               ..updatedAt = item.updatedAt
-
-              /// RRA fields dutira muri variants (rent from variant model)
+              // RRA fields dutira muri variants (rent from variant model)
               ..dcRt = 0.0
               ..dcAmt = 0.0
-              ..taxblAmt = existOrders.first.subTotal
+              ..taxblAmt = pendingOrder.subTotal
               ..taxAmt = double.parse(
                   (variation.retailPrice * 18 / 118).toStringAsFixed(2))
               ..totAmt = variation.retailPrice
@@ -348,8 +328,8 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         /// existOrderItem will return null which will go to adding item api.
         OrderItem? existOrderItem = await ProxyService.isarApi
             .getOrderItemByVariantId(
-                variantId: variationId, orderId: existOrders.first.id);
-        // log.w(exist_orders.length);
+                variantId: variationId, orderId: pendingOrder.id);
+
         if (existOrderItem == null) {
           OrderItem item = OrderItem()
             ..qty = quantity.toDouble()
@@ -359,14 +339,14 @@ class BusinessHomeViewModel extends ReactiveViewModel {
             ..name = name
             ..discount = 0.0
             ..reported = false
-            ..orderId = existOrders.first.id
+            ..orderId = pendingOrder.id
             ..createdAt = DateTime.now().toString()
             ..updatedAt = DateTime.now().toString()
 
             /// RRA fields dutira muri variants (rent from variant model)
             ..dcRt = 0.0
             ..dcAmt = 0.0
-            ..taxblAmt = existOrders.first.subTotal
+            ..taxblAmt = pendingOrder.subTotal
             ..taxAmt = double.parse(
                 (variation.retailPrice * 18 / 118).toStringAsFixed(2))
             ..totAmt = variation.retailPrice
@@ -401,9 +381,15 @@ class BusinessHomeViewModel extends ReactiveViewModel {
             // end of fields twakuye muri variants
             ..remainingStock = stock!.currentStock - quantity;
 
-          ProxyService.isarApi
-              .addOrderItem(order: existOrders.first, item: item);
+          ProxyService.isarApi.addOrderItem(order: pendingOrder, item: item);
         }
+        await ProxyService.isarApi.manageOrder(
+          customAmount: amountTotal,
+          variation: variation,
+          price: amountTotal,
+          useProductName: false,
+          quantity: quantity.toDouble(),
+        );
       } else {
         await ProxyService.isarApi.manageOrder(
           customAmount: amountTotal,
@@ -418,11 +404,11 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
       keypad.setItemsOnSale(count: order != null ? order.orderItems.length : 0);
 
-      updatePayable();
+      currentOrder();
 
       return true;
     } else {
-      updatePayable();
+      currentOrder();
 
       return false;
     }

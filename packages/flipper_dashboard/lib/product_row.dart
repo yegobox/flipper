@@ -105,16 +105,39 @@ class ProductRow extends StatelessWidget {
           ),
         ]),
       ),
+      startActionPane: ActionPane(
+        // A motion is a widget used to control how the pane animates.
+        motion: ScrollMotion(
+          key: Key('dismissable-${product.id!}'),
+        ),
+        // All actions are defined in the children parameter.
+        children: [
+          // A SlidableAction can have an icon and/or a label.
+          SlidableAction(
+            onPressed: (_) {
+              delete(product.id!);
+            },
+            backgroundColor: const Color(0xFFFE4A49),
+            foregroundColor: Colors.white,
+            icon: Icons.delete,
+            label: 'Delete',
+          ),
+          SlidableAction(
+            onPressed: (_) {
+              edit(product.id!);
+            },
+            backgroundColor: Colors.blue,
+            foregroundColor: Colors.white,
+            icon: Icons.edit,
+            label: 'Edit',
+          )
+        ],
+      ),
       endActionPane: ActionPane(
         // A motion is a widget used to control how the pane animates.
         motion: ScrollMotion(
           key: Key('dismissable-${product.id!}'),
         ),
-
-        // A pane can dismiss the Slidable.
-        dismissible:
-            DismissiblePane(key: Key('${product.id!}'), onDismissed: () {}),
-
         // All actions are defined in the children parameter.
         children: [
           // A SlidableAction can have an icon and/or a label.

@@ -8,4 +8,5 @@ abstract class LocalStorage {
   String? getUserId();
   bool getNeedAccountLinkWithPhone();
   String? getServerUrl();
+  int? currentOrderId();
 }

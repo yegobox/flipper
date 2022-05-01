@@ -17,7 +17,7 @@ abstract class IsarApiInterface {
   Future<List<PColor>> colors({required int branchId});
   Future<List<Category>> categories({required int branchId});
   Stream<List<Category>> categoriesStream({required int branchId});
-  Stream<Order?> pendingOrderStream({required int branchId});
+  Stream<Order?> pendingOrderStream();
   Future<List<Unit>> units({required int branchId});
   Future<int> create<T>({required T data, required String endPoint});
   Future<int> update<T>(

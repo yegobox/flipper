@@ -15,7 +15,7 @@ extension GetOrderCollection on Isar {
 const OrderSchema = CollectionSchema(
   name: 'Order',
   schema:
-      '{"name":"Order","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"cashReceived","type":"Double"},{"name":"createdAt","type":"String"},{"name":"customerChangeDue","type":"Double"},{"name":"customerId","type":"Long"},{"name":"draft","type":"Bool"},{"name":"note","type":"String"},{"name":"orderNumber","type":"String"},{"name":"orderType","type":"String"},{"name":"paymentType","type":"String"},{"name":"reference","type":"String"},{"name":"reported","type":"Bool"},{"name":"status","type":"String"},{"name":"subTotal","type":"Double"},{"name":"updatedAt","type":"String"}],"indexes":[],"links":[{"name":"orderItems","target":"OrderItem"}]}',
+      '{"name":"Order","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"cashReceived","type":"Double"},{"name":"createdAt","type":"String"},{"name":"customerChangeDue","type":"Double"},{"name":"customerId","type":"Long"},{"name":"draft","type":"Bool"},{"name":"note","type":"String"},{"name":"orderNumber","type":"String"},{"name":"orderType","type":"String"},{"name":"paymentType","type":"String"},{"name":"reference","type":"String"},{"name":"reported","type":"Bool"},{"name":"status","type":"String"},{"name":"subTotal","type":"Double"},{"name":"updatedAt","type":"String"}],"indexes":[{"name":"branchId","unique":false,"properties":[{"name":"branchId","type":"Value","caseSensitive":false}]},{"name":"status_branchId","unique":false,"properties":[{"name":"status","type":"Hash","caseSensitive":true},{"name":"branchId","type":"Value","caseSensitive":false}]}],"links":[{"name":"orderItems","target":"OrderItem"}]}',
   idName: 'id',
   propertyIds: {
     'active': 0,
@@ -36,8 +36,16 @@ const OrderSchema = CollectionSchema(
     'updatedAt': 15
   },
   listProperties: {},
-  indexIds: {},
-  indexValueTypes: {},
+  indexIds: {'branchId': 0, 'status_branchId': 1},
+  indexValueTypes: {
+    'branchId': [
+      IndexValueType.long,
+    ],
+    'status_branchId': [
+      IndexValueType.stringHash,
+      IndexValueType.long,
+    ]
+  },
   linkIds: {'orderItems': 0},
   backlinkLinkNames: {},
   getId: _orderGetId,
@@ -318,6 +326,16 @@ extension OrderQueryWhereSort on QueryBuilder<Order, Order, QWhere> {
   QueryBuilder<Order, Order, QAfterWhere> anyId() {
     return addWhereClauseInternal(const IdWhereClause.any());
   }
+
+  QueryBuilder<Order, Order, QAfterWhere> anyBranchId() {
+    return addWhereClauseInternal(
+        const IndexWhereClause.any(indexName: 'branchId'));
+  }
+
+  QueryBuilder<Order, Order, QAfterWhere> anyStatusBranchId() {
+    return addWhereClauseInternal(
+        const IndexWhereClause.any(indexName: 'status_branchId'));
+  }
 }
 
 extension OrderQueryWhere on QueryBuilder<Order, Order, QWhereClause> {
@@ -370,6 +388,181 @@ extension OrderQueryWhere on QueryBuilder<Order, Order, QWhereClause> {
       lower: lowerId,
       includeLower: includeLower,
       upper: upperId,
+      includeUpper: includeUpper,
+    ));
+  }
+
+  QueryBuilder<Order, Order, QAfterWhereClause> branchIdEqualTo(int branchId) {
+    return addWhereClauseInternal(IndexWhereClause.equalTo(
+      indexName: 'branchId',
+      value: [branchId],
+    ));
+  }
+
+  QueryBuilder<Order, Order, QAfterWhereClause> branchIdNotEqualTo(
+      int branchId) {
+    if (whereSortInternal == Sort.asc) {
+      return addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'branchId',
+        upper: [branchId],
+        includeUpper: false,
+      )).addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'branchId',
+        lower: [branchId],
+        includeLower: false,
+      ));
+    } else {
+      return addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'branchId',
+        lower: [branchId],
+        includeLower: false,
+      )).addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'branchId',
+        upper: [branchId],
+        includeUpper: false,
+      ));
+    }
+  }
+
+  QueryBuilder<Order, Order, QAfterWhereClause> branchIdGreaterThan(
+    int branchId, {
+    bool include = false,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.greaterThan(
+      indexName: 'branchId',
+      lower: [branchId],
+      includeLower: include,
+    ));
+  }
+
+  QueryBuilder<Order, Order, QAfterWhereClause> branchIdLessThan(
+    int branchId, {
+    bool include = false,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.lessThan(
+      indexName: 'branchId',
+      upper: [branchId],
+      includeUpper: include,
+    ));
+  }
+
+  QueryBuilder<Order, Order, QAfterWhereClause> branchIdBetween(
+    int lowerBranchId,
+    int upperBranchId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.between(
+      indexName: 'branchId',
+      lower: [lowerBranchId],
+      includeLower: includeLower,
+      upper: [upperBranchId],
+      includeUpper: includeUpper,
+    ));
+  }
+
+  QueryBuilder<Order, Order, QAfterWhereClause> statusEqualTo(String status) {
+    return addWhereClauseInternal(IndexWhereClause.equalTo(
+      indexName: 'status_branchId',
+      value: [status],
+    ));
+  }
+
+  QueryBuilder<Order, Order, QAfterWhereClause> statusNotEqualTo(
+      String status) {
+    if (whereSortInternal == Sort.asc) {
+      return addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'status_branchId',
+        upper: [status],
+        includeUpper: false,
+      )).addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'status_branchId',
+        lower: [status],
+        includeLower: false,
+      ));
+    } else {
+      return addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'status_branchId',
+        lower: [status],
+        includeLower: false,
+      )).addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'status_branchId',
+        upper: [status],
+        includeUpper: false,
+      ));
+    }
+  }
+
+  QueryBuilder<Order, Order, QAfterWhereClause> statusBranchIdEqualTo(
+      String status, int branchId) {
+    return addWhereClauseInternal(IndexWhereClause.equalTo(
+      indexName: 'status_branchId',
+      value: [status, branchId],
+    ));
+  }
+
+  QueryBuilder<Order, Order, QAfterWhereClause> statusBranchIdNotEqualTo(
+      String status, int branchId) {
+    if (whereSortInternal == Sort.asc) {
+      return addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'status_branchId',
+        upper: [status, branchId],
+        includeUpper: false,
+      )).addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'status_branchId',
+        lower: [status, branchId],
+        includeLower: false,
+      ));
+    } else {
+      return addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'status_branchId',
+        lower: [status, branchId],
+        includeLower: false,
+      )).addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'status_branchId',
+        upper: [status, branchId],
+        includeUpper: false,
+      ));
+    }
+  }
+
+  QueryBuilder<Order, Order, QAfterWhereClause>
+      statusEqualToBranchIdGreaterThan(
+    String status,
+    int branchId, {
+    bool include = false,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.greaterThan(
+      indexName: 'status_branchId',
+      lower: [status, branchId],
+      includeLower: include,
+    ));
+  }
+
+  QueryBuilder<Order, Order, QAfterWhereClause> statusEqualToBranchIdLessThan(
+    String status,
+    int branchId, {
+    bool include = false,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.lessThan(
+      indexName: 'status_branchId',
+      upper: [status, branchId],
+      includeUpper: include,
+    ));
+  }
+
+  QueryBuilder<Order, Order, QAfterWhereClause> statusEqualToBranchIdBetween(
+    String status,
+    int lowerBranchId,
+    int upperBranchId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.between(
+      indexName: 'status_branchId',
+      lower: [status, lowerBranchId],
+      includeLower: includeLower,
+      upper: [status, upperBranchId],
       includeUpper: includeUpper,
     ));
   }

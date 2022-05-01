@@ -83,25 +83,31 @@ class IsarAPI implements IsarApiInterface {
   }
 
   @override
+  Future<List<Order>> completedOrders(
+      {required int branchId, String? status = completeStatus}) {
+    return isar.writeTxn((isar) async {
+      return isar.orders
+          .where()
+          .statusBranchIdEqualTo(status!, branchId)
+          .findAll();
+    });
+  }
+
+  @override
   Future<Order?> pendingOrder({required int branchId}) async {
     return isar.writeTxn((isar) async {
       return isar.orders
-          .filter()
-          .branchIdEqualTo(branchId)
-          .statusEqualTo(pendingStatus)
+          .where()
+          .statusBranchIdEqualTo(pendingStatus, branchId)
           .findFirst();
     });
   }
 
   @override
-  Stream<Order?> pendingOrderStream({required int branchId}) {
-    return isar.orders
-        .filter()
-        .branchIdEqualTo(branchId)
-        .statusEqualTo(pendingStatus)
-        .build()
-        .watch(initialReturn: true)
-        .asyncMap((event) => event.first);
+  Stream<Order?> pendingOrderStream() {
+    int? currentOrderId = ProxyService.box.currentOrderId();
+    log.d('currentOrderId: $currentOrderId');
+    return isar.orders.watchObject(currentOrderId ?? 0, initialReturn: true);
   }
 
   @override
@@ -150,6 +156,7 @@ class IsarAPI implements IsarApiInterface {
       // save order to db
       Order? createdOrder = await isar.writeTxn((isar) async {
         int id = await isar.orders.put(order, saveLinks: true);
+        ProxyService.box.write(key: 'currentOrderId', value: id);
         return isar.orders.get(id);
       });
       // get stock by variation.id
@@ -466,10 +473,15 @@ class IsarAPI implements IsarApiInterface {
     order.reported = false;
     order.cashReceived = cashReceived;
     // update order in isar db
+    log.i(order.toJson());
     await isar.writeTxn((isar) async {
       int id = await isar.orders.put(order, saveLinks: true);
       return isar.orders.get(id);
     });
+
+    // remove currentOrderId from local storage to leave a room
+    // for listening to new order that will be created
+    ProxyService.box.remove(key: 'currentOrderId');
   }
 
   @override
@@ -1181,18 +1193,6 @@ class IsarAPI implements IsarApiInterface {
           .statusEqualTo(pendingStatus)
           .branchIdEqualTo(branchId)
           .findFirst();
-    });
-  }
-
-  @override
-  Future<List<Order>> completedOrders(
-      {required int branchId, String? status = completeStatus}) {
-    return isar.writeTxn((isar) async {
-      return isar.orders
-          .filter()
-          .branchIdEqualTo(branchId)
-          .statusEqualTo(status!)
-          .findAll();
     });
   }
 

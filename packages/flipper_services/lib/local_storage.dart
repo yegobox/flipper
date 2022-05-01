@@ -48,4 +48,9 @@ class LocalStorageImpl implements LocalStorage {
   String? getServerUrl() {
     return box.read('serverUrl');
   }
+
+  @override
+  int? currentOrderId() {
+    return box.read('currentOrderId');
+  }
 }

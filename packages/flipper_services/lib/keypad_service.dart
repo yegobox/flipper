@@ -88,9 +88,13 @@ class KeyPadService with ReactiveServiceMixin {
     _totalDiscount.value = amount;
   }
 
-  void setOrder(Order order) async {
-    await order.orderItems.load();
-    _order.value = order;
+  void setOrder(Order? order) async {
+    if (order != null) {
+      await order.orderItems.load();
+      _order.value = order;
+    } else {
+      _order.value = null;
+    }
   }
 
   /// order can not be more than 1 lenght i.e at one instance
