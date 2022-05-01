@@ -9,19 +9,19 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
 
 class ProductRow extends StatelessWidget {
-  const ProductRow(
-      {Key? key,
-      required this.color,
-      required this.name,
-      required this.hasImage,
-      this.imageUrl,
-      required this.stocks,
-      required this.addToMenu,
-      required this.product,
-      required this.edit,
-      required this.model,
-      required this.delete})
-      : super(key: key);
+  const ProductRow({
+    Key? key,
+    required this.color,
+    required this.name,
+    required this.hasImage,
+    this.imageUrl,
+    required this.stocks,
+    required this.addToMenu,
+    required this.product,
+    required this.edit,
+    required this.model,
+    required this.delete,
+  }) : super(key: key);
   final String color;
   final String name;
   final bool hasImage;

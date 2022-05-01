@@ -172,7 +172,7 @@ class _ProductViewState extends State<ProductView> {
                         name: product.name,
                         imageUrl: product.imageUrl,
                         edit: (productId) {
-                          GoRouter.of(context).push("edit/product/$productId");
+                          GoRouter.of(context).push("/edit/product/$productId");
                         },
                         addToMenu: (productId) {
                           model.addToMenu(productId: productId);

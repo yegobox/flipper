@@ -66,13 +66,16 @@ class _ReceiveStockState extends State<ReceiveStock> {
                     textDirection: TextDirection.rtl,
                     autofocus: true,
                     style: const TextStyle(color: Colors.black),
+                    onTap: () {
+                      if (controller.text.startsWith('0')) {
+                        controller.text = "";
+                      }
+                    },
                     onChanged: (String? count) async {
                       log("$count");
-                      // clean count so that it does not start with 0.
                       if (count?.startsWith('0') == true) {
-                        controller.text = count!.substring(1);
                         model.setStockValue(
-                          value: double.parse(count),
+                          value: double.parse(count!.substring(1)),
                         );
                       } else {
                         model.setStockValue(

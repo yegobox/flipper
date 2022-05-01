@@ -63,15 +63,26 @@ class VariationList extends StatelessWidget {
                     ]),
                   ),
                 ),
+                startActionPane: ActionPane(
+                  // A motion is a widget used to control how the pane animates.
+                  motion: const ScrollMotion(),
+                  // All actions are defined in the children parameter.
+                  children: [
+                    // A SlidableAction can have an icon and/or a label.
+                    SlidableAction(
+                      onPressed: (_) {
+                        deleteVariant(variations[i].id);
+                      },
+                      backgroundColor: const Color(0xFFFE4A49),
+                      foregroundColor: Colors.white,
+                      icon: Icons.delete,
+                      label: 'Delete',
+                    ),
+                  ],
+                ),
                 endActionPane: ActionPane(
                   // A motion is a widget used to control how the pane animates.
                   motion: const ScrollMotion(),
-
-                  // A pane can dismiss the Slidable.
-                  dismissible: DismissiblePane(
-                      key: Key('dismiss-${variations[i].id}'),
-                      onDismissed: () {}),
-
                   // All actions are defined in the children parameter.
                   children: [
                     // A SlidableAction can have an icon and/or a label.
