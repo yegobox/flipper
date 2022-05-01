@@ -127,7 +127,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         keypad.setItemsOnSale(
             count: order != null ? order.orderItems.length : 10);
 
-        updatePayable();
+        currentOrder();
         ProxyService.keypad.reset();
       }
     } else {

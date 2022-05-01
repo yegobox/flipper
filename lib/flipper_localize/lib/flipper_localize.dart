@@ -82,10 +82,10 @@ class FLocalization {
   };
   static const _ticket = <String, Map<String, String>>{
     'en': {
-      'tickets': 'Ticket',
+      'tickets': 'Tickets',
     },
     'es': {
-      'tickets': 'Ticket',
+      'tickets': 'Tickets',
     },
   };
   static const _charge = <String, Map<String, String>>{

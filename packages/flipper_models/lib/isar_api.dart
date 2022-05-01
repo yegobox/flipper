@@ -1336,11 +1336,7 @@ class IsarAPI implements IsarApiInterface {
   @override
   Future<List<Order>> tickets() async {
     return isar.writeTxn((isar) {
-      return isar.orders
-          .filter()
-          .statusEqualTo(pendingStatus)
-          .build()
-          .findAll();
+      return isar.orders.filter().statusEqualTo(parkedStatus).build().findAll();
     });
   }
 

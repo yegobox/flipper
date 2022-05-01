@@ -60,12 +60,12 @@ class KeyPadService with ReactiveServiceMixin {
 
   List<Order> get tickets => _tickets.value;
   Future<List<Order>> getTickets() async {
-    List<Order> od = await ProxyService.isarApi.tickets();
+    List<Order> ticket = await ProxyService.isarApi.tickets();
     //NOTE: we assume index[0] as pending order can not be more than one at the moment
-    if (od.isNotEmpty) {
-      _countOrderItems.value = od[0].orderItems.length;
+    if (ticket.isNotEmpty) {
+      _countOrderItems.value = ticket.first.orderItems.length;
     }
-    _tickets.value = od;
+    _tickets.value = ticket;
     notifyListeners();
     return _tickets.value;
   }

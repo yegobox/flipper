@@ -1,4 +1,6 @@
 // import 'package:flipper_models/view_models/pos_viewmodel.dart';
+import 'dart:developer';
+
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
 import 'package:number_display/number_display.dart';
@@ -73,6 +75,7 @@ class PayableView extends StatelessWidget {
       {required int tickets,
       required int orders,
       required BuildContext context}) {
+    log("ticketText:" + tickets.toString());
     if (tickets > 0 || orders == 0) {
       return Text(
         FLocalization.of(context).tickets,
