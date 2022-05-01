@@ -5,241 +5,20 @@ import 'customappbar.dart';
 import 'package:stacked/stacked.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:overlay_support/overlay_support.dart';
 
-class Sell extends StatefulWidget {
-  const Sell({Key? key, required this.product}) : super(key: key);
+import 'widgets/quantity_widget.dart';
+import 'widgets/title_widget.dart';
+import 'widgets/variant_widget.dart';
+
+class Sell extends StatelessWidget {
+  Sell({Key? key, required this.product}) : super(key: key);
   final Product product;
-
-  @override
-  State<Sell> createState() => _SellState();
-}
-
-class _SellState extends State<Sell> {
-  @override
-  void initState() {
-    super.initState();
-  }
 
   final log = getLogger('Sell');
 
   final TextEditingController quantityController =
       TextEditingController(text: "1");
-
-  String buildTitle(BusinessHomeViewModel model) {
-    if (model.amountTotal.toString() == 'null') {
-      return widget.product.name;
-    }
-    if (model.amountTotal == 0) {
-      return '';
-    }
-    return widget.product.name + ' Frw' + model.amountTotal.toInt().toString();
-  }
-
-  Widget quantity(
-      {required BusinessHomeViewModel model, required BuildContext context}) {
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.only(left: 2.0, right: 2.0, top: 1.0),
-        child: Column(
-          children: [
-            Divider(
-              color: Colors.grey[400],
-            ),
-            Row(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Expanded(
-                  flex: 1,
-                  child: Text(
-                    'QUANTITY',
-                    style: GoogleFonts.lato(
-                      textStyle: TextStyle(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 10,
-                        color: Colors.grey[900],
-                      ),
-                    ),
-                  ),
-                ),
-                const Expanded(flex: 2, child: Text('')),
-              ],
-            ),
-            Row(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  child: model.quantity <= 1
-                      ? IconButton(
-                          icon: const Icon(
-                            AntDesign.minus,
-                            color: Colors.grey,
-                            size: 25,
-                          ),
-                          onPressed: () {
-                            model.decreaseQty((quantity) {
-                              quantityController.text =
-                                  model.quantity!.toInt().toString();
-                            });
-                          },
-                        )
-                      : IconButton(
-                          icon: const Icon(
-                            AntDesign.minus,
-                            color: Color(0xC9000000),
-                            size: 25,
-                          ),
-                          onPressed: () {
-                            model.decreaseQty((quantity) {
-                              quantityController.text =
-                                  model.quantity!.toInt().toString();
-                            });
-                          },
-                        ),
-                ),
-                Container(
-                  width: 1,
-                  height: 50,
-                  color: Colors.grey[400],
-                ),
-                Expanded(
-                    flex: 2,
-                    child: Container(
-                      margin: const EdgeInsets.only(left: 50, right: 50),
-                      child: TextFormField(
-                        controller: quantityController,
-                        onChanged: (quantity) {
-                          if (quantity.isNotEmpty) {
-                            model.customQtyIncrease(int.parse(quantity));
-                          }
-                        },
-                        style: TextStyle(
-                          color: Theme.of(context)
-                              .copyWith(canvasColor: Colors.grey[600])
-                              .canvasColor,
-                        ),
-                        key: Key(model.quantity.toInt().toString()),
-                        textAlign: TextAlign.center,
-                        cursorColor: Theme.of(context)
-                            .copyWith(canvasColor: const Color(0x3B000000))
-                            .canvasColor,
-                      ),
-                    )),
-                Container(
-                  width: 1,
-                  height: 50,
-                  color: Colors.grey[400],
-                ),
-                IconButton(
-                  icon: const Icon(
-                    Icons.add,
-                    color: Color(0xC9000000),
-                    size: 25,
-                  ),
-                  onPressed: () {
-                    model.increaseQty((quantity) {
-                      setState(() {
-                        quantityController.text =
-                            model.quantity!.toInt().toString();
-                      });
-                    });
-                  },
-                ),
-              ],
-            ),
-            Divider(
-              color: Colors.grey[400],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  List<Widget> variants({required BusinessHomeViewModel model}) {
-    final List<Widget> list = <Widget>[];
-
-    for (Variant variant in model.variants) {
-      list.add(SingleChildScrollView(
-        child: InkWell(
-          onTap: () {
-            model.loadVariantStock(variantId: variant.id);
-            model.handleCustomQtySetBeforeSelectingVariation();
-
-            model.keypad
-                .setAmount(amount: variant.retailPrice * model.quantity);
-            model.toggleCheckbox(variantId: variant.id);
-          },
-          child: Padding(
-            padding: const EdgeInsets.only(left: 2, right: 2.0, top: 4),
-            child: Column(
-              children: [
-                Divider(
-                  color: Colors.grey[400],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    FutureBuilder<Variant?>(
-                        future: model.getVariant(variantId: variant.id),
-                        builder: (context, snapshot) {
-                          return snapshot.hasData
-                              ? Expanded(
-                                  child: Text(
-                                    snapshot.data!.name == 'Regular'
-                                        ? snapshot.data!.productName +
-                                            "(" +
-                                            snapshot.data!.name +
-                                            ")"
-                                        : snapshot.data!.name,
-                                    style: GoogleFonts.lato(
-                                      textStyle: TextStyle(
-                                          fontWeight: FontWeight.w700,
-                                          fontSize: 13,
-                                          color: Colors.grey[900]),
-                                    ),
-                                  ),
-                                )
-                              : const SizedBox.shrink();
-                        }),
-                    Row(children: [
-                      Text(
-                        'Frw${variant.retailPrice.toInt()}',
-                        style: GoogleFonts.lato(
-                          textStyle: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                              color: Colors.grey[500]),
-                        ),
-                      ),
-                      Radio<int>(
-                        // toggleable: true,
-                        value: variant.id,
-                        groupValue: model.checked,
-                        onChanged: (value) {
-                          model.toggleCheckbox(variantId: variant.id);
-                          model.loadVariantStock(variantId: variant.id);
-                          model.handleCustomQtySetBeforeSelectingVariation();
-                          log.i(model.quantity);
-                          model.keypad.setAmount(
-                              amount: variant.retailPrice * model.quantity);
-                          model.toggleCheckbox(variantId: variant.id);
-                        },
-                      ),
-                    ]),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ));
-    }
-    return list;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -248,7 +27,7 @@ class _SellState extends State<Sell> {
         ///start by clearning the previous amountTotal and Quantity as it is confusing some time!
         model.clearPreviousSaleCounts();
         model.toggleCheckbox(variantId: -1);
-        await model.getVariants(productId: widget.product.id!);
+        await model.getVariants(productId: product.id!);
       },
       viewModelBuilder: () => BusinessHomeViewModel(),
       builder: (context, model, child) {
@@ -258,7 +37,10 @@ class _SellState extends State<Sell> {
             onPop: () {
               GoRouter.of(context).pop();
             },
-            title: buildTitle(model),
+            title: titleWidget(
+              model: model,
+              name: product.name,
+            ),
             rightActionButtonName: 'Save',
             disableButton: false,
             showActionButton: true,
@@ -289,7 +71,7 @@ class _SellState extends State<Sell> {
                       Row(
                         children: [
                           Text(
-                            widget.product.name,
+                            product.name,
                             style: GoogleFonts.rubik(
                               textStyle: TextStyle(
                                   fontWeight: FontWeight.w500,
@@ -316,7 +98,7 @@ class _SellState extends State<Sell> {
                             parent: AlwaysScrollableScrollPhysics(),
                           ),
                           shrinkWrap: true,
-                          children: variants(model: model),
+                          children: variantsWidget(model: model),
                         ),
                       ),
                     ],
@@ -329,7 +111,11 @@ class _SellState extends State<Sell> {
                   alignment: Alignment.bottomCenter,
                   child: SizedBox(
                     width: double.infinity,
-                    child: quantity(context: context, model: model),
+                    child: quantityWidget(
+                      context: context,
+                      model: model,
+                      quantityController: quantityController,
+                    ),
                   ),
                 ),
               )

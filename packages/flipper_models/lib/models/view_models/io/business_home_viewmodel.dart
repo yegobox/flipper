@@ -66,8 +66,6 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   Order? get kOrder => keypad.order;
   List<Order> get tickets => keypad.tickets;
 
-  int get countedOrderItems => keypad.count;
-
   double get amountTotal => keypad.amountTotal;
 
   int get checked => keypad.check;
@@ -127,7 +125,8 @@ class BusinessHomeViewModel extends ReactiveViewModel {
           );
         }
 
-        keypad.setCount(count: order != null ? order.orderItems.length : 10);
+        keypad.setItemsOnSale(
+            count: order != null ? order.orderItems.length : 10);
 
         updatePayable();
         ProxyService.keypad.reset();
@@ -143,21 +142,22 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   Future<void> currentOrder() async {
     int branchId = ProxyService.box.getBranchId()!;
-    Order? od = await ProxyService.isarApi.pendingOrder(branchId: branchId);
-    log.e(od);
-    keypad.setCount(count: 0);
-    if (od != null) {
-      keypad.setOrder(od);
-      await od.orderItems.load();
-      if (od.orderItems.isNotEmpty) {
-        keypad.setCount(count: od.orderItems.length);
+    ProxyService.isarApi
+        .pendingOrderStream(branchId: branchId)
+        .listen((od) async {
+      log.e(od);
+      if (od != null) {
+        keypad.setOrder(od);
+        await od.orderItems.load();
+        if (od.orderItems.isNotEmpty) {
+          keypad.setItemsOnSale(count: od.orderItems.length);
+        }
+        keypad.setTotalPayable(amount: od.subTotal);
+      } else {
+        keypad.setTotalPayable(amount: 0.0);
       }
-      keypad.setTotalPayable(amount: od.subTotal);
-    } else {
-      keypad.setTotalPayable(amount: 0.0);
-    }
-
-    notifyListeners();
+      notifyListeners();
+    });
   }
 
   /// the function is useful on completing a sale since we need to look for this past order
@@ -391,7 +391,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
       Order? order = await ProxyService.keypad.getOrder(branchId: branchId);
 
-      keypad.setCount(count: order != null ? order.orderItems.length : 0);
+      keypad.setItemsOnSale(count: order != null ? order.orderItems.length : 0);
 
       updatePayable();
 
@@ -425,7 +425,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     ProxyService.isarApi
         .collectCashPayment(cashReceived: payableAmount, order: kOrder!);
     //reset current order back to 0
-    keypad.setCount(count: 0);
+    keypad.setItemsOnSale(count: 0);
   }
 
   void registerLocation() async {

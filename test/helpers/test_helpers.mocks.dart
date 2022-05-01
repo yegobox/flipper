@@ -974,7 +974,7 @@ class MockKeyPadService extends _i1.Mock implements _i16.KeyPadService {
       Invocation.method(#toggleCheckbox, [], {#variantId: variantId}),
       returnValueForMissingStub: null);
   @override
-  dynamic setCount({int? count}) =>
+  dynamic setItemsOnSale({int? count}) =>
       super.noSuchMethod(Invocation.method(#setCount, [], {#count: count}));
   @override
   _i11.Future<List<_i9.Order>> getTickets() =>

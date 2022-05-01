@@ -9,14 +9,14 @@ class KeyPadService with ReactiveServiceMixin {
   final log = getLogger('KeyPadService');
   Stack stack = Stack<String>();
 
-  final _count = ReactiveValue<int>(0);
+  final _itemsOnSale = ReactiveValue<int>(0);
 
-  get count => _count.value;
+  get itemsOnSale => _itemsOnSale.value;
 
   // keypad.count
 
-  setCount({required int count}) {
-    _count.value = count;
+  setItemsOnSale({required int count}) {
+    _itemsOnSale.value = count;
   }
 
   final _quantity = ReactiveValue<int>(1);
@@ -130,8 +130,6 @@ class KeyPadService with ReactiveServiceMixin {
   void customQtyIncrease({int? qty}) {
     _quantity.value = 0;
     _quantity.value = qty!;
-    log.i(quantity);
-    notifyListeners();
   }
 
   void increaseQty() {
@@ -171,7 +169,7 @@ class KeyPadService with ReactiveServiceMixin {
       _quantity,
       _amountTotal,
       _check,
-      _count,
+      _itemsOnSale,
       _cashReceived,
       _totalPayable,
       _totalDiscount

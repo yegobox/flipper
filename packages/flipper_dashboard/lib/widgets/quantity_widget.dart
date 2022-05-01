@@ -1,0 +1,127 @@
+import 'package:flipper_models/isar_models.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_vector_icons/flutter_vector_icons.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+Widget quantityWidget({
+  required BusinessHomeViewModel model,
+  required BuildContext context,
+  required TextEditingController quantityController,
+}) {
+  return SingleChildScrollView(
+    child: Padding(
+      padding: const EdgeInsets.only(left: 2.0, right: 2.0, top: 1.0),
+      child: Column(
+        children: [
+          Divider(
+            color: Colors.grey[400],
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Expanded(
+                flex: 1,
+                child: Text(
+                  'QUANTITY',
+                  style: GoogleFonts.lato(
+                    textStyle: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 10,
+                      color: Colors.grey[900],
+                    ),
+                  ),
+                ),
+              ),
+              const Expanded(flex: 2, child: Text('')),
+            ],
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                child: model.quantity <= 1
+                    ? IconButton(
+                        icon: const Icon(
+                          AntDesign.minus,
+                          color: Colors.grey,
+                          size: 25,
+                        ),
+                        onPressed: () {
+                          model.decreaseQty((quantity) {
+                            quantityController.text =
+                                model.quantity!.toInt().toString();
+                          });
+                        },
+                      )
+                    : IconButton(
+                        icon: const Icon(
+                          AntDesign.minus,
+                          color: Color(0xC9000000),
+                          size: 25,
+                        ),
+                        onPressed: () {
+                          model.decreaseQty((quantity) {
+                            quantityController.text =
+                                model.quantity!.toInt().toString();
+                          });
+                        },
+                      ),
+              ),
+              Container(
+                width: 1,
+                height: 50,
+                color: Colors.grey[400],
+              ),
+              Expanded(
+                  flex: 2,
+                  child: Container(
+                    margin: const EdgeInsets.only(left: 50, right: 50),
+                    child: TextFormField(
+                      controller: quantityController,
+                      onChanged: (quantity) {
+                        if (quantity.isNotEmpty) {
+                          model.customQtyIncrease(int.parse(quantity));
+                        }
+                      },
+                      style: TextStyle(
+                        color: Theme.of(context)
+                            .copyWith(canvasColor: Colors.grey[600])
+                            .canvasColor,
+                      ),
+                      key: Key(model.quantity.toInt().toString()),
+                      textAlign: TextAlign.center,
+                      cursorColor: Theme.of(context)
+                          .copyWith(canvasColor: const Color(0x3B000000))
+                          .canvasColor,
+                    ),
+                  )),
+              Container(
+                width: 1,
+                height: 50,
+                color: Colors.grey[400],
+              ),
+              IconButton(
+                icon: const Icon(
+                  Icons.add,
+                  color: Color(0xC9000000),
+                  size: 25,
+                ),
+                onPressed: () {
+                  model.increaseQty((quantity) {
+                    quantityController.text =
+                        model.quantity!.toInt().toString();
+                  });
+                },
+              ),
+            ],
+          ),
+          Divider(
+            color: Colors.grey[400],
+          ),
+        ],
+      ),
+    ),
+  );
+}

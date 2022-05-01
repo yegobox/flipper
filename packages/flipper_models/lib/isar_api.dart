@@ -94,6 +94,17 @@ class IsarAPI implements IsarApiInterface {
   }
 
   @override
+  Stream<Order?> pendingOrderStream({required int branchId}) {
+    return isar.orders
+        .filter()
+        .branchIdEqualTo(branchId)
+        .statusEqualTo(pendingStatus)
+        .build()
+        .watch(initialReturn: true)
+        .asyncMap((event) => event.first);
+  }
+
+  @override
   Future<Order> manageOrder(
       {required double customAmount,
       required Variant variation,
