@@ -7,6 +7,7 @@ part 'stock_sync.g.dart';
 class Stock {
   late int id = Isar.autoIncrement;
   late int branchId;
+  @Index()
   late int variantId;
   double? lowStock;
 

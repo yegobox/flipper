@@ -1,4 +1,4 @@
-import 'package:flipper_models/receipt_signature.dart';
+import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_services/proxy.dart';
@@ -32,6 +32,7 @@ class _AfterSaleState extends State<AfterSale> {
     decimal: 0,
   );
   final log = getLogger('AfterSale');
+  //TODOif the EBM is on then
 
   @override
   void initState() {

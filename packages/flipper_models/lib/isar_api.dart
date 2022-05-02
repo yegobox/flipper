@@ -472,13 +472,16 @@ class IsarAPI implements IsarApiInterface {
     order.status = completeStatus;
     order.reported = false;
     order.cashReceived = cashReceived;
-    // update order in isar db
-    log.i(order.toJson());
+    await order.orderItems.load();
+    for (OrderItem item in order.orderItems) {
+      Stock? stock = await stockByVariantId(variantId: item.variantId);
+      stock?.currentStock = stock.currentStock - item.qty;
+      update(data: stock);
+    }
     await isar.writeTxn((isar) async {
       int id = await isar.orders.put(order, saveLinks: true);
       return isar.orders.get(id);
     });
-
     // remove currentOrderId from local storage to leave a room
     // for listening to new order that will be created
     ProxyService.box.remove(key: 'currentOrderId');
@@ -1284,11 +1287,7 @@ class IsarAPI implements IsarApiInterface {
   Future<Stock?> stockByVariantId({required int variantId}) async {
     // get stock where variantId = variantId from isar db
     return isar.writeTxn((isar) async {
-      return isar.stocks
-          .filter()
-          .variantIdEqualTo(variantId)
-          .build()
-          .findFirst();
+      return isar.stocks.where().variantIdEqualTo(variantId).findFirst();
     });
   }
 

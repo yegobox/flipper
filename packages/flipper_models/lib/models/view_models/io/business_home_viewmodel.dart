@@ -432,7 +432,6 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       //should show a global snack bar
       return;
     }
-    log.i(payableAmount);
     ProxyService.isarApi
         .collectCashPayment(cashReceived: payableAmount, order: kOrder!);
     //reset current order back to 0

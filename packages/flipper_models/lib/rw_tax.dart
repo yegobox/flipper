@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:flipper_models/isar_models.dart';
-import 'package:flipper_models/receipt_signature.dart';
+import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;

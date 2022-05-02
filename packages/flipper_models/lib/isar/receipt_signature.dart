@@ -1,3 +1,8 @@
+import 'package:isar/isar.dart';
+
+// part 'receipt_signature.g.dart';
+
+// @Collection()
 class ReceiptSignature {
   ReceiptSignature({
     required this.resultCd,
@@ -5,7 +10,7 @@ class ReceiptSignature {
     required this.resultDt,
     required this.data,
   });
-
+  int? id = Isar.autoIncrement;
   String resultCd;
   String resultMsg;
   String resultDt;

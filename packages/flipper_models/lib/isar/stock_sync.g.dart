@@ -15,7 +15,7 @@ extension GetStockCollection on Isar {
 const StockSchema = CollectionSchema(
   name: 'Stock',
   schema:
-      '{"name":"Stock","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"canTrackingStock","type":"Bool"},{"name":"currentStock","type":"Double"},{"name":"lowStock","type":"Double"},{"name":"productId","type":"Long"},{"name":"retailPrice","type":"Double"},{"name":"rsdQty","type":"Double"},{"name":"showLowStockAlert","type":"Bool"},{"name":"supplyPrice","type":"Double"},{"name":"value","type":"Double"},{"name":"variantId","type":"Long"}],"indexes":[],"links":[]}',
+      '{"name":"Stock","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"canTrackingStock","type":"Bool"},{"name":"currentStock","type":"Double"},{"name":"lowStock","type":"Double"},{"name":"productId","type":"Long"},{"name":"retailPrice","type":"Double"},{"name":"rsdQty","type":"Double"},{"name":"showLowStockAlert","type":"Bool"},{"name":"supplyPrice","type":"Double"},{"name":"value","type":"Double"},{"name":"variantId","type":"Long"}],"indexes":[{"name":"variantId","unique":false,"properties":[{"name":"variantId","type":"Value","caseSensitive":false}]}],"links":[]}',
   idName: 'id',
   propertyIds: {
     'active': 0,
@@ -32,8 +32,12 @@ const StockSchema = CollectionSchema(
     'variantId': 11
   },
   listProperties: {},
-  indexIds: {},
-  indexValueTypes: {},
+  indexIds: {'variantId': 0},
+  indexValueTypes: {
+    'variantId': [
+      IndexValueType.long,
+    ]
+  },
   linkIds: {},
   backlinkLinkNames: {},
   getId: _stockGetId,
@@ -254,6 +258,11 @@ extension StockQueryWhereSort on QueryBuilder<Stock, Stock, QWhere> {
   QueryBuilder<Stock, Stock, QAfterWhere> anyId() {
     return addWhereClauseInternal(const IdWhereClause.any());
   }
+
+  QueryBuilder<Stock, Stock, QAfterWhere> anyVariantId() {
+    return addWhereClauseInternal(
+        const IndexWhereClause.any(indexName: 'variantId'));
+  }
 }
 
 extension StockQueryWhere on QueryBuilder<Stock, Stock, QWhereClause> {
@@ -306,6 +315,76 @@ extension StockQueryWhere on QueryBuilder<Stock, Stock, QWhereClause> {
       lower: lowerId,
       includeLower: includeLower,
       upper: upperId,
+      includeUpper: includeUpper,
+    ));
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhereClause> variantIdEqualTo(
+      int variantId) {
+    return addWhereClauseInternal(IndexWhereClause.equalTo(
+      indexName: 'variantId',
+      value: [variantId],
+    ));
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhereClause> variantIdNotEqualTo(
+      int variantId) {
+    if (whereSortInternal == Sort.asc) {
+      return addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'variantId',
+        upper: [variantId],
+        includeUpper: false,
+      )).addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'variantId',
+        lower: [variantId],
+        includeLower: false,
+      ));
+    } else {
+      return addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'variantId',
+        lower: [variantId],
+        includeLower: false,
+      )).addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'variantId',
+        upper: [variantId],
+        includeUpper: false,
+      ));
+    }
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhereClause> variantIdGreaterThan(
+    int variantId, {
+    bool include = false,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.greaterThan(
+      indexName: 'variantId',
+      lower: [variantId],
+      includeLower: include,
+    ));
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhereClause> variantIdLessThan(
+    int variantId, {
+    bool include = false,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.lessThan(
+      indexName: 'variantId',
+      upper: [variantId],
+      includeUpper: include,
+    ));
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhereClause> variantIdBetween(
+    int lowerVariantId,
+    int upperVariantId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.between(
+      indexName: 'variantId',
+      lower: [lowerVariantId],
+      includeLower: includeLower,
+      upper: [upperVariantId],
       includeUpper: includeUpper,
     ));
   }
