@@ -1,5 +1,7 @@
 library flipper_models;
 
+import 'package:flipper_models/isar/receipt.dart';
+import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_routing/routes.locator.dart';
 import 'package:flipper_routing/routes.logger.dart';
 // import 'package:flipper_models/models/models.dart';
@@ -15,6 +17,8 @@ import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_services/language_service.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flipper_models/isar_models.dart';
+import 'package:receipt/print.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 class BusinessHomeViewModel extends ReactiveViewModel {
   // Services
@@ -603,6 +607,67 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     for (Order completedOrder in completedOrders) {
       orderItems.addAll(completedOrder.orderItems);
     }
+    notifyListeners();
+  }
+
+  void printReceipt(
+      {required List<OrderItem> items,
+      required Business business,
+      required Order order}) async {
+    // get receipt from isar related to this order
+    Receipt? receipt = await ProxyService.isarApi.getReceipt(orderId: order.id);
+    Print print = Print();
+    print.feed(items);
+    print.print(
+      grandTotal: order.subTotal,
+      currencySymbol: "RW",
+      totalAEx: 0,
+      totalB18: (order.subTotal * 18 / 118).toStringAsFixed(2),
+      totalB: order.subTotal,
+      totalTax: (order.subTotal * 18 / 118).toStringAsFixed(2),
+      cash: order.subTotal,
+      received: order.subTotal,
+      payMode: "Cash",
+      bank: "-",
+      mrc: receipt!.mrcNo,
+      internalData: receipt.intrlData,
+      // https://github.com/theyakka/qr.flutter/issues/4
+      receiptQrCode: QrImageView(
+        data: '000',
+        version: QrVersions.auto,
+        size: 200.0,
+      ),
+      receiptSignature: receipt.rcptSign,
+      cashierName: business.name!,
+      sdcId: receipt.sdcId,
+      sdcReceiptNum: receipt.rcptNo.toString(),
+      invoiceNum: receipt.totRcptNo,
+      brandName: business.name!,
+      brandAddress: business.adrs ?? "No address",
+      brandTel: ProxyService.box.getUserPhone()!,
+      brandTIN: business.tinNumber.toString(),
+      brandDescription: business.name!,
+      brandFooter: business.name!,
+    );
+  }
+
+  var _receiptReady = false;
+  bool get receiptReady => _receiptReady;
+  set receiptReady(bool value) {
+    _receiptReady = value;
+    notifyListeners();
+  }
+
+  Future<void> generateRRAReceipt(
+      {required List<OrderItem> items,
+      required Business business,
+      required Order order}) async {
+    ReceiptSignature? receiptSignature =
+        await ProxyService.tax.createReceipt(order: order, items: items);
+
+    await ProxyService.isarApi
+        .createReceipt(signature: receiptSignature!, order: order);
+    receiptReady = true;
     notifyListeners();
   }
 

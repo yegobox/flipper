@@ -1,4 +1,3 @@
-import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_services/proxy.dart';
@@ -6,14 +5,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:number_display/number_display.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'customappbar.dart';
 import 'package:google_ui/google_ui.dart';
 import 'package:go_router/go_router.dart';
-import 'package:receipt/print.dart';
 
 class AfterSale extends StatefulWidget {
   const AfterSale(
@@ -136,89 +133,40 @@ class _AfterSaleState extends State<AfterSale> {
                                                 child: GOutlinedButton(
                                                   'Print Now',
                                                   onPressed: () async {
-                                                    Business? business =
-                                                        await ProxyService
-                                                            .isarApi
-                                                            .getBusiness();
-                                                    List<OrderItem> items =
-                                                        await ProxyService
-                                                            .isarApi
-                                                            .orderItems(
-                                                                orderId: widget
-                                                                    .order.id);
-                                                    ReceiptSignature?
-                                                        receiptSignature =
-                                                        await ProxyService.tax
-                                                            .createReceipt(
-                                                                order: widget
-                                                                    .order,
-                                                                items: items);
-                                                    Print print = Print();
-                                                    print.feed(items);
-                                                    print.print(
-                                                      grandTotal:
-                                                          widget.order.subTotal,
-                                                      currencySymbol: "RW",
-                                                      totalAEx: 0,
-                                                      totalB18: (widget.order
-                                                                  .subTotal *
-                                                              18 /
-                                                              118)
-                                                          .toStringAsFixed(2),
-                                                      totalB:
-                                                          widget.order.subTotal,
-                                                      totalTax: (widget.order
-                                                                  .subTotal *
-                                                              18 /
-                                                              118)
-                                                          .toStringAsFixed(2),
-                                                      cash:
-                                                          widget.order.subTotal,
-                                                      received:
-                                                          widget.order.subTotal,
-                                                      payMode: "Cash",
-                                                      bank: "-",
-                                                      mrc: receiptSignature!
-                                                          .data.mrcNo,
-                                                      internalData:
-                                                          receiptSignature
-                                                              .data.intrlData,
-                                                      // https://github.com/theyakka/qr.flutter/issues/4
-                                                      receiptQrCode:
-                                                          QrImageView(
-                                                        data: '000',
-                                                        version:
-                                                            QrVersions.auto,
-                                                        size: 200.0,
-                                                      ),
-                                                      receiptSignature:
-                                                          receiptSignature
-                                                              .data.rcptSign,
-                                                      cashierName:
-                                                          business!.name!,
-                                                      sdcId: receiptSignature
-                                                          .data.sdcId,
-                                                      sdcReceiptNum:
-                                                          receiptSignature
-                                                              .data.rcptNo
-                                                              .toString(),
-                                                      invoiceNum:
-                                                          receiptSignature
-                                                              .data.totRcptNo,
-                                                      brandName: business.name!,
-                                                      brandAddress:
-                                                          business.adrs ??
-                                                              "No address",
-                                                      brandTel: ProxyService.box
-                                                          .getUserPhone()!,
-                                                      brandTIN: business
-                                                          .tinNumber
-                                                          .toString(),
-                                                      brandDescription:
-                                                          business.name!,
-                                                      brandFooter:
-                                                          "Shop with us",
-                                                    );
+                                                    if (await ProxyService
+                                                        .isarApi
+                                                        .isTaxEnabled()) {
+                                                      if (model.receiptReady) {
+                                                        Business? business =
+                                                            await ProxyService
+                                                                .isarApi
+                                                                .getBusiness();
+                                                        List<OrderItem> items =
+                                                            await ProxyService
+                                                                .isarApi
+                                                                .orderItems(
+                                                          orderId:
+                                                              widget.order.id,
+                                                        );
+                                                        model.printReceipt(
+                                                          items: items,
+                                                          business: business!,
+                                                          order: widget.order,
+                                                        );
+                                                      } else {
+                                                        //show scaffold message
+                                                        ScaffoldMessenger.of(
+                                                                context)
+                                                            .showSnackBar(
+                                                          const SnackBar(
+                                                            backgroundColor:
+                                                                Colors.red,
+                                                            content: Text(
+                                                                "We are generating receipt wait a few seconds and try again"),
+                                                          ),
+                                                        );
+                                                      }
+                                                    }
                                                   },
                                                 ),
                                               ),
@@ -310,8 +258,16 @@ class _AfterSaleState extends State<AfterSale> {
             ),
           );
         },
-        onModelReady: (model) {
+        onModelReady: (model) async {
           model.getOrderById();
+          // generate rra receipt
+          if (await ProxyService.isarApi.isTaxEnabled()) {
+            Business? business = await ProxyService.isarApi.getBusiness();
+            List<OrderItem> items =
+                await ProxyService.isarApi.orderItems(orderId: widget.order.id);
+            model.generateRRAReceipt(
+                items: items, business: business!, order: widget.order);
+          }
         },
         viewModelBuilder: () => BusinessHomeViewModel());
   }

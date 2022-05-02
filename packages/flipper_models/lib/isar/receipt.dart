@@ -1,0 +1,20 @@
+import 'package:isar/isar.dart';
+
+part 'receipt.g.dart';
+
+@Collection()
+class Receipt {
+  int? id = Isar.autoIncrement;
+  late String resultCd;
+  late String resultMsg;
+  late String resultDt;
+  late int rcptNo;
+  late String intrlData;
+  late String rcptSign;
+  late int totRcptNo;
+  late String vsdcRcptPbctDate;
+  late String sdcId;
+  late String mrcNo;
+  @Index()
+  late int orderId;
+}

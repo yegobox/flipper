@@ -1,3 +1,5 @@
+import 'package:flipper_models/isar/receipt.dart';
+import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/constants.dart';
 
@@ -178,4 +180,7 @@ abstract class IsarApiInterface {
   Future<List<OrderItem>> orderItems({required int orderId});
   Future<Variant?> getVariantById({required int id});
   Future<bool> isTaxEnabled();
+  Future<Receipt?> createReceipt(
+      {required ReceiptSignature signature, required Order order});
+  Future<Receipt?> getReceipt({required int orderId});
 }

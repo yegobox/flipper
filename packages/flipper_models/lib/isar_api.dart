@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flipper_models/isar/receipt_signature.dart';
+import 'package:flipper_models/isar/receipt.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -53,6 +55,7 @@ class IsarAPI implements IsarApiInterface {
         DiscountSyncSchema,
         CustomerSchema,
         PinSchema,
+        ReceiptSchema,
       ],
       inspector: false,
     );
@@ -1574,6 +1577,36 @@ class IsarAPI implements IsarApiInterface {
   Future<Variant?> getVariantById({required int id}) async {
     return isar.writeTxn((isar) async {
       return await isar.variants.get(id);
+    });
+  }
+
+  @override
+  Future<Receipt?> createReceipt(
+      {required ReceiptSignature signature, required Order order}) {
+    // add receipt to isar db
+    return isar.writeTxn((isar) async {
+      Receipt receipt = Receipt()
+        ..resultCd = signature.resultCd
+        ..resultMsg = signature.resultMsg
+        ..rcptNo = signature.data.rcptNo
+        ..intrlData = signature.data.intrlData
+        ..rcptSign = signature.data.rcptSign
+        ..vsdcRcptPbctDate = signature.data.vsdcRcptPbctDate
+        ..sdcId = signature.data.sdcId
+        ..totRcptNo = signature.data.totRcptNo
+        ..mrcNo = signature.data.mrcNo
+        ..orderId = order.id
+        ..resultDt = signature.resultDt;
+      int id = await isar.receipts.put(receipt);
+      // get receipt from isar db
+      return isar.receipts.get(id);
+    });
+  }
+
+  @override
+  Future<Receipt?> getReceipt({required int orderId}) {
+    return isar.writeTxn((isar) async {
+      return await isar.receipts.where().orderIdEqualTo(orderId).findFirst();
     });
   }
 }
