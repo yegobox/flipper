@@ -272,7 +272,10 @@ class ProductViewModel extends ReactiveViewModel {
       required double retailPrice,
       required double supplyPrice}) async {
     int result = await ProxyService.isarApi.addVariant(
-        data: variations!, retailPrice: retailPrice, supplyPrice: supplyPrice);
+      data: variations!,
+      retailPrice: retailPrice,
+      supplyPrice: supplyPrice,
+    );
     return result;
   }
 

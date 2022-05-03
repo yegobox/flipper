@@ -68,6 +68,8 @@ class _AddVariationState extends State<AddVariation> {
                     ..productName = model.product.name
                     ..branchId = model.productService.branchId!
                     ..id = variantId
+                    ..branchId = ProxyService.box.getBranchId()!
+                    ..taxPercentage = 0.0
                     ..table = AppTables.variation
                     // RRA fields
                     ..bhfId = business?.bhfId
@@ -99,9 +101,12 @@ class _AddVariationState extends State<AddVariation> {
 
                   variations.add(data);
                   await model.addVariant(
-                      variations: variations,
-                      retailPrice: double.parse(retailController.text),
-                      supplyPrice: double.parse(costController.text));
+                    variations: variations,
+                    retailPrice: double.parse(retailController.text),
+                    supplyPrice: double.parse(
+                      costController.text,
+                    ),
+                  );
                   model.productService
                       .variantsProduct(productId: model.product.id!);
                   GoRouter.of(context).pop();

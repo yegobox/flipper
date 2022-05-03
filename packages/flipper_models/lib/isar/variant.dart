@@ -18,7 +18,7 @@ class Variant {
   late String productName;
   late int branchId;
   late String? taxName;
-  late double? taxPercentage;
+  double? taxPercentage;
   late double supplyPrice;
   late double retailPrice;
 

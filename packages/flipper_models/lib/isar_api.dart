@@ -354,6 +354,7 @@ class IsarAPI implements IsarApiInterface {
           ..id = stockId
           ..variantId = variantId
           ..lowStock = 0.0
+          ..branchId = ProxyService.box.getBranchId()!
           ..currentStock = 0.0
           ..supplyPrice = supplyPrice
           ..retailPrice = retailPrice
