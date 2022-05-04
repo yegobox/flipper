@@ -135,6 +135,7 @@ void main() async {
         }
         if (noNet &&
             !onNoNet &&
+            !onLogin &&
             routeWithRedirectRules.contains(state.subloc)) {
           return Routes.noNet;
         }

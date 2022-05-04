@@ -221,3 +221,5 @@ class AppSetup {
 // nohup java -jar flipper-1.0.0-SNAPSHOT-runner.jar &
 // ./gradlew build -Dquarkus.package.type=uber-jar
 
+// find . -name "*.bak" -type f -delete
+

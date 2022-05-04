@@ -74,53 +74,10 @@ class StartUpViewModel extends BaseViewModel {
       }
     }
 
-    /// if no exception is thrown, then we are logged in
-    /// proceed with going to home of the app.
-
     loginInfo.isLoggedIn = true;
-
-    /// a user has logged in but has no business, so first check using
-    /// his phone number if has a tenant he can log to
-    /// FIXMEpause working on tenants
-    // String phoneNumber = ProxyService.box.getUserPhone()!;
-    // TenantSync? tenant;
-    // tenant = await ProxyService.isarApi.isTenant(phoneNumber: phoneNumber);
-
-    /// instead of going to the network everytime to check if is tenant
-    /// load tenant from local storage if not then go to network and save it to local if does not exist local
-
-    // if (tenant != null) {
-    //   ProxyService.isarApi.saveTenant(phoneNumber: phoneNumber);
-    // }
-    // tenant = await ProxyService.isarApi.isTenant(phoneNumber: phoneNumber);
-    // if (tenant != null &&
-    //     tenant.permissions.where((e) => e.name == "admin").isNotEmpty) {
-    //   /// if we only have one branch no need to switch from branches go straight to business.
-    //   if (tenant.branches.length == 1) {
-    //     isar.Business business = await ProxyService.isarApi
-    //         .getBusinessFromOnlineGivenId(
-    //             id: tenant.branches[0].fbusinessId!);
-
-    //     navigateToDashboard(
-    //       business: business,
-    //       branch: tenant.branches[0],
-    //       loginInfo: loginInfo,
-    //     );
-    //     return;
-    //   } else if (tenant.branches.length > 1) {
-    //     /// TODOwhen we support multiple branches we need to add this logic
-    //     // GoRouter.of(context).go(Routes.switchBranch);
-    //     loginInfo.switchBranch = true;
-    //   }
-    // }
-    /// unpause working on tenants
-
-    /// if not, then go to the business creation page
-    /// if has a tenant, then go to the tenant page to chose a branch he is logging to
-    /// by getting tenant's branch when click on branch to log to
-    /// first fetch related business and update all related fields such us, userid,businessid,branchId
-    /// in local storage.
-    /// first get the location
+    // we are logged in but there is a chance that this number is a tenant
+    // that is given access to this business's branch
+    // TODOtenant's is not useful when sync is not supported.
 
     loginInfo.redirecting = false;
   }
