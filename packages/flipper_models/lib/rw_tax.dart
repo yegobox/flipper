@@ -150,7 +150,9 @@ class RWTax implements TaxApi {
       "orgInvcNo": 0,
       "custTin": customer == null ? "" : customer.tinNumber,
       "custNm": customer == null ? "" : customer.name,
+      //TODONormal Sale Make this dynamic later.
       "salesTyCd": "N",
+      //TODOThis is a sale not a refund Make this dynamic later.
       "rcptTyCd": "S",
       "pmtTyCd": "01",
       "salesSttsCd": "02",
