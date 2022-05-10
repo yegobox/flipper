@@ -146,7 +146,9 @@ class RWTax implements TaxApi {
     request.body = json.encode({
       "tin": business!.tinNumber,
       "bhfId": business.bhfId,
-      "invcNo": order.id + DateTime.now().microsecond,
+      "invcNo": (order.id + DateTime.now().microsecondsSinceEpoch)
+          .toString()
+          .substring(0, 10),
       "orgInvcNo": 0,
       "custTin": customer == null ? "" : customer.tinNumber,
       "custNm": customer == null ? "" : customer.name,
