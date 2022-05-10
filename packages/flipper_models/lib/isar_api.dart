@@ -870,7 +870,6 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<Variant?> getCustomProductVariant() async {
-    // throw UnimplementedError();
     int branchId = ProxyService.box.getBranchId()!;
     int businessId = ProxyService.box.getBusinessId()!;
     Product? product = await isar.writeTxn((isar) {
@@ -1565,11 +1564,11 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<List<OrderItem>> orderItems({required int orderId}) async {
+   
     return isar.writeTxn((isar) async {
       return await isar.orderItems
-          .filter()
+          .where()
           .orderIdEqualTo(orderId)
-          .build()
           .findAll();
     });
   }

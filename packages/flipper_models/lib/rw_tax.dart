@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:math' as math;
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_models/tax_api.dart';
@@ -143,12 +144,22 @@ class RWTax implements TaxApi {
       itemsList.add(item.toJson());
     }
 
+    // generate 10 random number that can't be repeated
+    var random = math.Random();
+    var randomNumber = '';
+    for (var i = 0; i < 10; i++) {
+      randomNumber += random.nextInt(10).toString();
+    }
+
     request.body = json.encode({
       "tin": business!.tinNumber,
       "bhfId": business.bhfId,
-      "invcNo": (order.id + DateTime.now().microsecondsSinceEpoch)
-          .toString()
-          .substring(0, 10),
+      "invcNo": randomNumber.substring(0, 8) +
+          "" +
+          (order.id / 2 < 5
+                  ? order.id.toString()
+                  : order.id.toString().substring(0, 2))
+              .toString(),
       "orgInvcNo": 0,
       "custTin": customer == null ? "" : customer.tinNumber,
       "custNm": customer == null ? "" : customer.name,

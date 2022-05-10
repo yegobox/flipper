@@ -97,7 +97,6 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   }
 
   void addKey(String key) async {
-    int branchId = ProxyService.box.getBranchId()!;
     if (key == 'C') {
       ProxyService.keypad.pop();
     } else if (key == '+') {
@@ -106,30 +105,8 @@ class BusinessHomeViewModel extends ReactiveViewModel {
             await ProxyService.isarApi.getCustomProductVariant();
 
         double amount = double.parse(ProxyService.keypad.key);
-        Order? order =
-            await ProxyService.isarApi.pendingOrder(branchId: branchId);
-        if (order == null) {
-          //create order
-          await ProxyService.isarApi.manageOrder(
-            customAmount: amount,
-            variation: variation!,
-            price: double.parse(ProxyService.keypad.key),
-            //default on keypad
-            quantity: 1,
-          );
-        } else {
-          // update the order.
-          await ProxyService.isarApi.manageOrder(
-            customAmount: amount,
-            variation: variation!,
-            price: double.parse(ProxyService.keypad.key),
-            //default on keypad
-            quantity: 1,
-          );
-        }
 
-        keypad.setItemsOnSale(
-            count: order != null ? order.orderItems.length : 10);
+        saveOrder(amount: amount, variationId: variation!.id);
 
         currentOrder();
         ProxyService.keypad.reset();
@@ -270,7 +247,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       /// if variation  given it exist in the orderItems of currentPending order then we update the order with new count
       Order? pendingOrder =
           await ProxyService.isarApi.pendingOrder(branchId: branchId);
-      log.i(pendingOrder?.toJson());
+      // log.i(pendingOrder?.toJson());
       if (pendingOrder != null) {
         /// if order exist then we need to update the orderItem that match with the item we want to update with new count
         /// if orderItem does not exist then we need to create a new orderItem

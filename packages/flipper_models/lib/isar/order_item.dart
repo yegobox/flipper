@@ -6,6 +6,7 @@ part 'order_item.g.dart';
 class OrderItem {
   late int id = Isar.autoIncrement;
   late String name;
+  @Index()
   late int orderId;
   late int variantId;
   // quantity
