@@ -9,6 +9,7 @@ class Points {
 
   late int id = Isar.autoIncrement;
   int value;
+  @Index()
   int userId;
 
   factory Points.fromJson(Map<String, dynamic> json) => Points(

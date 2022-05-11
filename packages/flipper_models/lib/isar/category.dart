@@ -12,6 +12,7 @@ class Category {
   late bool active;
   late bool focused;
   late String name;
+  @Index()
   late int branchId;
   String? table;
 }

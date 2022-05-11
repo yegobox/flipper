@@ -6,8 +6,9 @@ part 'stock_sync.g.dart';
 @Collection()
 class Stock {
   late int id = Isar.autoIncrement;
-  late int branchId;
   @Index()
+  late int branchId;
+  @Index(composite: [CompositeIndex('branchId')])
   late int variantId;
   double? lowStock;
 
@@ -16,6 +17,7 @@ class Stock {
   double? retailPrice;
   bool? canTrackingStock;
   bool? showLowStockAlert;
+  @Index()
   late int productId;
   bool? active;
 

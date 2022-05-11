@@ -679,7 +679,7 @@ packages:
       path: "../flipper_models"
       relative: true
     source: path
-    version: "0.0.1-dev.6"
+    version: "0.0.1-dev.7"
   flipper_routing:
     dependency: "direct main"
     description:

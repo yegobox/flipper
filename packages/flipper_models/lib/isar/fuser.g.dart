@@ -89,7 +89,7 @@ class _$FUserSerializer implements StructuredSerializer<FUser> {
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
-      final key = iterator.current as String;
+      final key = iterator.current! as String;
       iterator.moveNext();
       final Object? value = iterator.current;
       switch (key) {
@@ -111,7 +111,7 @@ class _$FUserSerializer implements StructuredSerializer<FUser> {
           break;
         case 'userId':
           result.userId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+              specifiedType: const FullType(String))! as String;
           break;
         case 'createdAt':
           result.createdAt = serializers.deserialize(value,

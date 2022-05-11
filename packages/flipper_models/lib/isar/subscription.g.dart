@@ -15,7 +15,7 @@ extension GetSubscriptionCollection on Isar {
 const SubscriptionSchema = CollectionSchema(
   name: 'Subscription',
   schema:
-      '{"name":"Subscription","idName":"id","properties":[{"name":"descriptor","type":"String"},{"name":"interval","type":"Long"},{"name":"lastBillingDate","type":"String"},{"name":"nextBillingDate","type":"String"},{"name":"recurring","type":"Double"},{"name":"userId","type":"Long"}],"indexes":[],"links":[{"name":"features","target":"Feature"}]}',
+      '{"name":"Subscription","idName":"id","properties":[{"name":"descriptor","type":"String"},{"name":"interval","type":"Long"},{"name":"lastBillingDate","type":"String"},{"name":"nextBillingDate","type":"String"},{"name":"recurring","type":"Double"},{"name":"userId","type":"Long"}],"indexes":[{"name":"userId","unique":false,"properties":[{"name":"userId","type":"Value","caseSensitive":false}]}],"links":[{"name":"features","target":"Feature"}]}',
   idName: 'id',
   propertyIds: {
     'descriptor': 0,
@@ -26,8 +26,12 @@ const SubscriptionSchema = CollectionSchema(
     'userId': 5
   },
   listProperties: {},
-  indexIds: {},
-  indexValueTypes: {},
+  indexIds: {'userId': 0},
+  indexValueTypes: {
+    'userId': [
+      IndexValueType.long,
+    ]
+  },
   linkIds: {'features': 0},
   backlinkLinkNames: {},
   getId: _subscriptionGetId,
@@ -201,6 +205,11 @@ extension SubscriptionQueryWhereSort
   QueryBuilder<Subscription, Subscription, QAfterWhere> anyId() {
     return addWhereClauseInternal(const IdWhereClause.any());
   }
+
+  QueryBuilder<Subscription, Subscription, QAfterWhere> anyUserId() {
+    return addWhereClauseInternal(
+        const IndexWhereClause.any(indexName: 'userId'));
+  }
 }
 
 extension SubscriptionQueryWhere
@@ -257,6 +266,76 @@ extension SubscriptionQueryWhere
       lower: lowerId,
       includeLower: includeLower,
       upper: upperId,
+      includeUpper: includeUpper,
+    ));
+  }
+
+  QueryBuilder<Subscription, Subscription, QAfterWhereClause> userIdEqualTo(
+      int userId) {
+    return addWhereClauseInternal(IndexWhereClause.equalTo(
+      indexName: 'userId',
+      value: [userId],
+    ));
+  }
+
+  QueryBuilder<Subscription, Subscription, QAfterWhereClause> userIdNotEqualTo(
+      int userId) {
+    if (whereSortInternal == Sort.asc) {
+      return addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'userId',
+        upper: [userId],
+        includeUpper: false,
+      )).addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'userId',
+        lower: [userId],
+        includeLower: false,
+      ));
+    } else {
+      return addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'userId',
+        lower: [userId],
+        includeLower: false,
+      )).addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'userId',
+        upper: [userId],
+        includeUpper: false,
+      ));
+    }
+  }
+
+  QueryBuilder<Subscription, Subscription, QAfterWhereClause> userIdGreaterThan(
+    int userId, {
+    bool include = false,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.greaterThan(
+      indexName: 'userId',
+      lower: [userId],
+      includeLower: include,
+    ));
+  }
+
+  QueryBuilder<Subscription, Subscription, QAfterWhereClause> userIdLessThan(
+    int userId, {
+    bool include = false,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.lessThan(
+      indexName: 'userId',
+      upper: [userId],
+      includeUpper: include,
+    ));
+  }
+
+  QueryBuilder<Subscription, Subscription, QAfterWhereClause> userIdBetween(
+    int lowerUserId,
+    int upperUserId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.between(
+      indexName: 'userId',
+      lower: [lowerUserId],
+      includeLower: includeLower,
+      upper: [upperUserId],
       includeUpper: includeUpper,
     ));
   }

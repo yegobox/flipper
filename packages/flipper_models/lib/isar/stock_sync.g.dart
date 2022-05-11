@@ -15,7 +15,7 @@ extension GetStockCollection on Isar {
 const StockSchema = CollectionSchema(
   name: 'Stock',
   schema:
-      '{"name":"Stock","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"canTrackingStock","type":"Bool"},{"name":"currentStock","type":"Double"},{"name":"lowStock","type":"Double"},{"name":"productId","type":"Long"},{"name":"retailPrice","type":"Double"},{"name":"rsdQty","type":"Double"},{"name":"showLowStockAlert","type":"Bool"},{"name":"supplyPrice","type":"Double"},{"name":"value","type":"Double"},{"name":"variantId","type":"Long"}],"indexes":[{"name":"variantId","unique":false,"properties":[{"name":"variantId","type":"Value","caseSensitive":false}]}],"links":[]}',
+      '{"name":"Stock","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"canTrackingStock","type":"Bool"},{"name":"currentStock","type":"Double"},{"name":"lowStock","type":"Double"},{"name":"productId","type":"Long"},{"name":"retailPrice","type":"Double"},{"name":"rsdQty","type":"Double"},{"name":"showLowStockAlert","type":"Bool"},{"name":"supplyPrice","type":"Double"},{"name":"value","type":"Double"},{"name":"variantId","type":"Long"}],"indexes":[{"name":"branchId","unique":false,"properties":[{"name":"branchId","type":"Value","caseSensitive":false}]},{"name":"productId","unique":false,"properties":[{"name":"productId","type":"Value","caseSensitive":false}]},{"name":"variantId_branchId","unique":false,"properties":[{"name":"variantId","type":"Value","caseSensitive":false},{"name":"branchId","type":"Value","caseSensitive":false}]}],"links":[]}',
   idName: 'id',
   propertyIds: {
     'active': 0,
@@ -32,9 +32,16 @@ const StockSchema = CollectionSchema(
     'variantId': 11
   },
   listProperties: {},
-  indexIds: {'variantId': 0},
+  indexIds: {'branchId': 0, 'productId': 1, 'variantId_branchId': 2},
   indexValueTypes: {
-    'variantId': [
+    'branchId': [
+      IndexValueType.long,
+    ],
+    'productId': [
+      IndexValueType.long,
+    ],
+    'variantId_branchId': [
+      IndexValueType.long,
       IndexValueType.long,
     ]
   },
@@ -259,9 +266,19 @@ extension StockQueryWhereSort on QueryBuilder<Stock, Stock, QWhere> {
     return addWhereClauseInternal(const IdWhereClause.any());
   }
 
-  QueryBuilder<Stock, Stock, QAfterWhere> anyVariantId() {
+  QueryBuilder<Stock, Stock, QAfterWhere> anyBranchId() {
     return addWhereClauseInternal(
-        const IndexWhereClause.any(indexName: 'variantId'));
+        const IndexWhereClause.any(indexName: 'branchId'));
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhere> anyProductId() {
+    return addWhereClauseInternal(
+        const IndexWhereClause.any(indexName: 'productId'));
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhere> anyVariantIdBranchId() {
+    return addWhereClauseInternal(
+        const IndexWhereClause.any(indexName: 'variantId_branchId'));
   }
 }
 
@@ -319,10 +336,149 @@ extension StockQueryWhere on QueryBuilder<Stock, Stock, QWhereClause> {
     ));
   }
 
+  QueryBuilder<Stock, Stock, QAfterWhereClause> branchIdEqualTo(int branchId) {
+    return addWhereClauseInternal(IndexWhereClause.equalTo(
+      indexName: 'branchId',
+      value: [branchId],
+    ));
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhereClause> branchIdNotEqualTo(
+      int branchId) {
+    if (whereSortInternal == Sort.asc) {
+      return addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'branchId',
+        upper: [branchId],
+        includeUpper: false,
+      )).addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'branchId',
+        lower: [branchId],
+        includeLower: false,
+      ));
+    } else {
+      return addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'branchId',
+        lower: [branchId],
+        includeLower: false,
+      )).addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'branchId',
+        upper: [branchId],
+        includeUpper: false,
+      ));
+    }
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhereClause> branchIdGreaterThan(
+    int branchId, {
+    bool include = false,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.greaterThan(
+      indexName: 'branchId',
+      lower: [branchId],
+      includeLower: include,
+    ));
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhereClause> branchIdLessThan(
+    int branchId, {
+    bool include = false,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.lessThan(
+      indexName: 'branchId',
+      upper: [branchId],
+      includeUpper: include,
+    ));
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhereClause> branchIdBetween(
+    int lowerBranchId,
+    int upperBranchId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.between(
+      indexName: 'branchId',
+      lower: [lowerBranchId],
+      includeLower: includeLower,
+      upper: [upperBranchId],
+      includeUpper: includeUpper,
+    ));
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhereClause> productIdEqualTo(
+      int productId) {
+    return addWhereClauseInternal(IndexWhereClause.equalTo(
+      indexName: 'productId',
+      value: [productId],
+    ));
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhereClause> productIdNotEqualTo(
+      int productId) {
+    if (whereSortInternal == Sort.asc) {
+      return addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'productId',
+        upper: [productId],
+        includeUpper: false,
+      )).addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'productId',
+        lower: [productId],
+        includeLower: false,
+      ));
+    } else {
+      return addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'productId',
+        lower: [productId],
+        includeLower: false,
+      )).addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'productId',
+        upper: [productId],
+        includeUpper: false,
+      ));
+    }
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhereClause> productIdGreaterThan(
+    int productId, {
+    bool include = false,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.greaterThan(
+      indexName: 'productId',
+      lower: [productId],
+      includeLower: include,
+    ));
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhereClause> productIdLessThan(
+    int productId, {
+    bool include = false,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.lessThan(
+      indexName: 'productId',
+      upper: [productId],
+      includeUpper: include,
+    ));
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhereClause> productIdBetween(
+    int lowerProductId,
+    int upperProductId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.between(
+      indexName: 'productId',
+      lower: [lowerProductId],
+      includeLower: includeLower,
+      upper: [upperProductId],
+      includeUpper: includeUpper,
+    ));
+  }
+
   QueryBuilder<Stock, Stock, QAfterWhereClause> variantIdEqualTo(
       int variantId) {
     return addWhereClauseInternal(IndexWhereClause.equalTo(
-      indexName: 'variantId',
+      indexName: 'variantId_branchId',
       value: [variantId],
     ));
   }
@@ -331,21 +487,21 @@ extension StockQueryWhere on QueryBuilder<Stock, Stock, QWhereClause> {
       int variantId) {
     if (whereSortInternal == Sort.asc) {
       return addWhereClauseInternal(IndexWhereClause.lessThan(
-        indexName: 'variantId',
+        indexName: 'variantId_branchId',
         upper: [variantId],
         includeUpper: false,
       )).addWhereClauseInternal(IndexWhereClause.greaterThan(
-        indexName: 'variantId',
+        indexName: 'variantId_branchId',
         lower: [variantId],
         includeLower: false,
       ));
     } else {
       return addWhereClauseInternal(IndexWhereClause.greaterThan(
-        indexName: 'variantId',
+        indexName: 'variantId_branchId',
         lower: [variantId],
         includeLower: false,
       )).addWhereClauseInternal(IndexWhereClause.lessThan(
-        indexName: 'variantId',
+        indexName: 'variantId_branchId',
         upper: [variantId],
         includeUpper: false,
       ));
@@ -357,7 +513,7 @@ extension StockQueryWhere on QueryBuilder<Stock, Stock, QWhereClause> {
     bool include = false,
   }) {
     return addWhereClauseInternal(IndexWhereClause.greaterThan(
-      indexName: 'variantId',
+      indexName: 'variantId_branchId',
       lower: [variantId],
       includeLower: include,
     ));
@@ -368,7 +524,7 @@ extension StockQueryWhere on QueryBuilder<Stock, Stock, QWhereClause> {
     bool include = false,
   }) {
     return addWhereClauseInternal(IndexWhereClause.lessThan(
-      indexName: 'variantId',
+      indexName: 'variantId_branchId',
       upper: [variantId],
       includeUpper: include,
     ));
@@ -381,10 +537,85 @@ extension StockQueryWhere on QueryBuilder<Stock, Stock, QWhereClause> {
     bool includeUpper = true,
   }) {
     return addWhereClauseInternal(IndexWhereClause.between(
-      indexName: 'variantId',
+      indexName: 'variantId_branchId',
       lower: [lowerVariantId],
       includeLower: includeLower,
       upper: [upperVariantId],
+      includeUpper: includeUpper,
+    ));
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhereClause> variantIdBranchIdEqualTo(
+      int variantId, int branchId) {
+    return addWhereClauseInternal(IndexWhereClause.equalTo(
+      indexName: 'variantId_branchId',
+      value: [variantId, branchId],
+    ));
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhereClause> variantIdBranchIdNotEqualTo(
+      int variantId, int branchId) {
+    if (whereSortInternal == Sort.asc) {
+      return addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'variantId_branchId',
+        upper: [variantId, branchId],
+        includeUpper: false,
+      )).addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'variantId_branchId',
+        lower: [variantId, branchId],
+        includeLower: false,
+      ));
+    } else {
+      return addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'variantId_branchId',
+        lower: [variantId, branchId],
+        includeLower: false,
+      )).addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'variantId_branchId',
+        upper: [variantId, branchId],
+        includeUpper: false,
+      ));
+    }
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhereClause>
+      variantIdEqualToBranchIdGreaterThan(
+    int variantId,
+    int branchId, {
+    bool include = false,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.greaterThan(
+      indexName: 'variantId_branchId',
+      lower: [variantId, branchId],
+      includeLower: include,
+    ));
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhereClause>
+      variantIdEqualToBranchIdLessThan(
+    int variantId,
+    int branchId, {
+    bool include = false,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.lessThan(
+      indexName: 'variantId_branchId',
+      upper: [variantId, branchId],
+      includeUpper: include,
+    ));
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhereClause> variantIdEqualToBranchIdBetween(
+    int variantId,
+    int lowerBranchId,
+    int upperBranchId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.between(
+      indexName: 'variantId_branchId',
+      lower: [variantId, lowerBranchId],
+      includeLower: includeLower,
+      upper: [variantId, upperBranchId],
       includeUpper: includeUpper,
     ));
   }

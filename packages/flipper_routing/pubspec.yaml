@@ -14,7 +14,7 @@ dependencies:
   flipper_chat: ^0.0.1-dev.5
   flipper_dashboard: ^0.0.1-dev.5
   flipper_login: ^0.0.1-dev.5
-  flipper_models: ^0.0.1-dev.5
+  flipper_models: ^0.0.1-dev.7
   stacked_services: ^0.8.16
   stacked: ^2.2.8
   flipper_rw: ^1.0.1-dev.3

@@ -12,6 +12,7 @@ class Variant {
   // int? id = Isar.autoIncrement;
   late String name;
   late String sku;
+  @Index()
   late int productId;
   late String unit;
   late String table;

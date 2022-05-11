@@ -21,6 +21,7 @@ class Subscription {
   late int interval;
   late String lastBillingDate;
   late String nextBillingDate;
+  @Index()
   late int userId;
   late double recurring;
 

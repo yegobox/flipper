@@ -5,6 +5,7 @@ part 'unit.g.dart';
 @Collection()
 class Unit {
   late int id = Isar.autoIncrement;
+  @Index()
   late int branchId;
   late String name;
   late String value;

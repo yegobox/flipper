@@ -15,7 +15,7 @@ extension GetSettingCollection on Isar {
 const SettingSchema = CollectionSchema(
   name: 'Setting',
   schema:
-      '{"name":"Setting","idName":"id","properties":[{"name":"attendnaceDocCreated","type":"Bool"},{"name":"autoPrint","type":"Bool"},{"name":"defaultLanguage","type":"String"},{"name":"email","type":"String"},{"name":"googleSheetDocCreated","type":"Bool"},{"name":"hasPin","type":"String"},{"name":"isAttendanceEnabled","type":"Bool"},{"name":"openReceiptFileOSaleComplete","type":"Bool"},{"name":"sendDailyReport","type":"Bool"},{"name":"userId","type":"Long"}],"indexes":[],"links":[]}',
+      '{"name":"Setting","idName":"id","properties":[{"name":"attendnaceDocCreated","type":"Bool"},{"name":"autoPrint","type":"Bool"},{"name":"defaultLanguage","type":"String"},{"name":"email","type":"String"},{"name":"googleSheetDocCreated","type":"Bool"},{"name":"hasPin","type":"String"},{"name":"isAttendanceEnabled","type":"Bool"},{"name":"openReceiptFileOSaleComplete","type":"Bool"},{"name":"sendDailyReport","type":"Bool"},{"name":"userId","type":"Long"}],"indexes":[{"name":"userId","unique":false,"properties":[{"name":"userId","type":"Value","caseSensitive":false}]}],"links":[]}',
   idName: 'id',
   propertyIds: {
     'attendnaceDocCreated': 0,
@@ -30,8 +30,12 @@ const SettingSchema = CollectionSchema(
     'userId': 9
   },
   listProperties: {},
-  indexIds: {},
-  indexValueTypes: {},
+  indexIds: {'userId': 0},
+  indexValueTypes: {
+    'userId': [
+      IndexValueType.long,
+    ]
+  },
   linkIds: {},
   backlinkLinkNames: {},
   getId: _settingGetId,
@@ -242,6 +246,11 @@ extension SettingQueryWhereSort on QueryBuilder<Setting, Setting, QWhere> {
   QueryBuilder<Setting, Setting, QAfterWhere> anyId() {
     return addWhereClauseInternal(const IdWhereClause.any());
   }
+
+  QueryBuilder<Setting, Setting, QAfterWhere> anyUserId() {
+    return addWhereClauseInternal(
+        const IndexWhereClause.any(indexName: 'userId'));
+  }
 }
 
 extension SettingQueryWhere on QueryBuilder<Setting, Setting, QWhereClause> {
@@ -294,6 +303,75 @@ extension SettingQueryWhere on QueryBuilder<Setting, Setting, QWhereClause> {
       lower: lowerId,
       includeLower: includeLower,
       upper: upperId,
+      includeUpper: includeUpper,
+    ));
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> userIdEqualTo(int userId) {
+    return addWhereClauseInternal(IndexWhereClause.equalTo(
+      indexName: 'userId',
+      value: [userId],
+    ));
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> userIdNotEqualTo(
+      int userId) {
+    if (whereSortInternal == Sort.asc) {
+      return addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'userId',
+        upper: [userId],
+        includeUpper: false,
+      )).addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'userId',
+        lower: [userId],
+        includeLower: false,
+      ));
+    } else {
+      return addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'userId',
+        lower: [userId],
+        includeLower: false,
+      )).addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'userId',
+        upper: [userId],
+        includeUpper: false,
+      ));
+    }
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> userIdGreaterThan(
+    int userId, {
+    bool include = false,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.greaterThan(
+      indexName: 'userId',
+      lower: [userId],
+      includeLower: include,
+    ));
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> userIdLessThan(
+    int userId, {
+    bool include = false,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.lessThan(
+      indexName: 'userId',
+      upper: [userId],
+      includeUpper: include,
+    ));
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> userIdBetween(
+    int lowerUserId,
+    int upperUserId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.between(
+      indexName: 'userId',
+      lower: [lowerUserId],
+      includeLower: includeLower,
+      upper: [upperUserId],
       includeUpper: includeUpper,
     ));
   }

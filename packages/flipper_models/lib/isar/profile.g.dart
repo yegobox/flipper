@@ -15,7 +15,7 @@ extension GetProfileCollection on Isar {
 const ProfileSchema = CollectionSchema(
   name: 'Profile',
   schema:
-      '{"name":"Profile","idName":"id","properties":[{"name":"about","type":"String"},{"name":"address","type":"String"},{"name":"businessId","type":"Long"},{"name":"cell","type":"String"},{"name":"city","type":"String"},{"name":"country","type":"String"},{"name":"coverPic","type":"String"},{"name":"district","type":"String"},{"name":"email","type":"String"},{"name":"livingAt","type":"String"},{"name":"name","type":"String"},{"name":"nationalId","type":"String"},{"name":"phone","type":"String"},{"name":"pincode","type":"String"},{"name":"profilePic","type":"String"},{"name":"state","type":"String"},{"name":"vaccinationCode","type":"String"}],"indexes":[],"links":[]}',
+      '{"name":"Profile","idName":"id","properties":[{"name":"about","type":"String"},{"name":"address","type":"String"},{"name":"businessId","type":"Long"},{"name":"cell","type":"String"},{"name":"city","type":"String"},{"name":"country","type":"String"},{"name":"coverPic","type":"String"},{"name":"district","type":"String"},{"name":"email","type":"String"},{"name":"livingAt","type":"String"},{"name":"name","type":"String"},{"name":"nationalId","type":"String"},{"name":"phone","type":"String"},{"name":"pincode","type":"String"},{"name":"profilePic","type":"String"},{"name":"state","type":"String"},{"name":"vaccinationCode","type":"String"}],"indexes":[{"name":"businessId","unique":false,"properties":[{"name":"businessId","type":"Value","caseSensitive":false}]}],"links":[]}',
   idName: 'id',
   propertyIds: {
     'about': 0,
@@ -37,8 +37,12 @@ const ProfileSchema = CollectionSchema(
     'vaccinationCode': 16
   },
   listProperties: {},
-  indexIds: {},
-  indexValueTypes: {},
+  indexIds: {'businessId': 0},
+  indexValueTypes: {
+    'businessId': [
+      IndexValueType.long,
+    ]
+  },
   linkIds: {},
   backlinkLinkNames: {},
   getId: _profileGetId,
@@ -344,6 +348,11 @@ extension ProfileQueryWhereSort on QueryBuilder<Profile, Profile, QWhere> {
   QueryBuilder<Profile, Profile, QAfterWhere> anyId() {
     return addWhereClauseInternal(const IdWhereClause.any());
   }
+
+  QueryBuilder<Profile, Profile, QAfterWhere> anyBusinessId() {
+    return addWhereClauseInternal(
+        const IndexWhereClause.any(indexName: 'businessId'));
+  }
 }
 
 extension ProfileQueryWhere on QueryBuilder<Profile, Profile, QWhereClause> {
@@ -396,6 +405,76 @@ extension ProfileQueryWhere on QueryBuilder<Profile, Profile, QWhereClause> {
       lower: lowerId,
       includeLower: includeLower,
       upper: upperId,
+      includeUpper: includeUpper,
+    ));
+  }
+
+  QueryBuilder<Profile, Profile, QAfterWhereClause> businessIdEqualTo(
+      int businessId) {
+    return addWhereClauseInternal(IndexWhereClause.equalTo(
+      indexName: 'businessId',
+      value: [businessId],
+    ));
+  }
+
+  QueryBuilder<Profile, Profile, QAfterWhereClause> businessIdNotEqualTo(
+      int businessId) {
+    if (whereSortInternal == Sort.asc) {
+      return addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'businessId',
+        upper: [businessId],
+        includeUpper: false,
+      )).addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'businessId',
+        lower: [businessId],
+        includeLower: false,
+      ));
+    } else {
+      return addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'businessId',
+        lower: [businessId],
+        includeLower: false,
+      )).addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'businessId',
+        upper: [businessId],
+        includeUpper: false,
+      ));
+    }
+  }
+
+  QueryBuilder<Profile, Profile, QAfterWhereClause> businessIdGreaterThan(
+    int businessId, {
+    bool include = false,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.greaterThan(
+      indexName: 'businessId',
+      lower: [businessId],
+      includeLower: include,
+    ));
+  }
+
+  QueryBuilder<Profile, Profile, QAfterWhereClause> businessIdLessThan(
+    int businessId, {
+    bool include = false,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.lessThan(
+      indexName: 'businessId',
+      upper: [businessId],
+      includeUpper: include,
+    ));
+  }
+
+  QueryBuilder<Profile, Profile, QAfterWhereClause> businessIdBetween(
+    int lowerBusinessId,
+    int upperBusinessId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.between(
+      indexName: 'businessId',
+      lower: [lowerBusinessId],
+      includeLower: includeLower,
+      upper: [upperBusinessId],
       includeUpper: includeUpper,
     ));
   }

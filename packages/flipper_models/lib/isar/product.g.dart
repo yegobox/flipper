@@ -15,7 +15,7 @@ extension GetProductCollection on Isar {
 const ProductSchema = CollectionSchema(
   name: 'Product',
   schema:
-      '{"name":"Product","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"barCode","type":"String"},{"name":"branchId","type":"Long"},{"name":"businessId","type":"Long"},{"name":"categoryId","type":"String"},{"name":"color","type":"String"},{"name":"createdAt","type":"String"},{"name":"currentUpdate","type":"Bool"},{"name":"description","type":"String"},{"name":"draft","type":"Bool"},{"name":"expiryDate","type":"String"},{"name":"hasPicture","type":"Bool"},{"name":"imageLocal","type":"Bool"},{"name":"imageUrl","type":"String"},{"name":"name","type":"String"},{"name":"picture","type":"String"},{"name":"supplierId","type":"String"},{"name":"synced","type":"Bool"},{"name":"table","type":"String"},{"name":"taxId","type":"String"},{"name":"unit","type":"String"}],"indexes":[],"links":[{"name":"variants","target":"Variant"}]}',
+      '{"name":"Product","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"barCode","type":"String"},{"name":"branchId","type":"Long"},{"name":"businessId","type":"Long"},{"name":"categoryId","type":"String"},{"name":"color","type":"String"},{"name":"createdAt","type":"String"},{"name":"currentUpdate","type":"Bool"},{"name":"description","type":"String"},{"name":"draft","type":"Bool"},{"name":"expiryDate","type":"String"},{"name":"hasPicture","type":"Bool"},{"name":"imageLocal","type":"Bool"},{"name":"imageUrl","type":"String"},{"name":"name","type":"String"},{"name":"picture","type":"String"},{"name":"supplierId","type":"String"},{"name":"synced","type":"Bool"},{"name":"table","type":"String"},{"name":"taxId","type":"String"},{"name":"unit","type":"String"}],"indexes":[{"name":"barCode","unique":false,"properties":[{"name":"barCode","type":"Hash","caseSensitive":true}]},{"name":"branchId","unique":false,"properties":[{"name":"branchId","type":"Value","caseSensitive":false}]},{"name":"draft_branchId","unique":false,"properties":[{"name":"draft","type":"Value","caseSensitive":false},{"name":"branchId","type":"Value","caseSensitive":false}]}],"links":[{"name":"variants","target":"Variant"}]}',
   idName: 'id',
   propertyIds: {
     'active': 0,
@@ -41,8 +41,19 @@ const ProductSchema = CollectionSchema(
     'unit': 20
   },
   listProperties: {},
-  indexIds: {},
-  indexValueTypes: {},
+  indexIds: {'barCode': 0, 'branchId': 1, 'draft_branchId': 2},
+  indexValueTypes: {
+    'barCode': [
+      IndexValueType.stringHash,
+    ],
+    'branchId': [
+      IndexValueType.long,
+    ],
+    'draft_branchId': [
+      IndexValueType.bool,
+      IndexValueType.long,
+    ]
+  },
   linkIds: {'variants': 0},
   backlinkLinkNames: {},
   getId: _productGetId,
@@ -400,6 +411,21 @@ extension ProductQueryWhereSort on QueryBuilder<Product, Product, QWhere> {
   QueryBuilder<Product, Product, QAfterWhere> anyId() {
     return addWhereClauseInternal(const IdWhereClause.any());
   }
+
+  QueryBuilder<Product, Product, QAfterWhere> anyBarCode() {
+    return addWhereClauseInternal(
+        const IndexWhereClause.any(indexName: 'barCode'));
+  }
+
+  QueryBuilder<Product, Product, QAfterWhere> anyBranchId() {
+    return addWhereClauseInternal(
+        const IndexWhereClause.any(indexName: 'branchId'));
+  }
+
+  QueryBuilder<Product, Product, QAfterWhere> anyDraftBranchId() {
+    return addWhereClauseInternal(
+        const IndexWhereClause.any(indexName: 'draft_branchId'));
+  }
 }
 
 extension ProductQueryWhere on QueryBuilder<Product, Product, QWhereClause> {
@@ -452,6 +478,231 @@ extension ProductQueryWhere on QueryBuilder<Product, Product, QWhereClause> {
       lower: lowerId,
       includeLower: includeLower,
       upper: upperId,
+      includeUpper: includeUpper,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterWhereClause> barCodeEqualTo(
+      String? barCode) {
+    return addWhereClauseInternal(IndexWhereClause.equalTo(
+      indexName: 'barCode',
+      value: [barCode],
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterWhereClause> barCodeNotEqualTo(
+      String? barCode) {
+    if (whereSortInternal == Sort.asc) {
+      return addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'barCode',
+        upper: [barCode],
+        includeUpper: false,
+      )).addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'barCode',
+        lower: [barCode],
+        includeLower: false,
+      ));
+    } else {
+      return addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'barCode',
+        lower: [barCode],
+        includeLower: false,
+      )).addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'barCode',
+        upper: [barCode],
+        includeUpper: false,
+      ));
+    }
+  }
+
+  QueryBuilder<Product, Product, QAfterWhereClause> barCodeIsNull() {
+    return addWhereClauseInternal(const IndexWhereClause.equalTo(
+      indexName: 'barCode',
+      value: [null],
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterWhereClause> barCodeIsNotNull() {
+    return addWhereClauseInternal(const IndexWhereClause.greaterThan(
+      indexName: 'barCode',
+      lower: [null],
+      includeLower: false,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterWhereClause> branchIdEqualTo(
+      int branchId) {
+    return addWhereClauseInternal(IndexWhereClause.equalTo(
+      indexName: 'branchId',
+      value: [branchId],
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterWhereClause> branchIdNotEqualTo(
+      int branchId) {
+    if (whereSortInternal == Sort.asc) {
+      return addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'branchId',
+        upper: [branchId],
+        includeUpper: false,
+      )).addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'branchId',
+        lower: [branchId],
+        includeLower: false,
+      ));
+    } else {
+      return addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'branchId',
+        lower: [branchId],
+        includeLower: false,
+      )).addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'branchId',
+        upper: [branchId],
+        includeUpper: false,
+      ));
+    }
+  }
+
+  QueryBuilder<Product, Product, QAfterWhereClause> branchIdGreaterThan(
+    int branchId, {
+    bool include = false,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.greaterThan(
+      indexName: 'branchId',
+      lower: [branchId],
+      includeLower: include,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterWhereClause> branchIdLessThan(
+    int branchId, {
+    bool include = false,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.lessThan(
+      indexName: 'branchId',
+      upper: [branchId],
+      includeUpper: include,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterWhereClause> branchIdBetween(
+    int lowerBranchId,
+    int upperBranchId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.between(
+      indexName: 'branchId',
+      lower: [lowerBranchId],
+      includeLower: includeLower,
+      upper: [upperBranchId],
+      includeUpper: includeUpper,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterWhereClause> draftEqualTo(bool? draft) {
+    return addWhereClauseInternal(IndexWhereClause.equalTo(
+      indexName: 'draft_branchId',
+      value: [draft],
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterWhereClause> draftNotEqualTo(
+      bool? draft) {
+    if (whereSortInternal == Sort.asc) {
+      return addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'draft_branchId',
+        upper: [draft],
+        includeUpper: false,
+      )).addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'draft_branchId',
+        lower: [draft],
+        includeLower: false,
+      ));
+    } else {
+      return addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'draft_branchId',
+        lower: [draft],
+        includeLower: false,
+      )).addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'draft_branchId',
+        upper: [draft],
+        includeUpper: false,
+      ));
+    }
+  }
+
+  QueryBuilder<Product, Product, QAfterWhereClause> draftBranchIdEqualTo(
+      bool? draft, int branchId) {
+    return addWhereClauseInternal(IndexWhereClause.equalTo(
+      indexName: 'draft_branchId',
+      value: [draft, branchId],
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterWhereClause> draftBranchIdNotEqualTo(
+      bool? draft, int branchId) {
+    if (whereSortInternal == Sort.asc) {
+      return addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'draft_branchId',
+        upper: [draft, branchId],
+        includeUpper: false,
+      )).addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'draft_branchId',
+        lower: [draft, branchId],
+        includeLower: false,
+      ));
+    } else {
+      return addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'draft_branchId',
+        lower: [draft, branchId],
+        includeLower: false,
+      )).addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'draft_branchId',
+        upper: [draft, branchId],
+        includeUpper: false,
+      ));
+    }
+  }
+
+  QueryBuilder<Product, Product, QAfterWhereClause>
+      draftEqualToBranchIdGreaterThan(
+    bool? draft,
+    int branchId, {
+    bool include = false,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.greaterThan(
+      indexName: 'draft_branchId',
+      lower: [draft, branchId],
+      includeLower: include,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterWhereClause>
+      draftEqualToBranchIdLessThan(
+    bool? draft,
+    int branchId, {
+    bool include = false,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.lessThan(
+      indexName: 'draft_branchId',
+      upper: [draft, branchId],
+      includeUpper: include,
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterWhereClause> draftEqualToBranchIdBetween(
+    bool? draft,
+    int lowerBranchId,
+    int upperBranchId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.between(
+      indexName: 'draft_branchId',
+      lower: [draft, lowerBranchId],
+      includeLower: includeLower,
+      upper: [draft, upperBranchId],
       includeUpper: includeUpper,
     ));
   }
@@ -1273,7 +1524,7 @@ extension ProductQueryFilter
     ));
   }
 
-  QueryBuilder<Product, Product, QAfterFilterCondition> idEqualTo(int value) {
+  QueryBuilder<Product, Product, QAfterFilterCondition> idEqualTo(int? value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
       property: 'id',
@@ -1282,7 +1533,7 @@ extension ProductQueryFilter
   }
 
   QueryBuilder<Product, Product, QAfterFilterCondition> idGreaterThan(
-    int value, {
+    int? value, {
     bool include = false,
   }) {
     return addFilterConditionInternal(FilterCondition(
@@ -1294,7 +1545,7 @@ extension ProductQueryFilter
   }
 
   QueryBuilder<Product, Product, QAfterFilterCondition> idLessThan(
-    int value, {
+    int? value, {
     bool include = false,
   }) {
     return addFilterConditionInternal(FilterCondition(
@@ -1306,8 +1557,8 @@ extension ProductQueryFilter
   }
 
   QueryBuilder<Product, Product, QAfterFilterCondition> idBetween(
-    int lower,
-    int upper, {
+    int? lower,
+    int? upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {

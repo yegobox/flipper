@@ -15,7 +15,7 @@ extension GetCategoryCollection on Isar {
 const CategorySchema = CollectionSchema(
   name: 'Category',
   schema:
-      '{"name":"Category","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"focused","type":"Bool"},{"name":"name","type":"String"},{"name":"table","type":"String"}],"indexes":[],"links":[]}',
+      '{"name":"Category","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"focused","type":"Bool"},{"name":"name","type":"String"},{"name":"table","type":"String"}],"indexes":[{"name":"branchId","unique":false,"properties":[{"name":"branchId","type":"Value","caseSensitive":false}]}],"links":[]}',
   idName: 'id',
   propertyIds: {
     'active': 0,
@@ -25,8 +25,12 @@ const CategorySchema = CollectionSchema(
     'table': 4
   },
   listProperties: {},
-  indexIds: {},
-  indexValueTypes: {},
+  indexIds: {'branchId': 0},
+  indexValueTypes: {
+    'branchId': [
+      IndexValueType.long,
+    ]
+  },
   linkIds: {},
   backlinkLinkNames: {},
   getId: _categoryGetId,
@@ -178,6 +182,11 @@ extension CategoryQueryWhereSort on QueryBuilder<Category, Category, QWhere> {
   QueryBuilder<Category, Category, QAfterWhere> anyId() {
     return addWhereClauseInternal(const IdWhereClause.any());
   }
+
+  QueryBuilder<Category, Category, QAfterWhere> anyBranchId() {
+    return addWhereClauseInternal(
+        const IndexWhereClause.any(indexName: 'branchId'));
+  }
 }
 
 extension CategoryQueryWhere on QueryBuilder<Category, Category, QWhereClause> {
@@ -230,6 +239,76 @@ extension CategoryQueryWhere on QueryBuilder<Category, Category, QWhereClause> {
       lower: lowerId,
       includeLower: includeLower,
       upper: upperId,
+      includeUpper: includeUpper,
+    ));
+  }
+
+  QueryBuilder<Category, Category, QAfterWhereClause> branchIdEqualTo(
+      int branchId) {
+    return addWhereClauseInternal(IndexWhereClause.equalTo(
+      indexName: 'branchId',
+      value: [branchId],
+    ));
+  }
+
+  QueryBuilder<Category, Category, QAfterWhereClause> branchIdNotEqualTo(
+      int branchId) {
+    if (whereSortInternal == Sort.asc) {
+      return addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'branchId',
+        upper: [branchId],
+        includeUpper: false,
+      )).addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'branchId',
+        lower: [branchId],
+        includeLower: false,
+      ));
+    } else {
+      return addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'branchId',
+        lower: [branchId],
+        includeLower: false,
+      )).addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'branchId',
+        upper: [branchId],
+        includeUpper: false,
+      ));
+    }
+  }
+
+  QueryBuilder<Category, Category, QAfterWhereClause> branchIdGreaterThan(
+    int branchId, {
+    bool include = false,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.greaterThan(
+      indexName: 'branchId',
+      lower: [branchId],
+      includeLower: include,
+    ));
+  }
+
+  QueryBuilder<Category, Category, QAfterWhereClause> branchIdLessThan(
+    int branchId, {
+    bool include = false,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.lessThan(
+      indexName: 'branchId',
+      upper: [branchId],
+      includeUpper: include,
+    ));
+  }
+
+  QueryBuilder<Category, Category, QAfterWhereClause> branchIdBetween(
+    int lowerBranchId,
+    int upperBranchId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.between(
+      indexName: 'branchId',
+      lower: [lowerBranchId],
+      includeLower: includeLower,
+      upper: [upperBranchId],
       includeUpper: includeUpper,
     ));
   }

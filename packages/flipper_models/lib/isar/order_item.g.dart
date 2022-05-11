@@ -15,7 +15,7 @@ extension GetOrderItemCollection on Isar {
 const OrderItemSchema = CollectionSchema(
   name: 'OrderItem',
   schema:
-      '{"name":"OrderItem","idName":"id","properties":[{"name":"addInfo","type":"String"},{"name":"bcd","type":"String"},{"name":"bhfId","type":"String"},{"name":"createdAt","type":"String"},{"name":"dcAmt","type":"Double"},{"name":"dcRt","type":"Double"},{"name":"dftPrc","type":"Double"},{"name":"discount","type":"Double"},{"name":"isrcAmt","type":"String"},{"name":"isrcAplcbYn","type":"String"},{"name":"isrcRt","type":"String"},{"name":"isrccCd","type":"String"},{"name":"isrccNm","type":"String"},{"name":"itemCd","type":"String"},{"name":"itemClsCd","type":"String"},{"name":"itemNm","type":"String"},{"name":"itemSeq","type":"String"},{"name":"itemStdNm","type":"String"},{"name":"itemTyCd","type":"String"},{"name":"modrId","type":"String"},{"name":"modrNm","type":"String"},{"name":"name","type":"String"},{"name":"orderId","type":"Long"},{"name":"orgnNatCd","type":"String"},{"name":"pkg","type":"String"},{"name":"pkgUnitCd","type":"String"},{"name":"prc","type":"Double"},{"name":"price","type":"Double"},{"name":"qty","type":"Double"},{"name":"qtyUnitCd","type":"String"},{"name":"regrId","type":"String"},{"name":"regrNm","type":"String"},{"name":"remainingStock","type":"Double"},{"name":"reported","type":"Bool"},{"name":"splyAmt","type":"Double"},{"name":"taxAmt","type":"Double"},{"name":"taxTyCd","type":"String"},{"name":"taxblAmt","type":"Double"},{"name":"tin","type":"Long"},{"name":"totAmt","type":"Double"},{"name":"type","type":"String"},{"name":"updatedAt","type":"String"},{"name":"useYn","type":"String"},{"name":"variantId","type":"Long"}],"indexes":[],"links":[]}',
+      '{"name":"OrderItem","idName":"id","properties":[{"name":"addInfo","type":"String"},{"name":"bcd","type":"String"},{"name":"bhfId","type":"String"},{"name":"createdAt","type":"String"},{"name":"dcAmt","type":"Double"},{"name":"dcRt","type":"Double"},{"name":"dftPrc","type":"Double"},{"name":"discount","type":"Double"},{"name":"isrcAmt","type":"String"},{"name":"isrcAplcbYn","type":"String"},{"name":"isrcRt","type":"String"},{"name":"isrccCd","type":"String"},{"name":"isrccNm","type":"String"},{"name":"itemCd","type":"String"},{"name":"itemClsCd","type":"String"},{"name":"itemNm","type":"String"},{"name":"itemSeq","type":"String"},{"name":"itemStdNm","type":"String"},{"name":"itemTyCd","type":"String"},{"name":"modrId","type":"String"},{"name":"modrNm","type":"String"},{"name":"name","type":"String"},{"name":"orderId","type":"Long"},{"name":"orgnNatCd","type":"String"},{"name":"pkg","type":"String"},{"name":"pkgUnitCd","type":"String"},{"name":"prc","type":"Double"},{"name":"price","type":"Double"},{"name":"qty","type":"Double"},{"name":"qtyUnitCd","type":"String"},{"name":"regrId","type":"String"},{"name":"regrNm","type":"String"},{"name":"remainingStock","type":"Double"},{"name":"reported","type":"Bool"},{"name":"splyAmt","type":"Double"},{"name":"taxAmt","type":"Double"},{"name":"taxTyCd","type":"String"},{"name":"taxblAmt","type":"Double"},{"name":"tin","type":"Long"},{"name":"totAmt","type":"Double"},{"name":"type","type":"String"},{"name":"updatedAt","type":"String"},{"name":"useYn","type":"String"},{"name":"variantId","type":"Long"}],"indexes":[{"name":"orderId","unique":false,"properties":[{"name":"orderId","type":"Value","caseSensitive":false}]},{"name":"variantId_orderId","unique":false,"properties":[{"name":"variantId","type":"Value","caseSensitive":false},{"name":"orderId","type":"Value","caseSensitive":false}]}],"links":[]}',
   idName: 'id',
   propertyIds: {
     'addInfo': 0,
@@ -64,8 +64,16 @@ const OrderItemSchema = CollectionSchema(
     'variantId': 43
   },
   listProperties: {},
-  indexIds: {},
-  indexValueTypes: {},
+  indexIds: {'orderId': 0, 'variantId_orderId': 1},
+  indexValueTypes: {
+    'orderId': [
+      IndexValueType.long,
+    ],
+    'variantId_orderId': [
+      IndexValueType.long,
+      IndexValueType.long,
+    ]
+  },
   linkIds: {},
   backlinkLinkNames: {},
   getId: _orderItemGetId,
@@ -713,6 +721,16 @@ extension OrderItemQueryWhereSort
   QueryBuilder<OrderItem, OrderItem, QAfterWhere> anyId() {
     return addWhereClauseInternal(const IdWhereClause.any());
   }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterWhere> anyOrderId() {
+    return addWhereClauseInternal(
+        const IndexWhereClause.any(indexName: 'orderId'));
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterWhere> anyVariantIdOrderId() {
+    return addWhereClauseInternal(
+        const IndexWhereClause.any(indexName: 'variantId_orderId'));
+  }
 }
 
 extension OrderItemQueryWhere
@@ -766,6 +784,222 @@ extension OrderItemQueryWhere
       lower: lowerId,
       includeLower: includeLower,
       upper: upperId,
+      includeUpper: includeUpper,
+    ));
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterWhereClause> orderIdEqualTo(
+      int orderId) {
+    return addWhereClauseInternal(IndexWhereClause.equalTo(
+      indexName: 'orderId',
+      value: [orderId],
+    ));
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterWhereClause> orderIdNotEqualTo(
+      int orderId) {
+    if (whereSortInternal == Sort.asc) {
+      return addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'orderId',
+        upper: [orderId],
+        includeUpper: false,
+      )).addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'orderId',
+        lower: [orderId],
+        includeLower: false,
+      ));
+    } else {
+      return addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'orderId',
+        lower: [orderId],
+        includeLower: false,
+      )).addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'orderId',
+        upper: [orderId],
+        includeUpper: false,
+      ));
+    }
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterWhereClause> orderIdGreaterThan(
+    int orderId, {
+    bool include = false,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.greaterThan(
+      indexName: 'orderId',
+      lower: [orderId],
+      includeLower: include,
+    ));
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterWhereClause> orderIdLessThan(
+    int orderId, {
+    bool include = false,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.lessThan(
+      indexName: 'orderId',
+      upper: [orderId],
+      includeUpper: include,
+    ));
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterWhereClause> orderIdBetween(
+    int lowerOrderId,
+    int upperOrderId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.between(
+      indexName: 'orderId',
+      lower: [lowerOrderId],
+      includeLower: includeLower,
+      upper: [upperOrderId],
+      includeUpper: includeUpper,
+    ));
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterWhereClause> variantIdEqualTo(
+      int variantId) {
+    return addWhereClauseInternal(IndexWhereClause.equalTo(
+      indexName: 'variantId_orderId',
+      value: [variantId],
+    ));
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterWhereClause> variantIdNotEqualTo(
+      int variantId) {
+    if (whereSortInternal == Sort.asc) {
+      return addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'variantId_orderId',
+        upper: [variantId],
+        includeUpper: false,
+      )).addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'variantId_orderId',
+        lower: [variantId],
+        includeLower: false,
+      ));
+    } else {
+      return addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'variantId_orderId',
+        lower: [variantId],
+        includeLower: false,
+      )).addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'variantId_orderId',
+        upper: [variantId],
+        includeUpper: false,
+      ));
+    }
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterWhereClause> variantIdGreaterThan(
+    int variantId, {
+    bool include = false,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.greaterThan(
+      indexName: 'variantId_orderId',
+      lower: [variantId],
+      includeLower: include,
+    ));
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterWhereClause> variantIdLessThan(
+    int variantId, {
+    bool include = false,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.lessThan(
+      indexName: 'variantId_orderId',
+      upper: [variantId],
+      includeUpper: include,
+    ));
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterWhereClause> variantIdBetween(
+    int lowerVariantId,
+    int upperVariantId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.between(
+      indexName: 'variantId_orderId',
+      lower: [lowerVariantId],
+      includeLower: includeLower,
+      upper: [upperVariantId],
+      includeUpper: includeUpper,
+    ));
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterWhereClause> variantIdOrderIdEqualTo(
+      int variantId, int orderId) {
+    return addWhereClauseInternal(IndexWhereClause.equalTo(
+      indexName: 'variantId_orderId',
+      value: [variantId, orderId],
+    ));
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterWhereClause>
+      variantIdOrderIdNotEqualTo(int variantId, int orderId) {
+    if (whereSortInternal == Sort.asc) {
+      return addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'variantId_orderId',
+        upper: [variantId, orderId],
+        includeUpper: false,
+      )).addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'variantId_orderId',
+        lower: [variantId, orderId],
+        includeLower: false,
+      ));
+    } else {
+      return addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'variantId_orderId',
+        lower: [variantId, orderId],
+        includeLower: false,
+      )).addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'variantId_orderId',
+        upper: [variantId, orderId],
+        includeUpper: false,
+      ));
+    }
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterWhereClause>
+      variantIdEqualToOrderIdGreaterThan(
+    int variantId,
+    int orderId, {
+    bool include = false,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.greaterThan(
+      indexName: 'variantId_orderId',
+      lower: [variantId, orderId],
+      includeLower: include,
+    ));
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterWhereClause>
+      variantIdEqualToOrderIdLessThan(
+    int variantId,
+    int orderId, {
+    bool include = false,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.lessThan(
+      indexName: 'variantId_orderId',
+      upper: [variantId, orderId],
+      includeUpper: include,
+    ));
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterWhereClause>
+      variantIdEqualToOrderIdBetween(
+    int variantId,
+    int lowerOrderId,
+    int upperOrderId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.between(
+      indexName: 'variantId_orderId',
+      lower: [variantId, lowerOrderId],
+      includeLower: includeLower,
+      upper: [variantId, upperOrderId],
       includeUpper: includeUpper,
     ));
   }

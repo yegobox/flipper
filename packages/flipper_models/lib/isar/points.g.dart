@@ -15,12 +15,16 @@ extension GetPointsCollection on Isar {
 const PointsSchema = CollectionSchema(
   name: 'Points',
   schema:
-      '{"name":"Points","idName":"id","properties":[{"name":"userId","type":"Long"},{"name":"value","type":"Long"}],"indexes":[],"links":[]}',
+      '{"name":"Points","idName":"id","properties":[{"name":"userId","type":"Long"},{"name":"value","type":"Long"}],"indexes":[{"name":"userId","unique":false,"properties":[{"name":"userId","type":"Value","caseSensitive":false}]}],"links":[]}',
   idName: 'id',
   propertyIds: {'userId': 0, 'value': 1},
   listProperties: {},
-  indexIds: {},
-  indexValueTypes: {},
+  indexIds: {'userId': 0},
+  indexValueTypes: {
+    'userId': [
+      IndexValueType.long,
+    ]
+  },
   linkIds: {},
   backlinkLinkNames: {},
   getId: _pointsGetId,
@@ -137,6 +141,11 @@ extension PointsQueryWhereSort on QueryBuilder<Points, Points, QWhere> {
   QueryBuilder<Points, Points, QAfterWhere> anyId() {
     return addWhereClauseInternal(const IdWhereClause.any());
   }
+
+  QueryBuilder<Points, Points, QAfterWhere> anyUserId() {
+    return addWhereClauseInternal(
+        const IndexWhereClause.any(indexName: 'userId'));
+  }
 }
 
 extension PointsQueryWhere on QueryBuilder<Points, Points, QWhereClause> {
@@ -189,6 +198,74 @@ extension PointsQueryWhere on QueryBuilder<Points, Points, QWhereClause> {
       lower: lowerId,
       includeLower: includeLower,
       upper: upperId,
+      includeUpper: includeUpper,
+    ));
+  }
+
+  QueryBuilder<Points, Points, QAfterWhereClause> userIdEqualTo(int userId) {
+    return addWhereClauseInternal(IndexWhereClause.equalTo(
+      indexName: 'userId',
+      value: [userId],
+    ));
+  }
+
+  QueryBuilder<Points, Points, QAfterWhereClause> userIdNotEqualTo(int userId) {
+    if (whereSortInternal == Sort.asc) {
+      return addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'userId',
+        upper: [userId],
+        includeUpper: false,
+      )).addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'userId',
+        lower: [userId],
+        includeLower: false,
+      ));
+    } else {
+      return addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'userId',
+        lower: [userId],
+        includeLower: false,
+      )).addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'userId',
+        upper: [userId],
+        includeUpper: false,
+      ));
+    }
+  }
+
+  QueryBuilder<Points, Points, QAfterWhereClause> userIdGreaterThan(
+    int userId, {
+    bool include = false,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.greaterThan(
+      indexName: 'userId',
+      lower: [userId],
+      includeLower: include,
+    ));
+  }
+
+  QueryBuilder<Points, Points, QAfterWhereClause> userIdLessThan(
+    int userId, {
+    bool include = false,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.lessThan(
+      indexName: 'userId',
+      upper: [userId],
+      includeUpper: include,
+    ));
+  }
+
+  QueryBuilder<Points, Points, QAfterWhereClause> userIdBetween(
+    int lowerUserId,
+    int upperUserId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.between(
+      indexName: 'userId',
+      lower: [lowerUserId],
+      includeLower: includeLower,
+      upper: [upperUserId],
       includeUpper: includeUpper,
     ));
   }

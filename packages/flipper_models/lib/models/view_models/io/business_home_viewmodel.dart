@@ -106,9 +106,8 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
         double amount = double.parse(ProxyService.keypad.key);
 
-        saveOrder(amount: amount, variationId: variation!.id);
+        await saveOrder(amount: amount, variationId: variation!.id);
 
-        currentOrder();
         ProxyService.keypad.reset();
       }
     } else {
@@ -139,6 +138,15 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       }
       notifyListeners();
     });
+    // in case there is nothhing to listen to and we need to refresh itemOnSale
+    Order? order = await ProxyService.keypad
+        .getOrder(branchId: ProxyService.box.getBranchId()!);
+    if (order != null) {
+      await order.orderItems.load();
+      keypad.setItemsOnSale(count: order.orderItems.length);
+    } else {
+      keypad.setItemsOnSale(count: 0);
+    }
   }
 
   /// the function is useful on completing a sale since we need to look for this past order
@@ -232,166 +240,156 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     int branchId = ProxyService.box.read(key: 'branchId');
     Stock? stock =
         await ProxyService.isarApi.stockByVariantId(variantId: variationId);
-    if (amountTotal != 0.0) {
-      Variant? variation = await ProxyService.isarApi.variant(
-        variantId: variationId,
-      );
 
-      String name = '';
-      if (variation!.name == 'Regular') {
-        name = variation.productName + '(Regular)';
-      } else {
-        name = variation.productName + '(${variation.name})';
-      }
+    Variant? variation =
+        await ProxyService.isarApi.variant(variantId: variationId);
 
-      /// if variation  given it exist in the orderItems of currentPending order then we update the order with new count
-      Order? pendingOrder =
-          await ProxyService.isarApi.pendingOrder(branchId: branchId);
-      // log.i(pendingOrder?.toJson());
-      if (pendingOrder != null) {
-        /// if order exist then we need to update the orderItem that match with the item we want to update with new count
-        /// if orderItem does not exist then we need to create a new orderItem
-        await pendingOrder.orderItems.load();
-        for (OrderItem item in pendingOrder.orderItems) {
-          if (item.variantId == variationId) {
-            item
-              ..qty = item.qty + quantity.toDouble()
-              ..price = (item.qty + quantity.toDouble()) *
-                  (amountTotal / quantity.toDouble())
-              ..variantId = variationId
-              ..orderId = pendingOrder.id
-              ..name = name
-              ..createdAt = item.createdAt
-              ..updatedAt = item.updatedAt
-              // RRA fields dutira muri variants (rent from variant model)
-              ..dcRt = 0.0
-              ..dcAmt = 0.0
-              ..taxblAmt = pendingOrder.subTotal
-              ..taxAmt = double.parse(
-                  (variation.retailPrice * 18 / 118).toStringAsFixed(2))
-              ..totAmt = variation.retailPrice
-              ..itemSeq = variation.itemSeq
-              ..isrccCd = variation.isrccCd
-              ..isrccNm = variation.isrccNm
-              ..isrcRt = variation.isrcRt
-              ..isrcAmt = variation.isrcAmt
-              ..taxTyCd = variation.taxTyCd
-              ..bcd = variation.bcd
-              ..itemClsCd = variation.itemClsCd
-              ..itemTyCd = variation.itemTyCd
-              ..itemStdNm = variation.itemStdNm
-              ..orgnNatCd = variation.orgnNatCd
-              ..pkg = variation.pkg
-              ..itemCd = variation.itemCd
-              ..pkgUnitCd = variation.pkgUnitCd
-              ..qtyUnitCd = variation.qtyUnitCd
-              ..itemNm = variation.itemNm
-              ..prc = variation.prc
-              ..splyAmt = variation.splyAmt
-              ..tin = variation.tin
-              ..bhfId = variation.bhfId
-              ..dftPrc = variation.dftPrc
-              ..addInfo = variation.addInfo
-              ..isrcAplcbYn = variation.isrcAplcbYn
-              ..useYn = variation.useYn
-              ..regrId = variation.regrId
-              ..regrNm = variation.regrNm
-              ..modrId = variation.modrId
-              ..modrNm = variation.modrNm
-              // end of fields twakuye muri variants
-              ..remainingStock = stock!.currentStock - quantity;
-
-            ProxyService.isarApi.update(data: item);
-          }
-        }
-
-        /// if is a new item to be added to the list then it will be added to the list
-        /// existOrderItem will return null which will go to adding item api.
-        OrderItem? existOrderItem = await ProxyService.isarApi
-            .getOrderItemByVariantId(
-                variantId: variationId, orderId: pendingOrder.id);
-
-        if (existOrderItem == null) {
-          OrderItem item = OrderItem()
-            ..qty = quantity.toDouble()
-            ..price =
-                (quantity.toDouble()) * (amountTotal / quantity.toDouble())
-            ..variantId = variationId
-            ..name = name
-            ..discount = 0.0
-            ..reported = false
-            ..orderId = pendingOrder.id
-            ..createdAt = DateTime.now().toString()
-            ..updatedAt = DateTime.now().toString()
-
-            /// RRA fields dutira muri variants (rent from variant model)
-            ..dcRt = 0.0
-            ..dcAmt = 0.0
-            ..taxblAmt = pendingOrder.subTotal
-            ..taxAmt = double.parse(
-                (variation.retailPrice * 18 / 118).toStringAsFixed(2))
-            ..totAmt = variation.retailPrice
-            ..itemSeq = variation.itemSeq
-            ..isrccCd = variation.isrccCd
-            ..isrccNm = variation.isrccNm
-            ..isrcRt = variation.isrcRt
-            ..isrcAmt = variation.isrcAmt
-            ..taxTyCd = variation.taxTyCd
-            ..bcd = variation.bcd
-            ..itemClsCd = variation.itemClsCd
-            ..itemTyCd = variation.itemTyCd
-            ..itemStdNm = variation.itemStdNm
-            ..orgnNatCd = variation.orgnNatCd
-            ..pkg = variation.pkg
-            ..itemCd = variation.itemCd
-            ..pkgUnitCd = variation.pkgUnitCd
-            ..qtyUnitCd = variation.qtyUnitCd
-            ..itemNm = variation.itemNm
-            ..prc = variation.prc
-            ..splyAmt = variation.splyAmt
-            ..tin = variation.tin
-            ..bhfId = variation.bhfId
-            ..dftPrc = variation.dftPrc
-            ..addInfo = variation.addInfo
-            ..isrcAplcbYn = variation.isrcAplcbYn
-            ..useYn = variation.useYn
-            ..regrId = variation.regrId
-            ..regrNm = variation.regrNm
-            ..modrId = variation.modrId
-            ..modrNm = variation.modrNm
-            // end of fields twakuye muri variants
-            ..remainingStock = stock!.currentStock - quantity;
-
-          ProxyService.isarApi.addOrderItem(order: pendingOrder, item: item);
-        }
-        await ProxyService.isarApi.manageOrder(
-          customAmount: amountTotal,
-          variation: variation,
-          price: amountTotal,
-          useProductName: false,
-          quantity: quantity.toDouble(),
-        );
-      } else {
-        await ProxyService.isarApi.manageOrder(
-          customAmount: amountTotal,
-          variation: variation,
-          price: amountTotal,
-          useProductName: false,
-          quantity: quantity.toDouble(),
-        );
-      }
-
-      Order? order = await ProxyService.keypad.getOrder(branchId: branchId);
-
-      keypad.setItemsOnSale(count: order != null ? order.orderItems.length : 0);
-
-      currentOrder();
-
-      return true;
+    String name = '';
+    if (variation!.name == 'Regular') {
+      name = variation.productName + '(Regular)';
     } else {
-      currentOrder();
+      name = variation.productName + '(${variation.name})';
+    }
 
-      return false;
+    /// if variation  given it exist in the orderItems of currentPending order then we update the order with new count
+    Order? pendingOrder =
+        await ProxyService.isarApi.pendingOrder(branchId: branchId);
+
+    /// if order exist then we need to update the orderItem that match with the item we want to update with new count
+    /// if orderItem does not exist then we need to create a new orderItem
+    await updateOrderItems(pendingOrder, variationId, name, variation, stock);
+
+    /// if is a new item to be added to the list then it will be added to the list
+    /// existOrderItem will return null which will go to adding item api.
+    await addOrderItems(variationId, pendingOrder, name, variation, stock);
+    await ProxyService.isarApi.manageOrder(
+      customAmount: amountTotal,
+      variation: variation,
+      price: amountTotal,
+      useProductName: false,
+      quantity: quantity.toDouble(),
+    );
+
+    currentOrder();
+
+    return true;
+  }
+
+  Future<void> addOrderItems(int variationId, Order? pendingOrder, String name,
+      Variant variation, Stock? stock) async {
+    OrderItem? existOrderItem = await ProxyService.isarApi
+        .getOrderItemByVariantId(
+            variantId: variationId, orderId: pendingOrder?.id);
+
+    if (existOrderItem == null && pendingOrder != null) {
+      OrderItem item = OrderItem()
+        ..qty = quantity.toDouble()
+        ..price = (quantity.toDouble()) * (amountTotal / quantity.toDouble())
+        ..variantId = variationId
+        ..name = name
+        ..discount = 0.0
+        ..reported = false
+        ..orderId = pendingOrder.id
+        ..createdAt = DateTime.now().toString()
+        ..updatedAt = DateTime.now().toString()
+
+        /// RRA fields dutira muri variants (rent from variant model)
+        ..dcRt = 0.0
+        ..dcAmt = 0.0
+        ..taxblAmt = pendingOrder.subTotal
+        ..taxAmt =
+            double.parse((variation.retailPrice * 18 / 118).toStringAsFixed(2))
+        ..totAmt = variation.retailPrice
+        ..itemSeq = variation.itemSeq
+        ..isrccCd = variation.isrccCd
+        ..isrccNm = variation.isrccNm
+        ..isrcRt = variation.isrcRt
+        ..isrcAmt = variation.isrcAmt
+        ..taxTyCd = variation.taxTyCd
+        ..bcd = variation.bcd
+        ..itemClsCd = variation.itemClsCd
+        ..itemTyCd = variation.itemTyCd
+        ..itemStdNm = variation.itemStdNm
+        ..orgnNatCd = variation.orgnNatCd
+        ..pkg = variation.pkg
+        ..itemCd = variation.itemCd
+        ..pkgUnitCd = variation.pkgUnitCd
+        ..qtyUnitCd = variation.qtyUnitCd
+        ..itemNm = variation.itemNm
+        ..prc = variation.prc
+        ..splyAmt = variation.splyAmt
+        ..tin = variation.tin
+        ..bhfId = variation.bhfId
+        ..dftPrc = variation.dftPrc
+        ..addInfo = variation.addInfo
+        ..isrcAplcbYn = variation.isrcAplcbYn
+        ..useYn = variation.useYn
+        ..regrId = variation.regrId
+        ..regrNm = variation.regrNm
+        ..modrId = variation.modrId
+        ..modrNm = variation.modrNm
+        // end of fields twakuye muri variants
+        ..remainingStock = stock!.currentStock - quantity;
+
+      ProxyService.isarApi.addOrderItem(order: pendingOrder, item: item);
+    }
+  }
+
+  Future<void> updateOrderItems(Order? pendingOrder, int variationId,
+      String name, Variant variation, Stock? stock) async {
+    if (pendingOrder == null) return;
+    await pendingOrder.orderItems.load();
+    for (OrderItem item in pendingOrder.orderItems) {
+      if (item.variantId == variationId) {
+        item
+          ..qty = item.qty + quantity.toDouble()
+          ..price = (item.qty + quantity.toDouble()) *
+              (amountTotal / quantity.toDouble())
+          ..variantId = variationId
+          ..orderId = pendingOrder.id
+          ..name = name
+          ..createdAt = item.createdAt
+          ..updatedAt = item.updatedAt
+          // RRA fields dutira muri variants (rent from variant model)
+          ..dcRt = 0.0
+          ..dcAmt = 0.0
+          ..taxblAmt = pendingOrder.subTotal
+          ..taxAmt = double.parse(
+              (variation.retailPrice * 18 / 118).toStringAsFixed(2))
+          ..totAmt = variation.retailPrice
+          ..itemSeq = variation.itemSeq
+          ..isrccCd = variation.isrccCd
+          ..isrccNm = variation.isrccNm
+          ..isrcRt = variation.isrcRt
+          ..isrcAmt = variation.isrcAmt
+          ..taxTyCd = variation.taxTyCd
+          ..bcd = variation.bcd
+          ..itemClsCd = variation.itemClsCd
+          ..itemTyCd = variation.itemTyCd
+          ..itemStdNm = variation.itemStdNm
+          ..orgnNatCd = variation.orgnNatCd
+          ..pkg = variation.pkg
+          ..itemCd = variation.itemCd
+          ..pkgUnitCd = variation.pkgUnitCd
+          ..qtyUnitCd = variation.qtyUnitCd
+          ..itemNm = variation.itemNm
+          ..prc = variation.prc
+          ..splyAmt = variation.splyAmt
+          ..tin = variation.tin
+          ..bhfId = variation.bhfId
+          ..dftPrc = variation.dftPrc
+          ..addInfo = variation.addInfo
+          ..isrcAplcbYn = variation.isrcAplcbYn
+          ..useYn = variation.useYn
+          ..regrId = variation.regrId
+          ..regrNm = variation.regrNm
+          ..modrId = variation.modrId
+          ..modrNm = variation.modrNm
+          // end of fields twakuye muri variants
+          ..remainingStock = stock!.currentStock - quantity;
+
+        ProxyService.isarApi.update(data: item);
+      }
     }
   }
 

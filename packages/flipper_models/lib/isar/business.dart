@@ -69,6 +69,7 @@ class Business {
   int? fcategoryId;
   String? latitude;
   String? longitude;
+  @Index()
   String? userId;
   String? typeId;
   String? timeZone;

@@ -97,16 +97,6 @@ class IsarAPI implements IsarApiInterface {
   }
 
   @override
-  Future<Order?> pendingOrder({required int branchId}) async {
-    return isar.writeTxn((isar) async {
-      return isar.orders
-          .where()
-          .statusBranchIdEqualTo(pendingStatus, branchId)
-          .findFirst();
-    });
-  }
-
-  @override
   Stream<Order?> pendingOrderStream() {
     int? currentOrderId = ProxyService.box.currentOrderId();
     log.d('currentOrderId: $currentOrderId');
@@ -165,7 +155,7 @@ class IsarAPI implements IsarApiInterface {
       // get stock by variation.id
       Stock? stock = await isar.writeTxn((isar) async {
         return await isar.stocks
-            .filter()
+            .where()
             .variantIdEqualTo(variation.id)
             .findFirst();
       });
@@ -1006,12 +996,11 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<OrderItem?> getOrderItemByVariantId(
-      {required int variantId, required int orderId}) async {
+      {required int variantId, required int? orderId}) async {
     return await isar.writeTxn((isar) {
       return isar.orderItems
-          .filter()
-          .variantIdEqualTo(variantId)
-          .orderIdEqualTo(orderId)
+          .where()
+          .variantIdOrderIdEqualTo(variantId, orderId ?? 0)
           .findFirst();
     });
   }
@@ -1029,7 +1018,7 @@ class IsarAPI implements IsarApiInterface {
   @override
   Future<Points?> getPoints({required int userId}) {
     return isar.writeTxn((isar) {
-      return isar.pointss.filter().userIdEqualTo(userId).findFirst();
+      return isar.pointss.where().userIdEqualTo(userId).findFirst();
     });
   }
 
@@ -1043,14 +1032,14 @@ class IsarAPI implements IsarApiInterface {
   @override
   Future<Product?> getProductByBarCode({required String barCode}) {
     return isar.writeTxn((isar) {
-      return isar.products.filter().barCodeEqualTo(barCode).findFirst();
+      return isar.products.where().barCodeEqualTo(barCode).findFirst();
     });
   }
 
   @override
   Future<Setting?> getSetting({required int userId}) async {
     return isar.writeTxn((isar) {
-      return isar.settings.filter().userIdEqualTo(userId).findFirst();
+      return isar.settings.where().userIdEqualTo(userId).findFirst();
     });
   }
 
@@ -1059,9 +1048,8 @@ class IsarAPI implements IsarApiInterface {
       {required int branchId, required int variantId}) async {
     return await isar.writeTxn((isar) {
       return isar.stocks
-          .filter()
-          .branchIdEqualTo(branchId)
-          .variantIdEqualTo(variantId)
+          .where()
+          .variantIdBranchIdEqualTo(variantId, branchId)
           .findFirst();
     });
   }
@@ -1069,7 +1057,7 @@ class IsarAPI implements IsarApiInterface {
   @override
   Future<Subscription?> getSubscription({required int userId}) async {
     Subscription? local = await isar.writeTxn((isar) {
-      return isar.subscriptions.filter().userIdEqualTo(userId).findFirst();
+      return isar.subscriptions.where().userIdEqualTo(userId).findFirst();
     });
     if (local == null) {
       final response =
@@ -1092,7 +1080,7 @@ class IsarAPI implements IsarApiInterface {
   @override
   Future<List<Variant>> getVariantByProductId({required int productId}) async {
     return isar.writeTxn((isar) {
-      return isar.variants.filter().productIdEqualTo(productId).findAll();
+      return isar.variants.where().productIdEqualTo(productId).findAll();
     });
   }
 
@@ -1192,12 +1180,11 @@ class IsarAPI implements IsarApiInterface {
   }
 
   @override
-  Future<Order?> order({required int branchId}) async {
+  Future<Order?> pendingOrder({required int branchId}) async {
     return isar.writeTxn((isar) async {
       return isar.orders
-          .filter()
-          .statusEqualTo(pendingStatus)
-          .branchIdEqualTo(branchId)
+          .where()
+          .statusBranchIdEqualTo(pendingStatus, branchId)
           .findFirst();
     });
   }
@@ -1205,9 +1192,8 @@ class IsarAPI implements IsarApiInterface {
   @override
   Stream<List<Product>> productStreams({required int branchId}) {
     return isar.products
-        .filter()
-        .branchIdEqualTo(branchId)
-        .draftEqualTo(false)
+        .where()
+        .draftBranchIdEqualTo(false, branchId)
         .build()
         .watch(initialReturn: true);
   }
@@ -1221,7 +1207,7 @@ class IsarAPI implements IsarApiInterface {
   @override
   Future<Profile?> profile({required int businessId}) async {
     return isar.writeTxn((isar) {
-      return isar.profiles.filter().businessIdEqualTo(businessId).findFirst();
+      return isar.profiles.where().businessIdEqualTo(businessId).findFirst();
     });
   }
 
@@ -1297,7 +1283,7 @@ class IsarAPI implements IsarApiInterface {
   @override
   Stream<Stock> stockByVariantIdStream({required int variantId}) {
     return isar.stocks
-        .filter()
+        .where()
         .variantIdEqualTo(variantId)
         .build()
         .watch(initialReturn: true)
@@ -1307,7 +1293,7 @@ class IsarAPI implements IsarApiInterface {
   @override
   Future<List<Stock?>> stocks({required int productId}) async {
     return isar.writeTxn((isar) {
-      return isar.stocks.filter().productIdEqualTo(productId).build().findAll();
+      return isar.stocks.where().productIdEqualTo(productId).findAll();
     });
   }
 
@@ -1338,14 +1324,14 @@ class IsarAPI implements IsarApiInterface {
   @override
   Future<List<Order>> tickets() async {
     return isar.writeTxn((isar) {
-      return isar.orders.filter().statusEqualTo(parkedStatus).build().findAll();
+      return isar.orders.where().statusEqualTo(parkedStatus).build().findAll();
     });
   }
 
   @override
   Future<List<Unit>> units({required int branchId}) async {
     return isar.writeTxn((isar) {
-      return isar.units.filter().branchIdEqualTo(branchId).findAll();
+      return isar.units.where().branchIdEqualTo(branchId).findAll();
     });
   }
 
@@ -1401,7 +1387,6 @@ class IsarAPI implements IsarApiInterface {
         return await isar.orders
             .filter()
             .idEqualTo(orderItem.orderId)
-            .build()
             .findFirst();
       });
       order!.orderItems.add(data);
@@ -1413,11 +1398,8 @@ class IsarAPI implements IsarApiInterface {
       final ebm = data;
       await isar.writeTxn((isar) async {
         ProxyService.box.write(key: "serverUrl", value: ebm.taxServerUrl);
-        Business? business = await isar.businesss
-            .filter()
-            .userIdEqualTo(ebm.userId)
-            .build()
-            .findFirst();
+        Business? business =
+            await isar.businesss.where().userIdEqualTo(ebm.userId).findFirst();
         business
           ?..dvcSrlNo = ebm.dvcSrlNo
           ..tinNumber = ebm.tinNumber
@@ -1481,7 +1463,7 @@ class IsarAPI implements IsarApiInterface {
   Future<List<Variant>> variants(
       {required int branchId, required int productId}) async {
     return await isar.writeTxn((isar) async {
-      return await isar.variants.filter().productIdEqualTo(productId).findAll();
+      return await isar.variants.where().productIdEqualTo(productId).findAll();
     });
   }
 
@@ -1513,7 +1495,7 @@ class IsarAPI implements IsarApiInterface {
     return isar.writeTxn((isar) {
       for (DateTime date in weekDates) {
         List<Order> orders = isar.orders
-            .filter()
+            .where()
             .branchIdEqualTo(branchId)
             .findAllSync()
             .where((order) =>
@@ -1537,11 +1519,7 @@ class IsarAPI implements IsarApiInterface {
   @override
   Future<List<Product>> productsFuture({required int branchId}) {
     return isar.writeTxn((isar) async {
-      return await isar.products
-          .filter()
-          .branchIdEqualTo(branchId)
-          .build()
-          .findAll();
+      return await isar.products.where().branchIdEqualTo(branchId).findAll();
     });
   }
 
@@ -1549,27 +1527,22 @@ class IsarAPI implements IsarApiInterface {
   Future<List<Category>> categories({required int branchId}) async {
     // get all categories from isar db
     return isar.writeTxn((isar) async {
-      return isar.categorys.filter().branchIdEqualTo(branchId).findAll();
+      return isar.categorys.where().branchIdEqualTo(branchId).findAll();
     });
   }
 
   @override
   Stream<List<Category>> categoriesStream({required int branchId}) {
     return isar.categorys
-        .filter()
+        .where()
         .branchIdEqualTo(branchId)
-        .build()
         .watch(initialReturn: true);
   }
 
   @override
   Future<List<OrderItem>> orderItems({required int orderId}) async {
-   
     return isar.writeTxn((isar) async {
-      return await isar.orderItems
-          .where()
-          .orderIdEqualTo(orderId)
-          .findAll();
+      return await isar.orderItems.where().orderIdEqualTo(orderId).findAll();
     });
   }
 

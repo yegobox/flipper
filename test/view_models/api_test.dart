@@ -1,27 +1,36 @@
-// import 'package:flipper_routing/routes.router.dart';
-// import 'package:flipper_models/business.dart';
-// import 'package:flipper_models/color.dart';
-// import 'package:flipper_models/order.dart';
-// import 'package:flipper_models/product.dart';
-// import 'package:flipper_models/stock.dart';
-// import 'package:flipper_models/unit.dart';
-// import 'package:flipper_models/unit_mock.dart';
-// import 'package:flipper_models/variants.dart';
-// import 'package:flipper_models/view_models/startup_viewmodel.dart';
-// import 'package:flipper_services/constants.dart';
-// import 'package:flipper_services/http_api.dart';
-// import 'package:flutter_test/flutter_test.dart';
-// import 'package:mockito/annotations.dart';
-// import 'dart:io';
-// import 'package:flipper_services/abstractions/api.dart';
-// import 'package:mockito/mockito.dart';
+import 'package:flipper_models/isar_models.dart';
 import 'package:test/test.dart';
-// import '../helpers/test_helpers.dart';
 
-// const TESTDIR = '_tmp2';
+import 'common.dart';
+
 void main() {
-  test('default', () {
-    expect(1, 1);
+  group('Int filter', () {
+    late Isar isar;
+
+    setUp(() async {
+      isar = await openTempIsar([BusinessSchema]);
+
+      // await isar.writeTxn((isar) async {
+      //   await isar.intModels.putAll([obj4, obj0, obj2, obj3, obj1, objNull]);
+      // });
+    });
+
+    tearDown(() async {
+      await isar.close();
+    });
+
+    isarTest('.equalTo()', () async {
+      expect(1, 1);
+      // where clause
+      // await qEqual(col.where().fieldEqualTo(2).findAll(), [obj2]);
+      // await qEqual(col.where().fieldEqualTo(null).findAll(), [objNull]);
+      // await qEqual(col.where().fieldEqualTo(5).findAll(), []);
+
+      // // filters
+      // await qEqualSet(col.filter().fieldEqualTo(2).findAll(), [obj2]);
+      // await qEqualSet(col.filter().fieldEqualTo(null).findAll(), [objNull]);
+      // await qEqualSet(col.filter().fieldEqualTo(5).findAll(), []);
+    });
   });
 }
 // // Generate a MockClient using the Mockito package.

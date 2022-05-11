@@ -8,6 +8,7 @@ class OrderItem {
   late String name;
   @Index()
   late int orderId;
+  @Index(composite: [CompositeIndex('orderId')])
   late int variantId;
   // quantity
   late double qty;

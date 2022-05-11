@@ -15,7 +15,7 @@ extension GetBusinessCollection on Isar {
 const BusinessSchema = CollectionSchema(
   name: 'Business',
   schema:
-      '{"name":"Business","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"adrs","type":"String"},{"name":"backUpEnabled","type":"Bool"},{"name":"backupFileId","type":"String"},{"name":"bhfId","type":"String"},{"name":"businessUrl","type":"String"},{"name":"channels","type":"StringList"},{"name":"chatUid","type":"String"},{"name":"country","type":"String"},{"name":"createdAt","type":"String"},{"name":"currency","type":"String"},{"name":"deviceToken","type":"String"},{"name":"dvcSrlNo","type":"String"},{"name":"email","type":"String"},{"name":"fcategoryId","type":"Long"},{"name":"firstName","type":"String"},{"name":"fullName","type":"String"},{"name":"hexColor","type":"String"},{"name":"imageUrl","type":"String"},{"name":"isLastSubscriptionPaymentSucceeded","type":"Bool"},{"name":"lastDbBackup","type":"String"},{"name":"lastName","type":"String"},{"name":"lastSeen","type":"Long"},{"name":"latitude","type":"String"},{"name":"longitude","type":"String"},{"name":"metadata","type":"String"},{"name":"name","type":"String"},{"name":"nextBillingDate","type":"String"},{"name":"previousBillingDate","type":"String"},{"name":"role","type":"String"},{"name":"subscriptionPlan","type":"String"},{"name":"table","type":"String"},{"name":"taxEnabled","type":"Bool"},{"name":"taxServerUrl","type":"String"},{"name":"timeZone","type":"String"},{"name":"tinNumber","type":"Long"},{"name":"type","type":"String"},{"name":"typeId","type":"String"},{"name":"userId","type":"String"}],"indexes":[],"links":[]}',
+      '{"name":"Business","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"adrs","type":"String"},{"name":"backUpEnabled","type":"Bool"},{"name":"backupFileId","type":"String"},{"name":"bhfId","type":"String"},{"name":"businessUrl","type":"String"},{"name":"channels","type":"StringList"},{"name":"chatUid","type":"String"},{"name":"country","type":"String"},{"name":"createdAt","type":"String"},{"name":"currency","type":"String"},{"name":"deviceToken","type":"String"},{"name":"dvcSrlNo","type":"String"},{"name":"email","type":"String"},{"name":"fcategoryId","type":"Long"},{"name":"firstName","type":"String"},{"name":"fullName","type":"String"},{"name":"hexColor","type":"String"},{"name":"imageUrl","type":"String"},{"name":"isLastSubscriptionPaymentSucceeded","type":"Bool"},{"name":"lastDbBackup","type":"String"},{"name":"lastName","type":"String"},{"name":"lastSeen","type":"Long"},{"name":"latitude","type":"String"},{"name":"longitude","type":"String"},{"name":"metadata","type":"String"},{"name":"name","type":"String"},{"name":"nextBillingDate","type":"String"},{"name":"previousBillingDate","type":"String"},{"name":"role","type":"String"},{"name":"subscriptionPlan","type":"String"},{"name":"table","type":"String"},{"name":"taxEnabled","type":"Bool"},{"name":"taxServerUrl","type":"String"},{"name":"timeZone","type":"String"},{"name":"tinNumber","type":"Long"},{"name":"type","type":"String"},{"name":"typeId","type":"String"},{"name":"userId","type":"String"}],"indexes":[{"name":"userId","unique":false,"properties":[{"name":"userId","type":"Hash","caseSensitive":true}]}],"links":[]}',
   idName: 'id',
   propertyIds: {
     'active': 0,
@@ -59,8 +59,12 @@ const BusinessSchema = CollectionSchema(
     'userId': 38
   },
   listProperties: {'channels'},
-  indexIds: {},
-  indexValueTypes: {},
+  indexIds: {'userId': 0},
+  indexValueTypes: {
+    'userId': [
+      IndexValueType.stringHash,
+    ]
+  },
   linkIds: {},
   backlinkLinkNames: {},
   getId: _businessGetId,
@@ -691,6 +695,11 @@ extension BusinessQueryWhereSort on QueryBuilder<Business, Business, QWhere> {
   QueryBuilder<Business, Business, QAfterWhere> anyId() {
     return addWhereClauseInternal(const IdWhereClause.any());
   }
+
+  QueryBuilder<Business, Business, QAfterWhere> anyUserId() {
+    return addWhereClauseInternal(
+        const IndexWhereClause.any(indexName: 'userId'));
+  }
 }
 
 extension BusinessQueryWhere on QueryBuilder<Business, Business, QWhereClause> {
@@ -744,6 +753,54 @@ extension BusinessQueryWhere on QueryBuilder<Business, Business, QWhereClause> {
       includeLower: includeLower,
       upper: upperId,
       includeUpper: includeUpper,
+    ));
+  }
+
+  QueryBuilder<Business, Business, QAfterWhereClause> userIdEqualTo(
+      String? userId) {
+    return addWhereClauseInternal(IndexWhereClause.equalTo(
+      indexName: 'userId',
+      value: [userId],
+    ));
+  }
+
+  QueryBuilder<Business, Business, QAfterWhereClause> userIdNotEqualTo(
+      String? userId) {
+    if (whereSortInternal == Sort.asc) {
+      return addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'userId',
+        upper: [userId],
+        includeUpper: false,
+      )).addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'userId',
+        lower: [userId],
+        includeLower: false,
+      ));
+    } else {
+      return addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'userId',
+        lower: [userId],
+        includeLower: false,
+      )).addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'userId',
+        upper: [userId],
+        includeUpper: false,
+      ));
+    }
+  }
+
+  QueryBuilder<Business, Business, QAfterWhereClause> userIdIsNull() {
+    return addWhereClauseInternal(const IndexWhereClause.equalTo(
+      indexName: 'userId',
+      value: [null],
+    ));
+  }
+
+  QueryBuilder<Business, Business, QAfterWhereClause> userIdIsNotNull() {
+    return addWhereClauseInternal(const IndexWhereClause.greaterThan(
+      indexName: 'userId',
+      lower: [null],
+      includeLower: false,
     ));
   }
 }

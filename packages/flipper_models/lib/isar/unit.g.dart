@@ -15,12 +15,16 @@ extension GetUnitCollection on Isar {
 const UnitSchema = CollectionSchema(
   name: 'Unit',
   schema:
-      '{"name":"Unit","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"name","type":"String"},{"name":"value","type":"String"}],"indexes":[],"links":[]}',
+      '{"name":"Unit","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"name","type":"String"},{"name":"value","type":"String"}],"indexes":[{"name":"branchId","unique":false,"properties":[{"name":"branchId","type":"Value","caseSensitive":false}]}],"links":[]}',
   idName: 'id',
   propertyIds: {'active': 0, 'branchId': 1, 'name': 2, 'value': 3},
   listProperties: {},
-  indexIds: {},
-  indexValueTypes: {},
+  indexIds: {'branchId': 0},
+  indexValueTypes: {
+    'branchId': [
+      IndexValueType.long,
+    ]
+  },
   linkIds: {},
   backlinkLinkNames: {},
   getId: _unitGetId,
@@ -152,6 +156,11 @@ extension UnitQueryWhereSort on QueryBuilder<Unit, Unit, QWhere> {
   QueryBuilder<Unit, Unit, QAfterWhere> anyId() {
     return addWhereClauseInternal(const IdWhereClause.any());
   }
+
+  QueryBuilder<Unit, Unit, QAfterWhere> anyBranchId() {
+    return addWhereClauseInternal(
+        const IndexWhereClause.any(indexName: 'branchId'));
+  }
 }
 
 extension UnitQueryWhere on QueryBuilder<Unit, Unit, QWhereClause> {
@@ -204,6 +213,74 @@ extension UnitQueryWhere on QueryBuilder<Unit, Unit, QWhereClause> {
       lower: lowerId,
       includeLower: includeLower,
       upper: upperId,
+      includeUpper: includeUpper,
+    ));
+  }
+
+  QueryBuilder<Unit, Unit, QAfterWhereClause> branchIdEqualTo(int branchId) {
+    return addWhereClauseInternal(IndexWhereClause.equalTo(
+      indexName: 'branchId',
+      value: [branchId],
+    ));
+  }
+
+  QueryBuilder<Unit, Unit, QAfterWhereClause> branchIdNotEqualTo(int branchId) {
+    if (whereSortInternal == Sort.asc) {
+      return addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'branchId',
+        upper: [branchId],
+        includeUpper: false,
+      )).addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'branchId',
+        lower: [branchId],
+        includeLower: false,
+      ));
+    } else {
+      return addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'branchId',
+        lower: [branchId],
+        includeLower: false,
+      )).addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'branchId',
+        upper: [branchId],
+        includeUpper: false,
+      ));
+    }
+  }
+
+  QueryBuilder<Unit, Unit, QAfterWhereClause> branchIdGreaterThan(
+    int branchId, {
+    bool include = false,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.greaterThan(
+      indexName: 'branchId',
+      lower: [branchId],
+      includeLower: include,
+    ));
+  }
+
+  QueryBuilder<Unit, Unit, QAfterWhereClause> branchIdLessThan(
+    int branchId, {
+    bool include = false,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.lessThan(
+      indexName: 'branchId',
+      upper: [branchId],
+      includeUpper: include,
+    ));
+  }
+
+  QueryBuilder<Unit, Unit, QAfterWhereClause> branchIdBetween(
+    int lowerBranchId,
+    int upperBranchId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addWhereClauseInternal(IndexWhereClause.between(
+      indexName: 'branchId',
+      lower: [lowerBranchId],
+      includeLower: includeLower,
+      upper: [upperBranchId],
       includeUpper: includeUpper,
     ));
   }

@@ -101,7 +101,7 @@ class KeyPadService with ReactiveServiceMixin {
   /// we have one order but an order can have more than 1 orderitem(s)
   /// it is in this recard in application anywhere else it's okay to access orders[0]
   Future<Order?> getOrder({required int branchId}) async {
-    Order? order = await ProxyService.isarApi.order(branchId: branchId);
+    Order? order = await ProxyService.isarApi.pendingOrder(branchId: branchId);
     log.d('getOrder: $order');
     if (order != null) {
       await order.orderItems.load();

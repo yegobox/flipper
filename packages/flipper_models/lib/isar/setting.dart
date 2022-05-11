@@ -19,6 +19,7 @@ class Setting {
   late int id = Isar.autoIncrement;
   late String email;
   late String hasPin;
+  @Index()
   late int userId;
   late bool? openReceiptFileOSaleComplete;
   late bool? autoPrint;

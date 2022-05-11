@@ -67,7 +67,6 @@ abstract class IsarApiInterface {
 
   Future<List<Order>> completedOrders(
       {required int branchId, String? status = completeStatus});
-  Future<Order?> order({required int branchId});
   Future<OrderItem?> getOrderItem({required int id});
 
   Future<Variant?> getCustomProductVariant();
@@ -108,7 +107,7 @@ abstract class IsarApiInterface {
   Future<void> createGoogleSheetDoc({required String email});
   Future<Business?> getBusinessById({required int id});
   Future<OrderItem?> getOrderItemByVariantId(
-      {required int variantId, required int orderId});
+      {required int variantId, required int? orderId});
   //abstract method to update business
   Future<void> updateBusiness({required int id, required Map business});
 

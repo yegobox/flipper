@@ -43,6 +43,7 @@ class Profile {
   String livingAt;
   String cell;
   String district;
+  @Index()
   int businessId;
   String nationalId;
 
