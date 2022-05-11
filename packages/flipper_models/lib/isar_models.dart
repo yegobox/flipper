@@ -23,6 +23,7 @@ export 'isar/spenn.dart';
 export 'isar/ebm.dart';
 export 'isar/setting.dart';
 export 'isar/profile.dart';
+export 'isar/receipt.dart';
 export 'isar/product.dart';
 export 'package:uuid/uuid.dart';
 export 'isar/business.dart';

@@ -1,8 +1,6 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
-import 'package:flipper_models/isar/receipt.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -32,39 +30,10 @@ class IsarAPI implements IsarApiInterface {
   final log = getLogger('IsarAPI');
   ExtendedClient client = ExtendedClient(http.Client());
   String apihub = "https://apihub.yegobox.com";
-  static getDir({required String dbName}) async {
-    isar = isar = await Isar.open(
-      directory: dbName,
-      schemas: [
-        OrderSchema,
-        BusinessSchema,
-        BranchSchema,
-        OrderItemSchema,
-        ProductSchema,
-        VariantSchema,
-        ProfileSchema,
-        SubscriptionSchema,
-        PointsSchema,
-        StockSchema,
-        FeatureSchema,
-        VoucherSchema,
-        PColorSchema,
-        CategorySchema,
-        UnitSchema,
-        SettingSchema,
-        DiscountSyncSchema,
-        CustomerSchema,
-        PinSchema,
-        ReceiptSchema,
-      ],
-      inspector: false,
-    );
-  }
 
-  IsarAPI({String? dbName, Directory? dir}) {
-    if (dbName != null) {
-      getDir(dbName: dbName);
-      log.d('dbName: $dbName');
+  IsarAPI({Isar? isar}) {
+    if (isar != null) {
+      isar = isar = isar;
     }
   }
 
