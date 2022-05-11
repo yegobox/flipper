@@ -33,7 +33,7 @@ class IsarAPI implements IsarApiInterface {
 
   IsarAPI({Isar? isar}) {
     if (isar != null) {
-      isar = isar = isar;
+      isar = isar;
     }
   }
 
