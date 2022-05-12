@@ -91,6 +91,9 @@ class KeyPadService with ReactiveServiceMixin {
   void setOrder(Order? order) async {
     if (order != null) {
       await order.orderItems.load();
+      // for (var item in order.orderItems) {
+      //   log.i(item.toJson());
+      // }
       _order.value = order;
     } else {
       _order.value = null;

@@ -37,7 +37,7 @@ Future<void> initDb() async {
     ],
     inspector: false,
   );
-  IsarAPI(isar: isar);
+  IsarAPI.instance(isarRef: isar);
   if (Platform.isIOS || Platform.isMacOS || Platform.isAndroid) {
     await Firebase.initializeApp();
   } else {

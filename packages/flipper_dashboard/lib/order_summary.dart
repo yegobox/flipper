@@ -20,6 +20,7 @@ class OrderSummary extends StatelessWidget {
       list.add(const Center(child: Text('There is no current order')));
       return list;
     }
+
     for (OrderItem item in model.kOrder!.orderItems) {
       list.add(
         Slidable(

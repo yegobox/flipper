@@ -59,7 +59,7 @@ class AppSetup {
 // dataModels update
 // https://docs.objectbox.io/advanced/data-model-updates
 // A/B Testing.
-// https://firebase.google.com/docs/ab-testing/abtest-config#java
+// https://firebase.google.com/docs/ab-testing/abtest-configjava
 
 // on DeleteOfOrderItem call another func to update tickets this can be refreshing tickets..
 // version.(1)
@@ -110,7 +110,7 @@ class AppSetup {
 // https://itnext.io/flutter-building-beautiful-windows-apps-fluent-design-structure-and-navigation-e53a394988d2
 // https://morioh.com/p/4993f57bd08f
 
-// certbot certonly --manual --preferred-challenges=dns --email yegobox@gmail.com --server https://acme-v02.isarApi.letsencrypt.org/directory --agree-tos -d flipper.yegobox.com
+// certbot certonly --manual --preferred-challenges=dns --email yegobox@gmail.com --server https://acme-v02.isarApi.letsencrypt.org/directory --agree-tos -d flipper.apihub
 // https://stackoverflow.com/questions/32209897/class-illuminate-html-htmlserviceprovider-not-found
 // https://medium.com/@saurabh6790/generate-wildcard-ssl-certificate-using-lets-encrypt-certbot-273e432794d7
 
@@ -175,11 +175,11 @@ class AppSetup {
 
 // Microsoft stuff.
 // https://www.microsoft.com/en-us/microsoft-365/business/compare-all-microsoft-365-business-products
-// https://admin.microsoft.com/AdminPortal/Home#/users
+// https://admin.microsoft.com/AdminPortal/Home/users
 // info@yegobox1.onmicrosoft.com
 // User details
 // Display name: info
-// Username:info@yegobox.com
+// Username:info@apihub
 // Password: :Love:is:good::
 
 // https://verygood.ventures/blog/configuring-workflows-for-your-flutter-projects?utm_source=twitter&utm_medium=social&utm_campaign=workflows
@@ -196,7 +196,7 @@ class AppSetup {
 
 //  build better docs:
 // https://docs.page/homepage
-// https://github.com/csells/go_router/issues/356#event-6045944024
+// https://github.com/csells/go_router/issues/356event-6045944024
 
 // publishing package thought git action
 // https://birju.dev/posts/publish-your-flutter-package-using-github-actions/
@@ -224,4 +224,17 @@ class AppSetup {
 //  nohup java -jar rra.war &
 // find . -name "*.bak" -type f -delete
 //FIXMEuntil this is fixed we can't upgrade melos now working is 2.0.0 https://github.com/invertase/melos/issues/117
+
+// ngix stuff:
+// https://lowendbox.com/blog/how-to-replace-apache-with-nginx-on-ubuntu-18-04/
+// certbot certonly --manual -d *.$DOMAIN -d $DOMAIN --agree-tos --manual-public-ip-logging-ok --preferred-challenges dns-01 --server https://acme-v02.api.letsencrypt.org/directory --register-unsafely-without-email --rsa-key-size 4096
+// sudo ln -s /etc/nginx/sites-available/turbo.conf /etc/nginx/sites-enabled/turbo.conf
+// https://gist.github.com/soheilhy/8b94347ff8336d971ad0
+
+// wild card cert:
+// https://codex.so/wildcard-ssl-certificate-by-let-s-encrypt
+// https://codex.so/resolving-subdomains-dynamically-via-nginx
+ 
+
+
 

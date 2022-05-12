@@ -1,6 +1,5 @@
 library flipper_models;
 
-import 'package:flipper_models/isar/receipt.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_routing/routes.locator.dart';
 import 'package:flipper_routing/routes.logger.dart';
@@ -101,12 +100,12 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       ProxyService.keypad.pop();
     } else if (key == '+') {
       if (double.parse(ProxyService.keypad.key) != 0.0) {
-        Variant? variation =
-            await ProxyService.isarApi.getCustomProductVariant();
+        Variant? variation = await ProxyService.isarApi.getCustomVariant();
 
         double amount = double.parse(ProxyService.keypad.key);
 
-        await saveOrder(amount: amount, variationId: variation!.id);
+        await saveOrder(
+            amount: amount, variationId: variation!.id, customItem: true);
 
         ProxyService.keypad.reset();
       }
@@ -141,6 +140,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     // in case there is nothhing to listen to and we need to refresh itemOnSale
     Order? order = await ProxyService.keypad
         .getOrder(branchId: ProxyService.box.getBranchId()!);
+    keypad.setOrder(order);
     if (order != null) {
       await order.orderItems.load();
       keypad.setItemsOnSale(count: order.orderItems.length);
@@ -235,17 +235,20 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     keypad.toggleCheckbox(variantId: variantId);
   }
 
-  Future<bool> saveOrder(
-      {required int variationId, required double amount}) async {
+  Future<bool> saveOrder({
+    required int variationId,
+    required double amount,
+    required bool customItem,
+  }) async {
     int branchId = ProxyService.box.read(key: 'branchId');
-    Stock? stock =
-        await ProxyService.isarApi.stockByVariantId(variantId: variationId);
-
+    log.i(variationId);
     Variant? variation =
         await ProxyService.isarApi.variant(variantId: variationId);
-
+    Stock? stock =
+        await ProxyService.isarApi.stockByVariantId(variantId: variation!.id);
+    log.i(stock?.toString());
     String name = '';
-    if (variation!.name == 'Regular') {
+    if (variation.name == 'Regular') {
       name = variation.productName + '(Regular)';
     } else {
       name = variation.productName + '(${variation.name})';
@@ -257,13 +260,15 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
     /// if order exist then we need to update the orderItem that match with the item we want to update with new count
     /// if orderItem does not exist then we need to create a new orderItem
-    await updateOrderItems(pendingOrder, variationId, name, variation, stock);
+    await updateOrderItems(
+        pendingOrder, variationId, name, variation, stock, amount, customItem);
 
     /// if is a new item to be added to the list then it will be added to the list
     /// existOrderItem will return null which will go to adding item api.
-    await addOrderItems(variationId, pendingOrder, name, variation, stock);
+    await addOrderItems(
+        variationId, pendingOrder, name, variation, stock, amount);
     await ProxyService.isarApi.manageOrder(
-      customAmount: amountTotal,
+      customAmount: amount,
       variation: variation,
       price: amountTotal,
       useProductName: false,
@@ -276,7 +281,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   }
 
   Future<void> addOrderItems(int variationId, Order? pendingOrder, String name,
-      Variant variation, Stock? stock) async {
+      Variant variation, Stock? stock, double amount) async {
     OrderItem? existOrderItem = await ProxyService.isarApi
         .getOrderItemByVariantId(
             variantId: variationId, orderId: pendingOrder?.id);
@@ -284,7 +289,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     if (existOrderItem == null && pendingOrder != null) {
       OrderItem item = OrderItem()
         ..qty = quantity.toDouble()
-        ..price = (quantity.toDouble()) * (amountTotal / quantity.toDouble())
+        ..price = (quantity.toDouble()) * (amount / quantity.toDouble())
         ..variantId = variationId
         ..name = name
         ..discount = 0.0
@@ -335,16 +340,24 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     }
   }
 
-  Future<void> updateOrderItems(Order? pendingOrder, int variationId,
-      String name, Variant variation, Stock? stock) async {
+  Future<void> updateOrderItems(
+      Order? pendingOrder,
+      int variationId,
+      String name,
+      Variant variation,
+      Stock? stock,
+      double amount,
+      bool customItem) async {
     if (pendingOrder == null) return;
     await pendingOrder.orderItems.load();
     for (OrderItem item in pendingOrder.orderItems) {
       if (item.variantId == variationId) {
         item
-          ..qty = item.qty + quantity.toDouble()
-          ..price = (item.qty + quantity.toDouble()) *
-              (amountTotal / quantity.toDouble())
+          ..qty = customItem ? 1 : item.qty + quantity.toDouble()
+          ..price = customItem
+              ? amount
+              : ((item.qty + quantity.toDouble()) *
+                  (amount / quantity.toDouble()))
           ..variantId = variationId
           ..orderId = pendingOrder.id
           ..name = name
@@ -353,7 +366,10 @@ class BusinessHomeViewModel extends ReactiveViewModel {
           // RRA fields dutira muri variants (rent from variant model)
           ..dcRt = 0.0
           ..dcAmt = 0.0
-          ..taxblAmt = pendingOrder.subTotal
+          ..taxblAmt = customItem
+              ? amount
+              : ((item.qty + quantity.toDouble()) *
+                  (amount / quantity.toDouble()))
           ..taxAmt = double.parse(
               (variation.retailPrice * 18 / 118).toStringAsFixed(2))
           ..totAmt = variation.retailPrice

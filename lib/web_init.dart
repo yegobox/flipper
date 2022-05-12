@@ -30,7 +30,7 @@ Future<void> initDb() async {
     ],
     inspector: false,
   );
-  IsarAPI(isar: isar);
+  IsarAPI.instance(isarRef: isar);
   await Firebase.initializeApp();
 }
 

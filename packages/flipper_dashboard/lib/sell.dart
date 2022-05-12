@@ -50,6 +50,7 @@ class Sell extends StatelessWidget {
               bool saved = await model.saveOrder(
                 variationId: model.checked,
                 amount: model.amountTotal,
+                customItem: false,
               );
               if (!saved) {
                 showSimpleNotification(const Text('No item selected'),

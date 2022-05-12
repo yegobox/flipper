@@ -31,10 +31,9 @@ class IsarAPI implements IsarApiInterface {
   ExtendedClient client = ExtendedClient(http.Client());
   String apihub = "https://apihub.yegobox.com";
 
-  IsarAPI({Isar? isar}) {
-    if (isar != null) {
-      isar = isar;
-    }
+  IsarAPI();
+  static instance({required Isar isarRef}) {
+    isar = isarRef;
   }
 
   @override
@@ -122,12 +121,8 @@ class IsarAPI implements IsarApiInterface {
         return isar.orders.get(id);
       });
       // get stock by variation.id
-      Stock? stock = await isar.writeTxn((isar) async {
-        return await isar.stocks
-            .where()
-            .variantIdEqualTo(variation.id)
-            .findFirst();
-      });
+      Stock? stock =
+          await isar.stocks.where().variantIdEqualTo(variation.id).findFirst();
 
       createdOrder!.orderItems.add(OrderItem()
         ..qty = price
@@ -185,9 +180,10 @@ class IsarAPI implements IsarApiInterface {
       return createdOrder;
     } else {
       // get Stock by variation.id
-      Stock? stock = await isar.writeTxn((isar) async {
-        return isar.stocks.filter().variantIdEqualTo(variation.id).findFirst();
-      });
+      Stock? stock = await isar.stocks
+          .where()
+          .variantIdBranchIdEqualTo(variation.id, branchId)
+          .findFirst();
 
       /// update the order with subTotal given to new orderItem added to order
       existOrder.subTotal = existOrder.subTotal + (price * quantity);
@@ -626,9 +622,8 @@ class IsarAPI implements IsarApiInterface {
       return await kProduct.variants.save();
     });
 
-    Variant? variant = await isar.writeTxn((isar) async {
-      return isar.variants.filter().productIdEqualTo(kProduct.id!).findFirst();
-    });
+    Variant? variant =
+        await isar.variants.where().productIdEqualTo(kProduct.id!).findFirst();
 
     Stock stock = Stock()
       ..canTrackingStock = false
@@ -828,44 +823,41 @@ class IsarAPI implements IsarApiInterface {
   }
 
   @override
-  Future<Variant?> getCustomProductVariant() async {
+  Future<Variant?> getCustomVariant() async {
     int branchId = ProxyService.box.getBranchId()!;
     int businessId = ProxyService.box.getBusinessId()!;
-    Product? product = await isar.writeTxn((isar) {
-      return isar.products.filter().nameEqualTo('Custom Amount').findFirst();
-    });
+    Product? product =
+        await isar.products.where().nameEqualTo('Custom Amount').findFirst();
     if (product == null) {
-      Product p = await buildProductObject(branchId, businessId);
-      return isar.writeTxn((isar) async {
-        return isar.variants.filter().productIdEqualTo(p.id!).findFirst();
-      });
+      Product newProduct = await createProduct(
+          product: Product()
+            ..branchId = branchId
+            ..draft = true
+            ..currentUpdate = true
+            ..taxId = "XX"
+            ..imageLocal = false
+            ..businessId = businessId
+            ..name = "Custom Amount"
+            ..description = "L"
+            ..active = true
+            ..hasPicture = false
+            ..table = "products"
+            ..color = "#e74c3c"
+            ..supplierId = "XXX"
+            ..categoryId = "XXX"
+            ..unit = "kg"
+            ..synced = false
+            ..createdAt = DateTime.now().toIso8601String());
+      return await isar.variants
+          .where()
+          .productIdEqualTo(newProduct.id!)
+          .findFirst();
     } else {
-      return isar.writeTxn((isar) async {
-        return isar.variants.filter().productIdEqualTo(product.id!).findFirst();
-      });
+      return await isar.variants
+          .where()
+          .productIdEqualTo(product.id!)
+          .findFirst();
     }
-  }
-
-  Future<Product> buildProductObject(int branchId, int businessId) async {
-    return await createProduct(
-        product: Product()
-          ..branchId = branchId
-          ..draft = true
-          ..currentUpdate = true
-          ..taxId = "XX"
-          ..imageLocal = false
-          ..businessId = businessId
-          ..name = "Custom Amount"
-          ..description = "L"
-          ..active = true
-          ..hasPicture = false
-          ..table = "products"
-          ..color = "#e74c3c"
-          ..supplierId = "XXX"
-          ..categoryId = "XXX"
-          ..unit = "kg"
-          ..synced = false
-          ..createdAt = DateTime.now().toIso8601String());
   }
 
   @override
@@ -1243,10 +1235,11 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<Stock?> stockByVariantId({required int variantId}) async {
-    // get stock where variantId = variantId from isar db
-    return isar.writeTxn((isar) async {
-      return isar.stocks.where().variantIdEqualTo(variantId).findFirst();
-    });
+    int branchId = ProxyService.box.getBranchId()!;
+    return await isar.stocks
+        .where()
+        .variantIdBranchIdEqualTo(variantId, branchId)
+        .findFirst();
   }
 
   @override
@@ -1351,16 +1344,8 @@ class IsarAPI implements IsarApiInterface {
     }
     if (data is OrderItem) {
       final orderItem = data;
-      // find this related order
-      Order? order = await isar.writeTxn((isar) async {
-        return await isar.orders
-            .filter()
-            .idEqualTo(orderItem.orderId)
-            .findFirst();
-      });
-      order!.orderItems.add(data);
       await isar.writeTxn((isar) async {
-        return order.orderItems.save();
+        return isar.orderItems.put(orderItem, saveLinks: true);
       });
     }
     if (data is Ebm) {

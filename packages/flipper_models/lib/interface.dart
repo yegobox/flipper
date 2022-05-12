@@ -1,4 +1,3 @@
-import 'package:flipper_models/isar/receipt.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/constants.dart';
@@ -69,7 +68,7 @@ abstract class IsarApiInterface {
       {required int branchId, String? status = completeStatus});
   Future<OrderItem?> getOrderItem({required int id});
 
-  Future<Variant?> getCustomProductVariant();
+  Future<Variant?> getCustomVariant();
   Future<Spenn> spennPayment({required double amount, required phoneNumber});
   Future<void> collectCashPayment(
       {required double cashReceived, required Order order});

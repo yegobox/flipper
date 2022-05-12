@@ -15,7 +15,7 @@ extension GetProductCollection on Isar {
 const ProductSchema = CollectionSchema(
   name: 'Product',
   schema:
-      '{"name":"Product","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"barCode","type":"String"},{"name":"branchId","type":"Long"},{"name":"businessId","type":"Long"},{"name":"categoryId","type":"String"},{"name":"color","type":"String"},{"name":"createdAt","type":"String"},{"name":"currentUpdate","type":"Bool"},{"name":"description","type":"String"},{"name":"draft","type":"Bool"},{"name":"expiryDate","type":"String"},{"name":"hasPicture","type":"Bool"},{"name":"imageLocal","type":"Bool"},{"name":"imageUrl","type":"String"},{"name":"name","type":"String"},{"name":"picture","type":"String"},{"name":"supplierId","type":"String"},{"name":"synced","type":"Bool"},{"name":"table","type":"String"},{"name":"taxId","type":"String"},{"name":"unit","type":"String"}],"indexes":[{"name":"barCode","unique":false,"properties":[{"name":"barCode","type":"Hash","caseSensitive":true}]},{"name":"branchId","unique":false,"properties":[{"name":"branchId","type":"Value","caseSensitive":false}]},{"name":"draft_branchId","unique":false,"properties":[{"name":"draft","type":"Value","caseSensitive":false},{"name":"branchId","type":"Value","caseSensitive":false}]}],"links":[{"name":"variants","target":"Variant"}]}',
+      '{"name":"Product","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"barCode","type":"String"},{"name":"branchId","type":"Long"},{"name":"businessId","type":"Long"},{"name":"categoryId","type":"String"},{"name":"color","type":"String"},{"name":"createdAt","type":"String"},{"name":"currentUpdate","type":"Bool"},{"name":"description","type":"String"},{"name":"draft","type":"Bool"},{"name":"expiryDate","type":"String"},{"name":"hasPicture","type":"Bool"},{"name":"imageLocal","type":"Bool"},{"name":"imageUrl","type":"String"},{"name":"name","type":"String"},{"name":"picture","type":"String"},{"name":"supplierId","type":"String"},{"name":"synced","type":"Bool"},{"name":"table","type":"String"},{"name":"taxId","type":"String"},{"name":"unit","type":"String"}],"indexes":[{"name":"barCode","unique":false,"properties":[{"name":"barCode","type":"Hash","caseSensitive":true}]},{"name":"branchId","unique":false,"properties":[{"name":"branchId","type":"Value","caseSensitive":false}]},{"name":"draft_branchId","unique":false,"properties":[{"name":"draft","type":"Value","caseSensitive":false},{"name":"branchId","type":"Value","caseSensitive":false}]},{"name":"name","unique":false,"properties":[{"name":"name","type":"Hash","caseSensitive":true}]}],"links":[{"name":"variants","target":"Variant"}]}',
   idName: 'id',
   propertyIds: {
     'active': 0,
@@ -41,7 +41,7 @@ const ProductSchema = CollectionSchema(
     'unit': 20
   },
   listProperties: {},
-  indexIds: {'barCode': 0, 'branchId': 1, 'draft_branchId': 2},
+  indexIds: {'barCode': 0, 'branchId': 1, 'draft_branchId': 2, 'name': 3},
   indexValueTypes: {
     'barCode': [
       IndexValueType.stringHash,
@@ -52,6 +52,9 @@ const ProductSchema = CollectionSchema(
     'draft_branchId': [
       IndexValueType.bool,
       IndexValueType.long,
+    ],
+    'name': [
+      IndexValueType.stringHash,
     ]
   },
   linkIds: {'variants': 0},
@@ -426,6 +429,11 @@ extension ProductQueryWhereSort on QueryBuilder<Product, Product, QWhere> {
     return addWhereClauseInternal(
         const IndexWhereClause.any(indexName: 'draft_branchId'));
   }
+
+  QueryBuilder<Product, Product, QAfterWhere> anyName() {
+    return addWhereClauseInternal(
+        const IndexWhereClause.any(indexName: 'name'));
+  }
 }
 
 extension ProductQueryWhere on QueryBuilder<Product, Product, QWhereClause> {
@@ -705,6 +713,38 @@ extension ProductQueryWhere on QueryBuilder<Product, Product, QWhereClause> {
       upper: [draft, upperBranchId],
       includeUpper: includeUpper,
     ));
+  }
+
+  QueryBuilder<Product, Product, QAfterWhereClause> nameEqualTo(String name) {
+    return addWhereClauseInternal(IndexWhereClause.equalTo(
+      indexName: 'name',
+      value: [name],
+    ));
+  }
+
+  QueryBuilder<Product, Product, QAfterWhereClause> nameNotEqualTo(
+      String name) {
+    if (whereSortInternal == Sort.asc) {
+      return addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'name',
+        upper: [name],
+        includeUpper: false,
+      )).addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'name',
+        lower: [name],
+        includeLower: false,
+      ));
+    } else {
+      return addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'name',
+        lower: [name],
+        includeLower: false,
+      )).addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'name',
+        upper: [name],
+        includeUpper: false,
+      ));
+    }
   }
 }
 

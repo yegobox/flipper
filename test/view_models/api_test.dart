@@ -6,11 +6,14 @@ import '../helpers/test_helpers.dart';
 import 'common.dart';
 
 void main() {
-  group('Int filter', () {
+  group('Isar API', () {
     late Isar isar;
 
     setUp(() async {
       registerServices();
+      // ensure there is a temp product
+      // ensure we have custom Amount product
+      // ensure we have business created and it's branch
       isar = await openTempIsar([BusinessSchema]);
     });
 
@@ -19,8 +22,8 @@ void main() {
       await isar.close();
     });
 
-    isarTest('.equalTo()', () async {
-      IsarAPI(isar: isar);
+    isarTest('.Test we have business named yegobox.', () async {
+      IsarAPI.instance(isarRef: isar);
       BusinessHomeViewModel viewModel = BusinessHomeViewModel();
 
       expect(1, 1);
@@ -29,7 +32,7 @@ void main() {
       // await qEqual(col.where().fieldEqualTo(null).findAll(), [objNull]);
       // await qEqual(col.where().fieldEqualTo(5).findAll(), []);
 
-      // // filters
+      // filters
       // await qEqualSet(col.filter().fieldEqualTo(2).findAll(), [obj2]);
       // await qEqualSet(col.filter().fieldEqualTo(null).findAll(), [objNull]);
       // await qEqualSet(col.filter().fieldEqualTo(5).findAll(), []);

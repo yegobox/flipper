@@ -609,6 +609,7 @@ class Sell extends StatelessWidget {
                 await model.saveOrder(
                   variationId: model.checked,
                   amount: model.amountTotal,
+                  customItem: false,
                 );
                 GoRouter.of(context).pop();
               },

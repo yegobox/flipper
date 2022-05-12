@@ -15,7 +15,7 @@ extension GetVariantCollection on Isar {
 const VariantSchema = CollectionSchema(
   name: 'Variant',
   schema:
-      '{"name":"Variant","idName":"id","properties":[{"name":"addInfo","type":"String"},{"name":"bcd","type":"String"},{"name":"bhfId","type":"String"},{"name":"branchId","type":"Long"},{"name":"dftPrc","type":"Double"},{"name":"isrcAmt","type":"String"},{"name":"isrcAplcbYn","type":"String"},{"name":"isrcRt","type":"String"},{"name":"isrccCd","type":"String"},{"name":"isrccNm","type":"String"},{"name":"itemCd","type":"String"},{"name":"itemClsCd","type":"String"},{"name":"itemNm","type":"String"},{"name":"itemSeq","type":"String"},{"name":"itemStdNm","type":"String"},{"name":"itemTyCd","type":"String"},{"name":"modrId","type":"String"},{"name":"modrNm","type":"String"},{"name":"name","type":"String"},{"name":"orgnNatCd","type":"String"},{"name":"pkg","type":"String"},{"name":"pkgUnitCd","type":"String"},{"name":"prc","type":"Double"},{"name":"productId","type":"Long"},{"name":"productName","type":"String"},{"name":"qty","type":"Double"},{"name":"qtyUnitCd","type":"String"},{"name":"regrId","type":"String"},{"name":"regrNm","type":"String"},{"name":"retailPrice","type":"Double"},{"name":"rsdQty","type":"Double"},{"name":"sku","type":"String"},{"name":"splyAmt","type":"Double"},{"name":"supplyPrice","type":"Double"},{"name":"table","type":"String"},{"name":"taxName","type":"String"},{"name":"taxPercentage","type":"Double"},{"name":"taxTyCd","type":"String"},{"name":"tin","type":"Long"},{"name":"unit","type":"String"},{"name":"useYn","type":"String"}],"indexes":[{"name":"productId","unique":false,"properties":[{"name":"productId","type":"Value","caseSensitive":false}]}],"links":[]}',
+      '{"name":"Variant","idName":"id","properties":[{"name":"addInfo","type":"String"},{"name":"bcd","type":"String"},{"name":"bhfId","type":"String"},{"name":"branchId","type":"Long"},{"name":"dftPrc","type":"Double"},{"name":"isrcAmt","type":"String"},{"name":"isrcAplcbYn","type":"String"},{"name":"isrcRt","type":"String"},{"name":"isrccCd","type":"String"},{"name":"isrccNm","type":"String"},{"name":"itemCd","type":"String"},{"name":"itemClsCd","type":"String"},{"name":"itemNm","type":"String"},{"name":"itemSeq","type":"String"},{"name":"itemStdNm","type":"String"},{"name":"itemTyCd","type":"String"},{"name":"modrId","type":"String"},{"name":"modrNm","type":"String"},{"name":"name","type":"String"},{"name":"orgnNatCd","type":"String"},{"name":"pkg","type":"String"},{"name":"pkgUnitCd","type":"String"},{"name":"prc","type":"Double"},{"name":"productId","type":"Long"},{"name":"productName","type":"String"},{"name":"qty","type":"Double"},{"name":"qtyUnitCd","type":"String"},{"name":"regrId","type":"String"},{"name":"regrNm","type":"String"},{"name":"retailPrice","type":"Double"},{"name":"rsdQty","type":"Double"},{"name":"sku","type":"String"},{"name":"splyAmt","type":"Double"},{"name":"supplyPrice","type":"Double"},{"name":"table","type":"String"},{"name":"taxName","type":"String"},{"name":"taxPercentage","type":"Double"},{"name":"taxTyCd","type":"String"},{"name":"tin","type":"Long"},{"name":"unit","type":"String"},{"name":"useYn","type":"String"}],"indexes":[{"name":"name","unique":false,"properties":[{"name":"name","type":"Hash","caseSensitive":true}]},{"name":"productId","unique":false,"properties":[{"name":"productId","type":"Value","caseSensitive":false}]}],"links":[]}',
   idName: 'id',
   propertyIds: {
     'addInfo': 0,
@@ -61,8 +61,11 @@ const VariantSchema = CollectionSchema(
     'useYn': 40
   },
   listProperties: {},
-  indexIds: {'productId': 0},
+  indexIds: {'name': 0, 'productId': 1},
   indexValueTypes: {
+    'name': [
+      IndexValueType.stringHash,
+    ],
     'productId': [
       IndexValueType.long,
     ]
@@ -685,6 +688,11 @@ extension VariantQueryWhereSort on QueryBuilder<Variant, Variant, QWhere> {
     return addWhereClauseInternal(const IdWhereClause.any());
   }
 
+  QueryBuilder<Variant, Variant, QAfterWhere> anyName() {
+    return addWhereClauseInternal(
+        const IndexWhereClause.any(indexName: 'name'));
+  }
+
   QueryBuilder<Variant, Variant, QAfterWhere> anyProductId() {
     return addWhereClauseInternal(
         const IndexWhereClause.any(indexName: 'productId'));
@@ -743,6 +751,38 @@ extension VariantQueryWhere on QueryBuilder<Variant, Variant, QWhereClause> {
       upper: upperId,
       includeUpper: includeUpper,
     ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterWhereClause> nameEqualTo(String name) {
+    return addWhereClauseInternal(IndexWhereClause.equalTo(
+      indexName: 'name',
+      value: [name],
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterWhereClause> nameNotEqualTo(
+      String name) {
+    if (whereSortInternal == Sort.asc) {
+      return addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'name',
+        upper: [name],
+        includeUpper: false,
+      )).addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'name',
+        lower: [name],
+        includeLower: false,
+      ));
+    } else {
+      return addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'name',
+        lower: [name],
+        includeLower: false,
+      )).addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'name',
+        upper: [name],
+        includeUpper: false,
+      ));
+    }
   }
 
   QueryBuilder<Variant, Variant, QAfterWhereClause> productIdEqualTo(
