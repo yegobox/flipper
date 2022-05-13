@@ -42,9 +42,9 @@ class _OmniChatState extends State<OmniChat> {
     super.initState();
     ProxyService.cron.schedule();
 
-    if (SchedulerBinding.instance?.schedulerPhase ==
+    if (SchedulerBinding.instance.schedulerPhase ==
         SchedulerPhase.persistentCallbacks) {
-      SchedulerBinding.instance?.addPostFrameCallback((_) async {
+      SchedulerBinding.instance.addPostFrameCallback((_) async {
         int businessId = ProxyService.box.read(key: 'businessId');
         Profile? profile =
             await ProxyService.isarApi.profile(businessId: businessId);
@@ -74,7 +74,7 @@ class _OmniChatState extends State<OmniChat> {
 
   @override
   Widget build(BuildContext context) {
-    WidgetsBinding.instance!.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       SystemChrome.setPreferredOrientations([
         DeviceOrientation.portraitUp,
         DeviceOrientation.portraitDown,

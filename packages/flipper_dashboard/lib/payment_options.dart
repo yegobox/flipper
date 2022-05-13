@@ -125,6 +125,9 @@ class Payments extends StatelessWidget {
             ),
           );
         },
+        onModelReady: (model) {
+          model.updatePayable();
+        },
         viewModelBuilder: () => BusinessHomeViewModel());
   }
 }

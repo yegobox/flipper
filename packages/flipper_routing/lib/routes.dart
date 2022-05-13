@@ -73,7 +73,7 @@ class AppSetup {
 // test pin:085214
 
 // when adding new repo with other submodules
-// git submodule add https://github.com/yegobox/receipt.git open-sources/receipt
+// git submodule add https://github.com/yegobox/qr_code_scanner.git open-sources/qr_code_scanner
 // https://gist.github.com/myusuf3/7f645819ded92bda6677
 
 // %AppData%
@@ -234,6 +234,8 @@ class AppSetup {
 // wild card cert:
 // https://codex.so/wildcard-ssl-certificate-by-let-s-encrypt
 // https://codex.so/resolving-subdomains-dynamically-via-nginx
+
+// TODOhttps://github.com/juliuscanute/qr_code_scanner/pull/512 check if this is merged and remove qr_code_scanner from open-source and use the upstream one!
  
 
 

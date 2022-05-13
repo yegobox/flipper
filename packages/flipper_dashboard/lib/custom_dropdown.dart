@@ -19,7 +19,7 @@ class _DropdownMenuPainter extends CustomPainter {
     required this.elevation,
     required this.selectedIndex,
     required this.resize,
-  })   : _painter = BoxDecoration(
+  })  : _painter = BoxDecoration(
                 // If you add an image here, you must provide a real
                 // configuration in the paint() function and you must provide some sort
                 // of onChanged callback here.
@@ -331,8 +331,9 @@ class _DropdownRoute<T> extends PopupRoute<_DropdownRouteResult<T>> {
     double menuTop = (buttonTop - selectedItemOffset) -
         (_kMenuItemHeight - buttonRect.height) / 2.0;
     const double topPreferredLimit = _kMenuItemHeight;
-    if (menuTop < topPreferredLimit)
+    if (menuTop < topPreferredLimit) {
       menuTop = math.min(buttonTop, topPreferredLimit);
+    }
     double bottom = menuTop + menuHeight;
     final double bottomPreferredLimit = screenHeight - _kMenuItemHeight;
     if (bottom > bottomPreferredLimit) {
@@ -342,8 +343,9 @@ class _DropdownRoute<T> extends PopupRoute<_DropdownRouteResult<T>> {
 
     if (scrollController == null) {
       double scrollOffset = 0.0;
-      if (preferredMenuHeight > maxMenuHeight)
+      if (preferredMenuHeight > maxMenuHeight) {
         scrollOffset = selectedItemOffset - (buttonTop - menuTop);
+      }
       scrollController = ScrollController(initialScrollOffset: scrollOffset);
     }
 
@@ -461,12 +463,12 @@ class _DropdownButtonState<T> extends State<CustomDropdownButton<T>>
   void initState() {
     super.initState();
     _updateSelectedIndex();
-    WidgetsBinding.instance?.addObserver(this);
+    WidgetsBinding.instance.addObserver(this);
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance?.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this);
     _removeDropdownRoute();
     super.dispose();
   }
@@ -509,7 +511,6 @@ class _DropdownButtonState<T> extends State<CustomDropdownButton<T>>
 
   void _handleTap() {
     final RenderBox itemBox = context.findRenderObject() as RenderBox;
-    ;
     final Rect itemRect = itemBox.localToGlobal(Offset.zero) & itemBox.size;
     final TextDirection textDirection = Directionality.of(context);
     final EdgeInsetsGeometry menuMargin =

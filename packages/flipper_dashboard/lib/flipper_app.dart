@@ -83,9 +83,9 @@ class _FlipperAppState extends State<FlipperApp> {
 
     super.initState();
     if (!kDebugMode) {
-      if (SchedulerBinding.instance?.schedulerPhase ==
+      if (SchedulerBinding.instance.schedulerPhase ==
           SchedulerPhase.persistentCallbacks) {
-        SchedulerBinding.instance?.addPostFrameCallback((_) async {
+        SchedulerBinding.instance.addPostFrameCallback((_) async {
           int businessId = ProxyService.box.read(key: 'businessId');
           Profile? profile =
               await ProxyService.isarApi.profile(businessId: businessId);

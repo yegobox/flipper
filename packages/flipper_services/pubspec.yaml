@@ -6,7 +6,7 @@ version: 0.0.1-dev.6
 repository: https://github.com/yegobox/packages
 
 environment:
-  sdk: ">=2.16.0 <3.0.0"
+  sdk: ">=2.17.0 <3.0.0"
 
 dependencies:
   flutter:
@@ -34,7 +34,11 @@ dependencies:
   extension_google_sign_in_as_googleapis_auth: ^2.0.3
   firebase_analytics: ^9.1.2
   firebase_crashlytics: ^2.5.0
-  location: ^4.3.0
+  # location: ^4.3.0
+  location:
+    git:
+      url: https://github.com/Yczar/flutterlocation.git
+      path: packages/location
   flutter_luban: ^0.1.13
   flutter_uploader: ^3.0.0-beta.3
   injectable: ^1.5.3

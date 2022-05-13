@@ -265,6 +265,7 @@ class _AfterSaleState extends State<AfterSale> {
             Business? business = await ProxyService.isarApi.getBusiness();
             List<OrderItem> items =
                 await ProxyService.isarApi.orderItems(orderId: widget.order.id);
+            // log.i(items.first.toJson());
             model.generateRRAReceipt(
                 items: items, business: business!, order: widget.order);
           }

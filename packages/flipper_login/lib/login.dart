@@ -47,11 +47,11 @@ class _LoginViewState extends State<LoginView>
     ProxyService.remoteConfig.config();
     ProxyService.remoteConfig.setDefault();
     ProxyService.remoteConfig.fetch();
-    SchedulerBinding.instance?.addPostFrameCallback((timeStamp) {
+    SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
       isNetAvailable();
     });
     if (!appService.isLoggedIn()) {
-      SchedulerBinding.instance?.addPostFrameCallback((timeStamp) {
+      SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
         Connectivity()
             .onConnectivityChanged
             .listen((ConnectivityResult result) {

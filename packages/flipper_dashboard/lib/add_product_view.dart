@@ -52,9 +52,9 @@ class _AddProductViewState extends State<AddProductView> {
     return ViewModelBuilder<ProductViewModel>.reactive(
       onModelReady: (model) async {
         // start by reseting bar code.
-        if (SchedulerBinding.instance?.schedulerPhase ==
+        if (SchedulerBinding.instance.schedulerPhase ==
             SchedulerPhase.persistentCallbacks) {
-          SchedulerBinding.instance?.addPostFrameCallback((_) {
+          SchedulerBinding.instance.addPostFrameCallback((_) {
             model.productService.setBarcode('');
           });
         }

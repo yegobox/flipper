@@ -56,12 +56,7 @@ abstract class IsarApiInterface {
   ///create an order if no pending order exist should create a new one
   ///then if it exist should return the existing one!
   Future<Order> manageOrder({
-    required double customAmount,
-    required Variant variation,
-    required double price,
-    bool useProductName = false,
     String orderType = 'custom',
-    double quantity = 1,
   });
 
   Future<List<Order>> completedOrders(
@@ -124,7 +119,8 @@ abstract class IsarApiInterface {
 
   Future<List<DiscountSync>> getDiscounts({required int branchId});
 
-  Future<void> addOrderItem({required Order order, required OrderItem item});
+  Future<void> addOrderItem({required Order order, OrderItem? item});
+  Future<void> updateOrderItem({required Order order, required OrderItem item});
 
   // Conversation createConversation({required Conversation conversation});
 

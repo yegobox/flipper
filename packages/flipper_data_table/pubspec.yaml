@@ -5,8 +5,7 @@ version: 1.0.0-dev.2
 repository: https://github.com/yegobox/packages
 
 environment:
-  sdk: ">=2.16.0 <3.0.0"
-  flutter: ">=1.17.0"
+  sdk: ">=2.17.0 <3.0.0"
 
 dependencies:
   flutter:
@@ -18,9 +17,7 @@ dependencies:
   # freezed_annotation: ^0.14.0
 
 dev_dependencies:
-  flutter_test:
-    sdk: flutter
-  flutter_lints: ^1.0.0
+  flutter_lints: ^2.0.0
 
 flutter:
   # The following line ensures that the Material Icons font is

@@ -72,33 +72,17 @@ class IsarAPI implements IsarApiInterface {
   }
 
   @override
-  Future<Order> manageOrder(
-      {required double customAmount,
-      required Variant variation,
-      required double price,
-      bool useProductName = false,
-      String orderType = 'custom',
-      double quantity = 1}) async {
+  Future<Order> manageOrder({
+    String orderType = 'custom',
+  }) async {
     final ref = const Uuid().v1().substring(0, 8);
 
     final String orderNumber = const Uuid().v1().substring(0, 8);
 
     int branchId = ProxyService.box.getBranchId()!;
-    String name = '';
+
     Order? existOrder = await pendingOrder(branchId: branchId);
-    if (variation.name == 'Regular') {
-      if (variation.productName != 'Custom Amount') {
-        name = variation.productName + '(Regular)';
-      } else {
-        name = variation.productName;
-      }
-    } else {
-      if (variation.productName != 'Custom Amount') {
-        name = variation.productName + '(${variation.name})';
-      } else {
-        name = variation.productName;
-      }
-    }
+
     if (existOrder == null) {
       final order = Order()
         ..reference = ref
@@ -107,8 +91,8 @@ class IsarAPI implements IsarApiInterface {
         ..orderType = orderType
         ..active = true
         ..draft = true
-        ..subTotal = customAmount
-        ..cashReceived = customAmount
+        ..subTotal = 0
+        ..cashReceived = 0
         ..updatedAt = DateTime.now().toIso8601String()
         ..customerChangeDue = 0.0
         ..paymentType = 'Cash'
@@ -120,99 +104,28 @@ class IsarAPI implements IsarApiInterface {
         ProxyService.box.write(key: 'currentOrderId', value: id);
         return isar.orders.get(id);
       });
-      // get stock by variation.id
-      Stock? stock =
-          await isar.stocks.where().variantIdEqualTo(variation.id).findFirst();
-
-      createdOrder!.orderItems.add(OrderItem()
-        ..qty = price
-        ..qty = quantity
-        ..name = name
-        ..discount = 0.0
-        ..reported = false
-        ..variantId = variation.id
-        ..price = price
-
-        /// RRA fields dutira muri variants (rent from variant model)
-        ..dcRt = 0.0
-        ..dcAmt = 0.0
-        ..taxblAmt = order.subTotal
-        ..taxAmt =
-            double.parse((variation.retailPrice * 18 / 118).toStringAsFixed(2))
-        ..totAmt = variation.retailPrice
-        ..itemSeq = variation.itemSeq
-        ..isrccCd = variation.isrccCd
-        ..isrccNm = variation.isrccNm
-        ..isrcRt = variation.isrcRt
-        ..isrcAmt = variation.isrcAmt
-        ..taxTyCd = variation.taxTyCd
-        ..bcd = variation.bcd
-        ..itemClsCd = variation.itemClsCd
-        ..itemTyCd = variation.itemTyCd
-        ..itemStdNm = variation.itemStdNm
-        ..orgnNatCd = variation.orgnNatCd
-        ..pkg = variation.pkg
-        ..itemCd = variation.itemCd
-        ..pkgUnitCd = variation.pkgUnitCd
-        ..qtyUnitCd = variation.qtyUnitCd
-        ..itemNm = variation.itemNm
-        ..prc = variation.prc
-        ..splyAmt = variation.splyAmt
-        ..tin = variation.tin
-        ..bhfId = variation.bhfId
-        ..dftPrc = variation.dftPrc
-        ..addInfo = variation.addInfo
-        ..isrcAplcbYn = variation.isrcAplcbYn
-        ..useYn = variation.useYn
-        ..regrId = variation.regrId
-        ..regrNm = variation.regrNm
-        ..modrId = variation.modrId
-        ..modrNm = variation.modrNm
-
-        /// end of RRA fields
-        ..orderId = createdOrder.id
-        ..createdAt = DateTime.now().toIso8601String()
-        ..updatedAt = DateTime.now().toIso8601String()
-        ..remainingStock = stock!.currentStock - quantity.toInt());
-      await isar.writeTxn((isar) async {
-        return createdOrder.orderItems.save();
-      });
-      return createdOrder;
+      return createdOrder!;
     } else {
-      // get Stock by variation.id
-      Stock? stock = await isar.stocks
-          .where()
-          .variantIdBranchIdEqualTo(variation.id, branchId)
-          .findFirst();
-
-      /// update the order with subTotal given to new orderItem added to order
-      existOrder.subTotal = existOrder.subTotal + (price * quantity);
-      // save order to db
-      await isar.writeTxn((isar) async {
-        await isar.orders.put(existOrder, saveLinks: true);
-      });
-      existOrder.orderItems.add(OrderItem()
-        ..qty = quantity
-        ..name = name
-        ..variantId = variation.id
-        ..price = price
-        ..orderId = existOrder.id
-        ..createdAt = DateTime.now().toIso8601String()
-        ..updatedAt = DateTime.now().toIso8601String()
-        ..remainingStock = stock!.currentStock - quantity.toInt());
-      // update order
-      await isar.writeTxn((isar) async {
-        return existOrder.orderItems.save();
-      });
       return existOrder;
     }
   }
 
   @override
-  Future<void> addOrderItem(
+  Future<void> addOrderItem({required Order order, OrderItem? item}) async {
+    if (item != null) {
+      order.orderItems.add(item);
+      return isar.writeTxn((isar) async {
+        return order.orderItems.save();
+      });
+    }
+  }
+
+  @override
+  Future<void> updateOrderItem(
       {required Order order, required OrderItem item}) async {
     order.orderItems.add(item);
     return isar.writeTxn((isar) async {
+      isar.orderItems.put(item);
       return order.orderItems.save();
     });
   }
@@ -582,7 +495,6 @@ class IsarAPI implements IsarApiInterface {
     kProduct!.variants.add(
       Variant()
         ..name = 'Regular'
-        ..sku = 'sku'
         ..productId = kProduct.id!
         ..unit = 'Per Item'
         ..table = 'variants'
@@ -593,6 +505,8 @@ class IsarAPI implements IsarApiInterface {
         ..retailPrice = 0
         // RRA fields
         ..bhfId = business?.bhfId
+        ..prc = 0.0
+        ..sku = 'sku'
         ..tin = business?.tinNumber
         ..itemCd = clip
         // TODOask about item clasification code, it seems to be static
@@ -602,7 +516,7 @@ class IsarAPI implements IsarApiInterface {
         ..itemStdNm = "Regular"
         ..orgnNatCd = "RW"
         ..pkgUnitCd = "NT"
-        ..qtyUnitCd = "CA"
+        ..qtyUnitCd = "U"
         ..taxTyCd = "B"
         ..dftPrc = 0.0
         ..addInfo = "A"
@@ -848,10 +762,15 @@ class IsarAPI implements IsarApiInterface {
             ..unit = "kg"
             ..synced = false
             ..createdAt = DateTime.now().toIso8601String());
-      return await isar.variants
+      // add this newProduct's variant to the RRA DB
+      Variant? variant = await isar.variants
           .where()
           .productIdEqualTo(newProduct.id!)
           .findFirst();
+      if (await ProxyService.isarApi.isTaxEnabled()) {
+        ProxyService.tax.saveItem(variation: variant!);
+      }
+      return variant!;
     } else {
       return await isar.variants
           .where()
@@ -958,12 +877,10 @@ class IsarAPI implements IsarApiInterface {
   @override
   Future<OrderItem?> getOrderItemByVariantId(
       {required int variantId, required int? orderId}) async {
-    return await isar.writeTxn((isar) {
-      return isar.orderItems
-          .where()
-          .variantIdOrderIdEqualTo(variantId, orderId ?? 0)
-          .findFirst();
-    });
+    return isar.orderItems
+        .where()
+        .variantIdOrderIdEqualTo(variantId, orderId ?? 0)
+        .findFirst();
   }
 
   @override
@@ -1343,9 +1260,13 @@ class IsarAPI implements IsarApiInterface {
       });
     }
     if (data is OrderItem) {
-      final orderItem = data;
+      // final orderItem = data;
+      // ger order
+      Order? order =
+          await pendingOrder(branchId: ProxyService.box.getBranchId()!);
+      // order!.orderItems.clear();s
       await isar.writeTxn((isar) async {
-        return isar.orderItems.put(orderItem, saveLinks: true);
+        return order!.orderItems.save();
       });
     }
     if (data is Ebm) {

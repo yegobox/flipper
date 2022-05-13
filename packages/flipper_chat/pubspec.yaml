@@ -4,8 +4,7 @@ version: 0.0.1-dev.5
 repository: https://github.com/yegobox/packages
 
 environment:
-  sdk: ">=2.16.0 <3.0.0"
-  flutter: ">=1.17.0"
+  sdk: ">=2.17.0 <3.0.0"
 
 dependencies:
   flutter:
@@ -31,7 +30,7 @@ dependencies:
   ionicons: ^0.1.2
   flipper_ui: ^1.0.3
   universal_platform: ^1.0.0+1
-  overlay_support: ^1.2.1
+  overlay_support: ^2.0.0-beta.0
 
   firebase_auth: ^3.3.5
   flutter_text_drawable: ^1.0.0

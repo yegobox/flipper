@@ -240,39 +240,45 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     required double amount,
     required bool customItem,
   }) async {
-    int branchId = ProxyService.box.read(key: 'branchId');
-    log.i(variationId);
     Variant? variation =
         await ProxyService.isarApi.variant(variantId: variationId);
     Stock? stock =
         await ProxyService.isarApi.stockByVariantId(variantId: variation!.id);
-    log.i(stock?.toString());
+
     String name = '';
+
     if (variation.name == 'Regular') {
-      name = variation.productName + '(Regular)';
+      if (variation.productName != 'Custom Amount') {
+        name = variation.productName + '(Regular)';
+      } else {
+        name = variation.productName;
+      }
     } else {
-      name = variation.productName + '(${variation.name})';
+      if (variation.productName != 'Custom Amount') {
+        name = variation.productName + '(${variation.name})';
+      } else {
+        name = variation.productName;
+      }
     }
 
     /// if variation  given it exist in the orderItems of currentPending order then we update the order with new count
-    Order? pendingOrder =
-        await ProxyService.isarApi.pendingOrder(branchId: branchId);
+    Order? pendingOrder = await ProxyService.isarApi.manageOrder();
 
-    /// if order exist then we need to update the orderItem that match with the item we want to update with new count
-    /// if orderItem does not exist then we need to create a new orderItem
-    await updateOrderItems(
-        pendingOrder, variationId, name, variation, stock, amount, customItem);
+    OrderItem? existOrderItem = await ProxyService.isarApi
+        .getOrderItemByVariantId(
+            variantId: variationId, orderId: pendingOrder.id);
 
     /// if is a new item to be added to the list then it will be added to the list
     /// existOrderItem will return null which will go to adding item api.
     await addOrderItems(
-        variationId, pendingOrder, name, variation, stock, amount);
-    await ProxyService.isarApi.manageOrder(
-      customAmount: amount,
+      variationId: variationId,
+      pendingOrder: pendingOrder,
+      name: name,
       variation: variation,
-      price: amountTotal,
-      useProductName: false,
-      quantity: quantity.toDouble(),
+      stock: stock,
+      amount: amount,
+      isCustom: customItem,
+      item: existOrderItem,
     );
 
     currentOrder();
@@ -280,15 +286,35 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     return true;
   }
 
-  Future<void> addOrderItems(int variationId, Order? pendingOrder, String name,
-      Variant variation, Stock? stock, double amount) async {
-    OrderItem? existOrderItem = await ProxyService.isarApi
-        .getOrderItemByVariantId(
-            variantId: variationId, orderId: pendingOrder?.id);
-
-    if (existOrderItem == null && pendingOrder != null) {
-      OrderItem item = OrderItem()
-        ..qty = quantity.toDouble()
+  /// adding item to current order,
+  /// it is important to note that custom item is not incremented
+  /// when added and there is existing custom item in the list
+  /// because we don't know if this is not something different you are selling at this point.
+  Future<void> addOrderItems(
+      {required int variationId,
+      required Order? pendingOrder,
+      required String name,
+      required Variant variation,
+      Stock? stock,
+      required double amount,
+      required bool isCustom,
+      OrderItem? item}) async {
+    /// just on custom item being sold we never update the orderItems
+    /// we keep adding as we are not sure if it is the same item being sold or not.
+    /// !isCustom as if it is custom we keep adding.
+    ///now we will be updating the orderItem
+    if (item != null && !isCustom) {
+      item.qty = item.qty + quantity.toDouble();
+      item.price = amount;
+      pendingOrder!.subTotal = pendingOrder.subTotal + amount;
+      ProxyService.isarApi.update(data: pendingOrder);
+      ProxyService.isarApi.updateOrderItem(order: pendingOrder, item: item);
+      // return as have done update and we don't want to proceed.
+      return;
+    }
+    if (pendingOrder != null) {
+      OrderItem newItem = OrderItem()
+        ..qty = isCustom ? 1 : quantity.toDouble()
         ..price = (quantity.toDouble()) * (amount / quantity.toDouble())
         ..variantId = variationId
         ..name = name
@@ -335,77 +361,10 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         ..modrNm = variation.modrNm
         // end of fields twakuye muri variants
         ..remainingStock = stock!.currentStock - quantity;
+      pendingOrder.subTotal = pendingOrder.subTotal + amount;
+      ProxyService.isarApi.update(data: pendingOrder);
 
-      ProxyService.isarApi.addOrderItem(order: pendingOrder, item: item);
-    }
-  }
-
-  Future<void> updateOrderItems(
-      Order? pendingOrder,
-      int variationId,
-      String name,
-      Variant variation,
-      Stock? stock,
-      double amount,
-      bool customItem) async {
-    if (pendingOrder == null) return;
-    await pendingOrder.orderItems.load();
-    for (OrderItem item in pendingOrder.orderItems) {
-      if (item.variantId == variationId) {
-        item
-          ..qty = customItem ? 1 : item.qty + quantity.toDouble()
-          ..price = customItem
-              ? amount
-              : ((item.qty + quantity.toDouble()) *
-                  (amount / quantity.toDouble()))
-          ..variantId = variationId
-          ..orderId = pendingOrder.id
-          ..name = name
-          ..createdAt = item.createdAt
-          ..updatedAt = item.updatedAt
-          // RRA fields dutira muri variants (rent from variant model)
-          ..dcRt = 0.0
-          ..dcAmt = 0.0
-          ..taxblAmt = customItem
-              ? amount
-              : ((item.qty + quantity.toDouble()) *
-                  (amount / quantity.toDouble()))
-          ..taxAmt = double.parse(
-              (variation.retailPrice * 18 / 118).toStringAsFixed(2))
-          ..totAmt = variation.retailPrice
-          ..itemSeq = variation.itemSeq
-          ..isrccCd = variation.isrccCd
-          ..isrccNm = variation.isrccNm
-          ..isrcRt = variation.isrcRt
-          ..isrcAmt = variation.isrcAmt
-          ..taxTyCd = variation.taxTyCd
-          ..bcd = variation.bcd
-          ..itemClsCd = variation.itemClsCd
-          ..itemTyCd = variation.itemTyCd
-          ..itemStdNm = variation.itemStdNm
-          ..orgnNatCd = variation.orgnNatCd
-          ..pkg = variation.pkg
-          ..itemCd = variation.itemCd
-          ..pkgUnitCd = variation.pkgUnitCd
-          ..qtyUnitCd = variation.qtyUnitCd
-          ..itemNm = variation.itemNm
-          ..prc = variation.prc
-          ..splyAmt = variation.splyAmt
-          ..tin = variation.tin
-          ..bhfId = variation.bhfId
-          ..dftPrc = variation.dftPrc
-          ..addInfo = variation.addInfo
-          ..isrcAplcbYn = variation.isrcAplcbYn
-          ..useYn = variation.useYn
-          ..regrId = variation.regrId
-          ..regrNm = variation.regrNm
-          ..modrId = variation.modrId
-          ..modrNm = variation.modrNm
-          // end of fields twakuye muri variants
-          ..remainingStock = stock!.currentStock - quantity;
-
-        ProxyService.isarApi.update(data: item);
-      }
+      ProxyService.isarApi.addOrderItem(order: pendingOrder, item: newItem);
     }
   }
 

@@ -291,6 +291,7 @@ class ProductViewModel extends ReactiveViewModel {
       for (Variant variation in variants!) {
         if (variation.name == "Regular") {
           variation.supplyPrice = supplyPrice;
+
           variation.productId = variation.productId;
           ProxyService.isarApi.update(data: variation);
           Stock? stock = await ProxyService.isarApi
@@ -309,7 +310,7 @@ class ProductViewModel extends ReactiveViewModel {
         if (variation.name == "Regular") {
           variation.retailPrice = retailPrice;
           variation.productId = variation.productId;
-
+          variation.prc = retailPrice;
           ProxyService.isarApi.update(data: variation);
           Stock? stock = await ProxyService.isarApi
               .stockByVariantId(variantId: variation.id);

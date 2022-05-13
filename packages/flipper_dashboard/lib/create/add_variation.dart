@@ -85,6 +85,7 @@ class _AddVariationState extends State<AddVariation> {
                     ..qtyUnitCd = "CA"
                     ..taxTyCd = "B"
                     ..dftPrc = 0.0
+                    ..prc = 0
                     ..addInfo = "A"
                     ..isrcAplcbYn = "N"
                     ..useYn = "N"

@@ -18,7 +18,7 @@ version: 1.0.1-dev.3
 # so not referenced in the app! check each package for more real package used
 #  in the specific package.
 environment:
-  sdk: ">=2.16.0 <3.0.0"
+  sdk: ">=2.17.0 <3.0.0"
 
 dependencies:
   objectbox: ^1.4.1
@@ -27,7 +27,6 @@ dependencies:
   objectbox_sync_flutter_libs: ^1.4.1
   isar: ^2.4.0
   isar_flutter_libs: ^2.4.0
-  flutter_lints: ^1.0.0
   flipper_dashboard: ^0.0.1-dev.5
   flipper_ui: ^1.0.3
   flipper_models: ^0.0.1-dev.7
@@ -52,7 +51,7 @@ dependencies:
   google_fonts: ^2.1.0
   stacked: ^2.2.8
   firebase_messaging: ^11.2.8
-  overlay_support: ^1.2.1
+  overlay_support: ^2.0.0-beta.0
   stacked_themes: ^0.3.8+1
   flex_color_scheme: ^4.2.0
   path_provider: ^2.0.8
@@ -82,6 +81,7 @@ dev_dependencies:
   objectbox_generator: ^1.4.0
   matcher: ^0.12.10
   msix: ^3.3.1
+  flutter_lints: ^2.0.0
 
 flutter_icons:
   android: "launcher_icon"
