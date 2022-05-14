@@ -117,7 +117,7 @@ abstract class IsarApiInterface {
   Future<void> saveDiscount(
       {required int branchId, required name, double? amount});
 
-  Future<List<DiscountSync>> getDiscounts({required int branchId});
+  Future<List<Discount>> getDiscounts({required int branchId});
 
   Future<void> addOrderItem({required Order order, OrderItem? item});
   Future<void> updateOrderItem({required Order order, required OrderItem item});

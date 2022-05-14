@@ -801,10 +801,8 @@ class IsarAPI implements IsarApiInterface {
   }
 
   @override
-  Future<List<DiscountSync>> getDiscounts({required int branchId}) {
-    return isar.writeTxn((isar) async {
-      return isar.discountSyncs.filter().branchIdEqualTo(branchId).findAll();
-    });
+  Future<List<Discount>> getDiscounts({required int branchId}) {
+    return isar.discounts.filter().branchIdEqualTo(branchId).findAll();
   }
 
   @override

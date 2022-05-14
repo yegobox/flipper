@@ -397,7 +397,7 @@ extension ReceiptQueryFilter
     ));
   }
 
-  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> idEqualTo(int? value) {
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> idEqualTo(int value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
       property: 'id',
@@ -406,7 +406,7 @@ extension ReceiptQueryFilter
   }
 
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> idGreaterThan(
-    int? value, {
+    int value, {
     bool include = false,
   }) {
     return addFilterConditionInternal(FilterCondition(
@@ -418,7 +418,7 @@ extension ReceiptQueryFilter
   }
 
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> idLessThan(
-    int? value, {
+    int value, {
     bool include = false,
   }) {
     return addFilterConditionInternal(FilterCondition(
@@ -430,8 +430,8 @@ extension ReceiptQueryFilter
   }
 
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> idBetween(
-    int? lower,
-    int? upper, {
+    int lower,
+    int upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {

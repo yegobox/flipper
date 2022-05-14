@@ -15,7 +15,7 @@ extension GetOrderCollection on Isar {
 const OrderSchema = CollectionSchema(
   name: 'Order',
   schema:
-      '{"name":"Order","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"cashReceived","type":"Double"},{"name":"createdAt","type":"String"},{"name":"customerChangeDue","type":"Double"},{"name":"customerId","type":"Long"},{"name":"draft","type":"Bool"},{"name":"note","type":"String"},{"name":"orderNumber","type":"String"},{"name":"orderType","type":"String"},{"name":"paymentType","type":"String"},{"name":"reference","type":"String"},{"name":"reported","type":"Bool"},{"name":"status","type":"String"},{"name":"subTotal","type":"Double"},{"name":"updatedAt","type":"String"}],"indexes":[{"name":"branchId","unique":false,"properties":[{"name":"branchId","type":"Value","caseSensitive":false}]},{"name":"status_branchId","unique":false,"properties":[{"name":"status","type":"Hash","caseSensitive":true},{"name":"branchId","type":"Value","caseSensitive":false}]}],"links":[{"name":"orderItems","target":"OrderItem"}]}',
+      '{"name":"Order","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"cashReceived","type":"Double"},{"name":"createdAt","type":"String"},{"name":"customerChangeDue","type":"Double"},{"name":"customerId","type":"Long"},{"name":"draft","type":"Bool"},{"name":"note","type":"String"},{"name":"orderNumber","type":"String"},{"name":"orderType","type":"String"},{"name":"paymentType","type":"String"},{"name":"reference","type":"String"},{"name":"reported","type":"Bool"},{"name":"status","type":"String"},{"name":"subTotal","type":"Double"},{"name":"updatedAt","type":"String"}],"indexes":[{"name":"branchId","unique":false,"properties":[{"name":"branchId","type":"Value","caseSensitive":false}]},{"name":"status_branchId","unique":false,"properties":[{"name":"status","type":"Hash","caseSensitive":true},{"name":"branchId","type":"Value","caseSensitive":false}]}],"links":[{"name":"discounts","target":"Discount"},{"name":"orderItems","target":"OrderItem"}]}',
   idName: 'id',
   propertyIds: {
     'active': 0,
@@ -46,7 +46,7 @@ const OrderSchema = CollectionSchema(
       IndexValueType.long,
     ]
   },
-  linkIds: {'orderItems': 0},
+  linkIds: {'discounts': 0, 'orderItems': 1},
   backlinkLinkNames: {},
   getId: _orderGetId,
   setId: _orderSetId,
@@ -74,7 +74,7 @@ void _orderSetId(Order object, int id) {
 }
 
 List<IsarLinkBase> _orderGetLinks(Order object) {
-  return [object.orderItems];
+  return [object.discounts, object.orderItems];
 }
 
 void _orderSerializeNative(
@@ -319,6 +319,7 @@ P _orderDeserializePropWeb<P>(Object jsObj, String propertyName) {
 }
 
 void _orderAttachLinks(IsarCollection col, int id, Order object) {
+  object.discounts.attach(col, col.isar.discounts, 'discounts', id);
   object.orderItems.attach(col, col.isar.orderItems, 'orderItems', id);
 }
 
@@ -1684,6 +1685,15 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
 }
 
 extension OrderQueryLinks on QueryBuilder<Order, Order, QFilterCondition> {
+  QueryBuilder<Order, Order, QAfterFilterCondition> discounts(
+      FilterQuery<Discount> q) {
+    return linkInternal(
+      isar.discounts,
+      q,
+      'discounts',
+    );
+  }
+
   QueryBuilder<Order, Order, QAfterFilterCondition> orderItems(
       FilterQuery<OrderItem> q) {
     return linkInternal(

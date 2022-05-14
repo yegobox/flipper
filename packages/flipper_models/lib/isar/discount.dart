@@ -3,8 +3,8 @@ import 'package:isar/isar.dart';
 part 'discount.g.dart';
 
 @Collection()
-class DiscountSync {
-  DiscountSync(
+class Discount {
+  Discount(
       {this.id = 0, required this.name, this.amount, required this.branchId});
 
   late int id = Isar.autoIncrement;
@@ -12,9 +12,10 @@ class DiscountSync {
 
   /// this is to get ready when there will be option for percentage instead of amount!
   late int? amount;
+  @Index()
   late int branchId;
 
-  factory DiscountSync.fromJson(Map<String, dynamic> json) => DiscountSync(
+  factory Discount.fromJson(Map<String, dynamic> json) => Discount(
       id: json['id'],
       name: json['name'],
       amount: json['amount'],

@@ -22,8 +22,8 @@ class ProductService with ReactiveServiceMixin {
   final _product = ReactiveValue<dynamic>(null);
   Product? get product => _product.value;
 
-  final _discounts = ReactiveValue<List<DiscountSync>>([]);
-  List<DiscountSync> get discounts => _discounts.value;
+  final _discounts = ReactiveValue<List<Discount>>([]);
+  List<Discount> get discounts => _discounts.value;
 
   final _products = ReactiveValue<List<Product>>([]);
 
@@ -59,7 +59,7 @@ class ProductService with ReactiveServiceMixin {
 
   /// load discounts  in a list merge them with products make discount be at the top.
   Stream<List<Product>> loadProducts({required int branchId}) async* {
-    final List<DiscountSync> _discountss =
+    final List<Discount> _discountss =
         await ProxyService.isarApi.getDiscounts(branchId: branchId);
     final Stream<List<Product>> _productss =
         ProxyService.isarApi.productStreams(branchId: branchId);

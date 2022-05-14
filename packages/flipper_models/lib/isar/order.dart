@@ -1,6 +1,4 @@
-import 'package:isar/isar.dart';
-
-import 'order_item.dart';
+import 'package:flipper_models/isar_models.dart';
 
 part 'order.g.dart';
 
@@ -26,6 +24,7 @@ class Order {
   int? customerId;
   String? note;
   final orderItems = IsarLinks<OrderItem>();
+  final discounts = IsarLinks<Discount>();
   // toJson helper
   Map<String, dynamic> toJson() => {
         'id': id,

@@ -21,7 +21,7 @@ class DiscountRow extends StatelessWidget {
   final String name;
   final bool hasImage;
   final String? imageUrl;
-  final DiscountSync discount;
+  final Discount discount;
   final Function delete;
   final Function applyDiscount;
   final Function? addToMenu;

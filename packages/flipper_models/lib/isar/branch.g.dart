@@ -462,7 +462,7 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     ));
   }
 
-  QueryBuilder<Branch, Branch, QAfterFilterCondition> idEqualTo(int? value) {
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> idEqualTo(int value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
       property: 'id',
@@ -471,7 +471,7 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> idGreaterThan(
-    int? value, {
+    int value, {
     bool include = false,
   }) {
     return addFilterConditionInternal(FilterCondition(
@@ -483,7 +483,7 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> idLessThan(
-    int? value, {
+    int value, {
     bool include = false,
   }) {
     return addFilterConditionInternal(FilterCondition(
@@ -495,8 +495,8 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> idBetween(
-    int? lower,
-    int? upper, {
+    int lower,
+    int upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {

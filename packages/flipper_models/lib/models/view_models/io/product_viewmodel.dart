@@ -400,7 +400,7 @@ class ProductViewModel extends ReactiveViewModel {
 
   /// loop through order's items and update item with discount in consideration
   /// a discount can not go beyond the item's price
-  Future<bool> applyDiscount({required DiscountSync discount}) async {
+  Future<bool> applyDiscount({required Discount discount}) async {
     int branchId = ProxyService.box.getBranchId()!;
     Order? order = await ProxyService.keypad.getOrder(branchId: branchId);
 

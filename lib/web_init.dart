@@ -23,7 +23,7 @@ Future<void> initDb() async {
       CategorySchema,
       UnitSchema,
       SettingSchema,
-      DiscountSyncSchema,
+      DiscountSchema,
       CustomerSchema,
       PinSchema,
       ReceiptSchema,

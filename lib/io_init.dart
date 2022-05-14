@@ -12,7 +12,7 @@ Future<void> initDb() async {
   Directory dir = await getApplicationDocumentsDirectory();
   late Isar isar;
   isar = await Isar.open(
-    directory: dir.path + "/db",
+    directory: "${dir.path}/db",
     schemas: [
       OrderSchema,
       BusinessSchema,
@@ -30,7 +30,7 @@ Future<void> initDb() async {
       CategorySchema,
       UnitSchema,
       SettingSchema,
-      DiscountSyncSchema,
+      DiscountSchema,
       CustomerSchema,
       PinSchema,
       ReceiptSchema,
