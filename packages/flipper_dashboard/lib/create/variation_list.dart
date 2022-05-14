@@ -40,7 +40,7 @@ class VariationList extends StatelessWidget {
                           Icons.dehaze,
                         ),
                         subtitle: Text(
-                            '${variations[i].name} \nRWF ${stock != null ? stock.retailPrice : 0.0}'),
+                            '${variations[i].name} \nRWF ${variations[i].retailPrice}'),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: <Widget>[

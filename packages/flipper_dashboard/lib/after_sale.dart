@@ -151,7 +151,7 @@ class _AfterSaleState extends State<AfterSale> {
                                                         model.printReceipt(
                                                           items: items,
                                                           business: business!,
-                                                          order: widget.order,
+                                                          oorder: widget.order,
                                                         );
                                                       } else {
                                                         //show scaffold message
@@ -265,9 +265,12 @@ class _AfterSaleState extends State<AfterSale> {
             Business? business = await ProxyService.isarApi.getBusiness();
             List<OrderItem> items =
                 await ProxyService.isarApi.orderItems(orderId: widget.order.id);
-            // log.i(items.first.toJson());
+
             model.generateRRAReceipt(
-                items: items, business: business!, order: widget.order);
+              items: items,
+              business: business!,
+              order: widget.order,
+            );
           }
         },
         viewModelBuilder: () => BusinessHomeViewModel());

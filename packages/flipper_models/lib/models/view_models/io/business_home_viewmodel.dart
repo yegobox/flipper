@@ -305,8 +305,8 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     ///now we will be updating the orderItem
     if (item != null && !isCustom) {
       item.qty = item.qty + quantity.toDouble();
-      item.price = amount;
-      pendingOrder!.subTotal = pendingOrder.subTotal + amount;
+      item.price = item.price + amount;
+      pendingOrder!.subTotal = pendingOrder.subTotal + (amount);
       ProxyService.isarApi.update(data: pendingOrder);
       ProxyService.isarApi.updateOrderItem(order: pendingOrder, item: item);
       // return as have done update and we don't want to proceed.
@@ -369,26 +369,27 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   }
 
   Future collectSPENNPayment(
-      {required String phoneNumber, required double payableAmount}) async {
+      {required String phoneNumber, required double cashReceived}) async {
     if (kOrder == null && amountTotal != 0.0) {
       //should show a global snack bar
       return;
     }
-    log.i(payableAmount);
+    log.i(cashReceived);
     await ProxyService.isarApi
-        .spennPayment(amount: payableAmount, phoneNumber: phoneNumber);
+        .spennPayment(amount: cashReceived, phoneNumber: phoneNumber);
     await ProxyService.isarApi
-        .collectCashPayment(cashReceived: payableAmount, order: kOrder!);
+        .collectCashPayment(cashReceived: cashReceived, order: kOrder!);
   }
 
-  void collectCashPayment({required double payableAmount}) {
+  void collectCashPayment({required double cashReceived}) {
     if (kOrder == null && amountTotal != 0.0) {
       //should show a global snack bar
       return;
     }
     ProxyService.isarApi
-        .collectCashPayment(cashReceived: payableAmount, order: kOrder!);
+        .collectCashPayment(cashReceived: cashReceived, order: kOrder!);
     //reset current order back to 0
+
     keypad.setItemsOnSale(count: 0);
   }
 
@@ -484,24 +485,34 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   // num? totalDiscount = 0.0;
 
   double get totalPayable => keypad.totalPayable;
+
   double get totalDiscount => keypad.totalDiscount;
+
   Future<num?> updatePayable() async {
     keypad.setTotalPayable(amount: 0.0);
+
     keypad.setTotalDiscount(amount: 0.0);
+
     if (keypad.order == null) return 0.0;
+
     num? totalPayable =
         keypad.order!.orderItems.fold(0, (a, b) => a! + (b.price));
     await keypad.order!.orderItems.load();
+
     num? totalDiscount = keypad.order!.orderItems
         .fold(0, (a, b) => a! + (b.discount == null ? 0 : b.discount!.toInt()));
+
     keypad.setTotalPayable(
         amount: totalDiscount != 0.0
             ? (totalPayable! - totalDiscount!.toDouble())
             : totalPayable!.toDouble());
+
     keypad.setTotalDiscount(amount: totalDiscount!.toDouble());
 
     await keypad.getTickets();
+
     notifyListeners();
+
     return totalPayable;
   }
 
@@ -563,9 +574,13 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   void printReceipt(
       {required List<OrderItem> items,
       required Business business,
-      required Order order}) async {
+      required Order oorder}) async {
     // get receipt from isar related to this order
-    Receipt? receipt = await ProxyService.isarApi.getReceipt(orderId: order.id);
+    // get refreshed order with cash received
+    Order? order = await ProxyService.isarApi.getOrderById(id: oorder.id);
+    Receipt? receipt =
+        await ProxyService.isarApi.getReceipt(orderId: order!.id);
+
     Print print = Print();
     print.feed(items);
     print.print(
@@ -576,7 +591,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       totalB: order.subTotal,
       totalTax: (order.subTotal * 18 / 118).toStringAsFixed(2),
       cash: order.subTotal,
-      received: order.subTotal,
+      received: order.cashReceived,
       payMode: "Cash",
       bank: "-",
       mrc: receipt!.mrcNo,

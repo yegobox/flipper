@@ -862,9 +862,7 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<Order?> getOrderById({required int id}) {
-    return isar.writeTxn((isar) async {
-      return isar.orders.get(id);
-    });
+    return isar.orders.get(id);
   }
 
   @override
@@ -1163,8 +1161,7 @@ class IsarAPI implements IsarApiInterface {
   Stream<Stock> stockByVariantIdStream({required int variantId}) {
     return isar.stocks
         .where()
-        .variantIdEqualTo(variantId)
-        .build()
+        .variantIdBranchIdEqualTo(variantId, ProxyService.box.getBranchId()!)
         .watch(initialReturn: true)
         .asyncMap((event) => event.first);
   }
@@ -1329,17 +1326,13 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<Variant?> variant({required int variantId}) async {
-    return await isar.writeTxn((isar) async {
-      return await isar.variants.get(variantId);
-    });
+    return await isar.variants.get(variantId);
   }
 
   @override
   Future<List<Variant>> variants(
       {required int branchId, required int productId}) async {
-    return await isar.writeTxn((isar) async {
-      return await isar.variants.where().productIdEqualTo(productId).findAll();
-    });
+    return isar.variants.where().productIdEqualTo(productId).findAll();
   }
 
   List<DateTime> getWeeksForRange(DateTime start, DateTime end) {

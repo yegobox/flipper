@@ -146,14 +146,17 @@ class _CollectCashViewState extends State<CollectCashView> {
 
                                 if (_formKey.currentState!.validate()) {
                                   model.keypad.setCashReceived(
-                                      amount: double.parse(_cash.text));
+                                    amount: double.parse(_cash.text),
+                                  );
                                   if (widget.paymentType == 'spenn') {
                                     await model.collectSPENNPayment(
-                                        phoneNumber: _phone.text,
-                                        payableAmount: totalOrderAmount);
+                                      phoneNumber: _phone.text,
+                                      cashReceived: model.keypad.cashReceived,
+                                    );
                                   } else {
                                     model.collectCashPayment(
-                                        payableAmount: totalOrderAmount);
+                                      cashReceived: model.keypad.cashReceived,
+                                    );
                                     _btnController.success();
                                     GoRouter.of(context).push(
                                         Routes.afterSale + "/$totalOrderAmount",
@@ -188,11 +191,13 @@ class _CollectCashViewState extends State<CollectCashView> {
           subscription.messages.listen((event) {
             Spenn payment = Spenn.fromJson(event.payload);
             if (payment.userId.toString() == ProxyService.box.getUserId()) {
-              double totalOrderAmount =
-                  model.kOrder!.orderItems.fold(0, (a, b) => a + b.price);
+              // double totalOrderAmount = model.kOrder!.orderItems
+              //     .fold(0, (a, b) => a + (b.price * b.qty));
+              double totalOrderAmount = model.keypad.totalPayable;
               _btnController.success();
-              GoRouter.of(context)
-                  .push(Routes.afterSale + "/$totalOrderAmount");
+              GoRouter.of(context).push(
+                Routes.afterSale + "/$totalOrderAmount",
+              );
             }
           });
         },
