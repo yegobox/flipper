@@ -1,7 +1,8 @@
 library flipper_dashboard;
 
-import 'package:flipper_models/models/models.dart';
-import 'package:flipper_models/models/view_models/io/gate.dart';
+import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/view_models/gate.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:go_router/go_router.dart';

@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flipper_chat/omni/widgets/chat_app_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/models/models.dart';
+import 'package:flipper_models/isar_models.dart';
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
@@ -19,7 +19,7 @@ import 'custom_input_chat.dart';
 
 // ignore: must_be_immutable
 class OmniConversation extends StatefulWidget {
-  OmniConversation({Key? key, required this.room}) : super(key: key);
+  const OmniConversation({Key? key, required this.room}) : super(key: key);
   final types.Room room;
 
   @override
@@ -197,11 +197,11 @@ class _OmniConversationState extends State<OmniConversation> {
         color: Colors.white,
         child: Row(
           children: <Widget>[
-            SizedBox(width: 8.0),
+            const SizedBox(width: 8.0),
             Icon(Icons.insert_emoticon,
                 size: 30.0, color: Theme.of(context).hintColor),
-            SizedBox(width: 8.0),
-            Expanded(
+            const SizedBox(width: 8.0),
+            const Expanded(
               child: TextField(
                 decoration: InputDecoration(
                   hintText: 'Type a message',

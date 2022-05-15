@@ -1,7 +1,7 @@
 import 'package:flipper_chat/omni/helpers.dart';
 import 'package:flipper_chat/omni/widgets/button_circle.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/models/models.dart';
+import 'package:flipper_models/isar_models.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flipper_services/proxy.dart';
 

@@ -1,7 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flipper_dashboard/loader.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/models/models.dart';
+import 'package:flipper_models/isar_models.dart';
 
 class _Style {
   static const double circleUnreadIndicatorWidth = 14.0;
@@ -35,7 +35,7 @@ AnimatedContainer avatar({
             alignment: const Alignment(0, 0),
             width: _Style.flipperButtonWidth,
             height: _Style.flipperButtonWidth,
-            child: userIcon == null ? Text(text!) : userIcon,
+            child: userIcon ?? Text(text!),
           ),
           onTap: action,
         ),
@@ -60,13 +60,13 @@ AnimatedContainer avatar({
   );
 }
 
-Widget avatarBuilder(BusinessSync business, Color _circleColor) {
+Widget avatarBuilder(Business business, Color _circleColor) {
   return business.businessUrl == null
       ? avatar(
           color: _circleColor,
-          text: business.name.length >= 2
-              ? business.name.toUpperCase().substring(0, 2)
-              : business.name.toUpperCase(),
+          text: business.name!.length >= 2
+              ? business.name!.toUpperCase().substring(0, 2)
+              : business.name!.toUpperCase(),
           action: () {
             // onPressedCircle(business);
           },
@@ -79,9 +79,9 @@ Widget avatarBuilder(BusinessSync business, Color _circleColor) {
           imageUrl: business.businessUrl!,
           placeholder: (context, url) => avatar(
             color: _circleColor,
-            text: business.name.length >= 2
-                ? business.name.toUpperCase().substring(0, 2)
-                : business.name.toUpperCase(),
+            text: business.name!.length >= 2
+                ? business.name!.toUpperCase().substring(0, 2)
+                : business.name!.toUpperCase(),
             action: () {
               // onPressedCircle(business);
             },
@@ -91,9 +91,9 @@ Widget avatarBuilder(BusinessSync business, Color _circleColor) {
           ),
           errorWidget: (context, url, error) => avatar(
             color: _circleColor,
-            text: business.name.length >= 2
-                ? business.name.toUpperCase().substring(0, 2)
-                : business.name.toUpperCase(),
+            text: business.name!.length >= 2
+                ? business.name!.toUpperCase().substring(0, 2)
+                : business.name!.toUpperCase(),
             action: () {
               // onPressedCircle(business);
             },

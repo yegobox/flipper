@@ -1,6 +1,6 @@
+import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_models/models/models.dart';
 
 class MessageService with ReactiveServiceMixin {
   //a client will initiate an order by scanning a QR code.
@@ -23,7 +23,7 @@ class MessageService with ReactiveServiceMixin {
 
   final _orders = ReactiveValue<dynamic>(null);
 
-  OrderF? get orders => _orders.value;
+  Order? get orders => _orders.value;
   void onNewOrder() {
     // _orders.value = new OrderF();
   }

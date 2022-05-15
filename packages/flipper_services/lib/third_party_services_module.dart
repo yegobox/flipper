@@ -23,7 +23,7 @@ import 'package:flipper_services/share_implementation.dart';
 import 'package:flipper_services/sync_api.dart';
 import 'package:flipper_services/system_time_service.dart';
 import 'package:injectable/injectable.dart';
-import 'package:flipper_models/models/models.dart';
+import 'package:flipper_models/isar_models.dart';
 import 'abstractions/api.dart';
 import 'abstractions/dynamic_link.dart';
 import 'abstractions/location.dart';
@@ -40,7 +40,6 @@ import 'local_notification_service.dart';
 import 'local_storage.dart';
 import 'location_service.dart';
 import 'package:universal_platform/universal_platform.dart';
-import 'package:flipper_models/interface.dart';
 import 'package:flipper_models/isar_api.dart';
 
 final isWindows = UniversalPlatform.isWindows;

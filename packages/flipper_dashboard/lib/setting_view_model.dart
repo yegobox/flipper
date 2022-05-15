@@ -80,7 +80,7 @@ class SettingViewModel extends ReactiveViewModel {
     } else if (ProxyService.box.read(key: 'businessId').runtimeType is String) {
       businessId = int.parse(ProxyService.box.read(key: 'businessId'));
     }
-    return ProxyService.api
+    return ProxyService.isarApi
         .isSubscribed(feature: 'sync', businessId: businessId);
   }
 
@@ -126,7 +126,7 @@ class SettingViewModel extends ReactiveViewModel {
       if (!RegExp(r"^[\w.+\-]+@gmail\.com$").hasMatch(setting.email)) {
         callback(1);
       } else {
-        await ProxyService.api.createGoogleSheetDoc(email: setting.email);
+        await ProxyService.isarApi.createGoogleSheetDoc(email: setting.email);
 
         Business? business = await ProxyService.isarApi.getBusiness();
         business!.email = setting.email;
@@ -135,8 +135,7 @@ class SettingViewModel extends ReactiveViewModel {
           business: business.toJson(),
         );
         ProxyService.isarApi.update(
-          data: business.toJson(),
-          endPoint: 'businesses/' + business.id.toString(),
+          data: business,
         );
       }
     } else {

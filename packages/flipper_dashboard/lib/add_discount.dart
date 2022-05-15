@@ -1,16 +1,15 @@
 import 'package:flipper_dashboard/create/build_image_holder.dart';
+import 'package:flipper_models/isar_models.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/models/models.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_ui/flipper_ui.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:go_router/go_router.dart';
 
 class AddDiscount extends StatefulWidget {
-  AddDiscount({Key? key, this.discount}) : super(key: key);
+  const AddDiscount({Key? key, this.discount}) : super(key: key);
 
-  final DiscountSync? discount;
+  final Discount? discount;
 
   @override
   _AddDiscountState createState() => _AddDiscountState();

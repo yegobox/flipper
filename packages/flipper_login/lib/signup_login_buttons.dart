@@ -1,4 +1,4 @@
-import 'package:flipper_models/models/view_models/login_viewmodel.dart';
+import 'package:flipper_models/isar_models.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_ui/flipper_ui.dart';
@@ -46,20 +46,21 @@ class _SignUpLoginButtonState extends State<SignUpLoginButton> {
       viewModelBuilder: () => LoginViewModel(),
       builder: (context, model, child) {
         return Container(
-          margin: EdgeInsets.only(top: 50),
+          margin: const EdgeInsets.only(top: 50),
           child: Column(
             children: <Widget>[
               Padding(
-                key: Key('createAccountButton'),
-                padding: EdgeInsets.only(left: 18, right: 18, top: 0),
+                key: const Key('createAccountButton'),
+                padding: const EdgeInsets.only(left: 18, right: 18, top: 0),
                 child: BoxButton(
                   title: 'Create Account',
                   onTap: () {
                     if (!widget.isSystemTimeSet) {
                       showSimpleNotification(
-                          Text("Please set your device time to automatic"),
+                          const Text(
+                              "Please set your device time to automatic"),
                           background: Colors.green,
-                          duration: Duration(minutes: 2));
+                          duration: const Duration(minutes: 2));
                     } else {
                       _showModalBottomSheet(context);
                     }
@@ -67,7 +68,7 @@ class _SignUpLoginButtonState extends State<SignUpLoginButton> {
                 ),
               ),
               Container(
-                padding: EdgeInsets.only(left: 18, right: 18, top: 20),
+                padding: const EdgeInsets.only(left: 18, right: 18, top: 20),
                 decoration:
                     BoxDecoration(borderRadius: BorderRadius.circular(10.0)),
                 child: SizedBox(
@@ -81,10 +82,10 @@ class _SignUpLoginButtonState extends State<SignUpLoginButton> {
                         onTap: () {
                           if (!widget.isSystemTimeSet) {
                             showSimpleNotification(
-                                Text(
+                                const Text(
                                     "Please set your device time to automatic"),
                                 background: Colors.green,
-                                duration: Duration(minutes: 2));
+                                duration: const Duration(minutes: 2));
                           } else {
                             _showModalBottomSheet(context);
                           }

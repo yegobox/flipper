@@ -165,7 +165,7 @@ class SettingsService with ReactiveServiceMixin {
     Setting? setting = await settings();
     if (setting != null) {
       int businessId = ProxyService.box.read(key: 'businessId');
-      await ProxyService.api
+      await ProxyService.isarApi
           .enableAttendance(businessId: businessId, email: setting.email);
       return callback(true);
     } else {

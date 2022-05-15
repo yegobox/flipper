@@ -1,7 +1,8 @@
-import 'package:flipper_models/models/io/unit_mock.dart';
+import 'package:flipper_models/mocks.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
+
 import 'package:flipper_models/isar_models.dart';
 
 /// there is a case we need to force some data to be added for a given user

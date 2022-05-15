@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flipper_dashboard/tax_configuration.dart';
-import 'package:flipper_models/models/view_models/io/gate.dart';
 import 'package:flipper_chat/omni/omni_contacts.dart';
 import 'package:flipper_chat/omni_chat.dart';
 import 'package:flipper_dashboard/add_discount.dart';
@@ -31,6 +30,7 @@ import 'package:flipper_dashboard/startup_view.dart';
 import 'package:flipper_dashboard/switch_branch_view.dart';
 import 'package:flipper_login/pin_login.dart';
 import 'package:flipper_login/signup_form_view.dart';
+import 'package:flipper_models/view_models/gate.dart';
 import 'package:flipper_routing/finance_app.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flipper_login/login.dart';
@@ -108,11 +108,11 @@ void main() async {
         final onLogin = state.subloc == Routes.login;
         final onNoNet = state.subloc == Routes.noNet;
         final String country = loginInfo.country.replaceAll(" ", "");
-        final onSignUp = state.subloc == Routes.signup + "/$country";
+        final onSignUp = state.subloc == "${Routes.signup}/$country";
         final bool noNet = loginInfo.noNet;
 
         final routeWithRedirectRules = [
-          Routes.signup + "/$country",
+          "${Routes.signup}/$country",
           Routes.login,
           Routes.noNet,
           Routes.home,
@@ -120,7 +120,7 @@ void main() async {
         if (needSignUp &&
             !onSignUp &&
             routeWithRedirectRules.contains(state.subloc)) {
-          return Routes.signup + "/$country";
+          return "${Routes.signup}/$country";
         }
         if (loggedIn &&
             !onHome &&
@@ -222,7 +222,7 @@ void main() async {
           name: 'discount',
           pageBuilder: (context, state) => MaterialPage(
             key: state.pageKey,
-            child: AddDiscount(),
+            child: const AddDiscount(),
           ),
         ),
         GoRoute(
@@ -444,7 +444,6 @@ void main() async {
                 children: [
                   const Text('Error in our backend'),
                   ElevatedButton(
-                    child: const Text('Retry'),
                     onPressed: () {},
                     style: ButtonStyle(
                       shape: MaterialStateProperty.resolveWith((states) {
@@ -463,6 +462,7 @@ void main() async {
                         },
                       ),
                     ),
+                    child: const Text('Retry'),
                   )
                 ],
               ),

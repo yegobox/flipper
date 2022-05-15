@@ -5,7 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:ionicons/ionicons.dart';
-import 'package:flipper_models/models/models.dart';
+import 'package:flipper_models/isar_models.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/routes.router.dart';
@@ -22,7 +22,7 @@ class FlipperDrawer extends StatefulWidget {
   final Function preferenceController;
   final Function inviteController;
   final Function addWorkSpace;
-  final List<BusinessSync> businesses;
+  final List<Business> businesses;
 
   @override
   State<FlipperDrawer> createState() => _FlipperDrawerState();
@@ -68,7 +68,7 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                     (business) => ListTile(
                       contentPadding:
                           const EdgeInsets.fromLTRB(20.0, 0.0, 16.0, 0.0),
-                      title: Text(business.name),
+                      title: Text(business.name!),
                       subtitle: Text(business.businessUrl ?? ''),
                       leading: avatarBuilder(business, _circleColor),
                       trailing: const Icon(
@@ -128,7 +128,7 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                                                     top: 40.0),
                                                 child: InkWell(
                                                   onTap: () async {
-                                                    await ProxyService.api
+                                                    await ProxyService.isarApi
                                                         .logOut();
                                                     GoRouter.of(context)
                                                         .go(Routes.boot);

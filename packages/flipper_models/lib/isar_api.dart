@@ -7,7 +7,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:http/http.dart' as http;
 
-import 'models/view_models/io/gate.dart';
+import 'view_models/gate.dart';
 
 late Isar isar;
 

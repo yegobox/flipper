@@ -765,7 +765,7 @@ packages:
     source: hosted
     version: "4.2.0"
   flipper_chat:
-    dependency: "direct overridden"
+    dependency: "direct main"
     description:
       path: "packages/flipper_chat"
       relative: true
@@ -1004,7 +1004,7 @@ packages:
       name: flutter_local_notifications
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "9.5.3"
+    version: "9.5.3+1"
   flutter_local_notifications_linux:
     dependency: transitive
     description:
@@ -1271,7 +1271,7 @@ packages:
     source: hosted
     version: "2.0.2"
   go_router:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: go_router
       url: "https://pub.dartlang.org"

@@ -1,7 +1,7 @@
 import 'package:flipper_rw/helpers/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:flipper_models/models/models.dart';
+import 'package:flipper_models/isar_models.dart';
 
 class BusinessSettingButton extends StatelessWidget {
   const BusinessSettingButton({Key? key, this.image, required this.onPressed})
@@ -13,7 +13,7 @@ class BusinessSettingButton extends StatelessWidget {
   Widget build(BuildContext context) {
     // print(businesses);
 
-    return Container(
+    return SizedBox(
       width: _Style.flipperButtonWidth,
       height: _Style.flipperButtonWidth,
       child: FittedBox(
@@ -42,18 +42,18 @@ class BusinessButton extends StatelessWidget {
     Key? key,
   }) : super(key: key);
 
-  final BusinessSync business;
+  final Business business;
   final bool hasUpdates;
   final bool isActive;
 
-  final Function(BusinessSync) onPressedCircle;
+  final Function(Business) onPressedCircle;
 
   @override
   Widget build(BuildContext context) {
     final Color _circleColor = Theme.of(context)
         .copyWith(canvasColor: HexColor('#f5a623'))
         .canvasColor;
-    final String? _groupText = business.name.substring(0, 3).toUpperCase();
+    final String? _groupText = business.name!.substring(0, 3).toUpperCase();
 
     return Container(
       child: Row(
@@ -101,7 +101,7 @@ AnimatedContainer _selectableListItem({
             alignment: const Alignment(0, 0),
             width: _Style.flipperButtonWidth,
             height: _Style.flipperButtonWidth,
-            child: userIcon == null ? Text(text!) : userIcon,
+            child: userIcon ?? Text(text!),
           ),
           onTap: action,
         ),

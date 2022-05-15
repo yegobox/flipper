@@ -3,7 +3,7 @@ library pos;
 import 'package:flutter/material.dart';
 import 'package:universal_platform/universal_platform.dart';
 
-import 'package:flipper_models/models/models.dart';
+import 'package:flipper_models/isar_models.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 final isMacOs = UniversalPlatform.isMacOS;

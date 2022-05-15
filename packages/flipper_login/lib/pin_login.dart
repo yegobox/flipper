@@ -1,4 +1,4 @@
-import 'package:flipper_models/models/view_models/login_viewmodel.dart';
+import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:google_ui/google_ui.dart';

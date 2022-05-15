@@ -75,7 +75,7 @@ class GoogleDrive {
   /// we silently authenticate and get the token using the silent authentication
   /// for the second time
   Future<http.Client> silentLogin() async {
-    final _googleSignIn = new GoogleSignIn(scopes: _scopes);
+    final _googleSignIn = GoogleSignIn(scopes: _scopes);
     await _googleSignIn.signInSilently();
     // New refreshed token
     var httpClient = (await _googleSignIn.authenticatedClient())!;
@@ -161,11 +161,9 @@ class GoogleDrive {
     //patch a business with lst backup fileId.
     Business? business = await ProxyService.isarApi.getBusiness();
     business!.backupFileId = fileUploaded.id;
-    await ProxyService.api
+    await ProxyService.isarApi
         .updateBusiness(id: business.id, business: business.toJson());
-    ProxyService.isarApi.update(
-        data: business.toJson(),
-        endPoint: 'businesses/' + business.id.toString());
+    ProxyService.isarApi.update(data: business);
     // downloadGoogleDriveFile('data', fileUploaded.id);
   }
 

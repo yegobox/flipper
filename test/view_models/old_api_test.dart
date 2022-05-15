@@ -1,3 +1,12 @@
+import 'package:test/test.dart';
+
+void main() {
+  group('Keypad', () {
+    test('1', () async {
+      expect(1, 1);
+    });
+  });
+}
 // // Generate a MockClient using the Mockito package.
 // // Create new instances of this class in each test.
 // final Business businessMockData = new Business(

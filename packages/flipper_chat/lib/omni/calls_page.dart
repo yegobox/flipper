@@ -1,6 +1,6 @@
 // import 'package:flipper_chat/lite/helpers.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/models/models.dart';
+import 'package:flipper_models/isar_models.dart';
 
 class CallsPage extends StatelessWidget {
   CallsPage({Key? key, required this.model}) : super(key: key);
@@ -13,7 +13,7 @@ class CallsPage extends StatelessWidget {
       physics: const BouncingScrollPhysics(),
       itemBuilder: (_, index) {
         callStatus = !callStatus;
-        return Text('hello world');
+        return const Text('hello world');
         // return ListTile(
         //   leading: CircleAvatar(
         //     backgroundColor: Helpers.greyLigthColor,

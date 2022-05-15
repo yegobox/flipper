@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:azlistview/azlistview.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/models/models.dart';
+import 'package:flipper_models/isar_models.dart';
 
 class CityModel extends ISuspensionBean {
   String name;
@@ -69,7 +69,7 @@ class ContactInfo extends ISuspensionBean {
   String toString() => json.encode(this);
 }
 
-class Contact extends BusinessSync with ISuspensionBean {
+class Contact extends Business with ISuspensionBean {
   String? tagIndex;
 
   String? pinyin;

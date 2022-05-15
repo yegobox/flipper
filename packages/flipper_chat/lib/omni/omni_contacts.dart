@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flutter_firebase_chat_core/flutter_firebase_chat_core.dart';
 import 'package:azlistview/azlistview.dart';
-import 'package:flipper_models/models/models.dart';
+import 'package:flipper_models/isar_models.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:go_router/go_router.dart';
@@ -62,12 +62,12 @@ class _OmniContactsState extends State<OmniContacts> {
   Widget getListItem(BuildContext context, Contact contact,
       {double susHeight = 40, required MessageViewModel model}) {
     return ListTile(
-      title: Text(contact.name),
+      title: Text(contact.name!),
       onTap: () {
         /// first add this business to firestore bd as user we are bout to chat with
         _handlePressed(
           contact.userId!,
-          contact.name,
+          contact.name!,
           types.User(
             firstName: contact.name,
             lastName: '',
@@ -98,24 +98,24 @@ class _OmniContactsState extends State<OmniContacts> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('New Chat'),
+                      const Text('New Chat'),
                       TextButton(
                         onPressed: () {
                           GoRouter.of(context).pop();
                         },
-                        child: Text('Cancel'),
+                        child: const Text('Cancel'),
                       )
                     ],
                   ),
                 ),
                 Container(
-                  margin: EdgeInsets.all(12),
+                  margin: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                       border: Border.all(
-                        color: Color.fromARGB(255, 225, 226, 230),
+                        color: const Color.fromARGB(255, 225, 226, 230),
                         width: 0.33,
                       ),
-                      color: Color.fromARGB(255, 239, 240, 244),
+                      color: const Color.fromARGB(255, 239, 240, 244),
                       borderRadius: BorderRadius.circular(12)),
                   child: TextField(
                     autofocus: false,
@@ -124,7 +124,7 @@ class _OmniContactsState extends State<OmniContacts> {
                     },
                     controller: textEditingController,
                     decoration: InputDecoration(
-                        prefixIcon: Icon(
+                        prefixIcon: const Icon(
                           Icons.search,
                           color: Colours.gray_33,
                         ),
@@ -135,7 +135,7 @@ class _OmniContactsState extends State<OmniContacts> {
                               textEditingController.clear();
                               model.search('');
                             },
-                            child: Icon(
+                            child: const Icon(
                               Icons.cancel,
                               color: Colours.gray_99,
                             ),
@@ -143,13 +143,13 @@ class _OmniContactsState extends State<OmniContacts> {
                         ),
                         border: InputBorder.none,
                         hintText: 'Search business and people',
-                        hintStyle: TextStyle(color: Colours.gray_99)),
+                        hintStyle: const TextStyle(color: Colours.gray_99)),
                   ),
                 ),
                 Expanded(
                   child: AzListView(
                     data: model.dataList,
-                    physics: AlwaysScrollableScrollPhysics(),
+                    physics: const AlwaysScrollableScrollPhysics(),
                     itemCount: model.dataList.length,
                     itemBuilder: (BuildContext context, int index) {
                       Contact contact = model.dataList[index];
@@ -162,11 +162,11 @@ class _OmniContactsState extends State<OmniContacts> {
                     },
                     indexBarOptions: IndexBarOptions(
                       needRebuild: true,
-                      selectTextStyle: TextStyle(
+                      selectTextStyle: const TextStyle(
                           fontSize: 12,
                           color: Colors.white,
                           fontWeight: FontWeight.w500),
-                      selectItemDecoration: BoxDecoration(
+                      selectItemDecoration: const BoxDecoration(
                           shape: BoxShape.circle, color: Color(0xFF333333)),
                       indexHintWidth: 96,
                       indexHintHeight: 97,
@@ -178,9 +178,9 @@ class _OmniContactsState extends State<OmniContacts> {
                         ),
                       ),
                       indexHintAlignment: Alignment.centerRight,
-                      indexHintTextStyle:
-                          TextStyle(fontSize: 24.0, color: Colors.black87),
-                      indexHintOffset: Offset(-30, 0),
+                      indexHintTextStyle: const TextStyle(
+                          fontSize: 24.0, color: Colors.black87),
+                      indexHintOffset: const Offset(-30, 0),
                     ),
                   ),
                 )

@@ -4,7 +4,7 @@ import 'package:flipper_chat/omni/util.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flutter_firebase_chat_core/flutter_firebase_chat_core.dart';
-import 'package:flipper_models/models/models.dart';
+import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_text_drawable/flutter_text_drawable.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -16,7 +16,7 @@ import 'right_to_left_route.dart';
 // ignore: must_be_immutable
 /// chats is considered to be like a room as per flutter_firebase_chat_core terms
 class OmnConversations extends StatefulWidget {
-  OmnConversations({Key? key, required this.model}) : super(key: key);
+  const OmnConversations({Key? key, required this.model}) : super(key: key);
   final MessageViewModel model;
 
   @override
@@ -144,7 +144,7 @@ class _OmnConversationsState extends State<OmnConversations> {
                               child: Stack(
                                 children: [
                                   ClipOval(
-                                    child: Container(
+                                    child: SizedBox(
                                       width: 55,
                                       height: 55,
                                       child: _buildAvatar(room),

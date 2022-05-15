@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flipper_dashboard/loader.dart';
-import 'package:flipper_models/models/models.dart';
+import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
@@ -88,7 +88,7 @@ class FlipperBottomSheet {
                     Directory dir = await getApplicationDocumentsDirectory();
 
                     await drive.upload(File(path.context
-                        .canonicalize(dir.path + '/db_1/data.mdb')));
+                        .canonicalize('${dir.path}/db_1/data.mdb')));
                     // TODOupdate the business local and online about the backup
                     // now since the backup is true backup every time using the saved credentials of google drive
                     // I need to know when switching to another phone how I will decide what happen.
@@ -168,8 +168,8 @@ class FlipperBottomSheet {
   static showAddNoteToSaleBottomSheet(
       {required BusinessHomeViewModel model,
       required BuildContext context}) async {
-    GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-    TextEditingController _controller = TextEditingController();
+    GlobalKey<FormState> formKey = GlobalKey<FormState>();
+    TextEditingController controller = TextEditingController();
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -185,11 +185,11 @@ class FlipperBottomSheet {
               Padding(
                 padding: const EdgeInsets.fromLTRB(0, 0, 0, 5),
                 child: Form(
-                  key: _formKey,
+                  key: formKey,
                   child: TextFormField(
                     textAlign: TextAlign.center,
                     autofocus: true,
-                    controller: _controller,
+                    controller: controller,
                     validator: (value) {
                       if (value!.isEmpty) {
                         return 'Note is required';
@@ -220,9 +220,9 @@ class FlipperBottomSheet {
                 child: BoxButton(
                   title: FLocalization.of(context).save,
                   onTap: () {
-                    if (_formKey.currentState!.validate()) {
+                    if (formKey.currentState!.validate()) {
                       model.addNoteToSale(
-                        note: _controller.text,
+                        note: controller.text,
                         callback: (callback) {
                           if (callback == 1) {
                             showSimpleNotification(

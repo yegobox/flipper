@@ -1,10 +1,10 @@
 import 'package:flipper_dashboard/no_net.dart';
-import 'package:flipper_models/models/view_models/io/gate.dart';
+import 'package:flipper_models/view_models/gate.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_models/models/models.dart';
+import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:google_ui/google_ui.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';

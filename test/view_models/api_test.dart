@@ -2,7 +2,6 @@ import 'package:flipper_models/isar_api.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:test/test.dart';
 
-import '../helpers/test_helpers.dart';
 import 'common.dart';
 
 void main() {
@@ -10,7 +9,7 @@ void main() {
     late Isar isar;
 
     setUp(() async {
-      registerServices();
+      // registerServices();
       // ensure there is a temp product
       // ensure we have custom Amount product
       // ensure we have business created and it's branch
@@ -18,7 +17,7 @@ void main() {
     });
 
     tearDown(() async {
-      unregisterServices();
+      // unregisterServices();
       await isar.close();
     });
 
