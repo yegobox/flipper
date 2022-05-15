@@ -6,7 +6,7 @@ part of 'receipt.dart';
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable, no_leading_underscores_for_local_identifiers
 
 extension GetReceiptCollection on Isar {
   IsarCollection<Receipt> get receipts => getCollection();
@@ -15,7 +15,7 @@ extension GetReceiptCollection on Isar {
 const ReceiptSchema = CollectionSchema(
   name: 'Receipt',
   schema:
-      '{"name":"Receipt","idName":"id","properties":[{"name":"intrlData","type":"String"},{"name":"mrcNo","type":"String"},{"name":"orderId","type":"Long"},{"name":"rcptNo","type":"Long"},{"name":"rcptSign","type":"String"},{"name":"resultCd","type":"String"},{"name":"resultDt","type":"String"},{"name":"resultMsg","type":"String"},{"name":"sdcId","type":"String"},{"name":"totRcptNo","type":"Long"},{"name":"vsdcRcptPbctDate","type":"String"}],"indexes":[{"name":"orderId","unique":false,"properties":[{"name":"orderId","type":"Value","caseSensitive":false}]}],"links":[]}',
+      '{"name":"Receipt","idName":"id","properties":[{"name":"intrlData","type":"String"},{"name":"mrcNo","type":"String"},{"name":"orderId","type":"Long"},{"name":"rcptNo","type":"Long"},{"name":"rcptSign","type":"String"},{"name":"resultCd","type":"String"},{"name":"resultDt","type":"String"},{"name":"resultMsg","type":"String"},{"name":"sdcId","type":"String"},{"name":"totRcptNo","type":"Long"},{"name":"vsdcRcptPbctDate","type":"String"}],"indexes":[{"name":"orderId","unique":false,"replace":false,"properties":[{"name":"orderId","type":"Value","caseSensitive":false}]}],"links":[]}',
   idName: 'id',
   propertyIds: {
     'intrlData': 0,
@@ -49,7 +49,7 @@ const ReceiptSchema = CollectionSchema(
   serializeWeb: _receiptSerializeWeb,
   deserializeWeb: _receiptDeserializeWeb,
   deserializePropWeb: _receiptDeserializePropWeb,
-  version: 3,
+  version: 4,
 );
 
 int? _receiptGetId(Receipt object) {
@@ -70,7 +70,7 @@ List<IsarLinkBase> _receiptGetLinks(Receipt object) {
 
 void _receiptSerializeNative(
     IsarCollection<Receipt> collection,
-    IsarRawObject rawObj,
+    IsarCObject cObj,
     Receipt object,
     int staticSize,
     List<int> offsets,
@@ -108,9 +108,9 @@ void _receiptSerializeNative(
   dynamicSize += (_vsdcRcptPbctDate.length) as int;
   final size = staticSize + dynamicSize;
 
-  rawObj.buffer = alloc(size);
-  rawObj.buffer_length = size;
-  final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
+  cObj.buffer = alloc(size);
+  cObj.buffer_length = size;
+  final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
   final writer = IsarBinaryWriter(buffer, staticSize);
   writer.writeBytes(offsets[0], _intrlData);
   writer.writeBytes(offsets[1], _mrcNo);
@@ -397,7 +397,7 @@ extension ReceiptQueryFilter
     ));
   }
 
-  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> idEqualTo(int? value) {
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> idEqualTo(int value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
       property: 'id',
@@ -406,7 +406,7 @@ extension ReceiptQueryFilter
   }
 
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> idGreaterThan(
-    int? value, {
+    int value, {
     bool include = false,
   }) {
     return addFilterConditionInternal(FilterCondition(
@@ -418,7 +418,7 @@ extension ReceiptQueryFilter
   }
 
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> idLessThan(
-    int? value, {
+    int value, {
     bool include = false,
   }) {
     return addFilterConditionInternal(FilterCondition(
@@ -430,8 +430,8 @@ extension ReceiptQueryFilter
   }
 
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> idBetween(
-    int? lower,
-    int? upper, {
+    int lower,
+    int upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {

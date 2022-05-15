@@ -6,7 +6,7 @@ part of 'conversation.dart';
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable, no_leading_underscores_for_local_identifiers
 
 extension GetConversationCollection on Isar {
   IsarCollection<Conversation> get conversations => getCollection();
@@ -42,7 +42,7 @@ const ConversationSchema = CollectionSchema(
   serializeWeb: _conversationSerializeWeb,
   deserializeWeb: _conversationDeserializeWeb,
   deserializePropWeb: _conversationDeserializePropWeb,
-  version: 3,
+  version: 4,
 );
 
 int? _conversationGetId(Conversation object) {
@@ -63,7 +63,7 @@ List<IsarLinkBase> _conversationGetLinks(Conversation object) {
 
 void _conversationSerializeNative(
     IsarCollection<Conversation> collection,
-    IsarRawObject rawObj,
+    IsarCObject cObj,
     Conversation object,
     int staticSize,
     List<int> offsets,
@@ -97,9 +97,9 @@ void _conversationSerializeNative(
   dynamicSize += (_status.length) as int;
   final size = staticSize + dynamicSize;
 
-  rawObj.buffer = alloc(size);
-  rawObj.buffer_length = size;
-  final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
+  cObj.buffer = alloc(size);
+  cObj.buffer_length = size;
+  final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
   final writer = IsarBinaryWriter(buffer, staticSize);
   writer.writeLong(offsets[0], _createdAt);
   writer.writeBytes(offsets[1], _dbAvatars);

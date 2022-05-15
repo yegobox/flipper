@@ -6,7 +6,7 @@ part of flipper_models;
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable, no_leading_underscores_for_local_identifiers
 
 extension GetBranchCollection on Isar {
   IsarCollection<Branch> get branchs => getCollection();
@@ -41,7 +41,7 @@ const BranchSchema = CollectionSchema(
   serializeWeb: _branchSerializeWeb,
   deserializeWeb: _branchDeserializeWeb,
   deserializePropWeb: _branchDeserializePropWeb,
-  version: 3,
+  version: 4,
 );
 
 int? _branchGetId(Branch object) {
@@ -60,13 +60,8 @@ List<IsarLinkBase> _branchGetLinks(Branch object) {
   return [];
 }
 
-void _branchSerializeNative(
-    IsarCollection<Branch> collection,
-    IsarRawObject rawObj,
-    Branch object,
-    int staticSize,
-    List<int> offsets,
-    AdapterAlloc alloc) {
+void _branchSerializeNative(IsarCollection<Branch> collection, IsarCObject cObj,
+    Branch object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
   var dynamicSize = 0;
   final value0 = object.active;
   final _active = value0;
@@ -104,9 +99,9 @@ void _branchSerializeNative(
   dynamicSize += (_table?.length ?? 0) as int;
   final size = staticSize + dynamicSize;
 
-  rawObj.buffer = alloc(size);
-  rawObj.buffer_length = size;
-  final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
+  cObj.buffer = alloc(size);
+  cObj.buffer_length = size;
+  final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
   final writer = IsarBinaryWriter(buffer, staticSize);
   writer.writeBool(offsets[0], _active);
   writer.writeBytes(offsets[1], _description);
@@ -462,7 +457,7 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     ));
   }
 
-  QueryBuilder<Branch, Branch, QAfterFilterCondition> idEqualTo(int? value) {
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> idEqualTo(int value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
       property: 'id',
@@ -471,7 +466,7 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> idGreaterThan(
-    int? value, {
+    int value, {
     bool include = false,
   }) {
     return addFilterConditionInternal(FilterCondition(
@@ -483,7 +478,7 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> idLessThan(
-    int? value, {
+    int value, {
     bool include = false,
   }) {
     return addFilterConditionInternal(FilterCondition(
@@ -495,8 +490,8 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> idBetween(
-    int? lower,
-    int? upper, {
+    int lower,
+    int upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {

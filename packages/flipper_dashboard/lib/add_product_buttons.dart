@@ -48,7 +48,7 @@ class AddProductButtons extends StatelessWidget {
                     child: GElevatedButton(
                       'Add Discount',
                       onPressed: () {
-                        GoRouter.of(context).go(Routes.discount);
+                        GoRouter.of(context).push(Routes.discount);
                       },
                     ),
                   ),

@@ -6,7 +6,7 @@ part of flipper_models;
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable, no_leading_underscores_for_local_identifiers
 
 extension GetProfileCollection on Isar {
   IsarCollection<Profile> get profiles => getCollection();
@@ -15,7 +15,7 @@ extension GetProfileCollection on Isar {
 const ProfileSchema = CollectionSchema(
   name: 'Profile',
   schema:
-      '{"name":"Profile","idName":"id","properties":[{"name":"about","type":"String"},{"name":"address","type":"String"},{"name":"businessId","type":"Long"},{"name":"cell","type":"String"},{"name":"city","type":"String"},{"name":"country","type":"String"},{"name":"coverPic","type":"String"},{"name":"district","type":"String"},{"name":"email","type":"String"},{"name":"livingAt","type":"String"},{"name":"name","type":"String"},{"name":"nationalId","type":"String"},{"name":"phone","type":"String"},{"name":"pincode","type":"String"},{"name":"profilePic","type":"String"},{"name":"state","type":"String"},{"name":"vaccinationCode","type":"String"}],"indexes":[{"name":"businessId","unique":false,"properties":[{"name":"businessId","type":"Value","caseSensitive":false}]}],"links":[]}',
+      '{"name":"Profile","idName":"id","properties":[{"name":"about","type":"String"},{"name":"address","type":"String"},{"name":"businessId","type":"Long"},{"name":"cell","type":"String"},{"name":"city","type":"String"},{"name":"country","type":"String"},{"name":"coverPic","type":"String"},{"name":"district","type":"String"},{"name":"email","type":"String"},{"name":"livingAt","type":"String"},{"name":"name","type":"String"},{"name":"nationalId","type":"String"},{"name":"phone","type":"String"},{"name":"pincode","type":"String"},{"name":"profilePic","type":"String"},{"name":"state","type":"String"},{"name":"vaccinationCode","type":"String"}],"indexes":[{"name":"businessId","unique":false,"replace":false,"properties":[{"name":"businessId","type":"Value","caseSensitive":false}]}],"links":[]}',
   idName: 'id',
   propertyIds: {
     'about': 0,
@@ -55,7 +55,7 @@ const ProfileSchema = CollectionSchema(
   serializeWeb: _profileSerializeWeb,
   deserializeWeb: _profileDeserializeWeb,
   deserializePropWeb: _profileDeserializePropWeb,
-  version: 3,
+  version: 4,
 );
 
 int? _profileGetId(Profile object) {
@@ -76,7 +76,7 @@ List<IsarLinkBase> _profileGetLinks(Profile object) {
 
 void _profileSerializeNative(
     IsarCollection<Profile> collection,
-    IsarRawObject rawObj,
+    IsarCObject cObj,
     Profile object,
     int staticSize,
     List<int> offsets,
@@ -155,9 +155,9 @@ void _profileSerializeNative(
   dynamicSize += (_vaccinationCode.length) as int;
   final size = staticSize + dynamicSize;
 
-  rawObj.buffer = alloc(size);
-  rawObj.buffer_length = size;
-  final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
+  cObj.buffer = alloc(size);
+  cObj.buffer_length = size;
+  final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
   final writer = IsarBinaryWriter(buffer, staticSize);
   writer.writeBytes(offsets[0], _about);
   writer.writeBytes(offsets[1], _address);

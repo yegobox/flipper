@@ -6,6 +6,8 @@ import 'package:path/path.dart' as path;
 import 'dart:math';
 import 'package:test/test.dart';
 
+import 'sync_async_helper.dart';
+
 const bool kIsWeb = identical(0, 0.0);
 
 Future qEqualSet<T>(Future<Iterable<T>> actual, Iterable<T> target) async {
@@ -35,23 +37,39 @@ Future qEqualSync<T>(List<T> actual, List<T> target) async {
 var allTestsSuccessful = true;
 var testCount = 0;
 
-@isTest
-void isarTest(String name, dynamic Function() body) {
-  test(name, () async {
+Future<void> _prepareTest() async {
+  if (!kIsWeb) {
     try {
-      await body();
-      testCount++;
+      await Isar.initializeIsarCore(download: true);
     } catch (e) {
-      allTestsSuccessful = false;
-      rethrow;
+      // ignore. maybe this is an instrumentation test
     }
-  });
+  }
+}
+
+@isTest
+void isarTest(String name, dynamic Function() body, {Timeout? timeout}) {
+  test(
+    name,
+    () async {
+      try {
+        await _prepareTest();
+        await body();
+        testCount++;
+      } catch (e) {
+        allTestsSuccessful = false;
+        rethrow;
+      }
+    },
+    timeout: timeout,
+  );
 }
 
 @isTest
 void isarTestVm(String name, dynamic Function() body) {
   test(name, () async {
     try {
+      await _prepareTest();
       await body();
       testCount++;
     } catch (e) {
@@ -61,36 +79,21 @@ void isarTestVm(String name, dynamic Function() body) {
   }, skip: kIsWeb);
 }
 
-String? testTempPath;
-
-void registerBinaries() {
-  if (!kIsWeb && testTempPath == null) {
-    final dartToolDir = path.join(Directory.current.path, '.dart_tool');
-    testTempPath = path.join(dartToolDir, 'test', 'tmp');
-    try {
-      Isar.initializeLibraries(
-        libraries: {
-          'windows': path.join(dartToolDir, 'isar_windows_x64.dll'),
-          'macos': path.join(dartToolDir, 'libisar_macos.dylib'),
-          'linux': path.join(dartToolDir, 'libisar_linux_x64.so'),
-        },
-      );
-    } catch (e) {
-      // ignore. maybe this is an instrumentation test
-    }
-  }
-}
-
 String getRandomName() {
   var random = Random().nextInt(pow(2, 32) as int).toString();
   return '${random}_tmp';
 }
 
+String? testTempPath;
 Future<Isar> openTempIsar(List<CollectionSchema<dynamic>> schemas,
     {String? name}) async {
-  registerBinaries();
+  await _prepareTest();
+  if (!kIsWeb && testTempPath == null) {
+    final dartToolDir = path.join(Directory.current.path, '.dart_tool');
+    testTempPath = path.join(dartToolDir, 'test', 'tmp');
+  }
 
-  return Isar.open(
+  return await tOpen(
     schemas: schemas,
     name: name ?? getRandomName(),
     directory: kIsWeb ? '' : testTempPath!,
@@ -119,12 +122,13 @@ bool doubleListEquals(List<double?>? l1, List<double?>? l2) {
 
 Matcher isIsarError([String? contains]) {
   return allOf(
-      isA<IsarError>(),
-      predicate(
-        (IsarError e) =>
-            contains == null ||
-            e.toString().toLowerCase().contains(contains.toLowerCase()),
-      ));
+    isA<IsarError>(),
+    predicate(
+      (IsarError e) =>
+          contains == null ||
+          e.toString().toLowerCase().contains(contains.toLowerCase()),
+    ),
+  );
 }
 
 Matcher throwsIsarError([String? contains]) {
@@ -141,7 +145,7 @@ bool listEquals<T>(List<T>? a, List<T>? b) {
   if (identical(a, b)) {
     return true;
   }
-  for (int index = 0; index < a.length; index += 1) {
+  for (var index = 0; index < a.length; index += 1) {
     if (a[index] != b[index]) {
       return false;
     }

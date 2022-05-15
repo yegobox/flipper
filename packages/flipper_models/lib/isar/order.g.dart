@@ -6,7 +6,7 @@ part of 'order.dart';
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable, no_leading_underscores_for_local_identifiers
 
 extension GetOrderCollection on Isar {
   IsarCollection<Order> get orders => getCollection();
@@ -15,7 +15,7 @@ extension GetOrderCollection on Isar {
 const OrderSchema = CollectionSchema(
   name: 'Order',
   schema:
-      '{"name":"Order","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"cashReceived","type":"Double"},{"name":"createdAt","type":"String"},{"name":"customerChangeDue","type":"Double"},{"name":"customerId","type":"Long"},{"name":"draft","type":"Bool"},{"name":"note","type":"String"},{"name":"orderNumber","type":"String"},{"name":"orderType","type":"String"},{"name":"paymentType","type":"String"},{"name":"reference","type":"String"},{"name":"reported","type":"Bool"},{"name":"status","type":"String"},{"name":"subTotal","type":"Double"},{"name":"updatedAt","type":"String"}],"indexes":[{"name":"branchId","unique":false,"properties":[{"name":"branchId","type":"Value","caseSensitive":false}]},{"name":"status_branchId","unique":false,"properties":[{"name":"status","type":"Hash","caseSensitive":true},{"name":"branchId","type":"Value","caseSensitive":false}]}],"links":[{"name":"discounts","target":"Discount"},{"name":"orderItems","target":"OrderItem"}]}',
+      '{"name":"Order","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"cashReceived","type":"Double"},{"name":"createdAt","type":"String"},{"name":"customerChangeDue","type":"Double"},{"name":"customerId","type":"Long"},{"name":"draft","type":"Bool"},{"name":"note","type":"String"},{"name":"orderNumber","type":"String"},{"name":"orderType","type":"String"},{"name":"paymentType","type":"String"},{"name":"reference","type":"String"},{"name":"reported","type":"Bool"},{"name":"status","type":"String"},{"name":"subTotal","type":"Double"},{"name":"updatedAt","type":"String"}],"indexes":[{"name":"branchId","unique":false,"replace":false,"properties":[{"name":"branchId","type":"Value","caseSensitive":false}]},{"name":"status_branchId","unique":false,"replace":false,"properties":[{"name":"status","type":"Hash","caseSensitive":true},{"name":"branchId","type":"Value","caseSensitive":false}]}],"links":[{"name":"discounts","target":"Discount"},{"name":"orderItems","target":"OrderItem"}]}',
   idName: 'id',
   propertyIds: {
     'active': 0,
@@ -58,7 +58,7 @@ const OrderSchema = CollectionSchema(
   serializeWeb: _orderSerializeWeb,
   deserializeWeb: _orderDeserializeWeb,
   deserializePropWeb: _orderDeserializePropWeb,
-  version: 3,
+  version: 4,
 );
 
 int? _orderGetId(Order object) {
@@ -77,13 +77,8 @@ List<IsarLinkBase> _orderGetLinks(Order object) {
   return [object.discounts, object.orderItems];
 }
 
-void _orderSerializeNative(
-    IsarCollection<Order> collection,
-    IsarRawObject rawObj,
-    Order object,
-    int staticSize,
-    List<int> offsets,
-    AdapterAlloc alloc) {
+void _orderSerializeNative(IsarCollection<Order> collection, IsarCObject cObj,
+    Order object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
   var dynamicSize = 0;
   final value0 = object.active;
   final _active = value0;
@@ -133,9 +128,9 @@ void _orderSerializeNative(
   dynamicSize += (_updatedAt?.length ?? 0) as int;
   final size = staticSize + dynamicSize;
 
-  rawObj.buffer = alloc(size);
-  rawObj.buffer_length = size;
-  final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
+  cObj.buffer = alloc(size);
+  cObj.buffer_length = size;
+  final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
   final writer = IsarBinaryWriter(buffer, staticSize);
   writer.writeBool(offsets[0], _active);
   writer.writeLong(offsets[1], _branchId);

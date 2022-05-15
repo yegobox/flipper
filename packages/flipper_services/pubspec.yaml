@@ -63,5 +63,5 @@ dependencies:
   cloud_firestore: ^3.1.7
 dev_dependencies:
   build_runner: ^2.0.0
-  objectbox_generator: ^1.4.0
+  # objectbox_generator: ^1.4.0
   injectable_generator:

@@ -6,7 +6,7 @@ part of flipper_models;
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable, no_leading_underscores_for_local_identifiers
 
 extension GetCategoryCollection on Isar {
   IsarCollection<Category> get categorys => getCollection();
@@ -15,7 +15,7 @@ extension GetCategoryCollection on Isar {
 const CategorySchema = CollectionSchema(
   name: 'Category',
   schema:
-      '{"name":"Category","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"focused","type":"Bool"},{"name":"name","type":"String"},{"name":"table","type":"String"}],"indexes":[{"name":"branchId","unique":false,"properties":[{"name":"branchId","type":"Value","caseSensitive":false}]}],"links":[]}',
+      '{"name":"Category","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"focused","type":"Bool"},{"name":"name","type":"String"},{"name":"table","type":"String"}],"indexes":[{"name":"branchId","unique":false,"replace":false,"properties":[{"name":"branchId","type":"Value","caseSensitive":false}]}],"links":[]}',
   idName: 'id',
   propertyIds: {
     'active': 0,
@@ -43,7 +43,7 @@ const CategorySchema = CollectionSchema(
   serializeWeb: _categorySerializeWeb,
   deserializeWeb: _categoryDeserializeWeb,
   deserializePropWeb: _categoryDeserializePropWeb,
-  version: 3,
+  version: 4,
 );
 
 int? _categoryGetId(Category object) {
@@ -64,7 +64,7 @@ List<IsarLinkBase> _categoryGetLinks(Category object) {
 
 void _categorySerializeNative(
     IsarCollection<Category> collection,
-    IsarRawObject rawObj,
+    IsarCObject cObj,
     Category object,
     int staticSize,
     List<int> offsets,
@@ -87,9 +87,9 @@ void _categorySerializeNative(
   dynamicSize += (_table?.length ?? 0) as int;
   final size = staticSize + dynamicSize;
 
-  rawObj.buffer = alloc(size);
-  rawObj.buffer_length = size;
-  final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
+  cObj.buffer = alloc(size);
+  cObj.buffer_length = size;
+  final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
   final writer = IsarBinaryWriter(buffer, staticSize);
   writer.writeBool(offsets[0], _active);
   writer.writeLong(offsets[1], _branchId);

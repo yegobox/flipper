@@ -6,7 +6,7 @@ part of 'setting.dart';
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable, no_leading_underscores_for_local_identifiers
 
 extension GetSettingCollection on Isar {
   IsarCollection<Setting> get settings => getCollection();
@@ -15,7 +15,7 @@ extension GetSettingCollection on Isar {
 const SettingSchema = CollectionSchema(
   name: 'Setting',
   schema:
-      '{"name":"Setting","idName":"id","properties":[{"name":"attendnaceDocCreated","type":"Bool"},{"name":"autoPrint","type":"Bool"},{"name":"defaultLanguage","type":"String"},{"name":"email","type":"String"},{"name":"googleSheetDocCreated","type":"Bool"},{"name":"hasPin","type":"String"},{"name":"isAttendanceEnabled","type":"Bool"},{"name":"openReceiptFileOSaleComplete","type":"Bool"},{"name":"sendDailyReport","type":"Bool"},{"name":"userId","type":"Long"}],"indexes":[{"name":"userId","unique":false,"properties":[{"name":"userId","type":"Value","caseSensitive":false}]}],"links":[]}',
+      '{"name":"Setting","idName":"id","properties":[{"name":"attendnaceDocCreated","type":"Bool"},{"name":"autoPrint","type":"Bool"},{"name":"defaultLanguage","type":"String"},{"name":"email","type":"String"},{"name":"googleSheetDocCreated","type":"Bool"},{"name":"hasPin","type":"String"},{"name":"isAttendanceEnabled","type":"Bool"},{"name":"openReceiptFileOSaleComplete","type":"Bool"},{"name":"sendDailyReport","type":"Bool"},{"name":"userId","type":"Long"}],"indexes":[{"name":"userId","unique":false,"replace":false,"properties":[{"name":"userId","type":"Value","caseSensitive":false}]}],"links":[]}',
   idName: 'id',
   propertyIds: {
     'attendnaceDocCreated': 0,
@@ -48,7 +48,7 @@ const SettingSchema = CollectionSchema(
   serializeWeb: _settingSerializeWeb,
   deserializeWeb: _settingDeserializeWeb,
   deserializePropWeb: _settingDeserializePropWeb,
-  version: 3,
+  version: 4,
 );
 
 int? _settingGetId(Setting object) {
@@ -69,7 +69,7 @@ List<IsarLinkBase> _settingGetLinks(Setting object) {
 
 void _settingSerializeNative(
     IsarCollection<Setting> collection,
-    IsarRawObject rawObj,
+    IsarCObject cObj,
     Setting object,
     int staticSize,
     List<int> offsets,
@@ -103,9 +103,9 @@ void _settingSerializeNative(
   final _userId = value9;
   final size = staticSize + dynamicSize;
 
-  rawObj.buffer = alloc(size);
-  rawObj.buffer_length = size;
-  final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
+  cObj.buffer = alloc(size);
+  cObj.buffer_length = size;
+  final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
   final writer = IsarBinaryWriter(buffer, staticSize);
   writer.writeBool(offsets[0], _attendnaceDocCreated);
   writer.writeBool(offsets[1], _autoPrint);

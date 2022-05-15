@@ -6,7 +6,7 @@ part of 'feature.dart';
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable, no_leading_underscores_for_local_identifiers
 
 extension GetFeatureCollection on Isar {
   IsarCollection<Feature> get features => getCollection();
@@ -33,7 +33,7 @@ const FeatureSchema = CollectionSchema(
   serializeWeb: _featureSerializeWeb,
   deserializeWeb: _featureDeserializeWeb,
   deserializePropWeb: _featureDeserializePropWeb,
-  version: 3,
+  version: 4,
 );
 
 int? _featureGetId(Feature object) {
@@ -54,7 +54,7 @@ List<IsarLinkBase> _featureGetLinks(Feature object) {
 
 void _featureSerializeNative(
     IsarCollection<Feature> collection,
-    IsarRawObject rawObj,
+    IsarCObject cObj,
     Feature object,
     int staticSize,
     List<int> offsets,
@@ -65,9 +65,9 @@ void _featureSerializeNative(
   dynamicSize += (_name.length) as int;
   final size = staticSize + dynamicSize;
 
-  rawObj.buffer = alloc(size);
-  rawObj.buffer_length = size;
-  final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
+  cObj.buffer = alloc(size);
+  cObj.buffer_length = size;
+  final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
   final writer = IsarBinaryWriter(buffer, staticSize);
   writer.writeBytes(offsets[0], _name);
 }

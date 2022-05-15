@@ -6,7 +6,7 @@ part of flipper_models;
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable, no_leading_underscores_for_local_identifiers
 
 extension GetVariantStockCollection on Isar {
   IsarCollection<VariantStock> get variantStocks => getCollection();
@@ -47,7 +47,7 @@ const VariantStockSchema = CollectionSchema(
   serializeWeb: _variantStockSerializeWeb,
   deserializeWeb: _variantStockDeserializeWeb,
   deserializePropWeb: _variantStockDeserializePropWeb,
-  version: 3,
+  version: 4,
 );
 
 int? _variantStockGetId(VariantStock object) {
@@ -68,7 +68,7 @@ List<IsarLinkBase> _variantStockGetLinks(VariantStock object) {
 
 void _variantStockSerializeNative(
     IsarCollection<VariantStock> collection,
-    IsarRawObject rawObj,
+    IsarCObject cObj,
     VariantStock object,
     int staticSize,
     List<int> offsets,
@@ -112,9 +112,9 @@ void _variantStockSerializeNative(
   dynamicSize += (_variantName.length) as int;
   final size = staticSize + dynamicSize;
 
-  rawObj.buffer = alloc(size);
-  rawObj.buffer_length = size;
-  final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
+  cObj.buffer = alloc(size);
+  cObj.buffer_length = size;
+  final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
   final writer = IsarBinaryWriter(buffer, staticSize);
   writer.writeBool(offsets[0], _canTrackingStock);
   writer.writeDouble(offsets[1], _currentStock);

@@ -6,7 +6,7 @@ part of 'unit.dart';
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable, no_leading_underscores_for_local_identifiers
 
 extension GetUnitCollection on Isar {
   IsarCollection<Unit> get units => getCollection();
@@ -15,7 +15,7 @@ extension GetUnitCollection on Isar {
 const UnitSchema = CollectionSchema(
   name: 'Unit',
   schema:
-      '{"name":"Unit","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"name","type":"String"},{"name":"value","type":"String"}],"indexes":[{"name":"branchId","unique":false,"properties":[{"name":"branchId","type":"Value","caseSensitive":false}]}],"links":[]}',
+      '{"name":"Unit","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"name","type":"String"},{"name":"value","type":"String"}],"indexes":[{"name":"branchId","unique":false,"replace":false,"properties":[{"name":"branchId","type":"Value","caseSensitive":false}]}],"links":[]}',
   idName: 'id',
   propertyIds: {'active': 0, 'branchId': 1, 'name': 2, 'value': 3},
   listProperties: {},
@@ -37,7 +37,7 @@ const UnitSchema = CollectionSchema(
   serializeWeb: _unitSerializeWeb,
   deserializeWeb: _unitDeserializeWeb,
   deserializePropWeb: _unitDeserializePropWeb,
-  version: 3,
+  version: 4,
 );
 
 int? _unitGetId(Unit object) {
@@ -56,7 +56,7 @@ List<IsarLinkBase> _unitGetLinks(Unit object) {
   return [];
 }
 
-void _unitSerializeNative(IsarCollection<Unit> collection, IsarRawObject rawObj,
+void _unitSerializeNative(IsarCollection<Unit> collection, IsarCObject cObj,
     Unit object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
   var dynamicSize = 0;
   final value0 = object.active;
@@ -71,9 +71,9 @@ void _unitSerializeNative(IsarCollection<Unit> collection, IsarRawObject rawObj,
   dynamicSize += (_value.length) as int;
   final size = staticSize + dynamicSize;
 
-  rawObj.buffer = alloc(size);
-  rawObj.buffer_length = size;
-  final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
+  cObj.buffer = alloc(size);
+  cObj.buffer_length = size;
+  final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
   final writer = IsarBinaryWriter(buffer, staticSize);
   writer.writeBool(offsets[0], _active);
   writer.writeLong(offsets[1], _branchId);

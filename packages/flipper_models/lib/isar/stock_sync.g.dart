@@ -6,7 +6,7 @@ part of flipper_models;
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable, no_leading_underscores_for_local_identifiers
 
 extension GetStockCollection on Isar {
   IsarCollection<Stock> get stocks => getCollection();
@@ -15,7 +15,7 @@ extension GetStockCollection on Isar {
 const StockSchema = CollectionSchema(
   name: 'Stock',
   schema:
-      '{"name":"Stock","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"canTrackingStock","type":"Bool"},{"name":"currentStock","type":"Double"},{"name":"lowStock","type":"Double"},{"name":"productId","type":"Long"},{"name":"retailPrice","type":"Double"},{"name":"rsdQty","type":"Double"},{"name":"showLowStockAlert","type":"Bool"},{"name":"supplyPrice","type":"Double"},{"name":"value","type":"Double"},{"name":"variantId","type":"Long"}],"indexes":[{"name":"branchId","unique":false,"properties":[{"name":"branchId","type":"Value","caseSensitive":false}]},{"name":"productId","unique":false,"properties":[{"name":"productId","type":"Value","caseSensitive":false}]},{"name":"variantId_branchId","unique":false,"properties":[{"name":"variantId","type":"Value","caseSensitive":false},{"name":"branchId","type":"Value","caseSensitive":false}]}],"links":[]}',
+      '{"name":"Stock","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"canTrackingStock","type":"Bool"},{"name":"currentStock","type":"Double"},{"name":"lowStock","type":"Double"},{"name":"productId","type":"Long"},{"name":"retailPrice","type":"Double"},{"name":"rsdQty","type":"Double"},{"name":"showLowStockAlert","type":"Bool"},{"name":"supplyPrice","type":"Double"},{"name":"value","type":"Double"},{"name":"variantId","type":"Long"}],"indexes":[{"name":"branchId","unique":false,"replace":false,"properties":[{"name":"branchId","type":"Value","caseSensitive":false}]},{"name":"productId","unique":false,"replace":false,"properties":[{"name":"productId","type":"Value","caseSensitive":false}]},{"name":"variantId_branchId","unique":false,"replace":false,"properties":[{"name":"variantId","type":"Value","caseSensitive":false},{"name":"branchId","type":"Value","caseSensitive":false}]}],"links":[]}',
   idName: 'id',
   propertyIds: {
     'active': 0,
@@ -57,7 +57,7 @@ const StockSchema = CollectionSchema(
   serializeWeb: _stockSerializeWeb,
   deserializeWeb: _stockDeserializeWeb,
   deserializePropWeb: _stockDeserializePropWeb,
-  version: 3,
+  version: 4,
 );
 
 int? _stockGetId(Stock object) {
@@ -76,13 +76,8 @@ List<IsarLinkBase> _stockGetLinks(Stock object) {
   return [];
 }
 
-void _stockSerializeNative(
-    IsarCollection<Stock> collection,
-    IsarRawObject rawObj,
-    Stock object,
-    int staticSize,
-    List<int> offsets,
-    AdapterAlloc alloc) {
+void _stockSerializeNative(IsarCollection<Stock> collection, IsarCObject cObj,
+    Stock object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
   var dynamicSize = 0;
   final value0 = object.active;
   final _active = value0;
@@ -110,9 +105,9 @@ void _stockSerializeNative(
   final _variantId = value11;
   final size = staticSize + dynamicSize;
 
-  rawObj.buffer = alloc(size);
-  rawObj.buffer_length = size;
-  final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
+  cObj.buffer = alloc(size);
+  cObj.buffer_length = size;
+  final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
   final writer = IsarBinaryWriter(buffer, staticSize);
   writer.writeBool(offsets[0], _active);
   writer.writeLong(offsets[1], _branchId);

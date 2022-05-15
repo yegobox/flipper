@@ -6,7 +6,7 @@ part of flipper_models;
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable, no_leading_underscores_for_local_identifiers
 
 extension GetPColorCollection on Isar {
   IsarCollection<PColor> get pColors => getCollection();
@@ -40,7 +40,7 @@ const PColorSchema = CollectionSchema(
   serializeWeb: _pColorSerializeWeb,
   deserializeWeb: _pColorDeserializeWeb,
   deserializePropWeb: _pColorDeserializePropWeb,
-  version: 3,
+  version: 4,
 );
 
 int? _pColorGetId(PColor object) {
@@ -59,13 +59,8 @@ List<IsarLinkBase> _pColorGetLinks(PColor object) {
   return [];
 }
 
-void _pColorSerializeNative(
-    IsarCollection<PColor> collection,
-    IsarRawObject rawObj,
-    PColor object,
-    int staticSize,
-    List<int> offsets,
-    AdapterAlloc alloc) {
+void _pColorSerializeNative(IsarCollection<PColor> collection, IsarCObject cObj,
+    PColor object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
   var dynamicSize = 0;
   final value0 = object.active;
   final _active = value0;
@@ -109,9 +104,9 @@ void _pColorSerializeNative(
   dynamicSize += (_table?.length ?? 0) as int;
   final size = staticSize + dynamicSize;
 
-  rawObj.buffer = alloc(size);
-  rawObj.buffer_length = size;
-  final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
+  cObj.buffer = alloc(size);
+  cObj.buffer_length = size;
+  final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
   final writer = IsarBinaryWriter(buffer, staticSize);
   writer.writeBool(offsets[0], _active);
   writer.writeLong(offsets[1], _branchId);

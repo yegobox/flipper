@@ -1088,8 +1088,15 @@ class IsarAPI implements IsarApiInterface {
   @override
   Future<void> saveDiscount(
       {required int branchId, required name, double? amount}) {
-    // TODO: implement saveDiscount
-    throw UnimplementedError();
+    //save discount into isar db
+    return isar.writeTxn((isar) async {
+      Discount discount = Discount(
+        amount: amount,
+        branchId: branchId,
+        name: name,
+      );
+      await isar.discounts.put(discount);
+    });
   }
 
   @override

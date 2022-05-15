@@ -6,7 +6,7 @@ part of 'discount.dart';
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable, no_leading_underscores_for_local_identifiers
 
 extension GetDiscountCollection on Isar {
   IsarCollection<Discount> get discounts => getCollection();
@@ -15,7 +15,7 @@ extension GetDiscountCollection on Isar {
 const DiscountSchema = CollectionSchema(
   name: 'Discount',
   schema:
-      '{"name":"Discount","idName":"id","properties":[{"name":"amount","type":"Long"},{"name":"branchId","type":"Long"},{"name":"name","type":"String"}],"indexes":[{"name":"branchId","unique":false,"properties":[{"name":"branchId","type":"Value","caseSensitive":false}]}],"links":[]}',
+      '{"name":"Discount","idName":"id","properties":[{"name":"amount","type":"Double"},{"name":"branchId","type":"Long"},{"name":"name","type":"String"}],"indexes":[{"name":"branchId","unique":false,"replace":false,"properties":[{"name":"branchId","type":"Value","caseSensitive":false}]}],"links":[]}',
   idName: 'id',
   propertyIds: {'amount': 0, 'branchId': 1, 'name': 2},
   listProperties: {},
@@ -37,7 +37,7 @@ const DiscountSchema = CollectionSchema(
   serializeWeb: _discountSerializeWeb,
   deserializeWeb: _discountDeserializeWeb,
   deserializePropWeb: _discountDeserializePropWeb,
-  version: 3,
+  version: 4,
 );
 
 int? _discountGetId(Discount object) {
@@ -58,7 +58,7 @@ List<IsarLinkBase> _discountGetLinks(Discount object) {
 
 void _discountSerializeNative(
     IsarCollection<Discount> collection,
-    IsarRawObject rawObj,
+    IsarCObject cObj,
     Discount object,
     int staticSize,
     List<int> offsets,
@@ -73,11 +73,11 @@ void _discountSerializeNative(
   dynamicSize += (_name.length) as int;
   final size = staticSize + dynamicSize;
 
-  rawObj.buffer = alloc(size);
-  rawObj.buffer_length = size;
-  final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
+  cObj.buffer = alloc(size);
+  cObj.buffer_length = size;
+  final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
   final writer = IsarBinaryWriter(buffer, staticSize);
-  writer.writeLong(offsets[0], _amount);
+  writer.writeDouble(offsets[0], _amount);
   writer.writeLong(offsets[1], _branchId);
   writer.writeBytes(offsets[2], _name);
 }
@@ -85,7 +85,7 @@ void _discountSerializeNative(
 Discount _discountDeserializeNative(IsarCollection<Discount> collection, int id,
     IsarBinaryReader reader, List<int> offsets) {
   final object = Discount(
-    amount: reader.readLongOrNull(offsets[0]),
+    amount: reader.readDoubleOrNull(offsets[0]),
     branchId: reader.readLong(offsets[1]),
     id: id,
     name: reader.readString(offsets[2]),
@@ -99,7 +99,7 @@ P _discountDeserializePropNative<P>(
     case -1:
       return id as P;
     case 0:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 1:
       return (reader.readLong(offset)) as P;
     case 2:
@@ -296,51 +296,34 @@ extension DiscountQueryFilter
     ));
   }
 
-  QueryBuilder<Discount, Discount, QAfterFilterCondition> amountEqualTo(
-      int? value) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'amount',
-      value: value,
-    ));
-  }
-
   QueryBuilder<Discount, Discount, QAfterFilterCondition> amountGreaterThan(
-    int? value, {
-    bool include = false,
-  }) {
+      double? value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.gt,
-      include: include,
+      include: false,
       property: 'amount',
       value: value,
     ));
   }
 
   QueryBuilder<Discount, Discount, QAfterFilterCondition> amountLessThan(
-    int? value, {
-    bool include = false,
-  }) {
+      double? value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.lt,
-      include: include,
+      include: false,
       property: 'amount',
       value: value,
     ));
   }
 
   QueryBuilder<Discount, Discount, QAfterFilterCondition> amountBetween(
-    int? lower,
-    int? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
+      double? lower, double? upper) {
     return addFilterConditionInternal(FilterCondition.between(
       property: 'amount',
       lower: lower,
-      includeLower: includeLower,
+      includeLower: false,
       upper: upper,
-      includeUpper: includeUpper,
+      includeUpper: false,
     ));
   }
 
@@ -638,7 +621,7 @@ extension DiscountQueryWhereDistinct
 
 extension DiscountQueryProperty
     on QueryBuilder<Discount, Discount, QQueryProperty> {
-  QueryBuilder<Discount, int?, QQueryOperations> amountProperty() {
+  QueryBuilder<Discount, double?, QQueryOperations> amountProperty() {
     return addPropertyNameInternal('amount');
   }
 

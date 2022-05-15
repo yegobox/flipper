@@ -6,7 +6,7 @@ part of 'customer.dart';
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable, no_leading_underscores_for_local_identifiers
 
 extension GetCustomerCollection on Isar {
   IsarCollection<Customer> get customers => getCollection();
@@ -41,7 +41,7 @@ const CustomerSchema = CollectionSchema(
   serializeWeb: _customerSerializeWeb,
   deserializeWeb: _customerDeserializeWeb,
   deserializePropWeb: _customerDeserializePropWeb,
-  version: 3,
+  version: 4,
 );
 
 int? _customerGetId(Customer object) {
@@ -62,7 +62,7 @@ List<IsarLinkBase> _customerGetLinks(Customer object) {
 
 void _customerSerializeNative(
     IsarCollection<Customer> collection,
-    IsarRawObject rawObj,
+    IsarCObject cObj,
     Customer object,
     int staticSize,
     List<int> offsets,
@@ -95,9 +95,9 @@ void _customerSerializeNative(
   dynamicSize += (_updatedAt?.length ?? 0) as int;
   final size = staticSize + dynamicSize;
 
-  rawObj.buffer = alloc(size);
-  rawObj.buffer_length = size;
-  final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
+  cObj.buffer = alloc(size);
+  cObj.buffer_length = size;
+  final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
   final writer = IsarBinaryWriter(buffer, staticSize);
   writer.writeBytes(offsets[0], _address);
   writer.writeLong(offsets[1], _branchId);

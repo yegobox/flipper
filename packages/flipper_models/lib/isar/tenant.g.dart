@@ -6,7 +6,7 @@ part of flipper_models;
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable, no_leading_underscores_for_local_identifiers
 
 extension GetTenantSyncCollection on Isar {
   IsarCollection<TenantSync> get tenantSyncs => getCollection();
@@ -33,7 +33,7 @@ const TenantSyncSchema = CollectionSchema(
   serializeWeb: _tenantSyncSerializeWeb,
   deserializeWeb: _tenantSyncDeserializeWeb,
   deserializePropWeb: _tenantSyncDeserializePropWeb,
-  version: 3,
+  version: 4,
 );
 
 int? _tenantSyncGetId(TenantSync object) {
@@ -54,7 +54,7 @@ List<IsarLinkBase> _tenantSyncGetLinks(TenantSync object) {
 
 void _tenantSyncSerializeNative(
     IsarCollection<TenantSync> collection,
-    IsarRawObject rawObj,
+    IsarCObject cObj,
     TenantSync object,
     int staticSize,
     List<int> offsets,
@@ -71,9 +71,9 @@ void _tenantSyncSerializeNative(
   dynamicSize += (_phoneNumber.length) as int;
   final size = staticSize + dynamicSize;
 
-  rawObj.buffer = alloc(size);
-  rawObj.buffer_length = size;
-  final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
+  cObj.buffer = alloc(size);
+  cObj.buffer_length = size;
+  final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
   final writer = IsarBinaryWriter(buffer, staticSize);
   writer.writeBytes(offsets[0], _email);
   writer.writeBytes(offsets[1], _name);

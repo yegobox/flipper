@@ -6,7 +6,7 @@ part of flipper_models;
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable, no_leading_underscores_for_local_identifiers
 
 extension GetSubscriptionCollection on Isar {
   IsarCollection<Subscription> get subscriptions => getCollection();
@@ -15,7 +15,7 @@ extension GetSubscriptionCollection on Isar {
 const SubscriptionSchema = CollectionSchema(
   name: 'Subscription',
   schema:
-      '{"name":"Subscription","idName":"id","properties":[{"name":"descriptor","type":"String"},{"name":"interval","type":"Long"},{"name":"lastBillingDate","type":"String"},{"name":"nextBillingDate","type":"String"},{"name":"recurring","type":"Double"},{"name":"userId","type":"Long"}],"indexes":[{"name":"userId","unique":false,"properties":[{"name":"userId","type":"Value","caseSensitive":false}]}],"links":[{"name":"features","target":"Feature"}]}',
+      '{"name":"Subscription","idName":"id","properties":[{"name":"descriptor","type":"String"},{"name":"interval","type":"Long"},{"name":"lastBillingDate","type":"String"},{"name":"nextBillingDate","type":"String"},{"name":"recurring","type":"Double"},{"name":"userId","type":"Long"}],"indexes":[{"name":"userId","unique":false,"replace":false,"properties":[{"name":"userId","type":"Value","caseSensitive":false}]}],"links":[{"name":"features","target":"Feature"}]}',
   idName: 'id',
   propertyIds: {
     'descriptor': 0,
@@ -44,7 +44,7 @@ const SubscriptionSchema = CollectionSchema(
   serializeWeb: _subscriptionSerializeWeb,
   deserializeWeb: _subscriptionDeserializeWeb,
   deserializePropWeb: _subscriptionDeserializePropWeb,
-  version: 3,
+  version: 4,
 );
 
 int? _subscriptionGetId(Subscription object) {
@@ -65,7 +65,7 @@ List<IsarLinkBase> _subscriptionGetLinks(Subscription object) {
 
 void _subscriptionSerializeNative(
     IsarCollection<Subscription> collection,
-    IsarRawObject rawObj,
+    IsarCObject cObj,
     Subscription object,
     int staticSize,
     List<int> offsets,
@@ -88,9 +88,9 @@ void _subscriptionSerializeNative(
   final _userId = value5;
   final size = staticSize + dynamicSize;
 
-  rawObj.buffer = alloc(size);
-  rawObj.buffer_length = size;
-  final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
+  cObj.buffer = alloc(size);
+  cObj.buffer_length = size;
+  final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
   final writer = IsarBinaryWriter(buffer, staticSize);
   writer.writeBytes(offsets[0], _descriptor);
   writer.writeLong(offsets[1], _interval);

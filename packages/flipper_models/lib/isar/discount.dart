@@ -11,7 +11,7 @@ class Discount {
   late String name;
 
   /// this is to get ready when there will be option for percentage instead of amount!
-  late int? amount;
+  late double? amount;
   @Index()
   late int branchId;
 

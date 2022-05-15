@@ -6,7 +6,7 @@ part of flipper_models;
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable, no_leading_underscores_for_local_identifiers
 
 extension GetProductCollection on Isar {
   IsarCollection<Product> get products => getCollection();
@@ -15,7 +15,7 @@ extension GetProductCollection on Isar {
 const ProductSchema = CollectionSchema(
   name: 'Product',
   schema:
-      '{"name":"Product","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"barCode","type":"String"},{"name":"branchId","type":"Long"},{"name":"businessId","type":"Long"},{"name":"categoryId","type":"String"},{"name":"color","type":"String"},{"name":"createdAt","type":"String"},{"name":"currentUpdate","type":"Bool"},{"name":"description","type":"String"},{"name":"draft","type":"Bool"},{"name":"expiryDate","type":"String"},{"name":"hasPicture","type":"Bool"},{"name":"imageLocal","type":"Bool"},{"name":"imageUrl","type":"String"},{"name":"name","type":"String"},{"name":"picture","type":"String"},{"name":"supplierId","type":"String"},{"name":"synced","type":"Bool"},{"name":"table","type":"String"},{"name":"taxId","type":"String"},{"name":"unit","type":"String"}],"indexes":[{"name":"barCode","unique":false,"properties":[{"name":"barCode","type":"Hash","caseSensitive":true}]},{"name":"branchId","unique":false,"properties":[{"name":"branchId","type":"Value","caseSensitive":false}]},{"name":"draft_branchId","unique":false,"properties":[{"name":"draft","type":"Value","caseSensitive":false},{"name":"branchId","type":"Value","caseSensitive":false}]},{"name":"name","unique":false,"properties":[{"name":"name","type":"Hash","caseSensitive":true}]}],"links":[{"name":"variants","target":"Variant"}]}',
+      '{"name":"Product","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"barCode","type":"String"},{"name":"branchId","type":"Long"},{"name":"businessId","type":"Long"},{"name":"categoryId","type":"String"},{"name":"color","type":"String"},{"name":"createdAt","type":"String"},{"name":"currentUpdate","type":"Bool"},{"name":"description","type":"String"},{"name":"draft","type":"Bool"},{"name":"expiryDate","type":"String"},{"name":"hasPicture","type":"Bool"},{"name":"imageLocal","type":"Bool"},{"name":"imageUrl","type":"String"},{"name":"name","type":"String"},{"name":"picture","type":"String"},{"name":"supplierId","type":"String"},{"name":"synced","type":"Bool"},{"name":"table","type":"String"},{"name":"taxId","type":"String"},{"name":"unit","type":"String"}],"indexes":[{"name":"barCode","unique":false,"replace":false,"properties":[{"name":"barCode","type":"Hash","caseSensitive":true}]},{"name":"branchId","unique":false,"replace":false,"properties":[{"name":"branchId","type":"Value","caseSensitive":false}]},{"name":"draft_branchId","unique":false,"replace":false,"properties":[{"name":"draft","type":"Value","caseSensitive":false},{"name":"branchId","type":"Value","caseSensitive":false}]},{"name":"name","unique":false,"replace":false,"properties":[{"name":"name","type":"Hash","caseSensitive":true}]}],"links":[{"name":"variants","target":"Variant"}]}',
   idName: 'id',
   propertyIds: {
     'active': 0,
@@ -69,7 +69,7 @@ const ProductSchema = CollectionSchema(
   serializeWeb: _productSerializeWeb,
   deserializeWeb: _productDeserializeWeb,
   deserializePropWeb: _productDeserializePropWeb,
-  version: 3,
+  version: 4,
 );
 
 int? _productGetId(Product object) {
@@ -90,7 +90,7 @@ List<IsarLinkBase> _productGetLinks(Product object) {
 
 void _productSerializeNative(
     IsarCollection<Product> collection,
-    IsarRawObject rawObj,
+    IsarCObject cObj,
     Product object,
     int staticSize,
     List<int> offsets,
@@ -186,9 +186,9 @@ void _productSerializeNative(
   dynamicSize += (_unit?.length ?? 0) as int;
   final size = staticSize + dynamicSize;
 
-  rawObj.buffer = alloc(size);
-  rawObj.buffer_length = size;
-  final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
+  cObj.buffer = alloc(size);
+  cObj.buffer_length = size;
+  final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
   final writer = IsarBinaryWriter(buffer, staticSize);
   writer.writeBool(offsets[0], _active);
   writer.writeBytes(offsets[1], _barCode);
@@ -1564,7 +1564,7 @@ extension ProductQueryFilter
     ));
   }
 
-  QueryBuilder<Product, Product, QAfterFilterCondition> idEqualTo(int? value) {
+  QueryBuilder<Product, Product, QAfterFilterCondition> idEqualTo(int value) {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.eq,
       property: 'id',
@@ -1573,7 +1573,7 @@ extension ProductQueryFilter
   }
 
   QueryBuilder<Product, Product, QAfterFilterCondition> idGreaterThan(
-    int? value, {
+    int value, {
     bool include = false,
   }) {
     return addFilterConditionInternal(FilterCondition(
@@ -1585,7 +1585,7 @@ extension ProductQueryFilter
   }
 
   QueryBuilder<Product, Product, QAfterFilterCondition> idLessThan(
-    int? value, {
+    int value, {
     bool include = false,
   }) {
     return addFilterConditionInternal(FilterCondition(
@@ -1597,8 +1597,8 @@ extension ProductQueryFilter
   }
 
   QueryBuilder<Product, Product, QAfterFilterCondition> idBetween(
-    int? lower,
-    int? upper, {
+    int lower,
+    int upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {

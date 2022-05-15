@@ -6,7 +6,7 @@ part of 'payment.dart';
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable, no_leading_underscores_for_local_identifiers
 
 extension GetPaymentCollection on Isar {
   IsarCollection<Payment> get payments => getCollection();
@@ -43,7 +43,7 @@ const PaymentSchema = CollectionSchema(
   serializeWeb: _paymentSerializeWeb,
   deserializeWeb: _paymentDeserializeWeb,
   deserializePropWeb: _paymentDeserializePropWeb,
-  version: 3,
+  version: 4,
 );
 
 int? _paymentGetId(Payment object) {
@@ -64,7 +64,7 @@ List<IsarLinkBase> _paymentGetLinks(Payment object) {
 
 void _paymentSerializeNative(
     IsarCollection<Payment> collection,
-    IsarRawObject rawObj,
+    IsarCObject cObj,
     Payment object,
     int staticSize,
     List<int> offsets,
@@ -95,9 +95,9 @@ void _paymentSerializeNative(
   final _userId = value8;
   final size = staticSize + dynamicSize;
 
-  rawObj.buffer = alloc(size);
-  rawObj.buffer_length = size;
-  final buffer = IsarNative.bufAsBytes(rawObj.buffer, size);
+  cObj.buffer = alloc(size);
+  cObj.buffer_length = size;
+  final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
   final writer = IsarBinaryWriter(buffer, staticSize);
   writer.writeLong(offsets[0], _amount);
   writer.writeLong(offsets[1], _createdAt);

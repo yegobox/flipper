@@ -14,7 +14,7 @@ packages:
       name: _fe_analyzer_shared
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "38.0.0"
+    version: "39.0.0"
   adaptive_breakpoints:
     dependency: transitive
     description:
@@ -28,7 +28,7 @@ packages:
       name: analyzer
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.4.1"
+    version: "4.0.0"
   animations:
     dependency: transitive
     description:
@@ -1408,21 +1408,21 @@ packages:
       name: isar
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.4.0"
+    version: "3.0.0-dev.0"
   isar_flutter_libs:
     dependency: "direct main"
     description:
       name: isar_flutter_libs
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.4.0"
+    version: "3.0.0-dev.0"
   isar_generator:
     dependency: "direct dev"
     description:
       name: isar_generator
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.4.0"
+    version: "3.0.0-dev.0"
   js:
     dependency: transitive
     description:
@@ -1555,13 +1555,6 @@ packages:
     dependency: "direct main"
     description:
       name: objectbox
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.5.0"
-  objectbox_generator:
-    dependency: "direct dev"
-    description:
-      name: objectbox_generator
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.5.0"
