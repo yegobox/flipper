@@ -237,6 +237,6 @@ class AppSetup {
 
 // TODOhttps://github.com/juliuscanute/qr_code_scanner/pull/512 check if this is merged and remove qr_code_scanner from open-source and use the upstream one!
  
-
-
+// handle splash better than anyone!
+// https://pub.dev/packages/flutter_native_splash
 
