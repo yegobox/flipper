@@ -1,0 +1,46 @@
+# melos_managed_dependency_overrides: flipper_dashboard,flipper_data_table,flipper_finance,flipper_loading,flipper_localize,flipper_login,flipper_models,flipper_routing,flipper_rw,flipper_services,flipper_ui,flutter_chat_types,flutter_chat_ui,flutter_datetime_picker,flutter_firebase_chat_core,flutter_slidable,flutterfire_ui,google_ui,qr_code_scanner,qr_flutter,receipt,system_time_check
+dependency_overrides:
+  flipper_dashboard:
+    path: ..\\flipper_dashboard
+  flipper_data_table:
+    path: ..\\flipper_data_table
+  flipper_finance:
+    path: ..\\flipper_finance
+  flipper_loading:
+    path: ..\\flipper_loading
+  flipper_localize:
+    path: ..\\..\\lib\\flipper_localize
+  flipper_login:
+    path: ..\\flipper_login
+  flipper_models:
+    path: ..\\flipper_models
+  flipper_routing:
+    path: ..\\flipper_routing
+  flipper_rw:
+    path: ..\\..
+  flipper_services:
+    path: ..\\flipper_services
+  flipper_ui:
+    path: ..\\flipper_ui
+  flutter_chat_types:
+    path: ..\\..\\open-sources\\flutter_chat_types
+  flutter_chat_ui:
+    path: ..\\..\\open-sources\\flutter_chat_ui
+  flutter_datetime_picker:
+    path: ..\\..\\open-sources\\flutter_datetime_picker
+  flutter_firebase_chat_core:
+    path: ..\\..\\open-sources\\flutter_firebase_chat_core
+  flutter_slidable:
+    path: ..\\..\\open-sources\\flutter_slidable
+  flutterfire_ui:
+    path: ..\\flutterfire_ui
+  google_ui:
+    path: ..\\..\\open-sources\\google_ui
+  qr_code_scanner:
+    path: ..\\..\\open-sources\\qr_code_scanner
+  qr_flutter:
+    path: ..\\..\\open-sources\\qr.flutter
+  receipt:
+    path: ..\\..\\open-sources\\receipt
+  system_time_check:
+    path: ..\\..\\open-sources\\system_time_check
