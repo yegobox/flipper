@@ -15,7 +15,7 @@ extension GetVariantCollection on Isar {
 const VariantSchema = CollectionSchema(
   name: 'Variant',
   schema:
-      '{"name":"Variant","idName":"id","properties":[{"name":"addInfo","type":"String"},{"name":"bcd","type":"String"},{"name":"bhfId","type":"String"},{"name":"branchId","type":"Long"},{"name":"dftPrc","type":"Double"},{"name":"isrcAmt","type":"String"},{"name":"isrcAplcbYn","type":"String"},{"name":"isrcRt","type":"String"},{"name":"isrccCd","type":"String"},{"name":"isrccNm","type":"String"},{"name":"itemCd","type":"String"},{"name":"itemClsCd","type":"String"},{"name":"itemNm","type":"String"},{"name":"itemSeq","type":"String"},{"name":"itemStdNm","type":"String"},{"name":"itemTyCd","type":"String"},{"name":"modrId","type":"String"},{"name":"modrNm","type":"String"},{"name":"name","type":"String"},{"name":"orgnNatCd","type":"String"},{"name":"pkg","type":"String"},{"name":"pkgUnitCd","type":"String"},{"name":"prc","type":"Double"},{"name":"productId","type":"Long"},{"name":"productName","type":"String"},{"name":"qty","type":"Double"},{"name":"qtyUnitCd","type":"String"},{"name":"regrId","type":"String"},{"name":"regrNm","type":"String"},{"name":"retailPrice","type":"Double"},{"name":"rsdQty","type":"Double"},{"name":"sku","type":"String"},{"name":"splyAmt","type":"Double"},{"name":"supplyPrice","type":"Double"},{"name":"table","type":"String"},{"name":"taxName","type":"String"},{"name":"taxPercentage","type":"Double"},{"name":"taxTyCd","type":"String"},{"name":"tin","type":"Long"},{"name":"unit","type":"String"},{"name":"useYn","type":"String"}],"indexes":[{"name":"name","unique":false,"replace":false,"properties":[{"name":"name","type":"Hash","caseSensitive":true}]},{"name":"productId","unique":false,"replace":false,"properties":[{"name":"productId","type":"Value","caseSensitive":false}]}],"links":[]}',
+      '{"name":"Variant","idName":"id","properties":[{"name":"addInfo","type":"String"},{"name":"bcd","type":"String"},{"name":"bhfId","type":"String"},{"name":"branchId","type":"Long"},{"name":"dftPrc","type":"Double"},{"name":"isTaxExempted","type":"Bool"},{"name":"isrcAmt","type":"String"},{"name":"isrcAplcbYn","type":"String"},{"name":"isrcRt","type":"String"},{"name":"isrccCd","type":"String"},{"name":"isrccNm","type":"String"},{"name":"itemCd","type":"String"},{"name":"itemClsCd","type":"String"},{"name":"itemNm","type":"String"},{"name":"itemSeq","type":"String"},{"name":"itemStdNm","type":"String"},{"name":"itemTyCd","type":"String"},{"name":"modrId","type":"String"},{"name":"modrNm","type":"String"},{"name":"name","type":"String"},{"name":"orgnNatCd","type":"String"},{"name":"pkg","type":"String"},{"name":"pkgUnitCd","type":"String"},{"name":"prc","type":"Double"},{"name":"productId","type":"Long"},{"name":"productName","type":"String"},{"name":"qty","type":"Double"},{"name":"qtyUnitCd","type":"String"},{"name":"regrId","type":"String"},{"name":"regrNm","type":"String"},{"name":"retailPrice","type":"Double"},{"name":"rsdQty","type":"Double"},{"name":"sku","type":"String"},{"name":"splyAmt","type":"Double"},{"name":"supplyPrice","type":"Double"},{"name":"table","type":"String"},{"name":"taxName","type":"String"},{"name":"taxPercentage","type":"Double"},{"name":"taxTyCd","type":"String"},{"name":"tin","type":"Long"},{"name":"unit","type":"String"},{"name":"useYn","type":"String"}],"indexes":[{"name":"name","unique":false,"replace":false,"properties":[{"name":"name","type":"Hash","caseSensitive":true}]},{"name":"productId","unique":false,"replace":false,"properties":[{"name":"productId","type":"Value","caseSensitive":false}]}],"links":[]}',
   idName: 'id',
   propertyIds: {
     'addInfo': 0,
@@ -23,42 +23,43 @@ const VariantSchema = CollectionSchema(
     'bhfId': 2,
     'branchId': 3,
     'dftPrc': 4,
-    'isrcAmt': 5,
-    'isrcAplcbYn': 6,
-    'isrcRt': 7,
-    'isrccCd': 8,
-    'isrccNm': 9,
-    'itemCd': 10,
-    'itemClsCd': 11,
-    'itemNm': 12,
-    'itemSeq': 13,
-    'itemStdNm': 14,
-    'itemTyCd': 15,
-    'modrId': 16,
-    'modrNm': 17,
-    'name': 18,
-    'orgnNatCd': 19,
-    'pkg': 20,
-    'pkgUnitCd': 21,
-    'prc': 22,
-    'productId': 23,
-    'productName': 24,
-    'qty': 25,
-    'qtyUnitCd': 26,
-    'regrId': 27,
-    'regrNm': 28,
-    'retailPrice': 29,
-    'rsdQty': 30,
-    'sku': 31,
-    'splyAmt': 32,
-    'supplyPrice': 33,
-    'table': 34,
-    'taxName': 35,
-    'taxPercentage': 36,
-    'taxTyCd': 37,
-    'tin': 38,
-    'unit': 39,
-    'useYn': 40
+    'isTaxExempted': 5,
+    'isrcAmt': 6,
+    'isrcAplcbYn': 7,
+    'isrcRt': 8,
+    'isrccCd': 9,
+    'isrccNm': 10,
+    'itemCd': 11,
+    'itemClsCd': 12,
+    'itemNm': 13,
+    'itemSeq': 14,
+    'itemStdNm': 15,
+    'itemTyCd': 16,
+    'modrId': 17,
+    'modrNm': 18,
+    'name': 19,
+    'orgnNatCd': 20,
+    'pkg': 21,
+    'pkgUnitCd': 22,
+    'prc': 23,
+    'productId': 24,
+    'productName': 25,
+    'qty': 26,
+    'qtyUnitCd': 27,
+    'regrId': 28,
+    'regrNm': 29,
+    'retailPrice': 30,
+    'rsdQty': 31,
+    'sku': 32,
+    'splyAmt': 33,
+    'supplyPrice': 34,
+    'table': 35,
+    'taxName': 36,
+    'taxPercentage': 37,
+    'taxTyCd': 38,
+    'tin': 39,
+    'unit': 40,
+    'useYn': 41
   },
   listProperties: {},
   indexIds: {'name': 0, 'productId': 1},
@@ -131,169 +132,171 @@ void _variantSerializeNative(
   final _branchId = value3;
   final value4 = object.dftPrc;
   final _dftPrc = value4;
-  final value5 = object.isrcAmt;
+  final value5 = object.isTaxExempted;
+  final _isTaxExempted = value5;
+  final value6 = object.isrcAmt;
   IsarUint8List? _isrcAmt;
-  if (value5 != null) {
-    _isrcAmt = IsarBinaryWriter.utf8Encoder.convert(value5);
+  if (value6 != null) {
+    _isrcAmt = IsarBinaryWriter.utf8Encoder.convert(value6);
   }
   dynamicSize += (_isrcAmt?.length ?? 0) as int;
-  final value6 = object.isrcAplcbYn;
+  final value7 = object.isrcAplcbYn;
   IsarUint8List? _isrcAplcbYn;
-  if (value6 != null) {
-    _isrcAplcbYn = IsarBinaryWriter.utf8Encoder.convert(value6);
+  if (value7 != null) {
+    _isrcAplcbYn = IsarBinaryWriter.utf8Encoder.convert(value7);
   }
   dynamicSize += (_isrcAplcbYn?.length ?? 0) as int;
-  final value7 = object.isrcRt;
+  final value8 = object.isrcRt;
   IsarUint8List? _isrcRt;
-  if (value7 != null) {
-    _isrcRt = IsarBinaryWriter.utf8Encoder.convert(value7);
+  if (value8 != null) {
+    _isrcRt = IsarBinaryWriter.utf8Encoder.convert(value8);
   }
   dynamicSize += (_isrcRt?.length ?? 0) as int;
-  final value8 = object.isrccCd;
+  final value9 = object.isrccCd;
   IsarUint8List? _isrccCd;
-  if (value8 != null) {
-    _isrccCd = IsarBinaryWriter.utf8Encoder.convert(value8);
+  if (value9 != null) {
+    _isrccCd = IsarBinaryWriter.utf8Encoder.convert(value9);
   }
   dynamicSize += (_isrccCd?.length ?? 0) as int;
-  final value9 = object.isrccNm;
+  final value10 = object.isrccNm;
   IsarUint8List? _isrccNm;
-  if (value9 != null) {
-    _isrccNm = IsarBinaryWriter.utf8Encoder.convert(value9);
+  if (value10 != null) {
+    _isrccNm = IsarBinaryWriter.utf8Encoder.convert(value10);
   }
   dynamicSize += (_isrccNm?.length ?? 0) as int;
-  final value10 = object.itemCd;
+  final value11 = object.itemCd;
   IsarUint8List? _itemCd;
-  if (value10 != null) {
-    _itemCd = IsarBinaryWriter.utf8Encoder.convert(value10);
+  if (value11 != null) {
+    _itemCd = IsarBinaryWriter.utf8Encoder.convert(value11);
   }
   dynamicSize += (_itemCd?.length ?? 0) as int;
-  final value11 = object.itemClsCd;
+  final value12 = object.itemClsCd;
   IsarUint8List? _itemClsCd;
-  if (value11 != null) {
-    _itemClsCd = IsarBinaryWriter.utf8Encoder.convert(value11);
+  if (value12 != null) {
+    _itemClsCd = IsarBinaryWriter.utf8Encoder.convert(value12);
   }
   dynamicSize += (_itemClsCd?.length ?? 0) as int;
-  final value12 = object.itemNm;
+  final value13 = object.itemNm;
   IsarUint8List? _itemNm;
-  if (value12 != null) {
-    _itemNm = IsarBinaryWriter.utf8Encoder.convert(value12);
+  if (value13 != null) {
+    _itemNm = IsarBinaryWriter.utf8Encoder.convert(value13);
   }
   dynamicSize += (_itemNm?.length ?? 0) as int;
-  final value13 = object.itemSeq;
+  final value14 = object.itemSeq;
   IsarUint8List? _itemSeq;
-  if (value13 != null) {
-    _itemSeq = IsarBinaryWriter.utf8Encoder.convert(value13);
+  if (value14 != null) {
+    _itemSeq = IsarBinaryWriter.utf8Encoder.convert(value14);
   }
   dynamicSize += (_itemSeq?.length ?? 0) as int;
-  final value14 = object.itemStdNm;
+  final value15 = object.itemStdNm;
   IsarUint8List? _itemStdNm;
-  if (value14 != null) {
-    _itemStdNm = IsarBinaryWriter.utf8Encoder.convert(value14);
+  if (value15 != null) {
+    _itemStdNm = IsarBinaryWriter.utf8Encoder.convert(value15);
   }
   dynamicSize += (_itemStdNm?.length ?? 0) as int;
-  final value15 = object.itemTyCd;
+  final value16 = object.itemTyCd;
   IsarUint8List? _itemTyCd;
-  if (value15 != null) {
-    _itemTyCd = IsarBinaryWriter.utf8Encoder.convert(value15);
+  if (value16 != null) {
+    _itemTyCd = IsarBinaryWriter.utf8Encoder.convert(value16);
   }
   dynamicSize += (_itemTyCd?.length ?? 0) as int;
-  final value16 = object.modrId;
+  final value17 = object.modrId;
   IsarUint8List? _modrId;
-  if (value16 != null) {
-    _modrId = IsarBinaryWriter.utf8Encoder.convert(value16);
+  if (value17 != null) {
+    _modrId = IsarBinaryWriter.utf8Encoder.convert(value17);
   }
   dynamicSize += (_modrId?.length ?? 0) as int;
-  final value17 = object.modrNm;
+  final value18 = object.modrNm;
   IsarUint8List? _modrNm;
-  if (value17 != null) {
-    _modrNm = IsarBinaryWriter.utf8Encoder.convert(value17);
+  if (value18 != null) {
+    _modrNm = IsarBinaryWriter.utf8Encoder.convert(value18);
   }
   dynamicSize += (_modrNm?.length ?? 0) as int;
-  final value18 = object.name;
-  final _name = IsarBinaryWriter.utf8Encoder.convert(value18);
+  final value19 = object.name;
+  final _name = IsarBinaryWriter.utf8Encoder.convert(value19);
   dynamicSize += (_name.length) as int;
-  final value19 = object.orgnNatCd;
+  final value20 = object.orgnNatCd;
   IsarUint8List? _orgnNatCd;
-  if (value19 != null) {
-    _orgnNatCd = IsarBinaryWriter.utf8Encoder.convert(value19);
+  if (value20 != null) {
+    _orgnNatCd = IsarBinaryWriter.utf8Encoder.convert(value20);
   }
   dynamicSize += (_orgnNatCd?.length ?? 0) as int;
-  final value20 = object.pkg;
+  final value21 = object.pkg;
   IsarUint8List? _pkg;
-  if (value20 != null) {
-    _pkg = IsarBinaryWriter.utf8Encoder.convert(value20);
+  if (value21 != null) {
+    _pkg = IsarBinaryWriter.utf8Encoder.convert(value21);
   }
   dynamicSize += (_pkg?.length ?? 0) as int;
-  final value21 = object.pkgUnitCd;
+  final value22 = object.pkgUnitCd;
   IsarUint8List? _pkgUnitCd;
-  if (value21 != null) {
-    _pkgUnitCd = IsarBinaryWriter.utf8Encoder.convert(value21);
+  if (value22 != null) {
+    _pkgUnitCd = IsarBinaryWriter.utf8Encoder.convert(value22);
   }
   dynamicSize += (_pkgUnitCd?.length ?? 0) as int;
-  final value22 = object.prc;
-  final _prc = value22;
-  final value23 = object.productId;
-  final _productId = value23;
-  final value24 = object.productName;
-  final _productName = IsarBinaryWriter.utf8Encoder.convert(value24);
+  final value23 = object.prc;
+  final _prc = value23;
+  final value24 = object.productId;
+  final _productId = value24;
+  final value25 = object.productName;
+  final _productName = IsarBinaryWriter.utf8Encoder.convert(value25);
   dynamicSize += (_productName.length) as int;
-  final value25 = object.qty;
-  final _qty = value25;
-  final value26 = object.qtyUnitCd;
+  final value26 = object.qty;
+  final _qty = value26;
+  final value27 = object.qtyUnitCd;
   IsarUint8List? _qtyUnitCd;
-  if (value26 != null) {
-    _qtyUnitCd = IsarBinaryWriter.utf8Encoder.convert(value26);
+  if (value27 != null) {
+    _qtyUnitCd = IsarBinaryWriter.utf8Encoder.convert(value27);
   }
   dynamicSize += (_qtyUnitCd?.length ?? 0) as int;
-  final value27 = object.regrId;
+  final value28 = object.regrId;
   IsarUint8List? _regrId;
-  if (value27 != null) {
-    _regrId = IsarBinaryWriter.utf8Encoder.convert(value27);
+  if (value28 != null) {
+    _regrId = IsarBinaryWriter.utf8Encoder.convert(value28);
   }
   dynamicSize += (_regrId?.length ?? 0) as int;
-  final value28 = object.regrNm;
+  final value29 = object.regrNm;
   IsarUint8List? _regrNm;
-  if (value28 != null) {
-    _regrNm = IsarBinaryWriter.utf8Encoder.convert(value28);
+  if (value29 != null) {
+    _regrNm = IsarBinaryWriter.utf8Encoder.convert(value29);
   }
   dynamicSize += (_regrNm?.length ?? 0) as int;
-  final value29 = object.retailPrice;
-  final _retailPrice = value29;
-  final value30 = object.rsdQty;
-  final _rsdQty = value30;
-  final value31 = object.sku;
-  final _sku = IsarBinaryWriter.utf8Encoder.convert(value31);
+  final value30 = object.retailPrice;
+  final _retailPrice = value30;
+  final value31 = object.rsdQty;
+  final _rsdQty = value31;
+  final value32 = object.sku;
+  final _sku = IsarBinaryWriter.utf8Encoder.convert(value32);
   dynamicSize += (_sku.length) as int;
-  final value32 = object.splyAmt;
-  final _splyAmt = value32;
-  final value33 = object.supplyPrice;
-  final _supplyPrice = value33;
-  final value34 = object.table;
-  final _table = IsarBinaryWriter.utf8Encoder.convert(value34);
+  final value33 = object.splyAmt;
+  final _splyAmt = value33;
+  final value34 = object.supplyPrice;
+  final _supplyPrice = value34;
+  final value35 = object.table;
+  final _table = IsarBinaryWriter.utf8Encoder.convert(value35);
   dynamicSize += (_table.length) as int;
-  final value35 = object.taxName;
+  final value36 = object.taxName;
   IsarUint8List? _taxName;
-  if (value35 != null) {
-    _taxName = IsarBinaryWriter.utf8Encoder.convert(value35);
+  if (value36 != null) {
+    _taxName = IsarBinaryWriter.utf8Encoder.convert(value36);
   }
   dynamicSize += (_taxName?.length ?? 0) as int;
-  final value36 = object.taxPercentage;
-  final _taxPercentage = value36;
-  final value37 = object.taxTyCd;
+  final value37 = object.taxPercentage;
+  final _taxPercentage = value37;
+  final value38 = object.taxTyCd;
   IsarUint8List? _taxTyCd;
-  if (value37 != null) {
-    _taxTyCd = IsarBinaryWriter.utf8Encoder.convert(value37);
+  if (value38 != null) {
+    _taxTyCd = IsarBinaryWriter.utf8Encoder.convert(value38);
   }
   dynamicSize += (_taxTyCd?.length ?? 0) as int;
-  final value38 = object.tin;
-  final _tin = value38;
-  final value39 = object.unit;
-  final _unit = IsarBinaryWriter.utf8Encoder.convert(value39);
+  final value39 = object.tin;
+  final _tin = value39;
+  final value40 = object.unit;
+  final _unit = IsarBinaryWriter.utf8Encoder.convert(value40);
   dynamicSize += (_unit.length) as int;
-  final value40 = object.useYn;
+  final value41 = object.useYn;
   IsarUint8List? _useYn;
-  if (value40 != null) {
-    _useYn = IsarBinaryWriter.utf8Encoder.convert(value40);
+  if (value41 != null) {
+    _useYn = IsarBinaryWriter.utf8Encoder.convert(value41);
   }
   dynamicSize += (_useYn?.length ?? 0) as int;
   final size = staticSize + dynamicSize;
@@ -307,42 +310,43 @@ void _variantSerializeNative(
   writer.writeBytes(offsets[2], _bhfId);
   writer.writeLong(offsets[3], _branchId);
   writer.writeDouble(offsets[4], _dftPrc);
-  writer.writeBytes(offsets[5], _isrcAmt);
-  writer.writeBytes(offsets[6], _isrcAplcbYn);
-  writer.writeBytes(offsets[7], _isrcRt);
-  writer.writeBytes(offsets[8], _isrccCd);
-  writer.writeBytes(offsets[9], _isrccNm);
-  writer.writeBytes(offsets[10], _itemCd);
-  writer.writeBytes(offsets[11], _itemClsCd);
-  writer.writeBytes(offsets[12], _itemNm);
-  writer.writeBytes(offsets[13], _itemSeq);
-  writer.writeBytes(offsets[14], _itemStdNm);
-  writer.writeBytes(offsets[15], _itemTyCd);
-  writer.writeBytes(offsets[16], _modrId);
-  writer.writeBytes(offsets[17], _modrNm);
-  writer.writeBytes(offsets[18], _name);
-  writer.writeBytes(offsets[19], _orgnNatCd);
-  writer.writeBytes(offsets[20], _pkg);
-  writer.writeBytes(offsets[21], _pkgUnitCd);
-  writer.writeDouble(offsets[22], _prc);
-  writer.writeLong(offsets[23], _productId);
-  writer.writeBytes(offsets[24], _productName);
-  writer.writeDouble(offsets[25], _qty);
-  writer.writeBytes(offsets[26], _qtyUnitCd);
-  writer.writeBytes(offsets[27], _regrId);
-  writer.writeBytes(offsets[28], _regrNm);
-  writer.writeDouble(offsets[29], _retailPrice);
-  writer.writeDouble(offsets[30], _rsdQty);
-  writer.writeBytes(offsets[31], _sku);
-  writer.writeDouble(offsets[32], _splyAmt);
-  writer.writeDouble(offsets[33], _supplyPrice);
-  writer.writeBytes(offsets[34], _table);
-  writer.writeBytes(offsets[35], _taxName);
-  writer.writeDouble(offsets[36], _taxPercentage);
-  writer.writeBytes(offsets[37], _taxTyCd);
-  writer.writeLong(offsets[38], _tin);
-  writer.writeBytes(offsets[39], _unit);
-  writer.writeBytes(offsets[40], _useYn);
+  writer.writeBool(offsets[5], _isTaxExempted);
+  writer.writeBytes(offsets[6], _isrcAmt);
+  writer.writeBytes(offsets[7], _isrcAplcbYn);
+  writer.writeBytes(offsets[8], _isrcRt);
+  writer.writeBytes(offsets[9], _isrccCd);
+  writer.writeBytes(offsets[10], _isrccNm);
+  writer.writeBytes(offsets[11], _itemCd);
+  writer.writeBytes(offsets[12], _itemClsCd);
+  writer.writeBytes(offsets[13], _itemNm);
+  writer.writeBytes(offsets[14], _itemSeq);
+  writer.writeBytes(offsets[15], _itemStdNm);
+  writer.writeBytes(offsets[16], _itemTyCd);
+  writer.writeBytes(offsets[17], _modrId);
+  writer.writeBytes(offsets[18], _modrNm);
+  writer.writeBytes(offsets[19], _name);
+  writer.writeBytes(offsets[20], _orgnNatCd);
+  writer.writeBytes(offsets[21], _pkg);
+  writer.writeBytes(offsets[22], _pkgUnitCd);
+  writer.writeDouble(offsets[23], _prc);
+  writer.writeLong(offsets[24], _productId);
+  writer.writeBytes(offsets[25], _productName);
+  writer.writeDouble(offsets[26], _qty);
+  writer.writeBytes(offsets[27], _qtyUnitCd);
+  writer.writeBytes(offsets[28], _regrId);
+  writer.writeBytes(offsets[29], _regrNm);
+  writer.writeDouble(offsets[30], _retailPrice);
+  writer.writeDouble(offsets[31], _rsdQty);
+  writer.writeBytes(offsets[32], _sku);
+  writer.writeDouble(offsets[33], _splyAmt);
+  writer.writeDouble(offsets[34], _supplyPrice);
+  writer.writeBytes(offsets[35], _table);
+  writer.writeBytes(offsets[36], _taxName);
+  writer.writeDouble(offsets[37], _taxPercentage);
+  writer.writeBytes(offsets[38], _taxTyCd);
+  writer.writeLong(offsets[39], _tin);
+  writer.writeBytes(offsets[40], _unit);
+  writer.writeBytes(offsets[41], _useYn);
 }
 
 Variant _variantDeserializeNative(IsarCollection<Variant> collection, int id,
@@ -354,42 +358,43 @@ Variant _variantDeserializeNative(IsarCollection<Variant> collection, int id,
   object.branchId = reader.readLong(offsets[3]);
   object.dftPrc = reader.readDoubleOrNull(offsets[4]);
   object.id = id;
-  object.isrcAmt = reader.readStringOrNull(offsets[5]);
-  object.isrcAplcbYn = reader.readStringOrNull(offsets[6]);
-  object.isrcRt = reader.readStringOrNull(offsets[7]);
-  object.isrccCd = reader.readStringOrNull(offsets[8]);
-  object.isrccNm = reader.readStringOrNull(offsets[9]);
-  object.itemCd = reader.readStringOrNull(offsets[10]);
-  object.itemClsCd = reader.readStringOrNull(offsets[11]);
-  object.itemNm = reader.readStringOrNull(offsets[12]);
-  object.itemSeq = reader.readStringOrNull(offsets[13]);
-  object.itemStdNm = reader.readStringOrNull(offsets[14]);
-  object.itemTyCd = reader.readStringOrNull(offsets[15]);
-  object.modrId = reader.readStringOrNull(offsets[16]);
-  object.modrNm = reader.readStringOrNull(offsets[17]);
-  object.name = reader.readString(offsets[18]);
-  object.orgnNatCd = reader.readStringOrNull(offsets[19]);
-  object.pkg = reader.readStringOrNull(offsets[20]);
-  object.pkgUnitCd = reader.readStringOrNull(offsets[21]);
-  object.prc = reader.readDoubleOrNull(offsets[22]);
-  object.productId = reader.readLong(offsets[23]);
-  object.productName = reader.readString(offsets[24]);
-  object.qty = reader.readDoubleOrNull(offsets[25]);
-  object.qtyUnitCd = reader.readStringOrNull(offsets[26]);
-  object.regrId = reader.readStringOrNull(offsets[27]);
-  object.regrNm = reader.readStringOrNull(offsets[28]);
-  object.retailPrice = reader.readDouble(offsets[29]);
-  object.rsdQty = reader.readDoubleOrNull(offsets[30]);
-  object.sku = reader.readString(offsets[31]);
-  object.splyAmt = reader.readDoubleOrNull(offsets[32]);
-  object.supplyPrice = reader.readDouble(offsets[33]);
-  object.table = reader.readString(offsets[34]);
-  object.taxName = reader.readStringOrNull(offsets[35]);
-  object.taxPercentage = reader.readDoubleOrNull(offsets[36]);
-  object.taxTyCd = reader.readStringOrNull(offsets[37]);
-  object.tin = reader.readLongOrNull(offsets[38]);
-  object.unit = reader.readString(offsets[39]);
-  object.useYn = reader.readStringOrNull(offsets[40]);
+  object.isTaxExempted = reader.readBool(offsets[5]);
+  object.isrcAmt = reader.readStringOrNull(offsets[6]);
+  object.isrcAplcbYn = reader.readStringOrNull(offsets[7]);
+  object.isrcRt = reader.readStringOrNull(offsets[8]);
+  object.isrccCd = reader.readStringOrNull(offsets[9]);
+  object.isrccNm = reader.readStringOrNull(offsets[10]);
+  object.itemCd = reader.readStringOrNull(offsets[11]);
+  object.itemClsCd = reader.readStringOrNull(offsets[12]);
+  object.itemNm = reader.readStringOrNull(offsets[13]);
+  object.itemSeq = reader.readStringOrNull(offsets[14]);
+  object.itemStdNm = reader.readStringOrNull(offsets[15]);
+  object.itemTyCd = reader.readStringOrNull(offsets[16]);
+  object.modrId = reader.readStringOrNull(offsets[17]);
+  object.modrNm = reader.readStringOrNull(offsets[18]);
+  object.name = reader.readString(offsets[19]);
+  object.orgnNatCd = reader.readStringOrNull(offsets[20]);
+  object.pkg = reader.readStringOrNull(offsets[21]);
+  object.pkgUnitCd = reader.readStringOrNull(offsets[22]);
+  object.prc = reader.readDoubleOrNull(offsets[23]);
+  object.productId = reader.readLong(offsets[24]);
+  object.productName = reader.readString(offsets[25]);
+  object.qty = reader.readDoubleOrNull(offsets[26]);
+  object.qtyUnitCd = reader.readStringOrNull(offsets[27]);
+  object.regrId = reader.readStringOrNull(offsets[28]);
+  object.regrNm = reader.readStringOrNull(offsets[29]);
+  object.retailPrice = reader.readDouble(offsets[30]);
+  object.rsdQty = reader.readDoubleOrNull(offsets[31]);
+  object.sku = reader.readString(offsets[32]);
+  object.splyAmt = reader.readDoubleOrNull(offsets[33]);
+  object.supplyPrice = reader.readDouble(offsets[34]);
+  object.table = reader.readString(offsets[35]);
+  object.taxName = reader.readStringOrNull(offsets[36]);
+  object.taxPercentage = reader.readDoubleOrNull(offsets[37]);
+  object.taxTyCd = reader.readStringOrNull(offsets[38]);
+  object.tin = reader.readLongOrNull(offsets[39]);
+  object.unit = reader.readString(offsets[40]);
+  object.useYn = reader.readStringOrNull(offsets[41]);
   return object;
 }
 
@@ -409,7 +414,7 @@ P _variantDeserializePropNative<P>(
     case 4:
       return (reader.readDoubleOrNull(offset)) as P;
     case 5:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 6:
       return (reader.readStringOrNull(offset)) as P;
     case 7:
@@ -435,50 +440,52 @@ P _variantDeserializePropNative<P>(
     case 17:
       return (reader.readStringOrNull(offset)) as P;
     case 18:
-      return (reader.readString(offset)) as P;
-    case 19:
       return (reader.readStringOrNull(offset)) as P;
+    case 19:
+      return (reader.readString(offset)) as P;
     case 20:
       return (reader.readStringOrNull(offset)) as P;
     case 21:
       return (reader.readStringOrNull(offset)) as P;
     case 22:
-      return (reader.readDoubleOrNull(offset)) as P;
-    case 23:
-      return (reader.readLong(offset)) as P;
-    case 24:
-      return (reader.readString(offset)) as P;
-    case 25:
-      return (reader.readDoubleOrNull(offset)) as P;
-    case 26:
       return (reader.readStringOrNull(offset)) as P;
+    case 23:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 24:
+      return (reader.readLong(offset)) as P;
+    case 25:
+      return (reader.readString(offset)) as P;
+    case 26:
+      return (reader.readDoubleOrNull(offset)) as P;
     case 27:
       return (reader.readStringOrNull(offset)) as P;
     case 28:
       return (reader.readStringOrNull(offset)) as P;
     case 29:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 30:
-      return (reader.readDoubleOrNull(offset)) as P;
-    case 31:
-      return (reader.readString(offset)) as P;
-    case 32:
-      return (reader.readDoubleOrNull(offset)) as P;
-    case 33:
       return (reader.readDouble(offset)) as P;
-    case 34:
-      return (reader.readString(offset)) as P;
-    case 35:
-      return (reader.readStringOrNull(offset)) as P;
-    case 36:
+    case 31:
       return (reader.readDoubleOrNull(offset)) as P;
-    case 37:
-      return (reader.readStringOrNull(offset)) as P;
-    case 38:
-      return (reader.readLongOrNull(offset)) as P;
-    case 39:
+    case 32:
       return (reader.readString(offset)) as P;
+    case 33:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 34:
+      return (reader.readDouble(offset)) as P;
+    case 35:
+      return (reader.readString(offset)) as P;
+    case 36:
+      return (reader.readStringOrNull(offset)) as P;
+    case 37:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 38:
+      return (reader.readStringOrNull(offset)) as P;
+    case 39:
+      return (reader.readLongOrNull(offset)) as P;
     case 40:
+      return (reader.readString(offset)) as P;
+    case 41:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw 'Illegal propertyIndex';
@@ -494,6 +501,7 @@ dynamic _variantSerializeWeb(
   IsarNative.jsObjectSet(jsObj, 'branchId', object.branchId);
   IsarNative.jsObjectSet(jsObj, 'dftPrc', object.dftPrc);
   IsarNative.jsObjectSet(jsObj, 'id', object.id);
+  IsarNative.jsObjectSet(jsObj, 'isTaxExempted', object.isTaxExempted);
   IsarNative.jsObjectSet(jsObj, 'isrcAmt', object.isrcAmt);
   IsarNative.jsObjectSet(jsObj, 'isrcAplcbYn', object.isrcAplcbYn);
   IsarNative.jsObjectSet(jsObj, 'isrcRt', object.isrcRt);
@@ -543,6 +551,8 @@ Variant _variantDeserializeWeb(
       IsarNative.jsObjectGet(jsObj, 'branchId') ?? double.negativeInfinity;
   object.dftPrc = IsarNative.jsObjectGet(jsObj, 'dftPrc');
   object.id = IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity;
+  object.isTaxExempted =
+      IsarNative.jsObjectGet(jsObj, 'isTaxExempted') ?? false;
   object.isrcAmt = IsarNative.jsObjectGet(jsObj, 'isrcAmt');
   object.isrcAplcbYn = IsarNative.jsObjectGet(jsObj, 'isrcAplcbYn');
   object.isrcRt = IsarNative.jsObjectGet(jsObj, 'isrcRt');
@@ -601,6 +611,8 @@ P _variantDeserializePropWeb<P>(Object jsObj, String propertyName) {
     case 'id':
       return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
           as P;
+    case 'isTaxExempted':
+      return (IsarNative.jsObjectGet(jsObj, 'isTaxExempted') ?? false) as P;
     case 'isrcAmt':
       return (IsarNative.jsObjectGet(jsObj, 'isrcAmt')) as P;
     case 'isrcAplcbYn':
@@ -1322,6 +1334,15 @@ extension VariantQueryFilter
       includeLower: includeLower,
       upper: upper,
       includeUpper: includeUpper,
+    ));
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> isTaxExemptedEqualTo(
+      bool value) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.eq,
+      property: 'isTaxExempted',
+      value: value,
     ));
   }
 
@@ -4695,6 +4716,14 @@ extension VariantQueryWhereSortBy on QueryBuilder<Variant, Variant, QSortBy> {
     return addSortByInternal('id', Sort.desc);
   }
 
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByIsTaxExempted() {
+    return addSortByInternal('isTaxExempted', Sort.asc);
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByIsTaxExemptedDesc() {
+    return addSortByInternal('isTaxExempted', Sort.desc);
+  }
+
   QueryBuilder<Variant, Variant, QAfterSortBy> sortByIsrcAmt() {
     return addSortByInternal('isrcAmt', Sort.asc);
   }
@@ -5034,6 +5063,14 @@ extension VariantQueryWhereSortThenBy
     return addSortByInternal('id', Sort.desc);
   }
 
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByIsTaxExempted() {
+    return addSortByInternal('isTaxExempted', Sort.asc);
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByIsTaxExemptedDesc() {
+    return addSortByInternal('isTaxExempted', Sort.desc);
+  }
+
   QueryBuilder<Variant, Variant, QAfterSortBy> thenByIsrcAmt() {
     return addSortByInternal('isrcAmt', Sort.asc);
   }
@@ -5352,6 +5389,10 @@ extension VariantQueryWhereDistinct
     return addDistinctByInternal('id');
   }
 
+  QueryBuilder<Variant, Variant, QDistinct> distinctByIsTaxExempted() {
+    return addDistinctByInternal('isTaxExempted');
+  }
+
   QueryBuilder<Variant, Variant, QDistinct> distinctByIsrcAmt(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('isrcAmt', caseSensitive: caseSensitive);
@@ -5548,6 +5589,10 @@ extension VariantQueryProperty
 
   QueryBuilder<Variant, int, QQueryOperations> idProperty() {
     return addPropertyNameInternal('id');
+  }
+
+  QueryBuilder<Variant, bool, QQueryOperations> isTaxExemptedProperty() {
+    return addPropertyNameInternal('isTaxExempted');
   }
 
   QueryBuilder<Variant, String?, QQueryOperations> isrcAmtProperty() {

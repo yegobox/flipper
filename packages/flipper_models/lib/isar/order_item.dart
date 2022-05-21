@@ -21,6 +21,7 @@ class OrderItem {
   late double remainingStock;
   late String createdAt;
   late String updatedAt;
+  late bool isTaxExempted;
 
   // RRA fields
   // discount rate

@@ -22,6 +22,7 @@ class Variant {
   double? taxPercentage;
   late double supplyPrice;
   late double retailPrice;
+  late bool isTaxExempted;
 
   // add RRA fields
   String? itemSeq;

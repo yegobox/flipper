@@ -17,7 +17,6 @@ import 'package:flipper_services/language_service.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:receipt/print.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 
 class BusinessHomeViewModel extends ReactiveViewModel {
   // Services
@@ -323,6 +322,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         ..orderId = pendingOrder.id
         ..createdAt = DateTime.now().toString()
         ..updatedAt = DateTime.now().toString()
+        ..isTaxExempted = variation.isTaxExempted
 
         /// RRA fields dutira muri variants (rent from variant model)
         ..dcRt = 0.0
@@ -347,7 +347,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         ..pkgUnitCd = variation.pkgUnitCd
         ..qtyUnitCd = variation.qtyUnitCd
         ..itemNm = variation.itemNm
-        ..prc = variation.prc
+        ..prc = variation.retailPrice
         ..splyAmt = variation.splyAmt
         ..tin = variation.tin
         ..bhfId = variation.bhfId
@@ -596,12 +596,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       bank: "-",
       mrc: receipt!.mrcNo,
       internalData: receipt.intrlData,
-      // https://github.com/theyakka/qr.flutter/issues/4
-      receiptQrCode: QrImageView(
-        data: '000',
-        version: QrVersions.auto,
-        size: 200.0,
-      ),
+      receiptQrCode: 'data',
       receiptSignature: receipt.rcptSign,
       cashierName: business.name!,
       sdcId: receipt.sdcId,

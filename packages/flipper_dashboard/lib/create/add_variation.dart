@@ -26,6 +26,7 @@ class _AddVariationState extends State<AddVariation> {
   TextEditingController costController = TextEditingController();
 
   TextEditingController nameController = TextEditingController();
+  bool isTaxExempted = false;
   final log = getLogger('AddVariation');
   String sku = '';
   @override
@@ -65,6 +66,7 @@ class _AddVariationState extends State<AddVariation> {
                     ..supplyPrice = double.parse(costController.text)
                     ..productId = model.product.id!
                     ..unit = model.productService.currentUnit!
+                    ..isTaxExempted = isTaxExempted
                     ..productName = model.product.name
                     ..branchId = model.productService.branchId!
                     ..id = variantId
@@ -180,6 +182,20 @@ class _AddVariationState extends State<AddVariation> {
                             ),
                           ),
                         ),
+                        SwitchListTile(
+                            title: const Text(
+                              'Tax exempted',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            value: isTaxExempted,
+                            onChanged: (value) {
+                              setState(() {
+                                isTaxExempted = value;
+                              });
+                            }),
                         const Divider(),
                         Padding(
                           padding: const EdgeInsets.all(8.0),

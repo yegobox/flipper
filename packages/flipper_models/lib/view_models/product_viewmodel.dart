@@ -267,10 +267,11 @@ class ProductViewModel extends ReactiveViewModel {
   }
 
   /// add variation to a product [variations],[retailPrice],[supplyPrice]
-  Future<int> addVariant(
-      {List<Variant>? variations,
-      required double retailPrice,
-      required double supplyPrice}) async {
+  Future<int> addVariant({
+    List<Variant>? variations,
+    required double retailPrice,
+    required double supplyPrice,
+  }) async {
     int result = await ProxyService.isarApi.addVariant(
       data: variations!,
       retailPrice: retailPrice,

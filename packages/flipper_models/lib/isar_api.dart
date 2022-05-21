@@ -501,6 +501,7 @@ class IsarAPI implements IsarApiInterface {
         ..productName = product.name
         ..branchId = branchId
         ..taxName = 'N/A'
+        ..isTaxExempted = true
         ..taxPercentage = 0
         ..retailPrice = 0
         // RRA fields

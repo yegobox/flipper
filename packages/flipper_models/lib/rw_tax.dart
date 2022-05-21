@@ -150,6 +150,12 @@ class RWTax implements TaxApi {
     for (var i = 0; i < 10; i++) {
       randomNumber += random.nextInt(10).toString();
     }
+    double totalMinusExemptedProducts = 0;
+    for (var item in items) {
+      if (!item.isTaxExempted) {
+        totalMinusExemptedProducts += (item.prc! * item.qty);
+      }
+    }
 
     request.body = json.encode({
       "tin": business!.tinNumber,
@@ -178,7 +184,7 @@ class RWTax implements TaxApi {
       "rfdRsnCd": null,
       "totItemCnt": itemsList.length,
       "taxblAmtA": 0,
-      "taxblAmtB": order.subTotal,
+      "taxblAmtB": totalMinusExemptedProducts,
       "taxblAmtC": 0,
       "taxblAmtD": 0,
       "taxRtA": 0,
@@ -186,12 +192,12 @@ class RWTax implements TaxApi {
       "taxRtC": 0,
       "taxRtD": 0,
       "taxAmtA": 0,
-      "taxAmtB": (order.subTotal * 18 / 118).toStringAsFixed(2),
+      "taxAmtB": (totalMinusExemptedProducts * 18 / 118).toStringAsFixed(2),
       "taxAmtC": 0,
       "taxAmtD": 0,
-      "totTaxblAmt": order.subTotal,
-      "totTaxAmt": (order.subTotal * 18 / 118).toStringAsFixed(2),
-      "totAmt": order.subTotal,
+      "totTaxblAmt": totalMinusExemptedProducts,
+      "totTaxAmt": (totalMinusExemptedProducts * 18 / 118).toStringAsFixed(2),
+      "totAmt": totalMinusExemptedProducts,
       "prchrAcptcYn": "N",
       "remark": null,
       "regrId": order.id,
