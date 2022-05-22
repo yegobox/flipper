@@ -223,7 +223,6 @@ class AppSetup {
 
 //  nohup java -jar rra.war &
 // find . -name "*.bak" -type f -delete
-//FIXMEuntil this is fixed we can't upgrade melos now working is 2.0.0 https://github.com/invertase/melos/issues/117
 
 // ngix stuff:
 // https://lowendbox.com/blog/how-to-replace-apache-with-nginx-on-ubuntu-18-04/
@@ -239,4 +238,7 @@ class AppSetup {
  
 // handle splash better than anyone!
 // https://pub.dev/packages/flutter_native_splash
+
+// TODO:format date cheat sheet
+// shorturl.at/ijGU9
 

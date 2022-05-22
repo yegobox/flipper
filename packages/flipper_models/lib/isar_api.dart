@@ -42,7 +42,9 @@ class IsarAPI implements IsarApiInterface {
     int branchId = ProxyService.box.read(key: 'branchId');
     Customer kCustomer = Customer()
       ..name = customer['name']
+      ..updatedAt = DateTime.now().toString()
       ..branchId = branchId
+      ..tinNumber = num.parse(customer['tinNumber'])
       ..email = customer['email']
       ..phone = customer['phone']
       ..address = customer['address']
@@ -247,7 +249,7 @@ class IsarAPI implements IsarApiInterface {
     // update order to db
     await isar.writeTxn((isar) async {
       int id = await isar.orders.put(order);
-      return isar.orders.getSync(id)!;
+      return isar.orders.get(id);
     });
     // get customer where id = customerId from db
     //// and updat this customer with timestamp so it can trigger change!.
@@ -501,7 +503,7 @@ class IsarAPI implements IsarApiInterface {
         ..productName = product.name
         ..branchId = branchId
         ..taxName = 'N/A'
-        ..isTaxExempted = true
+        ..isTaxExempted = false
         ..taxPercentage = 0
         ..retailPrice = 0
         // RRA fields
@@ -647,6 +649,12 @@ class IsarAPI implements IsarApiInterface {
       case 'orderItem':
         isar.writeTxn((isar) async {
           await isar.orderItems.delete(id);
+          return true;
+        });
+        break;
+      case 'customer':
+        isar.writeTxn((isar) async {
+          await isar.customers.delete(id);
           return true;
         });
         break;
@@ -1429,8 +1437,12 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<Receipt?> createReceipt(
-      {required ReceiptSignature signature, required Order order}) {
+      {required ReceiptSignature signature,
+      required Order order,
+      required String qrCode,
+      required String receiptType}) {
     // add receipt to isar db
+
     return isar.writeTxn((isar) async {
       Receipt receipt = Receipt()
         ..resultCd = signature.resultCd
@@ -1438,6 +1450,8 @@ class IsarAPI implements IsarApiInterface {
         ..rcptNo = signature.data.rcptNo
         ..intrlData = signature.data.intrlData
         ..rcptSign = signature.data.rcptSign
+        ..qrCode = qrCode
+        ..receiptType = receiptType
         ..vsdcRcptPbctDate = signature.data.vsdcRcptPbctDate
         ..sdcId = signature.data.sdcId
         ..totRcptNo = signature.data.totRcptNo

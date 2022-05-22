@@ -9,8 +9,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 
 enum ForHere { lafayette, jefferson }
+
 enum ToGo { lafayette, jefferson }
+
 enum Delivery { lafayette, jefferson }
+
 enum Pickup { lafayette, jefferson }
 
 class Sell extends StatelessWidget {
@@ -608,7 +611,7 @@ class Sell extends StatelessWidget {
               onPressedCallback: () async {
                 await model.saveOrder(
                   variationId: model.checked,
-                  amount: model.amountTotal,
+                  amountTotal: model.amountTotal,
                   customItem: false,
                 );
                 GoRouter.of(context).pop();

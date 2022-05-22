@@ -1,4 +1,3 @@
-import 'package:flipper_dashboard/flipper_app.dart';
 import 'package:flipper_dashboard/sale_indicator.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -464,10 +463,7 @@ class _ResponsiveScaffoldState extends State<ResponsiveScaffold> {
         // in the 2nd part of the Row.
         Expanded(
           child: Scaffold(
-            appBar: (widget.model.tab != 1 && widget.model.tab != 2) ||
-                    (widget.model.tab == 1 &&
-                        widget.model.tab != 2 &&
-                        !isDesktopOrWeb)
+            appBar: (widget.model.tab != 1 && widget.model.tab != 3)
                 ? AppBar(
                     // systemOverlayStyle: SystemUiOverlayStyle.light,
                     title: SaleIndicator(

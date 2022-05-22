@@ -46,10 +46,9 @@ class Sell extends StatelessWidget {
             showActionButton: true,
             onPressedCallback: () async {
               log.w(model.checked);
-
               bool saved = await model.saveOrder(
                 variationId: model.checked,
-                amount: model.amountTotal,
+                amountTotal: model.amountTotal,
                 customItem: false,
               );
               if (!saved) {

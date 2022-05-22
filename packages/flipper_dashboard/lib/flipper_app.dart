@@ -208,11 +208,11 @@ class _FlipperAppState extends State<FlipperApp> {
                     icon: Icon(Icons.calculate),
                     label: 'KeyPad',
                   ),
-                  if (UniversalPlatform.isDesktopOrWeb)
-                    const BottomNavigationBarItem(
-                      icon: Icon(Icons.analytics),
-                      label: 'Analytics',
-                    ),
+                  // if (UniversalPlatform.isDesktopOrWeb)
+                  const BottomNavigationBarItem(
+                    icon: Icon(Icons.analytics),
+                    label: 'Analytics',
+                  ),
                   const BottomNavigationBarItem(
                     icon: Icon(Icons.store),
                     label: 'Store',

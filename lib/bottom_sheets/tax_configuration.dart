@@ -21,7 +21,6 @@ taxConfiguration({
             ),
             child: SizedBox(
               height: MediaQuery.of(context).size.height - 120,
-              //  height: MediaQuery.of(context).size.height * 0.8,
               child: AnimatedContainer(
                 alignment: AlignmentDirectional.topCenter,
                 duration: const Duration(seconds: 2),

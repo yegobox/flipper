@@ -4,6 +4,7 @@ import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_routing/routes.locator.dart';
 import 'package:flipper_routing/routes.logger.dart';
 // import 'package:flipper_models/isar_models.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/keypad_service.dart';
@@ -19,9 +20,6 @@ import 'package:flipper_models/isar_models.dart';
 import 'package:receipt/print.dart';
 
 class BusinessHomeViewModel extends ReactiveViewModel {
-  // Services
-  // ThemeMode themeMode = ThemeMode.system;
-
   final settingService = locator<SettingsService>();
   final languageService = locator<LanguageService>();
   final bool _updateStarted = false;
@@ -59,7 +57,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   final log = getLogger('BusinessHomeViewModel');
   final KeyPadService keypad = locator<KeyPadService>();
   final ProductService productService = locator<ProductService>();
-  final AppService _app = locator<AppService>();
+  final AppService app = locator<AppService>();
   String get key => keypad.key;
 
   late String? longitude;
@@ -104,7 +102,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         double amount = double.parse(ProxyService.keypad.key);
 
         await saveOrder(
-            amount: amount, variationId: variation!.id, customItem: true);
+            amountTotal: amount, variationId: variation!.id, customItem: true);
 
         ProxyService.keypad.reset();
       }
@@ -164,7 +162,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     return await ProxyService.isarApi.productsFuture(branchId: branchId);
   }
 
-  Business get businesses => _app.business;
+  Business get businesses => app.business;
 
   void pop() {
     ProxyService.keypad.pop();
@@ -236,7 +234,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   Future<bool> saveOrder({
     required int variationId,
-    required double amount,
+    required double amountTotal,
     required bool customItem,
   }) async {
     Variant? variation =
@@ -246,18 +244,10 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
     String name = '';
 
-    if (variation.name == 'Regular') {
-      if (variation.productName != 'Custom Amount') {
-        name = variation.productName + '(Regular)';
-      } else {
-        name = variation.productName;
-      }
+    if (variation.productName != 'Custom Amount') {
+      name = variation.productName + '(${variation.name})';
     } else {
-      if (variation.productName != 'Custom Amount') {
-        name = variation.productName + '(${variation.name})';
-      } else {
-        name = variation.productName;
-      }
+      name = variation.productName;
     }
 
     /// if variation  given it exist in the orderItems of currentPending order then we update the order with new count
@@ -275,7 +265,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       name: name,
       variation: variation,
       stock: stock,
-      amount: amount,
+      amountTotal: amountTotal,
       isCustom: customItem,
       item: existOrderItem,
     );
@@ -295,7 +285,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       required String name,
       required Variant variation,
       Stock? stock,
-      required double amount,
+      required double amountTotal,
       required bool isCustom,
       OrderItem? item}) async {
     /// just on custom item being sold we never update the orderItems
@@ -304,8 +294,8 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     ///now we will be updating the orderItem
     if (item != null && !isCustom) {
       item.qty = item.qty + quantity.toDouble();
-      item.price = item.price + amount;
-      pendingOrder!.subTotal = pendingOrder.subTotal + (amount);
+      item.price = amountTotal / quantity; // price of one unit
+      pendingOrder!.subTotal = pendingOrder.subTotal + (amountTotal);
       ProxyService.isarApi.update(data: pendingOrder);
       ProxyService.isarApi.updateOrderItem(order: pendingOrder, item: item);
       // return as have done update and we don't want to proceed.
@@ -314,7 +304,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     if (pendingOrder != null) {
       OrderItem newItem = OrderItem()
         ..qty = isCustom ? 1 : quantity.toDouble()
-        ..price = (quantity.toDouble()) * (amount / quantity.toDouble())
+        ..price = (amountTotal / quantity) // price of one unit
         ..variantId = variationId
         ..name = name
         ..discount = 0.0
@@ -361,7 +351,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         ..modrNm = variation.modrNm
         // end of fields twakuye muri variants
         ..remainingStock = stock!.currentStock - quantity;
-      pendingOrder.subTotal = pendingOrder.subTotal + amount;
+      pendingOrder.subTotal = pendingOrder.subTotal + amountTotal;
       ProxyService.isarApi.update(data: pendingOrder);
 
       ProxyService.isarApi.addOrderItem(order: pendingOrder, item: newItem);
@@ -415,11 +405,14 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       {required String email,
       required String phone,
       required String name,
-      required int orderId}) {
-    log.i({'email': email, 'phone': phone, 'name': name});
-    ProxyService.isarApi.addCustomer(
-        customer: {'email': email, 'phone': phone, 'name': name},
-        orderId: orderId);
+      required int orderId,
+      required String tinNumber}) {
+    ProxyService.isarApi.addCustomer(customer: {
+      'email': email,
+      'phone': phone,
+      'name': name,
+      'tinNumber': tinNumber
+    }, orderId: orderId);
   }
 
   Future<void> assignToSale(
@@ -496,7 +489,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     if (keypad.order == null) return 0.0;
 
     num? totalPayable =
-        keypad.order!.orderItems.fold(0, (a, b) => a! + (b.price));
+        keypad.order!.orderItems.fold(0, (a, b) => a! + (b.price * b.qty));
     await keypad.order!.orderItems.load();
 
     num? totalDiscount = keypad.order!.orderItems
@@ -580,6 +573,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     Order? order = await ProxyService.isarApi.getOrderById(id: oorder.id);
     Receipt? receipt =
         await ProxyService.isarApi.getReceipt(orderId: order!.id);
+    // get time formatted like hhmmss
 
     Print print = Print();
     print.feed(items);
@@ -593,14 +587,13 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       cash: order.subTotal,
       received: order.cashReceived,
       payMode: "Cash",
-      bank: "-",
       mrc: receipt!.mrcNo,
       internalData: receipt.intrlData,
-      receiptQrCode: 'data',
+      receiptQrCode: receipt.qrCode,
       receiptSignature: receipt.rcptSign,
       cashierName: business.name!,
       sdcId: receipt.sdcId,
-      sdcReceiptNum: receipt.rcptNo.toString(),
+      sdcReceiptNum: receipt.receiptType,
       invoiceNum: receipt.totRcptNo,
       brandName: business.name!,
       brandAddress: business.adrs ?? "No address",
@@ -608,6 +601,8 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       brandTIN: business.tinNumber.toString(),
       brandDescription: business.name!,
       brandFooter: business.name!,
+      emails: [app.customer?.email ?? 'info@yegobox.com', 'info@yegobox.com'],
+      customerTin: app.customer?.tinNumber ?? 0000000000,
     );
   }
 
@@ -621,17 +616,49 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   Future<void> generateRRAReceipt(
       {required List<OrderItem> items,
       required Business business,
+      String? receiptType = "NS",
       required Order order}) async {
-    ReceiptSignature? receiptSignature =
-        await ProxyService.tax.createReceipt(order: order, items: items);
+    ReceiptSignature? receiptSignature = await ProxyService.tax
+        .createReceipt(order: order, items: items, receiptType: receiptType!);
 
-    await ProxyService.isarApi
-        .createReceipt(signature: receiptSignature!, order: order);
+    String time = DateTime.now().toString().substring(11, 19);
+    DateTime now = DateTime.now();
+    String formattedDate = DateFormat('dd-mm-yyy').format(now);
+    // qrCode with the followinf format (ddmmyyyy)#time(hhmmss)#sdc number#sdc_receipt_number#internal_data#receipt_signature
+    String receiptNumber =
+        "${receiptSignature!.data.rcptNo}/${receiptSignature.data.totRcptNo} $receiptType";
+    String qrCode =
+        '$formattedDate#$time#${receiptSignature.data.sdcId}#$receiptNumber#${receiptSignature.data.intrlData}#${receiptSignature.data.rcptSign}';
+    await ProxyService.isarApi.createReceipt(
+        signature: receiptSignature,
+        order: order,
+        qrCode: qrCode,
+        receiptType: receiptNumber);
     receiptReady = true;
     notifyListeners();
   }
 
+  List<Order> completedOrders = [];
+  List<Order> get completedOrdersList => completedOrders;
+  set completedOrdersList(List<Order> value) {
+    completedOrders = value;
+    notifyListeners();
+  }
+
+  List<OrderItem> completedOrderItems = [];
+  List<OrderItem> get completedOrderItemsList => completedOrderItems;
+  set completedOrderItemsList(List<OrderItem> value) {
+    completedOrderItems = value;
+    notifyListeners();
+  }
+
+  Customer? get customer => app.customer;
+
+  void deleteCustomer(int id) {
+    ProxyService.isarApi.delete(id: id, endPoint: 'customer');
+  }
+
   @override
   List<ReactiveServiceMixin> get reactiveServices =>
-      [keypad, _app, productService, settingService, languageService];
+      [keypad, app, productService, settingService, languageService];
 }

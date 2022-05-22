@@ -2,13 +2,11 @@ library flipper_login;
 
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_routing/routes.logger.dart';
-import 'package:flipper_routing/routes.router.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:flipper_models/isar_models.dart';
-import 'package:go_router/go_router.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 
@@ -27,6 +25,7 @@ class _AddCustomerState extends State<AddCustomer> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _tinNumberController = TextEditingController();
   final log = getLogger('AddCustomer');
 
   bool isEmail(String? s) {
@@ -86,6 +85,16 @@ class _AddCustomerState extends State<AddCustomer> {
                           ),
                           verticalSpaceSmall,
                           BoxInputField(
+                              controller: _tinNumberController,
+                              placeholder: 'Tin number',
+                              validatorFunc: (value) {
+                                if (value!.isEmpty &&
+                                    double.parse(value).isFinite) {
+                                  return 'Tin should be a number';
+                                }
+                              }),
+                          verticalSpaceSmall,
+                          BoxInputField(
                             controller: _phoneController,
                             leading: const Icon(Icons.phone),
                             placeholder: 'Phone Number',
@@ -98,7 +107,7 @@ class _AddCustomerState extends State<AddCustomer> {
                           verticalSpaceSmall,
                           BoxInputField(
                               controller: _emailController,
-                              leading: Icon(Icons.email),
+                              leading: const Icon(Icons.email),
                               placeholder: 'Email',
                               validatorFunc: (value) {
                                 log.i(value);
@@ -126,6 +135,7 @@ class _AddCustomerState extends State<AddCustomer> {
                                         email: _emailController.text,
                                         phone: _phoneController.text,
                                         name: _nameController.text,
+                                        tinNumber: _tinNumberController.text,
                                         orderId: widget.orderId);
 
                                     Navigator.maybePop(context);

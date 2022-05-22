@@ -567,10 +567,17 @@ class MockIsarApiInterface extends _i1.Mock implements _i2.IsarApiInterface {
           returnValue: Future<bool>.value(false)) as _i9.Future<bool>);
   @override
   _i9.Future<_i2.Receipt?> createReceipt(
-          {_i10.ReceiptSignature? signature, _i2.Order? order}) =>
+          {_i10.ReceiptSignature? signature,
+          _i2.Order? order,
+          String? qrCode,
+          String? receiptType}) =>
       (super.noSuchMethod(
-              Invocation.method(
-                  #createReceipt, [], {#signature: signature, #order: order}),
+              Invocation.method(#createReceipt, [], {
+                #signature: signature,
+                #order: order,
+                #qrCode: qrCode,
+                #receiptType: receiptType
+              }),
               returnValue: Future<_i2.Receipt?>.value())
           as _i9.Future<_i2.Receipt?>);
   @override
@@ -1158,6 +1165,14 @@ class MockLocalStorage extends _i1.Mock implements _i18.LocalStorage {
   bool getNeedAccountLinkWithPhone() =>
       (super.noSuchMethod(Invocation.method(#getNeedAccountLinkWithPhone, []),
           returnValue: false) as bool);
+  @override
+  bool isPoroformaMode() =>
+      (super.noSuchMethod(Invocation.method(#isPoroformaMode, []),
+          returnValue: false) as bool);
+  @override
+  bool isTrainingMode() =>
+      (super.noSuchMethod(Invocation.method(#isTrainingMode, []),
+          returnValue: false) as bool);
 }
 
 /// A class which mocks [AppService].
@@ -1194,6 +1209,10 @@ class MockAppService extends _i1.Mock implements _i19.AppService {
   List<_i2.Business> get contacts =>
       (super.noSuchMethod(Invocation.getter(#contacts),
           returnValue: <_i2.Business>[]) as List<_i2.Business>);
+  @override
+  void setCustomer(_i2.Customer? customer) =>
+      super.noSuchMethod(Invocation.method(#setCustomer, [customer]),
+          returnValueForMissingStub: null);
   @override
   dynamic setCurrentColor({String? color}) => super
       .noSuchMethod(Invocation.method(#setCurrentColor, [], {#color: color}));

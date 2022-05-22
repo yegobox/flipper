@@ -157,9 +157,17 @@ class _CollectCashViewState extends State<CollectCashView> {
                                     model.collectCashPayment(
                                       cashReceived: model.keypad.cashReceived,
                                     );
+                                    String receiptType = ReceiptType.ns;
+                                    if (ProxyService.box.isPoroformaMode()) {
+                                      receiptType = ReceiptType.ps;
+                                    }
+                                    if (ProxyService.box.isTrainingMode()) {
+                                      receiptType = ReceiptType.ts;
+                                    }
                                     _btnController.success();
                                     GoRouter.of(context).push(
-                                        Routes.afterSale + "/$totalOrderAmount",
+                                        Routes.afterSale +
+                                            "/$totalOrderAmount/$receiptType",
                                         extra: widget.order);
                                   }
                                 } else {

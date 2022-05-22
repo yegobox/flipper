@@ -127,6 +127,7 @@ class RWTax implements TaxApi {
       {Customer? customer,
       required Order order,
       required List<OrderItem> items,
+      required String receiptType,
       re}) async {
     Business? business = await ProxyService.isarApi.getBusiness();
 
@@ -156,6 +157,29 @@ class RWTax implements TaxApi {
         totalMinusExemptedProducts += (item.prc! * item.qty);
       }
     }
+    // default is Normal sale
+    String salesTyCd = "N";
+    String rcptTyCd = "S";
+    // normal refund
+    if (receiptType == "NR") {
+      salesTyCd = "N";
+      rcptTyCd = "R";
+    }
+    // copy sale
+    if (receiptType == "CS") {
+      salesTyCd = "C";
+      rcptTyCd = "S";
+    }
+    // training sale
+    if (receiptType == "TS") {
+      salesTyCd = "T";
+      rcptTyCd = "S";
+    }
+    // profoma invoice
+    if (receiptType == "PS") {
+      salesTyCd = "P";
+      rcptTyCd = "S";
+    }
 
     request.body = json.encode({
       "tin": business!.tinNumber,
@@ -169,10 +193,8 @@ class RWTax implements TaxApi {
       "orgInvcNo": 0,
       "custTin": customer == null ? "" : customer.tinNumber,
       "custNm": customer == null ? "" : customer.name,
-      //TODONormal Sale Make this dynamic later.
-      "salesTyCd": "N",
-      //TODOThis is a sale not a refund Make this dynamic later.s
-      "rcptTyCd": "S",
+      "salesTyCd": salesTyCd,
+      "rcptTyCd": rcptTyCd,
       "pmtTyCd": "01",
       "salesSttsCd": "02",
       "cfmDt": date,

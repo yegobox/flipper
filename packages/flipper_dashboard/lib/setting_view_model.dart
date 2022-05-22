@@ -220,6 +220,22 @@ class SettingViewModel extends ReactiveViewModel {
     notifyListeners();
   }
 
+  bool get isProformaModeEnabled => ProxyService.box.isPoroformaMode();
+  set isProformaModeEnabled(bool value) {
+    if (!ProxyService.box.isTrainingMode()) {
+      ProxyService.box.write(key: 'isPoroformaMode', value: value);
+      notifyListeners();
+    }
+  }
+
+  bool get isTrainingModeEnabled => ProxyService.box.isTrainingMode();
+  set isTrainingModeEnabled(bool value) {
+    if (!ProxyService.box.isPoroformaMode()) {
+      ProxyService.box.write(key: 'isTrainingMode', value: value);
+      notifyListeners();
+    }
+  }
+
   void setIsprocessing({required bool value}) {
     _isProceeding = value;
     notifyListeners();

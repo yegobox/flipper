@@ -1,4 +1,4 @@
-import 'package:flipper_data_table/widget/scrollable_widget.dart';
+import 'package:flipper_dashboard/transactions.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_rw/bottom_sheets/general_bottom_sheet.dart';
 import 'package:flipper_dashboard/keypad_head_view.dart';
@@ -11,8 +11,6 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flipper_data_table/page/sortable_page.dart';
-import 'package:google_ui/google_ui.dart';
 import 'package:universal_platform/universal_platform.dart';
 
 import 'settings.dart';
@@ -34,37 +32,18 @@ class _BodyWidgetState extends State<BodyWidget> {
     return SafeArea(
       child: Column(
         children: [
-          if (widget.model.tab != 1 && widget.model.tab != 2) header(context),
-          if (widget.model.tab == 1 && widget.model.tab != 3 && !isDesktopOrWeb)
-            header(context),
+          if (widget.model.tab == 2) header(context),
+          if (widget.model.tab == 0) header(context),
           if (widget.model.tab == 0) KeyPadView(model: widget.model),
-          if (isDesktopOrWeb && widget.model.tab == 1)
-            widget.model.orderItems.isEmpty
-                ? GErrorMessage(
-                    icon: const Icon(Icons.error),
-                    title: "No Data for report",
-                    subtitle: "You don't have data to build your report",
-                    onPressed: () {},
-                  )
-                : Flexible(
-                    child: Center(
-                      child: ScrollableWidget(
-                        child: SortablePage(
-                          columns: const ['Item', 'price', 'Stock', 'Discount'],
-                          data: widget.model.orderItems,
-                        ),
-                      ),
-                    ),
-                  ),
-          if (!isDesktopOrWeb && widget.model.tab == 1)
-            const Flexible(child: ProductView()),
-          if (widget.model.tab == 2 && !isDesktopOrWeb)
+          if (widget.model.tab == 1) Transactions(model: widget.model),
+          if (widget.model.tab == 2) const Flexible(child: ProductView()),
+          if (widget.model.tab == 3)
             Flexible(
               child: SettingPage(
                 business: widget.model.businesses,
               ),
             ),
-          if (widget.model.tab == 3)
+          if (widget.model.tab == 4)
             Flexible(
               child: SettingPage(
                 business: widget.model.businesses,

@@ -32,6 +32,7 @@ abstract class TaxApi {
     Customer? customer,
     required Order order,
     required List<OrderItem> items,
+    required String receiptType,
     re,
   });
 }

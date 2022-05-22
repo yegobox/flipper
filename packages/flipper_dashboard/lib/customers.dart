@@ -60,69 +60,83 @@ class Customers extends StatelessWidget {
                                 padding:
                                     const EdgeInsets.only(left: 18, right: 18),
                                 child: Slidable(
-                                    child: GestureDetector(
-                                      onTap: () async {
-                                        log.i(snapshot.data!.id);
-                                        await model.assignToSale(
-                                          customerId: snapshot.data!.id,
-                                          orderId: orderId,
-                                        );
-
-                                        /// this update a model when the Order has the customerId in it then will show related data accordingly!
-                                        model.getOrderById();
-                                        GoRouter.of(context).pop();
-                                      },
-                                      onLongPress: () {},
-                                      child: Column(children: <Widget>[
-                                        ListTile(
-                                          contentPadding:
-                                              const EdgeInsets.fromLTRB(
-                                                  0, 0, 10, 0),
-                                          // leading: callImageBox(context, product),
-                                          leading: SizedBox(
-                                              height: MediaQuery.of(context)
-                                                  .size
-                                                  .height,
-                                              width: 58,
-                                              child: TextDrawable(
-                                                backgroundColor: Colors.red,
-                                                text: snapshot.data!.name,
-                                                isTappable: true,
-                                                onTap: null,
-                                                boxShape: BoxShape.rectangle,
-                                              )),
-                                          title: Text(
-                                            snapshot.data!.phone,
-                                            style: const TextStyle(
-                                                color: Colors.black),
-                                          ),
+                                  child: GestureDetector(
+                                    onTap: () async {
+                                      await model.assignToSale(
+                                        customerId: snapshot.data!.id,
+                                        orderId: orderId,
+                                      );
+                                      model.app.setCustomer(snapshot.data!);
+                                      model.getOrderById();
+                                      GoRouter.of(context).pop();
+                                    },
+                                    onLongPress: () {},
+                                    child: Column(children: <Widget>[
+                                      ListTile(
+                                        contentPadding:
+                                            const EdgeInsets.fromLTRB(
+                                                0, 0, 10, 0),
+                                        leading: SizedBox(
+                                            height: MediaQuery.of(context)
+                                                .size
+                                                .height,
+                                            width: 58,
+                                            child: TextDrawable(
+                                              backgroundColor: Colors.red,
+                                              text: snapshot.data!.name,
+                                              isTappable: true,
+                                              onTap: null,
+                                              boxShape: BoxShape.rectangle,
+                                            )),
+                                        title: Text(
+                                          snapshot.data!.phone,
+                                          style: const TextStyle(
+                                              color: Colors.black),
                                         ),
-                                        Container(
-                                          height: 0.5,
-                                          color: Colors.black26,
-                                        ),
-                                      ]),
-                                    ),
-                                    endActionPane: ActionPane(
-                                      // A motion is a widget used to control how the pane animates.
-                                      motion: const ScrollMotion(),
-
-                                      // A pane can dismiss the Slidable.
-                                      dismissible:
-                                          DismissiblePane(onDismissed: () {}),
-
-                                      // All actions are defined in the children parameter.
-                                      children: const [
-                                        // A SlidableAction can have an icon and/or a label.
-                                        SlidableAction(
-                                          onPressed: null,
-                                          backgroundColor: Color(0xFFFE4A49),
-                                          foregroundColor: Colors.white,
-                                          icon: Icons.delete,
-                                          label: 'Delete',
-                                        ),
-                                      ],
-                                    )),
+                                      ),
+                                      Container(
+                                        height: 0.5,
+                                        color: Colors.black26,
+                                      ),
+                                    ]),
+                                  ),
+                                  startActionPane: ActionPane(
+                                    motion: const ScrollMotion(),
+                                    dismissible:
+                                        DismissiblePane(onDismissed: () {}),
+                                    children: [
+                                      SlidableAction(
+                                        onPressed: (_) {
+                                          model.deleteCustomer(
+                                              snapshot.data!.id);
+                                        },
+                                        backgroundColor:
+                                            const Color(0xFFFE4A49),
+                                        foregroundColor: Colors.white,
+                                        icon: Icons.delete,
+                                        label: 'Delete',
+                                      ),
+                                    ],
+                                  ),
+                                  endActionPane: ActionPane(
+                                    motion: const ScrollMotion(),
+                                    dismissible:
+                                        DismissiblePane(onDismissed: () {}),
+                                    children: [
+                                      SlidableAction(
+                                        onPressed: (_) {
+                                          model.deleteCustomer(
+                                              snapshot.data!.id);
+                                        },
+                                        backgroundColor:
+                                            const Color(0xFFFE4A49),
+                                        foregroundColor: Colors.white,
+                                        icon: Icons.delete,
+                                        label: 'Delete',
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               )
                             : const SizedBox.shrink();
                       }),

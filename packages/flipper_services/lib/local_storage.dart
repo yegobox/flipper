@@ -53,4 +53,14 @@ class LocalStorageImpl implements LocalStorage {
   int? currentOrderId() {
     return box.read('currentOrderId');
   }
+
+  @override
+  bool isPoroformaMode() {
+    return box.read('isPoroformaMode') ?? false;
+  }
+
+  @override
+  bool isTrainingMode() {
+    return box.read('isTrainingMode') ?? false;
+  }
 }

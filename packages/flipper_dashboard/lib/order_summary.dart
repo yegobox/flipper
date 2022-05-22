@@ -34,12 +34,10 @@ class OrderSummary extends StatelessWidget {
             children: [
               // A SlidableAction can have an icon and/or a label.
               SlidableAction(
-                onPressed: (_) {
-                  // TODOwhen deleting the item from summary
-                  // then also remove it's total contribution from the order's subTotal
+                onPressed: (_) async {
                   model.kOrder!.subTotal =
                       model.kOrder!.subTotal - (item.price * item.qty);
-                  ProxyService.isarApi.update(data: model.kOrder);
+                  await ProxyService.isarApi.update(data: model.kOrder);
                   model.deleteOrderItem(id: item.id, context: context);
                   model.currentOrder();
                 },
@@ -58,10 +56,10 @@ class OrderSummary extends StatelessWidget {
             children: [
               // A SlidableAction can have an icon and/or a label.
               SlidableAction(
-                onPressed: (_) {
+                onPressed: (_) async {
                   model.kOrder!.subTotal =
                       model.kOrder!.subTotal - (item.price * item.qty);
-                  ProxyService.isarApi.update(data: model.kOrder);
+                  await ProxyService.isarApi.update(data: model.kOrder);
                   model.deleteOrderItem(id: item.id, context: context);
                   model.currentOrder();
                 },
@@ -75,7 +73,7 @@ class OrderSummary extends StatelessWidget {
           child: ListTile(
             contentPadding: const EdgeInsets.only(left: 40.0, right: 40.0),
             trailing: Text(
-              'RWF ' + display(item.price).toString(),
+              'RWF ' + display(item.price * item.qty).toString(),
               style: const TextStyle(color: Colors.black),
             ),
             leading: Text(

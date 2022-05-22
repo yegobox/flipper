@@ -31,6 +31,12 @@ class AppService with ReactiveServiceMixin {
   final _currentColor = ReactiveValue<String>('#ee5253');
   String get currentColor => _currentColor.value;
 
+  final _customer = ReactiveValue<Customer?>(null);
+  Customer? get customer => _customer.value;
+  void setCustomer(Customer? customer) {
+    _customer.value = customer;
+  }
+
   setCurrentColor({required String color}) {
     _currentColor.value = color;
   }

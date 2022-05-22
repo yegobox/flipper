@@ -19,6 +19,7 @@ class TaxConfiguration extends StatefulWidget {
 
 class _TaxConfigurationState extends State<TaxConfiguration> {
   String _supportLine = "";
+  bool isTaxEnabled = false;
   @override
   void initState() {
     setState(() {
@@ -32,6 +33,11 @@ class _TaxConfigurationState extends State<TaxConfiguration> {
     return ViewModelBuilder<SettingViewModel>.reactive(
       viewModelBuilder: () => SettingViewModel(),
       onModelReady: (model) async {
+        if (await ProxyService.isarApi.isTaxEnabled()) {
+          setState(() {
+            isTaxEnabled = true;
+          });
+        }
         Business? business = await ProxyService.isarApi.getBusiness();
         model.isEbmActive = business?.tinNumber != null &&
             business?.bhfId != null &&
@@ -85,7 +91,23 @@ class _TaxConfigurationState extends State<TaxConfiguration> {
                         header: header(title: 'Activate EBM', context: context),
                       );
                     }
-                  })
+                  }),
+              if (isTaxEnabled)
+                SwitchListTile.adaptive(
+                    title: const Text('Training mode'),
+                    value: model.isTrainingModeEnabled,
+                    onChanged: (value) {
+                      model.isTrainingModeEnabled =
+                          !model.isTrainingModeEnabled;
+                    }),
+              if (isTaxEnabled)
+                SwitchListTile.adaptive(
+                    title: const Text('Proforma mode'),
+                    value: model.isProformaModeEnabled,
+                    onChanged: (value) {
+                      model.isProformaModeEnabled =
+                          !model.isProformaModeEnabled;
+                    })
             ],
           ),
         );

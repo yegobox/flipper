@@ -15,6 +15,8 @@ class Receipt {
   late String vsdcRcptPbctDate;
   late String sdcId;
   late String mrcNo;
+  late String qrCode;
+  late String receiptType;
   @Index()
   late int orderId;
 }

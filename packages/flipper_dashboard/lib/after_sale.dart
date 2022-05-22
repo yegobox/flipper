@@ -14,10 +14,14 @@ import 'package:go_router/go_router.dart';
 
 class AfterSale extends StatefulWidget {
   const AfterSale(
-      {Key? key, required this.totalOrderAmount, required this.order})
+      {Key? key,
+      required this.totalOrderAmount,
+      required this.order,
+      this.receiptType = ReceiptType.ns})
       : super(key: key);
   final double totalOrderAmount;
   final Order order;
+  final String? receiptType;
 
   @override
   _AfterSaleState createState() => _AfterSaleState();
@@ -29,7 +33,6 @@ class _AfterSaleState extends State<AfterSale> {
     decimal: 0,
   );
   final log = getLogger('AfterSale');
-  //TODOif the EBM is on then
 
   @override
   void initState() {
@@ -41,6 +44,7 @@ class _AfterSaleState extends State<AfterSale> {
     return ViewModelBuilder<BusinessHomeViewModel>.reactive(
         builder: (context, model, child) {
           return SafeArea(
+            top: false,
             child: Scaffold(
               appBar: CustomAppBar(
                 useTransparentButton: false,
@@ -55,14 +59,11 @@ class _AfterSaleState extends State<AfterSale> {
                 onPressedCallback: () async {
                   await model.getOrderById();
                   GoRouter.of(context).push(
-                      Routes.customers + '/' + model.kOrder!.id.toString());
+                      Routes.customers + '/' + widget.order.id.toString());
                 },
                 leftActionButtonName:
-                    model.kOrder != null && model.kOrder!.customerId != null
-                        ? 'Remove Customer'
-                        : 'New Sale',
+                    model.app.customer != null ? 'New Sale' : 'New Sale',
                 rightActionButtonName: 'Add Customer',
-                // icon: Icons.close,
                 multi: 3,
                 bottomSpacer: 52,
               ),
@@ -110,67 +111,48 @@ class _AfterSaleState extends State<AfterSale> {
                                       const Text(
                                           'How would you like your receipt?'),
                                       const SizedBox(height: 10),
-                                      ProxyService.remoteConfig
-                                              .isReceiptOnEmail()
-                                          ? Padding(
-                                              padding: const EdgeInsets.only(
-                                                  left: 18, right: 18),
-                                              child: SizedBox(
-                                                height: 50,
-                                                width: double.infinity,
-                                                child: GOutlinedButton(
-                                                  'Email',
-                                                  onPressed: () {},
-                                                ),
-                                              ),
-                                            )
-                                          : Padding(
-                                              padding: const EdgeInsets.only(
-                                                  left: 18, right: 18),
-                                              child: SizedBox(
-                                                height: 50,
-                                                width: double.infinity,
-                                                child: GOutlinedButton(
-                                                  'Print Now',
-                                                  onPressed: () async {
-                                                    if (await ProxyService
-                                                        .isarApi
-                                                        .isTaxEnabled()) {
-                                                      if (model.receiptReady) {
-                                                        Business? business =
-                                                            await ProxyService
-                                                                .isarApi
-                                                                .getBusiness();
-                                                        List<OrderItem> items =
-                                                            await ProxyService
-                                                                .isarApi
-                                                                .orderItems(
-                                                          orderId:
-                                                              widget.order.id,
-                                                        );
-                                                        model.printReceipt(
-                                                          items: items,
-                                                          business: business!,
-                                                          oorder: widget.order,
-                                                        );
-                                                      } else {
-                                                        //show scaffold message
-                                                        ScaffoldMessenger.of(
-                                                                context)
-                                                            .showSnackBar(
-                                                          const SnackBar(
-                                                            backgroundColor:
-                                                                Colors.red,
-                                                            content: Text(
-                                                                "We are generating receipt wait a few seconds and try again"),
-                                                          ),
-                                                        );
-                                                      }
-                                                    }
-                                                  },
-                                                ),
-                                              ),
-                                            ),
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                            left: 18, right: 18),
+                                        child: SizedBox(
+                                          height: 50,
+                                          width: double.infinity,
+                                          child: GOutlinedButton(
+                                            'Email Receipt',
+                                            onPressed: () async {
+                                              if (await ProxyService.isarApi
+                                                  .isTaxEnabled()) {
+                                                if (model.receiptReady) {
+                                                  Business? business =
+                                                      await ProxyService.isarApi
+                                                          .getBusiness();
+                                                  List<OrderItem> items =
+                                                      await ProxyService.isarApi
+                                                          .orderItems(
+                                                    orderId: widget.order.id,
+                                                  );
+                                                  model.printReceipt(
+                                                    items: items,
+                                                    business: business!,
+                                                    oorder: widget.order,
+                                                  );
+                                                } else {
+                                                  //show scaffold message
+                                                  ScaffoldMessenger.of(context)
+                                                      .showSnackBar(
+                                                    const SnackBar(
+                                                      backgroundColor:
+                                                          Colors.red,
+                                                      content: Text(
+                                                          "We are generating receipt wait a few seconds and try again"),
+                                                    ),
+                                                  );
+                                                }
+                                              }
+                                            },
+                                          ),
+                                        ),
+                                      ),
                                       const SizedBox(height: 20),
                                       Padding(
                                         padding: const EdgeInsets.only(
@@ -267,10 +249,10 @@ class _AfterSaleState extends State<AfterSale> {
                 await ProxyService.isarApi.orderItems(orderId: widget.order.id);
 
             model.generateRRAReceipt(
-              items: items,
-              business: business!,
-              order: widget.order,
-            );
+                items: items,
+                business: business!,
+                order: widget.order,
+                receiptType: widget.receiptType);
           }
         },
         viewModelBuilder: () => BusinessHomeViewModel());

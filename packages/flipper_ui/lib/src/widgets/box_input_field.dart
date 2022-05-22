@@ -42,7 +42,10 @@ class BoxInputField extends StatelessWidget {
         }
       },
       validator: (value) {
-        return validatorFunc!(value);
+        if (validatorFunc != null) {
+          return validatorFunc!(value);
+        }
+        return null;
       },
       style: Theme.of(context)
           .textTheme
