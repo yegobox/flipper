@@ -48,37 +48,34 @@ class _TransactionDetailState extends State<TransactionDetail> {
           model.completedOrderItemsList = items;
         },
         builder: (context, model, child) {
-          return Flexible(
-            child: Scaffold(
-              appBar: AppBar(
-                title: Text('FRW ' +
-                    widget.order.subTotal.toInt().toString() +
-                    " Sale"),
-                elevation: 1,
-              ),
-              body: Column(
-                children: [
-                  OutlinedButton(
-                    onPressed: () {
-                      GoRouter.of(context).push(
-                          Routes.afterSale +
-                              "/${widget.order.subTotal}/${ReceiptType.nr}",
-                          extra: widget.order);
-                    },
-                    child: const Text('Issue Refund'),
-                  ),
-                  OutlinedButton(
-                    onPressed: () {
-                      GoRouter.of(context).push(
-                          Routes.afterSale +
-                              "/${widget.order.subTotal}/${ReceiptType.cs}",
-                          extra: widget.order);
-                    },
-                    child: const Text('New receipt'),
-                  ),
-                  ..._list(items: model.completedOrderItemsList),
-                ],
-              ),
+          return Scaffold(
+            appBar: AppBar(
+              title: Text(
+                  'FRW ' + widget.order.subTotal.toInt().toString() + " Sale"),
+              elevation: 1,
+            ),
+            body: Column(
+              children: [
+                OutlinedButton(
+                  onPressed: () {
+                    GoRouter.of(context).push(
+                        Routes.afterSale +
+                            "/${widget.order.subTotal}/${ReceiptType.nr}",
+                        extra: widget.order);
+                  },
+                  child: const Text('Issue Refund'),
+                ),
+                OutlinedButton(
+                  onPressed: () {
+                    GoRouter.of(context).push(
+                        Routes.afterSale +
+                            "/${widget.order.subTotal}/${ReceiptType.cs}",
+                        extra: widget.order);
+                  },
+                  child: const Text('New receipt'),
+                ),
+                ..._list(items: model.completedOrderItemsList),
+              ],
             ),
           );
         });
