@@ -17,7 +17,6 @@ class _TransactionsState extends State<Transactions> {
   String lastSeen = "";
   List<Widget> list = [];
   List<Widget> _list({required List<Order> completedOrder}) {
-    list.clear();
     for (Order order in completedOrder) {
       if (lastSeen != order.createdAt.substring(0, 10)) {
         setState(() {
@@ -67,9 +66,9 @@ class _TransactionsState extends State<Transactions> {
               .completedOrders(branchId: ProxyService.box.getBranchId()!);
 
           model.completedOrdersList = completedOrders;
-          List<Widget> lists = _list(completedOrder: completedOrders);
+
           setState(() {
-            list = lists;
+            list = _list(completedOrder: completedOrders);
           });
         },
         viewModelBuilder: () => BusinessHomeViewModel(),
@@ -80,9 +79,11 @@ class _TransactionsState extends State<Transactions> {
                 title: const Text('Transactions'),
                 elevation: 1,
               ),
-              body: ListView(
-                children: list,
-              ),
+              body: list.isEmpty
+                  ? const Center(child: Text("No Transactions"))
+                  : ListView(
+                      children: list,
+                    ),
             ),
           );
         });

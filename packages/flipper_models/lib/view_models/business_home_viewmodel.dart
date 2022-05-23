@@ -638,17 +638,17 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     notifyListeners();
   }
 
-  List<Order> completedOrders = [];
-  List<Order> get completedOrdersList => completedOrders;
+  List<Order> _completedOrders = [];
+  List<Order> get completedOrdersList => _completedOrders;
   set completedOrdersList(List<Order> value) {
-    completedOrders = value;
+    _completedOrders = value;
     notifyListeners();
   }
 
-  List<OrderItem> completedOrderItems = [];
-  List<OrderItem> get completedOrderItemsList => completedOrderItems;
+  List<OrderItem> _completedOrderItems = [];
+  List<OrderItem> get completedOrderItemsList => _completedOrderItems;
   set completedOrderItemsList(List<OrderItem> value) {
-    completedOrderItems = value;
+    _completedOrderItems = value;
     notifyListeners();
   }
 

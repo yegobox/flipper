@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_services/proxy.dart';
@@ -41,6 +43,8 @@ class _TransactionDetailState extends State<TransactionDetail> {
         onModelReady: (model) async {
           List<OrderItem> items =
               await ProxyService.isarApi.orderItems(orderId: widget.order.id);
+          log(items.toString());
+
           model.completedOrderItemsList = items;
         },
         builder: (context, model, child) {
@@ -72,7 +76,7 @@ class _TransactionDetailState extends State<TransactionDetail> {
                     },
                     child: const Text('New receipt'),
                   ),
-                  ..._list(items: model.completedOrderItems)
+                  ..._list(items: model.completedOrderItemsList),
                 ],
               ),
             ),
