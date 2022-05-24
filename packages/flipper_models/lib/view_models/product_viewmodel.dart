@@ -287,7 +287,8 @@ class ProductViewModel extends ReactiveViewModel {
 
   /// When called should check the related product's variant and set the retail and or supply price
   /// of related stock
-  void updateRegularVariant({double? supplyPrice, double? retailPrice}) async {
+  Future<void> updateRegularVariant(
+      {double? supplyPrice, double? retailPrice}) async {
     if (supplyPrice != null) {
       for (Variant variation in variants!) {
         if (variation.name == "Regular") {

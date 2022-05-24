@@ -104,6 +104,12 @@ class _AddProductViewState extends State<AddProductView> {
               onPressedCallback: () async {
                 await model.addProduct(
                     mproduct: model.product, name: productName.text);
+                // then re-update the product default variant with retail price
+                // retailPriceController this is to present missing out key stroke.
+                await model.updateRegularVariant(
+                    retailPrice: double.parse(retailPriceController.text));
+                await model.updateRegularVariant(
+                    supplyPrice: double.parse(supplyPriceController.text));
                 await model.loadProducts();
                 GoRouter.of(context).pop();
               },
@@ -162,11 +168,11 @@ class _AddProductViewState extends State<AddProductView> {
                   verticalSpaceSmall,
                   RetailPrice(
                     controller: retailPriceController,
-                    onModelUpdate: (value) {
+                    onModelUpdate: (value) async {
                       String trimed = value.trim();
                       if (trimed.isNotEmpty) {
                         model.isPriceSet(true);
-                        model.updateRegularVariant(
+                        await model.updateRegularVariant(
                             retailPrice: double.parse(value));
                       } else {
                         model.isPriceSet(false);
@@ -176,10 +182,10 @@ class _AddProductViewState extends State<AddProductView> {
                   verticalSpaceSmall,
                   SupplyPrice(
                     controller: supplyPriceController,
-                    onModelUpdate: (value) {
+                    onModelUpdate: (value) async {
                       String trimed = value.trim();
                       if (trimed.isNotEmpty) {
-                        model.updateRegularVariant(
+                        await model.updateRegularVariant(
                             supplyPrice: double.parse(value));
                       }
                     },
