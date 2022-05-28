@@ -44,7 +44,7 @@ class IsarAPI implements IsarApiInterface {
       ..name = customer['name']
       ..updatedAt = DateTime.now().toString()
       ..branchId = branchId
-      ..tinNumber = num.parse(customer['tinNumber'])
+      ..tinNumber = customer['tinNumber']
       ..email = customer['email']
       ..phone = customer['phone']
       ..address = customer['address']

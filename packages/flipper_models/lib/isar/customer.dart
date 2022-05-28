@@ -12,5 +12,5 @@ class Customer {
   late int orderId;
   late int branchId;
   String? updatedAt;
-  num? tinNumber;
+  String? tinNumber;
 }
