@@ -132,10 +132,11 @@ class _AfterSaleState extends State<AfterSale> {
                                                     orderId: widget.order.id,
                                                   );
                                                   model.printReceipt(
-                                                    items: items,
-                                                    business: business!,
-                                                    oorder: widget.order,
-                                                  );
+                                                      items: items,
+                                                      business: business!,
+                                                      oorder: widget.order,
+                                                      invoiceType:
+                                                          widget.receiptType!);
                                                 } else {
                                                   //show scaffold message
                                                   ScaffoldMessenger.of(context)

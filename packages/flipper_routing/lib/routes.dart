@@ -175,7 +175,7 @@ class AppSetup {
 
 // Microsoft stuff.
 // https://www.microsoft.com/en-us/microsoft-365/business/compare-all-microsoft-365-business-products
-// https://admin.microsoft.com/AdminPortal/Home/users
+// https://admin.microsoft.com
 // info@yegobox1.onmicrosoft.com
 // User details
 // Display name: info

@@ -567,6 +567,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   void printReceipt(
       {required List<OrderItem> items,
       required Business business,
+      required String invoiceType,
       required Order oorder}) async {
     // get receipt from isar related to this order
     // get refreshed order with cash received
@@ -602,7 +603,8 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       brandDescription: business.name!,
       brandFooter: business.name!,
       emails: [app.customer?.email ?? 'info@yegobox.com', 'info@yegobox.com'],
-      customerTin: app.customer?.tinNumber ?? 0000000000,
+      customerTin: app.customer?.tinNumber.toString() ?? "0000000000",
+      invoiceType: invoiceType,
     );
   }
 

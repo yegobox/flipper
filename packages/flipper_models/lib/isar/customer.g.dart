@@ -15,7 +15,7 @@ extension GetCustomerCollection on Isar {
 const CustomerSchema = CollectionSchema(
   name: 'Customer',
   schema:
-      '{"name":"Customer","idName":"id","properties":[{"name":"address","type":"String"},{"name":"branchId","type":"Long"},{"name":"email","type":"String"},{"name":"name","type":"String"},{"name":"orderId","type":"Long"},{"name":"phone","type":"String"},{"name":"updatedAt","type":"String"}],"indexes":[],"links":[]}',
+      '{"name":"Customer","idName":"id","properties":[{"name":"address","type":"String"},{"name":"branchId","type":"Long"},{"name":"email","type":"String"},{"name":"name","type":"String"},{"name":"orderId","type":"Long"},{"name":"phone","type":"String"},{"name":"tinNumber","type":"String"},{"name":"updatedAt","type":"String"}],"indexes":[],"links":[]}',
   idName: 'id',
   propertyIds: {
     'address': 0,
@@ -24,7 +24,8 @@ const CustomerSchema = CollectionSchema(
     'name': 3,
     'orderId': 4,
     'phone': 5,
-    'updatedAt': 6
+    'tinNumber': 6,
+    'updatedAt': 7
   },
   listProperties: {},
   indexIds: {},
@@ -87,10 +88,16 @@ void _customerSerializeNative(
   final value5 = object.phone;
   final _phone = IsarBinaryWriter.utf8Encoder.convert(value5);
   dynamicSize += (_phone.length) as int;
-  final value6 = object.updatedAt;
-  IsarUint8List? _updatedAt;
+  final value6 = object.tinNumber;
+  IsarUint8List? _tinNumber;
   if (value6 != null) {
-    _updatedAt = IsarBinaryWriter.utf8Encoder.convert(value6);
+    _tinNumber = IsarBinaryWriter.utf8Encoder.convert(value6);
+  }
+  dynamicSize += (_tinNumber?.length ?? 0) as int;
+  final value7 = object.updatedAt;
+  IsarUint8List? _updatedAt;
+  if (value7 != null) {
+    _updatedAt = IsarBinaryWriter.utf8Encoder.convert(value7);
   }
   dynamicSize += (_updatedAt?.length ?? 0) as int;
   final size = staticSize + dynamicSize;
@@ -105,7 +112,8 @@ void _customerSerializeNative(
   writer.writeBytes(offsets[3], _name);
   writer.writeLong(offsets[4], _orderId);
   writer.writeBytes(offsets[5], _phone);
-  writer.writeBytes(offsets[6], _updatedAt);
+  writer.writeBytes(offsets[6], _tinNumber);
+  writer.writeBytes(offsets[7], _updatedAt);
 }
 
 Customer _customerDeserializeNative(IsarCollection<Customer> collection, int id,
@@ -118,7 +126,8 @@ Customer _customerDeserializeNative(IsarCollection<Customer> collection, int id,
   object.name = reader.readString(offsets[3]);
   object.orderId = reader.readLong(offsets[4]);
   object.phone = reader.readString(offsets[5]);
-  object.updatedAt = reader.readStringOrNull(offsets[6]);
+  object.tinNumber = reader.readStringOrNull(offsets[6]);
+  object.updatedAt = reader.readStringOrNull(offsets[7]);
   return object;
 }
 
@@ -141,6 +150,8 @@ P _customerDeserializePropNative<P>(
       return (reader.readString(offset)) as P;
     case 6:
       return (reader.readStringOrNull(offset)) as P;
+    case 7:
+      return (reader.readStringOrNull(offset)) as P;
     default:
       throw 'Illegal propertyIndex';
   }
@@ -156,6 +167,7 @@ dynamic _customerSerializeWeb(
   IsarNative.jsObjectSet(jsObj, 'name', object.name);
   IsarNative.jsObjectSet(jsObj, 'orderId', object.orderId);
   IsarNative.jsObjectSet(jsObj, 'phone', object.phone);
+  IsarNative.jsObjectSet(jsObj, 'tinNumber', object.tinNumber);
   IsarNative.jsObjectSet(jsObj, 'updatedAt', object.updatedAt);
   return jsObj;
 }
@@ -172,6 +184,7 @@ Customer _customerDeserializeWeb(
   object.orderId =
       IsarNative.jsObjectGet(jsObj, 'orderId') ?? double.negativeInfinity;
   object.phone = IsarNative.jsObjectGet(jsObj, 'phone') ?? '';
+  object.tinNumber = IsarNative.jsObjectGet(jsObj, 'tinNumber');
   object.updatedAt = IsarNative.jsObjectGet(jsObj, 'updatedAt');
   return object;
 }
@@ -195,6 +208,8 @@ P _customerDeserializePropWeb<P>(Object jsObj, String propertyName) {
           double.negativeInfinity) as P;
     case 'phone':
       return (IsarNative.jsObjectGet(jsObj, 'phone') ?? '') as P;
+    case 'tinNumber':
+      return (IsarNative.jsObjectGet(jsObj, 'tinNumber')) as P;
     case 'updatedAt':
       return (IsarNative.jsObjectGet(jsObj, 'updatedAt')) as P;
     default:
@@ -830,6 +845,117 @@ extension CustomerQueryFilter
     ));
   }
 
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> tinNumberIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'tinNumber',
+      value: null,
+    ));
+  }
+
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> tinNumberEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.eq,
+      property: 'tinNumber',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> tinNumberGreaterThan(
+    String? value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.gt,
+      include: include,
+      property: 'tinNumber',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> tinNumberLessThan(
+    String? value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.lt,
+      include: include,
+      property: 'tinNumber',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> tinNumberBetween(
+    String? lower,
+    String? upper, {
+    bool caseSensitive = true,
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition.between(
+      property: 'tinNumber',
+      lower: lower,
+      includeLower: includeLower,
+      upper: upper,
+      includeUpper: includeUpper,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> tinNumberStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.startsWith,
+      property: 'tinNumber',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> tinNumberEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.endsWith,
+      property: 'tinNumber',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> tinNumberContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.contains,
+      property: 'tinNumber',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> tinNumberMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.matches,
+      property: 'tinNumber',
+      value: pattern,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
   QueryBuilder<Customer, Customer, QAfterFilterCondition> updatedAtIsNull() {
     return addFilterConditionInternal(FilterCondition(
       type: ConditionType.isNull,
@@ -1003,6 +1129,14 @@ extension CustomerQueryWhereSortBy
     return addSortByInternal('phone', Sort.desc);
   }
 
+  QueryBuilder<Customer, Customer, QAfterSortBy> sortByTinNumber() {
+    return addSortByInternal('tinNumber', Sort.asc);
+  }
+
+  QueryBuilder<Customer, Customer, QAfterSortBy> sortByTinNumberDesc() {
+    return addSortByInternal('tinNumber', Sort.desc);
+  }
+
   QueryBuilder<Customer, Customer, QAfterSortBy> sortByUpdatedAt() {
     return addSortByInternal('updatedAt', Sort.asc);
   }
@@ -1070,6 +1204,14 @@ extension CustomerQueryWhereSortThenBy
     return addSortByInternal('phone', Sort.desc);
   }
 
+  QueryBuilder<Customer, Customer, QAfterSortBy> thenByTinNumber() {
+    return addSortByInternal('tinNumber', Sort.asc);
+  }
+
+  QueryBuilder<Customer, Customer, QAfterSortBy> thenByTinNumberDesc() {
+    return addSortByInternal('tinNumber', Sort.desc);
+  }
+
   QueryBuilder<Customer, Customer, QAfterSortBy> thenByUpdatedAt() {
     return addSortByInternal('updatedAt', Sort.asc);
   }
@@ -1113,6 +1255,11 @@ extension CustomerQueryWhereDistinct
     return addDistinctByInternal('phone', caseSensitive: caseSensitive);
   }
 
+  QueryBuilder<Customer, Customer, QDistinct> distinctByTinNumber(
+      {bool caseSensitive = true}) {
+    return addDistinctByInternal('tinNumber', caseSensitive: caseSensitive);
+  }
+
   QueryBuilder<Customer, Customer, QDistinct> distinctByUpdatedAt(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('updatedAt', caseSensitive: caseSensitive);
@@ -1147,6 +1294,10 @@ extension CustomerQueryProperty
 
   QueryBuilder<Customer, String, QQueryOperations> phoneProperty() {
     return addPropertyNameInternal('phone');
+  }
+
+  QueryBuilder<Customer, String?, QQueryOperations> tinNumberProperty() {
+    return addPropertyNameInternal('tinNumber');
   }
 
   QueryBuilder<Customer, String?, QQueryOperations> updatedAtProperty() {

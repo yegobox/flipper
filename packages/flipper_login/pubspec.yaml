@@ -16,7 +16,7 @@ dependencies:
   flutterfire_ui: ^0.4.1-dev-19
   flutter_form_bloc: ^0.29.3
   firebase_auth_desktop: ^0.1.1-dev.6
-  firebase_core: ^1.14.0
+  firebase_core: ^1.10.2
   firebase_core_desktop: ^0.1.1-dev.3
   flipper_services: ^0.0.1-dev.6
   flipper_dashboard: ^0.0.1-dev.5
@@ -24,10 +24,10 @@ dependencies:
   flipper_models: ^0.0.1-dev.7
   overlay_support: ^2.0.0-beta.0
   flutter_settings_ui: ^2.0.1
-  stacked: ^2.2.8
+  stacked: ^2.3.8
   google_fonts: ^2.1.0
   flipper_ui: ^1.0.3
-  firebase_auth: ^3.3.5
+  firebase_auth: ^3.3.19
   go_router: ^3.1.0
   flipper_routing: ^0.0.1-dev.3
   connectivity_plus: ^2.2.0
