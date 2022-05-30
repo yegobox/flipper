@@ -63,4 +63,9 @@ class LocalStorageImpl implements LocalStorage {
   bool isTrainingMode() {
     return box.read('isTrainingMode') ?? false;
   }
+
+  @override
+  bool isAutoPrintEnabled() {
+    return box.read('isAutoPrintEnabled') ?? false;
+  }
 }

@@ -11,4 +11,6 @@ abstract class LocalStorage {
   int? currentOrderId();
   bool isPoroformaMode();
   bool isTrainingMode();
+
+  bool isAutoPrintEnabled();
 }

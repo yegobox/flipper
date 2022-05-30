@@ -135,7 +135,7 @@ class _AfterSaleState extends State<AfterSale> {
                                                       items: items,
                                                       business: business!,
                                                       oorder: widget.order,
-                                                      invoiceType:
+                                                      receiptType:
                                                           widget.receiptType!);
                                                 } else {
                                                   //show scaffold message
