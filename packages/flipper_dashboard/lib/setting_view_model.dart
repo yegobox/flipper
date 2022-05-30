@@ -236,6 +236,12 @@ class SettingViewModel extends ReactiveViewModel {
     }
   }
 
+  bool get isAutoPrintEnabled => ProxyService.box.isAutoPrintEnabled();
+  set isAutoPrintEnabled(bool value) {
+    ProxyService.box.write(key: 'isAutoPrintEnabled', value: value);
+    notifyListeners();
+  }
+
   void setIsprocessing({required bool value}) {
     _isProceeding = value;
     notifyListeners();

@@ -445,6 +445,14 @@ void main() async {
             child: const TaxConfiguration(),
           ),
         ),
+        GoRoute(
+          path: '/printing',
+          name: 'printing',
+          pageBuilder: (context, state) => MaterialPage(
+            key: state.pageKey,
+            child: const TaxConfiguration(),
+          ),
+        ),
       ],
     );
     ErrorWidget.builder = (details) => Material(

@@ -567,7 +567,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   void printReceipt(
       {required List<OrderItem> items,
       required Business business,
-      required String invoiceType,
+      required String receiptType,
       required Order oorder}) async {
     // get receipt from isar related to this order
     // get refreshed order with cash received
@@ -604,7 +604,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       brandFooter: business.name!,
       emails: [app.customer?.email ?? 'info@yegobox.com', 'info@yegobox.com'],
       customerTin: app.customer?.tinNumber.toString() ?? "0000000000",
-      invoiceType: invoiceType,
+      receiptType: receiptType,
     );
   }
 
@@ -628,7 +628,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     String formattedDate = DateFormat('dd-mm-yyy').format(now);
     // qrCode with the followinf format (ddmmyyyy)#time(hhmmss)#sdc number#sdc_receipt_number#internal_data#receipt_signature
     String receiptNumber =
-        "${receiptSignature!.data.rcptNo}/${receiptSignature.data.totRcptNo} $receiptType";
+        "${receiptSignature!.data.rcptNo}/${receiptSignature.data.totRcptNo}";
     String qrCode =
         '$formattedDate#$time#${receiptSignature.data.sdcId}#$receiptNumber#${receiptSignature.data.intrlData}#${receiptSignature.data.rcptSign}';
     await ProxyService.isarApi.createReceipt(
