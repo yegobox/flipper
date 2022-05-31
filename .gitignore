@@ -55,3 +55,4 @@ runner/**
 # runner
 # windows
 passwords.yaml
+package_config.json
