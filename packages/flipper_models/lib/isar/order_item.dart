@@ -14,14 +14,13 @@ class OrderItem {
   late double qty;
   late double price;
   double? discount;
-
   String? type;
   bool? reported;
-
   late double remainingStock;
   late String createdAt;
   late String updatedAt;
   late bool isTaxExempted;
+  bool? isRefunded;
 
   // RRA fields
   // discount rate

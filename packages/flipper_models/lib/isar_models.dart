@@ -4,7 +4,6 @@ export 'isar/points.dart';
 export 'isar/pin.dart';
 export 'isar/order_item.dart';
 export 'isar/order.dart';
-export 'isar/message.dart';
 export 'isar/feature.dart';
 export 'isar/discount.dart';
 export 'isar/customer.dart';

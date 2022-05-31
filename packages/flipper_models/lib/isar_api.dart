@@ -1051,11 +1051,11 @@ class IsarAPI implements IsarApiInterface {
     }
   }
 
-  @override
-  Stream<List<Message>> messages({required int conversationId}) {
-    // TODO: implement messages
-    throw UnimplementedError();
-  }
+  // @override
+  // Stream<List<Message>> messages({required int conversationId}) {
+  //   // TODO: implement messages
+  //   throw UnimplementedError();
+  // }
 
   @override
   void migrateToSync() {
@@ -1111,11 +1111,6 @@ class IsarAPI implements IsarApiInterface {
   @override
   void saveTenant({required String phoneNumber}) {
     // TODO: implement saveTenant
-  }
-
-  @override
-  void sendMessage({required int receiverId, required Message message}) {
-    // TODO: implement sendMessage
   }
 
   @override
@@ -1468,6 +1463,15 @@ class IsarAPI implements IsarApiInterface {
   Future<Receipt?> getReceipt({required int orderId}) {
     return isar.writeTxn((isar) async {
       return await isar.receipts.where().orderIdEqualTo(orderId).findFirst();
+    });
+  }
+
+  @override
+  Future<void> refund({required int itemId}) async {
+    return isar.writeTxn((isar) async {
+      OrderItem? item = await isar.orderItems.get(itemId);
+      item!.isRefunded = true;
+      await isar.orderItems.put(item);
     });
   }
 }

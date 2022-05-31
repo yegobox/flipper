@@ -50,9 +50,7 @@ class _PrintingState extends State<Printing> {
                   title: const Text('Enable Auto Print'),
                   value: model.isAutoPrintEnabled,
                   onChanged: (value) {
-                    if (!model.isAutoPrintEnabled) {
-                      model.isAutoPrintEnabled = !model.isAutoPrintEnabled;
-                    }
+                    model.isAutoPrintEnabled = !model.isAutoPrintEnabled;
                   }),
             ],
           ),

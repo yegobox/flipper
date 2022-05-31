@@ -73,8 +73,8 @@ abstract class IsarApiInterface {
 
   Future<Setting?> createSetting({required Setting setting});
   // Stream<List<Conversation>> conversationStreamList({int? receiverId});
-  void sendMessage({required int receiverId, required Message message});
-  Stream<List<Message>> messages({required int conversationId});
+  // void sendMessage({required int receiverId, required Message message});
+  // Stream<List<Message>> messages({required int conversationId});
 
   /// we treat all business as users and as contact at the same time
   /// this is because a business act as point of contact for a user
@@ -180,4 +180,6 @@ abstract class IsarApiInterface {
       required String qrCode,
       required String receiptType});
   Future<Receipt?> getReceipt({required int orderId});
+
+  Future<void> refund({required int itemId});
 }

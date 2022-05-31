@@ -625,7 +625,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
     String time = DateTime.now().toString().substring(11, 19);
     DateTime now = DateTime.now();
-    String formattedDate = DateFormat('dd-mm-yyy').format(now);
+    String formattedDate = DateFormat('dd-MM-yyy').format(now);
     // qrCode with the followinf format (ddmmyyyy)#time(hhmmss)#sdc number#sdc_receipt_number#internal_data#receipt_signature
     String receiptNumber =
         "${receiptSignature!.data.rcptNo}/${receiptSignature.data.totRcptNo}";

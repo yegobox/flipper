@@ -290,17 +290,16 @@ class MockIsarApiInterface extends _i1.Mock implements _i2.IsarApiInterface {
               returnValue: Future<_i2.Setting?>.value())
           as _i9.Future<_i2.Setting?>);
   @override
-  void sendMessage({int? receiverId, _i2.Message? message}) =>
-      super.noSuchMethod(
-          Invocation.method(
-              #sendMessage, [], {#receiverId: receiverId, #message: message}),
-          returnValueForMissingStub: null);
+  void sendMessage({int? receiverId, dynamic message}) => super.noSuchMethod(
+      Invocation.method(
+          #sendMessage, [], {#receiverId: receiverId, #message: message}),
+      returnValueForMissingStub: null);
   @override
-  _i9.Stream<List<_i2.Message>> messages({int? conversationId}) => (super
-      .noSuchMethod(
+  _i9.Stream<List<dynamic>> messages({int? conversationId}) =>
+      (super.noSuchMethod(
           Invocation.method(#messages, [], {#conversationId: conversationId}),
-          returnValue: Stream<List<_i2.Message>>.empty()) as _i9
-      .Stream<List<_i2.Message>>);
+          returnValue:
+              Stream<List<dynamic>>.empty()) as _i9.Stream<List<dynamic>>);
   @override
   _i9.Stream<List<_i2.Business>> users() =>
       (super.noSuchMethod(Invocation.method(#users, []),
@@ -584,6 +583,11 @@ class MockIsarApiInterface extends _i1.Mock implements _i2.IsarApiInterface {
   _i9.Future<_i2.Receipt?> getReceipt({int? orderId}) => (super.noSuchMethod(
       Invocation.method(#getReceipt, [], {#orderId: orderId}),
       returnValue: Future<_i2.Receipt?>.value()) as _i9.Future<_i2.Receipt?>);
+  @override
+  _i9.Future<void> refund({int? itemId}) =>
+      (super.noSuchMethod(Invocation.method(#refund, [], {#itemId: itemId}),
+          returnValue: Future<void>.value(),
+          returnValueForMissingStub: Future<void>.value()) as _i9.Future<void>);
 }
 
 /// A class which mocks [Language].
@@ -1172,6 +1176,10 @@ class MockLocalStorage extends _i1.Mock implements _i18.LocalStorage {
   @override
   bool isTrainingMode() =>
       (super.noSuchMethod(Invocation.method(#isTrainingMode, []),
+          returnValue: false) as bool);
+  @override
+  bool isAutoPrintEnabled() =>
+      (super.noSuchMethod(Invocation.method(#isAutoPrintEnabled, []),
           returnValue: false) as bool);
 }
 
