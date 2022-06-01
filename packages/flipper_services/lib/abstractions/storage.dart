@@ -13,4 +13,7 @@ abstract class LocalStorage {
   bool isTrainingMode();
 
   bool isAutoPrintEnabled();
+  bool isAutoBackupEnabled();
+  bool hasSignedInForAutoBackup();
+  String? gdID();
 }

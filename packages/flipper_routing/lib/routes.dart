@@ -88,7 +88,9 @@ class AppSetup {
 
 // debug key: when debugging
 // https://stackoverflow.com/questions/12456491/i-dont-remember-my-android-debug-keystore-password
-// keytool -list -v -keystore ~/.android/debug.keystore
+
+// https://stackoverflow.com/questions/15727912/sha-1-fingerprint-of-keystore-certificate
+// keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android 
 
 //when prod: when prod
 // keytool -list -v -keystore
