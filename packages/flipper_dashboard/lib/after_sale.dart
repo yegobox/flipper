@@ -143,7 +143,7 @@ class _AfterSaleState extends State<AfterSale> {
                                                       .showSnackBar(
                                                     const SnackBar(
                                                       backgroundColor:
-                                                          Colors.red,
+                                                          Colors.green,
                                                       content: Text(
                                                           "We are generating receipt wait a few seconds and try again"),
                                                     ),
@@ -253,7 +253,14 @@ class _AfterSaleState extends State<AfterSale> {
                 items: items,
                 business: business!,
                 order: widget.order,
-                receiptType: widget.receiptType);
+                receiptType: widget.receiptType,
+                callback: (value) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                    backgroundColor: Colors.red,
+                    content:
+                        Text("EBM V2 server is down, please try again later"),
+                  ));
+                });
           }
         },
         viewModelBuilder: () => BusinessHomeViewModel());

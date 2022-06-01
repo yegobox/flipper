@@ -619,16 +619,20 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       {required List<OrderItem> items,
       required Business business,
       String? receiptType = "NS",
-      required Order order}) async {
+      required Order order,
+      required Function callback}) async {
     ReceiptSignature? receiptSignature = await ProxyService.tax
         .createReceipt(order: order, items: items, receiptType: receiptType!);
+    if (receiptSignature == null) {
+      return callback(false);
+    }
 
     String time = DateTime.now().toString().substring(11, 19);
     DateTime now = DateTime.now();
     String formattedDate = DateFormat('dd-MM-yyy').format(now);
     // qrCode with the followinf format (ddmmyyyy)#time(hhmmss)#sdc number#sdc_receipt_number#internal_data#receipt_signature
     String receiptNumber =
-        "${receiptSignature!.data.rcptNo}/${receiptSignature.data.totRcptNo}";
+        "${receiptSignature.data.rcptNo}/${receiptSignature.data.totRcptNo}";
     String qrCode =
         '$formattedDate#$time#${receiptSignature.data.sdcId}#$receiptNumber#${receiptSignature.data.intrlData}#${receiptSignature.data.rcptSign}';
     await ProxyService.isarApi.createReceipt(
