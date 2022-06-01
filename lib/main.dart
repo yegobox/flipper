@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flipper_dashboard/printing.dart';
+import 'package:flipper_dashboard/backup.dart';
 import 'package:flipper_dashboard/tax_configuration.dart';
 import 'package:flipper_chat/omni/omni_contacts.dart';
 import 'package:flipper_chat/omni_chat.dart';
@@ -452,6 +453,14 @@ void main() async {
           pageBuilder: (context, state) => MaterialPage(
             key: state.pageKey,
             child: const Printing(),
+          ),
+        ),
+        GoRoute(
+          path: '/backup',
+          name: 'backup',
+          pageBuilder: (context, state) => MaterialPage(
+            key: state.pageKey,
+            child: const BackUp(),
           ),
         ),
       ],

@@ -149,8 +149,7 @@ class FirestoreApi implements FlipperFirestore {
       // call this only when a user log in and it is on Monday
       final today = DateTime.now().weekday;
       if (today == 1) {
-        ProxyService.isarApi
-            .updateBusiness(id: business['id'], business: business);
+        ProxyService.isarApi.update(data: business);
 
         ProxyService.isarApi.update(data: business);
       }

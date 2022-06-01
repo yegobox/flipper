@@ -130,9 +130,8 @@ class SettingViewModel extends ReactiveViewModel {
 
         Business? business = await ProxyService.isarApi.getBusiness();
         business!.email = setting.email;
-        await ProxyService.isarApi.updateBusiness(
-          id: business.id,
-          business: business.toJson(),
+        await ProxyService.isarApi.update(
+          data: business,
         );
         ProxyService.isarApi.update(
           data: business,
@@ -239,6 +238,12 @@ class SettingViewModel extends ReactiveViewModel {
   bool get isAutoPrintEnabled => ProxyService.box.isAutoPrintEnabled();
   set isAutoPrintEnabled(bool value) {
     ProxyService.box.write(key: 'isAutoPrintEnabled', value: value);
+    notifyListeners();
+  }
+
+  bool get isAutoBackupEnabled => ProxyService.box.isAutoBackupEnabled();
+  set isAutoBackupEnabled(bool value) {
+    ProxyService.box.write(key: 'isAutoBackupEnabled', value: value);
     notifyListeners();
   }
 

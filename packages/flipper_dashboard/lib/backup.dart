@@ -1,26 +1,27 @@
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_dashboard/setting_view_model.dart';
+import 'package:flipper_rw/bottom_sheets/general_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:stacked/stacked.dart';
 
-class Printing extends StatefulWidget {
-  const Printing({Key? key}) : super(key: key);
+class BackUp extends StatefulWidget {
+  const BackUp({Key? key}) : super(key: key);
 
   @override
-  State<Printing> createState() => _PrintingState();
+  State<BackUp> createState() => _BackUpState();
 }
 
-class _PrintingState extends State<Printing> {
-  bool isAutoPrint = false;
+class _BackUpState extends State<BackUp> {
+  bool isAutoBackup = false;
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<SettingViewModel>.reactive(
       viewModelBuilder: () => SettingViewModel(),
       onModelReady: (model) async {
-        if (model.isAutoPrintEnabled) {
+        if (model.isAutoBackupEnabled) {
           setState(() {
-            isAutoPrint = true;
+            isAutoBackup = true;
           });
         }
       },
@@ -30,7 +31,7 @@ class _PrintingState extends State<Printing> {
             onPop: () async {
               GoRouter.of(context).pop();
             },
-            title: 'Printing Configuration',
+            title: 'BackUp Configuration',
             disableButton: false,
             showActionButton: false,
           ),
@@ -40,17 +41,18 @@ class _PrintingState extends State<Printing> {
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   child: Icon(
-                    Icons.print,
+                    Icons.backup,
                     size: 64,
                     color: Theme.of(context).primaryColor,
                   ),
                 ),
               ),
               SwitchListTile.adaptive(
-                  title: const Text('Enable Auto Print'),
-                  value: model.isAutoPrintEnabled,
+                  title: const Text('Enable Auto Backup'),
+                  value: model.isAutoBackupEnabled,
                   onChanged: (value) {
-                    model.isAutoPrintEnabled = !model.isAutoPrintEnabled;
+                    FlipperBottomSheet.showABackUpBottomSheet(
+                        model: model, context: context);
                   }),
             ],
           ),
