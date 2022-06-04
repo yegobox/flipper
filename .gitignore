@@ -58,3 +58,4 @@ passwords.yaml
 package_config.json
 
 pubspec.lock.yaml
+pubspec_overrides.yaml
