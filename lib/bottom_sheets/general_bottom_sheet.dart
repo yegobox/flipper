@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:flipper_dashboard/flipper_dashboard.dart';
@@ -93,12 +94,12 @@ class FlipperBottomSheet {
                     // TODOupdate the business local and online about the backup
                     // now since the backup is true backup every time using the saved credentials of google drive
                     // I need to know when switching to another phone how I will decide what happen.
-                    // Directory test = await getApplicationDocumentsDirectory();
+                    Directory test = await getApplicationDocumentsDirectory();
 
-                    // await for (var entity
-                    //     in test.list(recursive: true, followLinks: false)) {
-                    //   print(entity.path);
-                    // }
+                    await for (var entity
+                        in test.list(recursive: true, followLinks: false)) {
+                      log(entity.path);
+                    }
                   },
                 ),
               ),

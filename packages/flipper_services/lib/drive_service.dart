@@ -75,14 +75,18 @@ class GoogleDrive {
   /// because there is known issue https://stackoverflow.com/questions/27890737/firebase-google-auth-offline-access-type-in-order-to-get-a-token-refresh
   /// we silently authenticate and get the token using the silent authentication
   /// for the second time
-  Future<http.Client> silentLogin() async {
+  Future<http.Client?> silentLogin() async {
     final _googleSignIn = GoogleSignIn(scopes: _scopes);
 
     if (ProxyService.box.hasSignedInForAutoBackup()) {
       await _googleSignIn.signInSilently();
     } else {
-      await _googleSignIn.signIn();
-      ProxyService.box.write(key: 'hasSignedInForAutoBackup', value: true);
+      GoogleSignInAccount? auth = await _googleSignIn.signIn();
+      if (auth != null) {
+        ProxyService.box.write(key: 'hasSignedInForAutoBackup', value: true);
+      } else {
+        return null;
+      }
     }
     // TODOwe can silently refresh the token if we know it has expired, but we have no way to know
     //therefore the above code is used as it will prompt the user for authentication as  _googleSignIn.authenticatedClient() will be null
@@ -131,6 +135,7 @@ class GoogleDrive {
     await downloadGoogleDriveFile('mdbx.dat.1', ProxyService.box.gdID());
     // end of download
     var client = await silentLogin();
+    if (client == null) return;
     var drive = ga.DriveApi(client);
     ga.File fileToUpload = ga.File();
     // https://ko.stackfinder.net/questions/68955545/flutter-how-to-backup-user-data-on-google-drive-like-whatsapp-does
@@ -138,7 +143,7 @@ class GoogleDrive {
     fileToUpload.parents = ["appDataFolder"];
     // fileToUpload.name = basename(file.absolute.path);
     fileToUpload.name = "flipper";
-    log.w("Uploading file");
+    // log.w("Uploading file");
 
     var response = await drive.files.create(
       fileToUpload,
@@ -148,7 +153,7 @@ class GoogleDrive {
       ),
     );
 
-    log.w("Result ${response.toJson()}");
+    // log.w("Result ${response.toJson()}");
     FileUploaded fileUploaded = FileUploaded.fromJson(response.toJson());
     //patch a business with lst backup fileId.
     Business? business = await ProxyService.isarApi.getBusiness();
@@ -156,13 +161,14 @@ class GoogleDrive {
     await ProxyService.isarApi.update(data: business);
     ProxyService.isarApi.update(data: business);
     ProxyService.box.write(key: 'gdID', value: fileUploaded.id);
+    log.i("File uploaded");
   }
 
   // https://stackoverflow.com/questions/68955545/flutter-how-to-backup-user-data-on-google-drive-like-whatsapp-does
   Future<void> downloadGoogleDriveFile(String fName, String? gdID) async {
     if (gdID == null) return;
     var client = await silentLogin();
-
+    if (client == null) return;
     var drive = ga.DriveApi(client);
 
     ga.Media file = (await drive.files
@@ -175,17 +181,25 @@ class GoogleDrive {
     List<int> dataStore = [];
 
     file.stream.listen((data) {
-      log.w("DataReceived: ${data.length}");
+      // log.w("DataReceived: ${data.length}");
       dataStore.insertAll(dataStore.length, data);
-    }, onDone: () {
-      log.w("Task Done");
-      saveFile.writeAsBytes(dataStore);
-      log.w("File saved at ${saveFile.path}");
-      // now rename file from mdbx.dat.1 to mdbx.dat
-      File(dir.path + '/db/isar/mdbx.dat.1')
-          .rename(dir.path + '/db/isar/mdbx.dat');
+    }, onDone: () async {
+      // log.w("Task Done");
+      File file = await saveFile.writeAsBytes(dataStore);
+      Future.delayed(const Duration(minutes: 3), () {
+        // log.w("File saved at ${saveFile.path}");
+        changeFileNameOnlySync(file, 'mdbx.dat');
+        log.i("now renaming");
+      });
     }, onError: (error) {
       log.e("Some Error");
     });
+  }
+
+  File changeFileNameOnlySync(File file, String newFileName) {
+    var path = file.path;
+    var lastSeparator = path.lastIndexOf(Platform.pathSeparator);
+    var newPath = path.substring(0, lastSeparator + 1) + newFileName;
+    return file.renameSync(newPath);
   }
 }
