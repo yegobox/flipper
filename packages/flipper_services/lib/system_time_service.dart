@@ -2,7 +2,7 @@ import 'package:stacked/stacked.dart';
 
 import 'abstractions/system_time.dart';
 
-import 'package:system_time_check/system_time_check.dart';
+// import 'package:system_time_check/system_time_check.dart';
 
 class UnSupportedSystemTime
     with ReactiveServiceMixin
@@ -16,10 +16,11 @@ class UnSupportedSystemTime
 class SystemTimeService with ReactiveServiceMixin implements SystemTime {
   @override
   Future<bool> isSystemTime() async {
-    bool isSystemTime;
+    // bool isSystemTime;
 
-    isSystemTime = await SystemTimeCheck.isSystemTimeAutomatic ?? false;
+    // isSystemTime = await SystemTimeCheck.isSystemTimeAutomatic ?? false;
 
-    return isSystemTime;
+    // return isSystemTime;
+    return true;
   }
 }
