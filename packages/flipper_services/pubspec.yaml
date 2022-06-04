@@ -16,7 +16,6 @@ dependencies:
   firebase_remote_config: ^2.0.0
   flutter_secure_storage: ^5.0.2
   share_plus: ^4.0.3
-  # system_time_check: ^1.0.0
   in_app_review: ^2.0.4
   firebase_messaging: ^11.2.8
   flutter_local_notifications: ^9.3.1
