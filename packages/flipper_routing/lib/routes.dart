@@ -73,7 +73,7 @@ class AppSetup {
 // test pin:085214
 
 // when adding new repo with other submodules
-// git submodule add https://github.com/yegobox/dart.git open-sources/pubnub
+// git submodule add https://github.com/yegobox/system_time_check.git open-sources/system_time_check
 // https://gist.github.com/myusuf3/7f645819ded92bda6677
 
 // %AppData%
