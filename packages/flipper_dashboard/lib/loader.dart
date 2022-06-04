@@ -1,6 +1,4 @@
 import 'dart:math';
-
-// import 'package:flipper_rw/utils/HexColor.dart';
 import 'package:flutter/material.dart';
 
 class HexColor extends Color {
@@ -18,7 +16,7 @@ class LoaderView extends StatefulWidget {
   final double radius;
   final double dotRadius;
 
-  LoaderView({this.radius = 30.0, this.dotRadius = 3.0});
+  const LoaderView({this.radius = 30.0, this.dotRadius = 3.0});
 
   @override
   _LoaderViewState createState() => _LoaderViewState();
@@ -53,30 +51,31 @@ class _LoaderViewState extends State<LoaderView>
     animation_rotation = Tween(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: controller!,
-        curve: Interval(0.0, 1.0, curve: Curves.linear),
+        curve: const Interval(0.0, 1.0, curve: Curves.linear),
       ),
     );
 
     animation_radius_in = Tween(begin: 1.0, end: 0.0).animate(
       CurvedAnimation(
         parent: controller!,
-        curve: Interval(0.75, 1.0, curve: Curves.elasticIn),
+        curve: const Interval(0.75, 1.0, curve: Curves.elasticIn),
       ),
     );
 
     animation_radius_out = Tween(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: controller!,
-        curve: Interval(0.0, 0.25, curve: Curves.elasticOut),
+        curve: const Interval(0.0, 0.25, curve: Curves.elasticOut),
       ),
     );
 
     controller!.addListener(() {
       setState(() {
-        if (controller!.value >= 0.75 && controller!.value <= 1.0)
+        if (controller!.value >= 0.75 && controller!.value <= 1.0) {
           radius = widget.radius * animation_radius_in!.value;
-        else if (controller!.value >= 0.0 && controller!.value <= 0.25)
+        } else if (controller!.value >= 0.0 && controller!.value <= 0.25) {
           radius = widget.radius * animation_radius_out!.value;
+        }
       });
     });
 
@@ -102,7 +101,7 @@ class _LoaderViewState extends State<LoaderView>
               child: Stack(
                 children: <Widget>[
                   Transform.translate(
-                    offset: Offset(0.0, 0.0),
+                    offset: const Offset(0.0, 0.0),
                     child: Dot(
                       radius: radius,
                       color: HexColor(
@@ -209,7 +208,7 @@ class Dot extends StatelessWidget {
   final double? radius;
   final Color? color;
 
-  Dot({this.radius, this.color});
+  const Dot({this.radius, this.color});
 
   @override
   Widget build(BuildContext context) {

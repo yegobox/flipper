@@ -78,7 +78,7 @@ class CronService {
     // });
 
     /// backup the user db every day
-    cron.schedule(Schedule.parse('*/1 * * * *'), () async {
+    cron.schedule(Schedule.parse('*/5 * * * *'), () async {
       log.i('scheduled backup');
       // for now enable backup for all clients in future this will be changed
       // Business? business = await ProxyService.isarApi.getBusiness();

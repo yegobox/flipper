@@ -1,3 +1,4 @@
+# melos_managed_dependency_overrides: pubnub
 # melos_managed_dependency_overrides: flipper_chat,flipper_dashboard,flipper_finance,flipper_loading,flipper_localize,flipper_login,flipper_models,flipper_routing,flipper_rw,flipper_services,flipper_ui,flutter_chat_types,flutter_chat_ui,flutter_datetime_picker,flutter_firebase_chat_core,flutter_slidable,flutterfire_ui,google_ui,qr_code_scanner,qr_flutter,receipt,system_time_check
 dependency_overrides:
   flipper_chat:
@@ -36,6 +37,8 @@ dependency_overrides:
     path: ..\\flutterfire_ui
   google_ui:
     path: ..\\..\\open-sources\\google_ui
+  pubnub:
+    path: ..\\..\\open-sources\\pubnub\\pubnub
   qr_code_scanner:
     path: ..\\..\\open-sources\\qr_code_scanner
   qr_flutter:

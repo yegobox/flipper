@@ -343,7 +343,7 @@ packages:
       name: dbus
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.7.3"
+    version: "0.7.4"
   desktop_webview_auth:
     dependency: transitive
     description:
@@ -956,6 +956,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.1.13"
+  flutter_native_splash:
+    dependency: transitive
+    description:
+      name: flutter_native_splash
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.2.2"
   flutter_plugin_android_lifecycle:
     dependency: transitive
     description:
@@ -1039,7 +1046,7 @@ packages:
       name: flutter_svg
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.3"
+    version: "1.1.0"
   flutter_text_drawable:
     dependency: transitive
     description:
@@ -1303,7 +1310,7 @@ packages:
       name: image
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.1.3"
+    version: "3.2.0"
   image_picker:
     dependency: "direct main"
     description:
@@ -1423,6 +1430,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "4.1.0"
+  lint:
+    dependency: transitive
+    description:
+      name: lint
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.8.2"
   lints:
     dependency: transitive
     description:
@@ -1771,10 +1785,10 @@ packages:
   pubnub:
     dependency: "direct main"
     description:
-      name: pubnub
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "4.1.3"
+      path: "../../open-sources/pubnub/pubnub"
+      relative: true
+    source: path
+    version: "4.1.4"
   pubspec_parse:
     dependency: transitive
     description:
@@ -2220,7 +2234,7 @@ packages:
       name: upgrader
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.15.0"
+    version: "4.2.0"
   url_launcher:
     dependency: "direct main"
     description:
@@ -2332,7 +2346,7 @@ packages:
       name: xml
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "5.4.1"
+    version: "6.1.0"
   yaml:
     dependency: transitive
     description:

@@ -52,7 +52,7 @@ import 'package:universal_platform/universal_platform.dart';
 import 'package:flutterfire_ui/i10n.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:google_ui/google_ui.dart';
-
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'init.dart'
     if (dart.library.html) 'web_init.dart'
     if (dart.library.io) 'io_init.dart';
@@ -499,6 +499,8 @@ void main() async {
             )),
           ),
         );
+    WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+    FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
     runApp(
       OverlaySupport.global(
         child: ChangeNotifierProvider.value(
@@ -535,6 +537,8 @@ void main() async {
         ),
       ),
     );
+    // close splash screen the app is fully initialized
+    FlutterNativeSplash.remove();
   }, (error, stack) async {
     await Sentry.captureException(error, stackTrace: stack);
     if (!isWindows) {
