@@ -103,7 +103,7 @@ abstract class IsarApiInterface {
   Future<OrderItem?> getOrderItemByVariantId(
       {required int variantId, required int? orderId});
   //abstract method to update business
-  Future<void> updateBusiness({required int id, required Map business});
+  // Future<void> updateBusiness({required int id, required Map business});
 
   //analytics
   int lifeTimeCustomersForbranch({required int branchId});

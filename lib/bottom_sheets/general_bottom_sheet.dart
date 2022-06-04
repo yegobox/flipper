@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flipper_dashboard/flipper_dashboard.dart';
 import 'package:flipper_dashboard/loader.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/drive_service.dart';
@@ -62,9 +63,8 @@ bottomSheetBuilder({
 }
 
 class FlipperBottomSheet {
-  static showAddPaymentMethod(
-      {required BusinessHomeViewModel model,
-      required BuildContext context}) async {
+  static showABackUpBottomSheet(
+      {required SettingViewModel model, required BuildContext context}) async {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -86,12 +86,19 @@ class FlipperBottomSheet {
                     //if the payment method is not enabled, enable it first!.
                     final drive = GoogleDrive();
                     Directory dir = await getApplicationDocumentsDirectory();
-
+                    // db/isar's backup
                     await drive.upload(File(path.context
-                        .canonicalize('${dir.path}/db_1/data.mdb')));
+                        .canonicalize('${dir.path}/db/isar/mdbx.dat')));
+                    model.isAutoBackupEnabled = !model.isAutoBackupEnabled;
                     // TODOupdate the business local and online about the backup
                     // now since the backup is true backup every time using the saved credentials of google drive
                     // I need to know when switching to another phone how I will decide what happen.
+                    // Directory test = await getApplicationDocumentsDirectory();
+
+                    // await for (var entity
+                    //     in test.list(recursive: true, followLinks: false)) {
+                    //   print(entity.path);
+                    // }
                   },
                 ),
               ),
@@ -148,6 +155,7 @@ class FlipperBottomSheet {
                                     showSimpleNotification(
                                         const Text('Order Restored!'),
                                         background: Colors.green);
+                                    // ignore: use_build_context_synchronously
                                     Navigator.maybePop(context);
                                   },
                                 ),

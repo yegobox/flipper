@@ -40,7 +40,7 @@ class _PrintingState extends State<Printing> {
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   child: Icon(
-                    Icons.calculate,
+                    Icons.print,
                     size: 64,
                     color: Theme.of(context).primaryColor,
                   ),

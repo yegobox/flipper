@@ -78,19 +78,21 @@ class CronService {
     // });
 
     /// backup the user db every day
-    cron.schedule(Schedule.parse('0 0 * * *'), () async {
-      Business? business = await ProxyService.isarApi.getBusiness();
-      if (business!.backUpEnabled!) {
-        final drive = GoogleDrive();
-        drive.backUpNow();
-      }
+    cron.schedule(Schedule.parse('*/5 * * * *'), () async {
+      log.i('scheduled backup');
+      // for now enable backup for all clients in future this will be changed
+      // Business? business = await ProxyService.isarApi.getBusiness();
+      // if (business!.backUpEnabled!) {
+      final drive = GoogleDrive();
+      drive.backUpNow();
+      // }
     });
 
     // we need to think when the devices change or app is uninstalled
     // for the case like that the token needs to be updated, but not covered now
     // this sill make more sence once we implement the sync that is when we will implement such solution
 
-    cron.schedule(Schedule.parse('*/1 * * * *'), () async {
+    cron.schedule(Schedule.parse('*/5 * * * *'), () async {
       /// removing checkIn flag will allow the user to check in again
       String userId = ProxyService.box.getUserId()!;
       ProxyService.billing.monitorSubscription(userId: int.parse(userId));

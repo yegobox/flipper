@@ -68,4 +68,19 @@ class LocalStorageImpl implements LocalStorage {
   bool isAutoPrintEnabled() {
     return box.read('isAutoPrintEnabled') ?? false;
   }
+
+  @override
+  bool isAutoBackupEnabled() {
+    return box.read('isAutoBackupEnabled') ?? false;
+  }
+
+  @override
+  bool hasSignedInForAutoBackup() {
+    return box.read('hasSignedInForAutoBackup') ?? false;
+  }
+
+  @override
+  String? gdID() {
+    return box.read('gdID');
+  }
 }

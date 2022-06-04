@@ -1290,25 +1290,20 @@ class IsarAPI implements IsarApiInterface {
         return await isar.businesss.put(business!);
       });
     }
-    return 1;
-  }
-
-  @override
-  Future<void> updateBusiness({required int id, required Map business}) async {
-    try {
-      await client.patch(Uri.parse("$apihub/v2/api/business/$id"),
-          body: jsonEncode({
-            'deviceToken': business['deviceToken'],
-            'email': business['email'],
-            'backUpEnabled': business['backUpEnabled'],
-            'lastDbBackup': business['lastDbBackup'],
-            'backupFileId': business['backupFileId'],
-            'chatUid': business['chatUid']
-          }),
-          headers: {'Content-Type': 'application/json'});
-    } catch (e) {
-      log.e(e);
+    if (data is Business) {
+      final business = data;
+      await isar.writeTxn((isar) async {
+        return await isar.businesss.put(business, saveLinks: true);
+      });
+      try {
+        await client.patch(Uri.parse("$apihub/v2/api/business/${business.id}"),
+            body: jsonEncode(business.toJson()),
+            headers: {'Content-Type': 'application/json'});
+      } catch (e) {
+        log.e(e);
+      }
     }
+    return 1;
   }
 
   @override

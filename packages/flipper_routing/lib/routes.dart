@@ -73,7 +73,7 @@ class AppSetup {
 // test pin:085214
 
 // when adding new repo with other submodules
-// git submodule add https://github.com/yegobox/qr_code_scanner.git open-sources/qr_code_scanner
+// git submodule add https://github.com/yegobox/dart.git open-sources/pubnub
 // https://gist.github.com/myusuf3/7f645819ded92bda6677
 
 // %AppData%
@@ -88,7 +88,9 @@ class AppSetup {
 
 // debug key: when debugging
 // https://stackoverflow.com/questions/12456491/i-dont-remember-my-android-debug-keystore-password
-// keytool -list -v -keystore ~/.android/debug.keystore
+
+// https://stackoverflow.com/questions/15727912/sha-1-fingerprint-of-keystore-certificate
+// keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android 
 
 //when prod: when prod
 // keytool -list -v -keystore

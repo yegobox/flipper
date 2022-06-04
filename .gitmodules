@@ -52,3 +52,6 @@
 [submodule "open-sources/qr_code_scanner"]
 	path = open-sources/qr_code_scanner
 	url = https://github.com/yegobox/qr_code_scanner.git
+[submodule "open-sources/pubnub"]
+	path = open-sources/pubnub
+	url = https://github.com/yegobox/dart.git

@@ -185,8 +185,6 @@ class _FlipperAppState extends State<FlipperApp> {
               },
               body: !isMacOs && !isWindows && !kDebugMode
                   ? UpgradeAlert(
-                      durationToAlertAgain: const Duration(days: 1),
-                      dialogStyle: UpgradeDialogStyle.cupertino,
                       child: BodyWidget(
                         model: model,
                         controller: controller,

@@ -4,6 +4,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/secure_storage.dart';
 import 'package:googleapis/drive/v3.dart' as ga;
 import 'package:flipper_models/isar_models.dart';
+import 'package:googleapis_auth/src/auth_client.dart';
 // import 'package:flutter_firebase_chat_core/flutter_firebase_chat_core.dart';
 import 'package:path/path.dart' as path;
 // import 'package:googleapis_auth/auth_io.dart';
@@ -14,7 +15,7 @@ import 'package:path_provider/path_provider.dart';
 // import 'package:path';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
+import 'extension_google_sign_in_as_googleapis_auth.dart';
 
 FileUploaded fileUploadedFromJson(String str) =>
     FileUploaded.fromJson(json.decode(str));
@@ -76,9 +77,18 @@ class GoogleDrive {
   /// for the second time
   Future<http.Client> silentLogin() async {
     final _googleSignIn = GoogleSignIn(scopes: _scopes);
-    await _googleSignIn.signInSilently();
+
+    if (ProxyService.box.hasSignedInForAutoBackup()) {
+      await _googleSignIn.signInSilently();
+    } else {
+      await _googleSignIn.signIn();
+      ProxyService.box.write(key: 'hasSignedInForAutoBackup', value: true);
+    }
+    // TODOwe can silently refresh the token if we know it has expired, but we have no way to know
+    //therefore the above code is used as it will prompt the user for authentication as  _googleSignIn.authenticatedClient() will be null
+    // await _googleSignIn.signInSilently();
     // New refreshed token
-    var httpClient = (await _googleSignIn.authenticatedClient())!;
+    AuthClient httpClient = (await _googleSignIn.authenticatedClient())!;
     //Save Credentials
     // log.i(httpClient.credentials.accessToken);
     log.i(httpClient.credentials.refreshToken);
@@ -95,27 +105,10 @@ class GoogleDrive {
   /// if it is expired it will call refreshToken()
   /// if is the first time it will call the authentication with normal prompt flow
   /// if the token is not expired it will return the http client
-  Future<http.Client> backUpNow() async {
+  Future<void> backUpNow() async {
     Directory dir = await getApplicationDocumentsDirectory();
-    File file = File(path.context.canonicalize(dir.path + '/db_1/data.mdb'));
-    Business? business = await ProxyService.isarApi.getBusiness();
-    if (business!.backUpEnabled!) {
-      final http = await silentLogin();
-      await upload(file);
-      await updateBusiness(business);
-      return http;
-    }
-    final _googleSignIn = GoogleSignIn(scopes: _scopes);
-    await _googleSignIn.signIn();
-    var httpClient = (await _googleSignIn.authenticatedClient())!;
-
-    await storage.saveCredentials(httpClient.credentials.accessToken,
-        httpClient.credentials.refreshToken ?? '');
+    File file = File(path.context.canonicalize(dir.path + '/db/isar/mdbx.dat'));
     await upload(file);
-
-    await updateBusiness(business);
-
-    return httpClient;
   }
 
   Future<void> updateBusiness(Business business) async {
@@ -125,11 +118,7 @@ class GoogleDrive {
 
     /// notify the online that user has enabled the backup
     /// also update the property locally.
-    int id = business.id;
-    await ProxyService.isarApi
-        .updateBusiness(id: id, business: business.toJson());
-    ProxyService.isarApi
-        .update(data: business.toJson(), endPoint: "business/$id");
+    await ProxyService.isarApi.update(data: business);
   }
 
   /// Upload File to user's Google Drive appData folder
@@ -138,6 +127,9 @@ class GoogleDrive {
   /// because the first login will prompt the user to login
   /// and the second login will not prompt the user to login
   Future upload(File file) async {
+    // download files first before uploading
+    await downloadGoogleDriveFile('mdbx.dat.1', ProxyService.box.gdID());
+    // end of download
     var client = await silentLogin();
     var drive = ga.DriveApi(client);
     ga.File fileToUpload = ga.File();
@@ -161,14 +153,14 @@ class GoogleDrive {
     //patch a business with lst backup fileId.
     Business? business = await ProxyService.isarApi.getBusiness();
     business!.backupFileId = fileUploaded.id;
-    await ProxyService.isarApi
-        .updateBusiness(id: business.id, business: business.toJson());
+    await ProxyService.isarApi.update(data: business);
     ProxyService.isarApi.update(data: business);
-    // downloadGoogleDriveFile('data', fileUploaded.id);
+    ProxyService.box.write(key: 'gdID', value: fileUploaded.id);
   }
 
   // https://stackoverflow.com/questions/68955545/flutter-how-to-backup-user-data-on-google-drive-like-whatsapp-does
-  Future<void> downloadGoogleDriveFile(String fName, String gdID) async {
+  Future<void> downloadGoogleDriveFile(String fName, String? gdID) async {
+    if (gdID == null) return;
     var client = await silentLogin();
 
     var drive = ga.DriveApi(client);
@@ -178,7 +170,7 @@ class GoogleDrive {
 
     final dir = await getApplicationDocumentsDirectory();
 
-    final saveFile = File(dir.path + '/db_1/$fName' + '.mdb');
+    final saveFile = File(dir.path + '/db/isar/$fName');
 
     List<int> dataStore = [];
 
@@ -189,6 +181,9 @@ class GoogleDrive {
       log.w("Task Done");
       saveFile.writeAsBytes(dataStore);
       log.w("File saved at ${saveFile.path}");
+      // now rename file from mdbx.dat.1 to mdbx.dat
+      File(dir.path + '/db/isar/mdbx.dat.1')
+          .rename(dir.path + '/db/isar/mdbx.dat');
     }, onError: (error) {
       log.e("Some Error");
     });
