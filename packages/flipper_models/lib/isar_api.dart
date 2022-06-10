@@ -602,6 +602,7 @@ class IsarAPI implements IsarApiInterface {
           await isar.products.delete(id);
           return true;
         });
+        //TODOalso delete related variants
         break;
       case 'variant':
         isar.writeTxn((isar) async {

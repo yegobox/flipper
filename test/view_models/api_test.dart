@@ -1,20 +1,22 @@
 import 'package:flipper_models/isar_api.dart';
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:test/test.dart';
-
+import 'package:flipper_services/locator.dart';
 import '../helpers/test_helpers.dart';
 import 'common.dart';
 
 void main() {
   group('Isar API', () {
     late Isar isar;
+    late Product product;
+    setupLocator();
 
     setUp(() async {
+      isar = await openTempIsar(
+          [BusinessSchema, ProductSchema, VariantSchema, StockSchema]);
+      IsarAPI.instance(isarRef: isar);
       registerServices();
-      // ensure there is a temp product
-      // ensure we have custom Amount product
-      // ensure we have business created and it's branch
-      isar = await openTempIsar([BusinessSchema]);
     });
 
     tearDown(() async {
@@ -22,20 +24,14 @@ void main() {
       await isar.close();
     });
 
-    isarTest('Test we have a temp product', () async {
-      IsarAPI.instance(isarRef: isar);
+    isarTest('Test can create order', () async {});
+
+    isarTest('Test we have a Testing product', () async {
       BusinessHomeViewModel viewModel = BusinessHomeViewModel();
-
-      expect(1, 1);
-      // where clause
-      // await qEqual(col.where().fieldEqualTo(2).findAll(), [obj2]);
-      // await qEqual(col.where().fieldEqualTo(null).findAll(), [objNull]);
-      // await qEqual(col.where().fieldEqualTo(5).findAll(), []);
-
-      // filters
-      // await qEqualSet(col.filter().fieldEqualTo(2).findAll(), [obj2]);
-      // await qEqualSet(col.filter().fieldEqualTo(null).findAll(), [objNull]);
-      // await qEqualSet(col.filter().fieldEqualTo(5).findAll(), []);
+      product = await ProxyService.isarApi
+          .createProduct(product: Product()..name = "Testing");
+      expect(product, isA<Product>());
+      expect("Testing", product.name);
     });
   });
 }

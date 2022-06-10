@@ -18,6 +18,7 @@ class CronService {
   final settingService = locator<SettingsService>();
   final printer = locator<Printer>();
   final log = getLogger('CronService');
+  final drive = GoogleDrive();
 
   /// This is the report mainly for yegobox|flipper business
   /// the report shall help the company know what customers are selling
@@ -79,16 +80,30 @@ class CronService {
     // });
 
     /// backup the user db every day
-    cron.schedule(Schedule.parse('*/6 * * * *'), () async {
-      log.i('scheduled backup');
+    cron.schedule(Schedule.parse('*/60 * * * *'), () async {
+      log.i('downloading the remote  copy');
       // for now enable backup for all clients in future this will be changed
       // Business? business = await ProxyService.isarApi.getBusiness();
       // prevent the backup pop-up when a user did not click on adding backup button.
       if (ProxyService.box.hasSignedInForAutoBackup()) {
-        // if (business!.backUpEnabled!) {
-        final drive = GoogleDrive();
-        drive.backUpNow();
-        // }
+        await drive.downloadGoogleDriveFile(
+            'mdbx.dat', ProxyService.box.gdID());
+
+        Directory test = await getApplicationDocumentsDirectory();
+
+        await for (var entity
+            in test.list(recursive: true, followLinks: false)) {
+          log.i(entity.path);
+        }
+      }
+    });
+    cron.schedule(Schedule.parse('*/30 * * * *'), () async {
+      log.i('uploading the local copy');
+      // for now enable backup for all clients in future this will be changed
+      // Business? business = await ProxyService.isarApi.getBusiness();
+      // prevent the backup pop-up when a user did not click on adding backup button.
+      if (ProxyService.box.hasSignedInForAutoBackup()) {
+        drive.upload();
         Directory test = await getApplicationDocumentsDirectory();
 
         await for (var entity

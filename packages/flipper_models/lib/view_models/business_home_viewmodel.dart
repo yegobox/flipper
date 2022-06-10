@@ -547,7 +547,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   void backUpNow(Function callback) async {
     if (ProxyService.remoteConfig.isBackupAvailable()) {
       final drive = GoogleDrive();
-      await drive.backUpNow();
+      await drive.upload();
       callback(1);
     }
   }

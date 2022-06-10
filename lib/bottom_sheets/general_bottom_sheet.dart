@@ -9,7 +9,6 @@ import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as path;
 import 'package:flipper_localize/flipper_localize.dart';
 
 bottomSheetBuilder({
@@ -86,10 +85,7 @@ class FlipperBottomSheet {
                   onTap: () async {
                     //if the payment method is not enabled, enable it first!.
                     final drive = GoogleDrive();
-                    Directory dir = await getApplicationDocumentsDirectory();
-                    // db/isar's backup
-                    await drive.upload(File(path.context
-                        .canonicalize('${dir.path}/db/isar/mdbx.dat')));
+                    await drive.silentLogin();
                     model.isAutoBackupEnabled = !model.isAutoBackupEnabled;
                     // TODOupdate the business local and online about the backup
                     // now since the backup is true backup every time using the saved credentials of google drive
