@@ -13,8 +13,28 @@ void main() {
     setupLocator();
 
     setUp(() async {
-      isar = await openTempIsar(
-          [BusinessSchema, ProductSchema, VariantSchema, StockSchema]);
+      isar = await openTempIsar([
+        OrderSchema,
+        BusinessSchema,
+        BranchSchema,
+        OrderItemSchema,
+        ProductSchema,
+        VariantSchema,
+        ProfileSchema,
+        SubscriptionSchema,
+        PointsSchema,
+        StockSchema,
+        FeatureSchema,
+        VoucherSchema,
+        PColorSchema,
+        CategorySchema,
+        UnitSchema,
+        SettingSchema,
+        DiscountSchema,
+        CustomerSchema,
+        PinSchema,
+        ReceiptSchema,
+      ]);
       IsarAPI.instance(isarRef: isar);
       registerServices();
     });
@@ -24,8 +44,6 @@ void main() {
       await isar.close();
     });
 
-    isarTest('Test can create order', () async {});
-
     isarTest('Test we have a Testing product', () async {
       BusinessHomeViewModel viewModel = BusinessHomeViewModel();
       product = await ProxyService.isarApi
@@ -33,5 +51,10 @@ void main() {
       expect(product, isA<Product>());
       expect("Testing", product.name);
     });
+
+    // isarTest('Test can create order', () async {
+    //   Order order = await ProxyService.isarApi.manageOrder();
+    //   expect(order, isA<Order>());
+    // });
   });
 }

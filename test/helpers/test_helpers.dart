@@ -61,16 +61,10 @@ AppService getAndRegisterAppService(
   return service;
 }
 
-KeyPadService getAndRegisterKeyPadServiceUnmocked() {
+KeyPadService getAndRegisterKeyPadService() {
   _removeRegistrationIfExists<KeyPadService>();
   final service = KeyPadService();
   locator.registerSingleton<KeyPadService>(service);
-  return service;
-}
-
-KeyPadService getAndRegisterKeyPadService() {
-  final service = MockKeyPadService();
-
   return service;
 }
 
@@ -103,16 +97,16 @@ MockFlipperLocation getAndRegisterLocationService() {
   return service;
 }
 
-MockLanguage getAndRegisterLanguageService() {
+MockLanguage getAndRegisterLanguage() {
   _removeRegistrationIfExists<Language>();
   final service = MockLanguage();
   locator.registerSingleton<Language>(service);
   return service;
 }
 
-MockLanguageService getAndRegisterLanguageServiceMock() {
+LanguageService getAndRegisterLanguageService() {
   _removeRegistrationIfExists<LanguageService>();
-  final service = MockLanguageService();
+  final service = LanguageService();
   locator.registerSingleton<LanguageService>(service);
   return service;
 }
@@ -168,12 +162,11 @@ void registerServices() {
   getAndRegisterLocalStorage();
   getAndRegisterAppService();
   getAndRegisterProductService();
-  getAndRegisterKeyPadServiceUnmocked();
   getAndRegisterKeyPadService();
   getFirebaseMessaging();
   getAndRegisterRemoteConfig();
+  getAndRegisterLanguage();
   getAndRegisterLanguageService();
-  getAndRegisterLanguageServiceMock();
   getAndRegisterBillingService();
 }
 
