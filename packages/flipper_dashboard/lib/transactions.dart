@@ -17,7 +17,46 @@ class _TransactionsState extends State<Transactions> {
   String lastSeen = "";
   bool defaultTransactions = true;
   List<Widget> list = [];
-  List<Widget> _list({required List<Order> completedOrder}) {
+  List<Widget> _zTransactions({required List<Order> completedOrder}) {
+    for (Order order in completedOrder) {
+      if (lastSeen != order.createdAt.substring(0, 10)) {
+        setState(() {
+          lastSeen = order.createdAt.substring(0, 10);
+        });
+
+        list.add(
+          Container(
+            margin: const EdgeInsets.fromLTRB(80, 0, 0, 0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Text(DateFormat.yMMMEd()
+                    .format(DateTime.parse(order.createdAt))),
+              ],
+            ),
+          ),
+        );
+      }
+      list.add(
+        Container(
+          margin: const EdgeInsets.all(4),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              const Icon(Icons.wallet),
+              Text(order.subTotal.toString()),
+              const Spacer(),
+              Text(order.createdAt.toString().substring(11, 19)),
+              const Icon(Icons.arrow_forward_ios),
+            ],
+          ),
+        ),
+      );
+    }
+    return list;
+  }
+
+  List<Widget> _normalTransactions({required List<Order> completedOrder}) {
     for (Order order in completedOrder) {
       if (lastSeen != order.createdAt.substring(0, 10)) {
         setState(() {
@@ -69,7 +108,11 @@ class _TransactionsState extends State<Transactions> {
           model.completedOrdersList = completedOrders;
 
           setState(() {
-            list = _list(completedOrder: completedOrders);
+            list = _normalTransactions(completedOrder: completedOrders);
+          });
+          // for rra z report
+          setState(() {
+            list = _zTransactions(completedOrder: completedOrders);
           });
         },
         viewModelBuilder: () => BusinessHomeViewModel(),
@@ -100,7 +143,11 @@ class _TransactionsState extends State<Transactions> {
                       : ListView(
                           children: list,
                         ))
-                  : const Center(child: Text("Show RRA transactions")),
+                  : (list.isEmpty
+                      ? const Center(child: Text("No Z Report"))
+                      : ListView(
+                          children: list,
+                        )),
             ),
           );
         });
