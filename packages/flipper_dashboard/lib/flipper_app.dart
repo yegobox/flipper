@@ -209,7 +209,7 @@ class _FlipperAppState extends State<FlipperApp> {
                   // if (UniversalPlatform.isDesktopOrWeb)
                   const BottomNavigationBarItem(
                     icon: Icon(Icons.analytics),
-                    label: 'Analytics',
+                    label: 'Transactions',
                   ),
                   const BottomNavigationBarItem(
                     icon: Icon(Icons.store),

@@ -15,6 +15,7 @@ class Transactions extends StatefulWidget {
 
 class _TransactionsState extends State<Transactions> {
   String lastSeen = "";
+  bool defaultTransactions = true;
   List<Widget> list = [];
   List<Widget> _list({required List<Order> completedOrder}) {
     for (Order order in completedOrder) {
@@ -76,14 +77,30 @@ class _TransactionsState extends State<Transactions> {
           return Flexible(
             child: Scaffold(
               appBar: AppBar(
-                title: const Text('Transactions'),
+                title: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Transactions'),
+                      SizedBox(
+                        width: 30,
+                        child: SwitchListTile(
+                            value: !defaultTransactions,
+                            onChanged: (value) {
+                              setState(() {
+                                defaultTransactions = !defaultTransactions;
+                              });
+                            }),
+                      )
+                    ]),
                 elevation: 1,
               ),
-              body: list.isEmpty
-                  ? const Center(child: Text("No Transactions"))
-                  : ListView(
-                      children: list,
-                    ),
+              body: defaultTransactions
+                  ? (list.isEmpty
+                      ? const Center(child: Text("No Transactions"))
+                      : ListView(
+                          children: list,
+                        ))
+                  : const Center(child: Text("Show RRA transactions")),
             ),
           );
         });

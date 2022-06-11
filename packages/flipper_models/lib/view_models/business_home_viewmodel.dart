@@ -626,7 +626,10 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     if (receiptSignature == null) {
       return callback(false);
     }
-
+    order.receiptType = order.receiptType == null
+        ? receiptType
+        : order.receiptType! + "," + receiptType;
+    ProxyService.isarApi.update(data: order);
     String time = DateTime.now().toString().substring(11, 19);
     DateTime now = DateTime.now();
     String formattedDate = DateFormat('dd-MM-yyy').format(now);
