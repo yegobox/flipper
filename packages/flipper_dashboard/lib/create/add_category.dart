@@ -5,7 +5,7 @@ import 'package:flipper_models/isar_models.dart';
 import 'package:go_router/go_router.dart';
 
 class AddCategory extends StatelessWidget {
-  AddCategory({Key? key}) : super(key: key);
+  const AddCategory({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<ProductViewModel>.reactive(
@@ -23,18 +23,16 @@ class AddCategory extends StatelessWidget {
           ),
           body: Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Container(
-              child: TextFormField(
-                style: const TextStyle(color: Colors.black),
-                onChanged: (name) {
-                  if (name != '') {
-                    model.setName(name: name);
-                  }
-                },
-                decoration: const InputDecoration(
-                  hintText: 'Name',
-                  focusColor: Colors.blue,
-                ),
+            child: TextFormField(
+              style: const TextStyle(color: Colors.black),
+              onChanged: (name) {
+                if (name != '') {
+                  model.setName(name: name);
+                }
+              },
+              decoration: const InputDecoration(
+                hintText: 'Name',
+                focusColor: Colors.blue,
               ),
             ),
           ),

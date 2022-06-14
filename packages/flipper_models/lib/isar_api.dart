@@ -836,6 +836,11 @@ class IsarAPI implements IsarApiInterface {
     if (kBusiness == null) {
       log.e("fetching business from server");
       return await getOnlineBusiness(userId: userId);
+    } else {
+      if (await isDrawerOpen(cashierId: ProxyService.box.getBusinessId()!) ==
+          null) {
+        throw NoDrawerOpen(term: "Business Drawer is not open");
+      }
     }
     return kBusiness;
   }
@@ -855,6 +860,7 @@ class IsarAPI implements IsarApiInterface {
     Business? business = await isar.writeTxn((isar) {
       return isar.businesss.get(fromJson(response.body).id);
     });
+
     if (business == null) {
       await isar.writeTxn((isar) async {
         return isar.businesss.put(fromJson(response.body));
@@ -862,10 +868,12 @@ class IsarAPI implements IsarApiInterface {
       business = await isar.writeTxn((isar) {
         return isar.businesss.filter().userIdEqualTo(userId).findFirst();
       });
-      return business!;
-    } else {
-      return business;
     }
+    ProxyService.box.write(key: 'businessId', value: business!.id);
+    if (await isDrawerOpen(cashierId: business.id) == null) {
+      throw NoDrawerOpen(term: "Business Drawer is not open");
+    }
+    return business;
   }
 
   @override
@@ -1304,6 +1312,12 @@ class IsarAPI implements IsarApiInterface {
         log.e(e);
       }
     }
+    if (data is Drawers) {
+      final drawer = data;
+      await isar.writeTxn((isar) async {
+        return await isar.drawerss.put(drawer);
+      });
+    }
     return 1;
   }
 
@@ -1468,6 +1482,26 @@ class IsarAPI implements IsarApiInterface {
       OrderItem? item = await isar.orderItems.get(itemId);
       item!.isRefunded = true;
       await isar.orderItems.put(item);
+    });
+  }
+
+  @override
+  Future<Drawers?> isDrawerOpen({required int cashierId}) {
+    return isar.writeTxn((isar) async {
+      Drawers? drawer = await isar.drawerss
+          .where()
+          .openCashierIdEqualTo(true, cashierId)
+          .findFirst();
+      return drawer;
+    });
+  }
+
+  @override
+  Future<Drawers?> openDrawer({required Drawers drawer}) {
+    // save drawer object in isar db
+    return isar.writeTxn((isar) async {
+      int id = await isar.drawerss.put(drawer);
+      return isar.drawerss.get(id);
     });
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/setting_view_model.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_settings_ui/flutter_settings_ui.dart';
 import 'package:go_router/go_router.dart';
@@ -48,11 +49,11 @@ class SettingPage extends StatelessWidget {
                             ),
                             SettingsTile(
                               title: "Linked Devices",
-                              leading: const CircleAvatar(
+                              leading: CircleAvatar(
                                 backgroundColor: Colors.white,
                                 child: Icon(
                                   Icons.computer,
-                                  color: Colors.green,
+                                  color: Theme.of(context).primaryColor,
                                 ),
                               ),
                               trailing: Icon(
@@ -66,11 +67,11 @@ class SettingPage extends StatelessWidget {
                             ),
                             SettingsTile(
                               title: "Printing configuration",
-                              leading: const CircleAvatar(
+                              leading: CircleAvatar(
                                 backgroundColor: Colors.white,
                                 child: Icon(
                                   Icons.print,
-                                  color: Colors.green,
+                                  color: Theme.of(context).primaryColor,
                                 ),
                               ),
                               trailing: Icon(
@@ -83,11 +84,11 @@ class SettingPage extends StatelessWidget {
                             ),
                             SettingsTile(
                               title: "BackUp configuration",
-                              leading: const CircleAvatar(
+                              leading: CircleAvatar(
                                 backgroundColor: Colors.white,
                                 child: Icon(
                                   Icons.backup,
-                                  color: Colors.green,
+                                  color: Theme.of(context).primaryColor,
                                 ),
                               ),
                               trailing: Icon(
@@ -100,11 +101,11 @@ class SettingPage extends StatelessWidget {
                             ),
                             SettingsTile(
                               title: "Tax Configuration",
-                              leading: const CircleAvatar(
+                              leading: CircleAvatar(
                                 backgroundColor: Colors.white,
                                 child: Icon(
                                   Icons.calculate,
-                                  color: Colors.green,
+                                  color: Theme.of(context).primaryColor,
                                 ),
                               ),
                               trailing: Icon(
@@ -113,6 +114,29 @@ class SettingPage extends StatelessWidget {
                               ),
                               onPressed: (BuildContext context) {
                                 GoRouter.of(context).push("/tax_config");
+                              },
+                            ),
+                            SettingsTile(
+                              title: "Close a day",
+                              leading: CircleAvatar(
+                                backgroundColor: Colors.white,
+                                child: Icon(
+                                  Icons.draw_rounded,
+                                  color: Theme.of(context).primaryColor,
+                                ),
+                              ),
+                              trailing: Icon(
+                                Icons.arrow_forward_ios,
+                                color: Theme.of(context).primaryColor,
+                              ),
+                              onPressed: (BuildContext context) async {
+                                // get active drawer
+                                isar.Drawers? drawer =
+                                    await ProxyService.isarApi.isDrawerOpen(
+                                        cashierId:
+                                            ProxyService.box.getBusinessId()!);
+                                GoRouter.of(context)
+                                    .push("/drawer/close", extra: drawer);
                               },
                             )
                           ],

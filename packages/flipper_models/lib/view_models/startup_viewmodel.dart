@@ -22,7 +22,7 @@ class StartUpViewModel extends BaseViewModel {
   Future<void> runStartupLogic({
     required bool invokeLogin,
     required LoginInfo loginInfo,
-    required Function errorCallback,
+    required Function navigationCallback,
   }) async {
     // start by allowing app to redirect
     loginInfo.redirecting = true;
@@ -66,10 +66,12 @@ class StartUpViewModel extends BaseViewModel {
         loginInfo.redirecting = false;
         loginInfo.needSignUp = true;
         rethrow;
+      } else if (e is NoDrawerOpen) {
+        navigationCallback("needOpenDrawer");
+        rethrow;
       } else {
         log.e("The error:$e");
-        errorCallback(1);
-
+        navigationCallback("login");
         rethrow;
       }
     }

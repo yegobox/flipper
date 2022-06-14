@@ -22,6 +22,14 @@ class SessionException implements Exception {
   SessionException({required this.term});
 }
 
+class NoDrawerOpen implements Exception {
+  String term;
+
+  String errMsg() => 'NoDrawerOpen: $term';
+
+  NoDrawerOpen({required this.term});
+}
+
 class InternalServerError implements Exception {
   String term;
 

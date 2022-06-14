@@ -20,16 +20,18 @@ class StartUpView extends StatelessWidget {
           model.runStartupLogic(
             invokeLogin: invokeLogin ?? false,
             loginInfo: loginInfo,
-            errorCallback: (e) {
-              if (e == 1) {
+            navigationCallback: (nav) {
+              if (nav == "login") {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     backgroundColor: Colors.red,
-                    content: Text(
-                        "We are humman, and not perfect! Please try again."),
+                    content: Text("A Fresh login is required!"),
                   ),
                 );
                 GoRouter.of(context).go("/login");
+              }
+              if (nav == "needOpenDrawer") {
+                GoRouter.of(context).push("/drawer/open");
               }
             },
           );

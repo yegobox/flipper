@@ -9,6 +9,7 @@ import 'package:flipper_chat/omni_chat.dart';
 import 'package:flipper_dashboard/add_discount.dart';
 import 'package:flipper_dashboard/add_product_view.dart';
 import 'package:flipper_dashboard/devices.dart';
+import 'package:flipper_dashboard/drawer.dart' as drawer;
 import 'package:flipper_dashboard/no_net.dart';
 import 'package:flipper_dashboard/after_sale.dart';
 import 'package:flipper_dashboard/analytic.dart';
@@ -272,7 +273,7 @@ void main() async {
           name: 'category',
           pageBuilder: (context, state) => MaterialPage(
             key: state.pageKey,
-            child: AddCategory(),
+            child: const AddCategory(),
           ),
         ),
         GoRoute(
@@ -461,6 +462,17 @@ void main() async {
           pageBuilder: (context, state) => MaterialPage(
             key: state.pageKey,
             child: const BackUp(),
+          ),
+        ),
+        GoRoute(
+          path: '/drawer/:state',
+          name: 'drawer',
+          pageBuilder: (context, state) => MaterialPage(
+            key: state.pageKey,
+            child: drawer.DrawerScreen(
+              open: state.params['state']!,
+              drawer: state.extra! as Drawers,
+            ),
           ),
         ),
       ],
