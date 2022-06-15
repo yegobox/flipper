@@ -836,12 +836,11 @@ class IsarAPI implements IsarApiInterface {
     if (kBusiness == null) {
       log.e("fetching business from server");
       return await getOnlineBusiness(userId: userId);
-    } else {
-      if (await isDrawerOpen(cashierId: ProxyService.box.getBusinessId()!) ==
-          null) {
-        throw NoDrawerOpen(term: "Business Drawer is not open");
-      }
     }
+    if (await isDrawerOpen(cashierId: kBusiness.id) == null) {
+      throw NoDrawerOpen(term: "Business Drawer is not open");
+    }
+
     return kBusiness;
   }
 

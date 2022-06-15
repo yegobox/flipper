@@ -1,3 +1,4 @@
+import 'package:flipper_models/view_models/gate.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -65,7 +66,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
                                   DateTime.now().toIso8601String()
                               ..open = true,
                           );
-                          GoRouter.of(context).go(Routes.boot);
+                          loginInfo.isLoggedIn = true;
                         } else {
                           ProxyService.isarApi.update(
                               data: widget.drawer!

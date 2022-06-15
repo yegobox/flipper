@@ -42,10 +42,13 @@ class StartUpViewModel extends BaseViewModel {
         log.e("session expired");
         String? userPhone = ProxyService.box.getUserPhone();
         try {
-          await ProxyService.isarApi.login(
-            userPhone: userPhone!,
-          );
+          await ProxyService.isarApi.login(userPhone: userPhone!);
           await appInit();
+          loginInfo.isLoggedIn = true;
+          // we are logged in but there is a chance that this number is a tenant
+          // that is given access to this business's branch
+          // TODOtenant's is not useful when sync is not supported.
+          loginInfo.redirecting = false;
         } catch (e) {
           if (e is InternalServerError) {
             log.e("internal server error");
@@ -75,13 +78,6 @@ class StartUpViewModel extends BaseViewModel {
         rethrow;
       }
     }
-
-    loginInfo.isLoggedIn = true;
-    // we are logged in but there is a chance that this number is a tenant
-    // that is given access to this business's branch
-    // TODOtenant's is not useful when sync is not supported.
-
-    loginInfo.redirecting = false;
   }
 
   Future<void> login(bool? invokeLogin) async {

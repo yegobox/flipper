@@ -471,7 +471,7 @@ void main() async {
             key: state.pageKey,
             child: drawer.DrawerScreen(
               open: state.params['state']!,
-              drawer: state.extra! as Drawers,
+              drawer: state.extra != null ? state.extra as Drawers : null,
             ),
           ),
         ),
