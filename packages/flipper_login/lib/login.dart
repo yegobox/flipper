@@ -1,18 +1,19 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flipper_dashboard/startup_view.dart';
 import 'package:flipper_models/view_models/gate.dart';
 import 'config.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterfire_ui/auth.dart';
-import 'package:flipper_dashboard/startup_view.dart';
 import 'decorations.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:universal_platform/universal_platform.dart';
-import 'desktop_login_view.dart';
 import 'package:flipper_routing/routes.locator.dart';
 import 'package:flutter/scheduler.dart';
+
+import 'desktop_login_view.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 final isWeb = UniversalPlatform.isWeb;

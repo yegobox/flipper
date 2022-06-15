@@ -67,6 +67,8 @@ class _DrawerScreenState extends State<DrawerScreen> {
                               ..open = true,
                           );
                           loginInfo.isLoggedIn = true;
+
+                          GoRouter.of(context).push(Routes.home);
                         } else {
                           ProxyService.isarApi.update(
                               data: widget.drawer!

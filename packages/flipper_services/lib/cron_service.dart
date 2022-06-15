@@ -11,7 +11,6 @@ import 'package:flipper_routing/routes.logger.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flipper_routing/routes.locator.dart';
 import 'package:flipper_services/setting_service.dart';
-import 'package:path_provider/path_provider.dart';
 
 class CronService {
   final cron = Cron();
@@ -80,38 +79,38 @@ class CronService {
     // });
 
     /// backup the user db every day
-    cron.schedule(Schedule.parse('*/60 * * * *'), () async {
-      log.i('downloading the remote  copy');
-      // for now enable backup for all clients in future this will be changed
-      // Business? business = await ProxyService.isarApi.getBusiness();
-      // prevent the backup pop-up when a user did not click on adding backup button.
-      if (ProxyService.box.hasSignedInForAutoBackup()) {
-        await drive.downloadGoogleDriveFile(
-            'mdbx.dat', ProxyService.box.gdID());
+    // cron.schedule(Schedule.parse('*/60 * * * *'), () async {
+    //   log.i('downloading the remote  copy');
+    //   // for now enable backup for all clients in future this will be changed
+    //   // Business? business = await ProxyService.isarApi.getBusiness();
+    //   // prevent the backup pop-up when a user did not click on adding backup button.
+    //   if (ProxyService.box.hasSignedInForAutoBackup()) {
+    //     await drive.downloadGoogleDriveFile(
+    //         'mdbx.dat', ProxyService.box.gdID());
 
-        Directory test = await getApplicationDocumentsDirectory();
+    //     Directory test = await getApplicationDocumentsDirectory();
 
-        await for (var entity
-            in test.list(recursive: true, followLinks: false)) {
-          log.i(entity.path);
-        }
-      }
-    });
-    cron.schedule(Schedule.parse('*/30 * * * *'), () async {
-      log.i('uploading the local copy');
-      // for now enable backup for all clients in future this will be changed
-      // Business? business = await ProxyService.isarApi.getBusiness();
-      // prevent the backup pop-up when a user did not click on adding backup button.
-      if (ProxyService.box.hasSignedInForAutoBackup()) {
-        drive.upload();
-        Directory test = await getApplicationDocumentsDirectory();
+    //     await for (var entity
+    //         in test.list(recursive: true, followLinks: false)) {
+    //       log.i(entity.path);
+    //     }
+    //   }
+    // });
+    // cron.schedule(Schedule.parse('*/30 * * * *'), () async {
+    //   log.i('uploading the local copy');
+    //   // for now enable backup for all clients in future this will be changed
+    //   // Business? business = await ProxyService.isarApi.getBusiness();
+    //   // prevent the backup pop-up when a user did not click on adding backup button.
+    //   if (ProxyService.box.hasSignedInForAutoBackup()) {
+    //     drive.upload();
+    //     Directory test = await getApplicationDocumentsDirectory();
 
-        await for (var entity
-            in test.list(recursive: true, followLinks: false)) {
-          log.i(entity.path);
-        }
-      }
-    });
+    //     await for (var entity
+    //         in test.list(recursive: true, followLinks: false)) {
+    //       log.i(entity.path);
+    //     }
+    //   }
+    // });
 
     // we need to think when the devices change or app is uninstalled
     // for the case like that the token needs to be updated, but not covered now

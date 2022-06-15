@@ -44,11 +44,6 @@ class StartUpViewModel extends BaseViewModel {
         try {
           await ProxyService.isarApi.login(userPhone: userPhone!);
           await appInit();
-          loginInfo.isLoggedIn = true;
-          // we are logged in but there is a chance that this number is a tenant
-          // that is given access to this business's branch
-          // TODOtenant's is not useful when sync is not supported.
-          loginInfo.redirecting = false;
         } catch (e) {
           if (e is InternalServerError) {
             log.e("internal server error");
@@ -78,6 +73,11 @@ class StartUpViewModel extends BaseViewModel {
         rethrow;
       }
     }
+    loginInfo.isLoggedIn = true;
+    // we are logged in but there is a chance that this number is a tenant
+    // that is given access to this business's branch
+    // TODOtenant's is not useful when sync is not supported.
+    loginInfo.redirecting = false;
   }
 
   Future<void> login(bool? invokeLogin) async {
@@ -107,7 +107,7 @@ class StartUpViewModel extends BaseViewModel {
       log.e("userId::$userId");
       isar.Business business =
           await ProxyService.isarApi.getLocalOrOnlineBusiness(userId: userId!);
-
+      log.i(business);
       ProxyService.appService.setBusiness(business: business);
       // get local or online branches
       List<isar.Branch> branches =

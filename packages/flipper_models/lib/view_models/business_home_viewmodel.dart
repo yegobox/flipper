@@ -136,7 +136,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     });
     // in case there is nothhing to listen to and we need to refresh itemOnSale
     Order? order = await ProxyService.keypad
-        .getOrder(branchId: ProxyService.box.getBranchId()!);
+        .getOrder(branchId: ProxyService.box.getBranchId() ?? 0);
     keypad.setOrder(order);
     if (order != null) {
       await order.orderItems.load();
