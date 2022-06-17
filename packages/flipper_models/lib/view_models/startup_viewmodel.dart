@@ -22,7 +22,7 @@ class StartUpViewModel extends BaseViewModel {
   Future<void> runStartupLogic({
     required bool invokeLogin,
     required LoginInfo loginInfo,
-    required Function errorCallback,
+    required Function navigationCallback,
   }) async {
     // start by allowing app to redirect
     loginInfo.redirecting = true;
@@ -42,9 +42,7 @@ class StartUpViewModel extends BaseViewModel {
         log.e("session expired");
         String? userPhone = ProxyService.box.getUserPhone();
         try {
-          await ProxyService.isarApi.login(
-            userPhone: userPhone!,
-          );
+          await ProxyService.isarApi.login(userPhone: userPhone!);
           await appInit();
         } catch (e) {
           if (e is InternalServerError) {
@@ -66,19 +64,19 @@ class StartUpViewModel extends BaseViewModel {
         loginInfo.redirecting = false;
         loginInfo.needSignUp = true;
         rethrow;
+      } else if (e is NoDrawerOpen) {
+        navigationCallback("needOpenDrawer");
+        rethrow;
       } else {
         log.e("The error:$e");
-        errorCallback(1);
-
+        navigationCallback("login");
         rethrow;
       }
     }
-
     loginInfo.isLoggedIn = true;
     // we are logged in but there is a chance that this number is a tenant
     // that is given access to this business's branch
     // TODOtenant's is not useful when sync is not supported.
-
     loginInfo.redirecting = false;
   }
 
@@ -109,7 +107,7 @@ class StartUpViewModel extends BaseViewModel {
       log.e("userId::$userId");
       isar.Business business =
           await ProxyService.isarApi.getLocalOrOnlineBusiness(userId: userId!);
-
+      log.i(business);
       ProxyService.appService.setBusiness(business: business);
       // get local or online branches
       List<isar.Branch> branches =

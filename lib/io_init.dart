@@ -34,6 +34,7 @@ Future<void> initDb() async {
       CustomerSchema,
       PinSchema,
       ReceiptSchema,
+      DrawersSchema
     ],
     inspector: false,
   );

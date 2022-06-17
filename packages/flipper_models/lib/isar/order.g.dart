@@ -15,7 +15,7 @@ extension GetOrderCollection on Isar {
 const OrderSchema = CollectionSchema(
   name: 'Order',
   schema:
-      '{"name":"Order","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"cashReceived","type":"Double"},{"name":"createdAt","type":"String"},{"name":"customerChangeDue","type":"Double"},{"name":"customerId","type":"Long"},{"name":"draft","type":"Bool"},{"name":"note","type":"String"},{"name":"orderNumber","type":"String"},{"name":"orderType","type":"String"},{"name":"paymentType","type":"String"},{"name":"reference","type":"String"},{"name":"reported","type":"Bool"},{"name":"status","type":"String"},{"name":"subTotal","type":"Double"},{"name":"updatedAt","type":"String"}],"indexes":[{"name":"branchId","unique":false,"replace":false,"properties":[{"name":"branchId","type":"Value","caseSensitive":false}]},{"name":"status_branchId","unique":false,"replace":false,"properties":[{"name":"status","type":"Hash","caseSensitive":true},{"name":"branchId","type":"Value","caseSensitive":false}]}],"links":[{"name":"discounts","target":"Discount"},{"name":"orderItems","target":"OrderItem"}]}',
+      '{"name":"Order","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"cashReceived","type":"Double"},{"name":"createdAt","type":"String"},{"name":"customerChangeDue","type":"Double"},{"name":"customerId","type":"Long"},{"name":"draft","type":"Bool"},{"name":"note","type":"String"},{"name":"orderNumber","type":"String"},{"name":"orderType","type":"String"},{"name":"paymentType","type":"String"},{"name":"receiptType","type":"String"},{"name":"reference","type":"String"},{"name":"reported","type":"Bool"},{"name":"status","type":"String"},{"name":"subTotal","type":"Double"},{"name":"updatedAt","type":"String"}],"indexes":[{"name":"branchId","unique":false,"replace":false,"properties":[{"name":"branchId","type":"Value","caseSensitive":false}]},{"name":"status_branchId","unique":false,"replace":false,"properties":[{"name":"status","type":"Hash","caseSensitive":true},{"name":"branchId","type":"Value","caseSensitive":false}]}],"links":[{"name":"discounts","target":"Discount"},{"name":"orderItems","target":"OrderItem"}]}',
   idName: 'id',
   propertyIds: {
     'active': 0,
@@ -29,11 +29,12 @@ const OrderSchema = CollectionSchema(
     'orderNumber': 8,
     'orderType': 9,
     'paymentType': 10,
-    'reference': 11,
-    'reported': 12,
-    'status': 13,
-    'subTotal': 14,
-    'updatedAt': 15
+    'receiptType': 11,
+    'reference': 12,
+    'reported': 13,
+    'status': 14,
+    'subTotal': 15,
+    'updatedAt': 16
   },
   listProperties: {},
   indexIds: {'branchId': 0, 'status_branchId': 1},
@@ -110,20 +111,26 @@ void _orderSerializeNative(IsarCollection<Order> collection, IsarCObject cObj,
   final value10 = object.paymentType;
   final _paymentType = IsarBinaryWriter.utf8Encoder.convert(value10);
   dynamicSize += (_paymentType.length) as int;
-  final value11 = object.reference;
-  final _reference = IsarBinaryWriter.utf8Encoder.convert(value11);
+  final value11 = object.receiptType;
+  IsarUint8List? _receiptType;
+  if (value11 != null) {
+    _receiptType = IsarBinaryWriter.utf8Encoder.convert(value11);
+  }
+  dynamicSize += (_receiptType?.length ?? 0) as int;
+  final value12 = object.reference;
+  final _reference = IsarBinaryWriter.utf8Encoder.convert(value12);
   dynamicSize += (_reference.length) as int;
-  final value12 = object.reported;
-  final _reported = value12;
-  final value13 = object.status;
-  final _status = IsarBinaryWriter.utf8Encoder.convert(value13);
+  final value13 = object.reported;
+  final _reported = value13;
+  final value14 = object.status;
+  final _status = IsarBinaryWriter.utf8Encoder.convert(value14);
   dynamicSize += (_status.length) as int;
-  final value14 = object.subTotal;
-  final _subTotal = value14;
-  final value15 = object.updatedAt;
+  final value15 = object.subTotal;
+  final _subTotal = value15;
+  final value16 = object.updatedAt;
   IsarUint8List? _updatedAt;
-  if (value15 != null) {
-    _updatedAt = IsarBinaryWriter.utf8Encoder.convert(value15);
+  if (value16 != null) {
+    _updatedAt = IsarBinaryWriter.utf8Encoder.convert(value16);
   }
   dynamicSize += (_updatedAt?.length ?? 0) as int;
   final size = staticSize + dynamicSize;
@@ -143,11 +150,12 @@ void _orderSerializeNative(IsarCollection<Order> collection, IsarCObject cObj,
   writer.writeBytes(offsets[8], _orderNumber);
   writer.writeBytes(offsets[9], _orderType);
   writer.writeBytes(offsets[10], _paymentType);
-  writer.writeBytes(offsets[11], _reference);
-  writer.writeBool(offsets[12], _reported);
-  writer.writeBytes(offsets[13], _status);
-  writer.writeDouble(offsets[14], _subTotal);
-  writer.writeBytes(offsets[15], _updatedAt);
+  writer.writeBytes(offsets[11], _receiptType);
+  writer.writeBytes(offsets[12], _reference);
+  writer.writeBool(offsets[13], _reported);
+  writer.writeBytes(offsets[14], _status);
+  writer.writeDouble(offsets[15], _subTotal);
+  writer.writeBytes(offsets[16], _updatedAt);
 }
 
 Order _orderDeserializeNative(IsarCollection<Order> collection, int id,
@@ -165,11 +173,12 @@ Order _orderDeserializeNative(IsarCollection<Order> collection, int id,
   object.orderNumber = reader.readString(offsets[8]);
   object.orderType = reader.readString(offsets[9]);
   object.paymentType = reader.readString(offsets[10]);
-  object.reference = reader.readString(offsets[11]);
-  object.reported = reader.readBoolOrNull(offsets[12]);
-  object.status = reader.readString(offsets[13]);
-  object.subTotal = reader.readDouble(offsets[14]);
-  object.updatedAt = reader.readStringOrNull(offsets[15]);
+  object.receiptType = reader.readStringOrNull(offsets[11]);
+  object.reference = reader.readString(offsets[12]);
+  object.reported = reader.readBoolOrNull(offsets[13]);
+  object.status = reader.readString(offsets[14]);
+  object.subTotal = reader.readDouble(offsets[15]);
+  object.updatedAt = reader.readStringOrNull(offsets[16]);
   _orderAttachLinks(collection, id, object);
   return object;
 }
@@ -202,14 +211,16 @@ P _orderDeserializePropNative<P>(
     case 10:
       return (reader.readString(offset)) as P;
     case 11:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 12:
-      return (reader.readBoolOrNull(offset)) as P;
-    case 13:
       return (reader.readString(offset)) as P;
+    case 13:
+      return (reader.readBoolOrNull(offset)) as P;
     case 14:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 15:
+      return (reader.readDouble(offset)) as P;
+    case 16:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw 'Illegal propertyIndex';
@@ -230,6 +241,7 @@ dynamic _orderSerializeWeb(IsarCollection<Order> collection, Order object) {
   IsarNative.jsObjectSet(jsObj, 'orderNumber', object.orderNumber);
   IsarNative.jsObjectSet(jsObj, 'orderType', object.orderType);
   IsarNative.jsObjectSet(jsObj, 'paymentType', object.paymentType);
+  IsarNative.jsObjectSet(jsObj, 'receiptType', object.receiptType);
   IsarNative.jsObjectSet(jsObj, 'reference', object.reference);
   IsarNative.jsObjectSet(jsObj, 'reported', object.reported);
   IsarNative.jsObjectSet(jsObj, 'status', object.status);
@@ -256,6 +268,7 @@ Order _orderDeserializeWeb(IsarCollection<Order> collection, dynamic jsObj) {
   object.orderNumber = IsarNative.jsObjectGet(jsObj, 'orderNumber') ?? '';
   object.orderType = IsarNative.jsObjectGet(jsObj, 'orderType') ?? '';
   object.paymentType = IsarNative.jsObjectGet(jsObj, 'paymentType') ?? '';
+  object.receiptType = IsarNative.jsObjectGet(jsObj, 'receiptType');
   object.reference = IsarNative.jsObjectGet(jsObj, 'reference') ?? '';
   object.reported = IsarNative.jsObjectGet(jsObj, 'reported');
   object.status = IsarNative.jsObjectGet(jsObj, 'status') ?? '';
@@ -297,6 +310,8 @@ P _orderDeserializePropWeb<P>(Object jsObj, String propertyName) {
       return (IsarNative.jsObjectGet(jsObj, 'orderType') ?? '') as P;
     case 'paymentType':
       return (IsarNative.jsObjectGet(jsObj, 'paymentType') ?? '') as P;
+    case 'receiptType':
+      return (IsarNative.jsObjectGet(jsObj, 'receiptType')) as P;
     case 'reference':
       return (IsarNative.jsObjectGet(jsObj, 'reference') ?? '') as P;
     case 'reported':
@@ -1314,6 +1329,117 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
     ));
   }
 
+  QueryBuilder<Order, Order, QAfterFilterCondition> receiptTypeIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'receiptType',
+      value: null,
+    ));
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> receiptTypeEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.eq,
+      property: 'receiptType',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> receiptTypeGreaterThan(
+    String? value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.gt,
+      include: include,
+      property: 'receiptType',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> receiptTypeLessThan(
+    String? value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.lt,
+      include: include,
+      property: 'receiptType',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> receiptTypeBetween(
+    String? lower,
+    String? upper, {
+    bool caseSensitive = true,
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition.between(
+      property: 'receiptType',
+      lower: lower,
+      includeLower: includeLower,
+      upper: upper,
+      includeUpper: includeUpper,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> receiptTypeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.startsWith,
+      property: 'receiptType',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> receiptTypeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.endsWith,
+      property: 'receiptType',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> receiptTypeContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.contains,
+      property: 'receiptType',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> receiptTypeMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.matches,
+      property: 'receiptType',
+      value: pattern,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
   QueryBuilder<Order, Order, QAfterFilterCondition> referenceEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1796,6 +1922,14 @@ extension OrderQueryWhereSortBy on QueryBuilder<Order, Order, QSortBy> {
     return addSortByInternal('paymentType', Sort.desc);
   }
 
+  QueryBuilder<Order, Order, QAfterSortBy> sortByReceiptType() {
+    return addSortByInternal('receiptType', Sort.asc);
+  }
+
+  QueryBuilder<Order, Order, QAfterSortBy> sortByReceiptTypeDesc() {
+    return addSortByInternal('receiptType', Sort.desc);
+  }
+
   QueryBuilder<Order, Order, QAfterSortBy> sortByReference() {
     return addSortByInternal('reference', Sort.asc);
   }
@@ -1934,6 +2068,14 @@ extension OrderQueryWhereSortThenBy on QueryBuilder<Order, Order, QSortThenBy> {
     return addSortByInternal('paymentType', Sort.desc);
   }
 
+  QueryBuilder<Order, Order, QAfterSortBy> thenByReceiptType() {
+    return addSortByInternal('receiptType', Sort.asc);
+  }
+
+  QueryBuilder<Order, Order, QAfterSortBy> thenByReceiptTypeDesc() {
+    return addSortByInternal('receiptType', Sort.desc);
+  }
+
   QueryBuilder<Order, Order, QAfterSortBy> thenByReference() {
     return addSortByInternal('reference', Sort.asc);
   }
@@ -2029,6 +2171,11 @@ extension OrderQueryWhereDistinct on QueryBuilder<Order, Order, QDistinct> {
     return addDistinctByInternal('paymentType', caseSensitive: caseSensitive);
   }
 
+  QueryBuilder<Order, Order, QDistinct> distinctByReceiptType(
+      {bool caseSensitive = true}) {
+    return addDistinctByInternal('receiptType', caseSensitive: caseSensitive);
+  }
+
   QueryBuilder<Order, Order, QDistinct> distinctByReference(
       {bool caseSensitive = true}) {
     return addDistinctByInternal('reference', caseSensitive: caseSensitive);
@@ -2100,6 +2247,10 @@ extension OrderQueryProperty on QueryBuilder<Order, Order, QQueryProperty> {
 
   QueryBuilder<Order, String, QQueryOperations> paymentTypeProperty() {
     return addPropertyNameInternal('paymentType');
+  }
+
+  QueryBuilder<Order, String?, QQueryOperations> receiptTypeProperty() {
+    return addPropertyNameInternal('receiptType');
   }
 
   QueryBuilder<Order, String, QQueryOperations> referenceProperty() {

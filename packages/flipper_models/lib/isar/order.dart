@@ -19,6 +19,9 @@ class Order {
   late double cashReceived;
   late double customerChangeDue;
   late String createdAt;
+  // add receipt type offerered on this order
+  /// a comma separated of the receipt type offered on this order eg. NR, NS etc...
+  String? receiptType;
   String? updatedAt;
   bool? reported;
   int? customerId;

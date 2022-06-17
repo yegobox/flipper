@@ -26,6 +26,7 @@ export 'isar/receipt.dart';
 export 'isar/product.dart';
 export 'package:uuid/uuid.dart';
 export 'isar/business.dart';
+export 'isar/drawer.dart';
 export 'exceptions.dart';
 
 export 'package:flipper_models/view_models/login_viewmodel.dart';

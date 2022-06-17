@@ -136,7 +136,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     });
     // in case there is nothhing to listen to and we need to refresh itemOnSale
     Order? order = await ProxyService.keypad
-        .getOrder(branchId: ProxyService.box.getBranchId()!);
+        .getOrder(branchId: ProxyService.box.getBranchId() ?? 0);
     keypad.setOrder(order);
     if (order != null) {
       await order.orderItems.load();
@@ -547,7 +547,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   void backUpNow(Function callback) async {
     if (ProxyService.remoteConfig.isBackupAvailable()) {
       final drive = GoogleDrive();
-      await drive.backUpNow();
+      await drive.upload();
       callback(1);
     }
   }
@@ -626,7 +626,10 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     if (receiptSignature == null) {
       return callback(false);
     }
-
+    order.receiptType = order.receiptType == null
+        ? receiptType
+        : order.receiptType! + "," + receiptType;
+    ProxyService.isarApi.update(data: order);
     String time = DateTime.now().toString().substring(11, 19);
     DateTime now = DateTime.now();
     String formattedDate = DateFormat('dd-MM-yyy').format(now);

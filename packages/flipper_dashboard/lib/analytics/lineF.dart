@@ -135,7 +135,7 @@ class LineFState extends State<LineF> {
                         show: true,
                         bottomTitles: SideTitles(
                           showTitles: true,
-                          getTextStyles: (context, value) => TextStyle(
+                          getTextStyles: (context, value) => const TextStyle(
                             color: Color(0xff7589a2),
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
@@ -164,7 +164,7 @@ class LineFState extends State<LineF> {
                         ),
                         leftTitles: SideTitles(
                           showTitles: true,
-                          getTextStyles: (context, value) => TextStyle(
+                          getTextStyles: (context, value) => const TextStyle(
                             color: Color(0xff7589a2),
                             fontWeight: FontWeight.bold,
                             fontSize: 14,

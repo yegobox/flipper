@@ -5,7 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:ionicons/ionicons.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/isar_models.dart' as model;
 import 'package:go_router/go_router.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/routes.router.dart';
@@ -22,7 +22,7 @@ class FlipperDrawer extends StatefulWidget {
   final Function preferenceController;
   final Function inviteController;
   final Function addWorkSpace;
-  final List<Business> businesses;
+  final List<model.Business> businesses;
 
   @override
   State<FlipperDrawer> createState() => _FlipperDrawerState();
