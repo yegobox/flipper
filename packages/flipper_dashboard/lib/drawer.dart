@@ -62,6 +62,16 @@ class _DrawerScreenState extends State<DrawerScreen> {
                               ..cashierId = ProxyService.box.getBusinessId()!
                               ..openingBalance = double.parse(_controller.text)
                               ..closingBalance = 0
+                              ..tradeName =
+                                  ProxyService.appService.business.name
+                              ..nsSaleCount = 0
+                              ..trSaleCount = 0
+                              ..psSaleCount = 0
+                              ..incompleteSale = 0
+                              ..totalCsSaleIncome = 0
+                              ..totalNsSaleIncome = 0
+                              ..csSaleCount = 0
+                              ..nrSaleCount = 0
                               ..openingDateTime =
                                   DateTime.now().toIso8601String()
                               ..open = true,

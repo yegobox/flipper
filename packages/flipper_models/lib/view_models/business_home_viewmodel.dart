@@ -629,6 +629,9 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     order.receiptType = order.receiptType == null
         ? receiptType
         : order.receiptType! + "," + receiptType;
+
+    // get the current drawer status
+    await updateDrawer(receiptType, order);
     ProxyService.isarApi.update(data: order);
     String time = DateTime.now().toString().substring(11, 19);
     DateTime now = DateTime.now();
@@ -645,6 +648,34 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         receiptType: receiptNumber);
     receiptReady = true;
     notifyListeners();
+  }
+
+  Future<void> updateDrawer(String receiptType, Order order) async {
+    Drawers? drawer = await ProxyService.isarApi
+        .isDrawerOpen(cashierId: ProxyService.box.getBranchId()!);
+    drawer!
+      ..cashierId = ProxyService.box.getBusinessId()!
+      ..nsSaleCount =
+          receiptType == "NS" ? drawer.nsSaleCount! + 1 : drawer.nsSaleCount!
+      ..trSaleCount =
+          receiptType == "TR" ? drawer.trSaleCount! + 1 : drawer.trSaleCount!
+      ..psSaleCount =
+          receiptType == "PS" ? drawer.psSaleCount! + 1 : drawer.psSaleCount!
+      ..csSaleCount =
+          receiptType == "CS" ? drawer.csSaleCount! + 1 : drawer.csSaleCount!
+      ..nrSaleCount =
+          receiptType == "NR" ? drawer.nrSaleCount! + 1 : drawer.nrSaleCount!
+      ..incompleteSale = 0
+      ..totalCsSaleIncome = receiptType == "CS"
+          ? drawer.totalCsSaleIncome! + order.subTotal
+          : drawer.totalCsSaleIncome!
+      ..totalNsSaleIncome = receiptType == "NS"
+          ? drawer.totalNsSaleIncome! + order.subTotal
+          : drawer.totalNsSaleIncome!
+      ..openingDateTime = DateTime.now().toIso8601String()
+      ..open = true;
+    // update drawer
+    await ProxyService.isarApi.update(data: drawer);
   }
 
   List<Order> _completedOrders = [];
