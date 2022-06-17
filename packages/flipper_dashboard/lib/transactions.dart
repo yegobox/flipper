@@ -18,17 +18,17 @@ class _TransactionsState extends State<Transactions> {
   bool defaultTransactions = true;
   List<Widget> list = [];
   List<Widget> zlist = [];
-  List<Widget> _zTransactions({required List<Order> completedOrder}) {
+  List<Widget> _zTransactions({required Drawers drawer}) {
     zlist.add(Column(children: [
-      const Text('Trade Name: yegobox'),
-      const Text('Daily report of Today'),
+      Text('Trade Name: ${drawer.tradeName}'),
+      const Text('Daily report for Today'),
       Padding(
         padding: const EdgeInsets.all(8.0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [
-            Text('Opening Deposit'),
-            Text('500 RWF'),
+          children: [
+            const Text('Opening Deposit'),
+            Text('${drawer.openingBalance} RWF'),
           ],
         ),
       ),
@@ -36,9 +36,9 @@ class _TransactionsState extends State<Transactions> {
         padding: const EdgeInsets.all(8.0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [
-            Text('Total NS'),
-            Text('50'),
+          children: [
+            const Text('Total NS'),
+            Text(drawer.nsSaleCount.toString()),
           ],
         ),
       ),
@@ -46,9 +46,9 @@ class _TransactionsState extends State<Transactions> {
         padding: const EdgeInsets.all(8.0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [
-            Text('Total NR'),
-            Text('50'),
+          children: [
+            const Text('Total NR'),
+            Text(drawer.nrSaleCount.toString()),
           ],
         ),
       ),
@@ -56,9 +56,11 @@ class _TransactionsState extends State<Transactions> {
         padding: const EdgeInsets.all(8.0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [
-            Text('Total Taxes'),
-            Text('RS-NS'),
+          children: [
+            const Text('Total Taxes'),
+            Text((drawer.totalNsSaleIncome!.toInt() -
+                    drawer.totalCsSaleIncome!.toInt())
+                .toString()),
           ],
         ),
       ),
@@ -66,9 +68,9 @@ class _TransactionsState extends State<Transactions> {
         padding: const EdgeInsets.all(8.0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [
-            Text('Total CS'),
-            Text('50'),
+          children: [
+            const Text('Total CS'),
+            Text(drawer.csSaleCount.toString()),
           ],
         ),
       ),
@@ -76,9 +78,9 @@ class _TransactionsState extends State<Transactions> {
         padding: const EdgeInsets.all(8.0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [
-            Text('Total TS'),
-            Text('50'),
+          children: [
+            const Text('Total TS'),
+            Text(drawer.trSaleCount.toString()),
           ],
         ),
       ),
@@ -86,9 +88,9 @@ class _TransactionsState extends State<Transactions> {
         padding: const EdgeInsets.all(8.0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [
-            Text('Total PS'),
-            Text('50'),
+          children: [
+            const Text('Total PS'),
+            Text(drawer.psSaleCount.toString())
           ],
         ),
       ),
@@ -98,7 +100,7 @@ class _TransactionsState extends State<Transactions> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: const [
             Text('Total Sales per payment mode'),
-            Text('50% cash'),
+            Text('100% cash'),
           ],
         ),
       ),
@@ -184,6 +186,8 @@ class _TransactionsState extends State<Transactions> {
         onModelReady: (model) async {
           List<Order> completedOrders = await ProxyService.isarApi
               .completedOrders(branchId: ProxyService.box.getBranchId()!);
+          Drawers? drawer = await ProxyService.isarApi
+              .isDrawerOpen(cashierId: ProxyService.box.getBusinessId()!);
 
           model.completedOrdersList = completedOrders;
 
@@ -192,7 +196,7 @@ class _TransactionsState extends State<Transactions> {
           });
           // for rra z report
           setState(() {
-            zlist = _zTransactions(completedOrder: completedOrders);
+            zlist = _zTransactions(drawer: drawer!);
           });
         },
         viewModelBuilder: () => BusinessHomeViewModel(),

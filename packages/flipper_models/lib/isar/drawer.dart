@@ -10,11 +10,13 @@ class Drawers {
   String? openingDateTime;
   String? closingDateTime;
   int? csSaleCount;
-  // so we provide the NS-NR
+  String? tradeName;
   double? totalNsSaleIncome;
   double? totalCsSaleIncome;
   int? nrSaleCount;
+  int? nsSaleCount;
   int? trSaleCount;
+  int? psSaleCount;
   int? incompleteSale;
   int? otherTransactions;
   String? paymentMode;

@@ -15,7 +15,7 @@ extension GetDrawersCollection on Isar {
 const DrawersSchema = CollectionSchema(
   name: 'Drawers',
   schema:
-      '{"name":"Drawers","idName":"id","properties":[{"name":"cashierId","type":"Long"},{"name":"closingBalance","type":"Double"},{"name":"closingDateTime","type":"String"},{"name":"csSaleCount","type":"Long"},{"name":"incompleteSale","type":"Long"},{"name":"nrSaleCount","type":"Long"},{"name":"open","type":"Bool"},{"name":"openingBalance","type":"Double"},{"name":"openingDateTime","type":"String"},{"name":"otherTransactions","type":"Long"},{"name":"paymentMode","type":"String"},{"name":"totalCsSaleIncome","type":"Double"},{"name":"totalNsSaleIncome","type":"Double"},{"name":"trSaleCount","type":"Long"}],"indexes":[{"name":"cashierId","unique":false,"replace":false,"properties":[{"name":"cashierId","type":"Value","caseSensitive":false}]},{"name":"open_cashierId","unique":false,"replace":false,"properties":[{"name":"open","type":"Value","caseSensitive":false},{"name":"cashierId","type":"Value","caseSensitive":false}]}],"links":[]}',
+      '{"name":"Drawers","idName":"id","properties":[{"name":"cashierId","type":"Long"},{"name":"closingBalance","type":"Double"},{"name":"closingDateTime","type":"String"},{"name":"csSaleCount","type":"Long"},{"name":"incompleteSale","type":"Long"},{"name":"nrSaleCount","type":"Long"},{"name":"nsSaleCount","type":"Long"},{"name":"open","type":"Bool"},{"name":"openingBalance","type":"Double"},{"name":"openingDateTime","type":"String"},{"name":"otherTransactions","type":"Long"},{"name":"paymentMode","type":"String"},{"name":"psSaleCount","type":"Long"},{"name":"totalCsSaleIncome","type":"Double"},{"name":"totalNsSaleIncome","type":"Double"},{"name":"trSaleCount","type":"Long"},{"name":"tradeName","type":"String"}],"indexes":[{"name":"cashierId","unique":false,"replace":false,"properties":[{"name":"cashierId","type":"Value","caseSensitive":false}]},{"name":"open_cashierId","unique":false,"replace":false,"properties":[{"name":"open","type":"Value","caseSensitive":false},{"name":"cashierId","type":"Value","caseSensitive":false}]}],"links":[]}',
   idName: 'id',
   propertyIds: {
     'cashierId': 0,
@@ -24,14 +24,17 @@ const DrawersSchema = CollectionSchema(
     'csSaleCount': 3,
     'incompleteSale': 4,
     'nrSaleCount': 5,
-    'open': 6,
-    'openingBalance': 7,
-    'openingDateTime': 8,
-    'otherTransactions': 9,
-    'paymentMode': 10,
-    'totalCsSaleIncome': 11,
-    'totalNsSaleIncome': 12,
-    'trSaleCount': 13
+    'nsSaleCount': 6,
+    'open': 7,
+    'openingBalance': 8,
+    'openingDateTime': 9,
+    'otherTransactions': 10,
+    'paymentMode': 11,
+    'psSaleCount': 12,
+    'totalCsSaleIncome': 13,
+    'totalNsSaleIncome': 14,
+    'trSaleCount': 15,
+    'tradeName': 16
   },
   listProperties: {},
   indexIds: {'cashierId': 0, 'open_cashierId': 1},
@@ -99,30 +102,40 @@ void _drawersSerializeNative(
   final _incompleteSale = value4;
   final value5 = object.nrSaleCount;
   final _nrSaleCount = value5;
-  final value6 = object.open;
-  final _open = value6;
-  final value7 = object.openingBalance;
-  final _openingBalance = value7;
-  final value8 = object.openingDateTime;
+  final value6 = object.nsSaleCount;
+  final _nsSaleCount = value6;
+  final value7 = object.open;
+  final _open = value7;
+  final value8 = object.openingBalance;
+  final _openingBalance = value8;
+  final value9 = object.openingDateTime;
   IsarUint8List? _openingDateTime;
-  if (value8 != null) {
-    _openingDateTime = IsarBinaryWriter.utf8Encoder.convert(value8);
+  if (value9 != null) {
+    _openingDateTime = IsarBinaryWriter.utf8Encoder.convert(value9);
   }
   dynamicSize += (_openingDateTime?.length ?? 0) as int;
-  final value9 = object.otherTransactions;
-  final _otherTransactions = value9;
-  final value10 = object.paymentMode;
+  final value10 = object.otherTransactions;
+  final _otherTransactions = value10;
+  final value11 = object.paymentMode;
   IsarUint8List? _paymentMode;
-  if (value10 != null) {
-    _paymentMode = IsarBinaryWriter.utf8Encoder.convert(value10);
+  if (value11 != null) {
+    _paymentMode = IsarBinaryWriter.utf8Encoder.convert(value11);
   }
   dynamicSize += (_paymentMode?.length ?? 0) as int;
-  final value11 = object.totalCsSaleIncome;
-  final _totalCsSaleIncome = value11;
-  final value12 = object.totalNsSaleIncome;
-  final _totalNsSaleIncome = value12;
-  final value13 = object.trSaleCount;
-  final _trSaleCount = value13;
+  final value12 = object.psSaleCount;
+  final _psSaleCount = value12;
+  final value13 = object.totalCsSaleIncome;
+  final _totalCsSaleIncome = value13;
+  final value14 = object.totalNsSaleIncome;
+  final _totalNsSaleIncome = value14;
+  final value15 = object.trSaleCount;
+  final _trSaleCount = value15;
+  final value16 = object.tradeName;
+  IsarUint8List? _tradeName;
+  if (value16 != null) {
+    _tradeName = IsarBinaryWriter.utf8Encoder.convert(value16);
+  }
+  dynamicSize += (_tradeName?.length ?? 0) as int;
   final size = staticSize + dynamicSize;
 
   cObj.buffer = alloc(size);
@@ -135,14 +148,17 @@ void _drawersSerializeNative(
   writer.writeLong(offsets[3], _csSaleCount);
   writer.writeLong(offsets[4], _incompleteSale);
   writer.writeLong(offsets[5], _nrSaleCount);
-  writer.writeBool(offsets[6], _open);
-  writer.writeDouble(offsets[7], _openingBalance);
-  writer.writeBytes(offsets[8], _openingDateTime);
-  writer.writeLong(offsets[9], _otherTransactions);
-  writer.writeBytes(offsets[10], _paymentMode);
-  writer.writeDouble(offsets[11], _totalCsSaleIncome);
-  writer.writeDouble(offsets[12], _totalNsSaleIncome);
-  writer.writeLong(offsets[13], _trSaleCount);
+  writer.writeLong(offsets[6], _nsSaleCount);
+  writer.writeBool(offsets[7], _open);
+  writer.writeDouble(offsets[8], _openingBalance);
+  writer.writeBytes(offsets[9], _openingDateTime);
+  writer.writeLong(offsets[10], _otherTransactions);
+  writer.writeBytes(offsets[11], _paymentMode);
+  writer.writeLong(offsets[12], _psSaleCount);
+  writer.writeDouble(offsets[13], _totalCsSaleIncome);
+  writer.writeDouble(offsets[14], _totalNsSaleIncome);
+  writer.writeLong(offsets[15], _trSaleCount);
+  writer.writeBytes(offsets[16], _tradeName);
 }
 
 Drawers _drawersDeserializeNative(IsarCollection<Drawers> collection, int id,
@@ -155,14 +171,17 @@ Drawers _drawersDeserializeNative(IsarCollection<Drawers> collection, int id,
   object.id = id;
   object.incompleteSale = reader.readLongOrNull(offsets[4]);
   object.nrSaleCount = reader.readLongOrNull(offsets[5]);
-  object.open = reader.readBool(offsets[6]);
-  object.openingBalance = reader.readDouble(offsets[7]);
-  object.openingDateTime = reader.readStringOrNull(offsets[8]);
-  object.otherTransactions = reader.readLongOrNull(offsets[9]);
-  object.paymentMode = reader.readStringOrNull(offsets[10]);
-  object.totalCsSaleIncome = reader.readDoubleOrNull(offsets[11]);
-  object.totalNsSaleIncome = reader.readDoubleOrNull(offsets[12]);
-  object.trSaleCount = reader.readLongOrNull(offsets[13]);
+  object.nsSaleCount = reader.readLongOrNull(offsets[6]);
+  object.open = reader.readBool(offsets[7]);
+  object.openingBalance = reader.readDouble(offsets[8]);
+  object.openingDateTime = reader.readStringOrNull(offsets[9]);
+  object.otherTransactions = reader.readLongOrNull(offsets[10]);
+  object.paymentMode = reader.readStringOrNull(offsets[11]);
+  object.psSaleCount = reader.readLongOrNull(offsets[12]);
+  object.totalCsSaleIncome = reader.readDoubleOrNull(offsets[13]);
+  object.totalNsSaleIncome = reader.readDoubleOrNull(offsets[14]);
+  object.trSaleCount = reader.readLongOrNull(offsets[15]);
+  object.tradeName = reader.readStringOrNull(offsets[16]);
   return object;
 }
 
@@ -184,21 +203,27 @@ P _drawersDeserializePropNative<P>(
     case 5:
       return (reader.readLongOrNull(offset)) as P;
     case 6:
-      return (reader.readBool(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 7:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 8:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDouble(offset)) as P;
     case 9:
-      return (reader.readLongOrNull(offset)) as P;
-    case 10:
       return (reader.readStringOrNull(offset)) as P;
-    case 11:
-      return (reader.readDoubleOrNull(offset)) as P;
-    case 12:
-      return (reader.readDoubleOrNull(offset)) as P;
-    case 13:
+    case 10:
       return (reader.readLongOrNull(offset)) as P;
+    case 11:
+      return (reader.readStringOrNull(offset)) as P;
+    case 12:
+      return (reader.readLongOrNull(offset)) as P;
+    case 13:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 14:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 15:
+      return (reader.readLongOrNull(offset)) as P;
+    case 16:
+      return (reader.readStringOrNull(offset)) as P;
     default:
       throw 'Illegal propertyIndex';
   }
@@ -214,14 +239,17 @@ dynamic _drawersSerializeWeb(
   IsarNative.jsObjectSet(jsObj, 'id', object.id);
   IsarNative.jsObjectSet(jsObj, 'incompleteSale', object.incompleteSale);
   IsarNative.jsObjectSet(jsObj, 'nrSaleCount', object.nrSaleCount);
+  IsarNative.jsObjectSet(jsObj, 'nsSaleCount', object.nsSaleCount);
   IsarNative.jsObjectSet(jsObj, 'open', object.open);
   IsarNative.jsObjectSet(jsObj, 'openingBalance', object.openingBalance);
   IsarNative.jsObjectSet(jsObj, 'openingDateTime', object.openingDateTime);
   IsarNative.jsObjectSet(jsObj, 'otherTransactions', object.otherTransactions);
   IsarNative.jsObjectSet(jsObj, 'paymentMode', object.paymentMode);
+  IsarNative.jsObjectSet(jsObj, 'psSaleCount', object.psSaleCount);
   IsarNative.jsObjectSet(jsObj, 'totalCsSaleIncome', object.totalCsSaleIncome);
   IsarNative.jsObjectSet(jsObj, 'totalNsSaleIncome', object.totalNsSaleIncome);
   IsarNative.jsObjectSet(jsObj, 'trSaleCount', object.trSaleCount);
+  IsarNative.jsObjectSet(jsObj, 'tradeName', object.tradeName);
   return jsObj;
 }
 
@@ -237,15 +265,18 @@ Drawers _drawersDeserializeWeb(
   object.id = IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity;
   object.incompleteSale = IsarNative.jsObjectGet(jsObj, 'incompleteSale');
   object.nrSaleCount = IsarNative.jsObjectGet(jsObj, 'nrSaleCount');
+  object.nsSaleCount = IsarNative.jsObjectGet(jsObj, 'nsSaleCount');
   object.open = IsarNative.jsObjectGet(jsObj, 'open') ?? false;
   object.openingBalance = IsarNative.jsObjectGet(jsObj, 'openingBalance') ??
       double.negativeInfinity;
   object.openingDateTime = IsarNative.jsObjectGet(jsObj, 'openingDateTime');
   object.otherTransactions = IsarNative.jsObjectGet(jsObj, 'otherTransactions');
   object.paymentMode = IsarNative.jsObjectGet(jsObj, 'paymentMode');
+  object.psSaleCount = IsarNative.jsObjectGet(jsObj, 'psSaleCount');
   object.totalCsSaleIncome = IsarNative.jsObjectGet(jsObj, 'totalCsSaleIncome');
   object.totalNsSaleIncome = IsarNative.jsObjectGet(jsObj, 'totalNsSaleIncome');
   object.trSaleCount = IsarNative.jsObjectGet(jsObj, 'trSaleCount');
+  object.tradeName = IsarNative.jsObjectGet(jsObj, 'tradeName');
   return object;
 }
 
@@ -268,6 +299,8 @@ P _drawersDeserializePropWeb<P>(Object jsObj, String propertyName) {
       return (IsarNative.jsObjectGet(jsObj, 'incompleteSale')) as P;
     case 'nrSaleCount':
       return (IsarNative.jsObjectGet(jsObj, 'nrSaleCount')) as P;
+    case 'nsSaleCount':
+      return (IsarNative.jsObjectGet(jsObj, 'nsSaleCount')) as P;
     case 'open':
       return (IsarNative.jsObjectGet(jsObj, 'open') ?? false) as P;
     case 'openingBalance':
@@ -279,12 +312,16 @@ P _drawersDeserializePropWeb<P>(Object jsObj, String propertyName) {
       return (IsarNative.jsObjectGet(jsObj, 'otherTransactions')) as P;
     case 'paymentMode':
       return (IsarNative.jsObjectGet(jsObj, 'paymentMode')) as P;
+    case 'psSaleCount':
+      return (IsarNative.jsObjectGet(jsObj, 'psSaleCount')) as P;
     case 'totalCsSaleIncome':
       return (IsarNative.jsObjectGet(jsObj, 'totalCsSaleIncome')) as P;
     case 'totalNsSaleIncome':
       return (IsarNative.jsObjectGet(jsObj, 'totalNsSaleIncome')) as P;
     case 'trSaleCount':
       return (IsarNative.jsObjectGet(jsObj, 'trSaleCount')) as P;
+    case 'tradeName':
+      return (IsarNative.jsObjectGet(jsObj, 'tradeName')) as P;
     default:
       throw 'Illegal propertyName';
   }
@@ -950,6 +987,62 @@ extension DrawersQueryFilter
     ));
   }
 
+  QueryBuilder<Drawers, Drawers, QAfterFilterCondition> nsSaleCountIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'nsSaleCount',
+      value: null,
+    ));
+  }
+
+  QueryBuilder<Drawers, Drawers, QAfterFilterCondition> nsSaleCountEqualTo(
+      int? value) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.eq,
+      property: 'nsSaleCount',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<Drawers, Drawers, QAfterFilterCondition> nsSaleCountGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.gt,
+      include: include,
+      property: 'nsSaleCount',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<Drawers, Drawers, QAfterFilterCondition> nsSaleCountLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.lt,
+      include: include,
+      property: 'nsSaleCount',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<Drawers, Drawers, QAfterFilterCondition> nsSaleCountBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition.between(
+      property: 'nsSaleCount',
+      lower: lower,
+      includeLower: includeLower,
+      upper: upper,
+      includeUpper: includeUpper,
+    ));
+  }
+
   QueryBuilder<Drawers, Drawers, QAfterFilterCondition> openEqualTo(
       bool value) {
     return addFilterConditionInternal(FilterCondition(
@@ -1275,6 +1368,62 @@ extension DrawersQueryFilter
     ));
   }
 
+  QueryBuilder<Drawers, Drawers, QAfterFilterCondition> psSaleCountIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'psSaleCount',
+      value: null,
+    ));
+  }
+
+  QueryBuilder<Drawers, Drawers, QAfterFilterCondition> psSaleCountEqualTo(
+      int? value) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.eq,
+      property: 'psSaleCount',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<Drawers, Drawers, QAfterFilterCondition> psSaleCountGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.gt,
+      include: include,
+      property: 'psSaleCount',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<Drawers, Drawers, QAfterFilterCondition> psSaleCountLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.lt,
+      include: include,
+      property: 'psSaleCount',
+      value: value,
+    ));
+  }
+
+  QueryBuilder<Drawers, Drawers, QAfterFilterCondition> psSaleCountBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition.between(
+      property: 'psSaleCount',
+      lower: lower,
+      includeLower: includeLower,
+      upper: upper,
+      includeUpper: includeUpper,
+    ));
+  }
+
   QueryBuilder<Drawers, Drawers, QAfterFilterCondition>
       totalCsSaleIncomeIsNull() {
     return addFilterConditionInternal(FilterCondition(
@@ -1410,6 +1559,117 @@ extension DrawersQueryFilter
       includeUpper: includeUpper,
     ));
   }
+
+  QueryBuilder<Drawers, Drawers, QAfterFilterCondition> tradeNameIsNull() {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.isNull,
+      property: 'tradeName',
+      value: null,
+    ));
+  }
+
+  QueryBuilder<Drawers, Drawers, QAfterFilterCondition> tradeNameEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.eq,
+      property: 'tradeName',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Drawers, Drawers, QAfterFilterCondition> tradeNameGreaterThan(
+    String? value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.gt,
+      include: include,
+      property: 'tradeName',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Drawers, Drawers, QAfterFilterCondition> tradeNameLessThan(
+    String? value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.lt,
+      include: include,
+      property: 'tradeName',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Drawers, Drawers, QAfterFilterCondition> tradeNameBetween(
+    String? lower,
+    String? upper, {
+    bool caseSensitive = true,
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition.between(
+      property: 'tradeName',
+      lower: lower,
+      includeLower: includeLower,
+      upper: upper,
+      includeUpper: includeUpper,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Drawers, Drawers, QAfterFilterCondition> tradeNameStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.startsWith,
+      property: 'tradeName',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Drawers, Drawers, QAfterFilterCondition> tradeNameEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.endsWith,
+      property: 'tradeName',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Drawers, Drawers, QAfterFilterCondition> tradeNameContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.contains,
+      property: 'tradeName',
+      value: value,
+      caseSensitive: caseSensitive,
+    ));
+  }
+
+  QueryBuilder<Drawers, Drawers, QAfterFilterCondition> tradeNameMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return addFilterConditionInternal(FilterCondition(
+      type: ConditionType.matches,
+      property: 'tradeName',
+      value: pattern,
+      caseSensitive: caseSensitive,
+    ));
+  }
 }
 
 extension DrawersQueryLinks
@@ -1472,6 +1732,14 @@ extension DrawersQueryWhereSortBy on QueryBuilder<Drawers, Drawers, QSortBy> {
     return addSortByInternal('nrSaleCount', Sort.desc);
   }
 
+  QueryBuilder<Drawers, Drawers, QAfterSortBy> sortByNsSaleCount() {
+    return addSortByInternal('nsSaleCount', Sort.asc);
+  }
+
+  QueryBuilder<Drawers, Drawers, QAfterSortBy> sortByNsSaleCountDesc() {
+    return addSortByInternal('nsSaleCount', Sort.desc);
+  }
+
   QueryBuilder<Drawers, Drawers, QAfterSortBy> sortByOpen() {
     return addSortByInternal('open', Sort.asc);
   }
@@ -1512,6 +1780,14 @@ extension DrawersQueryWhereSortBy on QueryBuilder<Drawers, Drawers, QSortBy> {
     return addSortByInternal('paymentMode', Sort.desc);
   }
 
+  QueryBuilder<Drawers, Drawers, QAfterSortBy> sortByPsSaleCount() {
+    return addSortByInternal('psSaleCount', Sort.asc);
+  }
+
+  QueryBuilder<Drawers, Drawers, QAfterSortBy> sortByPsSaleCountDesc() {
+    return addSortByInternal('psSaleCount', Sort.desc);
+  }
+
   QueryBuilder<Drawers, Drawers, QAfterSortBy> sortByTotalCsSaleIncome() {
     return addSortByInternal('totalCsSaleIncome', Sort.asc);
   }
@@ -1534,6 +1810,14 @@ extension DrawersQueryWhereSortBy on QueryBuilder<Drawers, Drawers, QSortBy> {
 
   QueryBuilder<Drawers, Drawers, QAfterSortBy> sortByTrSaleCountDesc() {
     return addSortByInternal('trSaleCount', Sort.desc);
+  }
+
+  QueryBuilder<Drawers, Drawers, QAfterSortBy> sortByTradeName() {
+    return addSortByInternal('tradeName', Sort.asc);
+  }
+
+  QueryBuilder<Drawers, Drawers, QAfterSortBy> sortByTradeNameDesc() {
+    return addSortByInternal('tradeName', Sort.desc);
   }
 }
 
@@ -1595,6 +1879,14 @@ extension DrawersQueryWhereSortThenBy
     return addSortByInternal('nrSaleCount', Sort.desc);
   }
 
+  QueryBuilder<Drawers, Drawers, QAfterSortBy> thenByNsSaleCount() {
+    return addSortByInternal('nsSaleCount', Sort.asc);
+  }
+
+  QueryBuilder<Drawers, Drawers, QAfterSortBy> thenByNsSaleCountDesc() {
+    return addSortByInternal('nsSaleCount', Sort.desc);
+  }
+
   QueryBuilder<Drawers, Drawers, QAfterSortBy> thenByOpen() {
     return addSortByInternal('open', Sort.asc);
   }
@@ -1635,6 +1927,14 @@ extension DrawersQueryWhereSortThenBy
     return addSortByInternal('paymentMode', Sort.desc);
   }
 
+  QueryBuilder<Drawers, Drawers, QAfterSortBy> thenByPsSaleCount() {
+    return addSortByInternal('psSaleCount', Sort.asc);
+  }
+
+  QueryBuilder<Drawers, Drawers, QAfterSortBy> thenByPsSaleCountDesc() {
+    return addSortByInternal('psSaleCount', Sort.desc);
+  }
+
   QueryBuilder<Drawers, Drawers, QAfterSortBy> thenByTotalCsSaleIncome() {
     return addSortByInternal('totalCsSaleIncome', Sort.asc);
   }
@@ -1657,6 +1957,14 @@ extension DrawersQueryWhereSortThenBy
 
   QueryBuilder<Drawers, Drawers, QAfterSortBy> thenByTrSaleCountDesc() {
     return addSortByInternal('trSaleCount', Sort.desc);
+  }
+
+  QueryBuilder<Drawers, Drawers, QAfterSortBy> thenByTradeName() {
+    return addSortByInternal('tradeName', Sort.asc);
+  }
+
+  QueryBuilder<Drawers, Drawers, QAfterSortBy> thenByTradeNameDesc() {
+    return addSortByInternal('tradeName', Sort.desc);
   }
 }
 
@@ -1692,6 +2000,10 @@ extension DrawersQueryWhereDistinct
     return addDistinctByInternal('nrSaleCount');
   }
 
+  QueryBuilder<Drawers, Drawers, QDistinct> distinctByNsSaleCount() {
+    return addDistinctByInternal('nsSaleCount');
+  }
+
   QueryBuilder<Drawers, Drawers, QDistinct> distinctByOpen() {
     return addDistinctByInternal('open');
   }
@@ -1715,6 +2027,10 @@ extension DrawersQueryWhereDistinct
     return addDistinctByInternal('paymentMode', caseSensitive: caseSensitive);
   }
 
+  QueryBuilder<Drawers, Drawers, QDistinct> distinctByPsSaleCount() {
+    return addDistinctByInternal('psSaleCount');
+  }
+
   QueryBuilder<Drawers, Drawers, QDistinct> distinctByTotalCsSaleIncome() {
     return addDistinctByInternal('totalCsSaleIncome');
   }
@@ -1725,6 +2041,11 @@ extension DrawersQueryWhereDistinct
 
   QueryBuilder<Drawers, Drawers, QDistinct> distinctByTrSaleCount() {
     return addDistinctByInternal('trSaleCount');
+  }
+
+  QueryBuilder<Drawers, Drawers, QDistinct> distinctByTradeName(
+      {bool caseSensitive = true}) {
+    return addDistinctByInternal('tradeName', caseSensitive: caseSensitive);
   }
 }
 
@@ -1758,6 +2079,10 @@ extension DrawersQueryProperty
     return addPropertyNameInternal('nrSaleCount');
   }
 
+  QueryBuilder<Drawers, int?, QQueryOperations> nsSaleCountProperty() {
+    return addPropertyNameInternal('nsSaleCount');
+  }
+
   QueryBuilder<Drawers, bool, QQueryOperations> openProperty() {
     return addPropertyNameInternal('open');
   }
@@ -1778,6 +2103,10 @@ extension DrawersQueryProperty
     return addPropertyNameInternal('paymentMode');
   }
 
+  QueryBuilder<Drawers, int?, QQueryOperations> psSaleCountProperty() {
+    return addPropertyNameInternal('psSaleCount');
+  }
+
   QueryBuilder<Drawers, double?, QQueryOperations> totalCsSaleIncomeProperty() {
     return addPropertyNameInternal('totalCsSaleIncome');
   }
@@ -1788,5 +2117,9 @@ extension DrawersQueryProperty
 
   QueryBuilder<Drawers, int?, QQueryOperations> trSaleCountProperty() {
     return addPropertyNameInternal('trSaleCount');
+  }
+
+  QueryBuilder<Drawers, String?, QQueryOperations> tradeNameProperty() {
+    return addPropertyNameInternal('tradeName');
   }
 }
