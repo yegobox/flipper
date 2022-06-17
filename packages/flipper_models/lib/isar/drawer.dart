@@ -9,7 +9,15 @@ class Drawers {
   late double closingBalance;
   String? openingDateTime;
   String? closingDateTime;
-
+  int? csSaleCount;
+  // so we provide the NS-NR
+  double? totalNsSaleIncome;
+  double? totalCsSaleIncome;
+  int? nrSaleCount;
+  int? trSaleCount;
+  int? incompleteSale;
+  int? otherTransactions;
+  String? paymentMode;
   @Index()
   late int cashierId;
   @Index(composite: [CompositeIndex('cashierId')])
