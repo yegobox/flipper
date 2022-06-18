@@ -244,7 +244,6 @@ class AppSetup {
 // TODO:format date cheat sheet
 // shorturl.at/ijGU9
 // https://github.com/DavBfr/dart_pdf/issues/870
-// https://fullstackdeveloper.guru/2020/12/23/how-to-watch-a-folder-directory-or-changes-using-java/
 // TODO:I need to learn this best way to write flipper product wiki. (roaa94khaddam@gmail.com) 
 // https://github.com/Roaa94/flutter_cool_card_swiper/blob/main/README.md
 
