@@ -34,11 +34,6 @@ class _CollectCashViewState extends State<CollectCashView> {
   final log = getLogger('CollectCashView');
 
   @override
-  void dispose() {
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<BusinessHomeViewModel>.reactive(
         builder: (context, model, child) {
@@ -199,8 +194,6 @@ class _CollectCashViewState extends State<CollectCashView> {
           subscription.messages.listen((event) {
             Spenn payment = Spenn.fromJson(event.payload);
             if (payment.userId.toString() == ProxyService.box.getUserId()) {
-              // double totalOrderAmount = model.kOrder!.orderItems
-              //     .fold(0, (a, b) => a + (b.price * b.qty));
               double totalOrderAmount = model.keypad.totalPayable;
               _btnController.success();
               GoRouter.of(context).push(

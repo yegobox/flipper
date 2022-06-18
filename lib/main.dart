@@ -477,40 +477,7 @@ void main() async {
         ),
       ],
     );
-    ErrorWidget.builder = (details) => Material(
-          key: const PageStorageKey('error'),
-          child: Scaffold(
-            body: SafeArea(
-                child: Center(
-              child: Column(
-                children: [
-                  const Text('Error in our backend'),
-                  ElevatedButton(
-                    onPressed: () {},
-                    style: ButtonStyle(
-                      shape: MaterialStateProperty.resolveWith((states) {
-                        return RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(0),
-                        );
-                      }),
-                      backgroundColor: MaterialStateProperty.resolveWith<Color>(
-                        (Set<MaterialState> states) {
-                          if (states.contains(MaterialState.pressed)) {
-                            return const ColorScheme.light().primary;
-                          } else if (states.contains(MaterialState.disabled)) {
-                            return Colors.grey.withOpacity(0.5);
-                          }
-                          return const ColorScheme.light().primary;
-                        },
-                      ),
-                    ),
-                    child: const Text('Retry'),
-                  )
-                ],
-              ),
-            )),
-          ),
-        );
+
     WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
     FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
     runApp(

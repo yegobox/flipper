@@ -1,6 +1,7 @@
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_dashboard/setting_view_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:go_router/go_router.dart';
 import 'package:stacked/stacked.dart';
 
@@ -18,9 +19,14 @@ class _PrintingState extends State<Printing> {
     return ViewModelBuilder<SettingViewModel>.reactive(
       viewModelBuilder: () => SettingViewModel(),
       onModelReady: (model) async {
-        if (model.isAutoPrintEnabled) {
-          setState(() {
-            isAutoPrint = true;
+        if (SchedulerBinding.instance.schedulerPhase ==
+            SchedulerPhase.persistentCallbacks) {
+          SchedulerBinding.instance.addPostFrameCallback((_) async {
+            if (model.isAutoPrintEnabled) {
+              setState(() {
+                isAutoPrint = true;
+              });
+            }
           });
         }
       },
