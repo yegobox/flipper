@@ -61,3 +61,11 @@ pubspec.lock.yaml
 pubspec_overrides.yaml
 .packages
 .flutter-plugins
+generated_plugins.cmake
+GeneratedPluginRegistrant.swift
+generated_plugins.cmake
+generated_plugin_registrant.h
+generated_plugin_registrant.cc
+generated_plugins.cmake
+generated_plugin_registrant.h
+generated_plugin_registrant.cc
