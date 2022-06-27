@@ -597,7 +597,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       sdcReceiptNum: receipt.receiptType,
       invoiceNum: receipt.totRcptNo,
       brandName: business.name!,
-      brandAddress: business.adrs ?? "No address",
+      brandAddress: business.adrs ?? "Kigali,Rwanda",
       brandTel: ProxyService.box.getUserPhone()!,
       brandTIN: business.tinNumber.toString(),
       brandDescription: business.name!,

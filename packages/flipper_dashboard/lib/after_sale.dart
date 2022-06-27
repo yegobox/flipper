@@ -131,7 +131,6 @@ class _AfterSaleState extends State<AfterSale> {
                                                           .orderItems(
                                                     orderId: widget.order.id,
                                                   );
-                                                  print(items);
                                                   model.printReceipt(
                                                       items: items,
                                                       business: business!,
