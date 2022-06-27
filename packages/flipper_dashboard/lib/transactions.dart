@@ -58,8 +58,8 @@ class _TransactionsState extends State<Transactions> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text('Total Taxes'),
-            Text((drawer.totalNsSaleIncome!.toInt() -
-                    drawer.totalCsSaleIncome!.toInt())
+            Text(((drawer.totalNsSaleIncome ?? 0) -
+                    (drawer.totalCsSaleIncome ?? 0))
                 .toString()),
           ],
         ),

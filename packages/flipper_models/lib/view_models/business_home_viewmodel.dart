@@ -655,23 +655,28 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         .isDrawerOpen(cashierId: ProxyService.box.getBusinessId()!);
     drawer!
       ..cashierId = ProxyService.box.getBusinessId()!
-      ..nsSaleCount =
-          receiptType == "NS" ? drawer.nsSaleCount! + 1 : drawer.nsSaleCount!
-      ..trSaleCount =
-          receiptType == "TR" ? drawer.trSaleCount! + 1 : drawer.trSaleCount!
-      ..psSaleCount =
-          receiptType == "PS" ? drawer.psSaleCount! + 1 : drawer.psSaleCount!
-      ..csSaleCount =
-          receiptType == "CS" ? drawer.csSaleCount! + 1 : drawer.csSaleCount!
-      ..nrSaleCount =
-          receiptType == "NR" ? drawer.nrSaleCount! + 1 : drawer.nrSaleCount!
+      ..nsSaleCount = receiptType == "NS"
+          ? drawer.nsSaleCount ?? 0 + 1
+          : drawer.nsSaleCount ?? 0
+      ..trSaleCount = receiptType == "TR"
+          ? drawer.trSaleCount ?? 0 + 1
+          : drawer.trSaleCount ?? 0
+      ..psSaleCount = receiptType == "PS"
+          ? drawer.psSaleCount ?? 0 + 1
+          : drawer.psSaleCount ?? 0
+      ..csSaleCount = receiptType == "CS"
+          ? drawer.csSaleCount ?? 0 + 1
+          : drawer.csSaleCount ?? 0
+      ..nrSaleCount = receiptType == "NR"
+          ? drawer.nrSaleCount ?? 0 + 1
+          : drawer.nrSaleCount ?? 0
       ..incompleteSale = 0
       ..totalCsSaleIncome = receiptType == "CS"
-          ? drawer.totalCsSaleIncome! + order.subTotal
-          : drawer.totalCsSaleIncome!
+          ? drawer.totalCsSaleIncome ?? 0 + order.subTotal
+          : drawer.totalCsSaleIncome ?? 0
       ..totalNsSaleIncome = receiptType == "NS"
-          ? drawer.totalNsSaleIncome! + order.subTotal
-          : drawer.totalNsSaleIncome!
+          ? drawer.totalNsSaleIncome ?? 0 + order.subTotal
+          : drawer.totalNsSaleIncome ?? 0
       ..openingDateTime = DateTime.now().toIso8601String()
       ..open = true;
     // update drawer
