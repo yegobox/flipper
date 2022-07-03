@@ -24,7 +24,6 @@ import 'package:flipper_services/sync_api.dart';
 import 'package:flipper_services/system_time_service.dart';
 import 'package:injectable/injectable.dart';
 import 'package:flipper_models/isar_models.dart';
-import 'abstractions/api.dart';
 import 'abstractions/dynamic_link.dart';
 import 'abstractions/location.dart';
 import 'abstractions/remote.dart';
@@ -181,12 +180,12 @@ abstract class ThirdPartyServicesModule {
     return systemTime;
   }
 
-  @lazySingleton
-  Api get apiService {
-    late Api apiService;
-    apiService = ObjectBoxApi();
-    return apiService;
-  }
+  // @lazySingleton
+  // Api get apiService {
+  //   late Api apiService;
+  //   apiService = ObjectBoxApi();
+  //   return apiService;
+  // }
 
   @lazySingleton
   IsarApiInterface get isarApi {

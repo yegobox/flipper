@@ -117,6 +117,23 @@ class SettingPage extends StatelessWidget {
                               },
                             ),
                             SettingsTile(
+                              title: "Add users",
+                              leading: CircleAvatar(
+                                backgroundColor: Colors.white,
+                                child: Icon(
+                                  Icons.group_add,
+                                  color: Theme.of(context).primaryColor,
+                                ),
+                              ),
+                              trailing: Icon(
+                                Icons.arrow_forward_ios,
+                                color: Theme.of(context).primaryColor,
+                              ),
+                              onPressed: (BuildContext context) async {
+                                GoRouter.of(context).push("/user_add");
+                              },
+                            ),
+                            SettingsTile(
                               title: "Close a day",
                               leading: CircleAvatar(
                                 backgroundColor: Colors.white,

@@ -26,7 +26,7 @@ class Business {
   Business({
     this.name,
     this.currency,
-    this.fcategoryId = 1,
+    this.categoryId = "1",
     this.latitude,
     this.longitude,
     this.userId,
@@ -62,11 +62,13 @@ class Business {
     this.adrs,
     this.taxEnabled,
     this.taxServerUrl,
+    this.isDefault,
+    this.id,
   });
-  late int id = Isar.autoIncrement;
+  int? id;
   String? name;
   String? currency;
-  int? fcategoryId;
+  String? categoryId;
   String? latitude;
   String? longitude;
   @Index()
@@ -105,6 +107,7 @@ class Business {
   String? adrs;
   bool? taxEnabled;
   String? taxServerUrl;
+  bool? isDefault;
   Map<String, dynamic> toJson() => {
         "id": int.parse(id.toString()),
         "name": name,
@@ -121,7 +124,7 @@ class Business {
         "fullName": fullName,
         "currency": currency,
         "chatUid": chatUid,
-        "fcategoryId": fcategoryId.toString(),
+        "categoryId": categoryId.toString(),
         "latitude": latitude,
         "longitude": longitude,
         "userId": userId.toString(),
@@ -145,8 +148,9 @@ class Business {
         "adrs": adrs,
         "taxEnabled": taxEnabled,
         "taxServerUrl": taxServerUrl,
+        "isDefault": isDefault
       };
-  Business.fromJson(Map<String, dynamic> json)
+  Business.fromJson(Map<dynamic, dynamic> json)
       : id = json["id"],
         name = json["name"],
         subscriptionPlan = json["subscriptionPlan"],
@@ -184,5 +188,6 @@ class Business {
         dvcSrlNo = json["dvcSrlNo"],
         adrs = json["adrs"],
         taxEnabled = json["taxEnabled"],
-        taxServerUrl = json["taxServerUrl"];
+        taxServerUrl = json["taxServerUrl"],
+        isDefault = json["isDefault"];
 }

@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:file_picker/file_picker.dart';
+// import 'package:file_picker/file_picker.dart';
 import 'package:flipper_chat/omni/widgets/chat_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
@@ -76,10 +76,10 @@ class _OmniConversationState extends State<OmniConversation> {
   }
 
   void _handleFileSelection() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.any,
-    );
-
+    // final result = await FilePicker.platform.pickFiles(
+    //   type: FileType.any,
+    // );
+    const result = null;
     if (result != null) {
       _setAttachmentUploading(true);
       final name = result.files.single.name;

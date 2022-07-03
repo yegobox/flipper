@@ -156,7 +156,7 @@ class SettingViewModel extends ReactiveViewModel {
         /// the
         Business? business = await ProxyService.isarApi.getBusiness();
         ProxyService.isarApi
-            .enableAttendance(businessId: business!.id, email: setting.email);
+            .enableAttendance(businessId: business!.id!, email: setting.email);
       }
     } else {
       callback(2);

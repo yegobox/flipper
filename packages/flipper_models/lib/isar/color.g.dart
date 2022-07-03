@@ -6,26 +6,27 @@ part of flipper_models;
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable, no_leading_underscores_for_local_identifiers
+// coverage:ignore-file
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
 
 extension GetPColorCollection on Isar {
   IsarCollection<PColor> get pColors => getCollection();
 }
 
 const PColorSchema = CollectionSchema(
-  name: 'PColor',
+  name: r'PColor',
   schema:
-      '{"name":"PColor","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"channels","type":"StringList"},{"name":"colors","type":"StringList"},{"name":"name","type":"String"},{"name":"table","type":"String"}],"indexes":[],"links":[]}',
-  idName: 'id',
+      r'{"name":"PColor","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"channels","type":"StringList"},{"name":"colors","type":"StringList"},{"name":"name","type":"String"},{"name":"table","type":"String"}],"indexes":[],"links":[]}',
+  idName: r'id',
   propertyIds: {
-    'active': 0,
-    'branchId': 1,
-    'channels': 2,
-    'colors': 3,
-    'name': 4,
-    'table': 5
+    r'active': 0,
+    r'branchId': 1,
+    r'channels': 2,
+    r'colors': 3,
+    r'name': 4,
+    r'table': 5
   },
-  listProperties: {'channels', 'colors'},
+  listProperties: {r'channels', r'colors'},
   indexIds: {},
   indexValueTypes: {},
   linkIds: {},
@@ -55,65 +56,61 @@ void _pColorSetId(PColor object, int id) {
   object.id = id;
 }
 
-List<IsarLinkBase> _pColorGetLinks(PColor object) {
+List<IsarLinkBase<dynamic>> _pColorGetLinks(PColor object) {
   return [];
 }
 
 void _pColorSerializeNative(IsarCollection<PColor> collection, IsarCObject cObj,
     PColor object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
-  var dynamicSize = 0;
-  final value0 = object.active;
-  final _active = value0;
-  final value1 = object.branchId;
-  final _branchId = value1;
-  final value2 = object.channels;
-  dynamicSize += (value2?.length ?? 0) * 8;
-  List<IsarUint8List?>? bytesList2;
-  if (value2 != null) {
-    bytesList2 = [];
-    for (var str in value2) {
+  var channels$BytesCount = (object.channels?.length ?? 0) * 8;
+  List<IsarUint8List?>? channels$BytesList;
+  final channels$Value = object.channels;
+  if (channels$Value != null) {
+    channels$BytesList = [];
+    for (final str in channels$Value) {
       final bytes = IsarBinaryWriter.utf8Encoder.convert(str);
-      bytesList2.add(bytes);
-      dynamicSize += bytes.length as int;
+      channels$BytesList.add(bytes);
+      channels$BytesCount += bytes.length as int;
     }
   }
-  final _channels = bytesList2;
-  final value3 = object.colors;
-  dynamicSize += (value3?.length ?? 0) * 8;
-  List<IsarUint8List?>? bytesList3;
-  if (value3 != null) {
-    bytesList3 = [];
-    for (var str in value3) {
+  var colors$BytesCount = (object.colors?.length ?? 0) * 8;
+  List<IsarUint8List?>? colors$BytesList;
+  final colors$Value = object.colors;
+  if (colors$Value != null) {
+    colors$BytesList = [];
+    for (final str in colors$Value) {
       final bytes = IsarBinaryWriter.utf8Encoder.convert(str);
-      bytesList3.add(bytes);
-      dynamicSize += bytes.length as int;
+      colors$BytesList.add(bytes);
+      colors$BytesCount += bytes.length as int;
     }
   }
-  final _colors = bytesList3;
-  final value4 = object.name;
-  IsarUint8List? _name;
-  if (value4 != null) {
-    _name = IsarBinaryWriter.utf8Encoder.convert(value4);
+  IsarUint8List? name$Bytes;
+  final name$Value = object.name;
+  if (name$Value != null) {
+    name$Bytes = IsarBinaryWriter.utf8Encoder.convert(name$Value);
   }
-  dynamicSize += (_name?.length ?? 0) as int;
-  final value5 = object.table;
-  IsarUint8List? _table;
-  if (value5 != null) {
-    _table = IsarBinaryWriter.utf8Encoder.convert(value5);
+  IsarUint8List? table$Bytes;
+  final table$Value = object.table;
+  if (table$Value != null) {
+    table$Bytes = IsarBinaryWriter.utf8Encoder.convert(table$Value);
   }
-  dynamicSize += (_table?.length ?? 0) as int;
-  final size = staticSize + dynamicSize;
-
+  final size = (staticSize +
+      channels$BytesCount +
+      colors$BytesCount +
+      (name$Bytes?.length ?? 0) +
+      (table$Bytes?.length ?? 0)) as int;
   cObj.buffer = alloc(size);
   cObj.buffer_length = size;
+
   final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
   final writer = IsarBinaryWriter(buffer, staticSize);
-  writer.writeBool(offsets[0], _active);
-  writer.writeLong(offsets[1], _branchId);
-  writer.writeStringList(offsets[2], _channels);
-  writer.writeStringList(offsets[3], _colors);
-  writer.writeBytes(offsets[4], _name);
-  writer.writeBytes(offsets[5], _table);
+  writer.writeHeader();
+  writer.writeBool(offsets[0], object.active);
+  writer.writeLong(offsets[1], object.branchId);
+  writer.writeStringList(offsets[2], channels$BytesList);
+  writer.writeStringList(offsets[3], colors$BytesList);
+  writer.writeBytes(offsets[4], name$Bytes);
+  writer.writeBytes(offsets[5], table$Bytes);
 }
 
 PColor _pColorDeserializeNative(IsarCollection<PColor> collection, int id,
@@ -147,114 +144,127 @@ P _pColorDeserializePropNative<P>(
     case 5:
       return (reader.readStringOrNull(offset)) as P;
     default:
-      throw 'Illegal propertyIndex';
+      throw IsarError('Illegal propertyIndex');
   }
 }
 
-dynamic _pColorSerializeWeb(IsarCollection<PColor> collection, PColor object) {
+Object _pColorSerializeWeb(IsarCollection<PColor> collection, PColor object) {
   final jsObj = IsarNative.newJsObject();
-  IsarNative.jsObjectSet(jsObj, 'active', object.active);
-  IsarNative.jsObjectSet(jsObj, 'branchId', object.branchId);
-  IsarNative.jsObjectSet(jsObj, 'channels', object.channels);
-  IsarNative.jsObjectSet(jsObj, 'colors', object.colors);
-  IsarNative.jsObjectSet(jsObj, 'id', object.id);
-  IsarNative.jsObjectSet(jsObj, 'name', object.name);
-  IsarNative.jsObjectSet(jsObj, 'table', object.table);
+  IsarNative.jsObjectSet(jsObj, r'active', object.active);
+  IsarNative.jsObjectSet(jsObj, r'branchId', object.branchId);
+  IsarNative.jsObjectSet(jsObj, r'channels', object.channels);
+  IsarNative.jsObjectSet(jsObj, r'colors', object.colors);
+  IsarNative.jsObjectSet(jsObj, r'id', object.id);
+  IsarNative.jsObjectSet(jsObj, r'name', object.name);
+  IsarNative.jsObjectSet(jsObj, r'table', object.table);
   return jsObj;
 }
 
-PColor _pColorDeserializeWeb(IsarCollection<PColor> collection, dynamic jsObj) {
+PColor _pColorDeserializeWeb(IsarCollection<PColor> collection, Object jsObj) {
   final object = PColor();
-  object.active = IsarNative.jsObjectGet(jsObj, 'active') ?? false;
-  object.branchId = IsarNative.jsObjectGet(jsObj, 'branchId');
-  object.channels = (IsarNative.jsObjectGet(jsObj, 'channels') as List?)
+  object.active = IsarNative.jsObjectGet(jsObj, r'active') ?? false;
+  object.branchId = IsarNative.jsObjectGet(jsObj, r'branchId');
+  object.channels = (IsarNative.jsObjectGet(jsObj, r'channels') as List?)
       ?.map((e) => e ?? '')
       .toList()
       .cast<String>();
-  object.colors = (IsarNative.jsObjectGet(jsObj, 'colors') as List?)
+  object.colors = (IsarNative.jsObjectGet(jsObj, r'colors') as List?)
       ?.map((e) => e ?? '')
       .toList()
       .cast<String>();
-  object.id = IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity;
-  object.name = IsarNative.jsObjectGet(jsObj, 'name');
-  object.table = IsarNative.jsObjectGet(jsObj, 'table');
+  object.id =
+      IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int);
+  object.name = IsarNative.jsObjectGet(jsObj, r'name');
+  object.table = IsarNative.jsObjectGet(jsObj, r'table');
   return object;
 }
 
 P _pColorDeserializePropWeb<P>(Object jsObj, String propertyName) {
   switch (propertyName) {
-    case 'active':
-      return (IsarNative.jsObjectGet(jsObj, 'active') ?? false) as P;
-    case 'branchId':
-      return (IsarNative.jsObjectGet(jsObj, 'branchId')) as P;
-    case 'channels':
-      return ((IsarNative.jsObjectGet(jsObj, 'channels') as List?)
+    case r'active':
+      return (IsarNative.jsObjectGet(jsObj, r'active') ?? false) as P;
+    case r'branchId':
+      return (IsarNative.jsObjectGet(jsObj, r'branchId')) as P;
+    case r'channels':
+      return ((IsarNative.jsObjectGet(jsObj, r'channels') as List?)
           ?.map((e) => e ?? '')
           .toList()
           .cast<String>()) as P;
-    case 'colors':
-      return ((IsarNative.jsObjectGet(jsObj, 'colors') as List?)
+    case r'colors':
+      return ((IsarNative.jsObjectGet(jsObj, r'colors') as List?)
           ?.map((e) => e ?? '')
           .toList()
           .cast<String>()) as P;
-    case 'id':
-      return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
-          as P;
-    case 'name':
-      return (IsarNative.jsObjectGet(jsObj, 'name')) as P;
-    case 'table':
-      return (IsarNative.jsObjectGet(jsObj, 'table')) as P;
+    case r'id':
+      return (IsarNative.jsObjectGet(jsObj, r'id') ??
+          (double.negativeInfinity as int)) as P;
+    case r'name':
+      return (IsarNative.jsObjectGet(jsObj, r'name')) as P;
+    case r'table':
+      return (IsarNative.jsObjectGet(jsObj, r'table')) as P;
     default:
-      throw 'Illegal propertyName';
+      throw IsarError('Illegal propertyName');
   }
 }
 
-void _pColorAttachLinks(IsarCollection col, int id, PColor object) {}
+void _pColorAttachLinks(IsarCollection<dynamic> col, int id, PColor object) {}
 
 extension PColorQueryWhereSort on QueryBuilder<PColor, PColor, QWhere> {
   QueryBuilder<PColor, PColor, QAfterWhere> anyId() {
-    return addWhereClauseInternal(const IdWhereClause.any());
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(const IdWhereClause.any());
+    });
   }
 }
 
 extension PColorQueryWhere on QueryBuilder<PColor, PColor, QWhereClause> {
   QueryBuilder<PColor, PColor, QAfterWhereClause> idEqualTo(int id) {
-    return addWhereClauseInternal(IdWhereClause.between(
-      lower: id,
-      includeLower: true,
-      upper: id,
-      includeUpper: true,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IdWhereClause.between(
+        lower: id,
+        upper: id,
+      ));
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterWhereClause> idNotEqualTo(int id) {
-    if (whereSortInternal == Sort.asc) {
-      return addWhereClauseInternal(
-        IdWhereClause.lessThan(upper: id, includeUpper: false),
-      ).addWhereClauseInternal(
-        IdWhereClause.greaterThan(lower: id, includeLower: false),
-      );
-    } else {
-      return addWhereClauseInternal(
-        IdWhereClause.greaterThan(lower: id, includeLower: false),
-      ).addWhereClauseInternal(
-        IdWhereClause.lessThan(upper: id, includeUpper: false),
-      );
-    }
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(
+              IdWhereClause.lessThan(upper: id, includeUpper: false),
+            )
+            .addWhereClause(
+              IdWhereClause.greaterThan(lower: id, includeLower: false),
+            );
+      } else {
+        return query
+            .addWhereClause(
+              IdWhereClause.greaterThan(lower: id, includeLower: false),
+            )
+            .addWhereClause(
+              IdWhereClause.lessThan(upper: id, includeUpper: false),
+            );
+      }
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterWhereClause> idGreaterThan(int id,
       {bool include = false}) {
-    return addWhereClauseInternal(
-      IdWhereClause.greaterThan(lower: id, includeLower: include),
-    );
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IdWhereClause.greaterThan(lower: id, includeLower: include),
+      );
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterWhereClause> idLessThan(int id,
       {bool include = false}) {
-    return addWhereClauseInternal(
-      IdWhereClause.lessThan(upper: id, includeUpper: include),
-    );
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IdWhereClause.lessThan(upper: id, includeUpper: include),
+      );
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterWhereClause> idBetween(
@@ -263,64 +273,70 @@ extension PColorQueryWhere on QueryBuilder<PColor, PColor, QWhereClause> {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addWhereClauseInternal(IdWhereClause.between(
-      lower: lowerId,
-      includeLower: includeLower,
-      upper: upperId,
-      includeUpper: includeUpper,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IdWhereClause.between(
+        lower: lowerId,
+        includeLower: includeLower,
+        upper: upperId,
+        includeUpper: includeUpper,
+      ));
+    });
   }
 }
 
 extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
   QueryBuilder<PColor, PColor, QAfterFilterCondition> activeEqualTo(
       bool value) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'active',
-      value: value,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'active',
+        value: value,
+      ));
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> branchIdIsNull() {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.isNull,
-      property: 'branchId',
-      value: null,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'branchId',
+      ));
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> branchIdEqualTo(
       int? value) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'branchId',
-      value: value,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'branchId',
+        value: value,
+      ));
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> branchIdGreaterThan(
     int? value, {
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'branchId',
-      value: value,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'branchId',
+        value: value,
+      ));
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> branchIdLessThan(
     int? value, {
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'branchId',
-      value: value,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'branchId',
+        value: value,
+      ));
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> branchIdBetween(
@@ -329,283 +345,309 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'branchId',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'branchId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsIsNull() {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.isNull,
-      property: 'channels',
-      value: null,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'channels',
+      ));
+    });
   }
 
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsAnyIsNull() {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'channels',
-      value: null,
-    ));
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsElementIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.equalTo(
+        property: r'channels',
+        value: null,
+      ));
+    });
   }
 
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsAnyEqualTo(
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsElementEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'channels',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'channels',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsAnyGreaterThan(
-    String? value, {
-    bool caseSensitive = true,
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'channels',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsAnyLessThan(
+  QueryBuilder<PColor, PColor, QAfterFilterCondition>
+      channelsElementGreaterThan(
     String? value, {
     bool caseSensitive = true,
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'channels',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'channels',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsAnyBetween(
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsElementLessThan(
+    String? value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'channels',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsElementBetween(
     String? lower,
     String? upper, {
     bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'channels',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'channels',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsAnyStartsWith(
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsElementStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.startsWith,
-      property: 'channels',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'channels',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsAnyEndsWith(
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsElementEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.endsWith,
-      property: 'channels',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'channels',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsAnyContains(
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsElementContains(
       String value,
       {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.contains,
-      property: 'channels',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'channels',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsAnyMatches(
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsElementMatches(
       String pattern,
       {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.matches,
-      property: 'channels',
-      value: pattern,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'channels',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> colorsIsNull() {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.isNull,
-      property: 'colors',
-      value: null,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'colors',
+      ));
+    });
   }
 
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> colorsAnyIsNull() {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'colors',
-      value: null,
-    ));
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> colorsElementIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.equalTo(
+        property: r'colors',
+        value: null,
+      ));
+    });
   }
 
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> colorsAnyEqualTo(
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> colorsElementEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'colors',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'colors',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> colorsAnyGreaterThan(
-    String? value, {
-    bool caseSensitive = true,
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'colors',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> colorsAnyLessThan(
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> colorsElementGreaterThan(
     String? value, {
     bool caseSensitive = true,
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'colors',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'colors',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> colorsAnyBetween(
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> colorsElementLessThan(
+    String? value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'colors',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> colorsElementBetween(
     String? lower,
     String? upper, {
     bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'colors',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'colors',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> colorsAnyStartsWith(
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> colorsElementStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.startsWith,
-      property: 'colors',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'colors',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> colorsAnyEndsWith(
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> colorsElementEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.endsWith,
-      property: 'colors',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'colors',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> colorsAnyContains(
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> colorsElementContains(
       String value,
       {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.contains,
-      property: 'colors',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'colors',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> colorsAnyMatches(
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> colorsElementMatches(
       String pattern,
       {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.matches,
-      property: 'colors',
-      value: pattern,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'colors',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> idEqualTo(int value) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'id',
-      value: value,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'id',
+        value: value,
+      ));
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> idGreaterThan(
     int value, {
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'id',
-      value: value,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'id',
+        value: value,
+      ));
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> idLessThan(
     int value, {
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'id',
-      value: value,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'id',
+        value: value,
+      ));
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> idBetween(
@@ -614,33 +656,36 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'id',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'id',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> nameIsNull() {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.isNull,
-      property: 'name',
-      value: null,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'name',
+      ));
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> nameEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'name',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'name',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> nameGreaterThan(
@@ -648,13 +693,14 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
     bool caseSensitive = true,
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'name',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'name',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> nameLessThan(
@@ -662,13 +708,14 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
     bool caseSensitive = true,
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'name',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'name',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> nameBetween(
@@ -678,79 +725,86 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'name',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'name',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> nameStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.startsWith,
-      property: 'name',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'name',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> nameEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.endsWith,
-      property: 'name',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'name',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> nameContains(String value,
       {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.contains,
-      property: 'name',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'name',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> nameMatches(
       String pattern,
       {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.matches,
-      property: 'name',
-      value: pattern,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'name',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> tableIsNull() {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.isNull,
-      property: 'table',
-      value: null,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'table',
+      ));
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> tableEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'table',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'table',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> tableGreaterThan(
@@ -758,13 +812,14 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
     bool caseSensitive = true,
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'table',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'table',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> tableLessThan(
@@ -772,13 +827,14 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
     bool caseSensitive = true,
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'table',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'table',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> tableBetween(
@@ -788,60 +844,66 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'table',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'table',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> tableStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.startsWith,
-      property: 'table',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'table',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> tableEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.endsWith,
-      property: 'table',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'table',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> tableContains(
       String value,
       {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.contains,
-      property: 'table',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'table',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> tableMatches(
       String pattern,
       {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.matches,
-      property: 'table',
-      value: pattern,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'table',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 }
 
@@ -849,139 +911,197 @@ extension PColorQueryLinks on QueryBuilder<PColor, PColor, QFilterCondition> {}
 
 extension PColorQueryWhereSortBy on QueryBuilder<PColor, PColor, QSortBy> {
   QueryBuilder<PColor, PColor, QAfterSortBy> sortByActive() {
-    return addSortByInternal('active', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'active', Sort.asc);
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterSortBy> sortByActiveDesc() {
-    return addSortByInternal('active', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'active', Sort.desc);
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterSortBy> sortByBranchId() {
-    return addSortByInternal('branchId', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'branchId', Sort.asc);
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterSortBy> sortByBranchIdDesc() {
-    return addSortByInternal('branchId', Sort.desc);
-  }
-
-  QueryBuilder<PColor, PColor, QAfterSortBy> sortById() {
-    return addSortByInternal('id', Sort.asc);
-  }
-
-  QueryBuilder<PColor, PColor, QAfterSortBy> sortByIdDesc() {
-    return addSortByInternal('id', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'branchId', Sort.desc);
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterSortBy> sortByName() {
-    return addSortByInternal('name', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'name', Sort.asc);
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterSortBy> sortByNameDesc() {
-    return addSortByInternal('name', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'name', Sort.desc);
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterSortBy> sortByTable() {
-    return addSortByInternal('table', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'table', Sort.asc);
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterSortBy> sortByTableDesc() {
-    return addSortByInternal('table', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'table', Sort.desc);
+    });
   }
 }
 
 extension PColorQueryWhereSortThenBy
     on QueryBuilder<PColor, PColor, QSortThenBy> {
   QueryBuilder<PColor, PColor, QAfterSortBy> thenByActive() {
-    return addSortByInternal('active', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'active', Sort.asc);
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterSortBy> thenByActiveDesc() {
-    return addSortByInternal('active', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'active', Sort.desc);
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterSortBy> thenByBranchId() {
-    return addSortByInternal('branchId', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'branchId', Sort.asc);
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterSortBy> thenByBranchIdDesc() {
-    return addSortByInternal('branchId', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'branchId', Sort.desc);
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterSortBy> thenById() {
-    return addSortByInternal('id', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'id', Sort.asc);
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterSortBy> thenByIdDesc() {
-    return addSortByInternal('id', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'id', Sort.desc);
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterSortBy> thenByName() {
-    return addSortByInternal('name', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'name', Sort.asc);
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterSortBy> thenByNameDesc() {
-    return addSortByInternal('name', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'name', Sort.desc);
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterSortBy> thenByTable() {
-    return addSortByInternal('table', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'table', Sort.asc);
+    });
   }
 
   QueryBuilder<PColor, PColor, QAfterSortBy> thenByTableDesc() {
-    return addSortByInternal('table', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'table', Sort.desc);
+    });
   }
 }
 
 extension PColorQueryWhereDistinct on QueryBuilder<PColor, PColor, QDistinct> {
   QueryBuilder<PColor, PColor, QDistinct> distinctByActive() {
-    return addDistinctByInternal('active');
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'active');
+    });
   }
 
   QueryBuilder<PColor, PColor, QDistinct> distinctByBranchId() {
-    return addDistinctByInternal('branchId');
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'branchId');
+    });
   }
 
-  QueryBuilder<PColor, PColor, QDistinct> distinctById() {
-    return addDistinctByInternal('id');
+  QueryBuilder<PColor, PColor, QDistinct> distinctByChannels() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'channels');
+    });
+  }
+
+  QueryBuilder<PColor, PColor, QDistinct> distinctByColors() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'colors');
+    });
   }
 
   QueryBuilder<PColor, PColor, QDistinct> distinctByName(
       {bool caseSensitive = true}) {
-    return addDistinctByInternal('name', caseSensitive: caseSensitive);
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'name', caseSensitive: caseSensitive);
+    });
   }
 
   QueryBuilder<PColor, PColor, QDistinct> distinctByTable(
       {bool caseSensitive = true}) {
-    return addDistinctByInternal('table', caseSensitive: caseSensitive);
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'table', caseSensitive: caseSensitive);
+    });
   }
 }
 
 extension PColorQueryProperty on QueryBuilder<PColor, PColor, QQueryProperty> {
   QueryBuilder<PColor, bool, QQueryOperations> activeProperty() {
-    return addPropertyNameInternal('active');
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'active');
+    });
   }
 
   QueryBuilder<PColor, int?, QQueryOperations> branchIdProperty() {
-    return addPropertyNameInternal('branchId');
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'branchId');
+    });
   }
 
   QueryBuilder<PColor, List<String>?, QQueryOperations> channelsProperty() {
-    return addPropertyNameInternal('channels');
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'channels');
+    });
   }
 
   QueryBuilder<PColor, List<String>?, QQueryOperations> colorsProperty() {
-    return addPropertyNameInternal('colors');
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'colors');
+    });
   }
 
   QueryBuilder<PColor, int, QQueryOperations> idProperty() {
-    return addPropertyNameInternal('id');
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'id');
+    });
   }
 
   QueryBuilder<PColor, String?, QQueryOperations> nameProperty() {
-    return addPropertyNameInternal('name');
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'name');
+    });
   }
 
   QueryBuilder<PColor, String?, QQueryOperations> tableProperty() {
-    return addPropertyNameInternal('table');
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'table');
+    });
   }
 }

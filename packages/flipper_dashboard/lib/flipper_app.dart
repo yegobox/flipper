@@ -16,7 +16,7 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:flipper_chat/omni/update_profile.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:permission_handler/permission_handler.dart' as perm;
 
 final isWindows = UniversalPlatform.isWindows;
 final isMacOs = UniversalPlatform.isMacOS;
@@ -149,7 +149,8 @@ class _FlipperAppState extends State<FlipperApp> {
         ProxyService.notification.listen(context);
         ProxyService.dynamicLink.handleDynamicLink(context);
         model.loadReport();
-        await [Permission.storage, Permission.manageExternalStorage].request();
+        await [perm.Permission.storage, perm.Permission.manageExternalStorage]
+            .request();
       },
       builder: (context, model, child) {
         return WillPopScope(

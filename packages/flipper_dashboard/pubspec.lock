@@ -134,6 +134,20 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.2.0"
+  cli_dialog:
+    dependency: "direct overridden"
+    description:
+      path: "../../open-sources/cli_dialog"
+      relative: true
+    source: path
+    version: "0.5.0-dev"
+  cli_util:
+    dependency: transitive
+    description:
+      name: cli_util
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.3.5"
   clock:
     dependency: transitive
     description:
@@ -147,21 +161,21 @@ packages:
       name: cloud_firestore
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.1.17"
+    version: "3.1.18"
   cloud_firestore_platform_interface:
     dependency: transitive
     description:
       name: cloud_firestore_platform_interface
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "5.5.7"
+    version: "5.5.8"
   cloud_firestore_web:
     dependency: transitive
     description:
       name: cloud_firestore_web
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.6.16"
+    version: "2.6.17"
   collection:
     dependency: transitive
     description:
@@ -253,13 +267,20 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.5"
+  dart_console:
+    dependency: "direct overridden"
+    description:
+      path: "../../open-sources/dart_console"
+      relative: true
+    source: path
+    version: "1.1.0-pre.1"
   dbus:
     dependency: transitive
     description:
       name: dbus
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.7.4"
+    version: "0.7.5"
   desktop_webview_auth:
     dependency: transitive
     description:
@@ -270,45 +291,45 @@ packages:
   device_info_plus:
     dependency: "direct main"
     description:
-      name: device_info_plus
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "3.2.3"
+      path: "../../open-sources/plus_plugins/packages/device_info_plus/device_info_plus"
+      relative: true
+    source: path
+    version: "4.0.0-dev"
   device_info_plus_linux:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: device_info_plus_linux
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.1.1"
+      path: "../../open-sources/plus_plugins/packages/device_info_plus/device_info_plus_linux"
+      relative: true
+    source: path
+    version: "2.1.1-dev"
   device_info_plus_macos:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: device_info_plus_macos
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.2.3"
+      path: "../../open-sources/plus_plugins/packages/device_info_plus/device_info_plus_macos"
+      relative: true
+    source: path
+    version: "2.2.3-dev"
   device_info_plus_platform_interface:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: device_info_plus_platform_interface
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../../open-sources/plus_plugins/packages/device_info_plus/device_info_plus_platform_interface"
+      relative: true
+    source: path
     version: "2.3.0+1"
   device_info_plus_web:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: device_info_plus_web
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.1.0"
+      path: "../../open-sources/plus_plugins/packages/device_info_plus/device_info_plus_web"
+      relative: true
+    source: path
+    version: "2.1.0-dev"
   device_info_plus_windows:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: device_info_plus_windows
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.1.1"
+      path: "../../open-sources/plus_plugins/packages/device_info_plus/device_info_plus_windows"
+      relative: true
+    source: path
+    version: "3.0.0-dev"
   diffutil_dart:
     dependency: transitive
     description:
@@ -358,6 +379,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.1+6"
+  example:
+    dependency: "direct overridden"
+    description:
+      path: "../flipper_ui/example"
+      relative: true
+    source: path
+    version: "1.0.0+1"
   feather_icons:
     dependency: "direct main"
     description:
@@ -371,7 +399,7 @@ packages:
       name: ffi
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.2.1"
+    version: "2.0.1"
   file:
     dependency: transitive
     description:
@@ -382,9 +410,9 @@ packages:
   file_picker:
     dependency: "direct main"
     description:
-      name: file_picker
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../../open-sources/flutter_file_picker"
+      relative: true
+    source: path
     version: "4.6.1"
   firebase_analytics:
     dependency: transitive
@@ -413,7 +441,7 @@ packages:
       name: firebase_auth
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.3.19"
+    version: "3.3.20"
   firebase_auth_dart:
     dependency: transitive
     description:
@@ -434,14 +462,14 @@ packages:
       name: firebase_auth_platform_interface
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "6.2.7"
+    version: "6.2.8"
   firebase_auth_web:
     dependency: transitive
     description:
       name: firebase_auth_web
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.3.16"
+    version: "3.3.17"
   firebase_core:
     dependency: "direct main"
     description:
@@ -469,14 +497,14 @@ packages:
       name: firebase_core_platform_interface
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "4.4.0"
+    version: "4.4.1"
   firebase_core_web:
     dependency: transitive
     description:
       name: firebase_core_web
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.6.4"
+    version: "1.6.5"
   firebase_crashlytics:
     dependency: transitive
     description:
@@ -497,35 +525,35 @@ packages:
       name: firebase_database
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "9.0.15"
+    version: "9.0.16"
   firebase_database_platform_interface:
     dependency: transitive
     description:
       name: firebase_database_platform_interface
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.2.1+7"
+    version: "0.2.1+8"
   firebase_database_web:
     dependency: transitive
     description:
       name: firebase_database_web
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.2.0+14"
+    version: "0.2.0+15"
   firebase_dynamic_links:
     dependency: transitive
     description:
       name: firebase_dynamic_links
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "4.2.5"
+    version: "4.2.6"
   firebase_dynamic_links_platform_interface:
     dependency: transitive
     description:
       name: firebase_dynamic_links_platform_interface
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.2.3+3"
+    version: "0.2.3+4"
   firebase_messaging:
     dependency: transitive
     description:
@@ -610,13 +638,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.40.6"
-  flat_buffers:
-    dependency: transitive
-    description:
-      name: flat_buffers
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.0.5"
   flex_color_scheme:
     dependency: "direct main"
     description:
@@ -900,48 +921,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.4"
-  flutter_secure_storage:
-    dependency: transitive
-    description:
-      name: flutter_secure_storage
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "5.0.2"
-  flutter_secure_storage_linux:
-    dependency: transitive
-    description:
-      name: flutter_secure_storage_linux
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.1.0"
-  flutter_secure_storage_macos:
-    dependency: transitive
-    description:
-      name: flutter_secure_storage_macos
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.1.0"
-  flutter_secure_storage_platform_interface:
-    dependency: transitive
-    description:
-      name: flutter_secure_storage_platform_interface
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.0.0"
-  flutter_secure_storage_web:
-    dependency: transitive
-    description:
-      name: flutter_secure_storage_web
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.0.2"
-  flutter_secure_storage_windows:
-    dependency: transitive
-    description:
-      name: flutter_secure_storage_windows
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.1.2"
   flutter_settings_ui:
     dependency: "direct main"
     description:
@@ -956,13 +935,6 @@ packages:
       relative: true
     source: path
     version: "1.3.0"
-  flutter_statusbarcolor_ns:
-    dependency: transitive
-    description:
-      name: flutter_statusbarcolor_ns
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.4.0"
   flutter_svg:
     dependency: transitive
     description:
@@ -1282,14 +1254,14 @@ packages:
       name: isar
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.0.0-dev.0"
+    version: "3.0.0-dev.5"
   isar_flutter_libs:
     dependency: transitive
     description:
       name: isar_flutter_libs
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.0.0-dev.0"
+    version: "3.0.0-dev.5"
   js:
     dependency: transitive
     description:
@@ -1397,6 +1369,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.2"
+  msix:
+    dependency: "direct overridden"
+    description:
+      path: "../../open-sources/msix"
+      relative: true
+    source: path
+    version: "3.6.2-dev"
   nested:
     dependency: transitive
     description:
@@ -1418,20 +1397,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.0"
-  objectbox:
-    dependency: transitive
-    description:
-      name: objectbox
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.5.0"
-  objectbox_sync_flutter_libs:
-    dependency: transitive
-    description:
-      name: objectbox_sync_flutter_libs
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.5.0"
   octo_image:
     dependency: transitive
     description:
@@ -1442,10 +1407,10 @@ packages:
   open_file:
     dependency: "direct main"
     description:
-      name: open_file
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "3.2.1"
+      path: "../../open-sources/open_file"
+      relative: true
+    source: path
+    version: "3.2.1-dev"
   os_detect:
     dependency: transitive
     description:
@@ -1460,48 +1425,55 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.1"
+  package_config:
+    dependency: transitive
+    description:
+      name: package_config
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.1.0"
   package_info_plus:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: package_info_plus
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.4.2"
+      path: "../../open-sources/plus_plugins/packages/package_info_plus/package_info_plus"
+      relative: true
+    source: path
+    version: "1.4.2-dev"
   package_info_plus_linux:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: package_info_plus_linux
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../../open-sources/plus_plugins/packages/package_info_plus/package_info_plus_linux"
+      relative: true
+    source: path
     version: "1.0.5"
   package_info_plus_macos:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: package_info_plus_macos
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../../open-sources/plus_plugins/packages/package_info_plus/package_info_plus_macos"
+      relative: true
+    source: path
     version: "1.3.0"
   package_info_plus_platform_interface:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: package_info_plus_platform_interface
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../../open-sources/plus_plugins/packages/package_info_plus/package_info_plus_platform_interface"
+      relative: true
+    source: path
     version: "1.0.2"
   package_info_plus_web:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: package_info_plus_web
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../../open-sources/plus_plugins/packages/package_info_plus/package_info_plus_web"
+      relative: true
+    source: path
     version: "1.0.5"
   package_info_plus_windows:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: package_info_plus_windows
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.0.5"
+      path: "../../open-sources/plus_plugins/packages/package_info_plus/package_info_plus_windows"
+      relative: true
+    source: path
+    version: "1.0.5-dev"
   path:
     dependency: transitive
     description:
@@ -1571,13 +1543,13 @@ packages:
       name: path_provider_windows
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.7"
+    version: "2.1.0"
   pdf:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: pdf
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "../../open-sources/dart_pdf/pdf"
+      relative: true
+    source: path
     version: "3.8.1"
   pedantic:
     dependency: transitive
@@ -1643,12 +1615,12 @@ packages:
     source: hosted
     version: "1.5.0"
   printing:
-    dependency: "direct main"
+    dependency: "direct overridden"
     description:
-      name: printing
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "5.9.1"
+      path: "../../open-sources/dart_pdf/printing"
+      relative: true
+    source: path
+    version: "5.9.2-dev"
   process:
     dependency: transitive
     description:
@@ -1663,6 +1635,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "6.0.3"
+  pub_semver:
+    dependency: transitive
+    description:
+      name: pub_semver
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.1.1"
   pubnub:
     dependency: "direct main"
     description:
@@ -1734,12 +1713,12 @@ packages:
     source: hosted
     version: "0.3.0"
   scrollable_positioned_list:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: scrollable_positioned_list
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.2.3"
+      path: "../../open-sources/flutter.widgets/packages/scrollable_positioned_list"
+      relative: true
+    source: path
+    version: "0.3.2-dev"
   sentry:
     dependency: transitive
     description:
@@ -1941,13 +1920,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.8.25"
-  stacked_themes:
-    dependency: "direct main"
-    description:
-      name: stacked_themes
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.3.8+1"
   state_notifier:
     dependency: transitive
     description:
@@ -1996,7 +1968,7 @@ packages:
       name: system_theme
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.1"
+    version: "2.0.0"
   system_theme_web:
     dependency: transitive
     description:
@@ -2056,10 +2028,10 @@ packages:
   upgrader:
     dependency: "direct main"
     description:
-      name: upgrader
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "4.2.0"
+      path: "../../open-sources/upgrader"
+      relative: true
+    source: path
+    version: "4.2.2-dev"
   url_launcher:
     dependency: "direct main"
     description:
@@ -2138,12 +2110,12 @@ packages:
     source: hosted
     version: "2.0.0"
   win32:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: win32
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.6.1"
+      path: "../../open-sources/win32"
+      relative: true
+    source: path
+    version: "2.7.0-dev"
   xdg_directories:
     dependency: transitive
     description:

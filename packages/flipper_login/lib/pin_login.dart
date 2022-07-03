@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
@@ -55,14 +57,27 @@ class PinLogin extends StatelessWidget {
                                           context: context,
                                         );
                                       } catch (e) {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          const SnackBar(
-                                            backgroundColor: Colors.red,
-                                            content: Text(
-                                                "Failed to log in try again"),
-                                          ),
-                                        );
+                                        log("PinLogin" + e.toString());
+                                        if (e is NotFoundException) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            const SnackBar(
+                                              backgroundColor: Colors.red,
+                                              content: Text(
+                                                  "Failed to authenticate try again, Business not found."),
+                                            ),
+                                          );
+                                        }
+                                        if (e is ErrorReadingFromYBServer) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            const SnackBar(
+                                              backgroundColor: Colors.red,
+                                              content: Text(
+                                                  "Failed to read server! try again"),
+                                            ),
+                                          );
+                                        }
                                         model.setIsprocessing(value: false);
                                       }
                                     }

@@ -6,25 +6,27 @@ part of flipper_models;
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable, no_leading_underscores_for_local_identifiers
+// coverage:ignore-file
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
 
 extension GetBranchCollection on Isar {
   IsarCollection<Branch> get branchs => getCollection();
 }
 
 const BranchSchema = CollectionSchema(
-  name: 'Branch',
+  name: r'Branch',
   schema:
-      '{"name":"Branch","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"description","type":"String"},{"name":"fbusinessId","type":"Long"},{"name":"latitude","type":"String"},{"name":"longitude","type":"String"},{"name":"name","type":"String"},{"name":"table","type":"String"}],"indexes":[],"links":[]}',
-  idName: 'id',
+      r'{"name":"Branch","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"businessId","type":"Long"},{"name":"description","type":"String"},{"name":"isDefault","type":"Bool"},{"name":"latitude","type":"String"},{"name":"longitude","type":"String"},{"name":"name","type":"String"},{"name":"table","type":"String"}],"indexes":[],"links":[]}',
+  idName: r'id',
   propertyIds: {
-    'active': 0,
-    'description': 1,
-    'fbusinessId': 2,
-    'latitude': 3,
-    'longitude': 4,
-    'name': 5,
-    'table': 6
+    r'active': 0,
+    r'businessId': 1,
+    r'description': 2,
+    r'isDefault': 3,
+    r'latitude': 4,
+    r'longitude': 5,
+    r'name': 6,
+    r'table': 7
   },
   listProperties: {},
   indexIds: {},
@@ -56,73 +58,71 @@ void _branchSetId(Branch object, int id) {
   object.id = id;
 }
 
-List<IsarLinkBase> _branchGetLinks(Branch object) {
+List<IsarLinkBase<dynamic>> _branchGetLinks(Branch object) {
   return [];
 }
 
 void _branchSerializeNative(IsarCollection<Branch> collection, IsarCObject cObj,
     Branch object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
-  var dynamicSize = 0;
-  final value0 = object.active;
-  final _active = value0;
-  final value1 = object.description;
-  IsarUint8List? _description;
-  if (value1 != null) {
-    _description = IsarBinaryWriter.utf8Encoder.convert(value1);
+  IsarUint8List? description$Bytes;
+  final description$Value = object.description;
+  if (description$Value != null) {
+    description$Bytes = IsarBinaryWriter.utf8Encoder.convert(description$Value);
   }
-  dynamicSize += (_description?.length ?? 0) as int;
-  final value2 = object.fbusinessId;
-  final _fbusinessId = value2;
-  final value3 = object.latitude;
-  IsarUint8List? _latitude;
-  if (value3 != null) {
-    _latitude = IsarBinaryWriter.utf8Encoder.convert(value3);
+  IsarUint8List? latitude$Bytes;
+  final latitude$Value = object.latitude;
+  if (latitude$Value != null) {
+    latitude$Bytes = IsarBinaryWriter.utf8Encoder.convert(latitude$Value);
   }
-  dynamicSize += (_latitude?.length ?? 0) as int;
-  final value4 = object.longitude;
-  IsarUint8List? _longitude;
-  if (value4 != null) {
-    _longitude = IsarBinaryWriter.utf8Encoder.convert(value4);
+  IsarUint8List? longitude$Bytes;
+  final longitude$Value = object.longitude;
+  if (longitude$Value != null) {
+    longitude$Bytes = IsarBinaryWriter.utf8Encoder.convert(longitude$Value);
   }
-  dynamicSize += (_longitude?.length ?? 0) as int;
-  final value5 = object.name;
-  IsarUint8List? _name;
-  if (value5 != null) {
-    _name = IsarBinaryWriter.utf8Encoder.convert(value5);
+  IsarUint8List? name$Bytes;
+  final name$Value = object.name;
+  if (name$Value != null) {
+    name$Bytes = IsarBinaryWriter.utf8Encoder.convert(name$Value);
   }
-  dynamicSize += (_name?.length ?? 0) as int;
-  final value6 = object.table;
-  IsarUint8List? _table;
-  if (value6 != null) {
-    _table = IsarBinaryWriter.utf8Encoder.convert(value6);
+  IsarUint8List? table$Bytes;
+  final table$Value = object.table;
+  if (table$Value != null) {
+    table$Bytes = IsarBinaryWriter.utf8Encoder.convert(table$Value);
   }
-  dynamicSize += (_table?.length ?? 0) as int;
-  final size = staticSize + dynamicSize;
-
+  final size = (staticSize +
+      (description$Bytes?.length ?? 0) +
+      (latitude$Bytes?.length ?? 0) +
+      (longitude$Bytes?.length ?? 0) +
+      (name$Bytes?.length ?? 0) +
+      (table$Bytes?.length ?? 0)) as int;
   cObj.buffer = alloc(size);
   cObj.buffer_length = size;
+
   final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
   final writer = IsarBinaryWriter(buffer, staticSize);
-  writer.writeBool(offsets[0], _active);
-  writer.writeBytes(offsets[1], _description);
-  writer.writeLong(offsets[2], _fbusinessId);
-  writer.writeBytes(offsets[3], _latitude);
-  writer.writeBytes(offsets[4], _longitude);
-  writer.writeBytes(offsets[5], _name);
-  writer.writeBytes(offsets[6], _table);
+  writer.writeHeader();
+  writer.writeBool(offsets[0], object.active);
+  writer.writeLong(offsets[1], object.businessId);
+  writer.writeBytes(offsets[2], description$Bytes);
+  writer.writeBool(offsets[3], object.isDefault);
+  writer.writeBytes(offsets[4], latitude$Bytes);
+  writer.writeBytes(offsets[5], longitude$Bytes);
+  writer.writeBytes(offsets[6], name$Bytes);
+  writer.writeBytes(offsets[7], table$Bytes);
 }
 
 Branch _branchDeserializeNative(IsarCollection<Branch> collection, int id,
     IsarBinaryReader reader, List<int> offsets) {
   final object = Branch(
     active: reader.readBoolOrNull(offsets[0]),
-    description: reader.readStringOrNull(offsets[1]),
-    fbusinessId: reader.readLongOrNull(offsets[2]),
+    businessId: reader.readLongOrNull(offsets[1]),
+    description: reader.readStringOrNull(offsets[2]),
     id: id,
-    latitude: reader.readStringOrNull(offsets[3]),
-    longitude: reader.readStringOrNull(offsets[4]),
-    name: reader.readStringOrNull(offsets[5]),
-    table: reader.readStringOrNull(offsets[6]),
+    isDefault: reader.readBool(offsets[3]),
+    latitude: reader.readStringOrNull(offsets[4]),
+    longitude: reader.readStringOrNull(offsets[5]),
+    name: reader.readStringOrNull(offsets[6]),
+    table: reader.readStringOrNull(offsets[7]),
   );
   return object;
 }
@@ -135,118 +135,136 @@ P _branchDeserializePropNative<P>(
     case 0:
       return (reader.readBoolOrNull(offset)) as P;
     case 1:
-      return (reader.readStringOrNull(offset)) as P;
-    case 2:
       return (reader.readLongOrNull(offset)) as P;
-    case 3:
+    case 2:
       return (reader.readStringOrNull(offset)) as P;
+    case 3:
+      return (reader.readBool(offset)) as P;
     case 4:
       return (reader.readStringOrNull(offset)) as P;
     case 5:
       return (reader.readStringOrNull(offset)) as P;
     case 6:
       return (reader.readStringOrNull(offset)) as P;
+    case 7:
+      return (reader.readStringOrNull(offset)) as P;
     default:
-      throw 'Illegal propertyIndex';
+      throw IsarError('Illegal propertyIndex');
   }
 }
 
-dynamic _branchSerializeWeb(IsarCollection<Branch> collection, Branch object) {
+Object _branchSerializeWeb(IsarCollection<Branch> collection, Branch object) {
   final jsObj = IsarNative.newJsObject();
-  IsarNative.jsObjectSet(jsObj, 'active', object.active);
-  IsarNative.jsObjectSet(jsObj, 'description', object.description);
-  IsarNative.jsObjectSet(jsObj, 'fbusinessId', object.fbusinessId);
-  IsarNative.jsObjectSet(jsObj, 'id', object.id);
-  IsarNative.jsObjectSet(jsObj, 'latitude', object.latitude);
-  IsarNative.jsObjectSet(jsObj, 'longitude', object.longitude);
-  IsarNative.jsObjectSet(jsObj, 'name', object.name);
-  IsarNative.jsObjectSet(jsObj, 'table', object.table);
+  IsarNative.jsObjectSet(jsObj, r'active', object.active);
+  IsarNative.jsObjectSet(jsObj, r'businessId', object.businessId);
+  IsarNative.jsObjectSet(jsObj, r'description', object.description);
+  IsarNative.jsObjectSet(jsObj, r'id', object.id);
+  IsarNative.jsObjectSet(jsObj, r'isDefault', object.isDefault);
+  IsarNative.jsObjectSet(jsObj, r'latitude', object.latitude);
+  IsarNative.jsObjectSet(jsObj, r'longitude', object.longitude);
+  IsarNative.jsObjectSet(jsObj, r'name', object.name);
+  IsarNative.jsObjectSet(jsObj, r'table', object.table);
   return jsObj;
 }
 
-Branch _branchDeserializeWeb(IsarCollection<Branch> collection, dynamic jsObj) {
+Branch _branchDeserializeWeb(IsarCollection<Branch> collection, Object jsObj) {
   final object = Branch(
-    active: IsarNative.jsObjectGet(jsObj, 'active'),
-    description: IsarNative.jsObjectGet(jsObj, 'description'),
-    fbusinessId: IsarNative.jsObjectGet(jsObj, 'fbusinessId'),
-    id: IsarNative.jsObjectGet(jsObj, 'id'),
-    latitude: IsarNative.jsObjectGet(jsObj, 'latitude'),
-    longitude: IsarNative.jsObjectGet(jsObj, 'longitude'),
-    name: IsarNative.jsObjectGet(jsObj, 'name'),
-    table: IsarNative.jsObjectGet(jsObj, 'table'),
+    active: IsarNative.jsObjectGet(jsObj, r'active'),
+    businessId: IsarNative.jsObjectGet(jsObj, r'businessId'),
+    description: IsarNative.jsObjectGet(jsObj, r'description'),
+    id: IsarNative.jsObjectGet(jsObj, r'id'),
+    isDefault: IsarNative.jsObjectGet(jsObj, r'isDefault') ?? false,
+    latitude: IsarNative.jsObjectGet(jsObj, r'latitude'),
+    longitude: IsarNative.jsObjectGet(jsObj, r'longitude'),
+    name: IsarNative.jsObjectGet(jsObj, r'name'),
+    table: IsarNative.jsObjectGet(jsObj, r'table'),
   );
   return object;
 }
 
 P _branchDeserializePropWeb<P>(Object jsObj, String propertyName) {
   switch (propertyName) {
-    case 'active':
-      return (IsarNative.jsObjectGet(jsObj, 'active')) as P;
-    case 'description':
-      return (IsarNative.jsObjectGet(jsObj, 'description')) as P;
-    case 'fbusinessId':
-      return (IsarNative.jsObjectGet(jsObj, 'fbusinessId')) as P;
-    case 'id':
-      return (IsarNative.jsObjectGet(jsObj, 'id')) as P;
-    case 'latitude':
-      return (IsarNative.jsObjectGet(jsObj, 'latitude')) as P;
-    case 'longitude':
-      return (IsarNative.jsObjectGet(jsObj, 'longitude')) as P;
-    case 'name':
-      return (IsarNative.jsObjectGet(jsObj, 'name')) as P;
-    case 'table':
-      return (IsarNative.jsObjectGet(jsObj, 'table')) as P;
+    case r'active':
+      return (IsarNative.jsObjectGet(jsObj, r'active')) as P;
+    case r'businessId':
+      return (IsarNative.jsObjectGet(jsObj, r'businessId')) as P;
+    case r'description':
+      return (IsarNative.jsObjectGet(jsObj, r'description')) as P;
+    case r'id':
+      return (IsarNative.jsObjectGet(jsObj, r'id')) as P;
+    case r'isDefault':
+      return (IsarNative.jsObjectGet(jsObj, r'isDefault') ?? false) as P;
+    case r'latitude':
+      return (IsarNative.jsObjectGet(jsObj, r'latitude')) as P;
+    case r'longitude':
+      return (IsarNative.jsObjectGet(jsObj, r'longitude')) as P;
+    case r'name':
+      return (IsarNative.jsObjectGet(jsObj, r'name')) as P;
+    case r'table':
+      return (IsarNative.jsObjectGet(jsObj, r'table')) as P;
     default:
-      throw 'Illegal propertyName';
+      throw IsarError('Illegal propertyName');
   }
 }
 
-void _branchAttachLinks(IsarCollection col, int id, Branch object) {}
+void _branchAttachLinks(IsarCollection<dynamic> col, int id, Branch object) {}
 
 extension BranchQueryWhereSort on QueryBuilder<Branch, Branch, QWhere> {
   QueryBuilder<Branch, Branch, QAfterWhere> anyId() {
-    return addWhereClauseInternal(const IdWhereClause.any());
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(const IdWhereClause.any());
+    });
   }
 }
 
 extension BranchQueryWhere on QueryBuilder<Branch, Branch, QWhereClause> {
   QueryBuilder<Branch, Branch, QAfterWhereClause> idEqualTo(int id) {
-    return addWhereClauseInternal(IdWhereClause.between(
-      lower: id,
-      includeLower: true,
-      upper: id,
-      includeUpper: true,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IdWhereClause.between(
+        lower: id,
+        upper: id,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterWhereClause> idNotEqualTo(int id) {
-    if (whereSortInternal == Sort.asc) {
-      return addWhereClauseInternal(
-        IdWhereClause.lessThan(upper: id, includeUpper: false),
-      ).addWhereClauseInternal(
-        IdWhereClause.greaterThan(lower: id, includeLower: false),
-      );
-    } else {
-      return addWhereClauseInternal(
-        IdWhereClause.greaterThan(lower: id, includeLower: false),
-      ).addWhereClauseInternal(
-        IdWhereClause.lessThan(upper: id, includeUpper: false),
-      );
-    }
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(
+              IdWhereClause.lessThan(upper: id, includeUpper: false),
+            )
+            .addWhereClause(
+              IdWhereClause.greaterThan(lower: id, includeLower: false),
+            );
+      } else {
+        return query
+            .addWhereClause(
+              IdWhereClause.greaterThan(lower: id, includeLower: false),
+            )
+            .addWhereClause(
+              IdWhereClause.lessThan(upper: id, includeUpper: false),
+            );
+      }
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterWhereClause> idGreaterThan(int id,
       {bool include = false}) {
-    return addWhereClauseInternal(
-      IdWhereClause.greaterThan(lower: id, includeLower: include),
-    );
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IdWhereClause.greaterThan(lower: id, includeLower: include),
+      );
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterWhereClause> idLessThan(int id,
       {bool include = false}) {
-    return addWhereClauseInternal(
-      IdWhereClause.lessThan(upper: id, includeUpper: include),
-    );
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IdWhereClause.lessThan(upper: id, includeUpper: include),
+      );
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterWhereClause> idBetween(
@@ -255,51 +273,116 @@ extension BranchQueryWhere on QueryBuilder<Branch, Branch, QWhereClause> {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addWhereClauseInternal(IdWhereClause.between(
-      lower: lowerId,
-      includeLower: includeLower,
-      upper: upperId,
-      includeUpper: includeUpper,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IdWhereClause.between(
+        lower: lowerId,
+        includeLower: includeLower,
+        upper: upperId,
+        includeUpper: includeUpper,
+      ));
+    });
   }
 }
 
 extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
   QueryBuilder<Branch, Branch, QAfterFilterCondition> activeIsNull() {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.isNull,
-      property: 'active',
-      value: null,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'active',
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> activeEqualTo(
       bool? value) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'active',
-      value: value,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'active',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> businessIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'businessId',
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> businessIdEqualTo(
+      int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'businessId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> businessIdGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'businessId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> businessIdLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'businessId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> businessIdBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'businessId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> descriptionIsNull() {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.isNull,
-      property: 'description',
-      value: null,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'description',
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> descriptionEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'description',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'description',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> descriptionGreaterThan(
@@ -307,13 +390,14 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     bool caseSensitive = true,
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'description',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'description',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> descriptionLessThan(
@@ -321,13 +405,14 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     bool caseSensitive = true,
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'description',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'description',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> descriptionBetween(
@@ -337,156 +422,109 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'description',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'description',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> descriptionStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.startsWith,
-      property: 'description',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'description',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> descriptionEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.endsWith,
-      property: 'description',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'description',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> descriptionContains(
       String value,
       {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.contains,
-      property: 'description',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'description',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> descriptionMatches(
       String pattern,
       {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.matches,
-      property: 'description',
-      value: pattern,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<Branch, Branch, QAfterFilterCondition> fbusinessIdIsNull() {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.isNull,
-      property: 'fbusinessId',
-      value: null,
-    ));
-  }
-
-  QueryBuilder<Branch, Branch, QAfterFilterCondition> fbusinessIdEqualTo(
-      int? value) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'fbusinessId',
-      value: value,
-    ));
-  }
-
-  QueryBuilder<Branch, Branch, QAfterFilterCondition> fbusinessIdGreaterThan(
-    int? value, {
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'fbusinessId',
-      value: value,
-    ));
-  }
-
-  QueryBuilder<Branch, Branch, QAfterFilterCondition> fbusinessIdLessThan(
-    int? value, {
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'fbusinessId',
-      value: value,
-    ));
-  }
-
-  QueryBuilder<Branch, Branch, QAfterFilterCondition> fbusinessIdBetween(
-    int? lower,
-    int? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'fbusinessId',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'description',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> idIsNull() {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.isNull,
-      property: 'id',
-      value: null,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'id',
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> idEqualTo(int value) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'id',
-      value: value,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'id',
+        value: value,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> idGreaterThan(
     int value, {
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'id',
-      value: value,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'id',
+        value: value,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> idLessThan(
     int value, {
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'id',
-      value: value,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'id',
+        value: value,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> idBetween(
@@ -495,33 +533,46 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'id',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'id',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> isDefaultEqualTo(
+      bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isDefault',
+        value: value,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> latitudeIsNull() {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.isNull,
-      property: 'latitude',
-      value: null,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'latitude',
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> latitudeEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'latitude',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'latitude',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> latitudeGreaterThan(
@@ -529,13 +580,14 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     bool caseSensitive = true,
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'latitude',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'latitude',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> latitudeLessThan(
@@ -543,13 +595,14 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     bool caseSensitive = true,
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'latitude',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'latitude',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> latitudeBetween(
@@ -559,80 +612,87 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'latitude',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'latitude',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> latitudeStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.startsWith,
-      property: 'latitude',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'latitude',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> latitudeEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.endsWith,
-      property: 'latitude',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'latitude',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> latitudeContains(
       String value,
       {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.contains,
-      property: 'latitude',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'latitude',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> latitudeMatches(
       String pattern,
       {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.matches,
-      property: 'latitude',
-      value: pattern,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'latitude',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> longitudeIsNull() {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.isNull,
-      property: 'longitude',
-      value: null,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'longitude',
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> longitudeEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'longitude',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'longitude',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> longitudeGreaterThan(
@@ -640,13 +700,14 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     bool caseSensitive = true,
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'longitude',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'longitude',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> longitudeLessThan(
@@ -654,13 +715,14 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     bool caseSensitive = true,
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'longitude',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'longitude',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> longitudeBetween(
@@ -670,80 +732,87 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'longitude',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'longitude',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> longitudeStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.startsWith,
-      property: 'longitude',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'longitude',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> longitudeEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.endsWith,
-      property: 'longitude',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'longitude',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> longitudeContains(
       String value,
       {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.contains,
-      property: 'longitude',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'longitude',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> longitudeMatches(
       String pattern,
       {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.matches,
-      property: 'longitude',
-      value: pattern,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'longitude',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> nameIsNull() {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.isNull,
-      property: 'name',
-      value: null,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'name',
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> nameEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'name',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'name',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> nameGreaterThan(
@@ -751,13 +820,14 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     bool caseSensitive = true,
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'name',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'name',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> nameLessThan(
@@ -765,13 +835,14 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     bool caseSensitive = true,
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'name',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'name',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> nameBetween(
@@ -781,79 +852,86 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'name',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'name',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> nameStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.startsWith,
-      property: 'name',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'name',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> nameEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.endsWith,
-      property: 'name',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'name',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> nameContains(String value,
       {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.contains,
-      property: 'name',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'name',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> nameMatches(
       String pattern,
       {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.matches,
-      property: 'name',
-      value: pattern,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'name',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> tableIsNull() {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.isNull,
-      property: 'table',
-      value: null,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'table',
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> tableEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'table',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'table',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> tableGreaterThan(
@@ -861,13 +939,14 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     bool caseSensitive = true,
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'table',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'table',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> tableLessThan(
@@ -875,13 +954,14 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     bool caseSensitive = true,
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'table',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'table',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> tableBetween(
@@ -891,60 +971,66 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'table',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'table',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> tableStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.startsWith,
-      property: 'table',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'table',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> tableEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.endsWith,
-      property: 'table',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'table',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> tableContains(
       String value,
       {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.contains,
-      property: 'table',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'table',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> tableMatches(
       String pattern,
       {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.matches,
-      property: 'table',
-      value: pattern,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'table',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 }
 
@@ -952,206 +1038,320 @@ extension BranchQueryLinks on QueryBuilder<Branch, Branch, QFilterCondition> {}
 
 extension BranchQueryWhereSortBy on QueryBuilder<Branch, Branch, QSortBy> {
   QueryBuilder<Branch, Branch, QAfterSortBy> sortByActive() {
-    return addSortByInternal('active', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'active', Sort.asc);
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterSortBy> sortByActiveDesc() {
-    return addSortByInternal('active', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'active', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterSortBy> sortByBusinessId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'businessId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterSortBy> sortByBusinessIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'businessId', Sort.desc);
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterSortBy> sortByDescription() {
-    return addSortByInternal('description', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'description', Sort.asc);
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterSortBy> sortByDescriptionDesc() {
-    return addSortByInternal('description', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'description', Sort.desc);
+    });
   }
 
-  QueryBuilder<Branch, Branch, QAfterSortBy> sortByFbusinessId() {
-    return addSortByInternal('fbusinessId', Sort.asc);
+  QueryBuilder<Branch, Branch, QAfterSortBy> sortByIsDefault() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isDefault', Sort.asc);
+    });
   }
 
-  QueryBuilder<Branch, Branch, QAfterSortBy> sortByFbusinessIdDesc() {
-    return addSortByInternal('fbusinessId', Sort.desc);
-  }
-
-  QueryBuilder<Branch, Branch, QAfterSortBy> sortById() {
-    return addSortByInternal('id', Sort.asc);
-  }
-
-  QueryBuilder<Branch, Branch, QAfterSortBy> sortByIdDesc() {
-    return addSortByInternal('id', Sort.desc);
+  QueryBuilder<Branch, Branch, QAfterSortBy> sortByIsDefaultDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isDefault', Sort.desc);
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterSortBy> sortByLatitude() {
-    return addSortByInternal('latitude', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'latitude', Sort.asc);
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterSortBy> sortByLatitudeDesc() {
-    return addSortByInternal('latitude', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'latitude', Sort.desc);
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterSortBy> sortByLongitude() {
-    return addSortByInternal('longitude', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'longitude', Sort.asc);
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterSortBy> sortByLongitudeDesc() {
-    return addSortByInternal('longitude', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'longitude', Sort.desc);
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterSortBy> sortByName() {
-    return addSortByInternal('name', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'name', Sort.asc);
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterSortBy> sortByNameDesc() {
-    return addSortByInternal('name', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'name', Sort.desc);
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterSortBy> sortByTable() {
-    return addSortByInternal('table', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'table', Sort.asc);
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterSortBy> sortByTableDesc() {
-    return addSortByInternal('table', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'table', Sort.desc);
+    });
   }
 }
 
 extension BranchQueryWhereSortThenBy
     on QueryBuilder<Branch, Branch, QSortThenBy> {
   QueryBuilder<Branch, Branch, QAfterSortBy> thenByActive() {
-    return addSortByInternal('active', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'active', Sort.asc);
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterSortBy> thenByActiveDesc() {
-    return addSortByInternal('active', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'active', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterSortBy> thenByBusinessId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'businessId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterSortBy> thenByBusinessIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'businessId', Sort.desc);
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterSortBy> thenByDescription() {
-    return addSortByInternal('description', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'description', Sort.asc);
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterSortBy> thenByDescriptionDesc() {
-    return addSortByInternal('description', Sort.desc);
-  }
-
-  QueryBuilder<Branch, Branch, QAfterSortBy> thenByFbusinessId() {
-    return addSortByInternal('fbusinessId', Sort.asc);
-  }
-
-  QueryBuilder<Branch, Branch, QAfterSortBy> thenByFbusinessIdDesc() {
-    return addSortByInternal('fbusinessId', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'description', Sort.desc);
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterSortBy> thenById() {
-    return addSortByInternal('id', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'id', Sort.asc);
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterSortBy> thenByIdDesc() {
-    return addSortByInternal('id', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'id', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterSortBy> thenByIsDefault() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isDefault', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterSortBy> thenByIsDefaultDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isDefault', Sort.desc);
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterSortBy> thenByLatitude() {
-    return addSortByInternal('latitude', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'latitude', Sort.asc);
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterSortBy> thenByLatitudeDesc() {
-    return addSortByInternal('latitude', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'latitude', Sort.desc);
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterSortBy> thenByLongitude() {
-    return addSortByInternal('longitude', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'longitude', Sort.asc);
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterSortBy> thenByLongitudeDesc() {
-    return addSortByInternal('longitude', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'longitude', Sort.desc);
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterSortBy> thenByName() {
-    return addSortByInternal('name', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'name', Sort.asc);
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterSortBy> thenByNameDesc() {
-    return addSortByInternal('name', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'name', Sort.desc);
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterSortBy> thenByTable() {
-    return addSortByInternal('table', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'table', Sort.asc);
+    });
   }
 
   QueryBuilder<Branch, Branch, QAfterSortBy> thenByTableDesc() {
-    return addSortByInternal('table', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'table', Sort.desc);
+    });
   }
 }
 
 extension BranchQueryWhereDistinct on QueryBuilder<Branch, Branch, QDistinct> {
   QueryBuilder<Branch, Branch, QDistinct> distinctByActive() {
-    return addDistinctByInternal('active');
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'active');
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QDistinct> distinctByBusinessId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'businessId');
+    });
   }
 
   QueryBuilder<Branch, Branch, QDistinct> distinctByDescription(
       {bool caseSensitive = true}) {
-    return addDistinctByInternal('description', caseSensitive: caseSensitive);
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'description', caseSensitive: caseSensitive);
+    });
   }
 
-  QueryBuilder<Branch, Branch, QDistinct> distinctByFbusinessId() {
-    return addDistinctByInternal('fbusinessId');
-  }
-
-  QueryBuilder<Branch, Branch, QDistinct> distinctById() {
-    return addDistinctByInternal('id');
+  QueryBuilder<Branch, Branch, QDistinct> distinctByIsDefault() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isDefault');
+    });
   }
 
   QueryBuilder<Branch, Branch, QDistinct> distinctByLatitude(
       {bool caseSensitive = true}) {
-    return addDistinctByInternal('latitude', caseSensitive: caseSensitive);
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'latitude', caseSensitive: caseSensitive);
+    });
   }
 
   QueryBuilder<Branch, Branch, QDistinct> distinctByLongitude(
       {bool caseSensitive = true}) {
-    return addDistinctByInternal('longitude', caseSensitive: caseSensitive);
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'longitude', caseSensitive: caseSensitive);
+    });
   }
 
   QueryBuilder<Branch, Branch, QDistinct> distinctByName(
       {bool caseSensitive = true}) {
-    return addDistinctByInternal('name', caseSensitive: caseSensitive);
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'name', caseSensitive: caseSensitive);
+    });
   }
 
   QueryBuilder<Branch, Branch, QDistinct> distinctByTable(
       {bool caseSensitive = true}) {
-    return addDistinctByInternal('table', caseSensitive: caseSensitive);
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'table', caseSensitive: caseSensitive);
+    });
   }
 }
 
 extension BranchQueryProperty on QueryBuilder<Branch, Branch, QQueryProperty> {
   QueryBuilder<Branch, bool?, QQueryOperations> activeProperty() {
-    return addPropertyNameInternal('active');
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'active');
+    });
+  }
+
+  QueryBuilder<Branch, int?, QQueryOperations> businessIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'businessId');
+    });
   }
 
   QueryBuilder<Branch, String?, QQueryOperations> descriptionProperty() {
-    return addPropertyNameInternal('description');
-  }
-
-  QueryBuilder<Branch, int?, QQueryOperations> fbusinessIdProperty() {
-    return addPropertyNameInternal('fbusinessId');
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'description');
+    });
   }
 
   QueryBuilder<Branch, int?, QQueryOperations> idProperty() {
-    return addPropertyNameInternal('id');
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<Branch, bool, QQueryOperations> isDefaultProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isDefault');
+    });
   }
 
   QueryBuilder<Branch, String?, QQueryOperations> latitudeProperty() {
-    return addPropertyNameInternal('latitude');
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'latitude');
+    });
   }
 
   QueryBuilder<Branch, String?, QQueryOperations> longitudeProperty() {
-    return addPropertyNameInternal('longitude');
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'longitude');
+    });
   }
 
   QueryBuilder<Branch, String?, QQueryOperations> nameProperty() {
-    return addPropertyNameInternal('name');
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'name');
+    });
   }
 
   QueryBuilder<Branch, String?, QQueryOperations> tableProperty() {
-    return addPropertyNameInternal('table');
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'table');
+    });
   }
 }

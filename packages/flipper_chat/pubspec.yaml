@@ -17,12 +17,12 @@ dependencies:
   flutter_chat_ui: ^1.5.5
   flutter_firebase_chat_core: ^1.5.0
   timeago: ^3.2.1
-  stacked_themes: ^0.3.8+1
+
   mime: ^1.0.1
   open_file: ^3.2.1
   image_picker: ^0.8.0+4
   firebase_storage: ^10.2.9
-  file_picker: ^4.2.7
+  file_picker: ^4.6.1-dev
   go_router: ^3.1.0
   stacked: ^2.3.8
   azlistview: ^2.0.0
@@ -39,6 +39,7 @@ dependencies:
   path_provider: ^2.0.8
   flutter_svg: ^1.0.3
   qr: ^3.0.0
+
 flutter:
   uses-material-design: true
   assets:

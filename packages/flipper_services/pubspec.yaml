@@ -14,7 +14,6 @@ dependencies:
   flipper_rw: ^1.0.1-dev.3
   stacked: ^2.3.8
   firebase_remote_config: ^2.0.0
-  flutter_secure_storage: ^5.0.2
   share_plus: ^4.0.3
   in_app_review: ^2.0.4
   firebase_messaging: ^11.2.8

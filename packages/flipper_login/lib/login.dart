@@ -2,6 +2,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_dashboard/startup_view.dart';
 import 'package:flipper_models/view_models/gate.dart';
+import 'package:go_router/go_router.dart';
 import 'config.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flutter/material.dart';
@@ -60,8 +61,10 @@ class _LoginViewState extends State<LoginView>
           if (result == ConnectivityResult.mobile ||
               result == ConnectivityResult.wifi) {
             loginInfo.noNet = false;
+            GoRouter.of(context).refresh();
           } else {
             loginInfo.noNet = true;
+            GoRouter.of(context).refresh();
           }
         });
       });

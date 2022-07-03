@@ -40,9 +40,8 @@ class SettingsService with ReactiveServiceMixin {
           settingsMap[key] = map[key];
         }
       });
-      int id = setting.id;
-      // log.d(map['isAttendanceEnabled']);
-      ProxyService.isarApi.update(data: settingsMap, endPoint: 'settings/$id');
+
+      ProxyService.isarApi.update(data: settingsMap);
       return true;
     } else {
       Map kMap = map;

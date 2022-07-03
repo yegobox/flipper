@@ -2,8 +2,10 @@ library flipper_models;
 
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/mocks.dart';
+import 'package:flipper_routing/routes.locator.dart';
 // import 'package:flipper_models/models/mocks.dart';
 import 'package:flipper_routing/routes.logger.dart';
+import 'package:flipper_services/app_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:stacked/stacked.dart';
 import 'package:universal_platform/universal_platform.dart';
@@ -15,6 +17,7 @@ import 'gate.dart';
 final isWindows = UniversalPlatform.isWindows;
 
 class SignupViewModel extends FormViewModel {
+  final appService = locator<AppService>();
   String? businessType = 'Business';
   final log = getLogger('SignupViewModel');
 
@@ -50,11 +53,6 @@ class SignupViewModel extends FormViewModel {
     notifyListeners();
   }
 
-  // String? _type;
-  // void setType({required String type}) {
-  //   _type = type;
-  // }
-
   void registerLocation() async {
     final permission = await ProxyService.location.doWeHaveLocationPermission();
     if (permission) {
@@ -86,14 +84,14 @@ class SignupViewModel extends FormViewModel {
     // final String? name = kName?.replaceAll(' ', '_');
     log.i(tin);
 
-    int okStatus = await ProxyService.isarApi.signup(business: {
+    List<JTenant> jTenants = await ProxyService.isarApi.signup(business: {
       'name': kName,
       'latitude': latitude,
       'longitude': longitude,
-      'phoneNumber': ProxyService.box.read(key: 'userPhone'),
+      'phoneNumber': ProxyService.box.getUserPhone(),
       'currency': 'RW',
       'createdAt': DateTime.now().toIso8601String(),
-      'userId': ProxyService.box.read(key: 'userId'),
+      'userId': ProxyService.box.getUserId(),
       "tinNumber": int.parse(tin),
       // 'type': businessType,
       'type': 'Business',
@@ -101,24 +99,16 @@ class SignupViewModel extends FormViewModel {
       'fullName': kFullName,
       'country': kCountry
     });
-    if (okStatus == 200) {
+    if (jTenants.isNotEmpty) {
+      /// create tenants.
       final String userId = ProxyService.box.getUserId()!;
-      //get businesses's id then look for related branch [0] create the default category
-      Business businesses =
-          await ProxyService.isarApi.getOnlineBusiness(userId: userId);
+      Business? business = await ProxyService.isarApi
+          .getBusinessById(id: jTenants.first.businesses.first.id!);
 
-      ProxyService.box.write(key: 'businessId', value: businesses.id);
-      ProxyService.appService.setBusiness(business: businesses);
-      // if (ProxyService.remoteConfig.isSubmitDeviceTokenEnabled()) {
-      // String? token = await FirebaseMessaging.instance.getToken();
-      // ProxyService.firestore
-      //     .saveTokenToDatabase(token: token!, business: businesses[0]);
-      // // }
       List<Branch> branches =
-          await ProxyService.isarApi.branches(businessId: businesses.id);
+          await ProxyService.isarApi.branches(businessId: business!.id!);
 
-      ProxyService.box.write(key: 'branchId', value: branches[0].id);
-
+      appService.appInit();
       final Category category = Category()
         ..active = true
         ..focused = true
@@ -159,12 +149,7 @@ class SignupViewModel extends FormViewModel {
       await ProxyService.isarApi.addUnits(data: units);
 
       //now create a default custom product
-      await ProxyService.isarApi.createProduct(
-          product: Product()
-            ..name = "Custom Amount"
-            ..color = "#5A2328"
-            ..branchId = ProxyService.box.getBranchId()!
-            ..businessId = ProxyService.box.getBusinessId()!);
+      appService.bootstraper();
 
       loginInfo.isLoggedIn = true;
       loginInfo.redirecting = false;

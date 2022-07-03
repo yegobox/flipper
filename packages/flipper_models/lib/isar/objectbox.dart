@@ -1,5 +1,6 @@
 //ignore: implementation_imports
-import 'package:objectbox/src/transaction.dart';
+// TODO:bellow line was not commented
+// import 'package:objectbox/src/transaction.dart';
 
 /// READ: Dummy file to allow objectbox related code to compile on Web. We use
 /// conditional imports at compile time, so any references to objectbox stuff
@@ -24,7 +25,8 @@ class Box<T> {
   /// Puts the given [objects] into this Box in a single transaction.
   ///
   /// Returns a list of all IDs of the inserted Objects.
-  List<int> putMany(List<T> objects, {PutMode mode = PutMode.put}) => throw Exception('Unsupported Platform');
+  List<int> putMany(List<T> objects, {PutMode mode = PutMode.put}) =>
+      throw Exception('Unsupported Platform');
 
   /// Removes (deletes) ALL Objects in a single transaction.
   int removeAll() => throw Exception('Unsupported Platform');
@@ -34,8 +36,8 @@ class Box<T> {
 
 class Store {
   Box<T> box<T>() => throw Exception('Unsupported Platform');
-
-  R runInTransaction<R>(TxMode mode, R Function() fn) => throw Exception('Unsupported Platform');
+// TODO:bellow line was not commented
+  // R runInTransaction<R>(TxMode mode, R Function() fn) => throw Exception('Unsupported Platform');
 
   dynamic get reference => throw Exception('Unsupported Platform');
 
@@ -43,11 +45,12 @@ class Store {
 }
 
 Future<Store> openStore(
-    {String? directory,
-      int? maxDBSizeInKB,
-      int? fileMode,
-      int? maxReaders,
-      bool queriesCaseSensitiveDefault = true,
-      String? macosApplicationGroup}) async => throw Exception('Unsupported Platform');
+        {String? directory,
+        int? maxDBSizeInKB,
+        int? fileMode,
+        int? maxReaders,
+        bool queriesCaseSensitiveDefault = true,
+        String? macosApplicationGroup}) async =>
+    throw Exception('Unsupported Platform');
 
 dynamic getObjectBoxModel() => throw Exception('Unsupported Platform');

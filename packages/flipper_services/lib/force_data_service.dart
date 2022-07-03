@@ -1,5 +1,7 @@
 import 'package:flipper_models/mocks.dart';
+import 'package:flipper_routing/routes.locator.dart';
 import 'package:flipper_routing/routes.logger.dart';
+import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 
@@ -9,6 +11,7 @@ import 'package:flipper_models/isar_models.dart';
 /// this is the class to help with that.
 
 class ForceDataEntryService {
+  final appService = locator<AppService>();
   final log = getLogger('ForceDataEntryService');
   void caller() {
     addData();
@@ -16,7 +19,7 @@ class ForceDataEntryService {
 
   Future<void> addData() async {
     int? branchId = ProxyService.box.read(key: 'branchId');
-
+    appService.bootstraper();
     if (branchId == null) {
       return;
     }

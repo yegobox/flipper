@@ -6,6 +6,14 @@ class VoucherException implements Exception {
   VoucherException({required this.term});
 }
 
+class LoginChoicesException implements Exception {
+  String term;
+
+  String errMsg() => 'You need to choose: $term';
+
+  LoginChoicesException({required this.term});
+}
+
 class InternalServerException implements Exception {
   String term;
 
@@ -22,12 +30,28 @@ class SessionException implements Exception {
   SessionException({required this.term});
 }
 
-class NoDrawerOpen implements Exception {
+class ErrorReadingFromYBServer implements Exception {
+  String term;
+
+  String errMsg() => 'General error: $term';
+
+  ErrorReadingFromYBServer({required this.term});
+}
+
+class BranchLoadingException implements Exception {
+  String term;
+
+  String errMsg() => 'Branch error: $term';
+
+  BranchLoadingException({required this.term});
+}
+
+class NoDrawerOpenException implements Exception {
   String term;
 
   String errMsg() => 'NoDrawerOpen: $term';
 
-  NoDrawerOpen({required this.term});
+  NoDrawerOpenException({required this.term});
 }
 
 class InternalServerError implements Exception {

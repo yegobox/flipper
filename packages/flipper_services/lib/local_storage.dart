@@ -83,4 +83,9 @@ class LocalStorageImpl implements LocalStorage {
   String? gdID() {
     return box.read('gdID');
   }
+
+  @override
+  bool isAnonymous() {
+    return box.read('isAnonymous') ?? false;
+  }
 }

@@ -7,21 +7,28 @@ import 'package:flipper_models/isar_models.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:go_router/go_router.dart';
 
-class OrderSummary extends StatelessWidget {
+class OrderSummary extends StatefulWidget {
+  const OrderSummary({Key? key}) : super(key: key);
+
+  @override
+  State<OrderSummary> createState() => _OrderSummaryState();
+}
+
+class _OrderSummaryState extends State<OrderSummary> {
   final display = createDisplay(
     length: 8,
     decimal: 0,
   );
-  OrderSummary({Key? key}) : super(key: key);
+  List<OrderItem> items = [];
   List<Widget> buildItems(
       {required BusinessHomeViewModel model, required BuildContext context}) {
     final List<Widget> list = [];
-    if (model.kOrder == null) {
+    if (items.isEmpty) {
       list.add(const Center(child: Text('There is no current order')));
       return list;
     }
 
-    for (OrderItem item in model.kOrder!.orderItems) {
+    for (OrderItem item in items) {
       list.add(
         Slidable(
           key: ValueKey(item.id),
@@ -106,8 +113,14 @@ class OrderSummary extends StatelessWidget {
   Widget build(BuildContext context) {
     return ViewModelBuilder<BusinessHomeViewModel>.reactive(
       viewModelBuilder: () => BusinessHomeViewModel(),
-      onModelReady: (model) {
+      onModelReady: (model) async {
         model.updatePayable();
+        List<OrderItem> _items =
+            await ProxyService.isarApi.orderItems(orderId: model.kOrder!.id);
+
+        setState(() {
+          items = _items;
+        });
       },
       builder: (context, model, child) {
         if (model.kOrder == null) {

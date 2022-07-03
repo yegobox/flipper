@@ -1,14 +1,18 @@
 import 'package:flipper_models/isar/pin.dart';
+import 'package:flipper_models/view_models/gate.dart';
+import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_routing/routes.logger.dart';
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flipper_routing/routes.locator.dart';
 
 class LoginViewModel extends FormViewModel {
   LoginViewModel();
   final log = getLogger('LoginViewModel');
+  final appService = locator<AppService>();
 
   bool loginStart = false;
   bool otpStart = false;
@@ -53,29 +57,31 @@ class LoginViewModel extends FormViewModel {
   }) async {
     _isProceeding = true;
     notifyListeners();
+    Pin? pin = await ProxyService.isarApi.getPin(pin: pinCode);
+    if (pin != null) {
+      log.i(pin.userId);
+      ProxyService.box.write(key: 'businessId', value: pin.businessId);
+      ProxyService.box.write(key: 'branchId', value: pin.branchId);
+      ProxyService.box.write(key: 'userId', value: pin.userId);
+      ProxyService.box.write(key: 'userPhone', value: pin.phoneNumber);
+      ProxyService.box.write(key: 'isAnonymous', value: true);
+      await ProxyService.isarApi.login(
+        userPhone: pin.phoneNumber,
+      );
+      // await appService.appInit();
+      await FirebaseAuth.instance.signInAnonymously();
+      final auth = FirebaseAuth.instance;
+      if (auth.currentUser != null) {
+        loginInfo.isLoggedIn = true;
+        // we are logged in but there is a chance that this number is a tenant
+        // that is given access to this business's branch
+        // TODOtenant's is not useful when sync is not supported.
+        loginInfo.redirecting = false;
 
-    try {
-      Pin? pin = await ProxyService.isarApi.getPin(pin: pinCode);
-      if (pin != null) {
-        await FirebaseAuth.instance.signInAnonymously();
-        final auth = FirebaseAuth.instance;
-        if (auth.currentUser != null) {
-          ProxyService.box.write(key: 'businessId', value: pin.businessId);
-          ProxyService.box.write(key: 'branchId', value: pin.branchId);
-          ProxyService.box.write(key: 'userId', value: pin.userId);
-          ProxyService.box.write(key: 'userPhone', value: pin.phoneNumber);
-          await ProxyService.isarApi.login(
-            userPhone: pin.phoneNumber,
-          );
-
-          /// TODOSubmit this data in Device model to know which device is logged in
-          /// final deviceInfoPlugin = DeviceInfoPlugin();
-          /// final deviceInfo = await deviceInfoPlugin.deviceInfo;
-          /// deviceInfo.toMap();
-        }
+        //TODOSubmit this data in Device model to know which device is logged in
+        //I will work on this when sync on isar is complete I don't want to use firestoreanymore!
+        // final deviceInfoPlugin = DeviceInfoPlugin();
       }
-    } catch (e) {
-      rethrow;
     }
   }
 

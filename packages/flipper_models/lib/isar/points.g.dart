@@ -6,22 +6,23 @@ part of flipper_models;
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable, no_leading_underscores_for_local_identifiers
+// coverage:ignore-file
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
 
 extension GetPointsCollection on Isar {
   IsarCollection<Points> get pointss => getCollection();
 }
 
 const PointsSchema = CollectionSchema(
-  name: 'Points',
+  name: r'Points',
   schema:
-      '{"name":"Points","idName":"id","properties":[{"name":"userId","type":"Long"},{"name":"value","type":"Long"}],"indexes":[{"name":"userId","unique":false,"replace":false,"properties":[{"name":"userId","type":"Value","caseSensitive":false}]}],"links":[]}',
-  idName: 'id',
-  propertyIds: {'userId': 0, 'value': 1},
+      r'{"name":"Points","idName":"id","properties":[{"name":"userId","type":"Long"},{"name":"value","type":"Long"}],"indexes":[{"name":"userId","unique":false,"replace":false,"properties":[{"name":"userId","type":"Value","caseSensitive":false}]}],"links":[]}',
+  idName: r'id',
+  propertyIds: {r'userId': 0, r'value': 1},
   listProperties: {},
-  indexIds: {'userId': 0},
+  indexIds: {r'userId': 0},
   indexValueTypes: {
-    'userId': [
+    r'userId': [
       IndexValueType.long,
     ]
   },
@@ -52,25 +53,21 @@ void _pointsSetId(Points object, int id) {
   object.id = id;
 }
 
-List<IsarLinkBase> _pointsGetLinks(Points object) {
+List<IsarLinkBase<dynamic>> _pointsGetLinks(Points object) {
   return [];
 }
 
 void _pointsSerializeNative(IsarCollection<Points> collection, IsarCObject cObj,
     Points object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
-  var dynamicSize = 0;
-  final value0 = object.userId;
-  final _userId = value0;
-  final value1 = object.value;
-  final _value = value1;
-  final size = staticSize + dynamicSize;
-
+  final size = (staticSize) as int;
   cObj.buffer = alloc(size);
   cObj.buffer_length = size;
+
   final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
   final writer = IsarBinaryWriter(buffer, staticSize);
-  writer.writeLong(offsets[0], _userId);
-  writer.writeLong(offsets[1], _value);
+  writer.writeHeader();
+  writer.writeLong(offsets[0], object.userId);
+  writer.writeLong(offsets[1], object.value);
 }
 
 Points _pointsDeserializeNative(IsarCollection<Points> collection, int id,
@@ -93,94 +90,112 @@ P _pointsDeserializePropNative<P>(
     case 1:
       return (reader.readLong(offset)) as P;
     default:
-      throw 'Illegal propertyIndex';
+      throw IsarError('Illegal propertyIndex');
   }
 }
 
-dynamic _pointsSerializeWeb(IsarCollection<Points> collection, Points object) {
+Object _pointsSerializeWeb(IsarCollection<Points> collection, Points object) {
   final jsObj = IsarNative.newJsObject();
-  IsarNative.jsObjectSet(jsObj, 'id', object.id);
-  IsarNative.jsObjectSet(jsObj, 'userId', object.userId);
-  IsarNative.jsObjectSet(jsObj, 'value', object.value);
+  IsarNative.jsObjectSet(jsObj, r'id', object.id);
+  IsarNative.jsObjectSet(jsObj, r'userId', object.userId);
+  IsarNative.jsObjectSet(jsObj, r'value', object.value);
   return jsObj;
 }
 
-Points _pointsDeserializeWeb(IsarCollection<Points> collection, dynamic jsObj) {
+Points _pointsDeserializeWeb(IsarCollection<Points> collection, Object jsObj) {
   final object = Points(
-    id: IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity,
-    userId: IsarNative.jsObjectGet(jsObj, 'userId') ?? double.negativeInfinity,
-    value: IsarNative.jsObjectGet(jsObj, 'value') ?? double.negativeInfinity,
+    id: IsarNative.jsObjectGet(jsObj, r'id') ??
+        (double.negativeInfinity as int),
+    userId: IsarNative.jsObjectGet(jsObj, r'userId') ??
+        (double.negativeInfinity as int),
+    value: IsarNative.jsObjectGet(jsObj, r'value') ??
+        (double.negativeInfinity as int),
   );
   return object;
 }
 
 P _pointsDeserializePropWeb<P>(Object jsObj, String propertyName) {
   switch (propertyName) {
-    case 'id':
-      return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
-          as P;
-    case 'userId':
-      return (IsarNative.jsObjectGet(jsObj, 'userId') ??
-          double.negativeInfinity) as P;
-    case 'value':
-      return (IsarNative.jsObjectGet(jsObj, 'value') ?? double.negativeInfinity)
-          as P;
+    case r'id':
+      return (IsarNative.jsObjectGet(jsObj, r'id') ??
+          (double.negativeInfinity as int)) as P;
+    case r'userId':
+      return (IsarNative.jsObjectGet(jsObj, r'userId') ??
+          (double.negativeInfinity as int)) as P;
+    case r'value':
+      return (IsarNative.jsObjectGet(jsObj, r'value') ??
+          (double.negativeInfinity as int)) as P;
     default:
-      throw 'Illegal propertyName';
+      throw IsarError('Illegal propertyName');
   }
 }
 
-void _pointsAttachLinks(IsarCollection col, int id, Points object) {}
+void _pointsAttachLinks(IsarCollection<dynamic> col, int id, Points object) {}
 
 extension PointsQueryWhereSort on QueryBuilder<Points, Points, QWhere> {
   QueryBuilder<Points, Points, QAfterWhere> anyId() {
-    return addWhereClauseInternal(const IdWhereClause.any());
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(const IdWhereClause.any());
+    });
   }
 
   QueryBuilder<Points, Points, QAfterWhere> anyUserId() {
-    return addWhereClauseInternal(
-        const IndexWhereClause.any(indexName: 'userId'));
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'userId'),
+      );
+    });
   }
 }
 
 extension PointsQueryWhere on QueryBuilder<Points, Points, QWhereClause> {
   QueryBuilder<Points, Points, QAfterWhereClause> idEqualTo(int id) {
-    return addWhereClauseInternal(IdWhereClause.between(
-      lower: id,
-      includeLower: true,
-      upper: id,
-      includeUpper: true,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IdWhereClause.between(
+        lower: id,
+        upper: id,
+      ));
+    });
   }
 
   QueryBuilder<Points, Points, QAfterWhereClause> idNotEqualTo(int id) {
-    if (whereSortInternal == Sort.asc) {
-      return addWhereClauseInternal(
-        IdWhereClause.lessThan(upper: id, includeUpper: false),
-      ).addWhereClauseInternal(
-        IdWhereClause.greaterThan(lower: id, includeLower: false),
-      );
-    } else {
-      return addWhereClauseInternal(
-        IdWhereClause.greaterThan(lower: id, includeLower: false),
-      ).addWhereClauseInternal(
-        IdWhereClause.lessThan(upper: id, includeUpper: false),
-      );
-    }
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(
+              IdWhereClause.lessThan(upper: id, includeUpper: false),
+            )
+            .addWhereClause(
+              IdWhereClause.greaterThan(lower: id, includeLower: false),
+            );
+      } else {
+        return query
+            .addWhereClause(
+              IdWhereClause.greaterThan(lower: id, includeLower: false),
+            )
+            .addWhereClause(
+              IdWhereClause.lessThan(upper: id, includeUpper: false),
+            );
+      }
+    });
   }
 
   QueryBuilder<Points, Points, QAfterWhereClause> idGreaterThan(int id,
       {bool include = false}) {
-    return addWhereClauseInternal(
-      IdWhereClause.greaterThan(lower: id, includeLower: include),
-    );
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IdWhereClause.greaterThan(lower: id, includeLower: include),
+      );
+    });
   }
 
   QueryBuilder<Points, Points, QAfterWhereClause> idLessThan(int id,
       {bool include = false}) {
-    return addWhereClauseInternal(
-      IdWhereClause.lessThan(upper: id, includeUpper: include),
-    );
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IdWhereClause.lessThan(upper: id, includeUpper: include),
+      );
+    });
   }
 
   QueryBuilder<Points, Points, QAfterWhereClause> idBetween(
@@ -189,65 +204,85 @@ extension PointsQueryWhere on QueryBuilder<Points, Points, QWhereClause> {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addWhereClauseInternal(IdWhereClause.between(
-      lower: lowerId,
-      includeLower: includeLower,
-      upper: upperId,
-      includeUpper: includeUpper,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IdWhereClause.between(
+        lower: lowerId,
+        includeLower: includeLower,
+        upper: upperId,
+        includeUpper: includeUpper,
+      ));
+    });
   }
 
   QueryBuilder<Points, Points, QAfterWhereClause> userIdEqualTo(int userId) {
-    return addWhereClauseInternal(IndexWhereClause.equalTo(
-      indexName: 'userId',
-      value: [userId],
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'userId',
+        value: [userId],
+      ));
+    });
   }
 
   QueryBuilder<Points, Points, QAfterWhereClause> userIdNotEqualTo(int userId) {
-    if (whereSortInternal == Sort.asc) {
-      return addWhereClauseInternal(IndexWhereClause.lessThan(
-        indexName: 'userId',
-        upper: [userId],
-        includeUpper: false,
-      )).addWhereClauseInternal(IndexWhereClause.greaterThan(
-        indexName: 'userId',
-        lower: [userId],
-        includeLower: false,
-      ));
-    } else {
-      return addWhereClauseInternal(IndexWhereClause.greaterThan(
-        indexName: 'userId',
-        lower: [userId],
-        includeLower: false,
-      )).addWhereClauseInternal(IndexWhereClause.lessThan(
-        indexName: 'userId',
-        upper: [userId],
-        includeUpper: false,
-      ));
-    }
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'userId',
+              lower: [],
+              upper: [userId],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'userId',
+              lower: [userId],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'userId',
+              lower: [userId],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'userId',
+              lower: [],
+              upper: [userId],
+              includeUpper: false,
+            ));
+      }
+    });
   }
 
   QueryBuilder<Points, Points, QAfterWhereClause> userIdGreaterThan(
     int userId, {
     bool include = false,
   }) {
-    return addWhereClauseInternal(IndexWhereClause.greaterThan(
-      indexName: 'userId',
-      lower: [userId],
-      includeLower: include,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'userId',
+        lower: [userId],
+        includeLower: include,
+        upper: [],
+      ));
+    });
   }
 
   QueryBuilder<Points, Points, QAfterWhereClause> userIdLessThan(
     int userId, {
     bool include = false,
   }) {
-    return addWhereClauseInternal(IndexWhereClause.lessThan(
-      indexName: 'userId',
-      upper: [userId],
-      includeUpper: include,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'userId',
+        lower: [],
+        upper: [userId],
+        includeUpper: include,
+      ));
+    });
   }
 
   QueryBuilder<Points, Points, QAfterWhereClause> userIdBetween(
@@ -256,47 +291,52 @@ extension PointsQueryWhere on QueryBuilder<Points, Points, QWhereClause> {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addWhereClauseInternal(IndexWhereClause.between(
-      indexName: 'userId',
-      lower: [lowerUserId],
-      includeLower: includeLower,
-      upper: [upperUserId],
-      includeUpper: includeUpper,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'userId',
+        lower: [lowerUserId],
+        includeLower: includeLower,
+        upper: [upperUserId],
+        includeUpper: includeUpper,
+      ));
+    });
   }
 }
 
 extension PointsQueryFilter on QueryBuilder<Points, Points, QFilterCondition> {
   QueryBuilder<Points, Points, QAfterFilterCondition> idEqualTo(int value) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'id',
-      value: value,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'id',
+        value: value,
+      ));
+    });
   }
 
   QueryBuilder<Points, Points, QAfterFilterCondition> idGreaterThan(
     int value, {
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'id',
-      value: value,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'id',
+        value: value,
+      ));
+    });
   }
 
   QueryBuilder<Points, Points, QAfterFilterCondition> idLessThan(
     int value, {
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'id',
-      value: value,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'id',
+        value: value,
+      ));
+    });
   }
 
   QueryBuilder<Points, Points, QAfterFilterCondition> idBetween(
@@ -305,45 +345,50 @@ extension PointsQueryFilter on QueryBuilder<Points, Points, QFilterCondition> {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'id',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'id',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
   }
 
   QueryBuilder<Points, Points, QAfterFilterCondition> userIdEqualTo(int value) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'userId',
-      value: value,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'userId',
+        value: value,
+      ));
+    });
   }
 
   QueryBuilder<Points, Points, QAfterFilterCondition> userIdGreaterThan(
     int value, {
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'userId',
-      value: value,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'userId',
+        value: value,
+      ));
+    });
   }
 
   QueryBuilder<Points, Points, QAfterFilterCondition> userIdLessThan(
     int value, {
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'userId',
-      value: value,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'userId',
+        value: value,
+      ));
+    });
   }
 
   QueryBuilder<Points, Points, QAfterFilterCondition> userIdBetween(
@@ -352,45 +397,50 @@ extension PointsQueryFilter on QueryBuilder<Points, Points, QFilterCondition> {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'userId',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'userId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
   }
 
   QueryBuilder<Points, Points, QAfterFilterCondition> valueEqualTo(int value) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'value',
-      value: value,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'value',
+        value: value,
+      ));
+    });
   }
 
   QueryBuilder<Points, Points, QAfterFilterCondition> valueGreaterThan(
     int value, {
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'value',
-      value: value,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'value',
+        value: value,
+      ));
+    });
   }
 
   QueryBuilder<Points, Points, QAfterFilterCondition> valueLessThan(
     int value, {
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'value',
-      value: value,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'value',
+        value: value,
+      ));
+    });
   }
 
   QueryBuilder<Points, Points, QAfterFilterCondition> valueBetween(
@@ -399,95 +449,115 @@ extension PointsQueryFilter on QueryBuilder<Points, Points, QFilterCondition> {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'value',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'value',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
   }
 }
 
 extension PointsQueryLinks on QueryBuilder<Points, Points, QFilterCondition> {}
 
 extension PointsQueryWhereSortBy on QueryBuilder<Points, Points, QSortBy> {
-  QueryBuilder<Points, Points, QAfterSortBy> sortById() {
-    return addSortByInternal('id', Sort.asc);
-  }
-
-  QueryBuilder<Points, Points, QAfterSortBy> sortByIdDesc() {
-    return addSortByInternal('id', Sort.desc);
-  }
-
   QueryBuilder<Points, Points, QAfterSortBy> sortByUserId() {
-    return addSortByInternal('userId', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'userId', Sort.asc);
+    });
   }
 
   QueryBuilder<Points, Points, QAfterSortBy> sortByUserIdDesc() {
-    return addSortByInternal('userId', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'userId', Sort.desc);
+    });
   }
 
   QueryBuilder<Points, Points, QAfterSortBy> sortByValue() {
-    return addSortByInternal('value', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'value', Sort.asc);
+    });
   }
 
   QueryBuilder<Points, Points, QAfterSortBy> sortByValueDesc() {
-    return addSortByInternal('value', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'value', Sort.desc);
+    });
   }
 }
 
 extension PointsQueryWhereSortThenBy
     on QueryBuilder<Points, Points, QSortThenBy> {
   QueryBuilder<Points, Points, QAfterSortBy> thenById() {
-    return addSortByInternal('id', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'id', Sort.asc);
+    });
   }
 
   QueryBuilder<Points, Points, QAfterSortBy> thenByIdDesc() {
-    return addSortByInternal('id', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'id', Sort.desc);
+    });
   }
 
   QueryBuilder<Points, Points, QAfterSortBy> thenByUserId() {
-    return addSortByInternal('userId', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'userId', Sort.asc);
+    });
   }
 
   QueryBuilder<Points, Points, QAfterSortBy> thenByUserIdDesc() {
-    return addSortByInternal('userId', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'userId', Sort.desc);
+    });
   }
 
   QueryBuilder<Points, Points, QAfterSortBy> thenByValue() {
-    return addSortByInternal('value', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'value', Sort.asc);
+    });
   }
 
   QueryBuilder<Points, Points, QAfterSortBy> thenByValueDesc() {
-    return addSortByInternal('value', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'value', Sort.desc);
+    });
   }
 }
 
 extension PointsQueryWhereDistinct on QueryBuilder<Points, Points, QDistinct> {
-  QueryBuilder<Points, Points, QDistinct> distinctById() {
-    return addDistinctByInternal('id');
-  }
-
   QueryBuilder<Points, Points, QDistinct> distinctByUserId() {
-    return addDistinctByInternal('userId');
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'userId');
+    });
   }
 
   QueryBuilder<Points, Points, QDistinct> distinctByValue() {
-    return addDistinctByInternal('value');
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'value');
+    });
   }
 }
 
 extension PointsQueryProperty on QueryBuilder<Points, Points, QQueryProperty> {
   QueryBuilder<Points, int, QQueryOperations> idProperty() {
-    return addPropertyNameInternal('id');
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'id');
+    });
   }
 
   QueryBuilder<Points, int, QQueryOperations> userIdProperty() {
-    return addPropertyNameInternal('userId');
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'userId');
+    });
   }
 
   QueryBuilder<Points, int, QQueryOperations> valueProperty() {
-    return addPropertyNameInternal('value');
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'value');
+    });
   }
 }

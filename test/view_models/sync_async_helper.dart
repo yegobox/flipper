@@ -28,43 +28,39 @@ void testSyncAsync(Function test) {
 }
 
 Future<Isar> tOpen({
-  required List<CollectionSchema> schemas,
+  required List<CollectionSchema<dynamic>> schemas,
   String? directory,
   String name = Isar.defaultName,
   bool relaxedDurability = true,
-  bool inspector = false,
 }) {
   if (_testSync) {
     final isar = Isar.openSync(
-      schemas: schemas,
+      schemas,
       directory: directory,
       name: name,
       relaxedDurability: relaxedDurability,
-      inspector: inspector,
     );
     return SynchronousFuture(isar);
   } else {
     return Isar.open(
-      schemas: schemas,
+      schemas,
       directory: directory,
       name: name,
       relaxedDurability: relaxedDurability,
-      inspector: inspector,
     );
   }
 }
 
 extension TIsar on Isar {
-  Future<T> tTxn<T>(Future<T> Function(Isar isar) callback) {
+  Future<T> tTxn<T>(Future<T> Function() callback) {
     if (_testSync) {
-      return Future.value(txnSync((isar) => callback(isar)));
+      return Future.value(txnSync(callback));
     } else {
       return txn(callback);
     }
   }
 
-  Future<T> tWriteTxn<T>(Future<T> Function(Isar isar) callback,
-      {bool silent = false}) {
+  Future<T> tWriteTxn<T>(Future<T> Function() callback, {bool silent = false}) {
     if (_testSync) {
       return writeTxnSync(callback, silent: silent);
     } else {
@@ -90,19 +86,19 @@ extension TIsarCollection<OBJ> on IsarCollection<OBJ> {
     }
   }
 
-  Future<int> tPut(OBJ object, {bool saveLinks = false}) {
+  Future<int> tPut(OBJ object) {
     if (_testSync) {
-      return SynchronousFuture(putSync(object, saveLinks: saveLinks));
+      return SynchronousFuture(putSync(object));
     } else {
-      return put(object, saveLinks: saveLinks);
+      return put(object);
     }
   }
 
-  Future<List<int>> tPutAll(List<OBJ> objects, {bool saveLinks = false}) {
+  Future<List<int>> tPutAll(List<OBJ> objects) {
     if (_testSync) {
-      return SynchronousFuture(putAllSync(objects, saveLinks: saveLinks));
+      return SynchronousFuture(putAllSync(objects));
     } else {
-      return putAll(objects, saveLinks: saveLinks);
+      return putAll(objects);
     }
   }
 
@@ -150,7 +146,52 @@ extension TIsarCollection<OBJ> on IsarCollection<OBJ> {
   }
 }
 
-extension QueryExecute<OBJ, R> on QueryBuilder<OBJ, R, QQueryOperations> {
+extension QueryBuilderExecute<OBJ, R>
+    on QueryBuilder<OBJ, R, QQueryOperations> {
+  Future<R?> tFindFirst() {
+    if (_testSync) {
+      return SynchronousFuture(findFirstSync());
+    } else {
+      return findFirst();
+    }
+  }
+
+  Future<List<R>> tFindAll() {
+    if (_testSync) {
+      return SynchronousFuture(findAllSync());
+    } else {
+      return findAll();
+    }
+  }
+
+  Future<int> tCount() {
+    if (_testSync) {
+      return SynchronousFuture(countSync());
+    } else {
+      return count();
+    }
+  }
+
+  Future<bool> tDeleteFirst() {
+    if (_testSync) {
+      return SynchronousFuture(deleteFirstSync());
+    } else {
+      return deleteFirst();
+    }
+  }
+
+  Future<int> tDeleteAll() {
+    if (_testSync) {
+      return SynchronousFuture(deleteAllSync());
+    } else {
+      return deleteAll();
+    }
+  }
+}
+
+/// Extension for Queries
+/// Same as [QueryBuilderExecute], but for [Query] instead of [QueryBuilder].
+extension QueryExecute<R> on Query<R> {
   Future<R?> tFindFirst() {
     if (_testSync) {
       return SynchronousFuture(findFirstSync());

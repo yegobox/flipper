@@ -6,26 +6,27 @@ part of 'customer.dart';
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable, no_leading_underscores_for_local_identifiers
+// coverage:ignore-file
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
 
 extension GetCustomerCollection on Isar {
   IsarCollection<Customer> get customers => getCollection();
 }
 
 const CustomerSchema = CollectionSchema(
-  name: 'Customer',
+  name: r'Customer',
   schema:
-      '{"name":"Customer","idName":"id","properties":[{"name":"address","type":"String"},{"name":"branchId","type":"Long"},{"name":"email","type":"String"},{"name":"name","type":"String"},{"name":"orderId","type":"Long"},{"name":"phone","type":"String"},{"name":"tinNumber","type":"String"},{"name":"updatedAt","type":"String"}],"indexes":[],"links":[]}',
-  idName: 'id',
+      r'{"name":"Customer","idName":"id","properties":[{"name":"address","type":"String"},{"name":"branchId","type":"Long"},{"name":"email","type":"String"},{"name":"name","type":"String"},{"name":"orderId","type":"Long"},{"name":"phone","type":"String"},{"name":"tinNumber","type":"String"},{"name":"updatedAt","type":"String"}],"indexes":[],"links":[]}',
+  idName: r'id',
   propertyIds: {
-    'address': 0,
-    'branchId': 1,
-    'email': 2,
-    'name': 3,
-    'orderId': 4,
-    'phone': 5,
-    'tinNumber': 6,
-    'updatedAt': 7
+    r'address': 0,
+    r'branchId': 1,
+    r'email': 2,
+    r'name': 3,
+    r'orderId': 4,
+    r'phone': 5,
+    r'tinNumber': 6,
+    r'updatedAt': 7
   },
   listProperties: {},
   indexIds: {},
@@ -57,7 +58,7 @@ void _customerSetId(Customer object, int id) {
   object.id = id;
 }
 
-List<IsarLinkBase> _customerGetLinks(Customer object) {
+List<IsarLinkBase<dynamic>> _customerGetLinks(Customer object) {
   return [];
 }
 
@@ -68,52 +69,45 @@ void _customerSerializeNative(
     int staticSize,
     List<int> offsets,
     AdapterAlloc alloc) {
-  var dynamicSize = 0;
-  final value0 = object.address;
-  IsarUint8List? _address;
-  if (value0 != null) {
-    _address = IsarBinaryWriter.utf8Encoder.convert(value0);
+  IsarUint8List? address$Bytes;
+  final address$Value = object.address;
+  if (address$Value != null) {
+    address$Bytes = IsarBinaryWriter.utf8Encoder.convert(address$Value);
   }
-  dynamicSize += (_address?.length ?? 0) as int;
-  final value1 = object.branchId;
-  final _branchId = value1;
-  final value2 = object.email;
-  final _email = IsarBinaryWriter.utf8Encoder.convert(value2);
-  dynamicSize += (_email.length) as int;
-  final value3 = object.name;
-  final _name = IsarBinaryWriter.utf8Encoder.convert(value3);
-  dynamicSize += (_name.length) as int;
-  final value4 = object.orderId;
-  final _orderId = value4;
-  final value5 = object.phone;
-  final _phone = IsarBinaryWriter.utf8Encoder.convert(value5);
-  dynamicSize += (_phone.length) as int;
-  final value6 = object.tinNumber;
-  IsarUint8List? _tinNumber;
-  if (value6 != null) {
-    _tinNumber = IsarBinaryWriter.utf8Encoder.convert(value6);
+  final email$Bytes = IsarBinaryWriter.utf8Encoder.convert(object.email);
+  final name$Bytes = IsarBinaryWriter.utf8Encoder.convert(object.name);
+  final phone$Bytes = IsarBinaryWriter.utf8Encoder.convert(object.phone);
+  IsarUint8List? tinNumber$Bytes;
+  final tinNumber$Value = object.tinNumber;
+  if (tinNumber$Value != null) {
+    tinNumber$Bytes = IsarBinaryWriter.utf8Encoder.convert(tinNumber$Value);
   }
-  dynamicSize += (_tinNumber?.length ?? 0) as int;
-  final value7 = object.updatedAt;
-  IsarUint8List? _updatedAt;
-  if (value7 != null) {
-    _updatedAt = IsarBinaryWriter.utf8Encoder.convert(value7);
+  IsarUint8List? updatedAt$Bytes;
+  final updatedAt$Value = object.updatedAt;
+  if (updatedAt$Value != null) {
+    updatedAt$Bytes = IsarBinaryWriter.utf8Encoder.convert(updatedAt$Value);
   }
-  dynamicSize += (_updatedAt?.length ?? 0) as int;
-  final size = staticSize + dynamicSize;
-
+  final size = (staticSize +
+      (address$Bytes?.length ?? 0) +
+      (email$Bytes.length) +
+      (name$Bytes.length) +
+      (phone$Bytes.length) +
+      (tinNumber$Bytes?.length ?? 0) +
+      (updatedAt$Bytes?.length ?? 0)) as int;
   cObj.buffer = alloc(size);
   cObj.buffer_length = size;
+
   final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
   final writer = IsarBinaryWriter(buffer, staticSize);
-  writer.writeBytes(offsets[0], _address);
-  writer.writeLong(offsets[1], _branchId);
-  writer.writeBytes(offsets[2], _email);
-  writer.writeBytes(offsets[3], _name);
-  writer.writeLong(offsets[4], _orderId);
-  writer.writeBytes(offsets[5], _phone);
-  writer.writeBytes(offsets[6], _tinNumber);
-  writer.writeBytes(offsets[7], _updatedAt);
+  writer.writeHeader();
+  writer.writeBytes(offsets[0], address$Bytes);
+  writer.writeLong(offsets[1], object.branchId);
+  writer.writeBytes(offsets[2], email$Bytes);
+  writer.writeBytes(offsets[3], name$Bytes);
+  writer.writeLong(offsets[4], object.orderId);
+  writer.writeBytes(offsets[5], phone$Bytes);
+  writer.writeBytes(offsets[6], tinNumber$Bytes);
+  writer.writeBytes(offsets[7], updatedAt$Bytes);
 }
 
 Customer _customerDeserializeNative(IsarCollection<Customer> collection, int id,
@@ -153,116 +147,130 @@ P _customerDeserializePropNative<P>(
     case 7:
       return (reader.readStringOrNull(offset)) as P;
     default:
-      throw 'Illegal propertyIndex';
+      throw IsarError('Illegal propertyIndex');
   }
 }
 
-dynamic _customerSerializeWeb(
+Object _customerSerializeWeb(
     IsarCollection<Customer> collection, Customer object) {
   final jsObj = IsarNative.newJsObject();
-  IsarNative.jsObjectSet(jsObj, 'address', object.address);
-  IsarNative.jsObjectSet(jsObj, 'branchId', object.branchId);
-  IsarNative.jsObjectSet(jsObj, 'email', object.email);
-  IsarNative.jsObjectSet(jsObj, 'id', object.id);
-  IsarNative.jsObjectSet(jsObj, 'name', object.name);
-  IsarNative.jsObjectSet(jsObj, 'orderId', object.orderId);
-  IsarNative.jsObjectSet(jsObj, 'phone', object.phone);
-  IsarNative.jsObjectSet(jsObj, 'tinNumber', object.tinNumber);
-  IsarNative.jsObjectSet(jsObj, 'updatedAt', object.updatedAt);
+  IsarNative.jsObjectSet(jsObj, r'address', object.address);
+  IsarNative.jsObjectSet(jsObj, r'branchId', object.branchId);
+  IsarNative.jsObjectSet(jsObj, r'email', object.email);
+  IsarNative.jsObjectSet(jsObj, r'id', object.id);
+  IsarNative.jsObjectSet(jsObj, r'name', object.name);
+  IsarNative.jsObjectSet(jsObj, r'orderId', object.orderId);
+  IsarNative.jsObjectSet(jsObj, r'phone', object.phone);
+  IsarNative.jsObjectSet(jsObj, r'tinNumber', object.tinNumber);
+  IsarNative.jsObjectSet(jsObj, r'updatedAt', object.updatedAt);
   return jsObj;
 }
 
 Customer _customerDeserializeWeb(
-    IsarCollection<Customer> collection, dynamic jsObj) {
+    IsarCollection<Customer> collection, Object jsObj) {
   final object = Customer();
-  object.address = IsarNative.jsObjectGet(jsObj, 'address');
-  object.branchId =
-      IsarNative.jsObjectGet(jsObj, 'branchId') ?? double.negativeInfinity;
-  object.email = IsarNative.jsObjectGet(jsObj, 'email') ?? '';
-  object.id = IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity;
-  object.name = IsarNative.jsObjectGet(jsObj, 'name') ?? '';
-  object.orderId =
-      IsarNative.jsObjectGet(jsObj, 'orderId') ?? double.negativeInfinity;
-  object.phone = IsarNative.jsObjectGet(jsObj, 'phone') ?? '';
-  object.tinNumber = IsarNative.jsObjectGet(jsObj, 'tinNumber');
-  object.updatedAt = IsarNative.jsObjectGet(jsObj, 'updatedAt');
+  object.address = IsarNative.jsObjectGet(jsObj, r'address');
+  object.branchId = IsarNative.jsObjectGet(jsObj, r'branchId') ??
+      (double.negativeInfinity as int);
+  object.email = IsarNative.jsObjectGet(jsObj, r'email') ?? '';
+  object.id =
+      IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int);
+  object.name = IsarNative.jsObjectGet(jsObj, r'name') ?? '';
+  object.orderId = IsarNative.jsObjectGet(jsObj, r'orderId') ??
+      (double.negativeInfinity as int);
+  object.phone = IsarNative.jsObjectGet(jsObj, r'phone') ?? '';
+  object.tinNumber = IsarNative.jsObjectGet(jsObj, r'tinNumber');
+  object.updatedAt = IsarNative.jsObjectGet(jsObj, r'updatedAt');
   return object;
 }
 
 P _customerDeserializePropWeb<P>(Object jsObj, String propertyName) {
   switch (propertyName) {
-    case 'address':
-      return (IsarNative.jsObjectGet(jsObj, 'address')) as P;
-    case 'branchId':
-      return (IsarNative.jsObjectGet(jsObj, 'branchId') ??
-          double.negativeInfinity) as P;
-    case 'email':
-      return (IsarNative.jsObjectGet(jsObj, 'email') ?? '') as P;
-    case 'id':
-      return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
-          as P;
-    case 'name':
-      return (IsarNative.jsObjectGet(jsObj, 'name') ?? '') as P;
-    case 'orderId':
-      return (IsarNative.jsObjectGet(jsObj, 'orderId') ??
-          double.negativeInfinity) as P;
-    case 'phone':
-      return (IsarNative.jsObjectGet(jsObj, 'phone') ?? '') as P;
-    case 'tinNumber':
-      return (IsarNative.jsObjectGet(jsObj, 'tinNumber')) as P;
-    case 'updatedAt':
-      return (IsarNative.jsObjectGet(jsObj, 'updatedAt')) as P;
+    case r'address':
+      return (IsarNative.jsObjectGet(jsObj, r'address')) as P;
+    case r'branchId':
+      return (IsarNative.jsObjectGet(jsObj, r'branchId') ??
+          (double.negativeInfinity as int)) as P;
+    case r'email':
+      return (IsarNative.jsObjectGet(jsObj, r'email') ?? '') as P;
+    case r'id':
+      return (IsarNative.jsObjectGet(jsObj, r'id') ??
+          (double.negativeInfinity as int)) as P;
+    case r'name':
+      return (IsarNative.jsObjectGet(jsObj, r'name') ?? '') as P;
+    case r'orderId':
+      return (IsarNative.jsObjectGet(jsObj, r'orderId') ??
+          (double.negativeInfinity as int)) as P;
+    case r'phone':
+      return (IsarNative.jsObjectGet(jsObj, r'phone') ?? '') as P;
+    case r'tinNumber':
+      return (IsarNative.jsObjectGet(jsObj, r'tinNumber')) as P;
+    case r'updatedAt':
+      return (IsarNative.jsObjectGet(jsObj, r'updatedAt')) as P;
     default:
-      throw 'Illegal propertyName';
+      throw IsarError('Illegal propertyName');
   }
 }
 
-void _customerAttachLinks(IsarCollection col, int id, Customer object) {}
+void _customerAttachLinks(
+    IsarCollection<dynamic> col, int id, Customer object) {}
 
 extension CustomerQueryWhereSort on QueryBuilder<Customer, Customer, QWhere> {
   QueryBuilder<Customer, Customer, QAfterWhere> anyId() {
-    return addWhereClauseInternal(const IdWhereClause.any());
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(const IdWhereClause.any());
+    });
   }
 }
 
 extension CustomerQueryWhere on QueryBuilder<Customer, Customer, QWhereClause> {
   QueryBuilder<Customer, Customer, QAfterWhereClause> idEqualTo(int id) {
-    return addWhereClauseInternal(IdWhereClause.between(
-      lower: id,
-      includeLower: true,
-      upper: id,
-      includeUpper: true,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IdWhereClause.between(
+        lower: id,
+        upper: id,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterWhereClause> idNotEqualTo(int id) {
-    if (whereSortInternal == Sort.asc) {
-      return addWhereClauseInternal(
-        IdWhereClause.lessThan(upper: id, includeUpper: false),
-      ).addWhereClauseInternal(
-        IdWhereClause.greaterThan(lower: id, includeLower: false),
-      );
-    } else {
-      return addWhereClauseInternal(
-        IdWhereClause.greaterThan(lower: id, includeLower: false),
-      ).addWhereClauseInternal(
-        IdWhereClause.lessThan(upper: id, includeUpper: false),
-      );
-    }
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(
+              IdWhereClause.lessThan(upper: id, includeUpper: false),
+            )
+            .addWhereClause(
+              IdWhereClause.greaterThan(lower: id, includeLower: false),
+            );
+      } else {
+        return query
+            .addWhereClause(
+              IdWhereClause.greaterThan(lower: id, includeLower: false),
+            )
+            .addWhereClause(
+              IdWhereClause.lessThan(upper: id, includeUpper: false),
+            );
+      }
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterWhereClause> idGreaterThan(int id,
       {bool include = false}) {
-    return addWhereClauseInternal(
-      IdWhereClause.greaterThan(lower: id, includeLower: include),
-    );
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IdWhereClause.greaterThan(lower: id, includeLower: include),
+      );
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterWhereClause> idLessThan(int id,
       {bool include = false}) {
-    return addWhereClauseInternal(
-      IdWhereClause.lessThan(upper: id, includeUpper: include),
-    );
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IdWhereClause.lessThan(upper: id, includeUpper: include),
+      );
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterWhereClause> idBetween(
@@ -271,35 +279,38 @@ extension CustomerQueryWhere on QueryBuilder<Customer, Customer, QWhereClause> {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addWhereClauseInternal(IdWhereClause.between(
-      lower: lowerId,
-      includeLower: includeLower,
-      upper: upperId,
-      includeUpper: includeUpper,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IdWhereClause.between(
+        lower: lowerId,
+        includeLower: includeLower,
+        upper: upperId,
+        includeUpper: includeUpper,
+      ));
+    });
   }
 }
 
 extension CustomerQueryFilter
     on QueryBuilder<Customer, Customer, QFilterCondition> {
   QueryBuilder<Customer, Customer, QAfterFilterCondition> addressIsNull() {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.isNull,
-      property: 'address',
-      value: null,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'address',
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> addressEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'address',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'address',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> addressGreaterThan(
@@ -307,13 +318,14 @@ extension CustomerQueryFilter
     bool caseSensitive = true,
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'address',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'address',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> addressLessThan(
@@ -321,13 +333,14 @@ extension CustomerQueryFilter
     bool caseSensitive = true,
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'address',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'address',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> addressBetween(
@@ -337,93 +350,102 @@ extension CustomerQueryFilter
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'address',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'address',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> addressStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.startsWith,
-      property: 'address',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'address',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> addressEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.endsWith,
-      property: 'address',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'address',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> addressContains(
       String value,
       {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.contains,
-      property: 'address',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'address',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> addressMatches(
       String pattern,
       {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.matches,
-      property: 'address',
-      value: pattern,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'address',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> branchIdEqualTo(
       int value) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'branchId',
-      value: value,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'branchId',
+        value: value,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> branchIdGreaterThan(
     int value, {
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'branchId',
-      value: value,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'branchId',
+        value: value,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> branchIdLessThan(
     int value, {
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'branchId',
-      value: value,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'branchId',
+        value: value,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> branchIdBetween(
@@ -432,25 +454,28 @@ extension CustomerQueryFilter
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'branchId',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'branchId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> emailEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'email',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'email',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> emailGreaterThan(
@@ -458,13 +483,14 @@ extension CustomerQueryFilter
     bool caseSensitive = true,
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'email',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'email',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> emailLessThan(
@@ -472,13 +498,14 @@ extension CustomerQueryFilter
     bool caseSensitive = true,
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'email',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'email',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> emailBetween(
@@ -488,92 +515,101 @@ extension CustomerQueryFilter
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'email',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'email',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> emailStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.startsWith,
-      property: 'email',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'email',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> emailEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.endsWith,
-      property: 'email',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'email',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> emailContains(
       String value,
       {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.contains,
-      property: 'email',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'email',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> emailMatches(
       String pattern,
       {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.matches,
-      property: 'email',
-      value: pattern,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'email',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> idEqualTo(int value) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'id',
-      value: value,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'id',
+        value: value,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> idGreaterThan(
     int value, {
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'id',
-      value: value,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'id',
+        value: value,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> idLessThan(
     int value, {
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'id',
-      value: value,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'id',
+        value: value,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> idBetween(
@@ -582,25 +618,28 @@ extension CustomerQueryFilter
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'id',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'id',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> nameEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'name',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'name',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> nameGreaterThan(
@@ -608,13 +647,14 @@ extension CustomerQueryFilter
     bool caseSensitive = true,
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'name',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'name',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> nameLessThan(
@@ -622,13 +662,14 @@ extension CustomerQueryFilter
     bool caseSensitive = true,
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'name',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'name',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> nameBetween(
@@ -638,93 +679,102 @@ extension CustomerQueryFilter
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'name',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'name',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> nameStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.startsWith,
-      property: 'name',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'name',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> nameEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.endsWith,
-      property: 'name',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'name',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> nameContains(
       String value,
       {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.contains,
-      property: 'name',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'name',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> nameMatches(
       String pattern,
       {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.matches,
-      property: 'name',
-      value: pattern,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'name',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> orderIdEqualTo(
       int value) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'orderId',
-      value: value,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'orderId',
+        value: value,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> orderIdGreaterThan(
     int value, {
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'orderId',
-      value: value,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'orderId',
+        value: value,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> orderIdLessThan(
     int value, {
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'orderId',
-      value: value,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'orderId',
+        value: value,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> orderIdBetween(
@@ -733,25 +783,28 @@ extension CustomerQueryFilter
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'orderId',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'orderId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> phoneEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'phone',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'phone',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> phoneGreaterThan(
@@ -759,13 +812,14 @@ extension CustomerQueryFilter
     bool caseSensitive = true,
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'phone',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'phone',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> phoneLessThan(
@@ -773,13 +827,14 @@ extension CustomerQueryFilter
     bool caseSensitive = true,
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'phone',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'phone',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> phoneBetween(
@@ -789,80 +844,87 @@ extension CustomerQueryFilter
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'phone',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'phone',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> phoneStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.startsWith,
-      property: 'phone',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'phone',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> phoneEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.endsWith,
-      property: 'phone',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'phone',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> phoneContains(
       String value,
       {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.contains,
-      property: 'phone',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'phone',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> phoneMatches(
       String pattern,
       {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.matches,
-      property: 'phone',
-      value: pattern,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'phone',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> tinNumberIsNull() {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.isNull,
-      property: 'tinNumber',
-      value: null,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'tinNumber',
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> tinNumberEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'tinNumber',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'tinNumber',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> tinNumberGreaterThan(
@@ -870,13 +932,14 @@ extension CustomerQueryFilter
     bool caseSensitive = true,
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'tinNumber',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'tinNumber',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> tinNumberLessThan(
@@ -884,13 +947,14 @@ extension CustomerQueryFilter
     bool caseSensitive = true,
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'tinNumber',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'tinNumber',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> tinNumberBetween(
@@ -900,80 +964,87 @@ extension CustomerQueryFilter
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'tinNumber',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'tinNumber',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> tinNumberStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.startsWith,
-      property: 'tinNumber',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'tinNumber',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> tinNumberEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.endsWith,
-      property: 'tinNumber',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'tinNumber',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> tinNumberContains(
       String value,
       {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.contains,
-      property: 'tinNumber',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'tinNumber',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> tinNumberMatches(
       String pattern,
       {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.matches,
-      property: 'tinNumber',
-      value: pattern,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'tinNumber',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> updatedAtIsNull() {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.isNull,
-      property: 'updatedAt',
-      value: null,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'updatedAt',
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> updatedAtEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'updatedAt',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'updatedAt',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> updatedAtGreaterThan(
@@ -981,13 +1052,14 @@ extension CustomerQueryFilter
     bool caseSensitive = true,
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'updatedAt',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'updatedAt',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> updatedAtLessThan(
@@ -995,13 +1067,14 @@ extension CustomerQueryFilter
     bool caseSensitive = true,
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'updatedAt',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'updatedAt',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> updatedAtBetween(
@@ -1011,60 +1084,66 @@ extension CustomerQueryFilter
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'updatedAt',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'updatedAt',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> updatedAtStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.startsWith,
-      property: 'updatedAt',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'updatedAt',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> updatedAtEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.endsWith,
-      property: 'updatedAt',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'updatedAt',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> updatedAtContains(
       String value,
       {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.contains,
-      property: 'updatedAt',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'updatedAt',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> updatedAtMatches(
       String pattern,
       {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.matches,
-      property: 'updatedAt',
-      value: pattern,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'updatedAt',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 }
 
@@ -1074,150 +1153,210 @@ extension CustomerQueryLinks
 extension CustomerQueryWhereSortBy
     on QueryBuilder<Customer, Customer, QSortBy> {
   QueryBuilder<Customer, Customer, QAfterSortBy> sortByAddress() {
-    return addSortByInternal('address', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'address', Sort.asc);
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterSortBy> sortByAddressDesc() {
-    return addSortByInternal('address', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'address', Sort.desc);
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterSortBy> sortByBranchId() {
-    return addSortByInternal('branchId', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'branchId', Sort.asc);
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterSortBy> sortByBranchIdDesc() {
-    return addSortByInternal('branchId', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'branchId', Sort.desc);
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterSortBy> sortByEmail() {
-    return addSortByInternal('email', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'email', Sort.asc);
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterSortBy> sortByEmailDesc() {
-    return addSortByInternal('email', Sort.desc);
-  }
-
-  QueryBuilder<Customer, Customer, QAfterSortBy> sortById() {
-    return addSortByInternal('id', Sort.asc);
-  }
-
-  QueryBuilder<Customer, Customer, QAfterSortBy> sortByIdDesc() {
-    return addSortByInternal('id', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'email', Sort.desc);
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterSortBy> sortByName() {
-    return addSortByInternal('name', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'name', Sort.asc);
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterSortBy> sortByNameDesc() {
-    return addSortByInternal('name', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'name', Sort.desc);
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterSortBy> sortByOrderId() {
-    return addSortByInternal('orderId', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'orderId', Sort.asc);
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterSortBy> sortByOrderIdDesc() {
-    return addSortByInternal('orderId', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'orderId', Sort.desc);
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterSortBy> sortByPhone() {
-    return addSortByInternal('phone', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'phone', Sort.asc);
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterSortBy> sortByPhoneDesc() {
-    return addSortByInternal('phone', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'phone', Sort.desc);
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterSortBy> sortByTinNumber() {
-    return addSortByInternal('tinNumber', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'tinNumber', Sort.asc);
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterSortBy> sortByTinNumberDesc() {
-    return addSortByInternal('tinNumber', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'tinNumber', Sort.desc);
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterSortBy> sortByUpdatedAt() {
-    return addSortByInternal('updatedAt', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'updatedAt', Sort.asc);
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterSortBy> sortByUpdatedAtDesc() {
-    return addSortByInternal('updatedAt', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'updatedAt', Sort.desc);
+    });
   }
 }
 
 extension CustomerQueryWhereSortThenBy
     on QueryBuilder<Customer, Customer, QSortThenBy> {
   QueryBuilder<Customer, Customer, QAfterSortBy> thenByAddress() {
-    return addSortByInternal('address', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'address', Sort.asc);
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterSortBy> thenByAddressDesc() {
-    return addSortByInternal('address', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'address', Sort.desc);
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterSortBy> thenByBranchId() {
-    return addSortByInternal('branchId', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'branchId', Sort.asc);
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterSortBy> thenByBranchIdDesc() {
-    return addSortByInternal('branchId', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'branchId', Sort.desc);
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterSortBy> thenByEmail() {
-    return addSortByInternal('email', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'email', Sort.asc);
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterSortBy> thenByEmailDesc() {
-    return addSortByInternal('email', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'email', Sort.desc);
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterSortBy> thenById() {
-    return addSortByInternal('id', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'id', Sort.asc);
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterSortBy> thenByIdDesc() {
-    return addSortByInternal('id', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'id', Sort.desc);
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterSortBy> thenByName() {
-    return addSortByInternal('name', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'name', Sort.asc);
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterSortBy> thenByNameDesc() {
-    return addSortByInternal('name', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'name', Sort.desc);
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterSortBy> thenByOrderId() {
-    return addSortByInternal('orderId', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'orderId', Sort.asc);
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterSortBy> thenByOrderIdDesc() {
-    return addSortByInternal('orderId', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'orderId', Sort.desc);
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterSortBy> thenByPhone() {
-    return addSortByInternal('phone', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'phone', Sort.asc);
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterSortBy> thenByPhoneDesc() {
-    return addSortByInternal('phone', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'phone', Sort.desc);
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterSortBy> thenByTinNumber() {
-    return addSortByInternal('tinNumber', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'tinNumber', Sort.asc);
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterSortBy> thenByTinNumberDesc() {
-    return addSortByInternal('tinNumber', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'tinNumber', Sort.desc);
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterSortBy> thenByUpdatedAt() {
-    return addSortByInternal('updatedAt', Sort.asc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'updatedAt', Sort.asc);
+    });
   }
 
   QueryBuilder<Customer, Customer, QAfterSortBy> thenByUpdatedAtDesc() {
-    return addSortByInternal('updatedAt', Sort.desc);
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'updatedAt', Sort.desc);
+    });
   }
 }
 
@@ -1225,82 +1364,112 @@ extension CustomerQueryWhereDistinct
     on QueryBuilder<Customer, Customer, QDistinct> {
   QueryBuilder<Customer, Customer, QDistinct> distinctByAddress(
       {bool caseSensitive = true}) {
-    return addDistinctByInternal('address', caseSensitive: caseSensitive);
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'address', caseSensitive: caseSensitive);
+    });
   }
 
   QueryBuilder<Customer, Customer, QDistinct> distinctByBranchId() {
-    return addDistinctByInternal('branchId');
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'branchId');
+    });
   }
 
   QueryBuilder<Customer, Customer, QDistinct> distinctByEmail(
       {bool caseSensitive = true}) {
-    return addDistinctByInternal('email', caseSensitive: caseSensitive);
-  }
-
-  QueryBuilder<Customer, Customer, QDistinct> distinctById() {
-    return addDistinctByInternal('id');
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'email', caseSensitive: caseSensitive);
+    });
   }
 
   QueryBuilder<Customer, Customer, QDistinct> distinctByName(
       {bool caseSensitive = true}) {
-    return addDistinctByInternal('name', caseSensitive: caseSensitive);
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'name', caseSensitive: caseSensitive);
+    });
   }
 
   QueryBuilder<Customer, Customer, QDistinct> distinctByOrderId() {
-    return addDistinctByInternal('orderId');
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'orderId');
+    });
   }
 
   QueryBuilder<Customer, Customer, QDistinct> distinctByPhone(
       {bool caseSensitive = true}) {
-    return addDistinctByInternal('phone', caseSensitive: caseSensitive);
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'phone', caseSensitive: caseSensitive);
+    });
   }
 
   QueryBuilder<Customer, Customer, QDistinct> distinctByTinNumber(
       {bool caseSensitive = true}) {
-    return addDistinctByInternal('tinNumber', caseSensitive: caseSensitive);
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'tinNumber', caseSensitive: caseSensitive);
+    });
   }
 
   QueryBuilder<Customer, Customer, QDistinct> distinctByUpdatedAt(
       {bool caseSensitive = true}) {
-    return addDistinctByInternal('updatedAt', caseSensitive: caseSensitive);
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'updatedAt', caseSensitive: caseSensitive);
+    });
   }
 }
 
 extension CustomerQueryProperty
     on QueryBuilder<Customer, Customer, QQueryProperty> {
   QueryBuilder<Customer, String?, QQueryOperations> addressProperty() {
-    return addPropertyNameInternal('address');
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'address');
+    });
   }
 
   QueryBuilder<Customer, int, QQueryOperations> branchIdProperty() {
-    return addPropertyNameInternal('branchId');
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'branchId');
+    });
   }
 
   QueryBuilder<Customer, String, QQueryOperations> emailProperty() {
-    return addPropertyNameInternal('email');
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'email');
+    });
   }
 
   QueryBuilder<Customer, int, QQueryOperations> idProperty() {
-    return addPropertyNameInternal('id');
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'id');
+    });
   }
 
   QueryBuilder<Customer, String, QQueryOperations> nameProperty() {
-    return addPropertyNameInternal('name');
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'name');
+    });
   }
 
   QueryBuilder<Customer, int, QQueryOperations> orderIdProperty() {
-    return addPropertyNameInternal('orderId');
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'orderId');
+    });
   }
 
   QueryBuilder<Customer, String, QQueryOperations> phoneProperty() {
-    return addPropertyNameInternal('phone');
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'phone');
+    });
   }
 
   QueryBuilder<Customer, String?, QQueryOperations> tinNumberProperty() {
-    return addPropertyNameInternal('tinNumber');
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'tinNumber');
+    });
   }
 
   QueryBuilder<Customer, String?, QQueryOperations> updatedAtProperty() {
-    return addPropertyNameInternal('updatedAt');
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'updatedAt');
+    });
   }
 }

@@ -1,4 +1,4 @@
-# melos_managed_dependency_overrides: flipper_chat,flipper_dashboard,flipper_data_table,flipper_finance,flipper_loading,flipper_localize,flipper_login,flipper_models,flipper_rw,flipper_services,flipper_ui,flutter_chat_types,flutter_chat_ui,flutter_datetime_picker,flutter_firebase_chat_core,flutter_slidable,flutterfire_ui,google_ui,pubnub,qr_code_scanner,qr_flutter,receipt
+# melos_managed_dependency_overrides: flipper_chat,flipper_dashboard,flipper_data_table,flipper_finance,flipper_loading,flipper_localize,flipper_login,flipper_models,flipper_rw,flipper_services,flipper_ui,flutter_chat_types,flutter_chat_ui,flutter_datetime_picker,flutter_firebase_chat_core,flutter_slidable,flutterfire_ui,google_ui,pubnub,qr_code_scanner,qr_flutter,receipt,scrollable_positioned_list
 dependency_overrides:
   flipper_chat:
     path: ..\\flipper_chat
@@ -44,3 +44,5 @@ dependency_overrides:
     path: ..\\..\\open-sources\\qr.flutter
   receipt:
     path: ..\\..\\open-sources\\receipt
+  scrollable_positioned_list:
+    path: ..\\..\\open-sources\\flutter.widgets\\packages\\scrollable_positioned_list

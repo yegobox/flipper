@@ -124,7 +124,7 @@ class GoogleDrive {
   Future upload() async {
     // download files first before uploading
     Directory dir = await getApplicationDocumentsDirectory();
-    File file = File(path.context.canonicalize(dir.path + '/db/isar/mdbx.dat'));
+    File file = File(path.context.canonicalize(dir.path + '/isar/mdbx.dat'));
     // end of download
     http.Client? client = await silentLogin();
     Future.delayed(const Duration(seconds: 20));
@@ -172,7 +172,7 @@ class GoogleDrive {
 
     final dir = await getApplicationDocumentsDirectory();
 
-    final saveFile = File(dir.path + '/db/isar/$fName');
+    final saveFile = File(dir.path + '/isar/$fName');
 
     List<int> dataStore = [];
 

@@ -96,21 +96,15 @@ class CronService {
     //     }
     //   }
     // });
-    // cron.schedule(Schedule.parse('*/30 * * * *'), () async {
-    //   log.i('uploading the local copy');
-    //   // for now enable backup for all clients in future this will be changed
-    //   // Business? business = await ProxyService.isarApi.getBusiness();
-    //   // prevent the backup pop-up when a user did not click on adding backup button.
-    //   if (ProxyService.box.hasSignedInForAutoBackup()) {
-    //     drive.upload();
-    //     Directory test = await getApplicationDocumentsDirectory();
-
-    //     await for (var entity
-    //         in test.list(recursive: true, followLinks: false)) {
-    //       log.i(entity.path);
-    //     }
-    //   }
-    // });
+    cron.schedule(Schedule.parse('*/30 * * * *'), () async {
+      log.i('uploading the local copy');
+      // for now enable backup for all clients in future this will be changed
+      // Business? business = await ProxyService.isarApi.getBusiness();
+      // prevent the backup pop-up when a user did not click on adding backup button.
+      if (ProxyService.box.hasSignedInForAutoBackup()) {
+        drive.upload();
+      }
+    });
 
     // we need to think when the devices change or app is uninstalled
     // for the case like that the token needs to be updated, but not covered now
@@ -128,9 +122,11 @@ class CronService {
         for (Order completedOrder in completedOrders) {
           completedOrder.reported = true;
           log.i('now sending the report to mail...');
-          await completedOrder.orderItems.load();
-          final response = await ProxyService.isarApi.sendReport(
-              orderItems: completedOrder.orderItems as List<OrderItem>);
+
+          List<OrderItem> items =
+              await ProxyService.isarApi.orderItems(orderId: completedOrder.id);
+          final response =
+              await ProxyService.isarApi.sendReport(orderItems: items);
           if (response == 200) {
             ProxyService.isarApi.update(data: completedOrder);
           }

@@ -133,9 +133,10 @@ final branchMock = Branch(
   id: DateTime.now().millisecondsSinceEpoch,
   active: false,
   description: 'desc',
-  fbusinessId: 10,
+  businessId: 10,
   latitude: '0',
   longitude: '2',
   name: 'name',
   table: 'branches',
+  isDefault: false,
 );

@@ -19,7 +19,8 @@ class AppService with ReactiveServiceMixin {
   final _categories = ReactiveValue<List<Category>>([]);
   List<Category> get categories => _categories.value;
 
-  final _business = ReactiveValue<isar.Business>(isar.Business());
+  final _business =
+      ReactiveValue<isar.Business>(isar.Business(isDefault: false));
   isar.Business get business => _business.value;
 
   final _units = ReactiveValue<List<Unit>>([]);
@@ -95,6 +96,84 @@ class AppService with ReactiveServiceMixin {
     contacts.listen((event) {
       _contacts.value = event;
     });
+  }
+
+  /// check the default business/branch
+  /// set the env the current user is operating in.
+
+  Future<void> appInit() async {
+    String? userId = ProxyService.box.getUserId();
+    List<isar.Business> businesses =
+        await ProxyService.isarApi.businesses(userId: userId!);
+
+    if (businesses.length == 1) {
+      await setActiveBusiness(businesses);
+      await loadTenants(businesses);
+      bool defaultBranch = await setActiveBranch(businesses: businesses.first);
+
+      if (!defaultBranch) {
+        throw LoginChoicesException(term: "choose default branch");
+      }
+    } else {
+      //we have more than one business check if there one set to be default then
+      // do not throw the error
+      bool defaultBusiness = false;
+      for (Business business in businesses) {
+        if (business.isDefault != null && business.isDefault == true) {
+          await setActiveBusiness(businesses);
+          await loadTenants(businesses);
+          defaultBusiness = true;
+        }
+      }
+      if (!defaultBusiness) {
+        throw LoginChoicesException(term: "choose default business");
+      }
+    }
+  }
+
+  Future<void> loadTenants(List<isar.Business> businesses) async {
+    List<ITenant> tenants = await ProxyService.isarApi
+        .tenants(businessId: ProxyService.box.getBusinessId()!);
+    if (tenants.isEmpty) {
+      await ProxyService.isarApi
+          .tenantsFromOnline(businessId: businesses.first.id!);
+    }
+  }
+
+  Future<bool> setActiveBranch({required isar.Business businesses}) async {
+    List<isar.Branch> branches =
+        await ProxyService.isarApi.branches(businessId: businesses.id!);
+
+    bool defaultBranch = false;
+    for (Branch branch in branches) {
+      if (branch.isDefault) {
+        defaultBranch = true;
+        ProxyService.box.write(key: 'branchId', value: branch.id);
+      }
+    }
+    if (branches.length == 1) {
+      defaultBranch = true;
+      ProxyService.box.write(key: 'branchId', value: branches.first.id);
+    }
+    return defaultBranch;
+  }
+
+  Future<void> setActiveBusiness(List<isar.Business> businesses) async {
+    ProxyService.appService.setBusiness(business: businesses.first);
+
+    ProxyService.box.write(key: 'businessId', value: businesses.first.id);
+  }
+
+  Future<void> bootstraper() async {
+    if (await ProxyService.isarApi.size(object: Product()) == 0 &&
+        ProxyService.box.getBranchId() != null) {
+      await ProxyService.isarApi.createProduct(
+          product: Product()
+            ..name = "Custom Amount"
+            ..color = "#5A2328"
+            ..branchId = ProxyService.box.getBranchId()!
+            ..businessId = ProxyService.box.getBusinessId()!);
+    }
   }
 
   AppService() {

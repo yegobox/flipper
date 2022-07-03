@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flipper_dashboard/login_choices.dart';
 import 'package:flipper_dashboard/printing.dart';
 import 'package:flipper_dashboard/backup.dart';
 import 'package:flipper_dashboard/tax_configuration.dart';
@@ -32,6 +33,7 @@ import 'package:flipper_dashboard/setting_secreen.dart';
 import 'package:flipper_dashboard/startup_view.dart';
 import 'package:flipper_dashboard/switch_branch_view.dart';
 import 'package:flipper_dashboard/transactions_details.dart';
+import 'package:flipper_dashboard/user_add.dart';
 import 'package:flipper_login/pin_login.dart';
 import 'package:flipper_login/signup_form_view.dart';
 import 'package:flipper_models/view_models/gate.dart';
@@ -43,7 +45,6 @@ import 'package:flipper_models/isar_models.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:stacked_themes/stacked_themes.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -87,8 +88,6 @@ void main() async {
   // done init in mobile.//done separation.
   setupLocator();
   await initDb();
-
-  await ThemeManager.initialise();
 
   (!isWindows) ? FirebaseMessaging.onBackgroundMessage(backgroundHandler) : '';
   runZonedGuarded<Future<void>>(() async {
@@ -291,7 +290,7 @@ void main() async {
           name: 'summary',
           pageBuilder: (context, state) => MaterialPage(
             key: state.pageKey,
-            child: OrderSummary(),
+            child: const OrderSummary(),
           ),
         ),
         GoRoute(
@@ -475,6 +474,22 @@ void main() async {
             ),
           ),
         ),
+        GoRoute(
+          path: '/tenants',
+          name: 'tenants',
+          pageBuilder: (context, state) => MaterialPage(
+            key: state.pageKey,
+            child: const LoginChoices(),
+          ),
+        ),
+        GoRoute(
+          path: '/user_add',
+          name: 'user_add',
+          pageBuilder: (context, state) => MaterialPage(
+            key: state.pageKey,
+            child: const UserAdd(),
+          ),
+        )
       ],
     );
 

@@ -1,7 +1,6 @@
 library flipper_models;
 
-// import 'package:flipper_models/isar_models.dart';
-import 'package:flipper_models/isar/stock_sync.dart';
+import 'package:flipper_models/isar/stock.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
 

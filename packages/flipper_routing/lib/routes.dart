@@ -73,7 +73,7 @@ class AppSetup {
 // test pin:085214
 
 // when adding new repo with other submodules
-// git submodule add https://github.com/yegobox/system_time_check.git open-sources/system_time_check
+// git submodule add https://github.com/yegobox/flutter.widgets.git open-sources/flutter.widgets
 // https://gist.github.com/myusuf3/7f645819ded92bda6677
 
 // %AppData%
@@ -249,3 +249,18 @@ class AppSetup {
 
 // TODO:automate ios deployment
 // https://dev.to/samadipour/flutter-automate-ios-deployment-5ghc?utm_source=dormosheio&utm_campaign=dormosheio
+
+// TODO:ios CID
+// https://medium.com/mindful-engineering/github-actions-ci-cd-and-automate-beta-deployments-for-your-flutter-ios-apps-c9cdc8dcf097
+// Need to upgrade:
+// 
+// fl_chart
+// flutter_form_bloc
+// scrollable_positioned_list
+
+// TODO:will use this for data mining etc..
+// https://www.elastic.co/webinars/getting-started-elasticsearch
+// To add platforms, run `flutter create -t plugin --platforms <platforms> .` under aurora.
+
+//TODO:this bellow helped me to understand use of c++ in flutter using ffi
+// https://levelup.gitconnected.com/port-an-existing-c-c-app-to-flutter-with-dart-ffi-8dc401a69fd7

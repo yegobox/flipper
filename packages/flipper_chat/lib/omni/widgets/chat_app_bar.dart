@@ -1,11 +1,9 @@
 import 'package:flipper_chat/omni/helpers.dart';
-import 'package:stacked_themes/stacked_themes.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flipper_dashboard/flipper_dashboard.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_routing/routes.router.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 import 'package:go_router/go_router.dart';
 
@@ -44,9 +42,7 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           actions: [
             GestureDetector(
-              onTap: () {
-                getThemeManager(context).toggleDarkLightTheme();
-              },
+              onTap: () {},
               child: const CircleAvatar(
                 backgroundColor: Colors.transparent,
                 child: Icon(

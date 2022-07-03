@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 import 'view_models/gate.dart';
 
 late Isar isar;
+late String apihub;
 
 class ExtendedClient extends http.BaseClient {
   final http.Client _inner;
@@ -29,11 +30,11 @@ class ExtendedClient extends http.BaseClient {
 class IsarAPI implements IsarApiInterface {
   final log = getLogger('IsarAPI');
   ExtendedClient client = ExtendedClient(http.Client());
-  String apihub = "https://apihub.yegobox.com";
 
   IsarAPI();
-  static instance({required Isar isarRef}) {
+  static instance({required Isar isarRef, String? url}) {
     isar = isarRef;
+    apihub = url ?? "https://apihub.yegobox.com";
   }
 
   @override
@@ -49,7 +50,7 @@ class IsarAPI implements IsarApiInterface {
       ..phone = customer['phone']
       ..address = customer['address']
       ..orderId = orderId;
-    return await isar.writeTxn((isar) async {
+    return await isar.writeTxn(() async {
       int id = await isar.customers.put(kCustomer);
       return await isar.customers.get(id);
     });
@@ -58,7 +59,7 @@ class IsarAPI implements IsarApiInterface {
   @override
   Future<List<Order>> completedOrders(
       {required int branchId, String? status = completeStatus}) {
-    return isar.writeTxn((isar) async {
+    return isar.writeTxn(() async {
       return isar.orders
           .where()
           .statusBranchIdEqualTo(status!, branchId)
@@ -101,8 +102,8 @@ class IsarAPI implements IsarApiInterface {
         ..branchId = branchId
         ..createdAt = DateTime.now().toIso8601String();
       // save order to db
-      Order? createdOrder = await isar.writeTxn((isar) async {
-        int id = await isar.orders.put(order, saveLinks: true);
+      Order? createdOrder = await isar.writeTxn(() async {
+        int id = await isar.orders.put(order);
         ProxyService.box.write(key: 'currentOrderId', value: id);
         return isar.orders.get(id);
       });
@@ -115,21 +116,10 @@ class IsarAPI implements IsarApiInterface {
   @override
   Future<void> addOrderItem({required Order order, OrderItem? item}) async {
     if (item != null) {
-      order.orderItems.add(item);
-      return isar.writeTxn((isar) async {
-        return order.orderItems.save();
+      return isar.writeTxn(() async {
+        isar.orderItems.put(item);
       });
     }
-  }
-
-  @override
-  Future<void> updateOrderItem(
-      {required Order order, required OrderItem item}) async {
-    order.orderItems.add(item);
-    return isar.writeTxn((isar) async {
-      isar.orderItems.put(item);
-      return order.orderItems.save();
-    });
   }
 
   // get point where userId = userId from db
@@ -140,7 +130,7 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<int> addUnits<T>({required T data}) async {
-    await isar.writeTxn((isar) async {
+    await isar.writeTxn(() async {
       Unit units = data as Unit;
       for (Map map in units.units!) {
         final unit = Unit()
@@ -193,7 +183,7 @@ class IsarAPI implements IsarApiInterface {
       recurring: recurringAmount,
     );
     // save subscription to db and return subscription
-    Subscription? sub = await isar.writeTxn((isar) async {
+    Subscription? sub = await isar.writeTxn(() async {
       int id = await isar.subscriptions.put(subscription!);
       return isar.subscriptions.get(id);
     });
@@ -201,7 +191,7 @@ class IsarAPI implements IsarApiInterface {
       sub!.features.value = feature;
     }
     // update sub to db
-    return isar.writeTxn((isar) async {
+    return isar.writeTxn(() async {
       int id = await isar.subscriptions.put(sub!);
       return isar.subscriptions.get(id);
     });
@@ -212,7 +202,7 @@ class IsarAPI implements IsarApiInterface {
       {required List<Variant> data,
       required double retailPrice,
       required double supplyPrice}) async {
-    await isar.writeTxn((isar) async {
+    await isar.writeTxn(() async {
       for (Variant variation in data) {
         // save variation to db
         // FIXMEneed to know if all item will have same itemClsCd
@@ -247,7 +237,7 @@ class IsarAPI implements IsarApiInterface {
 
     order!.customerId = customerId;
     // update order to db
-    await isar.writeTxn((isar) async {
+    await isar.writeTxn(() async {
       int id = await isar.orders.put(order);
       return isar.orders.get(id);
     });
@@ -257,7 +247,7 @@ class IsarAPI implements IsarApiInterface {
     customer!.updatedAt = DateTime.now().toIso8601String();
     customer.orderId = orderId;
     // save customer to db
-    await isar.writeTxn((isar) async {
+    await isar.writeTxn(() async {
       int id = await isar.customers.put(customer);
       return isar.customers.get(id);
     });
@@ -265,34 +255,9 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<List<Branch>> branches({required int businessId}) async {
-    final response =
-        await client.get(Uri.parse("$apihub/v2/api/branches/$businessId"));
-    if (response.statusCode == 200) {
-      await isar.writeTxn((isar) async {
-        for (Branch branch in branchsFromJson(response.body)) {
-          final b = Branch()
-            ..active = branch.active
-            ..id = branch.id
-            ..description = branch.description
-            ..latitude = branch.latitude.toString()
-            ..name = branch.name
-            ..table = 'banches'
-            ..longitude = branch.longitude.toString()
-            ..description = branch.description
-            ..fbusinessId = branch.fbusinessId;
-
-          await isar.branchs.put(b);
-        }
-      });
-      // return all branches from db
-      /// right now the the branch business Id is empty return here id is in this range
-      /// instead, will fix later.
-      List<Branch> bb =
-          await isar.branchs.filter().tableEqualTo('banches').findAll();
-
-      return bb;
-    }
-    throw Exception('Failed to load branch');
+    List<Branch> kBranches =
+        await isar.branchs.filter().businessIdEqualTo(businessId).findAll();
+    return kBranches;
   }
 
   @override
@@ -346,14 +311,15 @@ class IsarAPI implements IsarApiInterface {
     order.status = completeStatus;
     order.reported = false;
     order.cashReceived = cashReceived;
-    await order.orderItems.load();
-    for (OrderItem item in order.orderItems) {
+    List<OrderItem> items = await orderItems(orderId: order.id);
+
+    for (OrderItem item in items) {
       Stock? stock = await stockByVariantId(variantId: item.variantId);
       stock?.currentStock = stock.currentStock - item.qty;
       update(data: stock);
     }
-    await isar.writeTxn((isar) async {
-      int id = await isar.orders.put(order, saveLinks: true);
+    await isar.writeTxn(() async {
+      int id = await isar.orders.put(order);
       return isar.orders.get(id);
     });
     // remove currentOrderId from local storage to leave a room
@@ -363,7 +329,7 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<List<PColor>> colors({required int branchId}) async {
-    return isar.writeTxn((isar) async {
+    return isar.writeTxn(() async {
       return isar.pColors.filter().branchIdEqualTo(branchId).findAll();
     });
   }
@@ -376,7 +342,7 @@ class IsarAPI implements IsarApiInterface {
     //po ??= Points(userId: userId, points: 0, value: 0);
     // save po to db
     po!.value = po.value - points;
-    await isar.writeTxn((isar) async {
+    await isar.writeTxn(() async {
       int id = await isar.pointss.put(po);
       return isar.pointss.getSync(id)!;
     });
@@ -409,7 +375,7 @@ class IsarAPI implements IsarApiInterface {
   Future<int> create<T>({required T data, required String endPoint}) {
     if (endPoint == 'color') {
       PColor color = data as PColor;
-      isar.writeTxn((isar) async {
+      isar.writeTxn(() async {
         for (String colorName in data.colors!) {
           await isar.pColors.put(PColor()
             ..name = colorName
@@ -420,7 +386,7 @@ class IsarAPI implements IsarApiInterface {
     }
     if (endPoint == 'category') {
       Category category = data as Category;
-      isar.writeTxn((isar) {
+      isar.writeTxn(() {
         return isar.categorys.put(category);
       });
     }
@@ -466,7 +432,7 @@ class IsarAPI implements IsarApiInterface {
     if (response.statusCode == 200) {
       Pin pin = pinFromMap(response.body);
 
-      return isar.writeTxn((isar) async {
+      return isar.writeTxn(() async {
         int id = await isar.pins.put(pin);
         return isar.pins.get(id);
       });
@@ -489,8 +455,8 @@ class IsarAPI implements IsarApiInterface {
 
     final int branchId = ProxyService.box.getBranchId()!;
 
-    Product? kProduct = await isar.writeTxn((isar) async {
-      int id = await isar.products.put(product, saveLinks: true);
+    Product? kProduct = await isar.writeTxn(() async {
+      int id = await isar.products.put(product);
       return isar.products.get(id);
     });
     // save variants in isar Db with the above productId
@@ -535,7 +501,7 @@ class IsarAPI implements IsarApiInterface {
         // RRA fields ends
         ..supplyPrice = 0.0,
     );
-    await isar.writeTxn((isar) async {
+    await isar.writeTxn(() async {
       return await kProduct.variants.save();
     });
 
@@ -559,7 +525,7 @@ class IsarAPI implements IsarApiInterface {
       ..productId = kProduct.id!
       ..rsdQty = 0.0;
 
-    await isar.writeTxn((isar) async {
+    await isar.writeTxn(() async {
       return isar.stocks.put(stock);
     });
 
@@ -586,75 +552,75 @@ class IsarAPI implements IsarApiInterface {
   Future<bool> delete({required id, String? endPoint}) {
     switch (endPoint) {
       case 'color':
-        isar.writeTxn((isar) async {
+        isar.writeTxn(() async {
           await isar.pColors.delete(id);
           return true;
         });
         break;
       case 'category':
-        isar.writeTxn((isar) async {
+        isar.writeTxn(() async {
           await isar.categorys.delete(id);
           return true;
         });
         break;
       case 'product':
-        isar.writeTxn((isar) async {
+        isar.writeTxn(() async {
           await isar.products.delete(id);
           return true;
         });
         //TODOalso delete related variants
         break;
       case 'variant':
-        isar.writeTxn((isar) async {
+        isar.writeTxn(() async {
           await isar.variants.delete(id);
           return true;
         });
         break;
       case 'stock':
-        isar.writeTxn((isar) async {
+        isar.writeTxn(() async {
           await isar.stocks.delete(id);
           return true;
         });
         break;
       case 'setting':
-        isar.writeTxn((isar) async {
+        isar.writeTxn(() async {
           await isar.settings.delete(id);
           return true;
         });
         break;
       case 'pin':
-        isar.writeTxn((isar) async {
+        isar.writeTxn(() async {
           await isar.pins.delete(id);
           return true;
         });
         break;
       case 'business':
-        isar.writeTxn((isar) async {
+        isar.writeTxn(() async {
           await isar.businesss.delete(id);
           return true;
         });
         break;
       case 'branch':
-        isar.writeTxn((isar) async {
+        isar.writeTxn(() async {
           await isar.branchs.delete(id);
           return true;
         });
         break;
 
       case 'voucher':
-        isar.writeTxn((isar) async {
+        isar.writeTxn(() async {
           await isar.vouchers.delete(id);
           return true;
         });
         break;
       case 'orderItem':
-        isar.writeTxn((isar) async {
+        isar.writeTxn(() async {
           await isar.orderItems.delete(id);
           return true;
         });
         break;
       case 'customer':
-        isar.writeTxn((isar) async {
+        isar.writeTxn(() async {
           await isar.customers.delete(id);
           return true;
         });
@@ -676,7 +642,7 @@ class IsarAPI implements IsarApiInterface {
     /// call to create attendance document
     /// get business from store
 
-    Business? business = await isar.writeTxn((isar) {
+    Business? business = await isar.writeTxn(() {
       return isar.businesss.get(businessId);
     });
     final http.Response response = await client.post(
@@ -703,21 +669,19 @@ class IsarAPI implements IsarApiInterface {
   @override
   Future<Business?> getBusiness() {
     String? userId = ProxyService.box.getUserId();
-    return isar.writeTxn((isar) {
+    return isar.writeTxn(() {
       return isar.businesss.filter().userIdEqualTo(userId!).findFirst();
     });
   }
 
   @override
   Future<Business?> getBusinessById({required int id}) async {
-    return await isar.writeTxn((isar) {
-      return isar.businesss.get(id);
-    });
+    return await isar.businesss.get(id);
   }
 
   @override
   Future<Business?> getBusinessFromOnlineGivenId({required int id}) async {
-    Business? business = await isar.writeTxn((isar) {
+    Business? business = await isar.writeTxn(() {
       return isar.businesss.filter().idEqualTo(id).findFirst();
     });
     if (business != null) return business;
@@ -725,7 +689,7 @@ class IsarAPI implements IsarApiInterface {
         await client.get(Uri.parse("$apihub/v2/api/business/$id"));
     if (response.statusCode == 200) {
       Business business = Business.fromJson(json.decode(response.body));
-      return isar.writeTxn((isar) async {
+      return isar.writeTxn(() async {
         int id = await isar.businesss.put(business);
         return isar.businesss.get(id);
       });
@@ -735,7 +699,7 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<PColor?> getColor({required int id, String? endPoint}) async {
-    return isar.writeTxn((isar) async {
+    return isar.writeTxn(() async {
       return isar.pColors.get(id);
     });
   }
@@ -815,33 +779,14 @@ class IsarAPI implements IsarApiInterface {
     return isar.discounts.filter().branchIdEqualTo(branchId).findAll();
   }
 
-  @override
-  Future<List<Branch>> getLocalBranches({required int businessId}) async {
-    // clean all branches from db
-    // get all branch from isar db
-    List<Branch> kBranches =
-        await isar.branchs.filter().tableEqualTo('banches').findAll();
-    if (kBranches.isEmpty) {
-      return await branches(businessId: businessId);
-    }
-    return kBranches;
-  }
-
   // get list of Business from isar where userId = userId
   // if list is empty then get list from online
   @override
-  Future<Business> getLocalOrOnlineBusiness({required String userId}) async {
-    Business? kBusiness =
-        await isar.businesss.filter().userIdEqualTo(userId).findFirst();
-    if (kBusiness == null) {
-      log.e("fetching business from server");
-      return await getOnlineBusiness(userId: userId);
-    }
-    if (await isDrawerOpen(cashierId: kBusiness.id) == null) {
-      throw NoDrawerOpen(term: "Business Drawer is not open");
-    }
+  Future<List<Business>> businesses({required String userId}) async {
+    List<Business> businesses =
+        await isar.businesss.filter().userIdEqualTo(userId).findAll();
 
-    return kBusiness;
+    return businesses;
   }
 
   @override
@@ -856,22 +801,20 @@ class IsarAPI implements IsarApiInterface {
       throw NotFoundException(term: "Business not found");
     }
 
-    Business? business = await isar.writeTxn((isar) {
-      return isar.businesss.get(fromJson(response.body).id);
+    Business? business = await isar.writeTxn(() {
+      return isar.businesss.get(fromJson(response.body).id!);
     });
 
     if (business == null) {
-      await isar.writeTxn((isar) async {
+      await isar.writeTxn(() async {
         return isar.businesss.put(fromJson(response.body));
       });
-      business = await isar.writeTxn((isar) {
+      business = await isar.writeTxn(() {
         return isar.businesss.filter().userIdEqualTo(userId).findFirst();
       });
     }
     ProxyService.box.write(key: 'businessId', value: business!.id);
-    if (await isDrawerOpen(cashierId: business.id) == null) {
-      throw NoDrawerOpen(term: "Business Drawer is not open");
-    }
+
     return business;
   }
 
@@ -882,7 +825,7 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<OrderItem?> getOrderItem({required int id}) {
-    return isar.writeTxn((isar) {
+    return isar.writeTxn(() {
       return isar.orderItems.get(id);
     });
   }
@@ -903,33 +846,33 @@ class IsarAPI implements IsarApiInterface {
     if (response.statusCode == 200) {
       return pinFromMap(response.body);
     }
-    throw Exception('Failed to load pin');
+    throw ErrorReadingFromYBServer(term: 'Failed to load pin');
   }
 
   @override
   Future<Points?> getPoints({required int userId}) {
-    return isar.writeTxn((isar) {
+    return isar.writeTxn(() {
       return isar.pointss.where().userIdEqualTo(userId).findFirst();
     });
   }
 
   @override
   Future<Product?> getProduct({required int id}) async {
-    return isar.writeTxn((isar) {
+    return isar.writeTxn(() {
       return isar.products.get(id);
     });
   }
 
   @override
   Future<Product?> getProductByBarCode({required String barCode}) {
-    return isar.writeTxn((isar) {
+    return isar.writeTxn(() {
       return isar.products.where().barCodeEqualTo(barCode).findFirst();
     });
   }
 
   @override
   Future<Setting?> getSetting({required int userId}) async {
-    return isar.writeTxn((isar) {
+    return isar.writeTxn(() {
       return isar.settings.where().userIdEqualTo(userId).findFirst();
     });
   }
@@ -937,7 +880,7 @@ class IsarAPI implements IsarApiInterface {
   @override
   Future<Stock?> getStock(
       {required int branchId, required int variantId}) async {
-    return await isar.writeTxn((isar) {
+    return await isar.writeTxn(() {
       return isar.stocks
           .where()
           .variantIdBranchIdEqualTo(variantId, branchId)
@@ -947,7 +890,7 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<Subscription?> getSubscription({required int userId}) async {
-    Subscription? local = await isar.writeTxn((isar) {
+    Subscription? local = await isar.writeTxn(() {
       return isar.subscriptions.where().userIdEqualTo(userId).findFirst();
     });
     if (local == null) {
@@ -956,7 +899,7 @@ class IsarAPI implements IsarApiInterface {
       if (response.statusCode == 200) {
         Subscription? sub = Subscription.fromJson(json.decode(response.body));
 
-        await isar.writeTxn((isar) async {
+        await isar.writeTxn(() async {
           isar.subscriptions.put(sub);
         });
         return sub;
@@ -970,7 +913,7 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<List<Variant>> getVariantByProductId({required int productId}) async {
-    return isar.writeTxn((isar) {
+    return isar.writeTxn(() {
       return isar.variants.where().productIdEqualTo(productId).findAll();
     });
   }
@@ -983,7 +926,7 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<Product?> isTempProductExist({required int branchId}) {
-    return isar.writeTxn((isar) {
+    return isar.writeTxn(() {
       return isar.products
           .filter()
           .nameContains("temp")
@@ -993,7 +936,7 @@ class IsarAPI implements IsarApiInterface {
   }
 
   @override
-  Future<TenantSync?> isTenant({required String phoneNumber}) {
+  Future<Tenant?> isTenant({required String phoneNumber}) {
     // TODO: implement isTenant
     throw UnimplementedError();
   }
@@ -1007,13 +950,13 @@ class IsarAPI implements IsarApiInterface {
   @override
   Future<bool> logOut() async {
     log.i("logging out");
-
-    /// delete all business and branches from isar db for
-    /// potential next business that can log-in to not mix data.
-    await isar.writeTxn((isar) async {
+    // delete all business and branches from isar db for
+    // potential next business that can log-in to not mix data.
+    await isar.writeTxn(() async {
       await isar.businesss.clear();
-      // delete all branches.
       await isar.branchs.clear();
+      await isar.iTenants.clear();
+      await isar.permissions.clear();
     });
     ProxyService.box.remove(key: 'userId');
     ProxyService.box.remove(key: 'bearerToken');
@@ -1028,6 +971,83 @@ class IsarAPI implements IsarApiInterface {
   }
 
   @override
+  Future<JTenant> saveTenant(String phoneNumber, String name,
+      {required Business business, required Branch branch}) async {
+    final http.Response response =
+        await client.post(Uri.parse("$apihub/v2/api/tenant"),
+            body: jsonEncode({
+              "phoneNumber": phoneNumber,
+              "name": name,
+              "businessId": business.id,
+              "permissions": [
+                {
+                  "name": "cashier",
+                }
+              ],
+              "businesses": [business.toJson()],
+              "branches": [branch.toJson()]
+            }),
+            headers: {'Content-Type': 'application/json'});
+    if (response.statusCode == 200) {
+      JTenant jTenant = jTenantFromJson(response.body);
+      ITenant iTenant = ITenant(
+          name: jTenant.name,
+          businessId: jTenant.businessId,
+          email: jTenant.email,
+          phoneNumber: jTenant.phoneNumber);
+
+      isar.writeTxn(() async {
+        await isar.businesss.putAll(jTenant.businesses);
+        await isar.branchs.putAll(jTenant.branches);
+        await isar.permissions.putAll(jTenant.permissions);
+      });
+      isar.writeTxn(() async {
+        int id = await isar.iTenants.put(iTenant);
+        return isar.iTenants.get(id);
+      });
+
+      return jTenantFromJson(response.body);
+    } else {
+      throw InternalServerError(term: "internal server error");
+    }
+  }
+
+  @override
+  Future<List<JTenant>> signup({required Map business}) async {
+    final http.Response response = await client.post(
+        Uri.parse("$apihub/v2/api/business"),
+        body: jsonEncode(business),
+        headers: {'Content-Type': 'application/json'});
+    if (response.statusCode == 200) {
+      for (JTenant tenant in jListTenantFromJson(response.body)) {
+        JTenant jTenant = tenant;
+        ITenant iTenant = ITenant(
+            id: jTenant.id,
+            name: jTenant.name,
+            businessId: jTenant.businessId,
+            email: jTenant.email,
+            phoneNumber: jTenant.phoneNumber);
+
+        await isar.writeTxn(() async {
+          return isar.businesss.putAll(jTenant.businesses);
+        });
+        await isar.writeTxn(() async {
+          return await isar.branchs.putAll(jTenant.branches);
+        });
+        await isar.writeTxn(() async {
+          return isar.permissions.putAll(jTenant.permissions);
+        });
+        await isar.writeTxn(() async {
+          return isar.iTenants.put(iTenant);
+        });
+      }
+      return jListTenantFromJson(response.body);
+    } else {
+      throw InternalServerError(term: "internal server error");
+    }
+  }
+
+  @override
   Future<SyncF> login({required String userPhone}) async {
     final response = await http.post(
       Uri.parse(apihub + '/v2/api/user'),
@@ -1038,32 +1058,64 @@ class IsarAPI implements IsarApiInterface {
         <String, String>{'phoneNumber': userPhone},
       ),
     );
-    log.d(response.body);
     if (response.statusCode == 200) {
       ProxyService.box.write(
         key: 'bearerToken',
-        value: syncFromJson(response.body).token,
+        value: syncFFromJson(response.body).token,
       );
       ProxyService.box.write(
         key: 'userId',
-        value: syncFromJson(response.body).id.toString(),
+        value: syncFFromJson(response.body).id.toString(),
       );
       ProxyService.box.write(
         key: 'userPhone',
         value: userPhone,
       );
-      return syncFromJson(response.body);
+      if (syncFFromJson(response.body).tenants.isEmpty) {
+        throw NotFoundException(term: "Not found");
+      }
+      await isar.writeTxn(() async {
+        return isar.businesss
+            .putAll(syncFFromJson(response.body).tenants.first.businesses);
+      });
+      await isar.writeTxn(() async {
+        return isar.branchs
+            .putAll(syncFFromJson(response.body).tenants.first.branches);
+      });
+
+      return syncFFromJson(response.body);
+    } else if (response.statusCode == 401) {
+      throw SessionException(term: "session expired");
+    } else if (response.statusCode == 500) {
+      throw ErrorReadingFromYBServer(term: "Not found");
     } else {
-      log.e('error');
       throw Exception('403 Error');
     }
   }
 
-  // @override
-  // Stream<List<Message>> messages({required int conversationId}) {
-  //   // TODO: implement messages
-  //   throw UnimplementedError();
-  // }
+  /// when adding a user call this endPoint to create a user first.
+  /// then call add this user to tenants of specific business/branch.
+  @override
+  Future<SyncF> user({required String userPhone}) async {
+    final response = await http.post(
+      Uri.parse(apihub + '/v2/api/user'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(
+        <String, String>{'phoneNumber': userPhone},
+      ),
+    );
+    if (response.statusCode == 200) {
+      return syncFFromJson(response.body);
+    } else if (response.statusCode == 401) {
+      throw SessionException(term: "session expired");
+    } else if (response.statusCode == 500) {
+      throw ErrorReadingFromYBServer(term: "Error from server");
+    } else {
+      throw Exception('403 Error');
+    }
+  }
 
   @override
   void migrateToSync() {
@@ -1072,7 +1124,7 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<Order?> pendingOrder({required int branchId}) async {
-    return isar.writeTxn((isar) async {
+    return isar.writeTxn(() async {
       return isar.orders
           .where()
           .statusBranchIdEqualTo(pendingStatus, branchId)
@@ -1097,7 +1149,7 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<Profile?> profile({required int businessId}) async {
-    return isar.writeTxn((isar) {
+    return isar.writeTxn(() {
       return isar.profiles.where().businessIdEqualTo(businessId).findFirst();
     });
   }
@@ -1106,7 +1158,7 @@ class IsarAPI implements IsarApiInterface {
   Future<void> saveDiscount(
       {required int branchId, required name, double? amount}) {
     //save discount into isar db
-    return isar.writeTxn((isar) async {
+    return isar.writeTxn(() async {
       Discount discount = Discount(
         amount: amount,
         branchId: branchId,
@@ -1117,23 +1169,9 @@ class IsarAPI implements IsarApiInterface {
   }
 
   @override
-  void saveTenant({required String phoneNumber}) {
-    // TODO: implement saveTenant
-  }
-
-  @override
   Future<int> sendReport({required List<OrderItem> orderItems}) {
     // TODO: implement sendReport
     throw UnimplementedError();
-  }
-
-  @override
-  Future<int> signup({required Map business}) async {
-    final http.Response response = await client.post(
-        Uri.parse("$apihub/v2/api/business"),
-        body: jsonEncode(business),
-        headers: {'Content-Type': 'application/json'});
-    return response.statusCode;
   }
 
   @override
@@ -1185,7 +1223,7 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<List<Stock?>> stocks({required int productId}) async {
-    return isar.writeTxn((isar) {
+    return isar.writeTxn(() {
       return isar.stocks.where().productIdEqualTo(productId).findAll();
     });
   }
@@ -1216,14 +1254,18 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<List<Order>> tickets() async {
-    return isar.writeTxn((isar) {
-      return isar.orders.where().statusEqualTo(parkedStatus).build().findAll();
+    return isar.writeTxn(() {
+      return isar.orders
+          .where()
+          .statusBranchIdEqualTo(parkedStatus, ProxyService.box.getBranchId()!)
+          .build()
+          .findAll();
     });
   }
 
   @override
   Future<List<Unit>> units({required int branchId}) async {
-    return isar.writeTxn((isar) {
+    return isar.writeTxn(() {
       return isar.units.where().branchIdEqualTo(branchId).findAll();
     });
   }
@@ -1233,59 +1275,54 @@ class IsarAPI implements IsarApiInterface {
   Future<int> update<T>({required T data, String? endPoint}) async {
     if (data is Product) {
       final product = data;
-      await isar.writeTxn((isar) async {
-        return await isar.products.put(product, saveLinks: true);
+      await isar.writeTxn(() async {
+        return await isar.products.put(product);
       });
     }
     if (data is Variant) {
       final variant = data;
-      await isar.writeTxn((isar) async {
-        return await isar.variants.put(variant, saveLinks: true);
+      await isar.writeTxn(() async {
+        return await isar.variants.put(variant);
       });
     }
     if (data is Stock) {
       final stock = data;
-      await isar.writeTxn((isar) async {
-        return await isar.stocks.put(stock, saveLinks: true);
+      await isar.writeTxn(() async {
+        return await isar.stocks.put(stock);
       });
     }
     if (data is Order) {
       final order = data;
-      await isar.writeTxn((isar) async {
-        return await isar.orders.put(order, saveLinks: true);
+      await isar.writeTxn(() async {
+        return await isar.orders.put(order);
       });
     }
     if (data is Category) {
       final order = data;
-      await isar.writeTxn((isar) async {
-        return await isar.categorys.put(order, saveLinks: true);
+      await isar.writeTxn(() async {
+        return await isar.categorys.put(order);
       });
     }
     if (data is Unit) {
       final unit = data;
-      await isar.writeTxn((isar) async {
-        return await isar.units.put(unit, saveLinks: true);
+      await isar.writeTxn(() async {
+        return await isar.units.put(unit);
       });
     }
     if (data is PColor) {
       final color = data;
-      await isar.writeTxn((isar) async {
-        return await isar.pColors.put(color, saveLinks: true);
+      await isar.writeTxn(() async {
+        return await isar.pColors.put(color);
       });
     }
     if (data is OrderItem) {
-      // final orderItem = data;
-      // ger order
-      Order? order =
-          await pendingOrder(branchId: ProxyService.box.getBranchId()!);
-      // order!.orderItems.clear();s
-      await isar.writeTxn((isar) async {
-        return order!.orderItems.save();
+      await isar.writeTxn(() async {
+        return await isar.orderItems.put(data);
       });
     }
     if (data is Ebm) {
       final ebm = data;
-      await isar.writeTxn((isar) async {
+      await isar.writeTxn(() async {
         ProxyService.box.write(key: "serverUrl", value: ebm.taxServerUrl);
         Business? business =
             await isar.businesss.where().userIdEqualTo(ebm.userId).findFirst();
@@ -1300,8 +1337,8 @@ class IsarAPI implements IsarApiInterface {
     }
     if (data is Business) {
       final business = data;
-      await isar.writeTxn((isar) async {
-        return await isar.businesss.put(business, saveLinks: true);
+      await isar.writeTxn(() async {
+        return await isar.businesss.put(business);
       });
       try {
         await client.patch(Uri.parse("$apihub/v2/api/business/${business.id}"),
@@ -1311,9 +1348,21 @@ class IsarAPI implements IsarApiInterface {
         log.e(e);
       }
     }
+    if (data is Branch) {
+      isar.writeTxn(() async {
+        return await isar.branchs.put(data);
+      });
+      try {
+        await client.patch(Uri.parse("$apihub/v2/api/branch/${data.id}"),
+            body: jsonEncode(data.toJson()),
+            headers: {'Content-Type': 'application/json'});
+      } catch (e) {
+        log.e(e);
+      }
+    }
     if (data is Drawers) {
       final drawer = data;
-      await isar.writeTxn((isar) async {
+      await isar.writeTxn(() async {
         return await isar.drawerss.put(drawer);
       });
     }
@@ -1323,7 +1372,7 @@ class IsarAPI implements IsarApiInterface {
   @override
   Future<Profile?> updateProfile({required Profile profile}) async {
     //TODOcheck if the profile is propery updated.
-    return isar.writeTxn((isar) async {
+    return isar.writeTxn(() async {
       int id = await isar.profiles.put(profile);
       return isar.profiles.get(id);
     });
@@ -1378,7 +1427,7 @@ class IsarAPI implements IsarApiInterface {
     // throw UnimplementedError();
     List<DateTime> weekDates = getWeeksForRange(weekStartDate, weekEndDate);
     List<Order> pastOrders = [];
-    return isar.writeTxn((isar) {
+    return isar.writeTxn(() {
       for (DateTime date in weekDates) {
         List<Order> orders = isar.orders
             .where()
@@ -1404,7 +1453,7 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<List<Product>> productsFuture({required int branchId}) {
-    return isar.writeTxn((isar) async {
+    return isar.writeTxn(() async {
       return await isar.products.where().branchIdEqualTo(branchId).findAll();
     });
   }
@@ -1412,7 +1461,7 @@ class IsarAPI implements IsarApiInterface {
   @override
   Future<List<Category>> categories({required int branchId}) async {
     // get all categories from isar db
-    return isar.writeTxn((isar) async {
+    return isar.writeTxn(() async {
       return isar.categorys.where().branchIdEqualTo(branchId).findAll();
     });
   }
@@ -1427,14 +1476,14 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<List<OrderItem>> orderItems({required int orderId}) async {
-    return isar.writeTxn((isar) async {
+    return isar.writeTxn(() async {
       return await isar.orderItems.where().orderIdEqualTo(orderId).findAll();
     });
   }
 
   @override
   Future<Variant?> getVariantById({required int id}) async {
-    return isar.writeTxn((isar) async {
+    return isar.writeTxn(() async {
       return await isar.variants.get(id);
     });
   }
@@ -1447,7 +1496,7 @@ class IsarAPI implements IsarApiInterface {
       required String receiptType}) {
     // add receipt to isar db
 
-    return isar.writeTxn((isar) async {
+    return isar.writeTxn(() async {
       Receipt receipt = Receipt()
         ..resultCd = signature.resultCd
         ..resultMsg = signature.resultMsg
@@ -1470,14 +1519,14 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<Receipt?> getReceipt({required int orderId}) {
-    return isar.writeTxn((isar) async {
+    return isar.writeTxn(() async {
       return await isar.receipts.where().orderIdEqualTo(orderId).findFirst();
     });
   }
 
   @override
   Future<void> refund({required int itemId}) async {
-    return isar.writeTxn((isar) async {
+    return isar.writeTxn(() async {
       OrderItem? item = await isar.orderItems.get(itemId);
       item!.isRefunded = true;
       await isar.orderItems.put(item);
@@ -1486,7 +1535,7 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<Drawers?> isDrawerOpen({required int cashierId}) {
-    return isar.writeTxn((isar) async {
+    return isar.writeTxn(() async {
       Drawers? drawer = await isar.drawerss
           .where()
           .openCashierIdEqualTo(true, cashierId)
@@ -1498,9 +1547,63 @@ class IsarAPI implements IsarApiInterface {
   @override
   Future<Drawers?> openDrawer({required Drawers drawer}) {
     // save drawer object in isar db
-    return isar.writeTxn((isar) async {
+    return isar.writeTxn(() async {
       int id = await isar.drawerss.put(drawer);
       return isar.drawerss.get(id);
     });
+  }
+
+  @override
+  Future<int> size<T>({required T object}) async {
+    if (object is Product) {
+      return isar.products.getSize(includeIndexes: true, includeLinks: true);
+    }
+    return 0;
+  }
+
+  @override
+  Future<List<ITenant>> tenants({required int businessId}) async {
+    return await isar.iTenants.filter().businessIdEqualTo(businessId).findAll();
+  }
+
+  @override
+  Future<List<ITenant>> tenantsFromOnline({required int businessId}) async {
+    final http.Response response =
+        await client.get(Uri.parse("$apihub/v2/api/tenant/$businessId"));
+    if (response.statusCode == 200) {
+      for (JTenant tenant in jListTenantFromJson(response.body)) {
+        JTenant jTenant = tenant;
+        ITenant iTenant = ITenant(
+            id: jTenant.id,
+            name: jTenant.name,
+            businessId: jTenant.businessId,
+            email: jTenant.email,
+            phoneNumber: jTenant.phoneNumber);
+
+        isar.writeTxn(() async {
+          await isar.businesss.putAll(jTenant.businesses);
+          await isar.branchs.putAll(jTenant.branches);
+          await isar.permissions.putAll(jTenant.permissions);
+        });
+        isar.writeTxn(() async {
+          await isar.iTenants.put(iTenant);
+        });
+      }
+      return await isar.iTenants
+          .filter()
+          .businessIdEqualTo(businessId)
+          .findAll();
+    }
+    throw InternalServerException(term: "we got unexpected response");
+  }
+
+  @override
+  Future<Branch?> defaultBranch() async {
+    return await isar.branchs.filter().isDefaultEqualTo(true).findFirst();
+  }
+
+  @override
+  Future<Business?> defaultBusiness() async {
+    return await isar.businesss.filter().isDefaultEqualTo(true).findFirst();
   }
 }

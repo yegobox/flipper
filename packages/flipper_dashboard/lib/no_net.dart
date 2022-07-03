@@ -14,7 +14,8 @@ class NoNet extends StatelessWidget {
         subtitle:
             "Can't connect to the internet.\nPlease check your internet connection",
         onPressed: () async {
-          GoRouter.of(context).go("/login");
+          GoRouter.of(context).push("/login");
+          GoRouter.of(context).refresh();
         },
       ),
     );

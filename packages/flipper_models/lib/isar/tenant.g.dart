@@ -6,37 +6,38 @@ part of flipper_models;
 // IsarCollectionGenerator
 // **************************************************************************
 
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, unused_local_variable, no_leading_underscores_for_local_identifiers
+// coverage:ignore-file
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
 
-extension GetTenantSyncCollection on Isar {
-  IsarCollection<TenantSync> get tenantSyncs => getCollection();
+extension GetITenantCollection on Isar {
+  IsarCollection<ITenant> get iTenants => getCollection();
 }
 
-const TenantSyncSchema = CollectionSchema(
-  name: 'TenantSync',
+const ITenantSchema = CollectionSchema(
+  name: r'ITenant',
   schema:
-      '{"name":"TenantSync","idName":"id","properties":[{"name":"email","type":"String"},{"name":"name","type":"String"},{"name":"phoneNumber","type":"String"}],"indexes":[],"links":[{"name":"branches","target":"Branch"},{"name":"permissions","target":"Permissionsync"}]}',
-  idName: 'id',
-  propertyIds: {'email': 0, 'name': 1, 'phoneNumber': 2},
+      r'{"name":"ITenant","idName":"id","properties":[{"name":"businessId","type":"Long"},{"name":"email","type":"String"},{"name":"name","type":"String"},{"name":"phoneNumber","type":"String"}],"indexes":[],"links":[]}',
+  idName: r'id',
+  propertyIds: {r'businessId': 0, r'email': 1, r'name': 2, r'phoneNumber': 3},
   listProperties: {},
   indexIds: {},
   indexValueTypes: {},
-  linkIds: {'branches': 0, 'permissions': 1},
+  linkIds: {},
   backlinkLinkNames: {},
-  getId: _tenantSyncGetId,
-  setId: _tenantSyncSetId,
-  getLinks: _tenantSyncGetLinks,
-  attachLinks: _tenantSyncAttachLinks,
-  serializeNative: _tenantSyncSerializeNative,
-  deserializeNative: _tenantSyncDeserializeNative,
-  deserializePropNative: _tenantSyncDeserializePropNative,
-  serializeWeb: _tenantSyncSerializeWeb,
-  deserializeWeb: _tenantSyncDeserializeWeb,
-  deserializePropWeb: _tenantSyncDeserializePropWeb,
+  getId: _iTenantGetId,
+  setId: _iTenantSetId,
+  getLinks: _iTenantGetLinks,
+  attachLinks: _iTenantAttachLinks,
+  serializeNative: _iTenantSerializeNative,
+  deserializeNative: _iTenantDeserializeNative,
+  deserializePropNative: _iTenantDeserializePropNative,
+  serializeWeb: _iTenantSerializeWeb,
+  deserializeWeb: _iTenantDeserializeWeb,
+  deserializePropWeb: _iTenantDeserializePropWeb,
   version: 4,
 );
 
-int? _tenantSyncGetId(TenantSync object) {
+int? _iTenantGetId(ITenant object) {
   if (object.id == Isar.autoIncrement) {
     return null;
   } else {
@@ -44,669 +45,817 @@ int? _tenantSyncGetId(TenantSync object) {
   }
 }
 
-void _tenantSyncSetId(TenantSync object, int id) {
+void _iTenantSetId(ITenant object, int id) {
   object.id = id;
 }
 
-List<IsarLinkBase> _tenantSyncGetLinks(TenantSync object) {
-  return [object.branches, object.permissions];
+List<IsarLinkBase<dynamic>> _iTenantGetLinks(ITenant object) {
+  return [];
 }
 
-void _tenantSyncSerializeNative(
-    IsarCollection<TenantSync> collection,
+void _iTenantSerializeNative(
+    IsarCollection<ITenant> collection,
     IsarCObject cObj,
-    TenantSync object,
+    ITenant object,
     int staticSize,
     List<int> offsets,
     AdapterAlloc alloc) {
-  var dynamicSize = 0;
-  final value0 = object.email;
-  final _email = IsarBinaryWriter.utf8Encoder.convert(value0);
-  dynamicSize += (_email.length) as int;
-  final value1 = object.name;
-  final _name = IsarBinaryWriter.utf8Encoder.convert(value1);
-  dynamicSize += (_name.length) as int;
-  final value2 = object.phoneNumber;
-  final _phoneNumber = IsarBinaryWriter.utf8Encoder.convert(value2);
-  dynamicSize += (_phoneNumber.length) as int;
-  final size = staticSize + dynamicSize;
-
+  final email$Bytes = IsarBinaryWriter.utf8Encoder.convert(object.email);
+  final name$Bytes = IsarBinaryWriter.utf8Encoder.convert(object.name);
+  final phoneNumber$Bytes =
+      IsarBinaryWriter.utf8Encoder.convert(object.phoneNumber);
+  final size = (staticSize +
+      (email$Bytes.length) +
+      (name$Bytes.length) +
+      (phoneNumber$Bytes.length)) as int;
   cObj.buffer = alloc(size);
   cObj.buffer_length = size;
+
   final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
   final writer = IsarBinaryWriter(buffer, staticSize);
-  writer.writeBytes(offsets[0], _email);
-  writer.writeBytes(offsets[1], _name);
-  writer.writeBytes(offsets[2], _phoneNumber);
+  writer.writeHeader();
+  writer.writeLong(offsets[0], object.businessId);
+  writer.writeBytes(offsets[1], email$Bytes);
+  writer.writeBytes(offsets[2], name$Bytes);
+  writer.writeBytes(offsets[3], phoneNumber$Bytes);
 }
 
-TenantSync _tenantSyncDeserializeNative(IsarCollection<TenantSync> collection,
-    int id, IsarBinaryReader reader, List<int> offsets) {
-  final object = TenantSync(
-    email: reader.readString(offsets[0]),
+ITenant _iTenantDeserializeNative(IsarCollection<ITenant> collection, int id,
+    IsarBinaryReader reader, List<int> offsets) {
+  final object = ITenant(
+    businessId: reader.readLong(offsets[0]),
+    email: reader.readString(offsets[1]),
     id: id,
-    name: reader.readString(offsets[1]),
-    phoneNumber: reader.readString(offsets[2]),
+    name: reader.readString(offsets[2]),
+    phoneNumber: reader.readString(offsets[3]),
   );
-  _tenantSyncAttachLinks(collection, id, object);
   return object;
 }
 
-P _tenantSyncDeserializePropNative<P>(
+P _iTenantDeserializePropNative<P>(
     int id, IsarBinaryReader reader, int propertyIndex, int offset) {
   switch (propertyIndex) {
     case -1:
       return id as P;
     case 0:
-      return (reader.readString(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 1:
       return (reader.readString(offset)) as P;
     case 2:
       return (reader.readString(offset)) as P;
+    case 3:
+      return (reader.readString(offset)) as P;
     default:
-      throw 'Illegal propertyIndex';
+      throw IsarError('Illegal propertyIndex');
   }
 }
 
-dynamic _tenantSyncSerializeWeb(
-    IsarCollection<TenantSync> collection, TenantSync object) {
+Object _iTenantSerializeWeb(
+    IsarCollection<ITenant> collection, ITenant object) {
   final jsObj = IsarNative.newJsObject();
-  IsarNative.jsObjectSet(jsObj, 'email', object.email);
-  IsarNative.jsObjectSet(jsObj, 'id', object.id);
-  IsarNative.jsObjectSet(jsObj, 'name', object.name);
-  IsarNative.jsObjectSet(jsObj, 'phoneNumber', object.phoneNumber);
+  IsarNative.jsObjectSet(jsObj, r'businessId', object.businessId);
+  IsarNative.jsObjectSet(jsObj, r'email', object.email);
+  IsarNative.jsObjectSet(jsObj, r'id', object.id);
+  IsarNative.jsObjectSet(jsObj, r'name', object.name);
+  IsarNative.jsObjectSet(jsObj, r'phoneNumber', object.phoneNumber);
   return jsObj;
 }
 
-TenantSync _tenantSyncDeserializeWeb(
-    IsarCollection<TenantSync> collection, dynamic jsObj) {
-  final object = TenantSync(
-    email: IsarNative.jsObjectGet(jsObj, 'email') ?? '',
-    id: IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity,
-    name: IsarNative.jsObjectGet(jsObj, 'name') ?? '',
-    phoneNumber: IsarNative.jsObjectGet(jsObj, 'phoneNumber') ?? '',
+ITenant _iTenantDeserializeWeb(
+    IsarCollection<ITenant> collection, Object jsObj) {
+  final object = ITenant(
+    businessId: IsarNative.jsObjectGet(jsObj, r'businessId') ??
+        (double.negativeInfinity as int),
+    email: IsarNative.jsObjectGet(jsObj, r'email') ?? '',
+    id: IsarNative.jsObjectGet(jsObj, r'id'),
+    name: IsarNative.jsObjectGet(jsObj, r'name') ?? '',
+    phoneNumber: IsarNative.jsObjectGet(jsObj, r'phoneNumber') ?? '',
   );
-  _tenantSyncAttachLinks(collection,
-      IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity, object);
   return object;
 }
 
-P _tenantSyncDeserializePropWeb<P>(Object jsObj, String propertyName) {
+P _iTenantDeserializePropWeb<P>(Object jsObj, String propertyName) {
   switch (propertyName) {
-    case 'email':
-      return (IsarNative.jsObjectGet(jsObj, 'email') ?? '') as P;
-    case 'id':
-      return (IsarNative.jsObjectGet(jsObj, 'id') ?? double.negativeInfinity)
-          as P;
-    case 'name':
-      return (IsarNative.jsObjectGet(jsObj, 'name') ?? '') as P;
-    case 'phoneNumber':
-      return (IsarNative.jsObjectGet(jsObj, 'phoneNumber') ?? '') as P;
+    case r'businessId':
+      return (IsarNative.jsObjectGet(jsObj, r'businessId') ??
+          (double.negativeInfinity as int)) as P;
+    case r'email':
+      return (IsarNative.jsObjectGet(jsObj, r'email') ?? '') as P;
+    case r'id':
+      return (IsarNative.jsObjectGet(jsObj, r'id')) as P;
+    case r'name':
+      return (IsarNative.jsObjectGet(jsObj, r'name') ?? '') as P;
+    case r'phoneNumber':
+      return (IsarNative.jsObjectGet(jsObj, r'phoneNumber') ?? '') as P;
     default:
-      throw 'Illegal propertyName';
+      throw IsarError('Illegal propertyName');
   }
 }
 
-void _tenantSyncAttachLinks(IsarCollection col, int id, TenantSync object) {
-  object.branches.attach(col, col.isar.branchs, 'branches', id);
-  object.permissions.attach(col, col.isar.permissionsyncs, 'permissions', id);
-}
+void _iTenantAttachLinks(IsarCollection<dynamic> col, int id, ITenant object) {}
 
-extension TenantSyncQueryWhereSort
-    on QueryBuilder<TenantSync, TenantSync, QWhere> {
-  QueryBuilder<TenantSync, TenantSync, QAfterWhere> anyId() {
-    return addWhereClauseInternal(const IdWhereClause.any());
+extension ITenantQueryWhereSort on QueryBuilder<ITenant, ITenant, QWhere> {
+  QueryBuilder<ITenant, ITenant, QAfterWhere> anyId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(const IdWhereClause.any());
+    });
   }
 }
 
-extension TenantSyncQueryWhere
-    on QueryBuilder<TenantSync, TenantSync, QWhereClause> {
-  QueryBuilder<TenantSync, TenantSync, QAfterWhereClause> idEqualTo(int id) {
-    return addWhereClauseInternal(IdWhereClause.between(
-      lower: id,
-      includeLower: true,
-      upper: id,
-      includeUpper: true,
-    ));
+extension ITenantQueryWhere on QueryBuilder<ITenant, ITenant, QWhereClause> {
+  QueryBuilder<ITenant, ITenant, QAfterWhereClause> idEqualTo(int id) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IdWhereClause.between(
+        lower: id,
+        upper: id,
+      ));
+    });
   }
 
-  QueryBuilder<TenantSync, TenantSync, QAfterWhereClause> idNotEqualTo(int id) {
-    if (whereSortInternal == Sort.asc) {
-      return addWhereClauseInternal(
-        IdWhereClause.lessThan(upper: id, includeUpper: false),
-      ).addWhereClauseInternal(
-        IdWhereClause.greaterThan(lower: id, includeLower: false),
-      );
-    } else {
-      return addWhereClauseInternal(
-        IdWhereClause.greaterThan(lower: id, includeLower: false),
-      ).addWhereClauseInternal(
-        IdWhereClause.lessThan(upper: id, includeUpper: false),
-      );
-    }
+  QueryBuilder<ITenant, ITenant, QAfterWhereClause> idNotEqualTo(int id) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(
+              IdWhereClause.lessThan(upper: id, includeUpper: false),
+            )
+            .addWhereClause(
+              IdWhereClause.greaterThan(lower: id, includeLower: false),
+            );
+      } else {
+        return query
+            .addWhereClause(
+              IdWhereClause.greaterThan(lower: id, includeLower: false),
+            )
+            .addWhereClause(
+              IdWhereClause.lessThan(upper: id, includeUpper: false),
+            );
+      }
+    });
   }
 
-  QueryBuilder<TenantSync, TenantSync, QAfterWhereClause> idGreaterThan(int id,
+  QueryBuilder<ITenant, ITenant, QAfterWhereClause> idGreaterThan(int id,
       {bool include = false}) {
-    return addWhereClauseInternal(
-      IdWhereClause.greaterThan(lower: id, includeLower: include),
-    );
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IdWhereClause.greaterThan(lower: id, includeLower: include),
+      );
+    });
   }
 
-  QueryBuilder<TenantSync, TenantSync, QAfterWhereClause> idLessThan(int id,
+  QueryBuilder<ITenant, ITenant, QAfterWhereClause> idLessThan(int id,
       {bool include = false}) {
-    return addWhereClauseInternal(
-      IdWhereClause.lessThan(upper: id, includeUpper: include),
-    );
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IdWhereClause.lessThan(upper: id, includeUpper: include),
+      );
+    });
   }
 
-  QueryBuilder<TenantSync, TenantSync, QAfterWhereClause> idBetween(
+  QueryBuilder<ITenant, ITenant, QAfterWhereClause> idBetween(
     int lowerId,
     int upperId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addWhereClauseInternal(IdWhereClause.between(
-      lower: lowerId,
-      includeLower: includeLower,
-      upper: upperId,
-      includeUpper: includeUpper,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IdWhereClause.between(
+        lower: lowerId,
+        includeLower: includeLower,
+        upper: upperId,
+        includeUpper: includeUpper,
+      ));
+    });
   }
 }
 
-extension TenantSyncQueryFilter
-    on QueryBuilder<TenantSync, TenantSync, QFilterCondition> {
-  QueryBuilder<TenantSync, TenantSync, QAfterFilterCondition> emailEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'email',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<TenantSync, TenantSync, QAfterFilterCondition> emailGreaterThan(
-    String value, {
-    bool caseSensitive = true,
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'email',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<TenantSync, TenantSync, QAfterFilterCondition> emailLessThan(
-    String value, {
-    bool caseSensitive = true,
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'email',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<TenantSync, TenantSync, QAfterFilterCondition> emailBetween(
-    String lower,
-    String upper, {
-    bool caseSensitive = true,
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'email',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<TenantSync, TenantSync, QAfterFilterCondition> emailStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.startsWith,
-      property: 'email',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<TenantSync, TenantSync, QAfterFilterCondition> emailEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.endsWith,
-      property: 'email',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<TenantSync, TenantSync, QAfterFilterCondition> emailContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.contains,
-      property: 'email',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<TenantSync, TenantSync, QAfterFilterCondition> emailMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.matches,
-      property: 'email',
-      value: pattern,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<TenantSync, TenantSync, QAfterFilterCondition> idEqualTo(
+extension ITenantQueryFilter
+    on QueryBuilder<ITenant, ITenant, QFilterCondition> {
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> businessIdEqualTo(
       int value) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'id',
-      value: value,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'businessId',
+        value: value,
+      ));
+    });
   }
 
-  QueryBuilder<TenantSync, TenantSync, QAfterFilterCondition> idGreaterThan(
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> businessIdGreaterThan(
     int value, {
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'id',
-      value: value,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'businessId',
+        value: value,
+      ));
+    });
   }
 
-  QueryBuilder<TenantSync, TenantSync, QAfterFilterCondition> idLessThan(
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> businessIdLessThan(
     int value, {
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'id',
-      value: value,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'businessId',
+        value: value,
+      ));
+    });
   }
 
-  QueryBuilder<TenantSync, TenantSync, QAfterFilterCondition> idBetween(
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> businessIdBetween(
     int lower,
     int upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'id',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'businessId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
   }
 
-  QueryBuilder<TenantSync, TenantSync, QAfterFilterCondition> nameEqualTo(
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> emailEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'name',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'email',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
-  QueryBuilder<TenantSync, TenantSync, QAfterFilterCondition> nameGreaterThan(
-    String value, {
-    bool caseSensitive = true,
-    bool include = false,
-  }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'name',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<TenantSync, TenantSync, QAfterFilterCondition> nameLessThan(
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> emailGreaterThan(
     String value, {
     bool caseSensitive = true,
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'name',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'email',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
-  QueryBuilder<TenantSync, TenantSync, QAfterFilterCondition> nameBetween(
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> emailLessThan(
+    String value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'email',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> emailBetween(
     String lower,
     String upper, {
     bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'name',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'email',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
-  QueryBuilder<TenantSync, TenantSync, QAfterFilterCondition> nameStartsWith(
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> emailStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.startsWith,
-      property: 'name',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'email',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
-  QueryBuilder<TenantSync, TenantSync, QAfterFilterCondition> nameEndsWith(
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> emailEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.endsWith,
-      property: 'name',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'email',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
-  QueryBuilder<TenantSync, TenantSync, QAfterFilterCondition> nameContains(
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> emailContains(
       String value,
       {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.contains,
-      property: 'name',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'email',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
-  QueryBuilder<TenantSync, TenantSync, QAfterFilterCondition> nameMatches(
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> emailMatches(
       String pattern,
       {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.matches,
-      property: 'name',
-      value: pattern,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'email',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
-  QueryBuilder<TenantSync, TenantSync, QAfterFilterCondition>
-      phoneNumberEqualTo(
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> idIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'id',
+      ));
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> idEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'id',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> idGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'id',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> idLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'id',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> idBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'id',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> nameEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.eq,
-      property: 'phoneNumber',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'name',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
-  QueryBuilder<TenantSync, TenantSync, QAfterFilterCondition>
-      phoneNumberGreaterThan(
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> nameGreaterThan(
     String value, {
     bool caseSensitive = true,
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.gt,
-      include: include,
-      property: 'phoneNumber',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'name',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
-  QueryBuilder<TenantSync, TenantSync, QAfterFilterCondition>
-      phoneNumberLessThan(
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> nameLessThan(
     String value, {
     bool caseSensitive = true,
     bool include = false,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.lt,
-      include: include,
-      property: 'phoneNumber',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'name',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
-  QueryBuilder<TenantSync, TenantSync, QAfterFilterCondition>
-      phoneNumberBetween(
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> nameBetween(
     String lower,
     String upper, {
     bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
   }) {
-    return addFilterConditionInternal(FilterCondition.between(
-      property: 'phoneNumber',
-      lower: lower,
-      includeLower: includeLower,
-      upper: upper,
-      includeUpper: includeUpper,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'name',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
-  QueryBuilder<TenantSync, TenantSync, QAfterFilterCondition>
-      phoneNumberStartsWith(
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> nameStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.startsWith,
-      property: 'phoneNumber',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'name',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
-  QueryBuilder<TenantSync, TenantSync, QAfterFilterCondition>
-      phoneNumberEndsWith(
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> nameEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.endsWith,
-      property: 'phoneNumber',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'name',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
-  QueryBuilder<TenantSync, TenantSync, QAfterFilterCondition>
-      phoneNumberContains(String value, {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.contains,
-      property: 'phoneNumber',
-      value: value,
-      caseSensitive: caseSensitive,
-    ));
-  }
-
-  QueryBuilder<TenantSync, TenantSync, QAfterFilterCondition>
-      phoneNumberMatches(String pattern, {bool caseSensitive = true}) {
-    return addFilterConditionInternal(FilterCondition(
-      type: ConditionType.matches,
-      property: 'phoneNumber',
-      value: pattern,
-      caseSensitive: caseSensitive,
-    ));
-  }
-}
-
-extension TenantSyncQueryLinks
-    on QueryBuilder<TenantSync, TenantSync, QFilterCondition> {
-  QueryBuilder<TenantSync, TenantSync, QAfterFilterCondition> branches(
-      FilterQuery<Branch> q) {
-    return linkInternal(
-      isar.branchs,
-      q,
-      'branches',
-    );
-  }
-
-  QueryBuilder<TenantSync, TenantSync, QAfterFilterCondition> permissions(
-      FilterQuery<Permissionsync> q) {
-    return linkInternal(
-      isar.permissionsyncs,
-      q,
-      'permissions',
-    );
-  }
-}
-
-extension TenantSyncQueryWhereSortBy
-    on QueryBuilder<TenantSync, TenantSync, QSortBy> {
-  QueryBuilder<TenantSync, TenantSync, QAfterSortBy> sortByEmail() {
-    return addSortByInternal('email', Sort.asc);
-  }
-
-  QueryBuilder<TenantSync, TenantSync, QAfterSortBy> sortByEmailDesc() {
-    return addSortByInternal('email', Sort.desc);
-  }
-
-  QueryBuilder<TenantSync, TenantSync, QAfterSortBy> sortById() {
-    return addSortByInternal('id', Sort.asc);
-  }
-
-  QueryBuilder<TenantSync, TenantSync, QAfterSortBy> sortByIdDesc() {
-    return addSortByInternal('id', Sort.desc);
-  }
-
-  QueryBuilder<TenantSync, TenantSync, QAfterSortBy> sortByName() {
-    return addSortByInternal('name', Sort.asc);
-  }
-
-  QueryBuilder<TenantSync, TenantSync, QAfterSortBy> sortByNameDesc() {
-    return addSortByInternal('name', Sort.desc);
-  }
-
-  QueryBuilder<TenantSync, TenantSync, QAfterSortBy> sortByPhoneNumber() {
-    return addSortByInternal('phoneNumber', Sort.asc);
-  }
-
-  QueryBuilder<TenantSync, TenantSync, QAfterSortBy> sortByPhoneNumberDesc() {
-    return addSortByInternal('phoneNumber', Sort.desc);
-  }
-}
-
-extension TenantSyncQueryWhereSortThenBy
-    on QueryBuilder<TenantSync, TenantSync, QSortThenBy> {
-  QueryBuilder<TenantSync, TenantSync, QAfterSortBy> thenByEmail() {
-    return addSortByInternal('email', Sort.asc);
-  }
-
-  QueryBuilder<TenantSync, TenantSync, QAfterSortBy> thenByEmailDesc() {
-    return addSortByInternal('email', Sort.desc);
-  }
-
-  QueryBuilder<TenantSync, TenantSync, QAfterSortBy> thenById() {
-    return addSortByInternal('id', Sort.asc);
-  }
-
-  QueryBuilder<TenantSync, TenantSync, QAfterSortBy> thenByIdDesc() {
-    return addSortByInternal('id', Sort.desc);
-  }
-
-  QueryBuilder<TenantSync, TenantSync, QAfterSortBy> thenByName() {
-    return addSortByInternal('name', Sort.asc);
-  }
-
-  QueryBuilder<TenantSync, TenantSync, QAfterSortBy> thenByNameDesc() {
-    return addSortByInternal('name', Sort.desc);
-  }
-
-  QueryBuilder<TenantSync, TenantSync, QAfterSortBy> thenByPhoneNumber() {
-    return addSortByInternal('phoneNumber', Sort.asc);
-  }
-
-  QueryBuilder<TenantSync, TenantSync, QAfterSortBy> thenByPhoneNumberDesc() {
-    return addSortByInternal('phoneNumber', Sort.desc);
-  }
-}
-
-extension TenantSyncQueryWhereDistinct
-    on QueryBuilder<TenantSync, TenantSync, QDistinct> {
-  QueryBuilder<TenantSync, TenantSync, QDistinct> distinctByEmail(
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> nameContains(
+      String value,
       {bool caseSensitive = true}) {
-    return addDistinctByInternal('email', caseSensitive: caseSensitive);
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'name',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
-  QueryBuilder<TenantSync, TenantSync, QDistinct> distinctById() {
-    return addDistinctByInternal('id');
-  }
-
-  QueryBuilder<TenantSync, TenantSync, QDistinct> distinctByName(
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> nameMatches(
+      String pattern,
       {bool caseSensitive = true}) {
-    return addDistinctByInternal('name', caseSensitive: caseSensitive);
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'name',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 
-  QueryBuilder<TenantSync, TenantSync, QDistinct> distinctByPhoneNumber(
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> phoneNumberEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'phoneNumber',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> phoneNumberGreaterThan(
+    String value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'phoneNumber',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> phoneNumberLessThan(
+    String value, {
+    bool caseSensitive = true,
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'phoneNumber',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> phoneNumberBetween(
+    String lower,
+    String upper, {
+    bool caseSensitive = true,
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'phoneNumber',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> phoneNumberStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'phoneNumber',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> phoneNumberEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'phoneNumber',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> phoneNumberContains(
+      String value,
       {bool caseSensitive = true}) {
-    return addDistinctByInternal('phoneNumber', caseSensitive: caseSensitive);
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'phoneNumber',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> phoneNumberMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'phoneNumber',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
   }
 }
 
-extension TenantSyncQueryProperty
-    on QueryBuilder<TenantSync, TenantSync, QQueryProperty> {
-  QueryBuilder<TenantSync, String, QQueryOperations> emailProperty() {
-    return addPropertyNameInternal('email');
+extension ITenantQueryLinks
+    on QueryBuilder<ITenant, ITenant, QFilterCondition> {}
+
+extension ITenantQueryWhereSortBy on QueryBuilder<ITenant, ITenant, QSortBy> {
+  QueryBuilder<ITenant, ITenant, QAfterSortBy> sortByBusinessId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'businessId', Sort.asc);
+    });
   }
 
-  QueryBuilder<TenantSync, int, QQueryOperations> idProperty() {
-    return addPropertyNameInternal('id');
+  QueryBuilder<ITenant, ITenant, QAfterSortBy> sortByBusinessIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'businessId', Sort.desc);
+    });
   }
 
-  QueryBuilder<TenantSync, String, QQueryOperations> nameProperty() {
-    return addPropertyNameInternal('name');
+  QueryBuilder<ITenant, ITenant, QAfterSortBy> sortByEmail() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'email', Sort.asc);
+    });
   }
 
-  QueryBuilder<TenantSync, String, QQueryOperations> phoneNumberProperty() {
-    return addPropertyNameInternal('phoneNumber');
+  QueryBuilder<ITenant, ITenant, QAfterSortBy> sortByEmailDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'email', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterSortBy> sortByName() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'name', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterSortBy> sortByNameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'name', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterSortBy> sortByPhoneNumber() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'phoneNumber', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterSortBy> sortByPhoneNumberDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'phoneNumber', Sort.desc);
+    });
+  }
+}
+
+extension ITenantQueryWhereSortThenBy
+    on QueryBuilder<ITenant, ITenant, QSortThenBy> {
+  QueryBuilder<ITenant, ITenant, QAfterSortBy> thenByBusinessId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'businessId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterSortBy> thenByBusinessIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'businessId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterSortBy> thenByEmail() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'email', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterSortBy> thenByEmailDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'email', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterSortBy> thenById() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'id', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterSortBy> thenByIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'id', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterSortBy> thenByName() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'name', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterSortBy> thenByNameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'name', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterSortBy> thenByPhoneNumber() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'phoneNumber', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterSortBy> thenByPhoneNumberDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'phoneNumber', Sort.desc);
+    });
+  }
+}
+
+extension ITenantQueryWhereDistinct
+    on QueryBuilder<ITenant, ITenant, QDistinct> {
+  QueryBuilder<ITenant, ITenant, QDistinct> distinctByBusinessId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'businessId');
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QDistinct> distinctByEmail(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'email', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QDistinct> distinctByName(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'name', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QDistinct> distinctByPhoneNumber(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'phoneNumber', caseSensitive: caseSensitive);
+    });
+  }
+}
+
+extension ITenantQueryProperty
+    on QueryBuilder<ITenant, ITenant, QQueryProperty> {
+  QueryBuilder<ITenant, int, QQueryOperations> businessIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'businessId');
+    });
+  }
+
+  QueryBuilder<ITenant, String, QQueryOperations> emailProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'email');
+    });
+  }
+
+  QueryBuilder<ITenant, int?, QQueryOperations> idProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<ITenant, String, QQueryOperations> nameProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'name');
+    });
+  }
+
+  QueryBuilder<ITenant, String, QQueryOperations> phoneNumberProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'phoneNumber');
+    });
   }
 }

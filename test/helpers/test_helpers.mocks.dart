@@ -648,6 +648,9 @@ class MockLocalStorage extends _i1.Mock implements _i17.LocalStorage {
       (super.noSuchMethod(Invocation.method(#isTrainingMode, []),
           returnValue: false) as bool);
   @override
+  bool isAnonymous() => (super.noSuchMethod(Invocation.method(#isAnonymous, []),
+      returnValue: false) as bool);
+  @override
   bool isAutoPrintEnabled() =>
       (super.noSuchMethod(Invocation.method(#isAutoPrintEnabled, []),
           returnValue: false) as bool);
@@ -725,6 +728,27 @@ class MockAppService extends _i1.Mock implements _i18.AppService {
   @override
   _i12.Future<void> loadContacts() => (super.noSuchMethod(
       Invocation.method(#loadContacts, []),
+      returnValue: Future<void>.value(),
+      returnValueForMissingStub: Future<void>.value()) as _i12.Future<void>);
+  @override
+  _i12.Future<void> appInit() => (super.noSuchMethod(
+      Invocation.method(#appInit, []),
+      returnValue: Future<void>.value(),
+      returnValueForMissingStub: Future<void>.value()) as _i12.Future<void>);
+  @override
+  _i12.Future<bool> setActiveBranch({_i8.Business? businesses}) =>
+      (super.noSuchMethod(
+          Invocation.method(#setActiveBranch, [], {#businesses: businesses}),
+          returnValue: Future<bool>.value(false)) as _i12.Future<bool>);
+  @override
+  _i12.Future<void> setActiveBusiness(List<_i8.Business>? businesses) =>
+      (super.noSuchMethod(Invocation.method(#setActiveBusiness, [businesses]),
+              returnValue: Future<void>.value(),
+              returnValueForMissingStub: Future<void>.value())
+          as _i12.Future<void>);
+  @override
+  _i12.Future<void> bootstraper() => (super.noSuchMethod(
+      Invocation.method(#bootstraper, []),
       returnValue: Future<void>.value(),
       returnValueForMissingStub: Future<void>.value()) as _i12.Future<void>);
   @override
