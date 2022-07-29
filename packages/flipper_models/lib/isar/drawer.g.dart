@@ -10,7 +10,7 @@ part of 'drawer.dart';
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
 
 extension GetDrawersCollection on Isar {
-  IsarCollection<Drawers> get drawerss => getCollection();
+  IsarCollection<Drawers> get drawers => collection();
 }
 
 const DrawersSchema = CollectionSchema(
@@ -109,9 +109,13 @@ void _drawersSerializeNative(
     tradeName$Bytes = IsarBinaryWriter.utf8Encoder.convert(tradeName$Value);
   }
   final size = (staticSize +
+      3 +
       (closingDateTime$Bytes?.length ?? 0) +
+      3 +
       (openingDateTime$Bytes?.length ?? 0) +
+      3 +
       (paymentMode$Bytes?.length ?? 0) +
+      3 +
       (tradeName$Bytes?.length ?? 0)) as int;
   cObj.buffer = alloc(size);
   cObj.buffer_length = size;
@@ -121,21 +125,21 @@ void _drawersSerializeNative(
   writer.writeHeader();
   writer.writeLong(offsets[0], object.cashierId);
   writer.writeDouble(offsets[1], object.closingBalance);
-  writer.writeBytes(offsets[2], closingDateTime$Bytes);
+  writer.writeByteList(offsets[2], closingDateTime$Bytes);
   writer.writeLong(offsets[3], object.csSaleCount);
   writer.writeLong(offsets[4], object.incompleteSale);
   writer.writeLong(offsets[5], object.nrSaleCount);
   writer.writeLong(offsets[6], object.nsSaleCount);
   writer.writeBool(offsets[7], object.open);
   writer.writeDouble(offsets[8], object.openingBalance);
-  writer.writeBytes(offsets[9], openingDateTime$Bytes);
+  writer.writeByteList(offsets[9], openingDateTime$Bytes);
   writer.writeLong(offsets[10], object.otherTransactions);
-  writer.writeBytes(offsets[11], paymentMode$Bytes);
+  writer.writeByteList(offsets[11], paymentMode$Bytes);
   writer.writeLong(offsets[12], object.psSaleCount);
   writer.writeDouble(offsets[13], object.totalCsSaleIncome);
   writer.writeDouble(offsets[14], object.totalNsSaleIncome);
   writer.writeLong(offsets[15], object.trSaleCount);
-  writer.writeBytes(offsets[16], tradeName$Bytes);
+  writer.writeByteList(offsets[16], tradeName$Bytes);
 }
 
 Drawers _drawersDeserializeNative(IsarCollection<Drawers> collection, int id,
@@ -239,8 +243,7 @@ Drawers _drawersDeserializeWeb(
       double.negativeInfinity;
   object.closingDateTime = IsarNative.jsObjectGet(jsObj, r'closingDateTime');
   object.csSaleCount = IsarNative.jsObjectGet(jsObj, r'csSaleCount');
-  object.id =
-      IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int);
+  object.id = IsarNative.jsObjectGet(jsObj, r'id');
   object.incompleteSale = IsarNative.jsObjectGet(jsObj, r'incompleteSale');
   object.nrSaleCount = IsarNative.jsObjectGet(jsObj, r'nrSaleCount');
   object.nsSaleCount = IsarNative.jsObjectGet(jsObj, r'nsSaleCount');
@@ -274,8 +277,7 @@ P _drawersDeserializePropWeb<P>(Object jsObj, String propertyName) {
     case r'csSaleCount':
       return (IsarNative.jsObjectGet(jsObj, r'csSaleCount')) as P;
     case r'id':
-      return (IsarNative.jsObjectGet(jsObj, r'id') ??
-          (double.negativeInfinity as int)) as P;
+      return (IsarNative.jsObjectGet(jsObj, r'id')) as P;
     case r'incompleteSale':
       return (IsarNative.jsObjectGet(jsObj, r'incompleteSale')) as P;
     case r'nrSaleCount':
@@ -2358,6 +2360,12 @@ extension DrawersQueryWhereDistinct
 
 extension DrawersQueryProperty
     on QueryBuilder<Drawers, Drawers, QQueryProperty> {
+  QueryBuilder<Drawers, int, QQueryOperations> idProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'id');
+    });
+  }
+
   QueryBuilder<Drawers, int, QQueryOperations> cashierIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'cashierId');
@@ -2379,12 +2387,6 @@ extension DrawersQueryProperty
   QueryBuilder<Drawers, int?, QQueryOperations> csSaleCountProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'csSaleCount');
-    });
-  }
-
-  QueryBuilder<Drawers, int, QQueryOperations> idProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'id');
     });
   }
 

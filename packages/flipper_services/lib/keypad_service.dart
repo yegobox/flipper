@@ -5,7 +5,7 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_models/isar_models.dart';
 
 class KeyPadService with ReactiveServiceMixin {
-  final _key = ReactiveValue<String>("0.0");
+  final _key = ReactiveValue<String>("0.00");
   final log = getLogger('KeyPadService');
   Stack stack = Stack<String>();
 
@@ -27,7 +27,7 @@ class KeyPadService with ReactiveServiceMixin {
 
   int get countOrderItems => _countOrderItems.value;
 
-  final _amountTotal = ReactiveValue<double>(0.0);
+  final _amountTotal = ReactiveValue<double>(0.00);
 
   double get amountTotal => _amountTotal.value;
 
@@ -35,7 +35,7 @@ class KeyPadService with ReactiveServiceMixin {
 
   int get check => _check.value;
 
-  final _cashReceived = ReactiveValue<double>(0.0);
+  final _cashReceived = ReactiveValue<double>(0.00);
 
   get cashReceived => _cashReceived.value;
 
@@ -76,13 +76,13 @@ class KeyPadService with ReactiveServiceMixin {
 
   Order? get order => _order.value;
 
-  final _totalPayable = ReactiveValue<double>(0.0);
+  final _totalPayable = ReactiveValue<double>(0.00);
   double get totalPayable => _totalPayable.value;
   void setTotalPayable({required double amount}) {
     _totalPayable.value = amount;
   }
 
-  final _totalDiscount = ReactiveValue<double>(0.0);
+  final _totalDiscount = ReactiveValue<double>(0.00);
   double get totalDiscount => _totalDiscount.value;
   void setTotalDiscount({required double amount}) {
     _totalDiscount.value = amount;
@@ -94,6 +94,7 @@ class KeyPadService with ReactiveServiceMixin {
     } else {
       _order.value = null;
     }
+    notifyListeners();
   }
 
   /// order can not be more than 1 lenght i.e at one instance
@@ -151,6 +152,10 @@ class KeyPadService with ReactiveServiceMixin {
     notifyListeners();
   }
 
+  /// before I used to remove the last written digit
+  /// but with new structure the clear or + button set the key back to 0.0
+  /// therefore there is no reason to use pop strategy but I am keeping the code
+  /// here for later reference.
   void pop() {
     if (stack.isNotEmpty && stack.length > 1) {
       stack.pop();

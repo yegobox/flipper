@@ -1,6 +1,7 @@
 library ui;
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class FLipperButton extends StatelessWidget {
   const FLipperButton(
@@ -35,33 +36,30 @@ class FLipperButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // final buttonStyle = ElevatedButton.styleFrom(
-    //   shape: RoundedRectangleBorder(
-    //     borderRadius: BorderRadius.circular(0),
-    //   ),
-    //   primary: color ?? colorBuilder?.call(Theme.of(context).colorScheme),
-    //   onPrimary:
-    //       labelColor ?? labelColorBuilder?.call(Theme.of(context).colorScheme),
-    // );
     return SizedBox(
       height: 52,
-      child: ElevatedButton(
+      child: OutlinedButton(
         onPressed: _disableButton ? null : onPressedCallback,
-        child: Text(_buttonName),
+        child: Text(
+          _buttonName,
+          style: GoogleFonts.poppins(
+              fontWeight: FontWeight.w400, fontSize: 20, color: Colors.white),
+        ),
         style: ButtonStyle(
-          shape: MaterialStateProperty.resolveWith((states) {
-            return RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(0),
-            );
-          }),
-          backgroundColor: MaterialStateProperty.resolveWith<Color>(
+          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(0))),
+          backgroundColor:
+              MaterialStateProperty.all<Color>(const Color(0xff006AFE)),
+          overlayColor: MaterialStateProperty.resolveWith<Color?>(
             (Set<MaterialState> states) {
-              if (states.contains(MaterialState.pressed)) {
-                return Theme.of(context).colorScheme.primary;
-              } else if (states.contains(MaterialState.disabled)) {
-                return Colors.grey.withOpacity(0.5);
+              if (states.contains(MaterialState.hovered)) {
+                return Colors.blue.withOpacity(0.04);
               }
-              return Theme.of(context).colorScheme.primary;
+              if (states.contains(MaterialState.focused) ||
+                  states.contains(MaterialState.pressed)) {
+                return Colors.blue.withOpacity(0.12);
+              }
+              return null; // Defer to the widget's default.
             },
           ),
         ),

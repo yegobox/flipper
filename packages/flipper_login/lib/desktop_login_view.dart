@@ -6,7 +6,6 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:google_ui/google_ui.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
 class DesktopLoginView extends StatefulWidget {
@@ -87,8 +86,25 @@ class _DesktopLoginViewState extends State<DesktopLoginView> {
                     ),
                     !switchToPinLogin
                         ? const Text('Use mobile app to scan and log in')
-                        : GOutlinedButton(
-                            'Switch to PIN login',
+                        : OutlinedButton(
+                            child: Text('Switch to PIN login'),
+                            style: ButtonStyle(
+                              backgroundColor: MaterialStateProperty.all<Color>(
+                                  const Color(0xff006AFE)),
+                              overlayColor:
+                                  MaterialStateProperty.resolveWith<Color?>(
+                                (Set<MaterialState> states) {
+                                  if (states.contains(MaterialState.hovered)) {
+                                    return Colors.blue.withOpacity(0.04);
+                                  }
+                                  if (states.contains(MaterialState.focused) ||
+                                      states.contains(MaterialState.pressed)) {
+                                    return Colors.blue.withOpacity(0.12);
+                                  }
+                                  return null; // Defer to the widget's default.
+                                },
+                              ),
+                            ),
                             onPressed: () {
                               loginInfo.redirecting = true;
                               GoRouter.of(context).push("/pin");

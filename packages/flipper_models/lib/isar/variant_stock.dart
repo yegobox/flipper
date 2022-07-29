@@ -37,7 +37,7 @@ class VariantStock {
     required this.value,
   });
 
-  late int id = Isar.autoIncrement;
+  Id id = Isar.autoIncrement;
   late bool canTrackingStock;
   late double retailPrice;
   late String productName;

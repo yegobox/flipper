@@ -20,6 +20,7 @@ abstract class FlipperFirestore {
   void pushVariations({required int branchId, required List<Variant> products});
   void pushStock({required int branchId, required List<Stock> products});
   void configureEbm();
+  void configureTokens();
 }
 
 class UnSupportedFirestoreApi implements FlipperFirestore {
@@ -84,6 +85,11 @@ class UnSupportedFirestoreApi implements FlipperFirestore {
   @override
   void configureEbm() {
     // TODO: implement configureEbm
+  }
+
+  @override
+  void configureTokens() {
+    // TODO: implement configureTokens
   }
 }
 
@@ -231,6 +237,31 @@ class FirestoreApi implements FlipperFirestore {
           Map<String, dynamic> data = change.doc.data() as Map<String, dynamic>;
           Ebm ebm = Ebm.fromJson(data);
           ProxyService.isarApi.update(data: ebm);
+        }
+      }
+    });
+  }
+
+  @override
+  void configureTokens() {
+    String userId = ProxyService.box.getUserId()!;
+    FirebaseFirestore.instance
+        .collection('tokens')
+        .where('userId', isEqualTo: userId)
+        .snapshots()
+        .listen((querySnapshot) {
+      for (var change in querySnapshot.docChanges) {
+        if (change.type == DocumentChangeType.added) {
+          Map<String, dynamic> data = change.doc.data() as Map<String, dynamic>;
+          Token token = Token.fromJson(data);
+
+          ProxyService.isarApi.update(data: token);
+        }
+        if (change.type == DocumentChangeType.modified) {
+          Map<String, dynamic> data = change.doc.data() as Map<String, dynamic>;
+          Token token = Token.fromJson(data);
+
+          ProxyService.isarApi.update(data: token);
         }
       }
     });

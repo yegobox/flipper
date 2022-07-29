@@ -3,7 +3,6 @@ import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_ui/google_ui.dart';
 import 'package:flipper_models/isar_models.dart' as model;
 
 class DrawerScreen extends StatefulWidget {
@@ -31,29 +30,49 @@ class _DrawerScreenState extends State<DrawerScreen> {
               Text(widget.open == "close"
                   ? "Close a Business"
                   : "Open Business"),
-              // One input field to receive amount
-              GTextFormField(
-                controller: _controller,
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null) {
-                    return "You need to enter the amount";
-                  }
-                  return null;
-                },
-                suffixIcon: const Icon(Icons.money),
-                hintText: widget.open == "open"
-                    ? "Opening balance"
-                    : "Closing balance",
-              ),
+              const Spacer(),
+              TextFormField(
+                  controller: _controller,
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null) {
+                      return "You need to enter the amount";
+                    }
+                    return null;
+                  },
+                  decoration: InputDecoration(
+                      enabled: true,
+                      border: const OutlineInputBorder(),
+                      suffixIcon: const Icon(Icons.money),
+                      hintText: widget.open == "open"
+                          ? "Opening balance"
+                          : "Closing balance")),
               Padding(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.fromLTRB(1, 8, 1, 0),
                 child: Container(
                   color: Colors.white70,
                   width: double.infinity,
                   height: 40,
-                  child: GOutlinedButton(
-                    widget.open == "open" ? "Open Drawer" : "Close Drawer",
+                  child: OutlinedButton(
+                    child: Text(
+                        widget.open == "open" ? "Open Drawer" : "Close Drawer",
+                        style: const TextStyle(color: Colors.white)),
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all<Color>(
+                          const Color(0xff006AFE)),
+                      overlayColor: MaterialStateProperty.resolveWith<Color?>(
+                        (Set<MaterialState> states) {
+                          if (states.contains(MaterialState.hovered)) {
+                            return Colors.blue.withOpacity(0.04);
+                          }
+                          if (states.contains(MaterialState.focused) ||
+                              states.contains(MaterialState.pressed)) {
+                            return Colors.blue.withOpacity(0.12);
+                          }
+                          return null; // Defer to the widget's default.
+                        },
+                      ),
+                    ),
                     onPressed: () async {
                       if (_sub.currentState!.validate()) {
                         if (widget.open == "open") {
@@ -97,7 +116,9 @@ class _DrawerScreenState extends State<DrawerScreen> {
                     },
                   ),
                 ),
-              )
+              ),
+              const Spacer(),
+              const Spacer(),
             ],
           ),
         ),

@@ -10,7 +10,7 @@ part of flipper_models;
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
 
 extension GetVariantCollection on Isar {
-  IsarCollection<Variant> get variants => getCollection();
+  IsarCollection<Variant> get variants => collection();
 }
 
 const VariantSchema = CollectionSchema(
@@ -242,35 +242,65 @@ void _variantSerializeNative(
     useYn$Bytes = IsarBinaryWriter.utf8Encoder.convert(useYn$Value);
   }
   final size = (staticSize +
+      3 +
       (addInfo$Bytes?.length ?? 0) +
+      3 +
       (bcd$Bytes?.length ?? 0) +
+      3 +
       (bhfId$Bytes?.length ?? 0) +
+      3 +
       (isrcAmt$Bytes?.length ?? 0) +
+      3 +
       (isrcAplcbYn$Bytes?.length ?? 0) +
+      3 +
       (isrcRt$Bytes?.length ?? 0) +
+      3 +
       (isrccCd$Bytes?.length ?? 0) +
+      3 +
       (isrccNm$Bytes?.length ?? 0) +
+      3 +
       (itemCd$Bytes?.length ?? 0) +
+      3 +
       (itemClsCd$Bytes?.length ?? 0) +
+      3 +
       (itemNm$Bytes?.length ?? 0) +
+      3 +
       (itemSeq$Bytes?.length ?? 0) +
+      3 +
       (itemStdNm$Bytes?.length ?? 0) +
+      3 +
       (itemTyCd$Bytes?.length ?? 0) +
+      3 +
       (modrId$Bytes?.length ?? 0) +
+      3 +
       (modrNm$Bytes?.length ?? 0) +
+      3 +
       (name$Bytes.length) +
+      3 +
       (orgnNatCd$Bytes?.length ?? 0) +
+      3 +
       (pkg$Bytes?.length ?? 0) +
+      3 +
       (pkgUnitCd$Bytes?.length ?? 0) +
+      3 +
       (productName$Bytes.length) +
+      3 +
       (qtyUnitCd$Bytes?.length ?? 0) +
+      3 +
       (regrId$Bytes?.length ?? 0) +
+      3 +
       (regrNm$Bytes?.length ?? 0) +
+      3 +
       (sku$Bytes.length) +
+      3 +
       (table$Bytes.length) +
+      3 +
       (taxName$Bytes?.length ?? 0) +
+      3 +
       (taxTyCd$Bytes?.length ?? 0) +
+      3 +
       (unit$Bytes.length) +
+      3 +
       (useYn$Bytes?.length ?? 0)) as int;
   cObj.buffer = alloc(size);
   cObj.buffer_length = size;
@@ -278,48 +308,48 @@ void _variantSerializeNative(
   final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
   final writer = IsarBinaryWriter(buffer, staticSize);
   writer.writeHeader();
-  writer.writeBytes(offsets[0], addInfo$Bytes);
-  writer.writeBytes(offsets[1], bcd$Bytes);
-  writer.writeBytes(offsets[2], bhfId$Bytes);
+  writer.writeByteList(offsets[0], addInfo$Bytes);
+  writer.writeByteList(offsets[1], bcd$Bytes);
+  writer.writeByteList(offsets[2], bhfId$Bytes);
   writer.writeLong(offsets[3], object.branchId);
   writer.writeDouble(offsets[4], object.dftPrc);
   writer.writeBool(offsets[5], object.isTaxExempted);
-  writer.writeBytes(offsets[6], isrcAmt$Bytes);
-  writer.writeBytes(offsets[7], isrcAplcbYn$Bytes);
-  writer.writeBytes(offsets[8], isrcRt$Bytes);
-  writer.writeBytes(offsets[9], isrccCd$Bytes);
-  writer.writeBytes(offsets[10], isrccNm$Bytes);
-  writer.writeBytes(offsets[11], itemCd$Bytes);
-  writer.writeBytes(offsets[12], itemClsCd$Bytes);
-  writer.writeBytes(offsets[13], itemNm$Bytes);
-  writer.writeBytes(offsets[14], itemSeq$Bytes);
-  writer.writeBytes(offsets[15], itemStdNm$Bytes);
-  writer.writeBytes(offsets[16], itemTyCd$Bytes);
-  writer.writeBytes(offsets[17], modrId$Bytes);
-  writer.writeBytes(offsets[18], modrNm$Bytes);
-  writer.writeBytes(offsets[19], name$Bytes);
-  writer.writeBytes(offsets[20], orgnNatCd$Bytes);
-  writer.writeBytes(offsets[21], pkg$Bytes);
-  writer.writeBytes(offsets[22], pkgUnitCd$Bytes);
+  writer.writeByteList(offsets[6], isrcAmt$Bytes);
+  writer.writeByteList(offsets[7], isrcAplcbYn$Bytes);
+  writer.writeByteList(offsets[8], isrcRt$Bytes);
+  writer.writeByteList(offsets[9], isrccCd$Bytes);
+  writer.writeByteList(offsets[10], isrccNm$Bytes);
+  writer.writeByteList(offsets[11], itemCd$Bytes);
+  writer.writeByteList(offsets[12], itemClsCd$Bytes);
+  writer.writeByteList(offsets[13], itemNm$Bytes);
+  writer.writeByteList(offsets[14], itemSeq$Bytes);
+  writer.writeByteList(offsets[15], itemStdNm$Bytes);
+  writer.writeByteList(offsets[16], itemTyCd$Bytes);
+  writer.writeByteList(offsets[17], modrId$Bytes);
+  writer.writeByteList(offsets[18], modrNm$Bytes);
+  writer.writeByteList(offsets[19], name$Bytes);
+  writer.writeByteList(offsets[20], orgnNatCd$Bytes);
+  writer.writeByteList(offsets[21], pkg$Bytes);
+  writer.writeByteList(offsets[22], pkgUnitCd$Bytes);
   writer.writeDouble(offsets[23], object.prc);
   writer.writeLong(offsets[24], object.productId);
-  writer.writeBytes(offsets[25], productName$Bytes);
+  writer.writeByteList(offsets[25], productName$Bytes);
   writer.writeDouble(offsets[26], object.qty);
-  writer.writeBytes(offsets[27], qtyUnitCd$Bytes);
-  writer.writeBytes(offsets[28], regrId$Bytes);
-  writer.writeBytes(offsets[29], regrNm$Bytes);
+  writer.writeByteList(offsets[27], qtyUnitCd$Bytes);
+  writer.writeByteList(offsets[28], regrId$Bytes);
+  writer.writeByteList(offsets[29], regrNm$Bytes);
   writer.writeDouble(offsets[30], object.retailPrice);
   writer.writeDouble(offsets[31], object.rsdQty);
-  writer.writeBytes(offsets[32], sku$Bytes);
+  writer.writeByteList(offsets[32], sku$Bytes);
   writer.writeDouble(offsets[33], object.splyAmt);
   writer.writeDouble(offsets[34], object.supplyPrice);
-  writer.writeBytes(offsets[35], table$Bytes);
-  writer.writeBytes(offsets[36], taxName$Bytes);
+  writer.writeByteList(offsets[35], table$Bytes);
+  writer.writeByteList(offsets[36], taxName$Bytes);
   writer.writeDouble(offsets[37], object.taxPercentage);
-  writer.writeBytes(offsets[38], taxTyCd$Bytes);
+  writer.writeByteList(offsets[38], taxTyCd$Bytes);
   writer.writeLong(offsets[39], object.tin);
-  writer.writeBytes(offsets[40], unit$Bytes);
-  writer.writeBytes(offsets[41], useYn$Bytes);
+  writer.writeByteList(offsets[40], unit$Bytes);
+  writer.writeByteList(offsets[41], useYn$Bytes);
 }
 
 Variant _variantDeserializeNative(IsarCollection<Variant> collection, int id,
@@ -523,8 +553,7 @@ Variant _variantDeserializeWeb(
   object.branchId = IsarNative.jsObjectGet(jsObj, r'branchId') ??
       (double.negativeInfinity as int);
   object.dftPrc = IsarNative.jsObjectGet(jsObj, r'dftPrc');
-  object.id =
-      IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int);
+  object.id = IsarNative.jsObjectGet(jsObj, r'id');
   object.isTaxExempted =
       IsarNative.jsObjectGet(jsObj, r'isTaxExempted') ?? false;
   object.isrcAmt = IsarNative.jsObjectGet(jsObj, r'isrcAmt');
@@ -583,8 +612,7 @@ P _variantDeserializePropWeb<P>(Object jsObj, String propertyName) {
     case r'dftPrc':
       return (IsarNative.jsObjectGet(jsObj, r'dftPrc')) as P;
     case r'id':
-      return (IsarNative.jsObjectGet(jsObj, r'id') ??
-          (double.negativeInfinity as int)) as P;
+      return (IsarNative.jsObjectGet(jsObj, r'id')) as P;
     case r'isTaxExempted':
       return (IsarNative.jsObjectGet(jsObj, r'isTaxExempted') ?? false) as P;
     case r'isrcAmt':
@@ -673,14 +701,6 @@ extension VariantQueryWhereSort on QueryBuilder<Variant, Variant, QWhere> {
   QueryBuilder<Variant, Variant, QAfterWhere> anyId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
-    });
-  }
-
-  QueryBuilder<Variant, Variant, QAfterWhere> anyName() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        const IndexWhereClause.any(indexName: r'name'),
-      );
     });
   }
 
@@ -6312,6 +6332,12 @@ extension VariantQueryWhereDistinct
 
 extension VariantQueryProperty
     on QueryBuilder<Variant, Variant, QQueryProperty> {
+  QueryBuilder<Variant, int, QQueryOperations> idProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'id');
+    });
+  }
+
   QueryBuilder<Variant, String?, QQueryOperations> addInfoProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'addInfo');
@@ -6339,12 +6365,6 @@ extension VariantQueryProperty
   QueryBuilder<Variant, double?, QQueryOperations> dftPrcProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'dftPrc');
-    });
-  }
-
-  QueryBuilder<Variant, int, QQueryOperations> idProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'id');
     });
   }
 

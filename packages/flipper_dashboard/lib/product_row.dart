@@ -36,7 +36,7 @@ class ProductRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Slidable(
-      key: Key('slidable-${product.id!}'),
+      key: Key('slidable-${product.id}'),
       child: GestureDetector(
         onTap: () {
           GoRouter.of(context).push(Routes.sell, extra: product);
@@ -108,14 +108,14 @@ class ProductRow extends StatelessWidget {
       startActionPane: ActionPane(
         // A motion is a widget used to control how the pane animates.
         motion: ScrollMotion(
-          key: Key('dismissable-${product.id!}'),
+          key: Key('dismissable-${product.id}'),
         ),
         // All actions are defined in the children parameter.
         children: [
           // A SlidableAction can have an icon and/or a label.
           SlidableAction(
             onPressed: (_) {
-              delete(product.id!);
+              delete(product.id);
             },
             backgroundColor: const Color(0xFFFE4A49),
             foregroundColor: Colors.white,
@@ -124,7 +124,7 @@ class ProductRow extends StatelessWidget {
           ),
           SlidableAction(
             onPressed: (_) {
-              edit(product.id!);
+              edit(product.id);
             },
             backgroundColor: Colors.blue,
             foregroundColor: Colors.white,
@@ -136,14 +136,14 @@ class ProductRow extends StatelessWidget {
       endActionPane: ActionPane(
         // A motion is a widget used to control how the pane animates.
         motion: ScrollMotion(
-          key: Key('dismissable-${product.id!}'),
+          key: Key('dismissable-${product.id}'),
         ),
         // All actions are defined in the children parameter.
         children: [
           // A SlidableAction can have an icon and/or a label.
           SlidableAction(
             onPressed: (_) {
-              delete(product.id!);
+              delete(product.id);
             },
             backgroundColor: const Color(0xFFFE4A49),
             foregroundColor: Colors.white,
@@ -152,7 +152,7 @@ class ProductRow extends StatelessWidget {
           ),
           SlidableAction(
             onPressed: (_) {
-              edit(product.id!);
+              edit(product.id);
             },
             backgroundColor: Colors.blue,
             foregroundColor: Colors.white,

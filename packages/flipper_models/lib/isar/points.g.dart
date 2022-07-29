@@ -9,39 +9,39 @@ part of flipper_models;
 // coverage:ignore-file
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
 
-extension GetPointsCollection on Isar {
-  IsarCollection<Points> get pointss => getCollection();
+extension GetIPointCollection on Isar {
+  IsarCollection<IPoint> get iPoints => collection();
 }
 
-const PointsSchema = CollectionSchema(
-  name: r'Points',
+const IPointSchema = CollectionSchema(
+  name: r'IPoint',
   schema:
-      r'{"name":"Points","idName":"id","properties":[{"name":"userId","type":"Long"},{"name":"value","type":"Long"}],"indexes":[{"name":"userId","unique":false,"replace":false,"properties":[{"name":"userId","type":"Value","caseSensitive":false}]}],"links":[]}',
+      r'{"name":"IPoint","idName":"id","properties":[{"name":"userId","type":"Int"},{"name":"value","type":"Long"}],"indexes":[{"name":"userId","unique":false,"replace":false,"properties":[{"name":"userId","type":"Value","caseSensitive":false}]}],"links":[]}',
   idName: r'id',
   propertyIds: {r'userId': 0, r'value': 1},
   listProperties: {},
   indexIds: {r'userId': 0},
   indexValueTypes: {
     r'userId': [
-      IndexValueType.long,
+      IndexValueType.int,
     ]
   },
   linkIds: {},
   backlinkLinkNames: {},
-  getId: _pointsGetId,
-  setId: _pointsSetId,
-  getLinks: _pointsGetLinks,
-  attachLinks: _pointsAttachLinks,
-  serializeNative: _pointsSerializeNative,
-  deserializeNative: _pointsDeserializeNative,
-  deserializePropNative: _pointsDeserializePropNative,
-  serializeWeb: _pointsSerializeWeb,
-  deserializeWeb: _pointsDeserializeWeb,
-  deserializePropWeb: _pointsDeserializePropWeb,
+  getId: _iPointGetId,
+  setId: _iPointSetId,
+  getLinks: _iPointGetLinks,
+  attachLinks: _iPointAttachLinks,
+  serializeNative: _iPointSerializeNative,
+  deserializeNative: _iPointDeserializeNative,
+  deserializePropNative: _iPointDeserializePropNative,
+  serializeWeb: _iPointSerializeWeb,
+  deserializeWeb: _iPointDeserializeWeb,
+  deserializePropWeb: _iPointDeserializePropWeb,
   version: 4,
 );
 
-int? _pointsGetId(Points object) {
+int? _iPointGetId(IPoint object) {
   if (object.id == Isar.autoIncrement) {
     return null;
   } else {
@@ -49,16 +49,16 @@ int? _pointsGetId(Points object) {
   }
 }
 
-void _pointsSetId(Points object, int id) {
+void _iPointSetId(IPoint object, int id) {
   object.id = id;
 }
 
-List<IsarLinkBase<dynamic>> _pointsGetLinks(Points object) {
+List<IsarLinkBase<dynamic>> _iPointGetLinks(IPoint object) {
   return [];
 }
 
-void _pointsSerializeNative(IsarCollection<Points> collection, IsarCObject cObj,
-    Points object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
+void _iPointSerializeNative(IsarCollection<IPoint> collection, IsarCObject cObj,
+    IPoint object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
   final size = (staticSize) as int;
   cObj.buffer = alloc(size);
   cObj.buffer_length = size;
@@ -66,27 +66,27 @@ void _pointsSerializeNative(IsarCollection<Points> collection, IsarCObject cObj,
   final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
   final writer = IsarBinaryWriter(buffer, staticSize);
   writer.writeHeader();
-  writer.writeLong(offsets[0], object.userId);
+  writer.writeInt(offsets[0], object.userId);
   writer.writeLong(offsets[1], object.value);
 }
 
-Points _pointsDeserializeNative(IsarCollection<Points> collection, int id,
+IPoint _iPointDeserializeNative(IsarCollection<IPoint> collection, int id,
     IsarBinaryReader reader, List<int> offsets) {
-  final object = Points(
+  final object = IPoint(
     id: id,
-    userId: reader.readLong(offsets[0]),
+    userId: reader.readInt(offsets[0]),
     value: reader.readLong(offsets[1]),
   );
   return object;
 }
 
-P _pointsDeserializePropNative<P>(
+P _iPointDeserializePropNative<P>(
     int id, IsarBinaryReader reader, int propertyIndex, int offset) {
   switch (propertyIndex) {
     case -1:
       return id as P;
     case 0:
-      return (reader.readLong(offset)) as P;
+      return (reader.readInt(offset)) as P;
     case 1:
       return (reader.readLong(offset)) as P;
     default:
@@ -94,7 +94,7 @@ P _pointsDeserializePropNative<P>(
   }
 }
 
-Object _pointsSerializeWeb(IsarCollection<Points> collection, Points object) {
+Object _iPointSerializeWeb(IsarCollection<IPoint> collection, IPoint object) {
   final jsObj = IsarNative.newJsObject();
   IsarNative.jsObjectSet(jsObj, r'id', object.id);
   IsarNative.jsObjectSet(jsObj, r'userId', object.userId);
@@ -102,10 +102,9 @@ Object _pointsSerializeWeb(IsarCollection<Points> collection, Points object) {
   return jsObj;
 }
 
-Points _pointsDeserializeWeb(IsarCollection<Points> collection, Object jsObj) {
-  final object = Points(
-    id: IsarNative.jsObjectGet(jsObj, r'id') ??
-        (double.negativeInfinity as int),
+IPoint _iPointDeserializeWeb(IsarCollection<IPoint> collection, Object jsObj) {
+  final object = IPoint(
+    id: IsarNative.jsObjectGet(jsObj, r'id'),
     userId: IsarNative.jsObjectGet(jsObj, r'userId') ??
         (double.negativeInfinity as int),
     value: IsarNative.jsObjectGet(jsObj, r'value') ??
@@ -114,11 +113,10 @@ Points _pointsDeserializeWeb(IsarCollection<Points> collection, Object jsObj) {
   return object;
 }
 
-P _pointsDeserializePropWeb<P>(Object jsObj, String propertyName) {
+P _iPointDeserializePropWeb<P>(Object jsObj, String propertyName) {
   switch (propertyName) {
     case r'id':
-      return (IsarNative.jsObjectGet(jsObj, r'id') ??
-          (double.negativeInfinity as int)) as P;
+      return (IsarNative.jsObjectGet(jsObj, r'id')) as P;
     case r'userId':
       return (IsarNative.jsObjectGet(jsObj, r'userId') ??
           (double.negativeInfinity as int)) as P;
@@ -130,16 +128,16 @@ P _pointsDeserializePropWeb<P>(Object jsObj, String propertyName) {
   }
 }
 
-void _pointsAttachLinks(IsarCollection<dynamic> col, int id, Points object) {}
+void _iPointAttachLinks(IsarCollection<dynamic> col, int id, IPoint object) {}
 
-extension PointsQueryWhereSort on QueryBuilder<Points, Points, QWhere> {
-  QueryBuilder<Points, Points, QAfterWhere> anyId() {
+extension IPointQueryWhereSort on QueryBuilder<IPoint, IPoint, QWhere> {
+  QueryBuilder<IPoint, IPoint, QAfterWhere> anyId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
     });
   }
 
-  QueryBuilder<Points, Points, QAfterWhere> anyUserId() {
+  QueryBuilder<IPoint, IPoint, QAfterWhere> anyUserId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         const IndexWhereClause.any(indexName: r'userId'),
@@ -148,8 +146,8 @@ extension PointsQueryWhereSort on QueryBuilder<Points, Points, QWhere> {
   }
 }
 
-extension PointsQueryWhere on QueryBuilder<Points, Points, QWhereClause> {
-  QueryBuilder<Points, Points, QAfterWhereClause> idEqualTo(int id) {
+extension IPointQueryWhere on QueryBuilder<IPoint, IPoint, QWhereClause> {
+  QueryBuilder<IPoint, IPoint, QAfterWhereClause> idEqualTo(int id) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(
         lower: id,
@@ -158,7 +156,7 @@ extension PointsQueryWhere on QueryBuilder<Points, Points, QWhereClause> {
     });
   }
 
-  QueryBuilder<Points, Points, QAfterWhereClause> idNotEqualTo(int id) {
+  QueryBuilder<IPoint, IPoint, QAfterWhereClause> idNotEqualTo(int id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -180,7 +178,7 @@ extension PointsQueryWhere on QueryBuilder<Points, Points, QWhereClause> {
     });
   }
 
-  QueryBuilder<Points, Points, QAfterWhereClause> idGreaterThan(int id,
+  QueryBuilder<IPoint, IPoint, QAfterWhereClause> idGreaterThan(int id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -189,7 +187,7 @@ extension PointsQueryWhere on QueryBuilder<Points, Points, QWhereClause> {
     });
   }
 
-  QueryBuilder<Points, Points, QAfterWhereClause> idLessThan(int id,
+  QueryBuilder<IPoint, IPoint, QAfterWhereClause> idLessThan(int id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -198,7 +196,7 @@ extension PointsQueryWhere on QueryBuilder<Points, Points, QWhereClause> {
     });
   }
 
-  QueryBuilder<Points, Points, QAfterWhereClause> idBetween(
+  QueryBuilder<IPoint, IPoint, QAfterWhereClause> idBetween(
     int lowerId,
     int upperId, {
     bool includeLower = true,
@@ -214,7 +212,7 @@ extension PointsQueryWhere on QueryBuilder<Points, Points, QWhereClause> {
     });
   }
 
-  QueryBuilder<Points, Points, QAfterWhereClause> userIdEqualTo(int userId) {
+  QueryBuilder<IPoint, IPoint, QAfterWhereClause> userIdEqualTo(int userId) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
         indexName: r'userId',
@@ -223,7 +221,7 @@ extension PointsQueryWhere on QueryBuilder<Points, Points, QWhereClause> {
     });
   }
 
-  QueryBuilder<Points, Points, QAfterWhereClause> userIdNotEqualTo(int userId) {
+  QueryBuilder<IPoint, IPoint, QAfterWhereClause> userIdNotEqualTo(int userId) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -257,7 +255,7 @@ extension PointsQueryWhere on QueryBuilder<Points, Points, QWhereClause> {
     });
   }
 
-  QueryBuilder<Points, Points, QAfterWhereClause> userIdGreaterThan(
+  QueryBuilder<IPoint, IPoint, QAfterWhereClause> userIdGreaterThan(
     int userId, {
     bool include = false,
   }) {
@@ -271,7 +269,7 @@ extension PointsQueryWhere on QueryBuilder<Points, Points, QWhereClause> {
     });
   }
 
-  QueryBuilder<Points, Points, QAfterWhereClause> userIdLessThan(
+  QueryBuilder<IPoint, IPoint, QAfterWhereClause> userIdLessThan(
     int userId, {
     bool include = false,
   }) {
@@ -285,7 +283,7 @@ extension PointsQueryWhere on QueryBuilder<Points, Points, QWhereClause> {
     });
   }
 
-  QueryBuilder<Points, Points, QAfterWhereClause> userIdBetween(
+  QueryBuilder<IPoint, IPoint, QAfterWhereClause> userIdBetween(
     int lowerUserId,
     int upperUserId, {
     bool includeLower = true,
@@ -303,8 +301,8 @@ extension PointsQueryWhere on QueryBuilder<Points, Points, QWhereClause> {
   }
 }
 
-extension PointsQueryFilter on QueryBuilder<Points, Points, QFilterCondition> {
-  QueryBuilder<Points, Points, QAfterFilterCondition> idEqualTo(int value) {
+extension IPointQueryFilter on QueryBuilder<IPoint, IPoint, QFilterCondition> {
+  QueryBuilder<IPoint, IPoint, QAfterFilterCondition> idEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -313,7 +311,7 @@ extension PointsQueryFilter on QueryBuilder<Points, Points, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Points, Points, QAfterFilterCondition> idGreaterThan(
+  QueryBuilder<IPoint, IPoint, QAfterFilterCondition> idGreaterThan(
     int value, {
     bool include = false,
   }) {
@@ -326,7 +324,7 @@ extension PointsQueryFilter on QueryBuilder<Points, Points, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Points, Points, QAfterFilterCondition> idLessThan(
+  QueryBuilder<IPoint, IPoint, QAfterFilterCondition> idLessThan(
     int value, {
     bool include = false,
   }) {
@@ -339,7 +337,7 @@ extension PointsQueryFilter on QueryBuilder<Points, Points, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Points, Points, QAfterFilterCondition> idBetween(
+  QueryBuilder<IPoint, IPoint, QAfterFilterCondition> idBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -356,7 +354,7 @@ extension PointsQueryFilter on QueryBuilder<Points, Points, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Points, Points, QAfterFilterCondition> userIdEqualTo(int value) {
+  QueryBuilder<IPoint, IPoint, QAfterFilterCondition> userIdEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'userId',
@@ -365,7 +363,7 @@ extension PointsQueryFilter on QueryBuilder<Points, Points, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Points, Points, QAfterFilterCondition> userIdGreaterThan(
+  QueryBuilder<IPoint, IPoint, QAfterFilterCondition> userIdGreaterThan(
     int value, {
     bool include = false,
   }) {
@@ -378,7 +376,7 @@ extension PointsQueryFilter on QueryBuilder<Points, Points, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Points, Points, QAfterFilterCondition> userIdLessThan(
+  QueryBuilder<IPoint, IPoint, QAfterFilterCondition> userIdLessThan(
     int value, {
     bool include = false,
   }) {
@@ -391,7 +389,7 @@ extension PointsQueryFilter on QueryBuilder<Points, Points, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Points, Points, QAfterFilterCondition> userIdBetween(
+  QueryBuilder<IPoint, IPoint, QAfterFilterCondition> userIdBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -408,7 +406,7 @@ extension PointsQueryFilter on QueryBuilder<Points, Points, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Points, Points, QAfterFilterCondition> valueEqualTo(int value) {
+  QueryBuilder<IPoint, IPoint, QAfterFilterCondition> valueEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'value',
@@ -417,7 +415,7 @@ extension PointsQueryFilter on QueryBuilder<Points, Points, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Points, Points, QAfterFilterCondition> valueGreaterThan(
+  QueryBuilder<IPoint, IPoint, QAfterFilterCondition> valueGreaterThan(
     int value, {
     bool include = false,
   }) {
@@ -430,7 +428,7 @@ extension PointsQueryFilter on QueryBuilder<Points, Points, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Points, Points, QAfterFilterCondition> valueLessThan(
+  QueryBuilder<IPoint, IPoint, QAfterFilterCondition> valueLessThan(
     int value, {
     bool include = false,
   }) {
@@ -443,7 +441,7 @@ extension PointsQueryFilter on QueryBuilder<Points, Points, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Points, Points, QAfterFilterCondition> valueBetween(
+  QueryBuilder<IPoint, IPoint, QAfterFilterCondition> valueBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -461,101 +459,101 @@ extension PointsQueryFilter on QueryBuilder<Points, Points, QFilterCondition> {
   }
 }
 
-extension PointsQueryLinks on QueryBuilder<Points, Points, QFilterCondition> {}
+extension IPointQueryLinks on QueryBuilder<IPoint, IPoint, QFilterCondition> {}
 
-extension PointsQueryWhereSortBy on QueryBuilder<Points, Points, QSortBy> {
-  QueryBuilder<Points, Points, QAfterSortBy> sortByUserId() {
+extension IPointQueryWhereSortBy on QueryBuilder<IPoint, IPoint, QSortBy> {
+  QueryBuilder<IPoint, IPoint, QAfterSortBy> sortByUserId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'userId', Sort.asc);
     });
   }
 
-  QueryBuilder<Points, Points, QAfterSortBy> sortByUserIdDesc() {
+  QueryBuilder<IPoint, IPoint, QAfterSortBy> sortByUserIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'userId', Sort.desc);
     });
   }
 
-  QueryBuilder<Points, Points, QAfterSortBy> sortByValue() {
+  QueryBuilder<IPoint, IPoint, QAfterSortBy> sortByValue() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'value', Sort.asc);
     });
   }
 
-  QueryBuilder<Points, Points, QAfterSortBy> sortByValueDesc() {
+  QueryBuilder<IPoint, IPoint, QAfterSortBy> sortByValueDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'value', Sort.desc);
     });
   }
 }
 
-extension PointsQueryWhereSortThenBy
-    on QueryBuilder<Points, Points, QSortThenBy> {
-  QueryBuilder<Points, Points, QAfterSortBy> thenById() {
+extension IPointQueryWhereSortThenBy
+    on QueryBuilder<IPoint, IPoint, QSortThenBy> {
+  QueryBuilder<IPoint, IPoint, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
     });
   }
 
-  QueryBuilder<Points, Points, QAfterSortBy> thenByIdDesc() {
+  QueryBuilder<IPoint, IPoint, QAfterSortBy> thenByIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.desc);
     });
   }
 
-  QueryBuilder<Points, Points, QAfterSortBy> thenByUserId() {
+  QueryBuilder<IPoint, IPoint, QAfterSortBy> thenByUserId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'userId', Sort.asc);
     });
   }
 
-  QueryBuilder<Points, Points, QAfterSortBy> thenByUserIdDesc() {
+  QueryBuilder<IPoint, IPoint, QAfterSortBy> thenByUserIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'userId', Sort.desc);
     });
   }
 
-  QueryBuilder<Points, Points, QAfterSortBy> thenByValue() {
+  QueryBuilder<IPoint, IPoint, QAfterSortBy> thenByValue() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'value', Sort.asc);
     });
   }
 
-  QueryBuilder<Points, Points, QAfterSortBy> thenByValueDesc() {
+  QueryBuilder<IPoint, IPoint, QAfterSortBy> thenByValueDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'value', Sort.desc);
     });
   }
 }
 
-extension PointsQueryWhereDistinct on QueryBuilder<Points, Points, QDistinct> {
-  QueryBuilder<Points, Points, QDistinct> distinctByUserId() {
+extension IPointQueryWhereDistinct on QueryBuilder<IPoint, IPoint, QDistinct> {
+  QueryBuilder<IPoint, IPoint, QDistinct> distinctByUserId() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'userId');
     });
   }
 
-  QueryBuilder<Points, Points, QDistinct> distinctByValue() {
+  QueryBuilder<IPoint, IPoint, QDistinct> distinctByValue() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'value');
     });
   }
 }
 
-extension PointsQueryProperty on QueryBuilder<Points, Points, QQueryProperty> {
-  QueryBuilder<Points, int, QQueryOperations> idProperty() {
+extension IPointQueryProperty on QueryBuilder<IPoint, IPoint, QQueryProperty> {
+  QueryBuilder<IPoint, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
     });
   }
 
-  QueryBuilder<Points, int, QQueryOperations> userIdProperty() {
+  QueryBuilder<IPoint, int, QQueryOperations> userIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'userId');
     });
   }
 
-  QueryBuilder<Points, int, QQueryOperations> valueProperty() {
+  QueryBuilder<IPoint, int, QQueryOperations> valueProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'value');
     });

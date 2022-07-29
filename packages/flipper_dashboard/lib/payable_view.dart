@@ -1,10 +1,8 @@
-// import 'package:flipper_models/view_models/pos_viewmodel.dart';
 import 'dart:developer';
-
+import 'package:flipper_dashboard/preview_sale_button.dart';
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_models/isar_models.dart';
 import 'package:flutter/material.dart';
-import 'package:number_display/number_display.dart';
-//
 
 class PayableView extends StatelessWidget {
   const PayableView(
@@ -13,59 +11,57 @@ class PayableView extends StatelessWidget {
       this.duePay = 0,
       this.orders = 0,
       required this.onClick,
-      required this.ticketHandler})
+      required this.ticketHandler,
+      required this.saleCounts,
+      required this.model})
       : super(key: key);
   final double tickets;
   final int orders;
   final double? duePay;
   final Function onClick;
   final Function ticketHandler;
+  final int saleCounts;
+  final BusinessHomeViewModel model;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      color: Theme.of(context).primaryColor,
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(19.0, 0, 19.0, 30.5),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
           Expanded(
-            child: InkWell(
-              onTap: () {
-                ticketHandler();
-              },
-              child: Container(
-                alignment: Alignment.center,
-                height: 60,
-                width: MediaQuery.of(context).size.width,
-                color: Theme.of(context).primaryColor,
-                child: ticketText(
-                    tickets: tickets.toInt(), orders: orders, context: context),
-              ),
-            ),
-          ),
-          Expanded(
-            child: InkWell(
-              onTap: () {
-                onClick();
-              },
-              child: Container(
-                alignment: Alignment.center,
-                height: 60,
-                width: MediaQuery.of(context).size.width,
-                color: Theme.of(context).primaryColor,
-                child: GestureDetector(
-                  onTap: () {
-                    onClick();
-                  },
-                  child: callCharge(
-                    payable: duePay ?? 0.00,
-                    context: context,
+              child: SizedBox(
+            height: 64,
+            child: OutlinedButton(
+                style: ButtonStyle(
+                  backgroundColor:
+                      MaterialStateProperty.all<Color>(const Color(0xffF2F2F2)),
+                  overlayColor: MaterialStateProperty.resolveWith<Color?>(
+                    (Set<MaterialState> states) {
+                      if (states.contains(MaterialState.hovered)) {
+                        return Colors.blue.withOpacity(0.04);
+                      }
+                      if (states.contains(MaterialState.focused) ||
+                          states.contains(MaterialState.pressed)) {
+                        return Colors.blue.withOpacity(0.12);
+                      }
+                      return null; // Defer to the widget's default.
+                    },
                   ),
                 ),
-              ),
-            ),
+                onPressed: () {
+                  ticketHandler();
+                },
+                child: ticketText(
+                    tickets: tickets.toInt(),
+                    orders: orders,
+                    context: context)),
+          )),
+          const SizedBox(
+            width: 10,
           ),
+          PreviewSaleButton(saleCounts: saleCounts, model: model)
         ],
       ),
     );
@@ -83,7 +79,7 @@ class PayableView extends StatelessWidget {
         style: const TextStyle(
           fontSize: 19,
           fontWeight: FontWeight.w500,
-          color: Colors.white,
+          color: Colors.black,
         ),
       );
     } else if (orders > 0) {
@@ -96,7 +92,7 @@ class PayableView extends StatelessWidget {
             style: const TextStyle(
               fontSize: 19,
               fontWeight: FontWeight.w500,
-              color: Colors.white,
+              color: Colors.black,
             ),
           ),
           Text(
@@ -106,59 +102,13 @@ class PayableView extends StatelessWidget {
             style: const TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w400,
-              color: Colors.white,
+              color: Colors.black,
             ),
           )
         ],
       );
     } else {
       return const SizedBox.shrink();
-    }
-  }
-
-  Widget callCharge({required double payable, required BuildContext context}) {
-    final display = createDisplay(
-      length: 8,
-      decimal: 4,
-    );
-    if (payable == 0.0) {
-      return Text(
-        FLocalization.of(context).charge + ' FRw ' + payable.toString(),
-        style: const TextStyle(
-          fontSize: 19,
-          color: Colors.white,
-        ),
-      );
-    } else {
-      return Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Text(
-            FLocalization.of(context).charge,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 19,
-              fontWeight: FontWeight.w500,
-              color: Colors.white,
-            ),
-          ),
-          Flexible(
-            child: Container(
-              padding: const EdgeInsets.only(left: 10),
-              child: Text(
-                'FRw' + display(payable).toString(),
-                textAlign: TextAlign.center,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w400,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          )
-        ],
-      );
     }
   }
 }

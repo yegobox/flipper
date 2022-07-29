@@ -24,7 +24,7 @@ class ProductViewModel extends ReactiveViewModel {
 
   List<PColor> get colors => _appService.colors;
 
-  List<Unit> get units => _appService.units;
+  List<IUnit> get units => _appService.units;
 
   get categories => _appService.categories;
 
@@ -56,9 +56,9 @@ class ProductViewModel extends ReactiveViewModel {
       Product? product = await ProxyService.isarApi.getProduct(id: productId);
       productService.setCurrentProduct(product: product!);
       kProductName = product.name;
-      productService.variantsProduct(productId: product.id!);
+      productService.variantsProduct(productId: product.id);
       notifyListeners();
-      return product.id!;
+      return product.id;
     }
     int branchId = ProxyService.box.getBranchId()!;
     Product? isTemp =
@@ -71,19 +71,19 @@ class ProductViewModel extends ReactiveViewModel {
             ..color = "#5A2328"
             ..branchId = ProxyService.box.getBranchId()!
             ..businessId = ProxyService.box.getBusinessId()!);
-      await productService.variantsProduct(productId: product.id!);
+      await productService.variantsProduct(productId: product.id);
 
       productService.setCurrentProduct(product: product);
       kProductName = product.name;
-      log.i(product.id!);
+      log.i(product.id);
       notifyListeners();
-      return product.id!;
+      return product.id;
     }
     productService.setCurrentProduct(product: isTemp);
-    await productService.variantsProduct(productId: isTemp.id!);
+    await productService.variantsProduct(productId: isTemp.id);
     notifyListeners();
     log.i(isTemp.id);
-    return isTemp.id!;
+    return isTemp.id;
   }
 
   void isPriceSet(bool price) {
@@ -159,8 +159,8 @@ class ProductViewModel extends ReactiveViewModel {
   /// Should save a focused unit given the id to persist to
   /// the Id can be ID of product or variant
   void saveFocusedUnit(
-      {required Unit newUnit, int? id, required String type}) async {
-    for (Unit unit in units) {
+      {required IUnit newUnit, int? id, required String type}) async {
+    for (IUnit unit in units) {
       if (unit.active) {
         unit.active = !unit.active;
         unit.branchId = ProxyService.box.getBranchId()!;
@@ -169,7 +169,7 @@ class ProductViewModel extends ReactiveViewModel {
         );
       }
     }
-    Unit unit = newUnit;
+    IUnit unit = newUnit;
     unit.active = !unit.active;
     unit.branchId = ProxyService.box.getBranchId()!;
     await ProxyService.isarApi.update(
@@ -337,12 +337,12 @@ class ProductViewModel extends ReactiveViewModel {
     mproduct.color = currentColor;
     mproduct.draft = false;
     List<Variant> variants = await ProxyService.isarApi
-        .getVariantByProductId(productId: mproduct.id!);
+        .getVariantByProductId(productId: mproduct.id);
 
     for (Variant variant in variants) {
       variant.productName = name;
       variant.prc = variant.retailPrice;
-      variant.productId = mproduct.id!;
+      variant.productId = mproduct.id;
       variant.pkgUnitCd = "NT";
       await ProxyService.isarApi.update(data: variant);
       if (await ProxyService.isarApi.isTaxEnabled()) {

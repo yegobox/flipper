@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_ui/google_ui.dart';
+
+import 'gerror_message.dart';
 
 class NoNet extends StatelessWidget {
   const NoNet({Key? key}) : super(key: key);

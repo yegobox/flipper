@@ -10,7 +10,7 @@ part of 'order.dart';
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
 
 extension GetOrderCollection on Isar {
-  IsarCollection<Order> get orders => getCollection();
+  IsarCollection<Order> get orders => collection();
 }
 
 const OrderSchema = CollectionSchema(
@@ -108,14 +108,23 @@ void _orderSerializeNative(IsarCollection<Order> collection, IsarCObject cObj,
     updatedAt$Bytes = IsarBinaryWriter.utf8Encoder.convert(updatedAt$Value);
   }
   final size = (staticSize +
+      3 +
       (createdAt$Bytes.length) +
+      3 +
       (note$Bytes?.length ?? 0) +
+      3 +
       (orderNumber$Bytes.length) +
+      3 +
       (orderType$Bytes.length) +
+      3 +
       (paymentType$Bytes.length) +
+      3 +
       (receiptType$Bytes?.length ?? 0) +
+      3 +
       (reference$Bytes.length) +
+      3 +
       (status$Bytes.length) +
+      3 +
       (updatedAt$Bytes?.length ?? 0)) as int;
   cObj.buffer = alloc(size);
   cObj.buffer_length = size;
@@ -126,20 +135,20 @@ void _orderSerializeNative(IsarCollection<Order> collection, IsarCObject cObj,
   writer.writeBool(offsets[0], object.active);
   writer.writeLong(offsets[1], object.branchId);
   writer.writeDouble(offsets[2], object.cashReceived);
-  writer.writeBytes(offsets[3], createdAt$Bytes);
+  writer.writeByteList(offsets[3], createdAt$Bytes);
   writer.writeDouble(offsets[4], object.customerChangeDue);
   writer.writeLong(offsets[5], object.customerId);
   writer.writeBool(offsets[6], object.draft);
-  writer.writeBytes(offsets[7], note$Bytes);
-  writer.writeBytes(offsets[8], orderNumber$Bytes);
-  writer.writeBytes(offsets[9], orderType$Bytes);
-  writer.writeBytes(offsets[10], paymentType$Bytes);
-  writer.writeBytes(offsets[11], receiptType$Bytes);
-  writer.writeBytes(offsets[12], reference$Bytes);
+  writer.writeByteList(offsets[7], note$Bytes);
+  writer.writeByteList(offsets[8], orderNumber$Bytes);
+  writer.writeByteList(offsets[9], orderType$Bytes);
+  writer.writeByteList(offsets[10], paymentType$Bytes);
+  writer.writeByteList(offsets[11], receiptType$Bytes);
+  writer.writeByteList(offsets[12], reference$Bytes);
   writer.writeBool(offsets[13], object.reported);
-  writer.writeBytes(offsets[14], status$Bytes);
+  writer.writeByteList(offsets[14], status$Bytes);
   writer.writeDouble(offsets[15], object.subTotal);
-  writer.writeBytes(offsets[16], updatedAt$Bytes);
+  writer.writeByteList(offsets[16], updatedAt$Bytes);
 }
 
 Order _orderDeserializeNative(IsarCollection<Order> collection, int id,
@@ -247,8 +256,7 @@ Order _orderDeserializeWeb(IsarCollection<Order> collection, Object jsObj) {
           double.negativeInfinity;
   object.customerId = IsarNative.jsObjectGet(jsObj, r'customerId');
   object.draft = IsarNative.jsObjectGet(jsObj, r'draft') ?? false;
-  object.id =
-      IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int);
+  object.id = IsarNative.jsObjectGet(jsObj, r'id');
   object.note = IsarNative.jsObjectGet(jsObj, r'note');
   object.orderNumber = IsarNative.jsObjectGet(jsObj, r'orderNumber') ?? '';
   object.orderType = IsarNative.jsObjectGet(jsObj, r'orderType') ?? '';
@@ -260,10 +268,7 @@ Order _orderDeserializeWeb(IsarCollection<Order> collection, Object jsObj) {
   object.subTotal =
       IsarNative.jsObjectGet(jsObj, r'subTotal') ?? double.negativeInfinity;
   object.updatedAt = IsarNative.jsObjectGet(jsObj, r'updatedAt');
-  _orderAttachLinks(
-      collection,
-      IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int),
-      object);
+  _orderAttachLinks(collection, IsarNative.jsObjectGet(jsObj, r'id'), object);
   return object;
 }
 
@@ -287,8 +292,7 @@ P _orderDeserializePropWeb<P>(Object jsObj, String propertyName) {
     case r'draft':
       return (IsarNative.jsObjectGet(jsObj, r'draft') ?? false) as P;
     case r'id':
-      return (IsarNative.jsObjectGet(jsObj, r'id') ??
-          (double.negativeInfinity as int)) as P;
+      return (IsarNative.jsObjectGet(jsObj, r'id')) as P;
     case r'note':
       return (IsarNative.jsObjectGet(jsObj, r'note')) as P;
     case r'orderNumber':
@@ -331,14 +335,6 @@ extension OrderQueryWhereSort on QueryBuilder<Order, Order, QWhere> {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         const IndexWhereClause.any(indexName: r'branchId'),
-      );
-    });
-  }
-
-  QueryBuilder<Order, Order, QAfterWhere> anyStatusBranchId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        const IndexWhereClause.any(indexName: r'status_branchId'),
       );
     });
   }
@@ -2532,6 +2528,12 @@ extension OrderQueryWhereDistinct on QueryBuilder<Order, Order, QDistinct> {
 }
 
 extension OrderQueryProperty on QueryBuilder<Order, Order, QQueryProperty> {
+  QueryBuilder<Order, int, QQueryOperations> idProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'id');
+    });
+  }
+
   QueryBuilder<Order, bool, QQueryOperations> activeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'active');
@@ -2571,12 +2573,6 @@ extension OrderQueryProperty on QueryBuilder<Order, Order, QQueryProperty> {
   QueryBuilder<Order, bool, QQueryOperations> draftProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'draft');
-    });
-  }
-
-  QueryBuilder<Order, int, QQueryOperations> idProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'id');
     });
   }
 

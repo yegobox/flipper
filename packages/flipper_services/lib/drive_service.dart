@@ -7,7 +7,6 @@ import 'package:flipper_models/isar_models.dart';
 import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:path/path.dart' as path;
 import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'extension_google_sign_in_as_googleapis_auth.dart';
@@ -123,8 +122,8 @@ class GoogleDrive {
   /// and the second login will not prompt the user to login
   Future upload() async {
     // download files first before uploading
-    Directory dir = await getApplicationDocumentsDirectory();
-    File file = File(path.context.canonicalize(dir.path + '/isar/mdbx.dat'));
+    final dir = ProxyService.isarApi.dbPath();
+    File file = File(path.context.canonicalize(dir + '/mdbx.dat'));
     // end of download
     http.Client? client = await silentLogin();
     Future.delayed(const Duration(seconds: 20));
@@ -170,9 +169,9 @@ class GoogleDrive {
     ga.Media file = (await drive.files
         .get(gdID, downloadOptions: ga.DownloadOptions.fullMedia)) as ga.Media;
 
-    final dir = await getApplicationDocumentsDirectory();
+    final dir = ProxyService.isarApi.dbPath();
 
-    final saveFile = File(dir.path + '/isar/$fName');
+    final saveFile = File(dir + '/$fName');
 
     List<int> dataStore = [];
 

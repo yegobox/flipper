@@ -133,5 +133,13 @@ class CronService {
         }
       }
     });
+    cron.schedule(Schedule.parse('*/1 * * * *'), () async {
+      /// get unsynced counter and send them online for houseKeping.
+      List<Counter> counters = await ProxyService.isarApi
+          .unSyncedCounters(branchId: ProxyService.box.getBranchId()!);
+      for (Counter counter in counters) {
+        ProxyService.isarApi.update(data: counter..backed = true);
+      }
+    });
   }
 }

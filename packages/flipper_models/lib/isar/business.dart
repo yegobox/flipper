@@ -65,7 +65,7 @@ class Business {
     this.isDefault,
     this.id,
   });
-  int? id;
+  Id? id = Isar.autoIncrement;
   String? name;
   String? currency;
   String? categoryId;

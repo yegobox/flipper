@@ -8,7 +8,6 @@ import 'package:flipper_ui/flipper_ui.dart';
 
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:google_ui/google_ui.dart';
 
 class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
   final username = TextFieldBloc(
@@ -124,7 +123,6 @@ class SignUpFormView extends StatelessWidget with $SignUpFormView {
                           padding: const EdgeInsets.only(
                               left: 0.0, right: 0.0, top: 20.0),
                           child: TextFieldBlocBuilder(
-                            // decoration: InputDecoration(hintText: 'Name'),
                             textFieldBloc: formBloc.username,
                             suffixButton: SuffixButton.asyncValidating,
                             keyboardType: TextInputType.text,
@@ -138,7 +136,6 @@ class SignUpFormView extends StatelessWidget with $SignUpFormView {
                           padding: const EdgeInsets.only(
                               left: 0.0, right: 0.0, top: 0.0),
                           child: TextFieldBlocBuilder(
-                            // decoration: InputDecoration(hintText: 'Name'),
                             textFieldBloc: formBloc.fullName,
                             suffixButton: SuffixButton.asyncValidating,
                             keyboardType: TextInputType.text,
@@ -175,46 +172,6 @@ class SignUpFormView extends StatelessWidget with $SignUpFormView {
                           ),
                         ),
                         const Text('How do you want to use flipper?'),
-                        // DropdownButtonFormField<String>(
-                        //   value: model.businessType,
-                        //   icon: const Icon(
-                        //     Icons.arrow_downward,
-                        //     color: Colors.white,
-                        //   ),
-                        //   iconSize: 24,
-                        //   elevation: 16,
-                        //   style: const TextStyle(color: Colors.deepPurple),
-                        //   decoration: InputDecoration(
-                        //     enabledBorder: OutlineInputBorder(
-                        //       borderSide: BorderSide(
-                        //         color: Theme.of(context).primaryColor,
-                        //         width: 2,
-                        //       ),
-                        //       borderRadius: BorderRadius.circular(4),
-                        //     ),
-                        //     border: OutlineInputBorder(
-                        //       borderSide: BorderSide(
-                        //           color: Theme.of(context).primaryColor,
-                        //           width: 4),
-                        //       borderRadius: BorderRadius.circular(4),
-                        //     ),
-                        //     filled: true,
-                        //     fillColor: Theme.of(context).primaryColor,
-                        //   ),
-                        //   onChanged: (String? style) {
-                        //     model.setBuinessType(type: style!);
-                        //   },
-                        //   items: <String>['Business', 'Social']
-                        //       .map<DropdownMenuItem<String>>((String value) {
-                        //     return DropdownMenuItem<String>(
-                        //       value: value,
-                        //       child: Text(
-                        //         value,
-                        //         style: const TextStyle(color: Colors.white),
-                        //       ),
-                        //     );
-                        //   }).toList(),
-                        // ),
                         !model.registerStart
                             ? Padding(
                                 padding: const EdgeInsets.only(
@@ -222,8 +179,31 @@ class SignUpFormView extends StatelessWidget with $SignUpFormView {
                                 child: SizedBox(
                                   width: double.infinity,
                                   height: 50,
-                                  child: GElevatedButton(
-                                    'Register',
+                                  child: OutlinedButton(
+                                    child: Text('Register'),
+                                    style: ButtonStyle(
+                                      backgroundColor:
+                                          MaterialStateProperty.all<Color>(
+                                              const Color(0xff006AFE)),
+                                      overlayColor: MaterialStateProperty
+                                          .resolveWith<Color?>(
+                                        (Set<MaterialState> states) {
+                                          if (states.contains(
+                                              MaterialState.hovered)) {
+                                            return Colors.blue
+                                                .withOpacity(0.04);
+                                          }
+                                          if (states.contains(
+                                                  MaterialState.focused) ||
+                                              states.contains(
+                                                  MaterialState.pressed)) {
+                                            return Colors.blue
+                                                .withOpacity(0.12);
+                                          }
+                                          return null; // Defer to the widget's default.
+                                        },
+                                      ),
+                                    ),
                                     onPressed: formBloc.submit,
                                   ),
                                 ),

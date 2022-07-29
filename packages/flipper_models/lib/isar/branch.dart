@@ -20,7 +20,7 @@ class Branch {
     required this.isDefault,
   });
 
-  int? id;
+  Id? id = Isar.autoIncrement;
   bool? active;
 
   String? description;

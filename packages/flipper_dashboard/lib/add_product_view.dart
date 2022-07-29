@@ -18,7 +18,6 @@ import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_ui/google_ui.dart';
 
 class AddProductView extends StatefulWidget {
   const AddProductView({Key? key, this.productId}) : super(key: key);
@@ -119,7 +118,7 @@ class _AddProductViewState extends State<AddProductView> {
               bottomSpacer: 50,
             ),
             body: ListView(
-              physics: const AlwaysScrollableScrollPhysics(), // new
+              physics: const AlwaysScrollableScrollPhysics(),
               children: <Widget>[
                 Column(children: <Widget>[
                   verticalSpaceSmall,
@@ -134,8 +133,11 @@ class _AddProductViewState extends State<AddProductView> {
                     padding: const EdgeInsets.only(left: 18, right: 18),
                     child: SizedBox(
                       width: double.infinity,
-                      child: GTextFormField(
-                        hintText: "Product Name",
+                      child: TextFormField(
+                        decoration: const InputDecoration(
+                            enabled: true,
+                            border: OutlineInputBorder(),
+                            hintText: "Product Name"),
                         controller: productName,
                         onChanged: (value) {
                           /// for locking on unlocking the save button
@@ -195,14 +197,31 @@ class _AddProductViewState extends State<AddProductView> {
                     padding: const EdgeInsets.only(left: 18, right: 18),
                     child: SizedBox(
                       width: double.infinity,
-                      child: GOutlinedButton(
-                        (model.product == null ||
+                      child: OutlinedButton(
+                        child: Text((model.product == null ||
                                 (model.product != null &&
                                     model.product.expiryDate == null))
                             ? 'Expiry Date'
                             : 'Expires at ' +
                                 formatter.format(
-                                    DateTime.parse(model.product.expiryDate)),
+                                    DateTime.parse(model.product.expiryDate))),
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all<Color>(
+                              const Color(0xff006AFE)),
+                          overlayColor:
+                              MaterialStateProperty.resolveWith<Color?>(
+                            (Set<MaterialState> states) {
+                              if (states.contains(MaterialState.hovered)) {
+                                return Colors.blue.withOpacity(0.04);
+                              }
+                              if (states.contains(MaterialState.focused) ||
+                                  states.contains(MaterialState.pressed)) {
+                                return Colors.blue.withOpacity(0.12);
+                              }
+                              return null; // Defer to the widget's default.
+                            },
+                          ),
+                        ),
                         onPressed: () {
                           DatePicker.showPicker(context, showTitleActions: true,
                               onChanged: (date) {

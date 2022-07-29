@@ -5,11 +5,10 @@ part 'conversation.g.dart';
 
 @Collection()
 class Conversation {
-  late int id = Isar.autoIncrement;
-
+  Id id = Isar.autoIncrement;
+  @Ignore()
   Map<String, dynamic>? avatars;
-
-  ///  a list of the names initials of the people in the conversation
+  @Ignore()
   Map<String, dynamic>? initials;
 
   late String? lastMessage;

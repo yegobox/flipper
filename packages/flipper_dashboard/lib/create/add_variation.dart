@@ -9,7 +9,6 @@ import 'package:flipper_models/isar_models.dart';
 import 'package:stacked/stacked.dart';
 import 'package:go_router/go_router.dart';
 import 'divider.dart';
-import 'package:google_ui/google_ui.dart';
 
 class AddVariation extends StatefulWidget {
   const AddVariation({Key? key, required this.productId}) : super(key: key);
@@ -136,22 +135,25 @@ class _AddVariationState extends State<AddVariation> {
                           padding: const EdgeInsets.only(left: 18, right: 18),
                           child: SizedBox(
                             width: double.infinity,
-                            child: GTextFormField(
-                              controller: nameController,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Name required';
-                                }
-                                return null;
-                              },
-                              onChanged: (String _name) {
-                                if (_name.isEmpty) {
-                                  return;
-                                }
-                                model.lock;
-                              },
-                              hintText: FLocalization.of(context).productName,
-                            ),
+                            child: TextFormField(
+                                controller: nameController,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Name required';
+                                  }
+                                  return null;
+                                },
+                                onChanged: (String _name) {
+                                  if (_name.isEmpty) {
+                                    return;
+                                  }
+                                  model.lock;
+                                },
+                                decoration: InputDecoration(
+                                    enabled: true,
+                                    border: const OutlineInputBorder(),
+                                    hintText:
+                                        FLocalization.of(context).productName)),
                           ),
                         ),
                         const CenterDivider(
@@ -169,17 +171,20 @@ class _AddVariationState extends State<AddVariation> {
                           padding: const EdgeInsets.only(left: 18, right: 18),
                           child: SizedBox(
                             width: double.infinity,
-                            child: GTextFormField(
-                              onChanged: (String value) {
-                                if (value == '') {
-                                  sku = DateTime.now().year.toString() +
-                                      const Uuid().v1().substring(0, 4);
-                                } else {
-                                  sku = DateTime.now().year.toString() + sku;
-                                }
-                              },
-                              hintText: 'SKU',
-                            ),
+                            child: TextFormField(
+                                onChanged: (String value) {
+                                  if (value == '') {
+                                    sku = DateTime.now().year.toString() +
+                                        const Uuid().v1().substring(0, 4);
+                                  } else {
+                                    sku = DateTime.now().year.toString() + sku;
+                                  }
+                                },
+                                decoration: const InputDecoration(
+                                    enabled: true,
+                                    border: OutlineInputBorder(),
+                                    suffixIcon: Icon(Icons.book),
+                                    hintText: "SKU")),
                           ),
                         ),
                         SwitchListTile(
@@ -224,7 +229,7 @@ class _AddVariationState extends State<AddVariation> {
       padding: const EdgeInsets.only(left: 18, right: 18),
       child: SizedBox(
         width: double.infinity,
-        child: GTextFormField(
+        child: TextFormField(
           keyboardType: TextInputType.number,
           validator: (value) {
             if (value == null || value.isEmpty) {
@@ -236,7 +241,10 @@ class _AddVariationState extends State<AddVariation> {
             return null;
           },
           controller: costController,
-          hintText: FLocalization.of(context).supplyPrice,
+          decoration: InputDecoration(
+              enabled: true,
+              border: const OutlineInputBorder(),
+              hintText: FLocalization.of(context).supplyPrice),
         ),
       ),
     );
@@ -247,20 +255,23 @@ class _AddVariationState extends State<AddVariation> {
       padding: const EdgeInsets.only(left: 18, right: 18),
       child: SizedBox(
         width: double.infinity,
-        child: GTextFormField(
-          keyboardType: TextInputType.number,
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Retail price required';
-            }
-            if (!isNumeric(value)) {
-              return 'Should be a number';
-            }
-            return null;
-          },
-          controller: retailController,
-          hintText: FLocalization.of(context).retailPrice,
-        ),
+        child: TextFormField(
+            keyboardType: TextInputType.number,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Retail price required';
+              }
+              if (!isNumeric(value)) {
+                return 'Should be a number';
+              }
+              return null;
+            },
+            controller: retailController,
+            decoration: InputDecoration(
+                enabled: true,
+                border: const OutlineInputBorder(),
+                suffixIcon: const Icon(Icons.book),
+                hintText: FLocalization.of(context).retailPrice)),
       ),
     );
   }

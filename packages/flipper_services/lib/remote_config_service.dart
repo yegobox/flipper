@@ -34,6 +34,7 @@ class RemoteConfigService implements Remote {
       'isTwitterLoginAvailable': false,
       'isFacebookLoginAvailable': false,
       'supportLine': "+250783054874",
+      'isMarketingFeatureEnabled': true
     });
   }
 
@@ -215,6 +216,11 @@ class RemoteConfigService implements Remote {
   String supportLine() {
     return remoteConfig.getString('supportLine');
   }
+
+  @override
+  bool isMarketingFeatureEnabled() {
+    return remoteConfig.getBool('isMarketingFeatureEnabled');
+  }
 }
 
 class RemoteConfigWindows implements Remote {
@@ -357,5 +363,10 @@ class RemoteConfigWindows implements Remote {
   @override
   String supportLine() {
     return "+250783054874";
+  }
+
+  @override
+  bool isMarketingFeatureEnabled() {
+    return false;
   }
 }

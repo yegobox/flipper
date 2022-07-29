@@ -10,7 +10,7 @@ void main() {
   group('Isar API', () {
     late Isar isar;
     late Product product;
-    setupLocator();
+
     late Order order;
 
     setUp(() async {
@@ -23,26 +23,27 @@ void main() {
         VariantSchema,
         ProfileSchema,
         SubscriptionSchema,
-        PointsSchema,
+        IPointSchema,
         StockSchema,
         FeatureSchema,
         VoucherSchema,
         PColorSchema,
         CategorySchema,
-        UnitSchema,
+        IUnitSchema,
         SettingSchema,
         DiscountSchema,
         CustomerSchema,
         PinSchema,
         ReceiptSchema,
       ]);
-      IsarAPI.instance(isarRef: isar);
+      IsarAPI().getInstance(iisar: isar);
+      await setupLocator();
       registerServices();
     });
 
     tearDown(() async {
       unregisterServices();
-      await isar.close();
+      // await isar.close();
     });
 
     isarTest('Test we have a Testing product', () async {

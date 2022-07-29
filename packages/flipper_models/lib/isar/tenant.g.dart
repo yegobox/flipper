@@ -10,7 +10,7 @@ part of flipper_models;
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
 
 extension GetITenantCollection on Isar {
-  IsarCollection<ITenant> get iTenants => getCollection();
+  IsarCollection<ITenant> get iTenants => collection();
 }
 
 const ITenantSchema = CollectionSchema(
@@ -65,8 +65,11 @@ void _iTenantSerializeNative(
   final phoneNumber$Bytes =
       IsarBinaryWriter.utf8Encoder.convert(object.phoneNumber);
   final size = (staticSize +
+      3 +
       (email$Bytes.length) +
+      3 +
       (name$Bytes.length) +
+      3 +
       (phoneNumber$Bytes.length)) as int;
   cObj.buffer = alloc(size);
   cObj.buffer_length = size;
@@ -75,9 +78,9 @@ void _iTenantSerializeNative(
   final writer = IsarBinaryWriter(buffer, staticSize);
   writer.writeHeader();
   writer.writeLong(offsets[0], object.businessId);
-  writer.writeBytes(offsets[1], email$Bytes);
-  writer.writeBytes(offsets[2], name$Bytes);
-  writer.writeBytes(offsets[3], phoneNumber$Bytes);
+  writer.writeByteList(offsets[1], email$Bytes);
+  writer.writeByteList(offsets[2], name$Bytes);
+  writer.writeByteList(offsets[3], phoneNumber$Bytes);
 }
 
 ITenant _iTenantDeserializeNative(IsarCollection<ITenant> collection, int id,
@@ -829,6 +832,12 @@ extension ITenantQueryWhereDistinct
 
 extension ITenantQueryProperty
     on QueryBuilder<ITenant, ITenant, QQueryProperty> {
+  QueryBuilder<ITenant, int, QQueryOperations> idProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'id');
+    });
+  }
+
   QueryBuilder<ITenant, int, QQueryOperations> businessIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'businessId');
@@ -838,12 +847,6 @@ extension ITenantQueryProperty
   QueryBuilder<ITenant, String, QQueryOperations> emailProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'email');
-    });
-  }
-
-  QueryBuilder<ITenant, int?, QQueryOperations> idProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'id');
     });
   }
 

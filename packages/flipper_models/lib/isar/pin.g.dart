@@ -10,7 +10,7 @@ part of 'pin.dart';
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
 
 extension GetPinCollection on Isar {
-  IsarCollection<Pin> get pins => getCollection();
+  IsarCollection<Pin> get pins => collection();
 }
 
 const PinSchema = CollectionSchema(
@@ -64,8 +64,11 @@ void _pinSerializeNative(IsarCollection<Pin> collection, IsarCObject cObj,
   final phoneNumber$Bytes =
       IsarBinaryWriter.utf8Encoder.convert(object.phoneNumber);
   final userId$Bytes = IsarBinaryWriter.utf8Encoder.convert(object.userId);
-  final size =
-      (staticSize + (phoneNumber$Bytes.length) + (userId$Bytes.length)) as int;
+  final size = (staticSize +
+      3 +
+      (phoneNumber$Bytes.length) +
+      3 +
+      (userId$Bytes.length)) as int;
   cObj.buffer = alloc(size);
   cObj.buffer_length = size;
 
@@ -74,9 +77,9 @@ void _pinSerializeNative(IsarCollection<Pin> collection, IsarCObject cObj,
   writer.writeHeader();
   writer.writeLong(offsets[0], object.branchId);
   writer.writeLong(offsets[1], object.businessId);
-  writer.writeBytes(offsets[2], phoneNumber$Bytes);
+  writer.writeByteList(offsets[2], phoneNumber$Bytes);
   writer.writeLong(offsets[3], object.pin);
-  writer.writeBytes(offsets[4], userId$Bytes);
+  writer.writeByteList(offsets[4], userId$Bytes);
 }
 
 Pin _pinDeserializeNative(IsarCollection<Pin> collection, int id,
@@ -134,8 +137,7 @@ Pin _pinDeserializeWeb(IsarCollection<Pin> collection, Object jsObj) {
         (double.negativeInfinity as int),
     userId: IsarNative.jsObjectGet(jsObj, r'userId') ?? '',
   );
-  object.id =
-      IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int);
+  object.id = IsarNative.jsObjectGet(jsObj, r'id');
   return object;
 }
 
@@ -148,8 +150,7 @@ P _pinDeserializePropWeb<P>(Object jsObj, String propertyName) {
       return (IsarNative.jsObjectGet(jsObj, r'businessId') ??
           (double.negativeInfinity as int)) as P;
     case r'id':
-      return (IsarNative.jsObjectGet(jsObj, r'id') ??
-          (double.negativeInfinity as int)) as P;
+      return (IsarNative.jsObjectGet(jsObj, r'id')) as P;
     case r'phoneNumber':
       return (IsarNative.jsObjectGet(jsObj, r'phoneNumber') ?? '') as P;
     case r'pin':
@@ -844,6 +845,12 @@ extension PinQueryWhereDistinct on QueryBuilder<Pin, Pin, QDistinct> {
 }
 
 extension PinQueryProperty on QueryBuilder<Pin, Pin, QQueryProperty> {
+  QueryBuilder<Pin, int, QQueryOperations> idProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'id');
+    });
+  }
+
   QueryBuilder<Pin, int, QQueryOperations> branchIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'branchId');
@@ -853,12 +860,6 @@ extension PinQueryProperty on QueryBuilder<Pin, Pin, QQueryProperty> {
   QueryBuilder<Pin, int, QQueryOperations> businessIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'businessId');
-    });
-  }
-
-  QueryBuilder<Pin, int, QQueryOperations> idProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'id');
     });
   }
 

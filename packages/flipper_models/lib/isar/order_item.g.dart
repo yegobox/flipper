@@ -10,7 +10,7 @@ part of 'order_item.dart';
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
 
 extension GetOrderItemCollection on Isar {
-  IsarCollection<OrderItem> get orderItems => getCollection();
+  IsarCollection<OrderItem> get orderItems => collection();
 }
 
 const OrderItemSchema = CollectionSchema(
@@ -246,33 +246,61 @@ void _orderItemSerializeNative(
     useYn$Bytes = IsarBinaryWriter.utf8Encoder.convert(useYn$Value);
   }
   final size = (staticSize +
+      3 +
       (addInfo$Bytes?.length ?? 0) +
+      3 +
       (bcd$Bytes?.length ?? 0) +
+      3 +
       (bhfId$Bytes?.length ?? 0) +
+      3 +
       (createdAt$Bytes.length) +
+      3 +
       (isrcAmt$Bytes?.length ?? 0) +
+      3 +
       (isrcAplcbYn$Bytes?.length ?? 0) +
+      3 +
       (isrcRt$Bytes?.length ?? 0) +
+      3 +
       (isrccCd$Bytes?.length ?? 0) +
+      3 +
       (isrccNm$Bytes?.length ?? 0) +
+      3 +
       (itemCd$Bytes?.length ?? 0) +
+      3 +
       (itemClsCd$Bytes?.length ?? 0) +
+      3 +
       (itemNm$Bytes?.length ?? 0) +
+      3 +
       (itemSeq$Bytes?.length ?? 0) +
+      3 +
       (itemStdNm$Bytes?.length ?? 0) +
+      3 +
       (itemTyCd$Bytes?.length ?? 0) +
+      3 +
       (modrId$Bytes?.length ?? 0) +
+      3 +
       (modrNm$Bytes?.length ?? 0) +
+      3 +
       (name$Bytes.length) +
+      3 +
       (orgnNatCd$Bytes?.length ?? 0) +
+      3 +
       (pkg$Bytes?.length ?? 0) +
+      3 +
       (pkgUnitCd$Bytes?.length ?? 0) +
+      3 +
       (qtyUnitCd$Bytes?.length ?? 0) +
+      3 +
       (regrId$Bytes?.length ?? 0) +
+      3 +
       (regrNm$Bytes?.length ?? 0) +
+      3 +
       (taxTyCd$Bytes?.length ?? 0) +
+      3 +
       (type$Bytes?.length ?? 0) +
+      3 +
       (updatedAt$Bytes.length) +
+      3 +
       (useYn$Bytes?.length ?? 0)) as int;
   cObj.buffer = alloc(size);
   cObj.buffer_length = size;
@@ -280,51 +308,51 @@ void _orderItemSerializeNative(
   final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
   final writer = IsarBinaryWriter(buffer, staticSize);
   writer.writeHeader();
-  writer.writeBytes(offsets[0], addInfo$Bytes);
-  writer.writeBytes(offsets[1], bcd$Bytes);
-  writer.writeBytes(offsets[2], bhfId$Bytes);
-  writer.writeBytes(offsets[3], createdAt$Bytes);
+  writer.writeByteList(offsets[0], addInfo$Bytes);
+  writer.writeByteList(offsets[1], bcd$Bytes);
+  writer.writeByteList(offsets[2], bhfId$Bytes);
+  writer.writeByteList(offsets[3], createdAt$Bytes);
   writer.writeDouble(offsets[4], object.dcAmt);
   writer.writeDouble(offsets[5], object.dcRt);
   writer.writeDouble(offsets[6], object.dftPrc);
   writer.writeDouble(offsets[7], object.discount);
   writer.writeBool(offsets[8], object.isRefunded);
   writer.writeBool(offsets[9], object.isTaxExempted);
-  writer.writeBytes(offsets[10], isrcAmt$Bytes);
-  writer.writeBytes(offsets[11], isrcAplcbYn$Bytes);
-  writer.writeBytes(offsets[12], isrcRt$Bytes);
-  writer.writeBytes(offsets[13], isrccCd$Bytes);
-  writer.writeBytes(offsets[14], isrccNm$Bytes);
-  writer.writeBytes(offsets[15], itemCd$Bytes);
-  writer.writeBytes(offsets[16], itemClsCd$Bytes);
-  writer.writeBytes(offsets[17], itemNm$Bytes);
-  writer.writeBytes(offsets[18], itemSeq$Bytes);
-  writer.writeBytes(offsets[19], itemStdNm$Bytes);
-  writer.writeBytes(offsets[20], itemTyCd$Bytes);
-  writer.writeBytes(offsets[21], modrId$Bytes);
-  writer.writeBytes(offsets[22], modrNm$Bytes);
-  writer.writeBytes(offsets[23], name$Bytes);
+  writer.writeByteList(offsets[10], isrcAmt$Bytes);
+  writer.writeByteList(offsets[11], isrcAplcbYn$Bytes);
+  writer.writeByteList(offsets[12], isrcRt$Bytes);
+  writer.writeByteList(offsets[13], isrccCd$Bytes);
+  writer.writeByteList(offsets[14], isrccNm$Bytes);
+  writer.writeByteList(offsets[15], itemCd$Bytes);
+  writer.writeByteList(offsets[16], itemClsCd$Bytes);
+  writer.writeByteList(offsets[17], itemNm$Bytes);
+  writer.writeByteList(offsets[18], itemSeq$Bytes);
+  writer.writeByteList(offsets[19], itemStdNm$Bytes);
+  writer.writeByteList(offsets[20], itemTyCd$Bytes);
+  writer.writeByteList(offsets[21], modrId$Bytes);
+  writer.writeByteList(offsets[22], modrNm$Bytes);
+  writer.writeByteList(offsets[23], name$Bytes);
   writer.writeLong(offsets[24], object.orderId);
-  writer.writeBytes(offsets[25], orgnNatCd$Bytes);
-  writer.writeBytes(offsets[26], pkg$Bytes);
-  writer.writeBytes(offsets[27], pkgUnitCd$Bytes);
+  writer.writeByteList(offsets[25], orgnNatCd$Bytes);
+  writer.writeByteList(offsets[26], pkg$Bytes);
+  writer.writeByteList(offsets[27], pkgUnitCd$Bytes);
   writer.writeDouble(offsets[28], object.prc);
   writer.writeDouble(offsets[29], object.price);
   writer.writeDouble(offsets[30], object.qty);
-  writer.writeBytes(offsets[31], qtyUnitCd$Bytes);
-  writer.writeBytes(offsets[32], regrId$Bytes);
-  writer.writeBytes(offsets[33], regrNm$Bytes);
+  writer.writeByteList(offsets[31], qtyUnitCd$Bytes);
+  writer.writeByteList(offsets[32], regrId$Bytes);
+  writer.writeByteList(offsets[33], regrNm$Bytes);
   writer.writeDouble(offsets[34], object.remainingStock);
   writer.writeBool(offsets[35], object.reported);
   writer.writeDouble(offsets[36], object.splyAmt);
   writer.writeDouble(offsets[37], object.taxAmt);
-  writer.writeBytes(offsets[38], taxTyCd$Bytes);
+  writer.writeByteList(offsets[38], taxTyCd$Bytes);
   writer.writeDouble(offsets[39], object.taxblAmt);
   writer.writeLong(offsets[40], object.tin);
   writer.writeDouble(offsets[41], object.totAmt);
-  writer.writeBytes(offsets[42], type$Bytes);
-  writer.writeBytes(offsets[43], updatedAt$Bytes);
-  writer.writeBytes(offsets[44], useYn$Bytes);
+  writer.writeByteList(offsets[42], type$Bytes);
+  writer.writeByteList(offsets[43], updatedAt$Bytes);
+  writer.writeByteList(offsets[44], useYn$Bytes);
   writer.writeLong(offsets[45], object.variantId);
 }
 
@@ -547,8 +575,7 @@ OrderItem _orderItemDeserializeWeb(
   object.dcRt = IsarNative.jsObjectGet(jsObj, r'dcRt');
   object.dftPrc = IsarNative.jsObjectGet(jsObj, r'dftPrc');
   object.discount = IsarNative.jsObjectGet(jsObj, r'discount');
-  object.id =
-      IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int);
+  object.id = IsarNative.jsObjectGet(jsObj, r'id');
   object.isRefunded = IsarNative.jsObjectGet(jsObj, r'isRefunded');
   object.isTaxExempted =
       IsarNative.jsObjectGet(jsObj, r'isTaxExempted') ?? false;
@@ -614,8 +641,7 @@ P _orderItemDeserializePropWeb<P>(Object jsObj, String propertyName) {
     case r'discount':
       return (IsarNative.jsObjectGet(jsObj, r'discount')) as P;
     case r'id':
-      return (IsarNative.jsObjectGet(jsObj, r'id') ??
-          (double.negativeInfinity as int)) as P;
+      return (IsarNative.jsObjectGet(jsObj, r'id')) as P;
     case r'isRefunded':
       return (IsarNative.jsObjectGet(jsObj, r'isRefunded')) as P;
     case r'isTaxExempted':
@@ -6595,6 +6621,12 @@ extension OrderItemQueryWhereDistinct
 
 extension OrderItemQueryProperty
     on QueryBuilder<OrderItem, OrderItem, QQueryProperty> {
+  QueryBuilder<OrderItem, int, QQueryOperations> idProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'id');
+    });
+  }
+
   QueryBuilder<OrderItem, String?, QQueryOperations> addInfoProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'addInfo');
@@ -6640,12 +6672,6 @@ extension OrderItemQueryProperty
   QueryBuilder<OrderItem, double?, QQueryOperations> discountProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'discount');
-    });
-  }
-
-  QueryBuilder<OrderItem, int, QQueryOperations> idProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'id');
     });
   }
 

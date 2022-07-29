@@ -3,7 +3,6 @@ import 'dart:developer';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'package:google_ui/google_ui.dart';
 import 'package:stacked/stacked.dart';
 
 class UserAdd extends StatefulWidget {
@@ -44,7 +43,7 @@ class _UserAddState extends State<UserAdd> {
                           const Text(
                               "You are about to invite user to your default branch and business"),
                           const SizedBox(height: 30),
-                          GTextFormField(
+                          TextFormField(
                             controller: _nameController,
                             keyboardType: TextInputType.text,
                             onChanged: (value) {
@@ -60,67 +59,98 @@ class _UserAddState extends State<UserAdd> {
                               }
                               return null;
                             },
-                            suffixIcon: const Icon(Icons.person),
-                            hintText: "Name of the user",
+                            decoration: InputDecoration(
+                                enabled: true,
+                                border: const OutlineInputBorder(),
+                                suffixIcon: const Icon(Icons.person),
+                                hintText: "Name of the user"),
                           ),
                           const SizedBox(height: 10),
-                          GTextFormField(
-                            controller: _phoneController,
-                            keyboardType: TextInputType.phone,
-                            onChanged: (value) {
-                              if (value.isNotEmpty) {
-                                setState(() {
-                                  _steps += 1;
-                                });
-                              }
-                            },
-                            validator: (value) {
-                              if (value == null) {
-                                return "You need a phone number";
-                              }
-                              return null;
-                            },
-                            suffixIcon: const Icon(Icons.phone),
-                            hintText: "Phone number",
-                          ),
+                          TextFormField(
+                              controller: _phoneController,
+                              keyboardType: TextInputType.phone,
+                              onChanged: (value) {
+                                if (value.isNotEmpty) {
+                                  setState(() {
+                                    _steps += 1;
+                                  });
+                                }
+                              },
+                              validator: (value) {
+                                if (value == null) {
+                                  return "You need a phone number";
+                                }
+                                return null;
+                              },
+                              decoration: InputDecoration(
+                                  enabled: true,
+                                  border: const OutlineInputBorder(),
+                                  suffixIcon: const Icon(Icons.phone),
+                                  hintText: "Phone number")),
                           _steps != 0 && _steps != 1
                               ? Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     const SizedBox(width: 10),
-                                    GOutlinedButton("Add user",
+                                    OutlinedButton(
+                                        child: Text("Add user"),
+                                        style: ButtonStyle(
+                                          backgroundColor:
+                                              MaterialStateProperty.all<Color>(
+                                                  const Color(0xff006AFE)),
+                                          overlayColor: MaterialStateProperty
+                                              .resolveWith<Color?>(
+                                            (Set<MaterialState> states) {
+                                              if (states.contains(
+                                                  MaterialState.hovered)) {
+                                                return Colors.blue
+                                                    .withOpacity(0.04);
+                                              }
+                                              if (states.contains(
+                                                      MaterialState.focused) ||
+                                                  states.contains(
+                                                      MaterialState.pressed)) {
+                                                return Colors.blue
+                                                    .withOpacity(0.12);
+                                              }
+                                              return null; // Defer to the widget's default.
+                                            },
+                                          ),
+                                        ),
                                         onPressed: () async {
-                                      if (_sub.currentState!.validate()) {
-                                        try {
-                                          await ProxyService.isarApi.user(
-                                              userPhone: _phoneController.text);
-                                          Business? business =
+                                          if (_sub.currentState!.validate()) {
+                                            try {
+                                              await ProxyService.isarApi.user(
+                                                  userPhone:
+                                                      _phoneController.text);
+                                              Business? business =
+                                                  await ProxyService.isarApi
+                                                      .defaultBusiness();
+                                              Branch? branch =
+                                                  await ProxyService.isarApi
+                                                      .defaultBranch();
+
                                               await ProxyService.isarApi
-                                                  .defaultBusiness();
-                                          Branch? branch = await ProxyService
-                                              .isarApi
-                                              .defaultBranch();
+                                                  .saveTenant(
+                                                      _phoneController.text,
+                                                      _nameController.text,
+                                                      branch: branch!,
+                                                      business: business!);
 
-                                          await ProxyService.isarApi.saveTenant(
-                                              _phoneController.text,
-                                              _nameController.text,
-                                              branch: branch!,
-                                              business: business!);
-
-                                          await loadTenants();
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            const SnackBar(
-                                              backgroundColor: Colors.green,
-                                              content: Text("Tenant added"),
-                                            ),
-                                          );
-                                        } catch (e) {
-                                          log(e.toString());
-                                        }
-                                      }
-                                    }),
+                                              await loadTenants();
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                const SnackBar(
+                                                  backgroundColor: Colors.green,
+                                                  content: Text("Tenant added"),
+                                                ),
+                                              );
+                                            } catch (e) {
+                                              log(e.toString());
+                                            }
+                                          }
+                                        }),
                                   ],
                                 )
                               : const SizedBox.shrink(),

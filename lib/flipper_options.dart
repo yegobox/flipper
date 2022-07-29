@@ -102,7 +102,7 @@ class FlipperOptions {
         brightness = Brightness.dark;
         break;
       default:
-        brightness = WidgetsBinding.instance!.window.platformBrightness;
+        brightness = WidgetsBinding.instance.window.platformBrightness;
     }
 
     final overlayStyle = brightness == Brightness.dark
@@ -214,7 +214,7 @@ class _ModelBindingScope extends InheritedWidget {
 }
 
 class ModelBinding extends StatefulWidget {
-  ModelBinding({
+  const ModelBinding({
     Key? key,
     this.initialModel = const FlipperOptions(),
     required this.child,

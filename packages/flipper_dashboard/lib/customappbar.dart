@@ -68,7 +68,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         child: Column(
           children: <Widget>[
             ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 0.5),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 0),
               leading: _closeButton == CLOSEBUTTON.ICON
                   ? IconButton(
                       icon: Icon(

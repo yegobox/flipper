@@ -3,7 +3,6 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_settings_ui/flutter_settings_ui.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_ui/google_ui.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/isar_models.dart' as isar;
 
@@ -22,9 +21,8 @@ class SettingPage extends StatelessWidget {
             child: Center(
               child: Column(
                 children: [
-                  const GText(
+                  const Text(
                     "Settings",
-                    variant: GTextVariant.headline4,
                   ),
                   Flexible(
                     child: SettingsList(

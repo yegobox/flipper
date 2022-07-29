@@ -26,7 +26,7 @@ class Payment {
     required this.phoneNumber,
   });
 
-  late int id = Isar.autoIncrement;
+  Id id = Isar.autoIncrement;
   late int amount;
   late int interval;
   late int userId;

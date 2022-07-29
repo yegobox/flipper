@@ -10,7 +10,7 @@ part of 'feature.dart';
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
 
 extension GetFeatureCollection on Isar {
-  IsarCollection<Feature> get features => getCollection();
+  IsarCollection<Feature> get features => collection();
 }
 
 const FeatureSchema = CollectionSchema(
@@ -61,14 +61,14 @@ void _featureSerializeNative(
     List<int> offsets,
     AdapterAlloc alloc) {
   final name$Bytes = IsarBinaryWriter.utf8Encoder.convert(object.name);
-  final size = (staticSize + (name$Bytes.length)) as int;
+  final size = (staticSize + 3 + (name$Bytes.length)) as int;
   cObj.buffer = alloc(size);
   cObj.buffer_length = size;
 
   final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
   final writer = IsarBinaryWriter(buffer, staticSize);
   writer.writeHeader();
-  writer.writeBytes(offsets[0], name$Bytes);
+  writer.writeByteList(offsets[0], name$Bytes);
 }
 
 Feature _featureDeserializeNative(IsarCollection<Feature> collection, int id,
@@ -103,8 +103,7 @@ Object _featureSerializeWeb(
 Feature _featureDeserializeWeb(
     IsarCollection<Feature> collection, Object jsObj) {
   final object = Feature(
-    id: IsarNative.jsObjectGet(jsObj, r'id') ??
-        (double.negativeInfinity as int),
+    id: IsarNative.jsObjectGet(jsObj, r'id'),
     name: IsarNative.jsObjectGet(jsObj, r'name') ?? '',
   );
   return object;
@@ -113,8 +112,7 @@ Feature _featureDeserializeWeb(
 P _featureDeserializePropWeb<P>(Object jsObj, String propertyName) {
   switch (propertyName) {
     case r'id':
-      return (IsarNative.jsObjectGet(jsObj, r'id') ??
-          (double.negativeInfinity as int)) as P;
+      return (IsarNative.jsObjectGet(jsObj, r'id')) as P;
     case r'name':
       return (IsarNative.jsObjectGet(jsObj, r'name') ?? '') as P;
     default:

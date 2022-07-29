@@ -6,7 +6,7 @@ part 'feature.g.dart';
 class Feature {
   Feature({this.id = 0, required this.name});
 
-  late int id = Isar.autoIncrement;
+  Id id = Isar.autoIncrement;
   late String name;
 
   factory Feature.fromMap(Map<String, dynamic> json) => Feature(

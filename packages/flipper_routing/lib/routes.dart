@@ -220,16 +220,23 @@ class AppSetup {
 
 //TODO: Flutter pro tip: especially the search thing at the end of the video
 // https://www.youtube.com/watch?v=mhxoXm8lWIo
-// nohup java -jar flipper-1.0.0-SNAPSHOT-runner.jar &
-// ./gradlew build -Dquarkus.package.type=uber-jar
+//I am using flipper-prod folder in building uber jar file.
+//sometime I need to shutdown the running app to gain memory to build new uber jar or shut down server!
+// nohup java -jar flipper-1.0.0-SNAPSHOT-runner.jar & echo $! > save_pid.txt
+// kill -9 "cat save_pid.txt"
+// gradle   build -Dquarkus.package.type=uber-jar
 
-//  nohup java -jar rra.war &
+// TODO:for rra server  /var/www/rra
+//  nohup java -jar rra.war &  echo $! > rra_pid.txt
+// kill -9 "cat rra_pid.txt"
 // find . -name "*.bak" -type f -delete
 
 // ngix stuff:
+// certbot --nginx -d yegobox.com -d www.yegobox.com
+// certbot --nginx -d blog.yegobox.com -d www.blog.yegobox.com
 // https://lowendbox.com/blog/how-to-replace-apache-with-nginx-on-ubuntu-18-04/
 // certbot certonly --manual -d *.$DOMAIN -d $DOMAIN --agree-tos --manual-public-ip-logging-ok --preferred-challenges dns-01 --server https://acme-v02.api.letsencrypt.org/directory --register-unsafely-without-email --rsa-key-size 4096
-// sudo ln -s /etc/nginx/sites-available/turbo.conf /etc/nginx/sites-enabled/turbo.conf
+// sudo ln -s /etc/nginx/sites-available/yegobox.com.conf /etc/nginx/sites-enabled/
 // https://gist.github.com/soheilhy/8b94347ff8336d971ad0
 
 // wild card cert:
@@ -261,6 +268,9 @@ class AppSetup {
 // TODO:will use this for data mining etc..
 // https://www.elastic.co/webinars/getting-started-elasticsearch
 // To add platforms, run `flutter create -t plugin --platforms <platforms> .` under aurora.
-
+// dependency_overrides: ffi: '>=2.0.0 <3.0.0'
 //TODO:this bellow helped me to understand use of c++ in flutter using ffi
 // https://levelup.gitconnected.com/port-an-existing-c-c-app-to-flutter-with-dart-ffi-8dc401a69fd7
+// key hashes
+// keytool -exportcert -alias androiddebugkey -keystore ~/.android/debug.keystore | openssl sha1 -binary | openssl base64
+// https://pub.dev/packages/flutter_carousel_slider

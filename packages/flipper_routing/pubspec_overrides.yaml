@@ -1,5 +1,25 @@
-# melos_managed_dependency_overrides: flipper_chat,flipper_dashboard,flipper_data_table,flipper_finance,flipper_loading,flipper_localize,flipper_login,flipper_models,flipper_rw,flipper_services,flipper_ui,flutter_chat_types,flutter_chat_ui,flutter_datetime_picker,flutter_firebase_chat_core,flutter_slidable,flutterfire_ui,google_ui,pubnub,qr_code_scanner,qr_flutter,receipt,scrollable_positioned_list
+# melos_managed_dependency_overrides: cli_dialog,dart_console,device_info_plus,device_info_plus_linux,device_info_plus_macos,device_info_plus_platform_interface,device_info_plus_web,device_info_plus_windows,example,file_picker,flipper_chat,flipper_dashboard,flipper_data_table,flipper_finance,flipper_loading,flipper_localize,flipper_login,flipper_models,flipper_rw,flipper_services,flipper_ui,flutter_chat_types,flutter_chat_ui,flutter_datetime_picker,flutter_firebase_chat_core,flutter_slidable,flutterfire_ui,msix,open_file,package_info_plus,package_info_plus_linux,package_info_plus_macos,package_info_plus_platform_interface,package_info_plus_web,package_info_plus_windows,pdf,printing,pubnub,qr_code_scanner,qr_flutter,receipt,scrollable_positioned_list,upgrader,win32
 dependency_overrides:
+  cli_dialog:
+    path: ..\\..\\open-sources\\cli_dialog
+  dart_console:
+    path: ..\\..\\open-sources\\dart_console
+  device_info_plus:
+    path: ..\\..\\open-sources\\plus_plugins\\packages\\device_info_plus\\device_info_plus
+  device_info_plus_linux:
+    path: ..\\..\\open-sources\\plus_plugins\\packages\\device_info_plus\\device_info_plus_linux
+  device_info_plus_macos:
+    path: ..\\..\\open-sources\\plus_plugins\\packages\\device_info_plus\\device_info_plus_macos
+  device_info_plus_platform_interface:
+    path: ..\\..\\open-sources\\plus_plugins\\packages\\device_info_plus\\device_info_plus_platform_interface
+  device_info_plus_web:
+    path: ..\\..\\open-sources\\plus_plugins\\packages\\device_info_plus\\device_info_plus_web
+  device_info_plus_windows:
+    path: ..\\..\\open-sources\\plus_plugins\\packages\\device_info_plus\\device_info_plus_windows
+  example:
+    path: ..\\flipper_ui\\example
+  file_picker:
+    path: ..\\..\\open-sources\\flutter_file_picker
   flipper_chat:
     path: ..\\flipper_chat
   flipper_dashboard:
@@ -34,8 +54,26 @@ dependency_overrides:
     path: ..\\..\\open-sources\\flutter_slidable
   flutterfire_ui:
     path: ..\\flutterfire_ui
-  google_ui:
-    path: ..\\..\\open-sources\\google_ui
+  msix:
+    path: ..\\..\\open-sources\\msix
+  open_file:
+    path: ..\\..\\open-sources\\open_file
+  package_info_plus:
+    path: ..\\..\\open-sources\\plus_plugins\\packages\\package_info_plus\\package_info_plus
+  package_info_plus_linux:
+    path: ..\\..\\open-sources\\plus_plugins\\packages\\package_info_plus\\package_info_plus_linux
+  package_info_plus_macos:
+    path: ..\\..\\open-sources\\plus_plugins\\packages\\package_info_plus\\package_info_plus_macos
+  package_info_plus_platform_interface:
+    path: ..\\..\\open-sources\\plus_plugins\\packages\\package_info_plus\\package_info_plus_platform_interface
+  package_info_plus_web:
+    path: ..\\..\\open-sources\\plus_plugins\\packages\\package_info_plus\\package_info_plus_web
+  package_info_plus_windows:
+    path: ..\\..\\open-sources\\plus_plugins\\packages\\package_info_plus\\package_info_plus_windows
+  pdf:
+    path: ..\\..\\open-sources\\dart_pdf\\pdf
+  printing:
+    path: ..\\..\\open-sources\\dart_pdf\\printing
   pubnub:
     path: ..\\..\\open-sources\\pubnub\\pubnub
   qr_code_scanner:
@@ -46,3 +84,7 @@ dependency_overrides:
     path: ..\\..\\open-sources\\receipt
   scrollable_positioned_list:
     path: ..\\..\\open-sources\\flutter.widgets\\packages\\scrollable_positioned_list
+  upgrader:
+    path: ..\\..\\open-sources\\upgrader
+  win32:
+    path: ..\\..\\open-sources\\win32

@@ -4,12 +4,12 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:number_display/number_display.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'customappbar.dart';
-import 'package:google_ui/google_ui.dart';
 import 'package:go_router/go_router.dart';
 
 class AfterSale extends StatefulWidget {
@@ -52,18 +52,11 @@ class _AfterSaleState extends State<AfterSale> {
                   model.currentOrder();
                   GoRouter.of(context).push(Routes.home);
                 },
-                title: '',
                 closeButton: CLOSEBUTTON.BUTTON,
                 disableButton: false,
-                showActionButton: true,
-                onPressedCallback: () async {
-                  await model.getOrderById();
-                  GoRouter.of(context).push(
-                      Routes.customers + '/' + widget.order.id.toString());
-                },
+                showActionButton: false,
                 leftActionButtonName:
                     model.app.customer != null ? 'New Sale' : 'New Sale',
-                rightActionButtonName: 'Add Customer',
                 multi: 3,
                 bottomSpacer: 52,
               ),
@@ -82,17 +75,19 @@ class _AfterSaleState extends State<AfterSale> {
                                         widget.totalOrderAmount)
                                     .toString() +
                                 ' Change',
-                            style: const TextStyle(
-                                fontSize: 20, fontWeight: FontWeight.bold),
+                            style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w400,
+                                fontSize: 20,
+                                color: Colors.black),
                           ),
                           const SizedBox(height: 10),
                           Text(
                             'Out of FRw ' +
                                 model.keypad.cashReceived.toStringAsFixed(0),
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w400,
+                                fontSize: 18,
+                                color: Colors.black),
                           ),
                         ],
                       ),
@@ -108,8 +103,11 @@ class _AfterSaleState extends State<AfterSale> {
                             return snapshot.data == null
                                 ? Column(
                                     children: [
-                                      const Text(
-                                          'How would you like your receipt?'),
+                                      Text('How would you like your receipt?',
+                                          style: GoogleFonts.poppins(
+                                              fontWeight: FontWeight.w400,
+                                              fontSize: 20,
+                                              color: Colors.black)),
                                       const SizedBox(height: 10),
                                       Padding(
                                         padding: const EdgeInsets.only(
@@ -117,8 +115,39 @@ class _AfterSaleState extends State<AfterSale> {
                                         child: SizedBox(
                                           height: 50,
                                           width: double.infinity,
-                                          child: GOutlinedButton(
-                                            'Email Receipt',
+                                          child: OutlinedButton(
+                                            child: Text('Email Receipt',
+                                                style: GoogleFonts.poppins(
+                                                    fontWeight: FontWeight.w400,
+                                                    fontSize: 20,
+                                                    color: Colors.white)),
+                                            style: ButtonStyle(
+                                              backgroundColor:
+                                                  MaterialStateProperty.all<
+                                                          Color>(
+                                                      const Color(0xff006AFE)),
+                                              overlayColor:
+                                                  MaterialStateProperty
+                                                      .resolveWith<Color?>(
+                                                (Set<MaterialState> states) {
+                                                  if (states.contains(
+                                                      MaterialState.hovered)) {
+                                                    return Colors.blue
+                                                        .withOpacity(0.04);
+                                                  }
+                                                  if (states.contains(
+                                                          MaterialState
+                                                              .focused) ||
+                                                      states.contains(
+                                                          MaterialState
+                                                              .pressed)) {
+                                                    return Colors.blue
+                                                        .withOpacity(0.12);
+                                                  }
+                                                  return null; // Defer to the widget's default.
+                                                },
+                                              ),
+                                            ),
                                             onPressed: () async {
                                               if (await ProxyService.isarApi
                                                   .isTaxEnabled()) {
@@ -141,11 +170,20 @@ class _AfterSaleState extends State<AfterSale> {
                                                   //show scaffold message
                                                   ScaffoldMessenger.of(context)
                                                       .showSnackBar(
-                                                    const SnackBar(
+                                                    SnackBar(
                                                       backgroundColor:
                                                           Colors.green,
                                                       content: Text(
-                                                          "We are generating receipt wait a few seconds and try again"),
+                                                        "We are generating receipt wait a few seconds and try again",
+                                                        style:
+                                                            GoogleFonts.poppins(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w400,
+                                                                fontSize: 20,
+                                                                color: Colors
+                                                                    .black),
+                                                      ),
                                                     ),
                                                   );
                                                 }
@@ -161,8 +199,12 @@ class _AfterSaleState extends State<AfterSale> {
                                         child: SizedBox(
                                           height: 50,
                                           width: double.infinity,
-                                          child: GOutlinedButton(
-                                            'No Receipt',
+                                          child: OutlinedButton(
+                                            child: Text('No Receipt',
+                                                style: GoogleFonts.poppins(
+                                                    fontWeight: FontWeight.w400,
+                                                    fontSize: 20,
+                                                    color: Color(0xff006AFE))),
                                             onPressed: () {
                                               // refresh orders
                                               model.currentOrder();
@@ -224,14 +266,16 @@ class _AfterSaleState extends State<AfterSale> {
                           children: [
                             IconButton(
                               icon: const FaIcon(FontAwesomeIcons.globe),
-                              color: Theme.of(context).colorScheme.primary,
+                              highlightColor: Color(0xff006AFE),
+                              color: Color(0xff006AFE),
                               onPressed: null,
                             ),
                             Text(
                               'English',
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
+                              style: GoogleFonts.poppins(
+                                  fontWeight: FontWeight.w400,
+                                  fontSize: 10,
+                                  color: Color(0xff006AFE)),
                             )
                           ],
                         ))
@@ -255,10 +299,9 @@ class _AfterSaleState extends State<AfterSale> {
                 order: widget.order,
                 receiptType: widget.receiptType,
                 callback: (value) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                     backgroundColor: Colors.red,
-                    content:
-                        Text("EBM V2 server is down, please try again later"),
+                    content: Text(value),
                   ));
                 });
           }

@@ -7,7 +7,7 @@ class Discount {
   Discount(
       {this.id = 0, required this.name, this.amount, required this.branchId});
 
-  late int id = Isar.autoIncrement;
+  Id id = Isar.autoIncrement;
   late String name;
 
   /// this is to get ready when there will be option for percentage instead of amount!

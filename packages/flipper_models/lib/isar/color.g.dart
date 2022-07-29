@@ -10,7 +10,7 @@ part of flipper_models;
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
 
 extension GetPColorCollection on Isar {
-  IsarCollection<PColor> get pColors => getCollection();
+  IsarCollection<PColor> get pColors => collection();
 }
 
 const PColorSchema = CollectionSchema(
@@ -62,7 +62,7 @@ List<IsarLinkBase<dynamic>> _pColorGetLinks(PColor object) {
 
 void _pColorSerializeNative(IsarCollection<PColor> collection, IsarCObject cObj,
     PColor object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
-  var channels$BytesCount = (object.channels?.length ?? 0) * 8;
+  var channels$BytesCount = 3 + (object.channels?.length ?? 0) * 3;
   List<IsarUint8List?>? channels$BytesList;
   final channels$Value = object.channels;
   if (channels$Value != null) {
@@ -73,7 +73,7 @@ void _pColorSerializeNative(IsarCollection<PColor> collection, IsarCObject cObj,
       channels$BytesCount += bytes.length as int;
     }
   }
-  var colors$BytesCount = (object.colors?.length ?? 0) * 8;
+  var colors$BytesCount = 3 + (object.colors?.length ?? 0) * 3;
   List<IsarUint8List?>? colors$BytesList;
   final colors$Value = object.colors;
   if (colors$Value != null) {
@@ -97,7 +97,9 @@ void _pColorSerializeNative(IsarCollection<PColor> collection, IsarCObject cObj,
   final size = (staticSize +
       channels$BytesCount +
       colors$BytesCount +
+      3 +
       (name$Bytes?.length ?? 0) +
+      3 +
       (table$Bytes?.length ?? 0)) as int;
   cObj.buffer = alloc(size);
   cObj.buffer_length = size;
@@ -107,10 +109,10 @@ void _pColorSerializeNative(IsarCollection<PColor> collection, IsarCObject cObj,
   writer.writeHeader();
   writer.writeBool(offsets[0], object.active);
   writer.writeLong(offsets[1], object.branchId);
-  writer.writeStringList(offsets[2], channels$BytesList);
-  writer.writeStringList(offsets[3], colors$BytesList);
-  writer.writeBytes(offsets[4], name$Bytes);
-  writer.writeBytes(offsets[5], table$Bytes);
+  writer.writeByteLists(offsets[2], channels$BytesList);
+  writer.writeByteLists(offsets[3], colors$BytesList);
+  writer.writeByteList(offsets[4], name$Bytes);
+  writer.writeByteList(offsets[5], table$Bytes);
 }
 
 PColor _pColorDeserializeNative(IsarCollection<PColor> collection, int id,
@@ -172,8 +174,7 @@ PColor _pColorDeserializeWeb(IsarCollection<PColor> collection, Object jsObj) {
       ?.map((e) => e ?? '')
       .toList()
       .cast<String>();
-  object.id =
-      IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int);
+  object.id = IsarNative.jsObjectGet(jsObj, r'id');
   object.name = IsarNative.jsObjectGet(jsObj, r'name');
   object.table = IsarNative.jsObjectGet(jsObj, r'table');
   return object;
@@ -196,8 +197,7 @@ P _pColorDeserializePropWeb<P>(Object jsObj, String propertyName) {
           .toList()
           .cast<String>()) as P;
     case r'id':
-      return (IsarNative.jsObjectGet(jsObj, r'id') ??
-          (double.negativeInfinity as int)) as P;
+      return (IsarNative.jsObjectGet(jsObj, r'id')) as P;
     case r'name':
       return (IsarNative.jsObjectGet(jsObj, r'name')) as P;
     case r'table':
@@ -1063,6 +1063,12 @@ extension PColorQueryWhereDistinct on QueryBuilder<PColor, PColor, QDistinct> {
 }
 
 extension PColorQueryProperty on QueryBuilder<PColor, PColor, QQueryProperty> {
+  QueryBuilder<PColor, int, QQueryOperations> idProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'id');
+    });
+  }
+
   QueryBuilder<PColor, bool, QQueryOperations> activeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'active');
@@ -1084,12 +1090,6 @@ extension PColorQueryProperty on QueryBuilder<PColor, PColor, QQueryProperty> {
   QueryBuilder<PColor, List<String>?, QQueryOperations> colorsProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'colors');
-    });
-  }
-
-  QueryBuilder<PColor, int, QQueryOperations> idProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'id');
     });
   }
 

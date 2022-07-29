@@ -3,6 +3,7 @@ library flipper_models;
 import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_routing/routes.locator.dart';
 import 'package:flipper_routing/routes.logger.dart';
+import 'package:flipper_routing/routes.router.dart';
 // import 'package:flipper_models/isar_models.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +23,10 @@ import 'package:receipt/print.dart';
 class BusinessHomeViewModel extends ReactiveViewModel {
   final settingService = locator<SettingsService>();
   final languageService = locator<LanguageService>();
+  final log = getLogger('BusinessHomeViewModel');
+  final KeyPadService keypad = locator<KeyPadService>();
+  final ProductService productService = locator<ProductService>();
+  final AppService app = locator<AppService>();
   final bool _updateStarted = false;
   Setting? _setting;
   Setting? get setting => _setting;
@@ -53,11 +58,6 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     notifyListeners();
   }
 
-  //harmonize
-  final log = getLogger('BusinessHomeViewModel');
-  final KeyPadService keypad = locator<KeyPadService>();
-  final ProductService productService = locator<ProductService>();
-  final AppService app = locator<AppService>();
   String get key => keypad.key;
 
   late String? longitude;
@@ -93,21 +93,54 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   }
 
   void addKey(String key) async {
-    if (key == 'C') {
-      ProxyService.keypad.pop();
+    if (key == 'C' && double.parse(ProxyService.keypad.key) != 0.0) {
+      //remove last orderItem added
+      Order? pendingOrder = await ProxyService.isarApi.manageOrder();
+      log.i(pendingOrder.id);
+      List<OrderItem> items =
+          await ProxyService.isarApi.orderItems(orderId: pendingOrder.id);
+      ProxyService.isarApi.delete(id: items.last.id, endPoint: 'orderItem');
+      List<OrderItem> dItems =
+          await ProxyService.isarApi.orderItems(orderId: pendingOrder.id);
+      pendingOrder.subTotal = dItems.fold(0, (a, b) => a + b.price);
+      await ProxyService.isarApi.update(data: pendingOrder);
+      ProxyService.keypad.reset();
+      Order? updatedOrder = await ProxyService.isarApi.manageOrder();
+      keypad.setOrder(updatedOrder);
+      currentOrder();
     } else if (key == '+') {
-      if (double.parse(ProxyService.keypad.key) != 0.0) {
+      ProxyService.keypad.reset();
+    } else {
+      ProxyService.keypad.addKey(key);
+      // if ProxyService.keypad.key.length==1 then that is the new record wait
+      // don't keep adding item to the order
+      if (double.parse(ProxyService.keypad.key) != 0.0 &&
+          ProxyService.keypad.key.length == 1) {
         Variant? variation = await ProxyService.isarApi.getCustomVariant();
 
         double amount = double.parse(ProxyService.keypad.key);
-        log.i(variation!.toJson());
         await saveOrder(
-            amountTotal: amount, variationId: variation.id, customItem: true);
+            amountTotal: amount, variationId: variation!.id, customItem: true);
+        Order? updatedOrder = await ProxyService.isarApi.manageOrder();
+        keypad.setOrder(updatedOrder);
+        currentOrder();
+      } else if (ProxyService.keypad.key.length > 1) {
+        Order? pendingOrder = await ProxyService.isarApi.manageOrder();
+        List<OrderItem> items =
+            await ProxyService.isarApi.orderItems(orderId: pendingOrder.id);
+        OrderItem item = items.last;
+        item.price = double.parse(ProxyService.keypad.key);
+        item.taxAmt = double.parse(
+            (double.parse(ProxyService.keypad.key) * 18 / 118)
+                .toStringAsFixed(2));
+        await ProxyService.isarApi.update(data: item);
 
-        ProxyService.keypad.reset();
+        pendingOrder.subTotal = items.fold(0, (a, b) => a + b.price);
+        await ProxyService.isarApi.update(data: pendingOrder);
+        Order? updatedOrder = await ProxyService.isarApi.manageOrder();
+        keypad.setOrder(updatedOrder);
+        currentOrder();
       }
-    } else {
-      ProxyService.keypad.addKey(key);
     }
   }
 
@@ -119,36 +152,27 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     keypad.setItemsOnSale(count: 0);
     keypad.setTotalPayable(amount: 0.0);
 
-    ProxyService.isarApi.pendingOrderStream().listen((order) async {
-      if (order != null && order.status == pendingStatus) {
-        keypad.setOrder(order);
-        List<OrderItem> items =
-            await ProxyService.isarApi.orderItems(orderId: order.id);
-
-        if (items.isNotEmpty) {
-          keypad.setItemsOnSale(count: items.length);
-        }
-        keypad.setTotalPayable(amount: order.subTotal);
-      } else {
-        keypad.setOrder(null);
-        keypad.setItemsOnSale(count: 0);
-        keypad.setTotalPayable(amount: 0.0);
-      }
-      notifyListeners();
-    });
-    // in case there is nothhing to listen to and we need to refresh itemOnSale
-    Order? order = await ProxyService.keypad
-        .getOrder(branchId: ProxyService.box.getBranchId() ?? 0);
-
-    keypad.setOrder(order);
-    if (order != null) {
+    Order order = await await ProxyService.isarApi.manageOrder();
+    if (order.status == pendingStatus) {
+      keypad.setOrder(order);
       List<OrderItem> items =
           await ProxyService.isarApi.orderItems(orderId: order.id);
 
-      keypad.setItemsOnSale(count: items.length);
+      if (items.isNotEmpty) {
+        keypad.setItemsOnSale(count: items.length);
+      }
+      keypad.setTotalPayable(amount: order.subTotal);
     } else {
+      keypad.setOrder(null);
       keypad.setItemsOnSale(count: 0);
+      keypad.setTotalPayable(amount: 0.0);
     }
+
+    keypad.setOrder(order);
+    List<OrderItem> items =
+        await ProxyService.isarApi.orderItems(orderId: order.id);
+
+    keypad.setItemsOnSale(count: items.length);
   }
 
   /// the function is useful on completing a sale since we need to look for this past order
@@ -246,7 +270,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         await ProxyService.isarApi.variant(variantId: variationId);
     Stock? stock =
         await ProxyService.isarApi.stockByVariantId(variantId: variation!.id);
-    log.i(stock);
+    // log.i(stock);
     String name = '';
 
     if (variation.productName != 'Custom Amount') {
@@ -274,8 +298,6 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       isCustom: customItem,
       item: existOrderItem,
     );
-
-    currentOrder();
 
     return true;
   }
@@ -323,8 +345,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         ..dcRt = 0.0
         ..dcAmt = 0.0
         ..taxblAmt = pendingOrder.subTotal
-        ..taxAmt =
-            double.parse((variation.retailPrice * 18 / 118).toStringAsFixed(2))
+        ..taxAmt = double.parse((amountTotal * 18 / 118).toStringAsFixed(2))
         ..totAmt = variation.retailPrice
         ..itemSeq = variation.itemSeq
         ..isrccCd = variation.isrccCd
@@ -623,13 +644,26 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   Future<void> generateRRAReceipt(
       {required List<OrderItem> items,
       required Business business,
-      String? receiptType = "NS",
+      String? receiptType = ReceiptType.ns,
       required Order order,
       required Function callback}) async {
-    ReceiptSignature? receiptSignature = await ProxyService.tax
-        .createReceipt(order: order, items: items, receiptType: receiptType!);
+    // use local counter as long as it is marked as synced.
+    Counter counter = await getCounter(receiptType);
+    if (counter.backed != null && !counter.backed!) {
+      callback("The counter is not up to date");
+      return;
+    }
+    Customer? customer =
+        await ProxyService.isarApi.nGetCustomerByOrderId(id: order.id);
+    ReceiptSignature? receiptSignature = await ProxyService.tax.createReceipt(
+        order: order,
+        items: items,
+        customer: customer,
+        receiptType: receiptType!,
+        counter: counter);
     if (receiptSignature == null) {
-      return callback(false);
+      callback("EBM V2 server is down, please try again later");
+      return;
     }
     order.receiptType = order.receiptType == null
         ? receiptType
@@ -641,7 +675,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     String time = DateTime.now().toString().substring(11, 19);
     DateTime now = DateTime.now();
     String formattedDate = DateFormat('dd-MM-yyy').format(now);
-    // qrCode with the followinf format (ddmmyyyy)#time(hhmmss)#sdc number#sdc_receipt_number#internal_data#receipt_signature
+    // qrCode with the following format (ddmmyyyy)#time(hhmmss)#sdc number#sdc_receipt_number#internal_data#receipt_signature
     String receiptNumber =
         "${receiptSignature.data.rcptNo}/${receiptSignature.data.totRcptNo}";
     String qrCode =
@@ -650,9 +684,37 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         signature: receiptSignature,
         order: order,
         qrCode: qrCode,
+        counter: counter,
         receiptType: receiptNumber);
+    // update counter, increment the counter
+    ProxyService.isarApi.update(
+        data: counter
+          ..totRcptNo = receiptSignature.data.totRcptNo + 1
+          ..backed = false
+          ..curRcptNo = receiptSignature.data.rcptNo + 1);
     receiptReady = true;
     notifyListeners();
+  }
+
+  Future<Counter> getCounter(String? receiptType) async {
+    Counter? counter;
+    int branchId = ProxyService.box.getBranchId()!;
+    if (receiptType == ReceiptType.ns) {
+      counter = await ProxyService.isarApi.nSCounter(branchId: branchId);
+    }
+    if (receiptType == ReceiptType.ts) {
+      counter = await ProxyService.isarApi.tSCounter(branchId: branchId);
+    }
+    if (receiptType == ReceiptType.nr) {
+      counter = await ProxyService.isarApi.nRSCounter(branchId: branchId);
+    }
+    if (receiptType == ReceiptType.cs) {
+      counter = await ProxyService.isarApi.cSCounter(branchId: branchId);
+    }
+    if (receiptType == ReceiptType.ps) {
+      counter = await ProxyService.isarApi.pSCounter(branchId: branchId);
+    }
+    return counter!;
   }
 
   Future<void> updateDrawer(String receiptType, Order order) async {
@@ -703,9 +765,14 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   }
 
   Customer? get customer => app.customer;
-
-  void deleteCustomer(int id) {
-    ProxyService.isarApi.delete(id: id, endPoint: 'customer');
+  // check if the customer is attached to the order then can't be deleted
+  // order need to be deleted or completed first.
+  void deleteCustomer(int id, Function callback) {
+    if (kOrder!.customerId == null) {
+      ProxyService.isarApi.delete(id: id, endPoint: 'customer');
+    } else {
+      callback("Can't delete the customer");
+    }
   }
 
   void setDefaultBusiness({required Business business}) {

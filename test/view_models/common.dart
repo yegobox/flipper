@@ -91,6 +91,7 @@ Future<Isar> openTempIsar(List<CollectionSchema<dynamic>> schemas,
   if (!kIsWeb && testTempPath == null) {
     final dartToolDir = path.join(Directory.current.path, '.dart_tool');
     testTempPath = path.join(dartToolDir, 'test', 'tmp');
+    await Directory(testTempPath!).create(recursive: true);
   }
 
   return await tOpen(

@@ -19,7 +19,7 @@ abstract class IsarApiInterface {
   Future<List<Category>> categories({required int branchId});
   Stream<List<Category>> categoriesStream({required int branchId});
   Stream<Order?> pendingOrderStream();
-  Future<List<Unit>> units({required int branchId});
+  Future<List<IUnit>> units({required int branchId});
   Future<int> create<T>({required T data, required String endPoint});
   Future<int> update<T>(
       {required T data,
@@ -156,7 +156,7 @@ abstract class IsarApiInterface {
   Future<Profile?> updateProfile({required Profile profile});
   Future<JTenant> saveTenant(String phoneNumber, String name,
       {required Business business, required Branch branch});
-  Points addPoint({required int userId, required int point});
+  IPoint addPoint({required int userId, required int point});
   Future<Subscription?> addUpdateSubscription({
     required int userId,
     required int interval,
@@ -165,7 +165,7 @@ abstract class IsarApiInterface {
     required List<Feature> features,
   });
   Future<Subscription?> getSubscription({required int userId});
-  Future<Points?> getPoints({required int userId});
+  Future<IPoint?> getPoints({required int userId});
   void consumePoints({required int userId, required int points});
   Future<Pin?> createPin();
   Future<Pin?> getPin({required String pin});
@@ -180,7 +180,8 @@ abstract class IsarApiInterface {
       {required ReceiptSignature signature,
       required Order order,
       required String qrCode,
-      required String receiptType});
+      required String receiptType,
+      required Counter counter});
   Future<Receipt?> getReceipt({required int orderId});
 
   Future<void> refund({required int itemId});
@@ -190,4 +191,15 @@ abstract class IsarApiInterface {
   Future<Drawers?> openDrawer({required Drawers drawer});
 
   Future<int> size<T>({required T object});
+  Future<Counter?> nSCounter({required int branchId});
+  Future<Counter?> cSCounter({required int branchId});
+  Future<Counter?> nRSCounter({required int branchId});
+  Future<Counter?> tSCounter({required int branchId});
+  Future<Counter?> pSCounter({required int branchId});
+  Future<List<Counter>> unSyncedCounters({required int branchId});
+  Future<void> loadCounterFromOnline({required int businessId});
+
+  String dbPath();
+  Future<Customer?> nGetCustomerByOrderId({required int id});
+  Future<Token?> whatsAppToken();
 }

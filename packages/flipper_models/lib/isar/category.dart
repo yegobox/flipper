@@ -8,7 +8,7 @@ part 'category.g.dart';
 
 @Collection()
 class Category {
-  late int id = Isar.autoIncrement;
+  Id id = Isar.autoIncrement;
   late bool active;
   late bool focused;
   late String name;

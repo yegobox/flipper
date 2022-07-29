@@ -51,10 +51,10 @@ class ForceDataEntryService {
     if (kColors.isEmpty) {
       await ProxyService.isarApi.create<PColor>(data: color, endPoint: 'color');
     }
-    List<Unit> kUnits = await ProxyService.isarApi.units(branchId: branchid);
+    List<IUnit> kUnits = await ProxyService.isarApi.units(branchId: branchid);
 
     //now create default units for this branch
-    final units = Unit()
+    final units = IUnit()
       ..name = 'Per Kilogram (kg)'
       ..value = 'kg'
       ..active = false

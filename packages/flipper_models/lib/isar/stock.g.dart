@@ -10,7 +10,7 @@ part of flipper_models;
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
 
 extension GetStockCollection on Isar {
-  IsarCollection<Stock> get stocks => getCollection();
+  IsarCollection<Stock> get stocks => collection();
 }
 
 const StockSchema = CollectionSchema(
@@ -179,8 +179,7 @@ Stock _stockDeserializeWeb(IsarCollection<Stock> collection, Object jsObj) {
   object.canTrackingStock = IsarNative.jsObjectGet(jsObj, r'canTrackingStock');
   object.currentStock =
       IsarNative.jsObjectGet(jsObj, r'currentStock') ?? double.negativeInfinity;
-  object.id =
-      IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int);
+  object.id = IsarNative.jsObjectGet(jsObj, r'id');
   object.lowStock = IsarNative.jsObjectGet(jsObj, r'lowStock');
   object.productId = IsarNative.jsObjectGet(jsObj, r'productId') ??
       (double.negativeInfinity as int);
@@ -208,8 +207,7 @@ P _stockDeserializePropWeb<P>(Object jsObj, String propertyName) {
       return (IsarNative.jsObjectGet(jsObj, r'currentStock') ??
           double.negativeInfinity) as P;
     case r'id':
-      return (IsarNative.jsObjectGet(jsObj, r'id') ??
-          (double.negativeInfinity as int)) as P;
+      return (IsarNative.jsObjectGet(jsObj, r'id')) as P;
     case r'lowStock':
       return (IsarNative.jsObjectGet(jsObj, r'lowStock')) as P;
     case r'productId':
@@ -1582,6 +1580,12 @@ extension StockQueryWhereDistinct on QueryBuilder<Stock, Stock, QDistinct> {
 }
 
 extension StockQueryProperty on QueryBuilder<Stock, Stock, QQueryProperty> {
+  QueryBuilder<Stock, int, QQueryOperations> idProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'id');
+    });
+  }
+
   QueryBuilder<Stock, bool?, QQueryOperations> activeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'active');
@@ -1603,12 +1607,6 @@ extension StockQueryProperty on QueryBuilder<Stock, Stock, QQueryProperty> {
   QueryBuilder<Stock, double, QQueryOperations> currentStockProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'currentStock');
-    });
-  }
-
-  QueryBuilder<Stock, int, QQueryOperations> idProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'id');
     });
   }
 

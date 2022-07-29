@@ -10,7 +10,7 @@ part of flipper_models;
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
 
 extension GetProfileCollection on Isar {
-  IsarCollection<Profile> get profiles => getCollection();
+  IsarCollection<Profile> get profiles => collection();
 }
 
 const ProfileSchema = CollectionSchema(
@@ -129,21 +129,37 @@ void _profileSerializeNative(
   final vaccinationCode$Bytes =
       IsarBinaryWriter.utf8Encoder.convert(object.vaccinationCode);
   final size = (staticSize +
+      3 +
       (about$Bytes?.length ?? 0) +
+      3 +
       (address$Bytes?.length ?? 0) +
+      3 +
       (cell$Bytes.length) +
+      3 +
       (city$Bytes?.length ?? 0) +
+      3 +
       (country$Bytes.length) +
+      3 +
       (coverPic$Bytes?.length ?? 0) +
+      3 +
       (district$Bytes.length) +
+      3 +
       (email$Bytes.length) +
+      3 +
       (livingAt$Bytes.length) +
+      3 +
       (name$Bytes.length) +
+      3 +
       (nationalId$Bytes.length) +
+      3 +
       (phone$Bytes.length) +
+      3 +
       (pincode$Bytes?.length ?? 0) +
+      3 +
       (profilePic$Bytes?.length ?? 0) +
+      3 +
       (state$Bytes?.length ?? 0) +
+      3 +
       (vaccinationCode$Bytes.length)) as int;
   cObj.buffer = alloc(size);
   cObj.buffer_length = size;
@@ -151,23 +167,23 @@ void _profileSerializeNative(
   final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
   final writer = IsarBinaryWriter(buffer, staticSize);
   writer.writeHeader();
-  writer.writeBytes(offsets[0], about$Bytes);
-  writer.writeBytes(offsets[1], address$Bytes);
+  writer.writeByteList(offsets[0], about$Bytes);
+  writer.writeByteList(offsets[1], address$Bytes);
   writer.writeLong(offsets[2], object.businessId);
-  writer.writeBytes(offsets[3], cell$Bytes);
-  writer.writeBytes(offsets[4], city$Bytes);
-  writer.writeBytes(offsets[5], country$Bytes);
-  writer.writeBytes(offsets[6], coverPic$Bytes);
-  writer.writeBytes(offsets[7], district$Bytes);
-  writer.writeBytes(offsets[8], email$Bytes);
-  writer.writeBytes(offsets[9], livingAt$Bytes);
-  writer.writeBytes(offsets[10], name$Bytes);
-  writer.writeBytes(offsets[11], nationalId$Bytes);
-  writer.writeBytes(offsets[12], phone$Bytes);
-  writer.writeBytes(offsets[13], pincode$Bytes);
-  writer.writeBytes(offsets[14], profilePic$Bytes);
-  writer.writeBytes(offsets[15], state$Bytes);
-  writer.writeBytes(offsets[16], vaccinationCode$Bytes);
+  writer.writeByteList(offsets[3], cell$Bytes);
+  writer.writeByteList(offsets[4], city$Bytes);
+  writer.writeByteList(offsets[5], country$Bytes);
+  writer.writeByteList(offsets[6], coverPic$Bytes);
+  writer.writeByteList(offsets[7], district$Bytes);
+  writer.writeByteList(offsets[8], email$Bytes);
+  writer.writeByteList(offsets[9], livingAt$Bytes);
+  writer.writeByteList(offsets[10], name$Bytes);
+  writer.writeByteList(offsets[11], nationalId$Bytes);
+  writer.writeByteList(offsets[12], phone$Bytes);
+  writer.writeByteList(offsets[13], pincode$Bytes);
+  writer.writeByteList(offsets[14], profilePic$Bytes);
+  writer.writeByteList(offsets[15], state$Bytes);
+  writer.writeByteList(offsets[16], vaccinationCode$Bytes);
 }
 
 Profile _profileDeserializeNative(IsarCollection<Profile> collection, int id,
@@ -276,8 +292,7 @@ Profile _profileDeserializeWeb(
     coverPic: IsarNative.jsObjectGet(jsObj, r'coverPic'),
     district: IsarNative.jsObjectGet(jsObj, r'district') ?? '',
     email: IsarNative.jsObjectGet(jsObj, r'email') ?? '',
-    id: IsarNative.jsObjectGet(jsObj, r'id') ??
-        (double.negativeInfinity as int),
+    id: IsarNative.jsObjectGet(jsObj, r'id'),
     livingAt: IsarNative.jsObjectGet(jsObj, r'livingAt') ?? '',
     name: IsarNative.jsObjectGet(jsObj, r'name') ?? '',
     nationalId: IsarNative.jsObjectGet(jsObj, r'nationalId') ?? '',
@@ -312,8 +327,7 @@ P _profileDeserializePropWeb<P>(Object jsObj, String propertyName) {
     case r'email':
       return (IsarNative.jsObjectGet(jsObj, r'email') ?? '') as P;
     case r'id':
-      return (IsarNative.jsObjectGet(jsObj, r'id') ??
-          (double.negativeInfinity as int)) as P;
+      return (IsarNative.jsObjectGet(jsObj, r'id')) as P;
     case r'livingAt':
       return (IsarNative.jsObjectGet(jsObj, r'livingAt') ?? '') as P;
     case r'name':
@@ -3020,6 +3034,12 @@ extension ProfileQueryWhereDistinct
 
 extension ProfileQueryProperty
     on QueryBuilder<Profile, Profile, QQueryProperty> {
+  QueryBuilder<Profile, int, QQueryOperations> idProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'id');
+    });
+  }
+
   QueryBuilder<Profile, String?, QQueryOperations> aboutProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'about');
@@ -3071,12 +3091,6 @@ extension ProfileQueryProperty
   QueryBuilder<Profile, String, QQueryOperations> emailProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'email');
-    });
-  }
-
-  QueryBuilder<Profile, int, QQueryOperations> idProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'id');
     });
   }
 

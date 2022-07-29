@@ -5,7 +5,7 @@ part 'color.g.dart';
 
 @Collection()
 class PColor {
-  late int id = Isar.autoIncrement;
+  Id id = Isar.autoIncrement;
   late String? name;
   List<String>? channels;
 

@@ -10,7 +10,7 @@ part of flipper_models;
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
 
 extension GetBusinessCollection on Isar {
-  IsarCollection<Business> get businesss => getCollection();
+  IsarCollection<Business> get business => collection();
 }
 
 const BusinessSchema = CollectionSchema(
@@ -131,7 +131,7 @@ void _businessSerializeNative(
   if (categoryId$Value != null) {
     categoryId$Bytes = IsarBinaryWriter.utf8Encoder.convert(categoryId$Value);
   }
-  var channels$BytesCount = (object.channels?.length ?? 0) * 8;
+  var channels$BytesCount = 3 + (object.channels?.length ?? 0) * 3;
   List<IsarUint8List?>? channels$BytesList;
   final channels$Value = object.channels;
   if (channels$Value != null) {
@@ -283,38 +283,70 @@ void _businessSerializeNative(
     userId$Bytes = IsarBinaryWriter.utf8Encoder.convert(userId$Value);
   }
   final size = (staticSize +
+      3 +
       (adrs$Bytes?.length ?? 0) +
+      3 +
       (backupFileId$Bytes?.length ?? 0) +
+      3 +
       (bhfId$Bytes?.length ?? 0) +
+      3 +
       (businessUrl$Bytes?.length ?? 0) +
+      3 +
       (categoryId$Bytes?.length ?? 0) +
       channels$BytesCount +
+      3 +
       (chatUid$Bytes?.length ?? 0) +
+      3 +
       (country$Bytes?.length ?? 0) +
+      3 +
       (createdAt$Bytes?.length ?? 0) +
+      3 +
       (currency$Bytes?.length ?? 0) +
+      3 +
       (deviceToken$Bytes?.length ?? 0) +
+      3 +
       (dvcSrlNo$Bytes?.length ?? 0) +
+      3 +
       (email$Bytes?.length ?? 0) +
+      3 +
       (firstName$Bytes?.length ?? 0) +
+      3 +
       (fullName$Bytes?.length ?? 0) +
+      3 +
       (hexColor$Bytes?.length ?? 0) +
+      3 +
       (imageUrl$Bytes?.length ?? 0) +
+      3 +
       (lastDbBackup$Bytes?.length ?? 0) +
+      3 +
       (lastName$Bytes?.length ?? 0) +
+      3 +
       (latitude$Bytes?.length ?? 0) +
+      3 +
       (longitude$Bytes?.length ?? 0) +
+      3 +
       (metadata$Bytes?.length ?? 0) +
+      3 +
       (name$Bytes?.length ?? 0) +
+      3 +
       (nextBillingDate$Bytes?.length ?? 0) +
+      3 +
       (previousBillingDate$Bytes?.length ?? 0) +
+      3 +
       (role$Bytes?.length ?? 0) +
+      3 +
       (subscriptionPlan$Bytes?.length ?? 0) +
+      3 +
       (table$Bytes?.length ?? 0) +
+      3 +
       (taxServerUrl$Bytes?.length ?? 0) +
+      3 +
       (timeZone$Bytes?.length ?? 0) +
+      3 +
       (type$Bytes?.length ?? 0) +
+      3 +
       (typeId$Bytes?.length ?? 0) +
+      3 +
       (userId$Bytes?.length ?? 0)) as int;
   cObj.buffer = alloc(size);
   cObj.buffer_length = size;
@@ -323,45 +355,45 @@ void _businessSerializeNative(
   final writer = IsarBinaryWriter(buffer, staticSize);
   writer.writeHeader();
   writer.writeBool(offsets[0], object.active);
-  writer.writeBytes(offsets[1], adrs$Bytes);
+  writer.writeByteList(offsets[1], adrs$Bytes);
   writer.writeBool(offsets[2], object.backUpEnabled);
-  writer.writeBytes(offsets[3], backupFileId$Bytes);
-  writer.writeBytes(offsets[4], bhfId$Bytes);
-  writer.writeBytes(offsets[5], businessUrl$Bytes);
-  writer.writeBytes(offsets[6], categoryId$Bytes);
-  writer.writeStringList(offsets[7], channels$BytesList);
-  writer.writeBytes(offsets[8], chatUid$Bytes);
-  writer.writeBytes(offsets[9], country$Bytes);
-  writer.writeBytes(offsets[10], createdAt$Bytes);
-  writer.writeBytes(offsets[11], currency$Bytes);
-  writer.writeBytes(offsets[12], deviceToken$Bytes);
-  writer.writeBytes(offsets[13], dvcSrlNo$Bytes);
-  writer.writeBytes(offsets[14], email$Bytes);
-  writer.writeBytes(offsets[15], firstName$Bytes);
-  writer.writeBytes(offsets[16], fullName$Bytes);
-  writer.writeBytes(offsets[17], hexColor$Bytes);
-  writer.writeBytes(offsets[18], imageUrl$Bytes);
+  writer.writeByteList(offsets[3], backupFileId$Bytes);
+  writer.writeByteList(offsets[4], bhfId$Bytes);
+  writer.writeByteList(offsets[5], businessUrl$Bytes);
+  writer.writeByteList(offsets[6], categoryId$Bytes);
+  writer.writeByteLists(offsets[7], channels$BytesList);
+  writer.writeByteList(offsets[8], chatUid$Bytes);
+  writer.writeByteList(offsets[9], country$Bytes);
+  writer.writeByteList(offsets[10], createdAt$Bytes);
+  writer.writeByteList(offsets[11], currency$Bytes);
+  writer.writeByteList(offsets[12], deviceToken$Bytes);
+  writer.writeByteList(offsets[13], dvcSrlNo$Bytes);
+  writer.writeByteList(offsets[14], email$Bytes);
+  writer.writeByteList(offsets[15], firstName$Bytes);
+  writer.writeByteList(offsets[16], fullName$Bytes);
+  writer.writeByteList(offsets[17], hexColor$Bytes);
+  writer.writeByteList(offsets[18], imageUrl$Bytes);
   writer.writeBool(offsets[19], object.isDefault);
   writer.writeBool(offsets[20], object.isLastSubscriptionPaymentSucceeded);
-  writer.writeBytes(offsets[21], lastDbBackup$Bytes);
-  writer.writeBytes(offsets[22], lastName$Bytes);
+  writer.writeByteList(offsets[21], lastDbBackup$Bytes);
+  writer.writeByteList(offsets[22], lastName$Bytes);
   writer.writeLong(offsets[23], object.lastSeen);
-  writer.writeBytes(offsets[24], latitude$Bytes);
-  writer.writeBytes(offsets[25], longitude$Bytes);
-  writer.writeBytes(offsets[26], metadata$Bytes);
-  writer.writeBytes(offsets[27], name$Bytes);
-  writer.writeBytes(offsets[28], nextBillingDate$Bytes);
-  writer.writeBytes(offsets[29], previousBillingDate$Bytes);
-  writer.writeBytes(offsets[30], role$Bytes);
-  writer.writeBytes(offsets[31], subscriptionPlan$Bytes);
-  writer.writeBytes(offsets[32], table$Bytes);
+  writer.writeByteList(offsets[24], latitude$Bytes);
+  writer.writeByteList(offsets[25], longitude$Bytes);
+  writer.writeByteList(offsets[26], metadata$Bytes);
+  writer.writeByteList(offsets[27], name$Bytes);
+  writer.writeByteList(offsets[28], nextBillingDate$Bytes);
+  writer.writeByteList(offsets[29], previousBillingDate$Bytes);
+  writer.writeByteList(offsets[30], role$Bytes);
+  writer.writeByteList(offsets[31], subscriptionPlan$Bytes);
+  writer.writeByteList(offsets[32], table$Bytes);
   writer.writeBool(offsets[33], object.taxEnabled);
-  writer.writeBytes(offsets[34], taxServerUrl$Bytes);
-  writer.writeBytes(offsets[35], timeZone$Bytes);
+  writer.writeByteList(offsets[34], taxServerUrl$Bytes);
+  writer.writeByteList(offsets[35], timeZone$Bytes);
   writer.writeLong(offsets[36], object.tinNumber);
-  writer.writeBytes(offsets[37], type$Bytes);
-  writer.writeBytes(offsets[38], typeId$Bytes);
-  writer.writeBytes(offsets[39], userId$Bytes);
+  writer.writeByteList(offsets[37], type$Bytes);
+  writer.writeByteList(offsets[38], typeId$Bytes);
+  writer.writeByteList(offsets[39], userId$Bytes);
 }
 
 Business _businessDeserializeNative(IsarCollection<Business> collection, int id,
@@ -703,14 +735,6 @@ extension BusinessQueryWhereSort on QueryBuilder<Business, Business, QWhere> {
   QueryBuilder<Business, Business, QAfterWhere> anyId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
-    });
-  }
-
-  QueryBuilder<Business, Business, QAfterWhere> anyUserId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        const IndexWhereClause.any(indexName: r'userId'),
-      );
     });
   }
 }
@@ -6365,6 +6389,12 @@ extension BusinessQueryWhereDistinct
 
 extension BusinessQueryProperty
     on QueryBuilder<Business, Business, QQueryProperty> {
+  QueryBuilder<Business, int, QQueryOperations> idProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'id');
+    });
+  }
+
   QueryBuilder<Business, bool?, QQueryOperations> activeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'active');
@@ -6470,12 +6500,6 @@ extension BusinessQueryProperty
   QueryBuilder<Business, String?, QQueryOperations> hexColorProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'hexColor');
-    });
-  }
-
-  QueryBuilder<Business, int?, QQueryOperations> idProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'id');
     });
   }
 

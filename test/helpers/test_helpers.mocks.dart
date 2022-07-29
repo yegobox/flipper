@@ -51,7 +51,7 @@ class _FakeReactiveValue_5<T> extends _i1.Fake implements _i7.ReactiveValue<T> {
 
 class _FakeBusiness_6 extends _i1.Fake implements _i8.Business {}
 
-class _FakePoints_7 extends _i1.Fake implements _i8.Points {}
+class _FakeIPoint_7 extends _i1.Fake implements _i8.IPoint {}
 
 class _FakeSubscription_8 extends _i1.Fake implements _i8.Subscription {}
 
@@ -680,9 +680,9 @@ class MockAppService extends _i1.Mock implements _i18.AppService {
   _i8.Business get business => (super.noSuchMethod(Invocation.getter(#business),
       returnValue: _FakeBusiness_6()) as _i8.Business);
   @override
-  List<_i8.Unit> get units =>
-      (super.noSuchMethod(Invocation.getter(#units), returnValue: <_i8.Unit>[])
-          as List<_i8.Unit>);
+  List<_i8.IUnit> get units =>
+      (super.noSuchMethod(Invocation.getter(#units), returnValue: <_i8.IUnit>[])
+          as List<_i8.IUnit>);
   @override
   List<_i8.PColor> get colors => (super.noSuchMethod(Invocation.getter(#colors),
       returnValue: <_i8.PColor>[]) as List<_i8.PColor>);
@@ -736,6 +736,12 @@ class MockAppService extends _i1.Mock implements _i18.AppService {
       returnValue: Future<void>.value(),
       returnValueForMissingStub: Future<void>.value()) as _i12.Future<void>);
   @override
+  _i12.Future<void> loadTenants(List<_i8.Business>? businesses) =>
+      (super.noSuchMethod(Invocation.method(#loadTenants, [businesses]),
+              returnValue: Future<void>.value(),
+              returnValueForMissingStub: Future<void>.value())
+          as _i12.Future<void>);
+  @override
   _i12.Future<bool> setActiveBranch({_i8.Business? businesses}) =>
       (super.noSuchMethod(
           Invocation.method(#setActiveBranch, [], {#businesses: businesses}),
@@ -749,6 +755,11 @@ class MockAppService extends _i1.Mock implements _i18.AppService {
   @override
   _i12.Future<void> bootstraper() => (super.noSuchMethod(
       Invocation.method(#bootstraper, []),
+      returnValue: Future<void>.value(),
+      returnValueForMissingStub: Future<void>.value()) as _i12.Future<void>);
+  @override
+  _i12.Future<void> loadCounters(_i8.Business? business) => (super.noSuchMethod(
+      Invocation.method(#loadCounters, [business]),
       returnValue: Future<void>.value(),
       returnValueForMissingStub: Future<void>.value()) as _i12.Future<void>);
   @override
@@ -801,9 +812,9 @@ class MockBillingService extends _i1.Mock implements _i20.BillingService {
               returnValue: Future<_i8.Voucher?>.value())
           as _i12.Future<_i8.Voucher?>);
   @override
-  _i8.Points addPoints({int? points, int? userId}) => (super.noSuchMethod(
+  _i8.IPoint addPoints({int? points, int? userId}) => (super.noSuchMethod(
       Invocation.method(#addPoints, [], {#points: points, #userId: userId}),
-      returnValue: _FakePoints_7()) as _i8.Points);
+      returnValue: _FakeIPoint_7()) as _i8.IPoint);
   @override
   _i12.Future<_i8.Subscription> updateSubscription(
           {int? userId,

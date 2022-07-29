@@ -8,14 +8,20 @@ const String addProductHero = 'addProductHero';
 ///
 /// Uses a [Hero] with tag [OptionModal].
 
-class OptionModal extends StatelessWidget {
+class OptionModal extends StatefulWidget {
   const OptionModal({Key? key, required this.child}) : super(key: key);
   final Widget child;
+
+  @override
+  State<OptionModal> createState() => _OptionModalState();
+}
+
+class _OptionModalState extends State<OptionModal> {
   @override
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(30.0),
+        padding: const EdgeInsets.only(left: 20.0, right: 20),
         child: Hero(
           tag: addProductHero,
           createRectTween: (begin, end) {
@@ -24,9 +30,9 @@ class OptionModal extends StatelessWidget {
           child: Material(
             elevation: 2,
             shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
             child: SingleChildScrollView(
-              child: child,
+              child: widget.child,
             ),
           ),
         ),

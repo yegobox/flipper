@@ -10,7 +10,7 @@ part of 'conversation.dart';
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
 
 extension GetConversationCollection on Isar {
-  IsarCollection<Conversation> get conversations => getCollection();
+  IsarCollection<Conversation> get conversations => collection();
 }
 
 const ConversationSchema = CollectionSchema(
@@ -83,9 +83,13 @@ void _conversationSerializeNative(
       IsarBinaryWriter.utf8Encoder.convert(object.senderName);
   final status$Bytes = IsarBinaryWriter.utf8Encoder.convert(object.status);
   final size = (staticSize +
+      3 +
       (dbAvatars$Bytes?.length ?? 0) +
+      3 +
       (lastMessage$Bytes?.length ?? 0) +
+      3 +
       (senderName$Bytes.length) +
+      3 +
       (status$Bytes.length)) as int;
   cObj.buffer = alloc(size);
   cObj.buffer_length = size;
@@ -94,13 +98,13 @@ void _conversationSerializeNative(
   final writer = IsarBinaryWriter(buffer, staticSize);
   writer.writeHeader();
   writer.writeLong(offsets[0], object.createdAt);
-  writer.writeBytes(offsets[1], dbAvatars$Bytes);
+  writer.writeByteList(offsets[1], dbAvatars$Bytes);
   writer.writeBool(offsets[2], object.delivered);
-  writer.writeBytes(offsets[3], lastMessage$Bytes);
+  writer.writeByteList(offsets[3], lastMessage$Bytes);
   writer.writeLong(offsets[4], object.receiverId);
   writer.writeLong(offsets[5], object.senderId);
-  writer.writeBytes(offsets[6], senderName$Bytes);
-  writer.writeBytes(offsets[7], status$Bytes);
+  writer.writeByteList(offsets[6], senderName$Bytes);
+  writer.writeByteList(offsets[7], status$Bytes);
 }
 
 Conversation _conversationDeserializeNative(
@@ -167,8 +171,7 @@ Conversation _conversationDeserializeWeb(
   object.createdAt = IsarNative.jsObjectGet(jsObj, r'createdAt') ??
       (double.negativeInfinity as int);
   object.delivered = IsarNative.jsObjectGet(jsObj, r'delivered') ?? false;
-  object.id =
-      IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int);
+  object.id = IsarNative.jsObjectGet(jsObj, r'id');
   object.lastMessage = IsarNative.jsObjectGet(jsObj, r'lastMessage');
   object.receiverId = IsarNative.jsObjectGet(jsObj, r'receiverId') ??
       (double.negativeInfinity as int);
@@ -189,8 +192,7 @@ P _conversationDeserializePropWeb<P>(Object jsObj, String propertyName) {
     case r'delivered':
       return (IsarNative.jsObjectGet(jsObj, r'delivered') ?? false) as P;
     case r'id':
-      return (IsarNative.jsObjectGet(jsObj, r'id') ??
-          (double.negativeInfinity as int)) as P;
+      return (IsarNative.jsObjectGet(jsObj, r'id')) as P;
     case r'lastMessage':
       return (IsarNative.jsObjectGet(jsObj, r'lastMessage')) as P;
     case r'receiverId':
@@ -1282,6 +1284,12 @@ extension ConversationQueryWhereDistinct
 
 extension ConversationQueryProperty
     on QueryBuilder<Conversation, Conversation, QQueryProperty> {
+  QueryBuilder<Conversation, int, QQueryOperations> idProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'id');
+    });
+  }
+
   QueryBuilder<Conversation, int, QQueryOperations> createdAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'createdAt');
@@ -1297,12 +1305,6 @@ extension ConversationQueryProperty
   QueryBuilder<Conversation, bool, QQueryOperations> deliveredProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'delivered');
-    });
-  }
-
-  QueryBuilder<Conversation, int, QQueryOperations> idProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'id');
     });
   }
 

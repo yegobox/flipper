@@ -6,6 +6,7 @@
 
 import 'package:flipper_models/isar_models.dart' as _i15;
 import 'package:flipper_models/tax_api.dart' as _i28;
+import 'package:flipper_models/whatsapp.dart' as _i30;
 import 'package:get_it/get_it.dart' as _i1;
 import 'package:injectable/injectable.dart' as _i2;
 
@@ -35,12 +36,12 @@ import 'local_notification_service.dart' as _i17;
 import 'product_service.dart' as _i21;
 import 'setting_service.dart' as _i24;
 import 'third_party_services_module.dart'
-    as _i30; // ignore_for_file: unnecessary_lambdas
+    as _i31; // ignore_for_file: unnecessary_lambdas
 
 // ignore_for_file: lines_longer_than_80_chars
 /// initializes the registration of provided dependencies inside of [GetIt]
-_i1.GetIt $initGetIt(_i1.GetIt get,
-    {String? environment, _i2.EnvironmentFilter? environmentFilter}) {
+Future<_i1.GetIt> $initGetIt(_i1.GetIt get,
+    {String? environment, _i2.EnvironmentFilter? environmentFilter}) async {
   final gh = _i2.GetItHelper(get, environment, environmentFilter);
   final thirdPartyServicesModule = _$ThirdPartyServicesModule();
   gh.lazySingleton<_i3.Analytic>(() => thirdPartyServicesModule.appAnalytic);
@@ -61,8 +62,9 @@ _i1.GetIt $initGetIt(_i1.GetIt get,
       () => thirdPartyServicesModule.location);
   gh.lazySingleton<_i14.ForceDataEntryService>(
       () => thirdPartyServicesModule.forcedataEntry);
-  gh.lazySingleton<_i15.IsarApiInterface>(
-      () => thirdPartyServicesModule.isarApi);
+  await gh.factoryAsync<_i15.IsarApiInterface>(
+      () => thirdPartyServicesModule.isarApi,
+      preResolve: true);
   gh.lazySingleton<_i16.KeyPadService>(
       () => thirdPartyServicesModule.keypadService);
   gh.lazySingleton<_i17.LNotification>(
@@ -83,10 +85,11 @@ _i1.GetIt $initGetIt(_i1.GetIt get,
   gh.lazySingleton<_i27.SystemTime>(() => thirdPartyServicesModule.systemTime);
   gh.lazySingleton<_i28.TaxApi>(() => thirdPartyServicesModule.taxApiService);
   gh.lazySingleton<_i29.UploadT>(() => thirdPartyServicesModule.upload);
+  gh.lazySingleton<_i30.WhatsApp>(() => thirdPartyServicesModule.whatsApp);
   return get;
 }
 
-class _$ThirdPartyServicesModule extends _i30.ThirdPartyServicesModule {
+class _$ThirdPartyServicesModule extends _i31.ThirdPartyServicesModule {
   @override
   _i4.AnalyticService get analytic => _i4.AnalyticService();
   @override

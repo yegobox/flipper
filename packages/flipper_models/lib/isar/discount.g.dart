@@ -10,7 +10,7 @@ part of 'discount.dart';
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
 
 extension GetDiscountCollection on Isar {
-  IsarCollection<Discount> get discounts => getCollection();
+  IsarCollection<Discount> get discounts => collection();
 }
 
 const DiscountSchema = CollectionSchema(
@@ -65,7 +65,7 @@ void _discountSerializeNative(
     List<int> offsets,
     AdapterAlloc alloc) {
   final name$Bytes = IsarBinaryWriter.utf8Encoder.convert(object.name);
-  final size = (staticSize + (name$Bytes.length)) as int;
+  final size = (staticSize + 3 + (name$Bytes.length)) as int;
   cObj.buffer = alloc(size);
   cObj.buffer_length = size;
 
@@ -74,7 +74,7 @@ void _discountSerializeNative(
   writer.writeHeader();
   writer.writeDouble(offsets[0], object.amount);
   writer.writeLong(offsets[1], object.branchId);
-  writer.writeBytes(offsets[2], name$Bytes);
+  writer.writeByteList(offsets[2], name$Bytes);
 }
 
 Discount _discountDeserializeNative(IsarCollection<Discount> collection, int id,
@@ -120,8 +120,7 @@ Discount _discountDeserializeWeb(
     amount: IsarNative.jsObjectGet(jsObj, r'amount'),
     branchId: IsarNative.jsObjectGet(jsObj, r'branchId') ??
         (double.negativeInfinity as int),
-    id: IsarNative.jsObjectGet(jsObj, r'id') ??
-        (double.negativeInfinity as int),
+    id: IsarNative.jsObjectGet(jsObj, r'id'),
     name: IsarNative.jsObjectGet(jsObj, r'name') ?? '',
   );
   return object;
@@ -135,8 +134,7 @@ P _discountDeserializePropWeb<P>(Object jsObj, String propertyName) {
       return (IsarNative.jsObjectGet(jsObj, r'branchId') ??
           (double.negativeInfinity as int)) as P;
     case r'id':
-      return (IsarNative.jsObjectGet(jsObj, r'id') ??
-          (double.negativeInfinity as int)) as P;
+      return (IsarNative.jsObjectGet(jsObj, r'id')) as P;
     case r'name':
       return (IsarNative.jsObjectGet(jsObj, r'name') ?? '') as P;
     default:
@@ -698,6 +696,12 @@ extension DiscountQueryWhereDistinct
 
 extension DiscountQueryProperty
     on QueryBuilder<Discount, Discount, QQueryProperty> {
+  QueryBuilder<Discount, int, QQueryOperations> idProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'id');
+    });
+  }
+
   QueryBuilder<Discount, double?, QQueryOperations> amountProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'amount');
@@ -707,12 +711,6 @@ extension DiscountQueryProperty
   QueryBuilder<Discount, int, QQueryOperations> branchIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'branchId');
-    });
-  }
-
-  QueryBuilder<Discount, int, QQueryOperations> idProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'id');
     });
   }
 

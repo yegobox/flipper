@@ -4,7 +4,7 @@ part 'receipt.g.dart';
 
 @Collection()
 class Receipt {
-  int? id = Isar.autoIncrement;
+  Id id = Isar.autoIncrement;
   late String resultCd;
   late String resultMsg;
   late String resultDt;

@@ -20,7 +20,7 @@ class Pin {
     required this.branchId,
     required this.businessId,
   });
-  late int id = Isar.autoIncrement;
+  Id id = Isar.autoIncrement;
   late String userId;
   late String phoneNumber;
   late int pin;

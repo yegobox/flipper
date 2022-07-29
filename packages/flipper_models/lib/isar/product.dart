@@ -7,7 +7,7 @@ part 'product.g.dart';
 
 @Collection()
 class Product {
-  int? id = Isar.autoIncrement;
+  Id id = Isar.autoIncrement;
   @Index(caseSensitive: true)
   late String name;
   String? picture;

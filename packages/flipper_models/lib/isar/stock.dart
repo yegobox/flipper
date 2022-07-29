@@ -5,7 +5,7 @@ part 'stock.g.dart';
 
 @Collection()
 class Stock {
-  late int id = Isar.autoIncrement;
+  Id id = Isar.autoIncrement;
   @Index()
   late int branchId;
   @Index(composite: [CompositeIndex('branchId')])

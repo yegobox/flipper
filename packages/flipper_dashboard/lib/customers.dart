@@ -26,7 +26,7 @@ class Customers extends StatelessWidget {
                 onPop: () {
                   GoRouter.of(context).pop();
                 },
-                title: 'Add Customer to Sale',
+                title: 'Add customer',
                 showActionButton: false,
                 onPressedCallback: () async {
                   GoRouter.of(context).pop();
@@ -101,14 +101,22 @@ class Customers extends StatelessWidget {
                                     ]),
                                   ),
                                   startActionPane: ActionPane(
-                                    motion: const ScrollMotion(),
-                                    dismissible:
-                                        DismissiblePane(onDismissed: () {}),
+                                    motion: const ScrollMotion(
+                                      key: Key('dismissable-100'),
+                                    ),
                                     children: [
                                       SlidableAction(
                                         onPressed: (_) {
                                           model.deleteCustomer(
-                                              snapshot.data!.id);
+                                              snapshot.data!.id, (message) {
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              SnackBar(
+                                                backgroundColor: Colors.red,
+                                                content: Text(message),
+                                              ),
+                                            );
+                                          });
                                         },
                                         backgroundColor:
                                             const Color(0xFFFE4A49),
@@ -119,14 +127,21 @@ class Customers extends StatelessWidget {
                                     ],
                                   ),
                                   endActionPane: ActionPane(
-                                    motion: const ScrollMotion(),
-                                    dismissible:
-                                        DismissiblePane(onDismissed: () {}),
+                                    motion: const ScrollMotion(
+                                        key: Key('dismissable-100')),
                                     children: [
                                       SlidableAction(
                                         onPressed: (_) {
                                           model.deleteCustomer(
-                                              snapshot.data!.id);
+                                              snapshot.data!.id, (message) {
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              SnackBar(
+                                                backgroundColor: Colors.red,
+                                                content: Text(message),
+                                              ),
+                                            );
+                                          });
                                         },
                                         backgroundColor:
                                             const Color(0xFFFE4A49),

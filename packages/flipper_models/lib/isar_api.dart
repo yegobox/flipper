@@ -1,16 +1,18 @@
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flipper_models/data.loads/jcounter.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_routing/routes.logger.dart';
+import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:http/http.dart' as http;
-
+import 'package:flutter/foundation.dart' as foundation;
+import 'package:universal_platform/universal_platform.dart';
 import 'view_models/gate.dart';
 
-late Isar isar;
-late String apihub;
+final isAndroid = UniversalPlatform.isAndroid;
 
 class ExtendedClient extends http.BaseClient {
   final http.Client _inner;
@@ -30,11 +32,53 @@ class ExtendedClient extends http.BaseClient {
 class IsarAPI implements IsarApiInterface {
   final log = getLogger('IsarAPI');
   ExtendedClient client = ExtendedClient(http.Client());
+  late String apihub;
+  late Isar isar;
+  Future<IsarApiInterface> getInstance({Isar? iisar}) async {
+    if (foundation.kDebugMode && !isAndroid) {
+      apihub = "http://localhost:8082";
+    } else if (foundation.kDebugMode && isAndroid) {
+      // apihub = "http://10.0.2.2:8082";
+      apihub = "https://apihub.yegobox.com";
+    } else {
+      apihub = "https://apihub.yegobox.com";
+    }
+    if (iisar == null) {
+      isar = await Isar.open(
+        [
+          OrderSchema,
+          BusinessSchema,
+          BranchSchema,
+          OrderItemSchema,
+          ProductSchema,
+          VariantSchema,
+          ProfileSchema,
+          SubscriptionSchema,
+          IPointSchema,
+          StockSchema,
+          FeatureSchema,
+          VoucherSchema,
+          PColorSchema,
+          CategorySchema,
+          IUnitSchema,
+          SettingSchema,
+          DiscountSchema,
+          CustomerSchema,
+          PinSchema,
+          ReceiptSchema,
+          DrawersSchema,
+          ITenantSchema,
+          PermissionSchema,
+          CounterSchema,
+          TokenSchema
+        ],
+      );
+    } else {
+      isar = iisar;
+    }
 
-  IsarAPI();
-  static instance({required Isar isarRef, String? url}) {
-    isar = isarRef;
-    apihub = url ?? "https://apihub.yegobox.com";
+    log.i(isar.path);
+    return this;
   }
 
   @override
@@ -50,10 +94,17 @@ class IsarAPI implements IsarApiInterface {
       ..phone = customer['phone']
       ..address = customer['address']
       ..orderId = orderId;
-    return await isar.writeTxn(() async {
+    Customer? kcustomer = await isar.writeTxn(() async {
       int id = await isar.customers.put(kCustomer);
       return await isar.customers.get(id);
     });
+    Order? order = await isar.writeTxn(() async {
+      return await isar.orders.get(orderId);
+    });
+    order!.customerId = kcustomer!.id;
+    // update the order with the customerID
+    await update(data: order);
+    return kcustomer;
   }
 
   @override
@@ -124,22 +175,22 @@ class IsarAPI implements IsarApiInterface {
 
   // get point where userId = userId from db
   @override
-  Points addPoint({required int userId, required int point}) {
-    return isar.pointss.filter().userIdEqualTo(userId).findFirstSync()!;
+  IPoint addPoint({required int userId, required int point}) {
+    return isar.iPoints.filter().userIdEqualTo(userId).findFirstSync()!;
   }
 
   @override
   Future<int> addUnits<T>({required T data}) async {
     await isar.writeTxn(() async {
-      Unit units = data as Unit;
+      IUnit units = data as IUnit;
       for (Map map in units.units!) {
-        final unit = Unit()
+        final unit = IUnit()
           ..active = false
           ..value = units.value
           ..name = map['name']
           ..branchId = units.branchId;
         // save unit to db
-        await isar.units.put(unit);
+        await isar.iUnits.put(unit);
       }
     });
     return Future.value(200);
@@ -338,13 +389,13 @@ class IsarAPI implements IsarApiInterface {
   void consumePoints({required int userId, required int points}) async {
     // get Points where userId = userId from db
     // and update this Points with new points
-    Points? po = await isar.pointss.filter().userIdEqualTo(userId).findFirst();
+    IPoint? po = await isar.iPoints.filter().userIdEqualTo(userId).findFirst();
     //po ??= Points(userId: userId, points: 0, value: 0);
     // save po to db
     po!.value = po.value - points;
     await isar.writeTxn(() async {
-      int id = await isar.pointss.put(po);
-      return isar.pointss.getSync(id)!;
+      int id = await isar.iPoints.put(po);
+      return isar.iPoints.getSync(id)!;
     });
   }
 
@@ -460,53 +511,52 @@ class IsarAPI implements IsarApiInterface {
       return isar.products.get(id);
     });
     // save variants in isar Db with the above productId
-    kProduct!.variants.add(
-      Variant()
-        ..name = 'Regular'
-        ..productId = kProduct.id!
-        ..unit = 'Per Item'
-        ..table = 'variants'
-        ..productName = product.name
-        ..branchId = branchId
-        ..taxName = 'N/A'
-        ..isTaxExempted = false
-        ..taxPercentage = 0
-        ..retailPrice = 0
-        // RRA fields
-        ..bhfId = business?.bhfId
-        ..prc = 0.0
-        ..sku = 'sku'
-        ..tin = business?.tinNumber
-        ..itemCd = clip
-        // TODOask about item clasification code, it seems to be static
-        ..itemClsCd = "5020230602"
-        ..itemTyCd = "1"
-        ..itemNm = "Regular"
-        ..itemStdNm = "Regular"
-        ..orgnNatCd = "RW"
-        ..pkgUnitCd = "NT"
-        ..qtyUnitCd = "U"
-        ..taxTyCd = "B"
-        ..dftPrc = 0.0
-        ..addInfo = "A"
-        ..isrcAplcbYn = "N"
-        ..useYn = "N"
-        ..regrId = clip
-        ..regrNm = "Regular"
-        ..modrId = clip
-        ..modrNm = "Regular"
-        ..pkg = "1"
-        ..itemSeq = "1"
-        ..splyAmt = 0.0
-        // RRA fields ends
-        ..supplyPrice = 0.0,
-    );
     await isar.writeTxn(() async {
-      return await kProduct.variants.save();
+      return isar.variants.put(
+        Variant()
+          ..name = 'Regular'
+          ..productId = kProduct!.id
+          ..unit = 'Per Item'
+          ..table = 'variants'
+          ..productName = product.name
+          ..branchId = branchId
+          ..taxName = 'N/A'
+          ..isTaxExempted = false
+          ..taxPercentage = 0
+          ..retailPrice = 0
+          // RRA fields
+          ..bhfId = business?.bhfId
+          ..prc = 0.0
+          ..sku = 'sku'
+          ..tin = business?.tinNumber
+          ..itemCd = clip
+          // TODOask about item clasification code, it seems to be static
+          ..itemClsCd = "5020230602"
+          ..itemTyCd = "1"
+          ..itemNm = "Regular"
+          ..itemStdNm = "Regular"
+          ..orgnNatCd = "RW"
+          ..pkgUnitCd = "NT"
+          ..qtyUnitCd = "U"
+          ..taxTyCd = "B"
+          ..dftPrc = 0.0
+          ..addInfo = "A"
+          ..isrcAplcbYn = "N"
+          ..useYn = "N"
+          ..regrId = clip
+          ..regrNm = "Regular"
+          ..modrId = clip
+          ..modrNm = "Regular"
+          ..pkg = "1"
+          ..itemSeq = "1"
+          ..splyAmt = 0.0
+          // RRA fields ends
+          ..supplyPrice = 0.0,
+      );
     });
 
     Variant? variant =
-        await isar.variants.where().productIdEqualTo(kProduct.id!).findFirst();
+        await isar.variants.where().productIdEqualTo(kProduct!.id).findFirst();
 
     Stock stock = Stock()
       ..canTrackingStock = false
@@ -522,7 +572,7 @@ class IsarAPI implements IsarApiInterface {
       // normaly this should be currentStock * retailPrice
       ..value = variant.retailPrice * 0.0
       ..active = false
-      ..productId = kProduct.id!
+      ..productId = kProduct.id
       ..rsdQty = 0.0;
 
     await isar.writeTxn(() async {
@@ -596,7 +646,7 @@ class IsarAPI implements IsarApiInterface {
         break;
       case 'business':
         isar.writeTxn(() async {
-          await isar.businesss.delete(id);
+          await isar.business.delete(id);
           return true;
         });
         break;
@@ -643,7 +693,7 @@ class IsarAPI implements IsarApiInterface {
     /// get business from store
 
     Business? business = await isar.writeTxn(() {
-      return isar.businesss.get(businessId);
+      return isar.business.get(businessId);
     });
     final http.Response response = await client.post(
         Uri.parse("$apihub/v2/api/createAttendanceDoc"),
@@ -670,19 +720,19 @@ class IsarAPI implements IsarApiInterface {
   Future<Business?> getBusiness() {
     String? userId = ProxyService.box.getUserId();
     return isar.writeTxn(() {
-      return isar.businesss.filter().userIdEqualTo(userId!).findFirst();
+      return isar.business.filter().userIdEqualTo(userId!).findFirst();
     });
   }
 
   @override
   Future<Business?> getBusinessById({required int id}) async {
-    return await isar.businesss.get(id);
+    return await isar.business.get(id);
   }
 
   @override
   Future<Business?> getBusinessFromOnlineGivenId({required int id}) async {
     Business? business = await isar.writeTxn(() {
-      return isar.businesss.filter().idEqualTo(id).findFirst();
+      return isar.business.filter().idEqualTo(id).findFirst();
     });
     if (business != null) return business;
     final http.Response response =
@@ -690,8 +740,8 @@ class IsarAPI implements IsarApiInterface {
     if (response.statusCode == 200) {
       Business business = Business.fromJson(json.decode(response.body));
       return isar.writeTxn(() async {
-        int id = await isar.businesss.put(business);
-        return isar.businesss.get(id);
+        int id = await isar.business.put(business);
+        return isar.business.get(id);
       });
     }
     return null;
@@ -739,7 +789,7 @@ class IsarAPI implements IsarApiInterface {
       // add this newProduct's variant to the RRA DB
       Variant? variant = await isar.variants
           .where()
-          .productIdEqualTo(newProduct.id!)
+          .productIdEqualTo(newProduct.id)
           .findFirst();
       if (await ProxyService.isarApi.isTaxEnabled()) {
         ProxyService.tax.saveItem(variation: variant!);
@@ -748,7 +798,7 @@ class IsarAPI implements IsarApiInterface {
     } else {
       return await isar.variants
           .where()
-          .productIdEqualTo(product.id!)
+          .productIdEqualTo(product.id)
           .findFirst();
     }
   }
@@ -775,6 +825,11 @@ class IsarAPI implements IsarApiInterface {
   }
 
   @override
+  Future<Customer?> nGetCustomerByOrderId({required int id}) async {
+    return isar.customers.filter().orderIdEqualTo(id).findFirst();
+  }
+
+  @override
   Future<List<Discount>> getDiscounts({required int branchId}) {
     return isar.discounts.filter().branchIdEqualTo(branchId).findAll();
   }
@@ -784,7 +839,7 @@ class IsarAPI implements IsarApiInterface {
   @override
   Future<List<Business>> businesses({required String userId}) async {
     List<Business> businesses =
-        await isar.businesss.filter().userIdEqualTo(userId).findAll();
+        await isar.business.filter().userIdEqualTo(userId).findAll();
 
     return businesses;
   }
@@ -802,15 +857,15 @@ class IsarAPI implements IsarApiInterface {
     }
 
     Business? business = await isar.writeTxn(() {
-      return isar.businesss.get(fromJson(response.body).id!);
+      return isar.business.get(fromJson(response.body).id!);
     });
 
     if (business == null) {
       await isar.writeTxn(() async {
-        return isar.businesss.put(fromJson(response.body));
+        return isar.business.put(fromJson(response.body));
       });
       business = await isar.writeTxn(() {
-        return isar.businesss.filter().userIdEqualTo(userId).findFirst();
+        return isar.business.filter().userIdEqualTo(userId).findFirst();
       });
     }
     ProxyService.box.write(key: 'businessId', value: business!.id);
@@ -850,9 +905,9 @@ class IsarAPI implements IsarApiInterface {
   }
 
   @override
-  Future<Points?> getPoints({required int userId}) {
+  Future<IPoint?> getPoints({required int userId}) {
     return isar.writeTxn(() {
-      return isar.pointss.where().userIdEqualTo(userId).findFirst();
+      return isar.iPoints.where().userIdEqualTo(userId).findFirst();
     });
   }
 
@@ -953,7 +1008,7 @@ class IsarAPI implements IsarApiInterface {
     // delete all business and branches from isar db for
     // potential next business that can log-in to not mix data.
     await isar.writeTxn(() async {
-      await isar.businesss.clear();
+      await isar.business.clear();
       await isar.branchs.clear();
       await isar.iTenants.clear();
       await isar.permissions.clear();
@@ -997,7 +1052,7 @@ class IsarAPI implements IsarApiInterface {
           phoneNumber: jTenant.phoneNumber);
 
       isar.writeTxn(() async {
-        await isar.businesss.putAll(jTenant.businesses);
+        await isar.business.putAll(jTenant.businesses);
         await isar.branchs.putAll(jTenant.branches);
         await isar.permissions.putAll(jTenant.permissions);
       });
@@ -1029,7 +1084,7 @@ class IsarAPI implements IsarApiInterface {
             phoneNumber: jTenant.phoneNumber);
 
         await isar.writeTxn(() async {
-          return isar.businesss.putAll(jTenant.businesses);
+          return isar.business.putAll(jTenant.businesses);
         });
         await isar.writeTxn(() async {
           return await isar.branchs.putAll(jTenant.branches);
@@ -1075,7 +1130,7 @@ class IsarAPI implements IsarApiInterface {
         throw NotFoundException(term: "Not found");
       }
       await isar.writeTxn(() async {
-        return isar.businesss
+        return isar.business
             .putAll(syncFFromJson(response.body).tenants.first.businesses);
       });
       await isar.writeTxn(() async {
@@ -1264,9 +1319,9 @@ class IsarAPI implements IsarApiInterface {
   }
 
   @override
-  Future<List<Unit>> units({required int branchId}) async {
+  Future<List<IUnit>> units({required int branchId}) async {
     return isar.writeTxn(() {
-      return isar.units.where().branchIdEqualTo(branchId).findAll();
+      return isar.iUnits.where().branchIdEqualTo(branchId).findAll();
     });
   }
 
@@ -1303,10 +1358,10 @@ class IsarAPI implements IsarApiInterface {
         return await isar.categorys.put(order);
       });
     }
-    if (data is Unit) {
+    if (data is IUnit) {
       final unit = data;
       await isar.writeTxn(() async {
-        return await isar.units.put(unit);
+        return await isar.iUnits.put(unit);
       });
     }
     if (data is PColor) {
@@ -1325,27 +1380,83 @@ class IsarAPI implements IsarApiInterface {
       await isar.writeTxn(() async {
         ProxyService.box.write(key: "serverUrl", value: ebm.taxServerUrl);
         Business? business =
-            await isar.businesss.where().userIdEqualTo(ebm.userId).findFirst();
+            await isar.business.where().userIdEqualTo(ebm.userId).findFirst();
         business
           ?..dvcSrlNo = ebm.dvcSrlNo
           ..tinNumber = ebm.tinNumber
           ..bhfId = ebm.bhfId
           ..taxServerUrl = ebm.taxServerUrl
           ..taxEnabled = true;
-        return await isar.businesss.put(business!);
+        return await isar.business.put(business!);
+      });
+    }
+    if (data is Token) {
+      final token = data;
+      await isar.writeTxn(() async {
+        Token? ttoken =
+            await isar.tokens.where().userIdEqualTo(token.userId).findFirst();
+        if (ttoken == null) {
+          ttoken = Token()
+            ..token = token.token
+            ..userId = token.userId
+            ..type = token.type;
+          return await isar.tokens.put(ttoken);
+        } else {
+          ttoken
+            ..token = token.token
+            ..userId = token.userId
+            ..type = token.type;
+          return await isar.tokens.put(ttoken);
+        }
       });
     }
     if (data is Business) {
       final business = data;
       await isar.writeTxn(() async {
-        return await isar.businesss.put(business);
+        return await isar.business.put(business);
       });
-      try {
-        await client.patch(Uri.parse("$apihub/v2/api/business/${business.id}"),
-            body: jsonEncode(business.toJson()),
-            headers: {'Content-Type': 'application/json'});
-      } catch (e) {
-        log.e(e);
+      final response = await client.patch(
+          Uri.parse("$apihub/v2/api/business/${business.id}"),
+          body: jsonEncode(business.toJson()),
+          headers: {'Content-Type': 'application/json'});
+      if (response.statusCode != 200) {
+        throw InternalServerError(term: "error patching the business");
+      }
+    }
+    if (data is Branch) {
+      isar.writeTxn(() async {
+        return await isar.branchs.put(data);
+      });
+      final response = await client.patch(
+          Uri.parse("$apihub/v2/api/branch/${data.id}"),
+          body: jsonEncode(data.toJson()),
+          headers: {'Content-Type': 'application/json'});
+      if (response.statusCode != 200) {
+        throw InternalServerError(term: "error patching the branch");
+      }
+    }
+    if (data is Counter) {
+      await isar.writeTxn(() async {
+        return isar.counters.put(data..backed = false);
+      });
+      final response = await client.patch(
+          Uri.parse("$apihub/v2/api/counter/${data.id}"),
+          body: jsonEncode(data.toJson()),
+          headers: {'Content-Type': 'application/json'});
+      if (response.statusCode == 200) {
+        JCounter jCounter = jSingleCounterFromJson(response.body);
+        await isar.writeTxn(() async {
+          return isar.counters.put(data
+            ..branchId = jCounter.branchId
+            ..businessId = jCounter.businessId
+            ..receiptType = jCounter.receiptType
+            ..id = data.id
+            ..backed = true
+            ..totRcptNo = jCounter.totRcptNo
+            ..curRcptNo = jCounter.curRcptNo);
+        });
+      } else {
+        throw InternalServerError(term: "error patching the counter");
       }
     }
     if (data is Branch) {
@@ -1363,7 +1474,7 @@ class IsarAPI implements IsarApiInterface {
     if (data is Drawers) {
       final drawer = data;
       await isar.writeTxn(() async {
-        return await isar.drawerss.put(drawer);
+        return await isar.drawers.put(drawer);
       });
     }
     return 1;
@@ -1493,9 +1604,8 @@ class IsarAPI implements IsarApiInterface {
       {required ReceiptSignature signature,
       required Order order,
       required String qrCode,
+      required Counter counter,
       required String receiptType}) {
-    // add receipt to isar db
-
     return isar.writeTxn(() async {
       Receipt receipt = Receipt()
         ..resultCd = signature.resultCd
@@ -1536,7 +1646,7 @@ class IsarAPI implements IsarApiInterface {
   @override
   Future<Drawers?> isDrawerOpen({required int cashierId}) {
     return isar.writeTxn(() async {
-      Drawers? drawer = await isar.drawerss
+      Drawers? drawer = await isar.drawers
           .where()
           .openCashierIdEqualTo(true, cashierId)
           .findFirst();
@@ -1548,8 +1658,8 @@ class IsarAPI implements IsarApiInterface {
   Future<Drawers?> openDrawer({required Drawers drawer}) {
     // save drawer object in isar db
     return isar.writeTxn(() async {
-      int id = await isar.drawerss.put(drawer);
-      return isar.drawerss.get(id);
+      int id = await isar.drawers.put(drawer);
+      return isar.drawers.get(id);
     });
   }
 
@@ -1557,6 +1667,9 @@ class IsarAPI implements IsarApiInterface {
   Future<int> size<T>({required T object}) async {
     if (object is Product) {
       return isar.products.getSize(includeIndexes: true, includeLinks: true);
+    }
+    if (object is Counter) {
+      return isar.counters.getSize(includeIndexes: true, includeLinks: true);
     }
     return 0;
   }
@@ -1581,7 +1694,7 @@ class IsarAPI implements IsarApiInterface {
             phoneNumber: jTenant.phoneNumber);
 
         isar.writeTxn(() async {
-          await isar.businesss.putAll(jTenant.businesses);
+          await isar.business.putAll(jTenant.businesses);
           await isar.branchs.putAll(jTenant.branches);
           await isar.permissions.putAll(jTenant.permissions);
         });
@@ -1604,6 +1717,96 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<Business?> defaultBusiness() async {
-    return await isar.businesss.filter().isDefaultEqualTo(true).findFirst();
+    return await isar.business.filter().isDefaultEqualTo(true).findFirst();
+  }
+
+  @override
+  Future<Counter?> cSCounter({required int branchId}) async {
+    return await isar.counters
+        .filter()
+        .branchIdEqualTo(branchId)
+        .and()
+        .receiptTypeEqualTo(ReceiptType.cs)
+        .findFirst();
+  }
+
+  @override
+  Future<Counter?> nRSCounter({required int branchId}) async {
+    return await isar.counters
+        .filter()
+        .branchIdEqualTo(branchId)
+        .and()
+        .receiptTypeEqualTo(ReceiptType.nr)
+        .findFirst();
+  }
+
+  @override
+  Future<Counter?> nSCounter({required int branchId}) async {
+    return await isar.counters
+        .filter()
+        .branchIdEqualTo(branchId)
+        .and()
+        .receiptTypeEqualTo(ReceiptType.ns)
+        .findFirst();
+  }
+
+  @override
+  Future<Counter?> pSCounter({required int branchId}) async {
+    return await isar.counters
+        .filter()
+        .branchIdEqualTo(branchId)
+        .and()
+        .receiptTypeEqualTo(ReceiptType.ps)
+        .findFirst();
+  }
+
+  @override
+  Future<Counter?> tSCounter({required int branchId}) async {
+    return await isar.counters
+        .filter()
+        .branchIdEqualTo(branchId)
+        .and()
+        .receiptTypeEqualTo(ReceiptType.ts)
+        .findFirst();
+  }
+
+  @override
+  Future<void> loadCounterFromOnline({required int businessId}) async {
+    final http.Response response =
+        await client.get(Uri.parse("$apihub/v2/api/counter/$businessId"));
+    if (response.statusCode == 200) {
+      List<JCounter> counters = jCounterFromJson(response.body);
+      for (JCounter jCounter in counters) {
+        await isar.writeTxn(() async {
+          return isar.counters.put(Counter()
+            ..branchId = jCounter.branchId
+            ..businessId = jCounter.businessId
+            ..receiptType = jCounter.receiptType
+            ..id = jCounter.id
+            ..backed = true
+            ..totRcptNo = jCounter.totRcptNo
+            ..curRcptNo = jCounter.curRcptNo);
+        });
+      }
+    } else {
+      throw InternalServerError(term: "Error loading the counters");
+    }
+  }
+
+  @override
+  Future<List<Counter>> unSyncedCounters({required int branchId}) {
+    return isar.writeTxn(() async {
+      return isar.counters.filter().backedEqualTo(false).findAll();
+    });
+  }
+
+  @override
+  String dbPath() {
+    return isar.path!;
+  }
+
+  @override
+  Future<Token?> whatsAppToken() {
+    return isar.tokens.filter().typeEqualTo('whatsapp').findFirst();
   }
 }

@@ -16,7 +16,6 @@ class Routes {
   static const String category = '/category';
   static const String variation = '/variation';
   static const String units = '/units';
-  static const String summary = '/summary';
   static const String sell = '/Sell';
   static const String pay = '/pay';
   static const String collect = '/collect';

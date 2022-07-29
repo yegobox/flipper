@@ -10,7 +10,7 @@ class Permission {
     this.id = 0,
     required this.name,
   });
-  late int id = Isar.autoIncrement;
+  Id id = Isar.autoIncrement;
   late String name;
 
   static fromJson(Map<dynamic, dynamic> json) =>

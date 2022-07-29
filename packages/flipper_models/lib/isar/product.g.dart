@@ -10,7 +10,7 @@ part of flipper_models;
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
 
 extension GetProductCollection on Isar {
-  IsarCollection<Product> get products => getCollection();
+  IsarCollection<Product> get products => collection();
 }
 
 const ProductSchema = CollectionSchema(
@@ -154,18 +154,31 @@ void _productSerializeNative(
     unit$Bytes = IsarBinaryWriter.utf8Encoder.convert(unit$Value);
   }
   final size = (staticSize +
+      3 +
       (barCode$Bytes?.length ?? 0) +
+      3 +
       (categoryId$Bytes?.length ?? 0) +
+      3 +
       (color$Bytes.length) +
+      3 +
       (createdAt$Bytes?.length ?? 0) +
+      3 +
       (description$Bytes?.length ?? 0) +
+      3 +
       (expiryDate$Bytes?.length ?? 0) +
+      3 +
       (imageUrl$Bytes?.length ?? 0) +
+      3 +
       (name$Bytes.length) +
+      3 +
       (picture$Bytes?.length ?? 0) +
+      3 +
       (supplierId$Bytes?.length ?? 0) +
+      3 +
       (table$Bytes?.length ?? 0) +
+      3 +
       (taxId$Bytes?.length ?? 0) +
+      3 +
       (unit$Bytes?.length ?? 0)) as int;
   cObj.buffer = alloc(size);
   cObj.buffer_length = size;
@@ -174,26 +187,26 @@ void _productSerializeNative(
   final writer = IsarBinaryWriter(buffer, staticSize);
   writer.writeHeader();
   writer.writeBool(offsets[0], object.active);
-  writer.writeBytes(offsets[1], barCode$Bytes);
+  writer.writeByteList(offsets[1], barCode$Bytes);
   writer.writeLong(offsets[2], object.branchId);
   writer.writeLong(offsets[3], object.businessId);
-  writer.writeBytes(offsets[4], categoryId$Bytes);
-  writer.writeBytes(offsets[5], color$Bytes);
-  writer.writeBytes(offsets[6], createdAt$Bytes);
+  writer.writeByteList(offsets[4], categoryId$Bytes);
+  writer.writeByteList(offsets[5], color$Bytes);
+  writer.writeByteList(offsets[6], createdAt$Bytes);
   writer.writeBool(offsets[7], object.currentUpdate);
-  writer.writeBytes(offsets[8], description$Bytes);
+  writer.writeByteList(offsets[8], description$Bytes);
   writer.writeBool(offsets[9], object.draft);
-  writer.writeBytes(offsets[10], expiryDate$Bytes);
+  writer.writeByteList(offsets[10], expiryDate$Bytes);
   writer.writeBool(offsets[11], object.hasPicture);
   writer.writeBool(offsets[12], object.imageLocal);
-  writer.writeBytes(offsets[13], imageUrl$Bytes);
-  writer.writeBytes(offsets[14], name$Bytes);
-  writer.writeBytes(offsets[15], picture$Bytes);
-  writer.writeBytes(offsets[16], supplierId$Bytes);
+  writer.writeByteList(offsets[13], imageUrl$Bytes);
+  writer.writeByteList(offsets[14], name$Bytes);
+  writer.writeByteList(offsets[15], picture$Bytes);
+  writer.writeByteList(offsets[16], supplierId$Bytes);
   writer.writeBool(offsets[17], object.synced);
-  writer.writeBytes(offsets[18], table$Bytes);
-  writer.writeBytes(offsets[19], taxId$Bytes);
-  writer.writeBytes(offsets[20], unit$Bytes);
+  writer.writeByteList(offsets[18], table$Bytes);
+  writer.writeByteList(offsets[19], taxId$Bytes);
+  writer.writeByteList(offsets[20], unit$Bytes);
 }
 
 Product _productDeserializeNative(IsarCollection<Product> collection, int id,
@@ -400,14 +413,6 @@ extension ProductQueryWhereSort on QueryBuilder<Product, Product, QWhere> {
     });
   }
 
-  QueryBuilder<Product, Product, QAfterWhere> anyBarCode() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        const IndexWhereClause.any(indexName: r'barCode'),
-      );
-    });
-  }
-
   QueryBuilder<Product, Product, QAfterWhere> anyBranchId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -420,14 +425,6 @@ extension ProductQueryWhereSort on QueryBuilder<Product, Product, QWhere> {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         const IndexWhereClause.any(indexName: r'draft_branchId'),
-      );
-    });
-  }
-
-  QueryBuilder<Product, Product, QAfterWhere> anyName() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        const IndexWhereClause.any(indexName: r'name'),
       );
     });
   }
@@ -1732,14 +1729,6 @@ extension ProductQueryFilter
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'hasPicture',
         value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> idIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'id',
       ));
     });
   }
@@ -3344,6 +3333,12 @@ extension ProductQueryWhereDistinct
 
 extension ProductQueryProperty
     on QueryBuilder<Product, Product, QQueryProperty> {
+  QueryBuilder<Product, int, QQueryOperations> idProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'id');
+    });
+  }
+
   QueryBuilder<Product, bool, QQueryOperations> activeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'active');
@@ -3413,12 +3408,6 @@ extension ProductQueryProperty
   QueryBuilder<Product, bool, QQueryOperations> hasPictureProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'hasPicture');
-    });
-  }
-
-  QueryBuilder<Product, int?, QQueryOperations> idProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'id');
     });
   }
 

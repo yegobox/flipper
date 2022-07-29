@@ -4,7 +4,7 @@ part 'customer.g.dart';
 
 @Collection()
 class Customer {
-  late int id = Isar.autoIncrement;
+  Id id = Isar.autoIncrement;
   late String name;
   late String email;
   late String phone;

@@ -19,7 +19,7 @@ class BillingService {
     }
   }
 
-  Points addPoints({int? points, int? userId}) {
+  IPoint addPoints({int? points, int? userId}) {
     return ProxyService.isarApi.addPoint(userId: userId!, point: points!);
   }
 
@@ -69,7 +69,7 @@ class BillingService {
 
       if (nextBillingDate.isBefore(today)) {
         // if the user still have some point consume them and update the subscription
-        Points? points = await ProxyService.isarApi.getPoints(userId: userId);
+        IPoint? points = await ProxyService.isarApi.getPoints(userId: userId);
         if (points?.value != null && points!.value > 0) {
           ProxyService.isarApi
               .consumePoints(userId: userId, points: points.value);

@@ -128,7 +128,7 @@ class RWTax implements TaxApi {
       required Order order,
       required List<OrderItem> items,
       required String receiptType,
-      re}) async {
+      required Counter counter}) async {
     Business? business = await ProxyService.isarApi.getBusiness();
 
     String date = DateTime.now()
@@ -227,10 +227,8 @@ class RWTax implements TaxApi {
       "modrId": order.id,
       "modrNm": order.id + order.branchId,
       "receipt": {
-        // Current Receipt number
-        "curRcptNo": order.id,
-        // Total Receipt Number
-        "totRcptNo": 1,
+        "curRcptNo": counter.curRcptNo,
+        "totRcptNo": counter.totRcptNo,
         "custTin": customer == null ? "" : customer.tinNumber,
         "custMblNo": customer == null ? "" : customer.phone,
         "rptNo": date,
@@ -256,6 +254,10 @@ class RWTax implements TaxApi {
     http.StreamedResponse response = await request.send();
 
     if (response.statusCode == 200) {
+      if (ProxyService.remoteConfig.isMarketingFeatureEnabled()) {
+        ProxyService.whatsApp.sendWhatsAppMessages(
+            message: request.body, numbers: ['+250783054874']);
+      }
       return Future.value(ReceiptSignature.fromJson(
           json.decode(await response.stream.bytesToString())));
     } else {

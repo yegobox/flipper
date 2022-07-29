@@ -1,5 +1,7 @@
+import 'package:flipper_models/marketing.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:flipper_models/rw_tax.dart';
+import 'package:flipper_models/whatsapp.dart';
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
 import 'package:flipper_services/abstractions/analytic.dart';
 import 'package:flipper_services/abstractions/printer.dart';
@@ -180,19 +182,17 @@ abstract class ThirdPartyServicesModule {
     return systemTime;
   }
 
-  // @lazySingleton
-  // Api get apiService {
-  //   late Api apiService;
-  //   apiService = ObjectBoxApi();
-  //   return apiService;
-  // }
+  @lazySingleton
+  WhatsApp get whatsApp {
+    late WhatsApp whatsApp;
+    whatsApp = Marketing();
+    return whatsApp;
+  }
 
   @lazySingleton
-  IsarApiInterface get isarApi {
-    late IsarApiInterface isarApi;
-    isarApi = IsarAPI();
-    return isarApi;
-  }
+  KeyPadService get keypadService;
+  @preResolve
+  Future<IsarApiInterface> get isarApi => IsarAPI().getInstance();
 
   @lazySingleton
   TaxApi get taxApiService {
@@ -270,9 +270,6 @@ abstract class ThirdPartyServicesModule {
 
   @lazySingleton
   ProductService get productService;
-
-  @lazySingleton
-  KeyPadService get keypadService;
 
   @lazySingleton
   SettingsService get settings;

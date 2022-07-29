@@ -106,15 +106,10 @@ class _AddCustomerState extends State<AddCustomer> {
                           ),
                           verticalSpaceSmall,
                           BoxInputField(
-                              controller: _emailController,
-                              leading: const Icon(Icons.email),
-                              placeholder: 'Email',
-                              validatorFunc: (value) {
-                                log.i(value);
-                                if (value!.isEmpty) {
-                                  return 'Email is required';
-                                }
-                              }),
+                            controller: _emailController,
+                            leading: const Icon(Icons.email),
+                            placeholder: 'Email',
+                          ),
                         ],
                       ),
                     ),
@@ -132,11 +127,12 @@ class _AddCustomerState extends State<AddCustomer> {
                                   if (AddCustomer._formKey.currentState!
                                       .validate()) {
                                     model.addCustomer(
-                                        email: _emailController.text,
-                                        phone: _phoneController.text,
-                                        name: _nameController.text,
-                                        tinNumber: _tinNumberController.text,
-                                        orderId: widget.orderId);
+                                      email: _emailController.text,
+                                      phone: _phoneController.text,
+                                      name: _nameController.text,
+                                      tinNumber: _tinNumberController.text,
+                                      orderId: widget.orderId,
+                                    );
 
                                     Navigator.maybePop(context);
 

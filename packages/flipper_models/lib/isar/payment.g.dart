@@ -10,7 +10,7 @@ part of 'payment.dart';
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
 
 extension GetPaymentCollection on Isar {
-  IsarCollection<Payment> get payments => getCollection();
+  IsarCollection<Payment> get payments => collection();
 }
 
 const PaymentSchema = CollectionSchema(
@@ -79,10 +79,15 @@ void _paymentSerializeNative(
   final requestGuid$Bytes =
       IsarBinaryWriter.utf8Encoder.convert(object.requestGuid);
   final size = (staticSize +
+      3 +
       (itemName$Bytes.length) +
+      3 +
       (note$Bytes.length) +
+      3 +
       (paymentType$Bytes.length) +
+      3 +
       (phoneNumber$Bytes.length) +
+      3 +
       (requestGuid$Bytes.length)) as int;
   cObj.buffer = alloc(size);
   cObj.buffer_length = size;
@@ -93,11 +98,11 @@ void _paymentSerializeNative(
   writer.writeLong(offsets[0], object.amount);
   writer.writeLong(offsets[1], object.createdAt);
   writer.writeLong(offsets[2], object.interval);
-  writer.writeBytes(offsets[3], itemName$Bytes);
-  writer.writeBytes(offsets[4], note$Bytes);
-  writer.writeBytes(offsets[5], paymentType$Bytes);
-  writer.writeBytes(offsets[6], phoneNumber$Bytes);
-  writer.writeBytes(offsets[7], requestGuid$Bytes);
+  writer.writeByteList(offsets[3], itemName$Bytes);
+  writer.writeByteList(offsets[4], note$Bytes);
+  writer.writeByteList(offsets[5], paymentType$Bytes);
+  writer.writeByteList(offsets[6], phoneNumber$Bytes);
+  writer.writeByteList(offsets[7], requestGuid$Bytes);
   writer.writeLong(offsets[8], object.userId);
 }
 
@@ -169,8 +174,7 @@ Payment _paymentDeserializeWeb(
         (double.negativeInfinity as int),
     createdAt: IsarNative.jsObjectGet(jsObj, r'createdAt') ??
         (double.negativeInfinity as int),
-    id: IsarNative.jsObjectGet(jsObj, r'id') ??
-        (double.negativeInfinity as int),
+    id: IsarNative.jsObjectGet(jsObj, r'id'),
     interval: IsarNative.jsObjectGet(jsObj, r'interval') ??
         (double.negativeInfinity as int),
     itemName: IsarNative.jsObjectGet(jsObj, r'itemName') ?? '',
@@ -193,8 +197,7 @@ P _paymentDeserializePropWeb<P>(Object jsObj, String propertyName) {
       return (IsarNative.jsObjectGet(jsObj, r'createdAt') ??
           (double.negativeInfinity as int)) as P;
     case r'id':
-      return (IsarNative.jsObjectGet(jsObj, r'id') ??
-          (double.negativeInfinity as int)) as P;
+      return (IsarNative.jsObjectGet(jsObj, r'id')) as P;
     case r'interval':
       return (IsarNative.jsObjectGet(jsObj, r'interval') ??
           (double.negativeInfinity as int)) as P;
@@ -1420,6 +1423,12 @@ extension PaymentQueryWhereDistinct
 
 extension PaymentQueryProperty
     on QueryBuilder<Payment, Payment, QQueryProperty> {
+  QueryBuilder<Payment, int, QQueryOperations> idProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'id');
+    });
+  }
+
   QueryBuilder<Payment, int, QQueryOperations> amountProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'amount');
@@ -1429,12 +1438,6 @@ extension PaymentQueryProperty
   QueryBuilder<Payment, int, QQueryOperations> createdAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'createdAt');
-    });
-  }
-
-  QueryBuilder<Payment, int, QQueryOperations> idProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'id');
     });
   }
 

@@ -1,6 +1,5 @@
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter/material.dart';
-import 'package:google_ui/google_ui.dart';
 
 class RetailPrice extends StatelessWidget {
   const RetailPrice(
@@ -14,14 +13,17 @@ class RetailPrice extends StatelessWidget {
       padding: const EdgeInsets.only(left: 18, right: 18),
       child: SizedBox(
         width: double.infinity,
-        child: GTextFormField(
+        child: TextFormField(
           controller: controller,
           keyboardType: TextInputType.number,
           onChanged: (value) {
             onModelUpdate(value);
           },
-          suffixIcon: const Icon(Icons.book),
-          hintText: FLocalization.of(context).retailPrice,
+          decoration: InputDecoration(
+              enabled: true,
+              border: const OutlineInputBorder(),
+              suffixIcon: const Icon(Icons.book),
+              hintText: FLocalization.of(context).retailPrice),
         ),
       ),
     );

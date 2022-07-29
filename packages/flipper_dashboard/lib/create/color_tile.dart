@@ -7,7 +7,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'list_divider.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_ui/google_ui.dart';
 
 class ColorTile extends StatelessWidget {
   const ColorTile({Key? key}) : super(key: key);
@@ -127,9 +126,25 @@ class ColorTile extends StatelessWidget {
                     SizedBox(
                       height: 50,
                       width: 140,
-                      child: GOutlinedButton(
-                        'Choose Photo',
-                        color: Colors.black,
+                      child: OutlinedButton(
+                        child: Text('Choose Photo'),
+                        style: ButtonStyle(
+                          backgroundColor:
+                              MaterialStateProperty.all<Color>(Colors.black),
+                          overlayColor:
+                              MaterialStateProperty.resolveWith<Color?>(
+                            (Set<MaterialState> states) {
+                              if (states.contains(MaterialState.hovered)) {
+                                return Colors.black.withOpacity(0.04);
+                              }
+                              if (states.contains(MaterialState.focused) ||
+                                  states.contains(MaterialState.pressed)) {
+                                return Colors.black.withOpacity(0.12);
+                              }
+                              return null; // Defer to the widget's default.
+                            },
+                          ),
+                        ),
                         onPressed: () async {
                           model.browsePictureFromGallery(
                               productId: model.product.id!,
@@ -145,9 +160,25 @@ class ColorTile extends StatelessWidget {
                     SizedBox(
                       height: 50,
                       width: 140,
-                      child: GOutlinedButton(
-                        'Take Photo',
-                        color: Colors.black,
+                      child: OutlinedButton(
+                        child: Text('Take Photo'),
+                        style: ButtonStyle(
+                          backgroundColor:
+                              MaterialStateProperty.all<Color>(Colors.black),
+                          overlayColor:
+                              MaterialStateProperty.resolveWith<Color?>(
+                            (Set<MaterialState> states) {
+                              if (states.contains(MaterialState.hovered)) {
+                                return Colors.black.withOpacity(0.04);
+                              }
+                              if (states.contains(MaterialState.focused) ||
+                                  states.contains(MaterialState.pressed)) {
+                                return Colors.black.withOpacity(0.12);
+                              }
+                              return null; // Defer to the widget's default.
+                            },
+                          ),
+                        ),
                         onPressed: () {
                           model.takePicture(
                             productId: model.product.id!,

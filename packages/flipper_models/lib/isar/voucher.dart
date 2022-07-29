@@ -4,7 +4,7 @@ part 'voucher.g.dart';
 
 @Collection()
 class Voucher {
-  late int id = Isar.autoIncrement;
+  Id id = Isar.autoIncrement;
   late int value;
   late int interval;
   late bool used;

@@ -27,7 +27,7 @@ class Profile {
     required this.nationalId,
   });
 
-  late int id = Isar.autoIncrement;
+  Id id = Isar.autoIncrement;
   String name;
   String email;
   String phone;

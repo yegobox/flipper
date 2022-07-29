@@ -17,7 +17,7 @@ class Subscription {
     required this.descriptor,
   });
 
-  late int id = Isar.autoIncrement;
+  Id id = Isar.autoIncrement;
   late int interval;
   late String lastBillingDate;
   late String nextBillingDate;

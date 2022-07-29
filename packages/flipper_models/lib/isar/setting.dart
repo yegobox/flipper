@@ -16,7 +16,7 @@ class Setting {
     this.attendnaceDocCreated,
     this.isAttendanceEnabled,
   });
-  late int id = Isar.autoIncrement;
+  Id id = Isar.autoIncrement;
   late String email;
   late String hasPin;
   @Index()

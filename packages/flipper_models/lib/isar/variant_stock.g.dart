@@ -10,7 +10,7 @@ part of flipper_models;
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
 
 extension GetVariantStockCollection on Isar {
-  IsarCollection<VariantStock> get variantStocks => getCollection();
+  IsarCollection<VariantStock> get variantStocks => collection();
 }
 
 const VariantStockSchema = CollectionSchema(
@@ -90,12 +90,19 @@ void _variantStockSerializeNative(
   final variantName$Bytes =
       IsarBinaryWriter.utf8Encoder.convert(object.variantName);
   final size = (staticSize +
+      3 +
       (fbranchId$Bytes.length) +
+      3 +
       (fvariantId$Bytes.length) +
+      3 +
       (productName$Bytes.length) +
+      3 +
       (sku$Bytes.length) +
+      3 +
       (taxName$Bytes?.length ?? 0) +
+      3 +
       (unit$Bytes.length) +
+      3 +
       (variantName$Bytes.length)) as int;
   cObj.buffer = alloc(size);
   cObj.buffer_length = size;
@@ -105,17 +112,17 @@ void _variantStockSerializeNative(
   writer.writeHeader();
   writer.writeBool(offsets[0], object.canTrackingStock);
   writer.writeDouble(offsets[1], object.currentStock);
-  writer.writeBytes(offsets[2], fbranchId$Bytes);
-  writer.writeBytes(offsets[3], fvariantId$Bytes);
+  writer.writeByteList(offsets[2], fbranchId$Bytes);
+  writer.writeByteList(offsets[3], fvariantId$Bytes);
   writer.writeDouble(offsets[4], object.lowStock);
-  writer.writeBytes(offsets[5], productName$Bytes);
+  writer.writeByteList(offsets[5], productName$Bytes);
   writer.writeDouble(offsets[6], object.retailPrice);
-  writer.writeBytes(offsets[7], sku$Bytes);
-  writer.writeBytes(offsets[8], taxName$Bytes);
+  writer.writeByteList(offsets[7], sku$Bytes);
+  writer.writeByteList(offsets[8], taxName$Bytes);
   writer.writeDouble(offsets[9], object.taxPercentage);
-  writer.writeBytes(offsets[10], unit$Bytes);
+  writer.writeByteList(offsets[10], unit$Bytes);
   writer.writeDouble(offsets[11], object.value);
-  writer.writeBytes(offsets[12], variantName$Bytes);
+  writer.writeByteList(offsets[12], variantName$Bytes);
 }
 
 VariantStock _variantStockDeserializeNative(
@@ -207,8 +214,7 @@ VariantStock _variantStockDeserializeWeb(
         double.negativeInfinity,
     fbranchId: IsarNative.jsObjectGet(jsObj, r'fbranchId') ?? '',
     fvariantId: IsarNative.jsObjectGet(jsObj, r'fvariantId') ?? '',
-    id: IsarNative.jsObjectGet(jsObj, r'id') ??
-        (double.negativeInfinity as int),
+    id: IsarNative.jsObjectGet(jsObj, r'id'),
     lowStock: IsarNative.jsObjectGet(jsObj, r'lowStock'),
     productName: IsarNative.jsObjectGet(jsObj, r'productName') ?? '',
     retailPrice: IsarNative.jsObjectGet(jsObj, r'retailPrice') ??
@@ -235,8 +241,7 @@ P _variantStockDeserializePropWeb<P>(Object jsObj, String propertyName) {
     case r'fvariantId':
       return (IsarNative.jsObjectGet(jsObj, r'fvariantId') ?? '') as P;
     case r'id':
-      return (IsarNative.jsObjectGet(jsObj, r'id') ??
-          (double.negativeInfinity as int)) as P;
+      return (IsarNative.jsObjectGet(jsObj, r'id')) as P;
     case r'lowStock':
       return (IsarNative.jsObjectGet(jsObj, r'lowStock')) as P;
     case r'productName':
@@ -1851,6 +1856,12 @@ extension VariantStockQueryWhereDistinct
 
 extension VariantStockQueryProperty
     on QueryBuilder<VariantStock, VariantStock, QQueryProperty> {
+  QueryBuilder<VariantStock, int, QQueryOperations> idProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'id');
+    });
+  }
+
   QueryBuilder<VariantStock, bool, QQueryOperations>
       canTrackingStockProperty() {
     return QueryBuilder.apply(this, (query) {
@@ -1873,12 +1884,6 @@ extension VariantStockQueryProperty
   QueryBuilder<VariantStock, String, QQueryOperations> fvariantIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'fvariantId');
-    });
-  }
-
-  QueryBuilder<VariantStock, int, QQueryOperations> idProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'id');
     });
   }
 

@@ -4,7 +4,7 @@ part 'drawer.g.dart';
 
 @Collection()
 class Drawers {
-  late int id = Isar.autoIncrement;
+  Id id = Isar.autoIncrement;
   late double openingBalance;
   late double closingBalance;
   String? openingDateTime;

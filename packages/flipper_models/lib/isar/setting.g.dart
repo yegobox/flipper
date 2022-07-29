@@ -10,7 +10,7 @@ part of 'setting.dart';
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
 
 extension GetSettingCollection on Isar {
-  IsarCollection<Setting> get settings => getCollection();
+  IsarCollection<Setting> get settings => collection();
 }
 
 const SettingSchema = CollectionSchema(
@@ -84,8 +84,11 @@ void _settingSerializeNative(
   final email$Bytes = IsarBinaryWriter.utf8Encoder.convert(object.email);
   final hasPin$Bytes = IsarBinaryWriter.utf8Encoder.convert(object.hasPin);
   final size = (staticSize +
+      3 +
       (defaultLanguage$Bytes?.length ?? 0) +
+      3 +
       (email$Bytes.length) +
+      3 +
       (hasPin$Bytes.length)) as int;
   cObj.buffer = alloc(size);
   cObj.buffer_length = size;
@@ -95,10 +98,10 @@ void _settingSerializeNative(
   writer.writeHeader();
   writer.writeBool(offsets[0], object.attendnaceDocCreated);
   writer.writeBool(offsets[1], object.autoPrint);
-  writer.writeBytes(offsets[2], defaultLanguage$Bytes);
-  writer.writeBytes(offsets[3], email$Bytes);
+  writer.writeByteList(offsets[2], defaultLanguage$Bytes);
+  writer.writeByteList(offsets[3], email$Bytes);
   writer.writeBool(offsets[4], object.googleSheetDocCreated);
-  writer.writeBytes(offsets[5], hasPin$Bytes);
+  writer.writeByteList(offsets[5], hasPin$Bytes);
   writer.writeBool(offsets[6], object.isAttendanceEnabled);
   writer.writeBool(offsets[7], object.openReceiptFileOSaleComplete);
   writer.writeBool(offsets[8], object.sendDailyReport);
@@ -185,8 +188,7 @@ Setting _settingDeserializeWeb(
     googleSheetDocCreated:
         IsarNative.jsObjectGet(jsObj, r'googleSheetDocCreated'),
     hasPin: IsarNative.jsObjectGet(jsObj, r'hasPin') ?? '',
-    id: IsarNative.jsObjectGet(jsObj, r'id') ??
-        (double.negativeInfinity as int),
+    id: IsarNative.jsObjectGet(jsObj, r'id'),
     isAttendanceEnabled: IsarNative.jsObjectGet(jsObj, r'isAttendanceEnabled'),
     openReceiptFileOSaleComplete:
         IsarNative.jsObjectGet(jsObj, r'openReceiptFileOSaleComplete'),
@@ -212,8 +214,7 @@ P _settingDeserializePropWeb<P>(Object jsObj, String propertyName) {
     case r'hasPin':
       return (IsarNative.jsObjectGet(jsObj, r'hasPin') ?? '') as P;
     case r'id':
-      return (IsarNative.jsObjectGet(jsObj, r'id') ??
-          (double.negativeInfinity as int)) as P;
+      return (IsarNative.jsObjectGet(jsObj, r'id')) as P;
     case r'isAttendanceEnabled':
       return (IsarNative.jsObjectGet(jsObj, r'isAttendanceEnabled')) as P;
     case r'openReceiptFileOSaleComplete':
@@ -1309,6 +1310,12 @@ extension SettingQueryWhereDistinct
 
 extension SettingQueryProperty
     on QueryBuilder<Setting, Setting, QQueryProperty> {
+  QueryBuilder<Setting, int, QQueryOperations> idProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'id');
+    });
+  }
+
   QueryBuilder<Setting, bool?, QQueryOperations>
       attendnaceDocCreatedProperty() {
     return QueryBuilder.apply(this, (query) {
@@ -1344,12 +1351,6 @@ extension SettingQueryProperty
   QueryBuilder<Setting, String, QQueryOperations> hasPinProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'hasPin');
-    });
-  }
-
-  QueryBuilder<Setting, int, QQueryOperations> idProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'id');
     });
   }
 

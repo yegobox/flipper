@@ -204,6 +204,7 @@ class _TransactionsState extends State<Transactions> {
           return Flexible(
             child: Scaffold(
               appBar: AppBar(
+                leading: const SizedBox.shrink(),
                 title: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [

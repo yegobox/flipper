@@ -10,7 +10,7 @@ part of flipper_models;
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
 
 extension GetCategoryCollection on Isar {
-  IsarCollection<Category> get categorys => getCollection();
+  IsarCollection<Category> get categorys => collection();
 }
 
 const CategorySchema = CollectionSchema(
@@ -76,8 +76,11 @@ void _categorySerializeNative(
   if (table$Value != null) {
     table$Bytes = IsarBinaryWriter.utf8Encoder.convert(table$Value);
   }
-  final size =
-      (staticSize + (name$Bytes.length) + (table$Bytes?.length ?? 0)) as int;
+  final size = (staticSize +
+      3 +
+      (name$Bytes.length) +
+      3 +
+      (table$Bytes?.length ?? 0)) as int;
   cObj.buffer = alloc(size);
   cObj.buffer_length = size;
 
@@ -87,8 +90,8 @@ void _categorySerializeNative(
   writer.writeBool(offsets[0], object.active);
   writer.writeLong(offsets[1], object.branchId);
   writer.writeBool(offsets[2], object.focused);
-  writer.writeBytes(offsets[3], name$Bytes);
-  writer.writeBytes(offsets[4], table$Bytes);
+  writer.writeByteList(offsets[3], name$Bytes);
+  writer.writeByteList(offsets[4], table$Bytes);
 }
 
 Category _categoryDeserializeNative(IsarCollection<Category> collection, int id,
@@ -142,8 +145,7 @@ Category _categoryDeserializeWeb(
   object.branchId = IsarNative.jsObjectGet(jsObj, r'branchId') ??
       (double.negativeInfinity as int);
   object.focused = IsarNative.jsObjectGet(jsObj, r'focused') ?? false;
-  object.id =
-      IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int);
+  object.id = IsarNative.jsObjectGet(jsObj, r'id');
   object.name = IsarNative.jsObjectGet(jsObj, r'name') ?? '';
   object.table = IsarNative.jsObjectGet(jsObj, r'table');
   return object;
@@ -159,8 +161,7 @@ P _categoryDeserializePropWeb<P>(Object jsObj, String propertyName) {
     case r'focused':
       return (IsarNative.jsObjectGet(jsObj, r'focused') ?? false) as P;
     case r'id':
-      return (IsarNative.jsObjectGet(jsObj, r'id') ??
-          (double.negativeInfinity as int)) as P;
+      return (IsarNative.jsObjectGet(jsObj, r'id')) as P;
     case r'name':
       return (IsarNative.jsObjectGet(jsObj, r'name') ?? '') as P;
     case r'table':
@@ -884,6 +885,12 @@ extension CategoryQueryWhereDistinct
 
 extension CategoryQueryProperty
     on QueryBuilder<Category, Category, QQueryProperty> {
+  QueryBuilder<Category, int, QQueryOperations> idProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'id');
+    });
+  }
+
   QueryBuilder<Category, bool, QQueryOperations> activeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'active');
@@ -899,12 +906,6 @@ extension CategoryQueryProperty
   QueryBuilder<Category, bool, QQueryOperations> focusedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'focused');
-    });
-  }
-
-  QueryBuilder<Category, int, QQueryOperations> idProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'id');
     });
   }
 

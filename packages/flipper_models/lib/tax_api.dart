@@ -28,11 +28,10 @@ abstract class TaxApi {
   //   required Order order,
   //   required List<OrderItem> items,
   // });
-  Future<ReceiptSignature?> createReceipt({
-    Customer? customer,
-    required Order order,
-    required List<OrderItem> items,
-    required String receiptType,
-    re,
-  });
+  Future<ReceiptSignature?> createReceipt(
+      {Customer? customer,
+      required Order order,
+      required List<OrderItem> items,
+      required String receiptType,
+      required Counter counter});
 }

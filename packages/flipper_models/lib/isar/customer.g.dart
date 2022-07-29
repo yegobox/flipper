@@ -10,7 +10,7 @@ part of 'customer.dart';
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
 
 extension GetCustomerCollection on Isar {
-  IsarCollection<Customer> get customers => getCollection();
+  IsarCollection<Customer> get customers => collection();
 }
 
 const CustomerSchema = CollectionSchema(
@@ -88,11 +88,17 @@ void _customerSerializeNative(
     updatedAt$Bytes = IsarBinaryWriter.utf8Encoder.convert(updatedAt$Value);
   }
   final size = (staticSize +
+      3 +
       (address$Bytes?.length ?? 0) +
+      3 +
       (email$Bytes.length) +
+      3 +
       (name$Bytes.length) +
+      3 +
       (phone$Bytes.length) +
+      3 +
       (tinNumber$Bytes?.length ?? 0) +
+      3 +
       (updatedAt$Bytes?.length ?? 0)) as int;
   cObj.buffer = alloc(size);
   cObj.buffer_length = size;
@@ -100,14 +106,14 @@ void _customerSerializeNative(
   final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
   final writer = IsarBinaryWriter(buffer, staticSize);
   writer.writeHeader();
-  writer.writeBytes(offsets[0], address$Bytes);
+  writer.writeByteList(offsets[0], address$Bytes);
   writer.writeLong(offsets[1], object.branchId);
-  writer.writeBytes(offsets[2], email$Bytes);
-  writer.writeBytes(offsets[3], name$Bytes);
+  writer.writeByteList(offsets[2], email$Bytes);
+  writer.writeByteList(offsets[3], name$Bytes);
   writer.writeLong(offsets[4], object.orderId);
-  writer.writeBytes(offsets[5], phone$Bytes);
-  writer.writeBytes(offsets[6], tinNumber$Bytes);
-  writer.writeBytes(offsets[7], updatedAt$Bytes);
+  writer.writeByteList(offsets[5], phone$Bytes);
+  writer.writeByteList(offsets[6], tinNumber$Bytes);
+  writer.writeByteList(offsets[7], updatedAt$Bytes);
 }
 
 Customer _customerDeserializeNative(IsarCollection<Customer> collection, int id,
@@ -173,8 +179,7 @@ Customer _customerDeserializeWeb(
   object.branchId = IsarNative.jsObjectGet(jsObj, r'branchId') ??
       (double.negativeInfinity as int);
   object.email = IsarNative.jsObjectGet(jsObj, r'email') ?? '';
-  object.id =
-      IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int);
+  object.id = IsarNative.jsObjectGet(jsObj, r'id');
   object.name = IsarNative.jsObjectGet(jsObj, r'name') ?? '';
   object.orderId = IsarNative.jsObjectGet(jsObj, r'orderId') ??
       (double.negativeInfinity as int);
@@ -194,8 +199,7 @@ P _customerDeserializePropWeb<P>(Object jsObj, String propertyName) {
     case r'email':
       return (IsarNative.jsObjectGet(jsObj, r'email') ?? '') as P;
     case r'id':
-      return (IsarNative.jsObjectGet(jsObj, r'id') ??
-          (double.negativeInfinity as int)) as P;
+      return (IsarNative.jsObjectGet(jsObj, r'id')) as P;
     case r'name':
       return (IsarNative.jsObjectGet(jsObj, r'name') ?? '') as P;
     case r'orderId':
@@ -1419,6 +1423,12 @@ extension CustomerQueryWhereDistinct
 
 extension CustomerQueryProperty
     on QueryBuilder<Customer, Customer, QQueryProperty> {
+  QueryBuilder<Customer, int, QQueryOperations> idProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'id');
+    });
+  }
+
   QueryBuilder<Customer, String?, QQueryOperations> addressProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'address');
@@ -1434,12 +1444,6 @@ extension CustomerQueryProperty
   QueryBuilder<Customer, String, QQueryOperations> emailProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'email');
-    });
-  }
-
-  QueryBuilder<Customer, int, QQueryOperations> idProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'id');
     });
   }
 

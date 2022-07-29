@@ -134,6 +134,7 @@ class _LoginChoicesState extends State<LoginChoices> {
       model.setDefaultBusiness(business: e);
       _branches = await ProxyService.isarApi.branches(businessId: e.id!);
       await ProxyService.isarApi.tenantsFromOnline(businessId: e.id!);
+      await model.app.loadCounters(e);
       setState(() {
         _isNext = true;
       });

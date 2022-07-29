@@ -10,7 +10,7 @@ part of flipper_models;
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
 
 extension GetSubscriptionCollection on Isar {
-  IsarCollection<Subscription> get subscriptions => getCollection();
+  IsarCollection<Subscription> get subscriptions => collection();
 }
 
 const SubscriptionSchema = CollectionSchema(
@@ -78,8 +78,11 @@ void _subscriptionSerializeNative(
   final nextBillingDate$Bytes =
       IsarBinaryWriter.utf8Encoder.convert(object.nextBillingDate);
   final size = (staticSize +
+      3 +
       (descriptor$Bytes.length) +
+      3 +
       (lastBillingDate$Bytes.length) +
+      3 +
       (nextBillingDate$Bytes.length)) as int;
   cObj.buffer = alloc(size);
   cObj.buffer_length = size;
@@ -87,10 +90,10 @@ void _subscriptionSerializeNative(
   final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
   final writer = IsarBinaryWriter(buffer, staticSize);
   writer.writeHeader();
-  writer.writeBytes(offsets[0], descriptor$Bytes);
+  writer.writeByteList(offsets[0], descriptor$Bytes);
   writer.writeLong(offsets[1], object.interval);
-  writer.writeBytes(offsets[2], lastBillingDate$Bytes);
-  writer.writeBytes(offsets[3], nextBillingDate$Bytes);
+  writer.writeByteList(offsets[2], lastBillingDate$Bytes);
+  writer.writeByteList(offsets[3], nextBillingDate$Bytes);
   writer.writeDouble(offsets[4], object.recurring);
   writer.writeLong(offsets[5], object.userId);
 }
@@ -152,8 +155,7 @@ Subscription _subscriptionDeserializeWeb(
     IsarCollection<Subscription> collection, Object jsObj) {
   final object = Subscription(
     descriptor: IsarNative.jsObjectGet(jsObj, r'descriptor') ?? '',
-    id: IsarNative.jsObjectGet(jsObj, r'id') ??
-        (double.negativeInfinity as int),
+    id: IsarNative.jsObjectGet(jsObj, r'id'),
     interval: IsarNative.jsObjectGet(jsObj, r'interval') ??
         (double.negativeInfinity as int),
     lastBillingDate: IsarNative.jsObjectGet(jsObj, r'lastBillingDate') ?? '',
@@ -164,9 +166,7 @@ Subscription _subscriptionDeserializeWeb(
         (double.negativeInfinity as int),
   );
   _subscriptionAttachLinks(
-      collection,
-      IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int),
-      object);
+      collection, IsarNative.jsObjectGet(jsObj, r'id'), object);
   return object;
 }
 
@@ -175,8 +175,7 @@ P _subscriptionDeserializePropWeb<P>(Object jsObj, String propertyName) {
     case r'descriptor':
       return (IsarNative.jsObjectGet(jsObj, r'descriptor') ?? '') as P;
     case r'id':
-      return (IsarNative.jsObjectGet(jsObj, r'id') ??
-          (double.negativeInfinity as int)) as P;
+      return (IsarNative.jsObjectGet(jsObj, r'id')) as P;
     case r'interval':
       return (IsarNative.jsObjectGet(jsObj, r'interval') ??
           (double.negativeInfinity as int)) as P;
@@ -1158,15 +1157,15 @@ extension SubscriptionQueryWhereDistinct
 
 extension SubscriptionQueryProperty
     on QueryBuilder<Subscription, Subscription, QQueryProperty> {
-  QueryBuilder<Subscription, String, QQueryOperations> descriptorProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'descriptor');
-    });
-  }
-
   QueryBuilder<Subscription, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<Subscription, String, QQueryOperations> descriptorProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'descriptor');
     });
   }
 

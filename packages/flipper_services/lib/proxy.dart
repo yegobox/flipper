@@ -1,3 +1,4 @@
+import 'package:flipper_models/whatsapp.dart';
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
 import 'package:flipper_services/abstractions/analytic.dart';
 import 'package:flipper_services/abstractions/printer.dart';
@@ -65,6 +66,7 @@ final EventService _event = locator<EventService>();
 final BillingService _billingService = locator<BillingService>();
 final IsarApiInterface _isarApi = locator<IsarApiInterface>();
 final TaxApi _taxApi = locator<TaxApi>();
+final WhatsApp _whatsApp = locator<WhatsApp>();
 
 abstract class ProxyService {
   static Api get api => _apiService;
@@ -74,10 +76,8 @@ abstract class ProxyService {
   static Crash get crash => _crash;
   static Shareble get share => _share;
   static DynamicLink get dynamicLink => _dynamicLink;
-  // static NavigationService get nav => _nav;
   static FlipperLocation get location => _location;
   static LocalStorage get box => _box;
-  // static LoginStandard get auth => _auth;
   static AppService get appService => _appService;
   static ProductService get productService => _productService;
   static UploadT get upload => _upload;
@@ -88,8 +88,6 @@ abstract class ProxyService {
   static Analytic get analytics => _analytics;
   static SettingsService get settings => _settings;
   static CronService get cron => _reportService;
-  // static PdfInvoiceApi get pdfInvoice => _pdfInvoiceApi;
-  // static PdfApi get pdfApi => _pdfApi;
   static Printer get printer => _printService;
   static ForceDataEntryService get forceDateEntry => _forceDataEntry;
   static LNotification get notification => _notification;
@@ -99,6 +97,5 @@ abstract class ProxyService {
   static SyncApiInterface get syncApi => _syncApi;
   static SystemTime get systemTime => _systemTime;
   static BillingService get billing => _billingService;
-  // static LoginInfo get login => locator<LoginInfo>();
-  // _analytic
+  static WhatsApp get whatsApp => _whatsApp;
 }

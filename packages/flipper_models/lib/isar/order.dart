@@ -4,7 +4,7 @@ part 'order.g.dart';
 
 @Collection()
 class Order {
-  late int id = Isar.autoIncrement;
+  Id id = Isar.autoIncrement;
   late String reference;
   late String orderNumber;
   @Index()

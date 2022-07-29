@@ -1,22 +1,20 @@
-import 'package:flipper_rw/bottom_sheets/bottom_sheet_builder.dart';
-import 'package:flipper_rw/bottom_sheets/activate_subscription.dart';
-import 'package:flipper_rw/bottom_sheets/subscription_widget.dart';
-import 'package:flipper_dashboard/app_data.dart';
-import 'package:flipper_dashboard/body.dart' show BodyWidget;
+import 'package:flipper_chat/omni/update_profile.dart';
 import 'package:flipper_dashboard/bottom_sheet.dart';
-import 'package:flipper_services/abstractions/dynamic_link.dart';
-import 'package:flipper_services/locator.dart';
-import 'package:flipper_dashboard/responsive_scaffold.dart';
+import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_rw/bottom_sheets/activate_subscription.dart';
+import 'package:flipper_rw/bottom_sheets/bottom_sheet_builder.dart';
+import 'package:flipper_rw/bottom_sheets/subscription_widget.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:upgrader/upgrader.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_models/isar_models.dart';
 import 'package:universal_platform/universal_platform.dart';
-import 'package:flipper_chat/omni/update_profile.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:permission_handler/permission_handler.dart' as perm;
+
+import 'badge_icon.dart';
+import 'page_switcher.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 final isMacOs = UniversalPlatform.isMacOS;
@@ -26,28 +24,24 @@ final isWeb = UniversalPlatform.isWeb;
 final isDesktopOrWeb = UniversalPlatform.isDesktopOrWeb;
 
 class FlipperApp extends StatefulWidget {
-  const FlipperApp({
-    Key? key,
-  }) : super(key: key);
+  const FlipperApp({Key? key}) : super(key: key);
 
   @override
   _FlipperAppState createState() => _FlipperAppState();
 }
 
-class _FlipperAppState extends State<FlipperApp> {
-  late ScrollController scrollController;
-  TextEditingController controller = TextEditingController();
-  final DynamicLink _link = locator<DynamicLink>();
-  PageController pageController = PageController(
-    initialPage: 0,
-    keepPage: true,
-  );
-  ValueNotifier<int> pageIndex = ValueNotifier<int>(0);
+class _FlipperAppState extends State<FlipperApp>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  final TextEditingController controller = TextEditingController();
+  int tabselected = 0;
 
   @override
   void initState() {
+    _tabController = TabController(length: 3, vsync: this);
     ProxyService.event.connect();
     ProxyService.firestore.configureEbm();
+    ProxyService.firestore.configureTokens();
 
     ProxyService.remoteConfig.config();
     ProxyService.remoteConfig.setDefault();
@@ -118,117 +112,120 @@ class _FlipperAppState extends State<FlipperApp> {
   @override
   void dispose() {
     super.dispose();
-    // _sideOpenController.dispose();
-    // scrollController.dispose();
-  }
-
-  Future<bool> _onWillPop() async {
-    return false;
+    _tabController.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final MediaQueryData media = MediaQuery.of(context);
-    // final double margins = AppData.responsiveInsets(media.size.width);
-    // final double topPadding = media.padding.top + kToolbarHeight + margins;
-    // final double bottomPadding = media.padding.bottom + margins;
-    // We are on phone width media, based on our definition in this app.
-    final bool isPhone = media.size.width < AppData.phoneBreakpoint;
-
-    final ThemeData theme = Theme.of(context);
-    // final TextTheme textTheme = theme.textTheme;
-    // final TextStyle headline4 = textTheme.headline4!;
-    // In dark mode?
-    final bool isDark = theme.brightness == Brightness.dark;
-
     return ViewModelBuilder<BusinessHomeViewModel>.reactive(
-      viewModelBuilder: () => BusinessHomeViewModel(),
-      onModelReady: (model) async {
-        model.currentOrder();
-        ProxyService.notification.initialize(context);
-        ProxyService.notification.listen(context);
-        ProxyService.dynamicLink.handleDynamicLink(context);
-        model.loadReport();
-        await [perm.Permission.storage, perm.Permission.manageExternalStorage]
-            .request();
-      },
-      builder: (context, model, child) {
-        return WillPopScope(
-          onWillPop: _onWillPop,
-          child: SafeArea(
-            child: ResponsiveScaffold(
-              model: model,
-              // title: Text(AppData.title(context)),
-              menuTitle: const Text(AppData.appName),
-              // Make Rail width larger when using it on tablet or desktop.
-              railWidth: isPhone ? 52 : 66,
-              breakpointShowFullMenu: AppData.desktopBreakpoint,
-              extendBodyBehindAppBar: false,
-              extendBody: true,
-              onSelect: (String index) async {
-                if (index == MenuConfig.darkMode) {
-                  if (isDark) {
-                    model.onThemeModeChanged(ThemeMode.light);
-                  } else {
-                    model.onThemeModeChanged(ThemeMode.dark);
-                  }
-                }
-                if (index == MenuConfig.addMember) {
-                  addWorkSpace(context: context);
-                }
-
-                /// settings
-                if (index == MenuConfig.settings) {
-                  preferences(context: context, model: model);
-                }
-                if (index == MenuConfig.share) {
-                  String uri = await _link.createDynamicLink();
-                  ProxyService.share.share(uri.toString());
-                }
-              },
-              body: !isMacOs && !isWindows && !kDebugMode
-                  ? UpgradeAlert(
-                      child: BodyWidget(
-                        model: model,
-                        controller: controller,
+        viewModelBuilder: () => BusinessHomeViewModel(),
+        onModelReady: (model) async {
+          model.currentOrder();
+          ProxyService.notification.initialize(context);
+          ProxyService.notification.listen(context);
+          ProxyService.dynamicLink.handleDynamicLink(context);
+          model.loadReport();
+          await [perm.Permission.storage, perm.Permission.manageExternalStorage]
+              .request();
+        },
+        builder: (context, model, child) {
+          return WillPopScope(
+            onWillPop: _onWillPop,
+            child: Scaffold(
+              bottomNavigationBar: NavigationBarTheme(
+                data: NavigationBarThemeData(
+                  backgroundColor: Colors.white,
+                  indicatorColor: Colors.white,
+                  labelTextStyle: MaterialStateProperty.all(
+                    const TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
+                  ),
+                ),
+                child: Container(
+                  decoration: const BoxDecoration(
+                    border: Border(
+                      top: BorderSide(
+                        color: Colors.black26,
+                        width: 1.0,
                       ),
-                    )
-                  : BodyWidget(
-                      model: model,
-                      controller: controller,
                     ),
-              bottomNavigationBar: BottomNavigationBar(
-                onTap: (int index) {
-                  setState(() {
-                    model.setTab(tab: index);
-                  });
-                },
-                currentIndex: model.tab,
-                items: <BottomNavigationBarItem>[
-                  const BottomNavigationBarItem(
-                    icon: Icon(Icons.calculate),
-                    label: 'KeyPad',
                   ),
-                  // if (UniversalPlatform.isDesktopOrWeb)
-                  const BottomNavigationBarItem(
-                    icon: Icon(Icons.analytics),
-                    label: 'Transactions',
+                  child: NavigationBar(
+                    height: 90,
+                    selectedIndex: tabselected,
+                    labelBehavior:
+                        NavigationDestinationLabelBehavior.alwaysShow,
+                    backgroundColor: Colors.white,
+                    elevation: 0,
+                    animationDuration: const Duration(seconds: 2),
+                    onDestinationSelected: (index) {
+                      setState(() {
+                        tabselected = index;
+                      });
+                    },
+                    destinations: [
+                      NavigationDestination(
+                        icon: SvgPicture.asset("assets/checkout.svg",
+                            semanticsLabel: 'Checkout'),
+                        label: 'Checkout',
+                        selectedIcon: SvgPicture.asset("assets/checkout.svg",
+                            semanticsLabel: 'Checkout'),
+                      ),
+                      NavigationDestination(
+                        icon: SvgPicture.asset("assets/transactions.svg",
+                            semanticsLabel: 'Transactions'),
+                        label: 'Transactions',
+                        selectedIcon: SvgPicture.asset(
+                            "assets/transactions.svg",
+                            semanticsLabel: 'Transactions'),
+                      ),
+                      NavigationDestination(
+                        icon: BadgeIcon(
+                          icon: SvgPicture.asset("assets/notifications.svg",
+                              semanticsLabel: 'Notifications'),
+                          badgeCount: 0,
+                          badgeColor: Color(0xff006AFE),
+                          badgeTextStyle: TextStyle(
+                            color: Color(0xff006AFE),
+                            fontSize: 8,
+                          ),
+                        ),
+                        label: 'Notifications',
+                        selectedIcon: BadgeIcon(
+                          icon: SvgPicture.asset("assets/notifications.svg",
+                              semanticsLabel: 'Notifications'),
+                          badgeCount: 0,
+                          badgeColor: Color(0xff006AFE),
+                          badgeTextStyle: TextStyle(
+                            color: Color(0xff006AFE),
+                            fontSize: 8,
+                          ),
+                        ),
+                      ),
+                      NavigationDestination(
+                        icon: SvgPicture.asset("assets/more.svg",
+                            semanticsLabel: 'More'),
+                        label: 'More',
+                        selectedIcon: SvgPicture.asset("assets/more.svg",
+                            semanticsLabel: 'More'),
+                      ),
+                    ],
                   ),
-                  const BottomNavigationBarItem(
-                    icon: Icon(Icons.store),
-                    label: 'Store',
-                  ),
-                  if (ProxyService.remoteConfig.isLinkedDeviceAvailable())
-                    const BottomNavigationBarItem(
-                      icon: Icon(Icons.settings),
-                      label: 'Settings',
-                    ),
-                ],
+                ),
+              ),
+              body: SafeArea(
+                child: PageSwitcher(
+                  controller: controller,
+                  model: model,
+                  tabController: _tabController,
+                  currentPage: tabselected,
+                ),
               ),
             ),
-          ),
-        );
-      },
-    );
+          );
+        });
+  }
+
+  Future<bool> _onWillPop() async {
+    return false;
   }
 }

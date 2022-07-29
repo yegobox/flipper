@@ -10,7 +10,7 @@ part of 'receipt.dart';
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
 
 extension GetReceiptCollection on Isar {
-  IsarCollection<Receipt> get receipts => getCollection();
+  IsarCollection<Receipt> get receipts => collection();
 }
 
 const ReceiptSchema = CollectionSchema(
@@ -93,15 +93,25 @@ void _receiptSerializeNative(
   final vsdcRcptPbctDate$Bytes =
       IsarBinaryWriter.utf8Encoder.convert(object.vsdcRcptPbctDate);
   final size = (staticSize +
+      3 +
       (intrlData$Bytes.length) +
+      3 +
       (mrcNo$Bytes.length) +
+      3 +
       (qrCode$Bytes.length) +
+      3 +
       (rcptSign$Bytes.length) +
+      3 +
       (receiptType$Bytes.length) +
+      3 +
       (resultCd$Bytes.length) +
+      3 +
       (resultDt$Bytes.length) +
+      3 +
       (resultMsg$Bytes.length) +
+      3 +
       (sdcId$Bytes.length) +
+      3 +
       (vsdcRcptPbctDate$Bytes.length)) as int;
   cObj.buffer = alloc(size);
   cObj.buffer_length = size;
@@ -109,19 +119,19 @@ void _receiptSerializeNative(
   final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
   final writer = IsarBinaryWriter(buffer, staticSize);
   writer.writeHeader();
-  writer.writeBytes(offsets[0], intrlData$Bytes);
-  writer.writeBytes(offsets[1], mrcNo$Bytes);
+  writer.writeByteList(offsets[0], intrlData$Bytes);
+  writer.writeByteList(offsets[1], mrcNo$Bytes);
   writer.writeLong(offsets[2], object.orderId);
-  writer.writeBytes(offsets[3], qrCode$Bytes);
+  writer.writeByteList(offsets[3], qrCode$Bytes);
   writer.writeLong(offsets[4], object.rcptNo);
-  writer.writeBytes(offsets[5], rcptSign$Bytes);
-  writer.writeBytes(offsets[6], receiptType$Bytes);
-  writer.writeBytes(offsets[7], resultCd$Bytes);
-  writer.writeBytes(offsets[8], resultDt$Bytes);
-  writer.writeBytes(offsets[9], resultMsg$Bytes);
-  writer.writeBytes(offsets[10], sdcId$Bytes);
+  writer.writeByteList(offsets[5], rcptSign$Bytes);
+  writer.writeByteList(offsets[6], receiptType$Bytes);
+  writer.writeByteList(offsets[7], resultCd$Bytes);
+  writer.writeByteList(offsets[8], resultDt$Bytes);
+  writer.writeByteList(offsets[9], resultMsg$Bytes);
+  writer.writeByteList(offsets[10], sdcId$Bytes);
   writer.writeLong(offsets[11], object.totRcptNo);
-  writer.writeBytes(offsets[12], vsdcRcptPbctDate$Bytes);
+  writer.writeByteList(offsets[12], vsdcRcptPbctDate$Bytes);
 }
 
 Receipt _receiptDeserializeNative(IsarCollection<Receipt> collection, int id,
@@ -439,14 +449,6 @@ extension ReceiptQueryWhere on QueryBuilder<Receipt, Receipt, QWhereClause> {
 
 extension ReceiptQueryFilter
     on QueryBuilder<Receipt, Receipt, QFilterCondition> {
-  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> idIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'id',
-      ));
-    });
-  }
-
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> idEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -2208,7 +2210,7 @@ extension ReceiptQueryWhereDistinct
 
 extension ReceiptQueryProperty
     on QueryBuilder<Receipt, Receipt, QQueryProperty> {
-  QueryBuilder<Receipt, int?, QQueryOperations> idProperty() {
+  QueryBuilder<Receipt, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
     });

@@ -631,13 +631,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.1"
-  fl_chart:
-    dependency: transitive
-    description:
-      name: fl_chart
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.40.6"
   flex_color_scheme:
     dependency: transitive
     description:
@@ -860,13 +853,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "5.0.2"
-  flutter_lints:
-    dependency: transitive
-    description:
-      name: flutter_lints
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.0.4"
   flutter_local_notifications:
     dependency: transitive
     description:
@@ -941,7 +927,7 @@ packages:
       name: flutter_svg
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.1.0"
+    version: "1.1.1+1"
   flutter_text_drawable:
     dependency: transitive
     description:
@@ -1086,7 +1072,7 @@ packages:
       name: google_fonts
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.3.3"
+    version: "3.0.1"
   google_sign_in:
     dependency: transitive
     description:
@@ -1122,13 +1108,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.10.1+2"
-  google_ui:
-    dependency: "direct overridden"
-    description:
-      path: "../../open-sources/google_ui"
-      relative: true
-    source: path
-    version: "2.7.1"
   googleapis:
     dependency: transitive
     description:
@@ -1254,14 +1233,14 @@ packages:
       name: isar
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.0.0-dev.5"
+    version: "3.0.0-dev.8"
   isar_flutter_libs:
     dependency: transitive
     description:
       name: isar_flutter_libs
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.0.0-dev.5"
+    version: "3.0.0-dev.8"
   js:
     dependency: transitive
     description:
@@ -1290,13 +1269,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.8.2"
-  lints:
-    dependency: transitive
-    description:
-      name: lints
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.0.1"
   loading:
     dependency: transitive
     description:
@@ -1369,6 +1341,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.2"
+  modal_bottom_sheet:
+    dependency: transitive
+    description:
+      name: modal_bottom_sheet
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.1.0"
   msix:
     dependency: "direct overridden"
     description:
@@ -1852,13 +1831,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.1"
-  simple_animations:
-    dependency: transitive
-    description:
-      name: simple_animations
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "3.2.0"
   sky_engine:
     dependency: transitive
     description: flutter
@@ -1871,13 +1843,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.9.0"
-  spring:
-    dependency: transitive
-    description:
-      name: spring
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.0.2"
   sqflite:
     dependency: transitive
     description:
@@ -1941,20 +1906,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.1.1"
-  supercharged:
-    dependency: transitive
-    description:
-      name: supercharged
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.1.1"
-  supercharged_dart:
-    dependency: transitive
-    description:
-      name: supercharged_dart
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.1.1"
   synchronized:
     dependency: transitive
     description:

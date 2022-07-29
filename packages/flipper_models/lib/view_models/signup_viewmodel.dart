@@ -139,7 +139,7 @@ class SignupViewModel extends FormViewModel {
 
       await ProxyService.isarApi.create<PColor>(data: color, endPoint: 'color');
       //now create default units for this branch
-      final units = Unit()
+      final units = IUnit()
         ..name = 'Per Kilogram (kg)'
         ..value = 'kg'
         ..active = false

@@ -2,7 +2,6 @@ import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_ui/google_ui.dart';
 
 class Devices extends StatelessWidget {
   const Devices({Key? key, this.pin}) : super(key: key);
@@ -35,8 +34,8 @@ class Devices extends StatelessWidget {
           SizedBox(
             width: MediaQuery.of(context).size.width - 40,
             height: 40,
-            child: GElevatedButton(
-              'Link A Device',
+            child: ElevatedButton(
+              child: Text('Link A Device'),
               onPressed: () {
                 GoRouter.of(context).push(Routes.scann + "/login");
               },
@@ -49,8 +48,8 @@ class Devices extends StatelessWidget {
             color: Colors.white70,
             width: MediaQuery.of(context).size.width - 40,
             height: 40,
-            child: GOutlinedButton(
-              'PIN: $pin',
+            child: OutlinedButton(
+              child: Text('PIN: $pin'),
               onPressed: () {
                 Navigator.maybePop(context);
               },

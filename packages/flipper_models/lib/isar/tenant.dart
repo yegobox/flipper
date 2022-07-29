@@ -12,7 +12,7 @@ class ITenant {
       required this.phoneNumber,
       required this.email,
       required this.businessId});
-  int? id;
+  Id? id = Isar.autoIncrement;
   late String name;
   late String phoneNumber;
   late String email;

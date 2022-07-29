@@ -61,6 +61,11 @@ class _ReceiveStockState extends State<ReceiveStock> {
                       }
                       return null;
                     },
+                    decoration: const InputDecoration(
+                        enabled: true,
+                        border: OutlineInputBorder(),
+                        suffixIcon: Icon(Icons.book),
+                        hintText: 'Add Stock'),
                     controller: controller,
                     keyboardType: TextInputType.number,
                     textDirection: TextDirection.rtl,
@@ -83,10 +88,6 @@ class _ReceiveStockState extends State<ReceiveStock> {
                         );
                       }
                     },
-                    decoration: const InputDecoration(
-                      hintText: 'Add Stock',
-                      focusColor: Colors.blue,
-                    ),
                   ),
                   Container(
                     height: 20,

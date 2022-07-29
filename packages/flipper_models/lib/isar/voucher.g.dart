@@ -10,7 +10,7 @@ part of 'voucher.dart';
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
 
 extension GetVoucherCollection on Isar {
-  IsarCollection<Voucher> get vouchers => getCollection();
+  IsarCollection<Voucher> get vouchers => collection();
 }
 
 const VoucherSchema = CollectionSchema(
@@ -69,7 +69,7 @@ void _voucherSerializeNative(
     AdapterAlloc alloc) {
   final descriptor$Bytes =
       IsarBinaryWriter.utf8Encoder.convert(object.descriptor);
-  final size = (staticSize + (descriptor$Bytes.length)) as int;
+  final size = (staticSize + 3 + (descriptor$Bytes.length)) as int;
   cObj.buffer = alloc(size);
   cObj.buffer_length = size;
 
@@ -77,7 +77,7 @@ void _voucherSerializeNative(
   final writer = IsarBinaryWriter(buffer, staticSize);
   writer.writeHeader();
   writer.writeLong(offsets[0], object.createdAt);
-  writer.writeBytes(offsets[1], descriptor$Bytes);
+  writer.writeByteList(offsets[1], descriptor$Bytes);
   writer.writeLong(offsets[2], object.interval);
   writer.writeBool(offsets[3], object.used);
   writer.writeLong(offsets[4], object.usedAt);
@@ -139,8 +139,7 @@ Voucher _voucherDeserializeWeb(
   object.createdAt = IsarNative.jsObjectGet(jsObj, r'createdAt') ??
       (double.negativeInfinity as int);
   object.descriptor = IsarNative.jsObjectGet(jsObj, r'descriptor') ?? '';
-  object.id =
-      IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int);
+  object.id = IsarNative.jsObjectGet(jsObj, r'id');
   object.interval = IsarNative.jsObjectGet(jsObj, r'interval') ??
       (double.negativeInfinity as int);
   object.used = IsarNative.jsObjectGet(jsObj, r'used') ?? false;
@@ -148,10 +147,7 @@ Voucher _voucherDeserializeWeb(
       (double.negativeInfinity as int);
   object.value = IsarNative.jsObjectGet(jsObj, r'value') ??
       (double.negativeInfinity as int);
-  _voucherAttachLinks(
-      collection,
-      IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int),
-      object);
+  _voucherAttachLinks(collection, IsarNative.jsObjectGet(jsObj, r'id'), object);
   return object;
 }
 
@@ -163,8 +159,7 @@ P _voucherDeserializePropWeb<P>(Object jsObj, String propertyName) {
     case r'descriptor':
       return (IsarNative.jsObjectGet(jsObj, r'descriptor') ?? '') as P;
     case r'id':
-      return (IsarNative.jsObjectGet(jsObj, r'id') ??
-          (double.negativeInfinity as int)) as P;
+      return (IsarNative.jsObjectGet(jsObj, r'id')) as P;
     case r'interval':
       return (IsarNative.jsObjectGet(jsObj, r'interval') ??
           (double.negativeInfinity as int)) as P;
@@ -866,6 +861,12 @@ extension VoucherQueryWhereDistinct
 
 extension VoucherQueryProperty
     on QueryBuilder<Voucher, Voucher, QQueryProperty> {
+  QueryBuilder<Voucher, int, QQueryOperations> idProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'id');
+    });
+  }
+
   QueryBuilder<Voucher, int, QQueryOperations> createdAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'createdAt');
@@ -875,12 +876,6 @@ extension VoucherQueryProperty
   QueryBuilder<Voucher, String, QQueryOperations> descriptorProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'descriptor');
-    });
-  }
-
-  QueryBuilder<Voucher, int, QQueryOperations> idProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'id');
     });
   }
 

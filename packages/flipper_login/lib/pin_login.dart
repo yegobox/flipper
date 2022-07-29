@@ -3,7 +3,6 @@ import 'dart:developer';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
-import 'package:google_ui/google_ui.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_dashboard/widgets/back_button.dart' as back;
 
@@ -32,9 +31,12 @@ class PinLogin extends StatelessWidget {
                               const EdgeInsets.fromLTRB(8.0, 100.0, 8.0, 0.0),
                           child: Column(
                             children: [
-                              GTextFormField(
-                                labelText: "Enter your PIN",
-                                passwordField: true,
+                              TextFormField(
+                                obscureText: true,
+                                decoration: InputDecoration(
+                                    enabled: true,
+                                    border: const OutlineInputBorder(),
+                                    labelText: "Enter your PIN"),
                                 controller: _pin,
                                 validator: (text) {
                                   if (text == null || text.isEmpty) {
