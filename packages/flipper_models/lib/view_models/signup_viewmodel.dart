@@ -150,6 +150,7 @@ class SignupViewModel extends FormViewModel {
 
       //now create a default custom product
       appService.bootstraper();
+      ProxyService.whatsApp.optIn();
 
       loginInfo.isLoggedIn = true;
       loginInfo.redirecting = false;
