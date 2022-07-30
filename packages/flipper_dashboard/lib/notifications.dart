@@ -125,7 +125,7 @@ class _NotificationsState extends State<Notifications>
                                     ),
                                     const Padding(
                                       padding: EdgeInsets.fromLTRB(
-                                          22.0, 0.0, 120.96, 0),
+                                          22.0, 0.0, 110.96, 0),
                                       child: Text("Take your first payment"),
                                     ),
                                   ],

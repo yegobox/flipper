@@ -25,7 +25,8 @@ class KeyPadView extends StatelessWidget {
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(111.0, 93.5, 101, 54.4),
+            // padding: const EdgeInsets.fromLTRB(111.0, 93.5, 101, 54.4),
+            padding: const EdgeInsets.only(top: 38.0),
             child: Text(
               "RWF${model.keypad.key}",
               style: GoogleFonts.poppins(

@@ -201,39 +201,37 @@ class _TransactionsState extends State<Transactions> {
         },
         viewModelBuilder: () => BusinessHomeViewModel(),
         builder: (context, model, child) {
-          return Flexible(
-            child: Scaffold(
-              appBar: AppBar(
-                leading: const SizedBox.shrink(),
-                title: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Transactions'),
-                      SizedBox(
-                        width: 30,
-                        child: SwitchListTile(
-                            value: !defaultTransactions,
-                            onChanged: (value) {
-                              setState(() {
-                                defaultTransactions = !defaultTransactions;
-                              });
-                            }),
-                      )
-                    ]),
-                elevation: 1,
-              ),
-              body: defaultTransactions
-                  ? (list.isEmpty
-                      ? const Center(child: Text("No Transactions"))
-                      : ListView(
-                          children: list,
-                        ))
-                  : (zlist.isEmpty
-                      ? const Center(child: Text("No Z Report"))
-                      : ListView(
-                          children: zlist,
-                        )),
+          return Scaffold(
+            appBar: AppBar(
+              leading: const SizedBox.shrink(),
+              title: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Transactions'),
+                    SizedBox(
+                      width: 30,
+                      child: SwitchListTile(
+                          value: !defaultTransactions,
+                          onChanged: (value) {
+                            setState(() {
+                              defaultTransactions = !defaultTransactions;
+                            });
+                          }),
+                    )
+                  ]),
+              elevation: 1,
             ),
+            body: defaultTransactions
+                ? (list.isEmpty
+                    ? const Center(child: Text("No Transactions"))
+                    : ListView(
+                        children: list,
+                      ))
+                : (zlist.isEmpty
+                    ? const Center(child: Text("No Z Report"))
+                    : ListView(
+                        children: zlist,
+                      )),
           );
         });
   }
