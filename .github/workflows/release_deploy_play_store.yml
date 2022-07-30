@@ -60,7 +60,7 @@ jobs:
       - name: Checkout flipper code
         uses: actions/checkout@v2
       - name: Update version in YAML
-        run: sed -i 's/1.0.1-dev.3/1.123.0+1111010123/g' pubspec.yaml
+        run: sed -i 's/1.0.1-dev.3/1.124.0+1111010124/g' pubspec.yaml
       - name: submodule init
         run: git submodule update --init
       - name: Configure Missing files
