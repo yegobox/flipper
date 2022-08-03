@@ -2,6 +2,7 @@ import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_rw/helpers/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'list_divider.dart';
@@ -84,7 +85,11 @@ class ColorTile extends StatelessWidget {
                                     ),
                             ),
                           ),
-                          const Text('New Item')
+                          Text('New Item',
+                              style: GoogleFonts.poppins(
+                                  color: Colors.black,
+                                  fontSize: 19,
+                                  fontWeight: FontWeight.w600))
                         ],
                       ),
                     ),
@@ -94,9 +99,13 @@ class ColorTile extends StatelessWidget {
               const ListDivider(
                 height: 10,
               ),
-              const Align(
+              Align(
                 alignment: Alignment.topCenter,
-                child: Text('CHOOSE LABEL COLOR'),
+                child: Text('CHOOSE LABEL COLOR',
+                    style: GoogleFonts.poppins(
+                        color: Colors.black,
+                        fontSize: 19,
+                        fontWeight: FontWeight.w600)),
               ),
               const ListDivider(
                 height: 10,
@@ -110,9 +119,15 @@ class ColorTile extends StatelessWidget {
               const ListDivider(
                 height: 10,
               ),
-              const Align(
+              Align(
                 alignment: Alignment.topCenter,
-                child: Text('PHOTO LABEL'),
+                child: Text(
+                  'PHOTO LABEL',
+                  style: GoogleFonts.poppins(
+                      color: Colors.black,
+                      fontSize: 19,
+                      fontWeight: FontWeight.w600),
+                ),
               ),
               const ListDivider(
                 height: 10,
@@ -124,24 +139,28 @@ class ColorTile extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     SizedBox(
-                      height: 50,
-                      width: 140,
+                      height: 64,
+                      width: 180,
                       child: OutlinedButton(
-                        child: Text('Choose Photo'),
+                        child: Text('Choose Photo',
+                            style: GoogleFonts.poppins(
+                                color: Color(0xff006AFE),
+                                fontSize: 19,
+                                fontWeight: FontWeight.w600)),
                         style: ButtonStyle(
                           backgroundColor:
-                              MaterialStateProperty.all<Color>(Colors.black),
+                              MaterialStateProperty.all<Color>(Colors.grey),
                           overlayColor:
                               MaterialStateProperty.resolveWith<Color?>(
                             (Set<MaterialState> states) {
                               if (states.contains(MaterialState.hovered)) {
-                                return Colors.black.withOpacity(0.04);
+                                return Colors.grey.withOpacity(0.04);
                               }
                               if (states.contains(MaterialState.focused) ||
                                   states.contains(MaterialState.pressed)) {
-                                return Colors.black.withOpacity(0.12);
+                                return Colors.grey.withOpacity(0.12);
                               }
-                              return null; // Defer to the widget's default.
+                              return null;
                             },
                           ),
                         ),
@@ -158,22 +177,26 @@ class ColorTile extends StatelessWidget {
                       width: 10,
                     ),
                     SizedBox(
-                      height: 50,
-                      width: 140,
+                      height: 64,
+                      width: 180,
                       child: OutlinedButton(
-                        child: Text('Take Photo'),
+                        child: Text('Take Photo',
+                            style: GoogleFonts.poppins(
+                                color: Color(0xff006AFE),
+                                fontSize: 19,
+                                fontWeight: FontWeight.w600)),
                         style: ButtonStyle(
                           backgroundColor:
-                              MaterialStateProperty.all<Color>(Colors.black),
+                              MaterialStateProperty.all<Color>(Colors.grey),
                           overlayColor:
                               MaterialStateProperty.resolveWith<Color?>(
                             (Set<MaterialState> states) {
                               if (states.contains(MaterialState.hovered)) {
-                                return Colors.black.withOpacity(0.04);
+                                return Colors.grey.withOpacity(0.04);
                               }
                               if (states.contains(MaterialState.focused) ||
                                   states.contains(MaterialState.pressed)) {
-                                return Colors.black.withOpacity(0.12);
+                                return Colors.grey.withOpacity(0.12);
                               }
                               return null; // Defer to the widget's default.
                             },

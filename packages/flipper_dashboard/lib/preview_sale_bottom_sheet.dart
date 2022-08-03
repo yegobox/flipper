@@ -1,7 +1,7 @@
 import 'package:flipper_models/isar_models.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:stacked/stacked.dart';
 
@@ -26,8 +26,6 @@ class PreviewSaleBottomSheet extends StatefulWidget {
 }
 
 class _PreviewSaleBottomSheetState extends State<PreviewSaleBottomSheet> {
-  List<OrderItem> items = [];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,16 +33,18 @@ class _PreviewSaleBottomSheetState extends State<PreviewSaleBottomSheet> {
           child: CupertinoPageScaffold(
         navigationBar: CupertinoNavigationBar(
             leading: Container(),
-            middle: Row(children: [Text("Current Sale(${widget.saleCount})")])),
+            middle: Row(children: [
+              Text("Current Sale(${widget.saleCount})",
+                  style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                      color: Colors.black))
+            ])),
         child: ViewModelBuilder<BusinessHomeViewModel>.reactive(
             viewModelBuilder: () => BusinessHomeViewModel(),
             onModelReady: (model) async {
               if (model.kOrder != null) {
-                List<OrderItem> _items = await ProxyService.isarApi
-                    .orderItems(orderId: model.kOrder!.id);
-                setState(() {
-                  items = _items;
-                });
+                await model.setOrderItems();
               }
             },
             builder: (a, model, c) {
@@ -64,7 +64,7 @@ class _PreviewSaleBottomSheetState extends State<PreviewSaleBottomSheet> {
                             ...buildItems(
                                 context: context,
                                 model: widget.model,
-                                items: items),
+                                items: model.items),
                             if (widget.model.totalDiscount > 0)
                               ListTile(
                                 contentPadding: const EdgeInsets.only(
@@ -73,18 +73,22 @@ class _PreviewSaleBottomSheetState extends State<PreviewSaleBottomSheet> {
                                   '- RWF ' +
                                       display(widget.model.totalDiscount)
                                           .toString(),
-                                  style: const TextStyle(color: Colors.black),
+                                  style: GoogleFonts.poppins(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 15,
+                                      color: Colors.black),
                                 ),
-                                leading: const Text(
+                                leading: Text(
                                   'Discounts',
-                                  style: TextStyle(
-                                    color: Colors.black,
-                                  ),
+                                  style: GoogleFonts.poppins(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 15,
+                                      color: Colors.black),
                                 ),
                               ),
                           ]),
                       ChargeButton(
-                        duePay: items.fold(0, (a, b) => a! + b.price),
+                        duePay: model.items.fold(0, (a, b) => a! + b.price),
                         model: model,
                       )
                     ],

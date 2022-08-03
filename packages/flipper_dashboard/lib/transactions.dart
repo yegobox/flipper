@@ -2,6 +2,7 @@ import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:stacked/stacked.dart';
 
@@ -203,11 +204,18 @@ class _TransactionsState extends State<Transactions> {
         builder: (context, model, child) {
           return Scaffold(
             appBar: AppBar(
+              backgroundColor: Colors.white,
               leading: const SizedBox.shrink(),
               title: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Transactions'),
+                    Text(
+                      'Transactions',
+                      style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w400,
+                          fontSize: 15,
+                          color: Colors.black),
+                    ),
                     SizedBox(
                       width: 30,
                       child: SwitchListTile(
@@ -219,16 +227,30 @@ class _TransactionsState extends State<Transactions> {
                           }),
                     )
                   ]),
-              elevation: 1,
+              elevation: 0,
             ),
             body: defaultTransactions
                 ? (list.isEmpty
-                    ? const Center(child: Text("No Transactions"))
+                    ? Center(
+                        child: Text(
+                        "No Transactions",
+                        style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w400,
+                            fontSize: 15,
+                            color: Colors.black),
+                      ))
                     : ListView(
                         children: list,
                       ))
                 : (zlist.isEmpty
-                    ? const Center(child: Text("No Z Report"))
+                    ? Center(
+                        child: Text(
+                        "No Z Report",
+                        style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w400,
+                            fontSize: 15,
+                            color: Colors.black),
+                      ))
                     : ListView(
                         children: zlist,
                       )),

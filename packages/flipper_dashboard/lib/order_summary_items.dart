@@ -1,5 +1,6 @@
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:number_display/number_display.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -64,13 +65,13 @@ List<Widget> buildItems(
           contentPadding: const EdgeInsets.only(left: 40.0, right: 40.0),
           trailing: Text(
             'RWF ' + display(item.price * item.qty).toString(),
-            style: const TextStyle(color: Colors.black),
+            style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w400, fontSize: 15, color: Colors.black),
           ),
           leading: Text(
             item.name,
-            style: const TextStyle(
-              color: Colors.black,
-            ),
+            style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w400, fontSize: 15, color: Colors.black),
           ),
           title: Row(
             children: [

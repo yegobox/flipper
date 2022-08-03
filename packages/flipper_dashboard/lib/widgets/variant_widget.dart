@@ -37,7 +37,7 @@ List<Widget> variantsWidget({required BusinessHomeViewModel model}) {
                                           snapshot.data!.name +
                                           ")"
                                       : snapshot.data!.name,
-                                  style: GoogleFonts.lato(
+                                  style: GoogleFonts.poppins(
                                     textStyle: TextStyle(
                                         fontWeight: FontWeight.w700,
                                         fontSize: 13,
@@ -50,7 +50,7 @@ List<Widget> variantsWidget({required BusinessHomeViewModel model}) {
                   Row(children: [
                     Text(
                       'Frw${variant.retailPrice.toInt()}',
-                      style: GoogleFonts.lato(
+                      style: GoogleFonts.poppins(
                         textStyle: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 12,

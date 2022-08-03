@@ -59,12 +59,6 @@ class Sell extends StatelessWidget {
                     flex: 1,
                     child: Text(
                       'QUANTITY',
-                      style: GoogleFonts.lato(
-                        textStyle: TextStyle(
-                            fontWeight: FontWeight.w900,
-                            fontSize: 10.0,
-                            color: Colors.grey[900]),
-                      ),
                     ),
                   ),
                   const Expanded(flex: 2, child: Text('')),
@@ -560,7 +554,7 @@ class Sell extends StatelessWidget {
                           Container(
                             child: Text(
                               'Frw${variant.retailPrice.toInt()}',
-                              style: GoogleFonts.lato(
+                              style: GoogleFonts.poppins(
                                 textStyle: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 12.0,
@@ -594,7 +588,7 @@ class Sell extends StatelessWidget {
   Widget build(BuildContext context) {
     return ViewModelBuilder<BusinessHomeViewModel>.reactive(
         onModelReady: (model) async {
-          await model.getVariants(productId: product.id!);
+          await model.getVariants(productId: product.id);
         },
         viewModelBuilder: () => BusinessHomeViewModel(),
         builder: (context, model, child) {

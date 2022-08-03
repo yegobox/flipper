@@ -542,16 +542,25 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       {required int id, required BuildContext context}) async {
     await ProxyService.isarApi.delete(id: id, endPoint: 'orderItem');
 
-    await currentOrder();
-
-    updatePayable();
-
-    /// if there is no orderItem left in the order then navigate back
-    if (keypad.order!.orderItems.isEmpty) {
+    Order? pendingOrder = await ProxyService.isarApi.manageOrder();
+    List<OrderItem> items =
+        await ProxyService.isarApi.orderItems(orderId: pendingOrder.id);
+    if (items.isEmpty) {
       GoRouter.of(context).pop();
     }
+    currentOrder();
 
+    updatePayable();
+    await setOrderItems();
     return true;
+  }
+
+  List<OrderItem> items = [];
+  setOrderItems() async {
+    List<OrderItem> _items =
+        await ProxyService.isarApi.orderItems(orderId: kOrder!.id);
+    items = _items;
+    notifyListeners();
   }
 
   /// this method is used to restore database from backup

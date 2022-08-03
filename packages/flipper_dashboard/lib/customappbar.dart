@@ -89,11 +89,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                   : Text(
                       _title ?? '',
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.lato(
-                        fontStyle: FontStyle.normal,
-                        color: const Color.fromRGBO(0, 0, 0, 1.0),
-                        fontSize: 20,
-                      ),
+                      style: GoogleFonts.poppins(
+                          fontSize: 19, fontWeight: FontWeight.w600),
                     ),
               trailing: _showActionButton == null || !_showActionButton!
                   ? const SizedBox.shrink()

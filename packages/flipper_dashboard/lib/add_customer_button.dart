@@ -26,7 +26,7 @@ class AddCustomerButton extends StatelessWidget {
                       states.contains(MaterialState.pressed)) {
                     return const Color(0xffF2F2F2);
                   }
-                  return null; // Defer to the widget's default.
+                  return null;
                 },
               ),
             ),
@@ -38,7 +38,7 @@ class AddCustomerButton extends StatelessWidget {
                 style: GoogleFonts.poppins(
                     fontWeight: FontWeight.w600,
                     fontSize: 15,
-                    color: Colors.black))),
+                    color: Color(0xff006AFE)))),
       ),
     );
   }
