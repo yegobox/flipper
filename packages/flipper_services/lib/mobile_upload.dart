@@ -111,13 +111,13 @@ class MobileUpload implements UploadT {
     required Function(int) onUploadComplete,
   }) async {
     final FlutterUploader uploader = FlutterUploader();
-    final String token = ProxyService.box.read(key: 'UToken');
+    final String? token = ProxyService.box.getBearerToken();
     await uploader.enqueue(MultipartFormDataUpload(
-      url: 'https://flipper.yegobox.com/upload',
-      files: paths.map((e) => FileItem(path: e!, field: 'picture')).toList(),
+      url: 'https://apihub.yegobox.com/s3/upload',
+      files: paths.map((e) => FileItem(path: e!, field: 'file')).toList(),
       method: UploadMethod.POST,
-      tag: 'Upload',
-      headers: {'Authorization': 'Bearer  ' + token},
+      tag: 'file',
+      headers: {'Authorization': token!},
     ));
 
     uploader.progress.listen((UploadTaskProgress progress) {
@@ -136,7 +136,7 @@ class MobileUpload implements UploadT {
           product.imageUrl = uploadResponse.url;
           product.hasPicture = true;
           log.i(productId);
-          ProxyService.isarApi.update(data: product, endPoint: 'product');
+          ProxyService.isarApi.update(data: product);
           Product? kProduct =
               await ProxyService.isarApi.getProduct(id: productId);
           ProxyService.productService
@@ -205,12 +205,6 @@ class MobileUpload implements UploadT {
         if (statusCode == 200) {
           onComplete(statusCode);
         } else {
-          /// refresh to token
-          String? phone = ProxyService.box.read(key: 'userPhone');
-          log.d(phone);
-          await ProxyService.isarApi.login(userPhone: phone!);
-
-          // onComplete(Exception('error'));
           onComplete(statusCode);
         }
       },

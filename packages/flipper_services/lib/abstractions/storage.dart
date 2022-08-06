@@ -16,4 +16,5 @@ abstract class LocalStorage {
   bool isAutoBackupEnabled();
   bool hasSignedInForAutoBackup();
   String? gdID();
+  String? getBearerToken();
 }

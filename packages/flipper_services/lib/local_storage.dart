@@ -88,4 +88,9 @@ class LocalStorageImpl implements LocalStorage {
   bool isAnonymous() {
     return box.read('isAnonymous') ?? false;
   }
+
+  @override
+  String? getBearerToken() {
+    return box.read('bearerToken');
+  }
 }
