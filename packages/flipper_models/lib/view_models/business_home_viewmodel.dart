@@ -538,6 +538,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   /// if deleting OrderItem leaves order with no OrderItem
   /// this function also delete the order
+  /// FIXMEsometime after deleteting orderItems are not reflecting
   Future<bool> deleteOrderItem(
       {required int id, required BuildContext context}) async {
     await ProxyService.isarApi.delete(id: id, endPoint: 'orderItem');
@@ -545,20 +546,23 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     Order? pendingOrder = await ProxyService.isarApi.manageOrder();
     List<OrderItem> items =
         await ProxyService.isarApi.orderItems(orderId: pendingOrder.id);
-    if (items.isEmpty) {
-      GoRouter.of(context).pop();
-    }
+
     currentOrder();
 
     updatePayable();
     await setOrderItems();
+
+    if (items.isEmpty) {
+      GoRouter.of(context).pop();
+    }
     return true;
   }
 
   List<OrderItem> items = [];
   setOrderItems() async {
+    Order? pendingOrder = await ProxyService.isarApi.manageOrder();
     List<OrderItem> _items =
-        await ProxyService.isarApi.orderItems(orderId: kOrder!.id);
+        await ProxyService.isarApi.orderItems(orderId: pendingOrder.id);
     items = _items;
     notifyListeners();
   }

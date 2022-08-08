@@ -274,3 +274,6 @@ class AppSetup {
 // key hashes
 // keytool -exportcert -alias androiddebugkey -keystore ~/.android/debug.keystore | openssl sha1 -binary | openssl base64
 // https://pub.dev/packages/flutter_carousel_slider
+
+// AWS
+// AWS Billing and Cost Management console
