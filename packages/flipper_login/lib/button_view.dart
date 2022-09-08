@@ -14,16 +14,22 @@ class ButtonView extends StatelessWidget {
       padding: EdgeInsets.fromLTRB(0, 40, 0, 40),
       child: SizedBox(
         width: double.infinity,
-        child: RaisedButton(
+        child: OutlinedButton(
           onPressed: onPress,
+          style: ButtonStyle(
+            shape: MaterialStateProperty.resolveWith<OutlinedBorder?>((states) {
+              return RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10));
+            }),
+            overlayColor: MaterialStateProperty.resolveWith<Color?>(
+                (Set<MaterialState> states) {
+              if (states.contains(MaterialState.focused)) return buttonColor;
+              return buttonColor; // Defer to the widget's default.
+            }),
+          ),
           child: Text(
             text,
             style: TextStyle(color: textColor),
-          ),
-          color: buttonColor,
-          padding: EdgeInsets.fromLTRB(0, 20, 0, 20),
-          shape: RoundedRectangleBorder(
-            borderRadius: new BorderRadius.circular(10.0),
           ),
         ),
       ),

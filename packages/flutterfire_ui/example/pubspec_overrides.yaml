@@ -1,4 +1,0 @@
-# melos_managed_dependency_overrides: flutterfire_ui
-dependency_overrides:
-  flutterfire_ui:
-    path: ..

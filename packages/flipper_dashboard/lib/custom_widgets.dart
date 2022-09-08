@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 Widget customTitleText(String title, {required BuildContext context}) {
   return Text(
@@ -330,15 +329,29 @@ Widget customAlert(BuildContext context,
             fontSize: getDimention(context, 25), color: Colors.black54)),
     content: Text(title, style: const TextStyle(color: Colors.black45)),
     actions: <Widget>[
-      FlatButton(
-        textColor: Colors.grey,
+      TextButton(
+        style: ButtonStyle(
+          overlayColor: MaterialStateProperty.resolveWith<Color?>(
+              (Set<MaterialState> states) {
+            if (states.contains(MaterialState.focused)) return Colors.grey;
+            return Colors.grey; // Defer to the widget's default.
+          }),
+        ),
         onPressed: () {
           Navigator.pop(context);
         },
         child: Text(cancelText),
       ),
-      FlatButton(
-        textColor: Theme.of(context).primaryColor,
+      TextButton(
+        style: ButtonStyle(
+          overlayColor: MaterialStateProperty.resolveWith<Color?>(
+              (Set<MaterialState> states) {
+            if (states.contains(MaterialState.focused))
+              return Theme.of(context).primaryColor;
+            return Theme.of(context)
+                .primaryColor; // Defer to the widget's default.
+          }),
+        ),
         onPressed: () {
           Navigator.pop(context);
           onPressedOk();
@@ -354,7 +367,6 @@ void customSnackBar(GlobalKey<ScaffoldState> _scaffoldKey, String msg,
   if (_scaffoldKey.currentState == null) {
     return;
   }
-  _scaffoldKey.currentState!.hideCurrentSnackBar();
   final SnackBar snackBar = SnackBar(
     backgroundColor: backgroundColor,
     content: Text(
@@ -364,7 +376,6 @@ void customSnackBar(GlobalKey<ScaffoldState> _scaffoldKey, String msg,
       ),
     ),
   );
-  _scaffoldKey.currentState!.showSnackBar(snackBar);
 }
 
 Widget emptyListWidget(BuildContext context, String title,
@@ -478,8 +489,16 @@ openImagePicker(BuildContext context, Function onImageSelected) {
             Row(
               children: <Widget>[
                 Expanded(
-                  child: FlatButton(
-                    color: Theme.of(context).primaryColor,
+                  child: TextButton(
+                    style: ButtonStyle(
+                      overlayColor: MaterialStateProperty.resolveWith<Color?>(
+                          (Set<MaterialState> states) {
+                        if (states.contains(MaterialState.focused))
+                          return Theme.of(context).primaryColor;
+                        return Theme.of(context)
+                            .primaryColor; // Defer to the widget's default.
+                      }),
+                    ),
                     child: Text(
                       'Use Camera',
                       style:
@@ -492,8 +511,16 @@ openImagePicker(BuildContext context, Function onImageSelected) {
                   width: 10,
                 ),
                 Expanded(
-                  child: FlatButton(
-                    color: Theme.of(context).primaryColor,
+                  child: TextButton(
+                    style: ButtonStyle(
+                      overlayColor: MaterialStateProperty.resolveWith<Color?>(
+                          (Set<MaterialState> states) {
+                        if (states.contains(MaterialState.focused))
+                          return Theme.of(context).primaryColor;
+                        return Theme.of(context)
+                            .primaryColor; // Defer to the widget's default.
+                      }),
+                    ),
                     child: Text(
                       'Use Gallery',
                       style:

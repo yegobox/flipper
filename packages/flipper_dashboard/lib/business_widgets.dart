@@ -23,8 +23,16 @@ class BusinessSettingButton extends StatelessWidget {
                 icon: const FaIcon(FontAwesomeIcons.signOutAlt),
                 onPressed: onPressed,
               )
-            : FlatButton(
-                shape: const CircleBorder(),
+            : TextButton(
+                style: ButtonStyle(
+                  overlayColor: MaterialStateProperty.resolveWith<Color?>(
+                      (Set<MaterialState> states) {
+                    if (states.contains(MaterialState.focused))
+                      return Colors.red;
+                    return null; // Defer to the widget's default.
+                  }),
+                ),
+                // shape: const CircleBorder(),
                 child: image!,
                 onPressed: onPressed,
               ),
