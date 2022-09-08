@@ -7,152 +7,229 @@ part of 'order.dart';
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
 
 extension GetOrderCollection on Isar {
-  IsarCollection<Order> get orders => collection();
+  IsarCollection<Order> get orders => this.collection();
 }
 
 const OrderSchema = CollectionSchema(
   name: r'Order',
-  schema:
-      r'{"name":"Order","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"cashReceived","type":"Double"},{"name":"createdAt","type":"String"},{"name":"customerChangeDue","type":"Double"},{"name":"customerId","type":"Long"},{"name":"draft","type":"Bool"},{"name":"note","type":"String"},{"name":"orderNumber","type":"String"},{"name":"orderType","type":"String"},{"name":"paymentType","type":"String"},{"name":"receiptType","type":"String"},{"name":"reference","type":"String"},{"name":"reported","type":"Bool"},{"name":"status","type":"String"},{"name":"subTotal","type":"Double"},{"name":"updatedAt","type":"String"}],"indexes":[{"name":"branchId","unique":false,"replace":false,"properties":[{"name":"branchId","type":"Value","caseSensitive":false}]},{"name":"status_branchId","unique":false,"replace":false,"properties":[{"name":"status","type":"Hash","caseSensitive":true},{"name":"branchId","type":"Value","caseSensitive":false}]}],"links":[{"name":"discounts","target":"Discount"},{"name":"orderItems","target":"OrderItem"}]}',
-  idName: r'id',
-  propertyIds: {
-    r'active': 0,
-    r'branchId': 1,
-    r'cashReceived': 2,
-    r'createdAt': 3,
-    r'customerChangeDue': 4,
-    r'customerId': 5,
-    r'draft': 6,
-    r'note': 7,
-    r'orderNumber': 8,
-    r'orderType': 9,
-    r'paymentType': 10,
-    r'receiptType': 11,
-    r'reference': 12,
-    r'reported': 13,
-    r'status': 14,
-    r'subTotal': 15,
-    r'updatedAt': 16
+  id: 103494837486634173,
+  properties: {
+    r'active': PropertySchema(
+      id: 0,
+      name: r'active',
+      type: IsarType.bool,
+    ),
+    r'branchId': PropertySchema(
+      id: 1,
+      name: r'branchId',
+      type: IsarType.long,
+    ),
+    r'cashReceived': PropertySchema(
+      id: 2,
+      name: r'cashReceived',
+      type: IsarType.double,
+    ),
+    r'createdAt': PropertySchema(
+      id: 3,
+      name: r'createdAt',
+      type: IsarType.string,
+    ),
+    r'customerChangeDue': PropertySchema(
+      id: 4,
+      name: r'customerChangeDue',
+      type: IsarType.double,
+    ),
+    r'customerId': PropertySchema(
+      id: 5,
+      name: r'customerId',
+      type: IsarType.long,
+    ),
+    r'draft': PropertySchema(
+      id: 6,
+      name: r'draft',
+      type: IsarType.bool,
+    ),
+    r'note': PropertySchema(
+      id: 7,
+      name: r'note',
+      type: IsarType.string,
+    ),
+    r'orderNumber': PropertySchema(
+      id: 8,
+      name: r'orderNumber',
+      type: IsarType.string,
+    ),
+    r'orderType': PropertySchema(
+      id: 9,
+      name: r'orderType',
+      type: IsarType.string,
+    ),
+    r'paymentType': PropertySchema(
+      id: 10,
+      name: r'paymentType',
+      type: IsarType.string,
+    ),
+    r'receiptType': PropertySchema(
+      id: 11,
+      name: r'receiptType',
+      type: IsarType.string,
+    ),
+    r'reference': PropertySchema(
+      id: 12,
+      name: r'reference',
+      type: IsarType.string,
+    ),
+    r'reported': PropertySchema(
+      id: 13,
+      name: r'reported',
+      type: IsarType.bool,
+    ),
+    r'status': PropertySchema(
+      id: 14,
+      name: r'status',
+      type: IsarType.string,
+    ),
+    r'subTotal': PropertySchema(
+      id: 15,
+      name: r'subTotal',
+      type: IsarType.double,
+    ),
+    r'updatedAt': PropertySchema(
+      id: 16,
+      name: r'updatedAt',
+      type: IsarType.string,
+    )
   },
-  listProperties: {},
-  indexIds: {r'branchId': 0, r'status_branchId': 1},
-  indexValueTypes: {
-    r'branchId': [
-      IndexValueType.long,
-    ],
-    r'status_branchId': [
-      IndexValueType.stringHash,
-      IndexValueType.long,
-    ]
-  },
-  linkIds: {r'discounts': 0, r'orderItems': 1},
-  backlinkLinkNames: {},
-  getId: _orderGetId,
-  setId: _orderSetId,
-  getLinks: _orderGetLinks,
-  attachLinks: _orderAttachLinks,
+  estimateSize: _orderEstimateSize,
   serializeNative: _orderSerializeNative,
   deserializeNative: _orderDeserializeNative,
   deserializePropNative: _orderDeserializePropNative,
   serializeWeb: _orderSerializeWeb,
   deserializeWeb: _orderDeserializeWeb,
   deserializePropWeb: _orderDeserializePropWeb,
-  version: 4,
+  idName: r'id',
+  indexes: {
+    r'branchId': IndexSchema(
+      id: 2037049677925728410,
+      name: r'branchId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'branchId',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
+    ),
+    r'status_branchId': IndexSchema(
+      id: 7677499683711055211,
+      name: r'status_branchId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'status',
+          type: IndexType.hash,
+          caseSensitive: true,
+        ),
+        IndexPropertySchema(
+          name: r'branchId',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
+    )
+  },
+  links: {
+    r'orderItems': LinkSchema(
+      id: -2882418569269634219,
+      name: r'orderItems',
+      target: r'OrderItem',
+      isSingle: false,
+    ),
+    r'discounts': LinkSchema(
+      id: 5408291939349920316,
+      name: r'discounts',
+      target: r'Discount',
+      isSingle: false,
+    )
+  },
+  embeddedSchemas: {},
+  getId: _orderGetId,
+  getLinks: _orderGetLinks,
+  attach: _orderAttach,
+  version: '3.0.0-dev.14',
 );
 
-int? _orderGetId(Order object) {
-  if (object.id == Isar.autoIncrement) {
-    return null;
-  } else {
-    return object.id;
+int _orderEstimateSize(
+  Order object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  bytesCount += 3 + object.createdAt.length * 3;
+  {
+    final value = object.note;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
   }
+  bytesCount += 3 + object.orderNumber.length * 3;
+  bytesCount += 3 + object.orderType.length * 3;
+  bytesCount += 3 + object.paymentType.length * 3;
+  {
+    final value = object.receiptType;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  bytesCount += 3 + object.reference.length * 3;
+  bytesCount += 3 + object.status.length * 3;
+  {
+    final value = object.updatedAt;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  return bytesCount;
 }
 
-void _orderSetId(Order object, int id) {
-  object.id = id;
-}
-
-List<IsarLinkBase<dynamic>> _orderGetLinks(Order object) {
-  return [object.discounts, object.orderItems];
-}
-
-void _orderSerializeNative(IsarCollection<Order> collection, IsarCObject cObj,
-    Order object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
-  final createdAt$Bytes =
-      IsarBinaryWriter.utf8Encoder.convert(object.createdAt);
-  IsarUint8List? note$Bytes;
-  final note$Value = object.note;
-  if (note$Value != null) {
-    note$Bytes = IsarBinaryWriter.utf8Encoder.convert(note$Value);
-  }
-  final orderNumber$Bytes =
-      IsarBinaryWriter.utf8Encoder.convert(object.orderNumber);
-  final orderType$Bytes =
-      IsarBinaryWriter.utf8Encoder.convert(object.orderType);
-  final paymentType$Bytes =
-      IsarBinaryWriter.utf8Encoder.convert(object.paymentType);
-  IsarUint8List? receiptType$Bytes;
-  final receiptType$Value = object.receiptType;
-  if (receiptType$Value != null) {
-    receiptType$Bytes = IsarBinaryWriter.utf8Encoder.convert(receiptType$Value);
-  }
-  final reference$Bytes =
-      IsarBinaryWriter.utf8Encoder.convert(object.reference);
-  final status$Bytes = IsarBinaryWriter.utf8Encoder.convert(object.status);
-  IsarUint8List? updatedAt$Bytes;
-  final updatedAt$Value = object.updatedAt;
-  if (updatedAt$Value != null) {
-    updatedAt$Bytes = IsarBinaryWriter.utf8Encoder.convert(updatedAt$Value);
-  }
-  final size = (staticSize +
-      3 +
-      (createdAt$Bytes.length) +
-      3 +
-      (note$Bytes?.length ?? 0) +
-      3 +
-      (orderNumber$Bytes.length) +
-      3 +
-      (orderType$Bytes.length) +
-      3 +
-      (paymentType$Bytes.length) +
-      3 +
-      (receiptType$Bytes?.length ?? 0) +
-      3 +
-      (reference$Bytes.length) +
-      3 +
-      (status$Bytes.length) +
-      3 +
-      (updatedAt$Bytes?.length ?? 0)) as int;
-  cObj.buffer = alloc(size);
-  cObj.buffer_length = size;
-
-  final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
-  final writer = IsarBinaryWriter(buffer, staticSize);
-  writer.writeHeader();
+int _orderSerializeNative(
+  Order object,
+  IsarBinaryWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
   writer.writeBool(offsets[0], object.active);
   writer.writeLong(offsets[1], object.branchId);
   writer.writeDouble(offsets[2], object.cashReceived);
-  writer.writeByteList(offsets[3], createdAt$Bytes);
+  writer.writeString(offsets[3], object.createdAt);
   writer.writeDouble(offsets[4], object.customerChangeDue);
   writer.writeLong(offsets[5], object.customerId);
   writer.writeBool(offsets[6], object.draft);
-  writer.writeByteList(offsets[7], note$Bytes);
-  writer.writeByteList(offsets[8], orderNumber$Bytes);
-  writer.writeByteList(offsets[9], orderType$Bytes);
-  writer.writeByteList(offsets[10], paymentType$Bytes);
-  writer.writeByteList(offsets[11], receiptType$Bytes);
-  writer.writeByteList(offsets[12], reference$Bytes);
+  writer.writeString(offsets[7], object.note);
+  writer.writeString(offsets[8], object.orderNumber);
+  writer.writeString(offsets[9], object.orderType);
+  writer.writeString(offsets[10], object.paymentType);
+  writer.writeString(offsets[11], object.receiptType);
+  writer.writeString(offsets[12], object.reference);
   writer.writeBool(offsets[13], object.reported);
-  writer.writeByteList(offsets[14], status$Bytes);
+  writer.writeString(offsets[14], object.status);
   writer.writeDouble(offsets[15], object.subTotal);
-  writer.writeByteList(offsets[16], updatedAt$Bytes);
+  writer.writeString(offsets[16], object.updatedAt);
+  return writer.usedBytes;
 }
 
-Order _orderDeserializeNative(IsarCollection<Order> collection, int id,
-    IsarBinaryReader reader, List<int> offsets) {
+Order _orderDeserializeNative(
+  Id id,
+  IsarBinaryReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
   final object = Order();
   object.active = reader.readBool(offsets[0]);
   object.branchId = reader.readLong(offsets[1]);
@@ -172,15 +249,16 @@ Order _orderDeserializeNative(IsarCollection<Order> collection, int id,
   object.status = reader.readString(offsets[14]);
   object.subTotal = reader.readDouble(offsets[15]);
   object.updatedAt = reader.readStringOrNull(offsets[16]);
-  _orderAttachLinks(collection, id, object);
   return object;
 }
 
 P _orderDeserializePropNative<P>(
-    int id, IsarBinaryReader reader, int propertyIndex, int offset) {
-  switch (propertyIndex) {
-    case -1:
-      return id as P;
+  IsarBinaryReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
     case 0:
       return (reader.readBool(offset)) as P;
     case 1:
@@ -216,112 +294,41 @@ P _orderDeserializePropNative<P>(
     case 16:
       return (reader.readStringOrNull(offset)) as P;
     default:
-      throw IsarError('Illegal propertyIndex');
+      throw IsarError('Unknown property with id $propertyId');
   }
 }
 
 Object _orderSerializeWeb(IsarCollection<Order> collection, Order object) {
-  final jsObj = IsarNative.newJsObject();
-  IsarNative.jsObjectSet(jsObj, r'active', object.active);
-  IsarNative.jsObjectSet(jsObj, r'branchId', object.branchId);
-  IsarNative.jsObjectSet(jsObj, r'cashReceived', object.cashReceived);
-  IsarNative.jsObjectSet(jsObj, r'createdAt', object.createdAt);
-  IsarNative.jsObjectSet(jsObj, r'customerChangeDue', object.customerChangeDue);
-  IsarNative.jsObjectSet(jsObj, r'customerId', object.customerId);
-  IsarNative.jsObjectSet(jsObj, r'draft', object.draft);
-  IsarNative.jsObjectSet(jsObj, r'id', object.id);
-  IsarNative.jsObjectSet(jsObj, r'note', object.note);
-  IsarNative.jsObjectSet(jsObj, r'orderNumber', object.orderNumber);
-  IsarNative.jsObjectSet(jsObj, r'orderType', object.orderType);
-  IsarNative.jsObjectSet(jsObj, r'paymentType', object.paymentType);
-  IsarNative.jsObjectSet(jsObj, r'receiptType', object.receiptType);
-  IsarNative.jsObjectSet(jsObj, r'reference', object.reference);
-  IsarNative.jsObjectSet(jsObj, r'reported', object.reported);
-  IsarNative.jsObjectSet(jsObj, r'status', object.status);
-  IsarNative.jsObjectSet(jsObj, r'subTotal', object.subTotal);
-  IsarNative.jsObjectSet(jsObj, r'updatedAt', object.updatedAt);
-  return jsObj;
+  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
 }
 
 Order _orderDeserializeWeb(IsarCollection<Order> collection, Object jsObj) {
-  final object = Order();
-  object.active = IsarNative.jsObjectGet(jsObj, r'active') ?? false;
-  object.branchId = IsarNative.jsObjectGet(jsObj, r'branchId') ??
-      (double.negativeInfinity as int);
-  object.cashReceived =
-      IsarNative.jsObjectGet(jsObj, r'cashReceived') ?? double.negativeInfinity;
-  object.createdAt = IsarNative.jsObjectGet(jsObj, r'createdAt') ?? '';
-  object.customerChangeDue =
-      IsarNative.jsObjectGet(jsObj, r'customerChangeDue') ??
-          double.negativeInfinity;
-  object.customerId = IsarNative.jsObjectGet(jsObj, r'customerId');
-  object.draft = IsarNative.jsObjectGet(jsObj, r'draft') ?? false;
-  object.id = IsarNative.jsObjectGet(jsObj, r'id');
-  object.note = IsarNative.jsObjectGet(jsObj, r'note');
-  object.orderNumber = IsarNative.jsObjectGet(jsObj, r'orderNumber') ?? '';
-  object.orderType = IsarNative.jsObjectGet(jsObj, r'orderType') ?? '';
-  object.paymentType = IsarNative.jsObjectGet(jsObj, r'paymentType') ?? '';
-  object.receiptType = IsarNative.jsObjectGet(jsObj, r'receiptType');
-  object.reference = IsarNative.jsObjectGet(jsObj, r'reference') ?? '';
-  object.reported = IsarNative.jsObjectGet(jsObj, r'reported');
-  object.status = IsarNative.jsObjectGet(jsObj, r'status') ?? '';
-  object.subTotal =
-      IsarNative.jsObjectGet(jsObj, r'subTotal') ?? double.negativeInfinity;
-  object.updatedAt = IsarNative.jsObjectGet(jsObj, r'updatedAt');
-  _orderAttachLinks(collection, IsarNative.jsObjectGet(jsObj, r'id'), object);
-  return object;
+  /*final object = Order();object.active = IsarNative.jsObjectGet(jsObj, r'active') ?? false;object.branchId = IsarNative.jsObjectGet(jsObj, r'branchId') ?? (double.negativeInfinity as int);object.cashReceived = IsarNative.jsObjectGet(jsObj, r'cashReceived') ?? double.negativeInfinity;object.createdAt = IsarNative.jsObjectGet(jsObj, r'createdAt') ?? '';object.customerChangeDue = IsarNative.jsObjectGet(jsObj, r'customerChangeDue') ?? double.negativeInfinity;object.customerId = IsarNative.jsObjectGet(jsObj, r'customerId') ;object.draft = IsarNative.jsObjectGet(jsObj, r'draft') ?? false;object.id = IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int);object.note = IsarNative.jsObjectGet(jsObj, r'note') ;object.orderNumber = IsarNative.jsObjectGet(jsObj, r'orderNumber') ?? '';object.orderType = IsarNative.jsObjectGet(jsObj, r'orderType') ?? '';object.paymentType = IsarNative.jsObjectGet(jsObj, r'paymentType') ?? '';object.receiptType = IsarNative.jsObjectGet(jsObj, r'receiptType') ;object.reference = IsarNative.jsObjectGet(jsObj, r'reference') ?? '';object.reported = IsarNative.jsObjectGet(jsObj, r'reported') ;object.status = IsarNative.jsObjectGet(jsObj, r'status') ?? '';object.subTotal = IsarNative.jsObjectGet(jsObj, r'subTotal') ?? double.negativeInfinity;object.updatedAt = IsarNative.jsObjectGet(jsObj, r'updatedAt') ;*/
+  //return object;
+  throw UnimplementedError();
 }
 
 P _orderDeserializePropWeb<P>(Object jsObj, String propertyName) {
   switch (propertyName) {
-    case r'active':
-      return (IsarNative.jsObjectGet(jsObj, r'active') ?? false) as P;
-    case r'branchId':
-      return (IsarNative.jsObjectGet(jsObj, r'branchId') ??
-          (double.negativeInfinity as int)) as P;
-    case r'cashReceived':
-      return (IsarNative.jsObjectGet(jsObj, r'cashReceived') ??
-          double.negativeInfinity) as P;
-    case r'createdAt':
-      return (IsarNative.jsObjectGet(jsObj, r'createdAt') ?? '') as P;
-    case r'customerChangeDue':
-      return (IsarNative.jsObjectGet(jsObj, r'customerChangeDue') ??
-          double.negativeInfinity) as P;
-    case r'customerId':
-      return (IsarNative.jsObjectGet(jsObj, r'customerId')) as P;
-    case r'draft':
-      return (IsarNative.jsObjectGet(jsObj, r'draft') ?? false) as P;
-    case r'id':
-      return (IsarNative.jsObjectGet(jsObj, r'id')) as P;
-    case r'note':
-      return (IsarNative.jsObjectGet(jsObj, r'note')) as P;
-    case r'orderNumber':
-      return (IsarNative.jsObjectGet(jsObj, r'orderNumber') ?? '') as P;
-    case r'orderType':
-      return (IsarNative.jsObjectGet(jsObj, r'orderType') ?? '') as P;
-    case r'paymentType':
-      return (IsarNative.jsObjectGet(jsObj, r'paymentType') ?? '') as P;
-    case r'receiptType':
-      return (IsarNative.jsObjectGet(jsObj, r'receiptType')) as P;
-    case r'reference':
-      return (IsarNative.jsObjectGet(jsObj, r'reference') ?? '') as P;
-    case r'reported':
-      return (IsarNative.jsObjectGet(jsObj, r'reported')) as P;
-    case r'status':
-      return (IsarNative.jsObjectGet(jsObj, r'status') ?? '') as P;
-    case r'subTotal':
-      return (IsarNative.jsObjectGet(jsObj, r'subTotal') ??
-          double.negativeInfinity) as P;
-    case r'updatedAt':
-      return (IsarNative.jsObjectGet(jsObj, r'updatedAt')) as P;
     default:
       throw IsarError('Illegal propertyName');
   }
 }
 
-void _orderAttachLinks(IsarCollection<dynamic> col, int id, Order object) {
-  object.discounts.attach(col, col.isar.discounts, r'discounts', id);
-  object.orderItems.attach(col, col.isar.orderItems, r'orderItems', id);
+Id _orderGetId(Order object) {
+  return object.id;
+}
+
+List<IsarLinkBase<dynamic>> _orderGetLinks(Order object) {
+  return [object.orderItems, object.discounts];
+}
+
+void _orderAttach(IsarCollection<dynamic> col, Id id, Order object) {
+  object.id = id;
+  object.orderItems
+      .attach(col, col.isar.collection<OrderItem>(), r'orderItems', id);
+  object.discounts
+      .attach(col, col.isar.collection<Discount>(), r'discounts', id);
 }
 
 extension OrderQueryWhereSort on QueryBuilder<Order, Order, QWhere> {
@@ -697,35 +704,64 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Order, Order, QAfterFilterCondition> cashReceivedGreaterThan(
-      double value) {
+  QueryBuilder<Order, Order, QAfterFilterCondition> cashReceivedEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
+      return query.addFilterCondition(FilterCondition.equalTo(
         property: r'cashReceived',
         value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> cashReceivedGreaterThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'cashReceived',
+        value: value,
+        epsilon: epsilon,
       ));
     });
   }
 
   QueryBuilder<Order, Order, QAfterFilterCondition> cashReceivedLessThan(
-      double value) {
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
         property: r'cashReceived',
         value: value,
+        epsilon: epsilon,
       ));
     });
   }
 
   QueryBuilder<Order, Order, QAfterFilterCondition> cashReceivedBetween(
-      double lower, double upper) {
+    double lower,
+    double upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
         property: r'cashReceived',
         lower: lower,
-        includeLower: false,
+        includeLower: includeLower,
         upper: upper,
-        includeUpper: false,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
       ));
     });
   }
@@ -745,8 +781,8 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
 
   QueryBuilder<Order, Order, QAfterFilterCondition> createdAtGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -760,8 +796,8 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
 
   QueryBuilder<Order, Order, QAfterFilterCondition> createdAtLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -776,9 +812,9 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
   QueryBuilder<Order, Order, QAfterFilterCondition> createdAtBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -842,35 +878,83 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Order, Order, QAfterFilterCondition>
-      customerChangeDueGreaterThan(double value) {
+  QueryBuilder<Order, Order, QAfterFilterCondition> createdAtIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'createdAt',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> createdAtIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'createdAt',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> customerChangeDueEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
         property: r'customerChangeDue',
         value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition>
+      customerChangeDueGreaterThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'customerChangeDue',
+        value: value,
+        epsilon: epsilon,
       ));
     });
   }
 
   QueryBuilder<Order, Order, QAfterFilterCondition> customerChangeDueLessThan(
-      double value) {
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
         property: r'customerChangeDue',
         value: value,
+        epsilon: epsilon,
       ));
     });
   }
 
   QueryBuilder<Order, Order, QAfterFilterCondition> customerChangeDueBetween(
-      double lower, double upper) {
+    double lower,
+    double upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
         property: r'customerChangeDue',
         lower: lower,
-        includeLower: false,
+        includeLower: includeLower,
         upper: upper,
-        includeUpper: false,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
       ));
     });
   }
@@ -878,6 +962,14 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
   QueryBuilder<Order, Order, QAfterFilterCondition> customerIdIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'customerId',
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> customerIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'customerId',
       ));
     });
@@ -1005,6 +1097,14 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
     });
   }
 
+  QueryBuilder<Order, Order, QAfterFilterCondition> noteIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'note',
+      ));
+    });
+  }
+
   QueryBuilder<Order, Order, QAfterFilterCondition> noteEqualTo(
     String? value, {
     bool caseSensitive = true,
@@ -1020,8 +1120,8 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
 
   QueryBuilder<Order, Order, QAfterFilterCondition> noteGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1035,8 +1135,8 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
 
   QueryBuilder<Order, Order, QAfterFilterCondition> noteLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -1051,9 +1151,9 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
   QueryBuilder<Order, Order, QAfterFilterCondition> noteBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1115,6 +1215,24 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
     });
   }
 
+  QueryBuilder<Order, Order, QAfterFilterCondition> noteIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'note',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> noteIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'note',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Order, Order, QAfterFilterCondition> orderNumberEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1130,8 +1248,8 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
 
   QueryBuilder<Order, Order, QAfterFilterCondition> orderNumberGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1145,8 +1263,8 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
 
   QueryBuilder<Order, Order, QAfterFilterCondition> orderNumberLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -1161,9 +1279,9 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
   QueryBuilder<Order, Order, QAfterFilterCondition> orderNumberBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1227,6 +1345,24 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
     });
   }
 
+  QueryBuilder<Order, Order, QAfterFilterCondition> orderNumberIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'orderNumber',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> orderNumberIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'orderNumber',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Order, Order, QAfterFilterCondition> orderTypeEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1242,8 +1378,8 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
 
   QueryBuilder<Order, Order, QAfterFilterCondition> orderTypeGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1257,8 +1393,8 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
 
   QueryBuilder<Order, Order, QAfterFilterCondition> orderTypeLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -1273,9 +1409,9 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
   QueryBuilder<Order, Order, QAfterFilterCondition> orderTypeBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1339,6 +1475,24 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
     });
   }
 
+  QueryBuilder<Order, Order, QAfterFilterCondition> orderTypeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'orderType',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> orderTypeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'orderType',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Order, Order, QAfterFilterCondition> paymentTypeEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1354,8 +1508,8 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
 
   QueryBuilder<Order, Order, QAfterFilterCondition> paymentTypeGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1369,8 +1523,8 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
 
   QueryBuilder<Order, Order, QAfterFilterCondition> paymentTypeLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -1385,9 +1539,9 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
   QueryBuilder<Order, Order, QAfterFilterCondition> paymentTypeBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1451,9 +1605,35 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
     });
   }
 
+  QueryBuilder<Order, Order, QAfterFilterCondition> paymentTypeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'paymentType',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> paymentTypeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'paymentType',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Order, Order, QAfterFilterCondition> receiptTypeIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'receiptType',
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> receiptTypeIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'receiptType',
       ));
     });
@@ -1474,8 +1654,8 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
 
   QueryBuilder<Order, Order, QAfterFilterCondition> receiptTypeGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1489,8 +1669,8 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
 
   QueryBuilder<Order, Order, QAfterFilterCondition> receiptTypeLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -1505,9 +1685,9 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
   QueryBuilder<Order, Order, QAfterFilterCondition> receiptTypeBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1571,6 +1751,24 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
     });
   }
 
+  QueryBuilder<Order, Order, QAfterFilterCondition> receiptTypeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'receiptType',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> receiptTypeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'receiptType',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Order, Order, QAfterFilterCondition> referenceEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1586,8 +1784,8 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
 
   QueryBuilder<Order, Order, QAfterFilterCondition> referenceGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1601,8 +1799,8 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
 
   QueryBuilder<Order, Order, QAfterFilterCondition> referenceLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -1617,9 +1815,9 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
   QueryBuilder<Order, Order, QAfterFilterCondition> referenceBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1683,9 +1881,35 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
     });
   }
 
+  QueryBuilder<Order, Order, QAfterFilterCondition> referenceIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'reference',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> referenceIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'reference',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Order, Order, QAfterFilterCondition> reportedIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'reported',
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> reportedIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'reported',
       ));
     });
@@ -1716,8 +1940,8 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
 
   QueryBuilder<Order, Order, QAfterFilterCondition> statusGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1731,8 +1955,8 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
 
   QueryBuilder<Order, Order, QAfterFilterCondition> statusLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -1747,9 +1971,9 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
   QueryBuilder<Order, Order, QAfterFilterCondition> statusBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1812,35 +2036,82 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Order, Order, QAfterFilterCondition> subTotalGreaterThan(
-      double value) {
+  QueryBuilder<Order, Order, QAfterFilterCondition> statusIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'status',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> statusIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'status',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> subTotalEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
         property: r'subTotal',
         value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> subTotalGreaterThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'subTotal',
+        value: value,
+        epsilon: epsilon,
       ));
     });
   }
 
   QueryBuilder<Order, Order, QAfterFilterCondition> subTotalLessThan(
-      double value) {
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
         property: r'subTotal',
         value: value,
+        epsilon: epsilon,
       ));
     });
   }
 
   QueryBuilder<Order, Order, QAfterFilterCondition> subTotalBetween(
-      double lower, double upper) {
+    double lower,
+    double upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
         property: r'subTotal',
         lower: lower,
-        includeLower: false,
+        includeLower: includeLower,
         upper: upper,
-        includeUpper: false,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
       ));
     });
   }
@@ -1848,6 +2119,14 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
   QueryBuilder<Order, Order, QAfterFilterCondition> updatedAtIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'updatedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> updatedAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'updatedAt',
       ));
     });
@@ -1868,8 +2147,8 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
 
   QueryBuilder<Order, Order, QAfterFilterCondition> updatedAtGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1883,8 +2162,8 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
 
   QueryBuilder<Order, Order, QAfterFilterCondition> updatedAtLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -1899,9 +2178,9 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
   QueryBuilder<Order, Order, QAfterFilterCondition> updatedAtBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1964,33 +2243,143 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
       ));
     });
   }
-}
 
-extension OrderQueryLinks on QueryBuilder<Order, Order, QFilterCondition> {
-  QueryBuilder<Order, Order, QAfterFilterCondition> discounts(
-      FilterQuery<Discount> q) {
+  QueryBuilder<Order, Order, QAfterFilterCondition> updatedAtIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.link(
-        query.collection.isar.discounts,
-        q,
-        r'discounts',
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'updatedAt',
+        value: '',
+      ));
     });
   }
 
+  QueryBuilder<Order, Order, QAfterFilterCondition> updatedAtIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'updatedAt',
+        value: '',
+      ));
+    });
+  }
+}
+
+extension OrderQueryObject on QueryBuilder<Order, Order, QFilterCondition> {}
+
+extension OrderQueryLinks on QueryBuilder<Order, Order, QFilterCondition> {
   QueryBuilder<Order, Order, QAfterFilterCondition> orderItems(
       FilterQuery<OrderItem> q) {
     return QueryBuilder.apply(this, (query) {
-      return query.link(
-        query.collection.isar.orderItems,
-        q,
-        r'orderItems',
-      );
+      return query.link(q, r'orderItems');
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> orderItemsLengthEqualTo(
+      int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'orderItems', length, true, length, true);
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> orderItemsIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'orderItems', 0, true, 0, true);
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> orderItemsIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'orderItems', 0, false, 999999, true);
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> orderItemsLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'orderItems', 0, true, length, include);
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> orderItemsLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'orderItems', length, include, 999999, true);
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> orderItemsLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(
+          r'orderItems', lower, includeLower, upper, includeUpper);
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> discounts(
+      FilterQuery<Discount> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.link(q, r'discounts');
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> discountsLengthEqualTo(
+      int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'discounts', length, true, length, true);
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> discountsIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'discounts', 0, true, 0, true);
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> discountsIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'discounts', 0, false, 999999, true);
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> discountsLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'discounts', 0, true, length, include);
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> discountsLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'discounts', length, include, 999999, true);
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> discountsLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(
+          r'discounts', lower, includeLower, upper, includeUpper);
     });
   }
 }
 
-extension OrderQueryWhereSortBy on QueryBuilder<Order, Order, QSortBy> {
+extension OrderQuerySortBy on QueryBuilder<Order, Order, QSortBy> {
   QueryBuilder<Order, Order, QAfterSortBy> sortByActive() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'active', Sort.asc);
@@ -2196,7 +2585,7 @@ extension OrderQueryWhereSortBy on QueryBuilder<Order, Order, QSortBy> {
   }
 }
 
-extension OrderQueryWhereSortThenBy on QueryBuilder<Order, Order, QSortThenBy> {
+extension OrderQuerySortThenBy on QueryBuilder<Order, Order, QSortThenBy> {
   QueryBuilder<Order, Order, QAfterSortBy> thenByActive() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'active', Sort.asc);

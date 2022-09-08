@@ -7,84 +7,85 @@ part of flipper_models;
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
 
 extension GetITenantCollection on Isar {
-  IsarCollection<ITenant> get iTenants => collection();
+  IsarCollection<ITenant> get iTenants => this.collection();
 }
 
 const ITenantSchema = CollectionSchema(
   name: r'ITenant',
-  schema:
-      r'{"name":"ITenant","idName":"id","properties":[{"name":"businessId","type":"Long"},{"name":"email","type":"String"},{"name":"name","type":"String"},{"name":"phoneNumber","type":"String"}],"indexes":[],"links":[]}',
-  idName: r'id',
-  propertyIds: {r'businessId': 0, r'email': 1, r'name': 2, r'phoneNumber': 3},
-  listProperties: {},
-  indexIds: {},
-  indexValueTypes: {},
-  linkIds: {},
-  backlinkLinkNames: {},
-  getId: _iTenantGetId,
-  setId: _iTenantSetId,
-  getLinks: _iTenantGetLinks,
-  attachLinks: _iTenantAttachLinks,
+  id: 2089856774983466838,
+  properties: {
+    r'businessId': PropertySchema(
+      id: 0,
+      name: r'businessId',
+      type: IsarType.long,
+    ),
+    r'email': PropertySchema(
+      id: 1,
+      name: r'email',
+      type: IsarType.string,
+    ),
+    r'name': PropertySchema(
+      id: 2,
+      name: r'name',
+      type: IsarType.string,
+    ),
+    r'phoneNumber': PropertySchema(
+      id: 3,
+      name: r'phoneNumber',
+      type: IsarType.string,
+    )
+  },
+  estimateSize: _iTenantEstimateSize,
   serializeNative: _iTenantSerializeNative,
   deserializeNative: _iTenantDeserializeNative,
   deserializePropNative: _iTenantDeserializePropNative,
   serializeWeb: _iTenantSerializeWeb,
   deserializeWeb: _iTenantDeserializeWeb,
   deserializePropWeb: _iTenantDeserializePropWeb,
-  version: 4,
+  idName: r'id',
+  indexes: {},
+  links: {},
+  embeddedSchemas: {},
+  getId: _iTenantGetId,
+  getLinks: _iTenantGetLinks,
+  attach: _iTenantAttach,
+  version: '3.0.0-dev.14',
 );
 
-int? _iTenantGetId(ITenant object) {
-  if (object.id == Isar.autoIncrement) {
-    return null;
-  } else {
-    return object.id;
-  }
+int _iTenantEstimateSize(
+  ITenant object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  bytesCount += 3 + object.email.length * 3;
+  bytesCount += 3 + object.name.length * 3;
+  bytesCount += 3 + object.phoneNumber.length * 3;
+  return bytesCount;
 }
 
-void _iTenantSetId(ITenant object, int id) {
-  object.id = id;
-}
-
-List<IsarLinkBase<dynamic>> _iTenantGetLinks(ITenant object) {
-  return [];
-}
-
-void _iTenantSerializeNative(
-    IsarCollection<ITenant> collection,
-    IsarCObject cObj,
-    ITenant object,
-    int staticSize,
-    List<int> offsets,
-    AdapterAlloc alloc) {
-  final email$Bytes = IsarBinaryWriter.utf8Encoder.convert(object.email);
-  final name$Bytes = IsarBinaryWriter.utf8Encoder.convert(object.name);
-  final phoneNumber$Bytes =
-      IsarBinaryWriter.utf8Encoder.convert(object.phoneNumber);
-  final size = (staticSize +
-      3 +
-      (email$Bytes.length) +
-      3 +
-      (name$Bytes.length) +
-      3 +
-      (phoneNumber$Bytes.length)) as int;
-  cObj.buffer = alloc(size);
-  cObj.buffer_length = size;
-
-  final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
-  final writer = IsarBinaryWriter(buffer, staticSize);
-  writer.writeHeader();
+int _iTenantSerializeNative(
+  ITenant object,
+  IsarBinaryWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
   writer.writeLong(offsets[0], object.businessId);
-  writer.writeByteList(offsets[1], email$Bytes);
-  writer.writeByteList(offsets[2], name$Bytes);
-  writer.writeByteList(offsets[3], phoneNumber$Bytes);
+  writer.writeString(offsets[1], object.email);
+  writer.writeString(offsets[2], object.name);
+  writer.writeString(offsets[3], object.phoneNumber);
+  return writer.usedBytes;
 }
 
-ITenant _iTenantDeserializeNative(IsarCollection<ITenant> collection, int id,
-    IsarBinaryReader reader, List<int> offsets) {
+ITenant _iTenantDeserializeNative(
+  Id id,
+  IsarBinaryReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
   final object = ITenant(
     businessId: reader.readLong(offsets[0]),
     email: reader.readString(offsets[1]),
@@ -96,10 +97,12 @@ ITenant _iTenantDeserializeNative(IsarCollection<ITenant> collection, int id,
 }
 
 P _iTenantDeserializePropNative<P>(
-    int id, IsarBinaryReader reader, int propertyIndex, int offset) {
-  switch (propertyIndex) {
-    case -1:
-      return id as P;
+  IsarBinaryReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
     case 0:
       return (reader.readLong(offset)) as P;
     case 1:
@@ -109,53 +112,40 @@ P _iTenantDeserializePropNative<P>(
     case 3:
       return (reader.readString(offset)) as P;
     default:
-      throw IsarError('Illegal propertyIndex');
+      throw IsarError('Unknown property with id $propertyId');
   }
 }
 
 Object _iTenantSerializeWeb(
     IsarCollection<ITenant> collection, ITenant object) {
-  final jsObj = IsarNative.newJsObject();
-  IsarNative.jsObjectSet(jsObj, r'businessId', object.businessId);
-  IsarNative.jsObjectSet(jsObj, r'email', object.email);
-  IsarNative.jsObjectSet(jsObj, r'id', object.id);
-  IsarNative.jsObjectSet(jsObj, r'name', object.name);
-  IsarNative.jsObjectSet(jsObj, r'phoneNumber', object.phoneNumber);
-  return jsObj;
+  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
 }
 
 ITenant _iTenantDeserializeWeb(
     IsarCollection<ITenant> collection, Object jsObj) {
-  final object = ITenant(
-    businessId: IsarNative.jsObjectGet(jsObj, r'businessId') ??
-        (double.negativeInfinity as int),
-    email: IsarNative.jsObjectGet(jsObj, r'email') ?? '',
-    id: IsarNative.jsObjectGet(jsObj, r'id'),
-    name: IsarNative.jsObjectGet(jsObj, r'name') ?? '',
-    phoneNumber: IsarNative.jsObjectGet(jsObj, r'phoneNumber') ?? '',
-  );
-  return object;
+  /*final object = ITenant(businessId: IsarNative.jsObjectGet(jsObj, r'businessId') ?? (double.negativeInfinity as int),email: IsarNative.jsObjectGet(jsObj, r'email') ?? '',id: IsarNative.jsObjectGet(jsObj, r'id') ,name: IsarNative.jsObjectGet(jsObj, r'name') ?? '',phoneNumber: IsarNative.jsObjectGet(jsObj, r'phoneNumber') ?? '',);*/
+  //return object;
+  throw UnimplementedError();
 }
 
 P _iTenantDeserializePropWeb<P>(Object jsObj, String propertyName) {
   switch (propertyName) {
-    case r'businessId':
-      return (IsarNative.jsObjectGet(jsObj, r'businessId') ??
-          (double.negativeInfinity as int)) as P;
-    case r'email':
-      return (IsarNative.jsObjectGet(jsObj, r'email') ?? '') as P;
-    case r'id':
-      return (IsarNative.jsObjectGet(jsObj, r'id')) as P;
-    case r'name':
-      return (IsarNative.jsObjectGet(jsObj, r'name') ?? '') as P;
-    case r'phoneNumber':
-      return (IsarNative.jsObjectGet(jsObj, r'phoneNumber') ?? '') as P;
     default:
       throw IsarError('Illegal propertyName');
   }
 }
 
-void _iTenantAttachLinks(IsarCollection<dynamic> col, int id, ITenant object) {}
+Id _iTenantGetId(ITenant object) {
+  return object.id ?? Isar.autoIncrement;
+}
+
+List<IsarLinkBase<dynamic>> _iTenantGetLinks(ITenant object) {
+  return [];
+}
+
+void _iTenantAttach(IsarCollection<dynamic> col, Id id, ITenant object) {
+  object.id = id;
+}
 
 extension ITenantQueryWhereSort on QueryBuilder<ITenant, ITenant, QWhere> {
   QueryBuilder<ITenant, ITenant, QAfterWhere> anyId() {
@@ -302,8 +292,8 @@ extension ITenantQueryFilter
 
   QueryBuilder<ITenant, ITenant, QAfterFilterCondition> emailGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -317,8 +307,8 @@ extension ITenantQueryFilter
 
   QueryBuilder<ITenant, ITenant, QAfterFilterCondition> emailLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -333,9 +323,9 @@ extension ITenantQueryFilter
   QueryBuilder<ITenant, ITenant, QAfterFilterCondition> emailBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -399,6 +389,24 @@ extension ITenantQueryFilter
     });
   }
 
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> emailIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'email',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> emailIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'email',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<ITenant, ITenant, QAfterFilterCondition> idIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -407,7 +415,15 @@ extension ITenantQueryFilter
     });
   }
 
-  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> idEqualTo(int value) {
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> idIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'id',
+      ));
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> idEqualTo(int? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -417,7 +433,7 @@ extension ITenantQueryFilter
   }
 
   QueryBuilder<ITenant, ITenant, QAfterFilterCondition> idGreaterThan(
-    int value, {
+    int? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -430,7 +446,7 @@ extension ITenantQueryFilter
   }
 
   QueryBuilder<ITenant, ITenant, QAfterFilterCondition> idLessThan(
-    int value, {
+    int? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -443,8 +459,8 @@ extension ITenantQueryFilter
   }
 
   QueryBuilder<ITenant, ITenant, QAfterFilterCondition> idBetween(
-    int lower,
-    int upper, {
+    int? lower,
+    int? upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -474,8 +490,8 @@ extension ITenantQueryFilter
 
   QueryBuilder<ITenant, ITenant, QAfterFilterCondition> nameGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -489,8 +505,8 @@ extension ITenantQueryFilter
 
   QueryBuilder<ITenant, ITenant, QAfterFilterCondition> nameLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -505,9 +521,9 @@ extension ITenantQueryFilter
   QueryBuilder<ITenant, ITenant, QAfterFilterCondition> nameBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -571,6 +587,24 @@ extension ITenantQueryFilter
     });
   }
 
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> nameIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'name',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> nameIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'name',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<ITenant, ITenant, QAfterFilterCondition> phoneNumberEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -586,8 +620,8 @@ extension ITenantQueryFilter
 
   QueryBuilder<ITenant, ITenant, QAfterFilterCondition> phoneNumberGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -601,8 +635,8 @@ extension ITenantQueryFilter
 
   QueryBuilder<ITenant, ITenant, QAfterFilterCondition> phoneNumberLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -617,9 +651,9 @@ extension ITenantQueryFilter
   QueryBuilder<ITenant, ITenant, QAfterFilterCondition> phoneNumberBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -682,12 +716,34 @@ extension ITenantQueryFilter
       ));
     });
   }
+
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> phoneNumberIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'phoneNumber',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition>
+      phoneNumberIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'phoneNumber',
+        value: '',
+      ));
+    });
+  }
 }
+
+extension ITenantQueryObject
+    on QueryBuilder<ITenant, ITenant, QFilterCondition> {}
 
 extension ITenantQueryLinks
     on QueryBuilder<ITenant, ITenant, QFilterCondition> {}
 
-extension ITenantQueryWhereSortBy on QueryBuilder<ITenant, ITenant, QSortBy> {
+extension ITenantQuerySortBy on QueryBuilder<ITenant, ITenant, QSortBy> {
   QueryBuilder<ITenant, ITenant, QAfterSortBy> sortByBusinessId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'businessId', Sort.asc);
@@ -737,7 +793,7 @@ extension ITenantQueryWhereSortBy on QueryBuilder<ITenant, ITenant, QSortBy> {
   }
 }
 
-extension ITenantQueryWhereSortThenBy
+extension ITenantQuerySortThenBy
     on QueryBuilder<ITenant, ITenant, QSortThenBy> {
   QueryBuilder<ITenant, ITenant, QAfterSortBy> thenByBusinessId() {
     return QueryBuilder.apply(this, (query) {

@@ -7,71 +7,84 @@ part of flipper_models;
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
 
 extension GetIPointCollection on Isar {
-  IsarCollection<IPoint> get iPoints => collection();
+  IsarCollection<IPoint> get iPoints => this.collection();
 }
 
 const IPointSchema = CollectionSchema(
   name: r'IPoint',
-  schema:
-      r'{"name":"IPoint","idName":"id","properties":[{"name":"userId","type":"Int"},{"name":"value","type":"Long"}],"indexes":[{"name":"userId","unique":false,"replace":false,"properties":[{"name":"userId","type":"Value","caseSensitive":false}]}],"links":[]}',
-  idName: r'id',
-  propertyIds: {r'userId': 0, r'value': 1},
-  listProperties: {},
-  indexIds: {r'userId': 0},
-  indexValueTypes: {
-    r'userId': [
-      IndexValueType.int,
-    ]
+  id: 2434498374590124328,
+  properties: {
+    r'userId': PropertySchema(
+      id: 0,
+      name: r'userId',
+      type: IsarType.int,
+    ),
+    r'value': PropertySchema(
+      id: 1,
+      name: r'value',
+      type: IsarType.long,
+    )
   },
-  linkIds: {},
-  backlinkLinkNames: {},
-  getId: _iPointGetId,
-  setId: _iPointSetId,
-  getLinks: _iPointGetLinks,
-  attachLinks: _iPointAttachLinks,
+  estimateSize: _iPointEstimateSize,
   serializeNative: _iPointSerializeNative,
   deserializeNative: _iPointDeserializeNative,
   deserializePropNative: _iPointDeserializePropNative,
   serializeWeb: _iPointSerializeWeb,
   deserializeWeb: _iPointDeserializeWeb,
   deserializePropWeb: _iPointDeserializePropWeb,
-  version: 4,
+  idName: r'id',
+  indexes: {
+    r'userId': IndexSchema(
+      id: -2005826577402374815,
+      name: r'userId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'userId',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
+    )
+  },
+  links: {},
+  embeddedSchemas: {},
+  getId: _iPointGetId,
+  getLinks: _iPointGetLinks,
+  attach: _iPointAttach,
+  version: '3.0.0-dev.14',
 );
 
-int? _iPointGetId(IPoint object) {
-  if (object.id == Isar.autoIncrement) {
-    return null;
-  } else {
-    return object.id;
-  }
+int _iPointEstimateSize(
+  IPoint object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  return bytesCount;
 }
 
-void _iPointSetId(IPoint object, int id) {
-  object.id = id;
-}
-
-List<IsarLinkBase<dynamic>> _iPointGetLinks(IPoint object) {
-  return [];
-}
-
-void _iPointSerializeNative(IsarCollection<IPoint> collection, IsarCObject cObj,
-    IPoint object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
-  final size = (staticSize) as int;
-  cObj.buffer = alloc(size);
-  cObj.buffer_length = size;
-
-  final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
-  final writer = IsarBinaryWriter(buffer, staticSize);
-  writer.writeHeader();
+int _iPointSerializeNative(
+  IPoint object,
+  IsarBinaryWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
   writer.writeInt(offsets[0], object.userId);
   writer.writeLong(offsets[1], object.value);
+  return writer.usedBytes;
 }
 
-IPoint _iPointDeserializeNative(IsarCollection<IPoint> collection, int id,
-    IsarBinaryReader reader, List<int> offsets) {
+IPoint _iPointDeserializeNative(
+  Id id,
+  IsarBinaryReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
   final object = IPoint(
     id: id,
     userId: reader.readInt(offsets[0]),
@@ -81,54 +94,49 @@ IPoint _iPointDeserializeNative(IsarCollection<IPoint> collection, int id,
 }
 
 P _iPointDeserializePropNative<P>(
-    int id, IsarBinaryReader reader, int propertyIndex, int offset) {
-  switch (propertyIndex) {
-    case -1:
-      return id as P;
+  IsarBinaryReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
     case 0:
       return (reader.readInt(offset)) as P;
     case 1:
       return (reader.readLong(offset)) as P;
     default:
-      throw IsarError('Illegal propertyIndex');
+      throw IsarError('Unknown property with id $propertyId');
   }
 }
 
 Object _iPointSerializeWeb(IsarCollection<IPoint> collection, IPoint object) {
-  final jsObj = IsarNative.newJsObject();
-  IsarNative.jsObjectSet(jsObj, r'id', object.id);
-  IsarNative.jsObjectSet(jsObj, r'userId', object.userId);
-  IsarNative.jsObjectSet(jsObj, r'value', object.value);
-  return jsObj;
+  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
 }
 
 IPoint _iPointDeserializeWeb(IsarCollection<IPoint> collection, Object jsObj) {
-  final object = IPoint(
-    id: IsarNative.jsObjectGet(jsObj, r'id'),
-    userId: IsarNative.jsObjectGet(jsObj, r'userId') ??
-        (double.negativeInfinity as int),
-    value: IsarNative.jsObjectGet(jsObj, r'value') ??
-        (double.negativeInfinity as int),
-  );
-  return object;
+  /*final object = IPoint(id: IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int),userId: IsarNative.jsObjectGet(jsObj, r'userId') ?? (double.negativeInfinity as int),value: IsarNative.jsObjectGet(jsObj, r'value') ?? (double.negativeInfinity as int),);*/
+  //return object;
+  throw UnimplementedError();
 }
 
 P _iPointDeserializePropWeb<P>(Object jsObj, String propertyName) {
   switch (propertyName) {
-    case r'id':
-      return (IsarNative.jsObjectGet(jsObj, r'id')) as P;
-    case r'userId':
-      return (IsarNative.jsObjectGet(jsObj, r'userId') ??
-          (double.negativeInfinity as int)) as P;
-    case r'value':
-      return (IsarNative.jsObjectGet(jsObj, r'value') ??
-          (double.negativeInfinity as int)) as P;
     default:
       throw IsarError('Illegal propertyName');
   }
 }
 
-void _iPointAttachLinks(IsarCollection<dynamic> col, int id, IPoint object) {}
+Id _iPointGetId(IPoint object) {
+  return object.id;
+}
+
+List<IsarLinkBase<dynamic>> _iPointGetLinks(IPoint object) {
+  return [];
+}
+
+void _iPointAttach(IsarCollection<dynamic> col, Id id, IPoint object) {
+  object.id = id;
+}
 
 extension IPointQueryWhereSort on QueryBuilder<IPoint, IPoint, QWhere> {
   QueryBuilder<IPoint, IPoint, QAfterWhere> anyId() {
@@ -459,9 +467,11 @@ extension IPointQueryFilter on QueryBuilder<IPoint, IPoint, QFilterCondition> {
   }
 }
 
+extension IPointQueryObject on QueryBuilder<IPoint, IPoint, QFilterCondition> {}
+
 extension IPointQueryLinks on QueryBuilder<IPoint, IPoint, QFilterCondition> {}
 
-extension IPointQueryWhereSortBy on QueryBuilder<IPoint, IPoint, QSortBy> {
+extension IPointQuerySortBy on QueryBuilder<IPoint, IPoint, QSortBy> {
   QueryBuilder<IPoint, IPoint, QAfterSortBy> sortByUserId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'userId', Sort.asc);
@@ -487,8 +497,7 @@ extension IPointQueryWhereSortBy on QueryBuilder<IPoint, IPoint, QSortBy> {
   }
 }
 
-extension IPointQueryWhereSortThenBy
-    on QueryBuilder<IPoint, IPoint, QSortThenBy> {
+extension IPointQuerySortThenBy on QueryBuilder<IPoint, IPoint, QSortThenBy> {
   QueryBuilder<IPoint, IPoint, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);

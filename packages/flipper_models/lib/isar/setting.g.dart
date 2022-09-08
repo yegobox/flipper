@@ -7,109 +7,140 @@ part of 'setting.dart';
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
 
 extension GetSettingCollection on Isar {
-  IsarCollection<Setting> get settings => collection();
+  IsarCollection<Setting> get settings => this.collection();
 }
 
 const SettingSchema = CollectionSchema(
   name: r'Setting',
-  schema:
-      r'{"name":"Setting","idName":"id","properties":[{"name":"attendnaceDocCreated","type":"Bool"},{"name":"autoPrint","type":"Bool"},{"name":"defaultLanguage","type":"String"},{"name":"email","type":"String"},{"name":"googleSheetDocCreated","type":"Bool"},{"name":"hasPin","type":"String"},{"name":"isAttendanceEnabled","type":"Bool"},{"name":"openReceiptFileOSaleComplete","type":"Bool"},{"name":"sendDailyReport","type":"Bool"},{"name":"userId","type":"Long"}],"indexes":[{"name":"userId","unique":false,"replace":false,"properties":[{"name":"userId","type":"Value","caseSensitive":false}]}],"links":[]}',
-  idName: r'id',
-  propertyIds: {
-    r'attendnaceDocCreated': 0,
-    r'autoPrint': 1,
-    r'defaultLanguage': 2,
-    r'email': 3,
-    r'googleSheetDocCreated': 4,
-    r'hasPin': 5,
-    r'isAttendanceEnabled': 6,
-    r'openReceiptFileOSaleComplete': 7,
-    r'sendDailyReport': 8,
-    r'userId': 9
+  id: 2542600759502230801,
+  properties: {
+    r'attendnaceDocCreated': PropertySchema(
+      id: 0,
+      name: r'attendnaceDocCreated',
+      type: IsarType.bool,
+    ),
+    r'autoPrint': PropertySchema(
+      id: 1,
+      name: r'autoPrint',
+      type: IsarType.bool,
+    ),
+    r'defaultLanguage': PropertySchema(
+      id: 2,
+      name: r'defaultLanguage',
+      type: IsarType.string,
+    ),
+    r'email': PropertySchema(
+      id: 3,
+      name: r'email',
+      type: IsarType.string,
+    ),
+    r'googleSheetDocCreated': PropertySchema(
+      id: 4,
+      name: r'googleSheetDocCreated',
+      type: IsarType.bool,
+    ),
+    r'hasPin': PropertySchema(
+      id: 5,
+      name: r'hasPin',
+      type: IsarType.string,
+    ),
+    r'isAttendanceEnabled': PropertySchema(
+      id: 6,
+      name: r'isAttendanceEnabled',
+      type: IsarType.bool,
+    ),
+    r'openReceiptFileOSaleComplete': PropertySchema(
+      id: 7,
+      name: r'openReceiptFileOSaleComplete',
+      type: IsarType.bool,
+    ),
+    r'sendDailyReport': PropertySchema(
+      id: 8,
+      name: r'sendDailyReport',
+      type: IsarType.bool,
+    ),
+    r'userId': PropertySchema(
+      id: 9,
+      name: r'userId',
+      type: IsarType.long,
+    )
   },
-  listProperties: {},
-  indexIds: {r'userId': 0},
-  indexValueTypes: {
-    r'userId': [
-      IndexValueType.long,
-    ]
-  },
-  linkIds: {},
-  backlinkLinkNames: {},
-  getId: _settingGetId,
-  setId: _settingSetId,
-  getLinks: _settingGetLinks,
-  attachLinks: _settingAttachLinks,
+  estimateSize: _settingEstimateSize,
   serializeNative: _settingSerializeNative,
   deserializeNative: _settingDeserializeNative,
   deserializePropNative: _settingDeserializePropNative,
   serializeWeb: _settingSerializeWeb,
   deserializeWeb: _settingDeserializeWeb,
   deserializePropWeb: _settingDeserializePropWeb,
-  version: 4,
+  idName: r'id',
+  indexes: {
+    r'userId': IndexSchema(
+      id: -2005826577402374815,
+      name: r'userId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'userId',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
+    )
+  },
+  links: {},
+  embeddedSchemas: {},
+  getId: _settingGetId,
+  getLinks: _settingGetLinks,
+  attach: _settingAttach,
+  version: '3.0.0-dev.14',
 );
 
-int? _settingGetId(Setting object) {
-  if (object.id == Isar.autoIncrement) {
-    return null;
-  } else {
-    return object.id;
+int _settingEstimateSize(
+  Setting object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  {
+    final value = object.defaultLanguage;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
   }
+  bytesCount += 3 + object.email.length * 3;
+  bytesCount += 3 + object.hasPin.length * 3;
+  return bytesCount;
 }
 
-void _settingSetId(Setting object, int id) {
-  object.id = id;
-}
-
-List<IsarLinkBase<dynamic>> _settingGetLinks(Setting object) {
-  return [];
-}
-
-void _settingSerializeNative(
-    IsarCollection<Setting> collection,
-    IsarCObject cObj,
-    Setting object,
-    int staticSize,
-    List<int> offsets,
-    AdapterAlloc alloc) {
-  IsarUint8List? defaultLanguage$Bytes;
-  final defaultLanguage$Value = object.defaultLanguage;
-  if (defaultLanguage$Value != null) {
-    defaultLanguage$Bytes =
-        IsarBinaryWriter.utf8Encoder.convert(defaultLanguage$Value);
-  }
-  final email$Bytes = IsarBinaryWriter.utf8Encoder.convert(object.email);
-  final hasPin$Bytes = IsarBinaryWriter.utf8Encoder.convert(object.hasPin);
-  final size = (staticSize +
-      3 +
-      (defaultLanguage$Bytes?.length ?? 0) +
-      3 +
-      (email$Bytes.length) +
-      3 +
-      (hasPin$Bytes.length)) as int;
-  cObj.buffer = alloc(size);
-  cObj.buffer_length = size;
-
-  final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
-  final writer = IsarBinaryWriter(buffer, staticSize);
-  writer.writeHeader();
+int _settingSerializeNative(
+  Setting object,
+  IsarBinaryWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
   writer.writeBool(offsets[0], object.attendnaceDocCreated);
   writer.writeBool(offsets[1], object.autoPrint);
-  writer.writeByteList(offsets[2], defaultLanguage$Bytes);
-  writer.writeByteList(offsets[3], email$Bytes);
+  writer.writeString(offsets[2], object.defaultLanguage);
+  writer.writeString(offsets[3], object.email);
   writer.writeBool(offsets[4], object.googleSheetDocCreated);
-  writer.writeByteList(offsets[5], hasPin$Bytes);
+  writer.writeString(offsets[5], object.hasPin);
   writer.writeBool(offsets[6], object.isAttendanceEnabled);
   writer.writeBool(offsets[7], object.openReceiptFileOSaleComplete);
   writer.writeBool(offsets[8], object.sendDailyReport);
   writer.writeLong(offsets[9], object.userId);
+  return writer.usedBytes;
 }
 
-Setting _settingDeserializeNative(IsarCollection<Setting> collection, int id,
-    IsarBinaryReader reader, List<int> offsets) {
+Setting _settingDeserializeNative(
+  Id id,
+  IsarBinaryReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
   final object = Setting(
     attendnaceDocCreated: reader.readBoolOrNull(offsets[0]),
     autoPrint: reader.readBoolOrNull(offsets[1]),
@@ -127,10 +158,12 @@ Setting _settingDeserializeNative(IsarCollection<Setting> collection, int id,
 }
 
 P _settingDeserializePropNative<P>(
-    int id, IsarBinaryReader reader, int propertyIndex, int offset) {
-  switch (propertyIndex) {
-    case -1:
-      return id as P;
+  IsarBinaryReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
     case 0:
       return (reader.readBoolOrNull(offset)) as P;
     case 1:
@@ -152,85 +185,40 @@ P _settingDeserializePropNative<P>(
     case 9:
       return (reader.readLong(offset)) as P;
     default:
-      throw IsarError('Illegal propertyIndex');
+      throw IsarError('Unknown property with id $propertyId');
   }
 }
 
 Object _settingSerializeWeb(
     IsarCollection<Setting> collection, Setting object) {
-  final jsObj = IsarNative.newJsObject();
-  IsarNative.jsObjectSet(
-      jsObj, r'attendnaceDocCreated', object.attendnaceDocCreated);
-  IsarNative.jsObjectSet(jsObj, r'autoPrint', object.autoPrint);
-  IsarNative.jsObjectSet(jsObj, r'defaultLanguage', object.defaultLanguage);
-  IsarNative.jsObjectSet(jsObj, r'email', object.email);
-  IsarNative.jsObjectSet(
-      jsObj, r'googleSheetDocCreated', object.googleSheetDocCreated);
-  IsarNative.jsObjectSet(jsObj, r'hasPin', object.hasPin);
-  IsarNative.jsObjectSet(jsObj, r'id', object.id);
-  IsarNative.jsObjectSet(
-      jsObj, r'isAttendanceEnabled', object.isAttendanceEnabled);
-  IsarNative.jsObjectSet(jsObj, r'openReceiptFileOSaleComplete',
-      object.openReceiptFileOSaleComplete);
-  IsarNative.jsObjectSet(jsObj, r'sendDailyReport', object.sendDailyReport);
-  IsarNative.jsObjectSet(jsObj, r'userId', object.userId);
-  return jsObj;
+  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
 }
 
 Setting _settingDeserializeWeb(
     IsarCollection<Setting> collection, Object jsObj) {
-  final object = Setting(
-    attendnaceDocCreated:
-        IsarNative.jsObjectGet(jsObj, r'attendnaceDocCreated'),
-    autoPrint: IsarNative.jsObjectGet(jsObj, r'autoPrint'),
-    defaultLanguage: IsarNative.jsObjectGet(jsObj, r'defaultLanguage'),
-    email: IsarNative.jsObjectGet(jsObj, r'email') ?? '',
-    googleSheetDocCreated:
-        IsarNative.jsObjectGet(jsObj, r'googleSheetDocCreated'),
-    hasPin: IsarNative.jsObjectGet(jsObj, r'hasPin') ?? '',
-    id: IsarNative.jsObjectGet(jsObj, r'id'),
-    isAttendanceEnabled: IsarNative.jsObjectGet(jsObj, r'isAttendanceEnabled'),
-    openReceiptFileOSaleComplete:
-        IsarNative.jsObjectGet(jsObj, r'openReceiptFileOSaleComplete'),
-    sendDailyReport: IsarNative.jsObjectGet(jsObj, r'sendDailyReport'),
-    userId: IsarNative.jsObjectGet(jsObj, r'userId') ??
-        (double.negativeInfinity as int),
-  );
-  return object;
+  /*final object = Setting(attendnaceDocCreated: IsarNative.jsObjectGet(jsObj, r'attendnaceDocCreated') ,autoPrint: IsarNative.jsObjectGet(jsObj, r'autoPrint') ,defaultLanguage: IsarNative.jsObjectGet(jsObj, r'defaultLanguage') ,email: IsarNative.jsObjectGet(jsObj, r'email') ?? '',googleSheetDocCreated: IsarNative.jsObjectGet(jsObj, r'googleSheetDocCreated') ,hasPin: IsarNative.jsObjectGet(jsObj, r'hasPin') ?? '',id: IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int),isAttendanceEnabled: IsarNative.jsObjectGet(jsObj, r'isAttendanceEnabled') ,openReceiptFileOSaleComplete: IsarNative.jsObjectGet(jsObj, r'openReceiptFileOSaleComplete') ,sendDailyReport: IsarNative.jsObjectGet(jsObj, r'sendDailyReport') ,userId: IsarNative.jsObjectGet(jsObj, r'userId') ?? (double.negativeInfinity as int),);*/
+  //return object;
+  throw UnimplementedError();
 }
 
 P _settingDeserializePropWeb<P>(Object jsObj, String propertyName) {
   switch (propertyName) {
-    case r'attendnaceDocCreated':
-      return (IsarNative.jsObjectGet(jsObj, r'attendnaceDocCreated')) as P;
-    case r'autoPrint':
-      return (IsarNative.jsObjectGet(jsObj, r'autoPrint')) as P;
-    case r'defaultLanguage':
-      return (IsarNative.jsObjectGet(jsObj, r'defaultLanguage')) as P;
-    case r'email':
-      return (IsarNative.jsObjectGet(jsObj, r'email') ?? '') as P;
-    case r'googleSheetDocCreated':
-      return (IsarNative.jsObjectGet(jsObj, r'googleSheetDocCreated')) as P;
-    case r'hasPin':
-      return (IsarNative.jsObjectGet(jsObj, r'hasPin') ?? '') as P;
-    case r'id':
-      return (IsarNative.jsObjectGet(jsObj, r'id')) as P;
-    case r'isAttendanceEnabled':
-      return (IsarNative.jsObjectGet(jsObj, r'isAttendanceEnabled')) as P;
-    case r'openReceiptFileOSaleComplete':
-      return (IsarNative.jsObjectGet(jsObj, r'openReceiptFileOSaleComplete'))
-          as P;
-    case r'sendDailyReport':
-      return (IsarNative.jsObjectGet(jsObj, r'sendDailyReport')) as P;
-    case r'userId':
-      return (IsarNative.jsObjectGet(jsObj, r'userId') ??
-          (double.negativeInfinity as int)) as P;
     default:
       throw IsarError('Illegal propertyName');
   }
 }
 
-void _settingAttachLinks(IsarCollection<dynamic> col, int id, Setting object) {}
+Id _settingGetId(Setting object) {
+  return object.id;
+}
+
+List<IsarLinkBase<dynamic>> _settingGetLinks(Setting object) {
+  return [];
+}
+
+void _settingAttach(IsarCollection<dynamic> col, Id id, Setting object) {
+  object.id = id;
+}
 
 extension SettingQueryWhereSort on QueryBuilder<Setting, Setting, QWhere> {
   QueryBuilder<Setting, Setting, QAfterWhere> anyId() {
@@ -416,6 +404,15 @@ extension SettingQueryFilter
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition>
+      attendnaceDocCreatedIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'attendnaceDocCreated',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition>
       attendnaceDocCreatedEqualTo(bool? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -428,6 +425,14 @@ extension SettingQueryFilter
   QueryBuilder<Setting, Setting, QAfterFilterCondition> autoPrintIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'autoPrint',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> autoPrintIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'autoPrint',
       ));
     });
@@ -452,6 +457,15 @@ extension SettingQueryFilter
     });
   }
 
+  QueryBuilder<Setting, Setting, QAfterFilterCondition>
+      defaultLanguageIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'defaultLanguage',
+      ));
+    });
+  }
+
   QueryBuilder<Setting, Setting, QAfterFilterCondition> defaultLanguageEqualTo(
     String? value, {
     bool caseSensitive = true,
@@ -468,8 +482,8 @@ extension SettingQueryFilter
   QueryBuilder<Setting, Setting, QAfterFilterCondition>
       defaultLanguageGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -483,8 +497,8 @@ extension SettingQueryFilter
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition> defaultLanguageLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -499,9 +513,9 @@ extension SettingQueryFilter
   QueryBuilder<Setting, Setting, QAfterFilterCondition> defaultLanguageBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -566,6 +580,26 @@ extension SettingQueryFilter
     });
   }
 
+  QueryBuilder<Setting, Setting, QAfterFilterCondition>
+      defaultLanguageIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'defaultLanguage',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition>
+      defaultLanguageIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'defaultLanguage',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Setting, Setting, QAfterFilterCondition> emailEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -581,8 +615,8 @@ extension SettingQueryFilter
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition> emailGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -596,8 +630,8 @@ extension SettingQueryFilter
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition> emailLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -612,9 +646,9 @@ extension SettingQueryFilter
   QueryBuilder<Setting, Setting, QAfterFilterCondition> emailBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -678,10 +712,37 @@ extension SettingQueryFilter
     });
   }
 
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> emailIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'email',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> emailIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'email',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Setting, Setting, QAfterFilterCondition>
       googleSheetDocCreatedIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'googleSheetDocCreated',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition>
+      googleSheetDocCreatedIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'googleSheetDocCreated',
       ));
     });
@@ -712,8 +773,8 @@ extension SettingQueryFilter
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition> hasPinGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -727,8 +788,8 @@ extension SettingQueryFilter
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition> hasPinLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -743,9 +804,9 @@ extension SettingQueryFilter
   QueryBuilder<Setting, Setting, QAfterFilterCondition> hasPinBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -805,6 +866,24 @@ extension SettingQueryFilter
         property: r'hasPin',
         wildcard: pattern,
         caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> hasPinIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'hasPin',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> hasPinIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'hasPin',
+        value: '',
       ));
     });
   }
@@ -871,6 +950,15 @@ extension SettingQueryFilter
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition>
+      isAttendanceEnabledIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'isAttendanceEnabled',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition>
       isAttendanceEnabledEqualTo(bool? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -890,6 +978,15 @@ extension SettingQueryFilter
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition>
+      openReceiptFileOSaleCompleteIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'openReceiptFileOSaleComplete',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition>
       openReceiptFileOSaleCompleteEqualTo(bool? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -903,6 +1000,15 @@ extension SettingQueryFilter
       sendDailyReportIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'sendDailyReport',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition>
+      sendDailyReportIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'sendDailyReport',
       ));
     });
@@ -972,10 +1078,13 @@ extension SettingQueryFilter
   }
 }
 
+extension SettingQueryObject
+    on QueryBuilder<Setting, Setting, QFilterCondition> {}
+
 extension SettingQueryLinks
     on QueryBuilder<Setting, Setting, QFilterCondition> {}
 
-extension SettingQueryWhereSortBy on QueryBuilder<Setting, Setting, QSortBy> {
+extension SettingQuerySortBy on QueryBuilder<Setting, Setting, QSortBy> {
   QueryBuilder<Setting, Setting, QAfterSortBy> sortByAttendnaceDocCreated() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'attendnaceDocCreated', Sort.asc);
@@ -1101,7 +1210,7 @@ extension SettingQueryWhereSortBy on QueryBuilder<Setting, Setting, QSortBy> {
   }
 }
 
-extension SettingQueryWhereSortThenBy
+extension SettingQuerySortThenBy
     on QueryBuilder<Setting, Setting, QSortThenBy> {
   QueryBuilder<Setting, Setting, QAfterSortBy> thenByAttendnaceDocCreated() {
     return QueryBuilder.apply(this, (query) {

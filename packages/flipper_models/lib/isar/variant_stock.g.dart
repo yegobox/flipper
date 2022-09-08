@@ -7,129 +7,148 @@ part of flipper_models;
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
 
 extension GetVariantStockCollection on Isar {
-  IsarCollection<VariantStock> get variantStocks => collection();
+  IsarCollection<VariantStock> get variantStocks => this.collection();
 }
 
 const VariantStockSchema = CollectionSchema(
   name: r'VariantStock',
-  schema:
-      r'{"name":"VariantStock","idName":"id","properties":[{"name":"canTrackingStock","type":"Bool"},{"name":"currentStock","type":"Double"},{"name":"fbranchId","type":"String"},{"name":"fvariantId","type":"String"},{"name":"lowStock","type":"Double"},{"name":"productName","type":"String"},{"name":"retailPrice","type":"Double"},{"name":"sku","type":"String"},{"name":"taxName","type":"String"},{"name":"taxPercentage","type":"Double"},{"name":"unit","type":"String"},{"name":"value","type":"Double"},{"name":"variantName","type":"String"}],"indexes":[],"links":[]}',
-  idName: r'id',
-  propertyIds: {
-    r'canTrackingStock': 0,
-    r'currentStock': 1,
-    r'fbranchId': 2,
-    r'fvariantId': 3,
-    r'lowStock': 4,
-    r'productName': 5,
-    r'retailPrice': 6,
-    r'sku': 7,
-    r'taxName': 8,
-    r'taxPercentage': 9,
-    r'unit': 10,
-    r'value': 11,
-    r'variantName': 12
+  id: 1510484417733258098,
+  properties: {
+    r'canTrackingStock': PropertySchema(
+      id: 0,
+      name: r'canTrackingStock',
+      type: IsarType.bool,
+    ),
+    r'currentStock': PropertySchema(
+      id: 1,
+      name: r'currentStock',
+      type: IsarType.double,
+    ),
+    r'fbranchId': PropertySchema(
+      id: 2,
+      name: r'fbranchId',
+      type: IsarType.string,
+    ),
+    r'fvariantId': PropertySchema(
+      id: 3,
+      name: r'fvariantId',
+      type: IsarType.string,
+    ),
+    r'lowStock': PropertySchema(
+      id: 4,
+      name: r'lowStock',
+      type: IsarType.double,
+    ),
+    r'productName': PropertySchema(
+      id: 5,
+      name: r'productName',
+      type: IsarType.string,
+    ),
+    r'retailPrice': PropertySchema(
+      id: 6,
+      name: r'retailPrice',
+      type: IsarType.double,
+    ),
+    r'sku': PropertySchema(
+      id: 7,
+      name: r'sku',
+      type: IsarType.string,
+    ),
+    r'taxName': PropertySchema(
+      id: 8,
+      name: r'taxName',
+      type: IsarType.string,
+    ),
+    r'taxPercentage': PropertySchema(
+      id: 9,
+      name: r'taxPercentage',
+      type: IsarType.double,
+    ),
+    r'unit': PropertySchema(
+      id: 10,
+      name: r'unit',
+      type: IsarType.string,
+    ),
+    r'value': PropertySchema(
+      id: 11,
+      name: r'value',
+      type: IsarType.double,
+    ),
+    r'variantName': PropertySchema(
+      id: 12,
+      name: r'variantName',
+      type: IsarType.string,
+    )
   },
-  listProperties: {},
-  indexIds: {},
-  indexValueTypes: {},
-  linkIds: {},
-  backlinkLinkNames: {},
-  getId: _variantStockGetId,
-  setId: _variantStockSetId,
-  getLinks: _variantStockGetLinks,
-  attachLinks: _variantStockAttachLinks,
+  estimateSize: _variantStockEstimateSize,
   serializeNative: _variantStockSerializeNative,
   deserializeNative: _variantStockDeserializeNative,
   deserializePropNative: _variantStockDeserializePropNative,
   serializeWeb: _variantStockSerializeWeb,
   deserializeWeb: _variantStockDeserializeWeb,
   deserializePropWeb: _variantStockDeserializePropWeb,
-  version: 4,
+  idName: r'id',
+  indexes: {},
+  links: {},
+  embeddedSchemas: {},
+  getId: _variantStockGetId,
+  getLinks: _variantStockGetLinks,
+  attach: _variantStockAttach,
+  version: '3.0.0-dev.14',
 );
 
-int? _variantStockGetId(VariantStock object) {
-  if (object.id == Isar.autoIncrement) {
-    return null;
-  } else {
-    return object.id;
+int _variantStockEstimateSize(
+  VariantStock object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  bytesCount += 3 + object.fbranchId.length * 3;
+  bytesCount += 3 + object.fvariantId.length * 3;
+  bytesCount += 3 + object.productName.length * 3;
+  bytesCount += 3 + object.sku.length * 3;
+  {
+    final value = object.taxName;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
   }
+  bytesCount += 3 + object.unit.length * 3;
+  bytesCount += 3 + object.variantName.length * 3;
+  return bytesCount;
 }
 
-void _variantStockSetId(VariantStock object, int id) {
-  object.id = id;
-}
-
-List<IsarLinkBase<dynamic>> _variantStockGetLinks(VariantStock object) {
-  return [];
-}
-
-void _variantStockSerializeNative(
-    IsarCollection<VariantStock> collection,
-    IsarCObject cObj,
-    VariantStock object,
-    int staticSize,
-    List<int> offsets,
-    AdapterAlloc alloc) {
-  final fbranchId$Bytes =
-      IsarBinaryWriter.utf8Encoder.convert(object.fbranchId);
-  final fvariantId$Bytes =
-      IsarBinaryWriter.utf8Encoder.convert(object.fvariantId);
-  final productName$Bytes =
-      IsarBinaryWriter.utf8Encoder.convert(object.productName);
-  final sku$Bytes = IsarBinaryWriter.utf8Encoder.convert(object.sku);
-  IsarUint8List? taxName$Bytes;
-  final taxName$Value = object.taxName;
-  if (taxName$Value != null) {
-    taxName$Bytes = IsarBinaryWriter.utf8Encoder.convert(taxName$Value);
-  }
-  final unit$Bytes = IsarBinaryWriter.utf8Encoder.convert(object.unit);
-  final variantName$Bytes =
-      IsarBinaryWriter.utf8Encoder.convert(object.variantName);
-  final size = (staticSize +
-      3 +
-      (fbranchId$Bytes.length) +
-      3 +
-      (fvariantId$Bytes.length) +
-      3 +
-      (productName$Bytes.length) +
-      3 +
-      (sku$Bytes.length) +
-      3 +
-      (taxName$Bytes?.length ?? 0) +
-      3 +
-      (unit$Bytes.length) +
-      3 +
-      (variantName$Bytes.length)) as int;
-  cObj.buffer = alloc(size);
-  cObj.buffer_length = size;
-
-  final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
-  final writer = IsarBinaryWriter(buffer, staticSize);
-  writer.writeHeader();
+int _variantStockSerializeNative(
+  VariantStock object,
+  IsarBinaryWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
   writer.writeBool(offsets[0], object.canTrackingStock);
   writer.writeDouble(offsets[1], object.currentStock);
-  writer.writeByteList(offsets[2], fbranchId$Bytes);
-  writer.writeByteList(offsets[3], fvariantId$Bytes);
+  writer.writeString(offsets[2], object.fbranchId);
+  writer.writeString(offsets[3], object.fvariantId);
   writer.writeDouble(offsets[4], object.lowStock);
-  writer.writeByteList(offsets[5], productName$Bytes);
+  writer.writeString(offsets[5], object.productName);
   writer.writeDouble(offsets[6], object.retailPrice);
-  writer.writeByteList(offsets[7], sku$Bytes);
-  writer.writeByteList(offsets[8], taxName$Bytes);
+  writer.writeString(offsets[7], object.sku);
+  writer.writeString(offsets[8], object.taxName);
   writer.writeDouble(offsets[9], object.taxPercentage);
-  writer.writeByteList(offsets[10], unit$Bytes);
+  writer.writeString(offsets[10], object.unit);
   writer.writeDouble(offsets[11], object.value);
-  writer.writeByteList(offsets[12], variantName$Bytes);
+  writer.writeString(offsets[12], object.variantName);
+  return writer.usedBytes;
 }
 
 VariantStock _variantStockDeserializeNative(
-    IsarCollection<VariantStock> collection,
-    int id,
-    IsarBinaryReader reader,
-    List<int> offsets) {
+  Id id,
+  IsarBinaryReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
   final object = VariantStock(
     canTrackingStock: reader.readBool(offsets[0]),
     currentStock: reader.readDouble(offsets[1]),
@@ -150,10 +169,12 @@ VariantStock _variantStockDeserializeNative(
 }
 
 P _variantStockDeserializePropNative<P>(
-    int id, IsarBinaryReader reader, int propertyIndex, int offset) {
-  switch (propertyIndex) {
-    case -1:
-      return id as P;
+  IsarBinaryReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
     case 0:
       return (reader.readBool(offset)) as P;
     case 1:
@@ -181,94 +202,41 @@ P _variantStockDeserializePropNative<P>(
     case 12:
       return (reader.readString(offset)) as P;
     default:
-      throw IsarError('Illegal propertyIndex');
+      throw IsarError('Unknown property with id $propertyId');
   }
 }
 
 Object _variantStockSerializeWeb(
     IsarCollection<VariantStock> collection, VariantStock object) {
-  final jsObj = IsarNative.newJsObject();
-  IsarNative.jsObjectSet(jsObj, r'canTrackingStock', object.canTrackingStock);
-  IsarNative.jsObjectSet(jsObj, r'currentStock', object.currentStock);
-  IsarNative.jsObjectSet(jsObj, r'fbranchId', object.fbranchId);
-  IsarNative.jsObjectSet(jsObj, r'fvariantId', object.fvariantId);
-  IsarNative.jsObjectSet(jsObj, r'id', object.id);
-  IsarNative.jsObjectSet(jsObj, r'lowStock', object.lowStock);
-  IsarNative.jsObjectSet(jsObj, r'productName', object.productName);
-  IsarNative.jsObjectSet(jsObj, r'retailPrice', object.retailPrice);
-  IsarNative.jsObjectSet(jsObj, r'sku', object.sku);
-  IsarNative.jsObjectSet(jsObj, r'taxName', object.taxName);
-  IsarNative.jsObjectSet(jsObj, r'taxPercentage', object.taxPercentage);
-  IsarNative.jsObjectSet(jsObj, r'unit', object.unit);
-  IsarNative.jsObjectSet(jsObj, r'value', object.value);
-  IsarNative.jsObjectSet(jsObj, r'variantName', object.variantName);
-  return jsObj;
+  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
 }
 
 VariantStock _variantStockDeserializeWeb(
     IsarCollection<VariantStock> collection, Object jsObj) {
-  final object = VariantStock(
-    canTrackingStock:
-        IsarNative.jsObjectGet(jsObj, r'canTrackingStock') ?? false,
-    currentStock: IsarNative.jsObjectGet(jsObj, r'currentStock') ??
-        double.negativeInfinity,
-    fbranchId: IsarNative.jsObjectGet(jsObj, r'fbranchId') ?? '',
-    fvariantId: IsarNative.jsObjectGet(jsObj, r'fvariantId') ?? '',
-    id: IsarNative.jsObjectGet(jsObj, r'id'),
-    lowStock: IsarNative.jsObjectGet(jsObj, r'lowStock'),
-    productName: IsarNative.jsObjectGet(jsObj, r'productName') ?? '',
-    retailPrice: IsarNative.jsObjectGet(jsObj, r'retailPrice') ??
-        double.negativeInfinity,
-    sku: IsarNative.jsObjectGet(jsObj, r'sku') ?? '',
-    taxName: IsarNative.jsObjectGet(jsObj, r'taxName'),
-    taxPercentage: IsarNative.jsObjectGet(jsObj, r'taxPercentage'),
-    unit: IsarNative.jsObjectGet(jsObj, r'unit') ?? '',
-    value: IsarNative.jsObjectGet(jsObj, r'value') ?? double.negativeInfinity,
-    variantName: IsarNative.jsObjectGet(jsObj, r'variantName') ?? '',
-  );
-  return object;
+  /*final object = VariantStock(canTrackingStock: IsarNative.jsObjectGet(jsObj, r'canTrackingStock') ?? false,currentStock: IsarNative.jsObjectGet(jsObj, r'currentStock') ?? double.negativeInfinity,fbranchId: IsarNative.jsObjectGet(jsObj, r'fbranchId') ?? '',fvariantId: IsarNative.jsObjectGet(jsObj, r'fvariantId') ?? '',id: IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int),lowStock: IsarNative.jsObjectGet(jsObj, r'lowStock') ,productName: IsarNative.jsObjectGet(jsObj, r'productName') ?? '',retailPrice: IsarNative.jsObjectGet(jsObj, r'retailPrice') ?? double.negativeInfinity,sku: IsarNative.jsObjectGet(jsObj, r'sku') ?? '',taxName: IsarNative.jsObjectGet(jsObj, r'taxName') ,taxPercentage: IsarNative.jsObjectGet(jsObj, r'taxPercentage') ,unit: IsarNative.jsObjectGet(jsObj, r'unit') ?? '',value: IsarNative.jsObjectGet(jsObj, r'value') ?? double.negativeInfinity,variantName: IsarNative.jsObjectGet(jsObj, r'variantName') ?? '',);*/
+  //return object;
+  throw UnimplementedError();
 }
 
 P _variantStockDeserializePropWeb<P>(Object jsObj, String propertyName) {
   switch (propertyName) {
-    case r'canTrackingStock':
-      return (IsarNative.jsObjectGet(jsObj, r'canTrackingStock') ?? false) as P;
-    case r'currentStock':
-      return (IsarNative.jsObjectGet(jsObj, r'currentStock') ??
-          double.negativeInfinity) as P;
-    case r'fbranchId':
-      return (IsarNative.jsObjectGet(jsObj, r'fbranchId') ?? '') as P;
-    case r'fvariantId':
-      return (IsarNative.jsObjectGet(jsObj, r'fvariantId') ?? '') as P;
-    case r'id':
-      return (IsarNative.jsObjectGet(jsObj, r'id')) as P;
-    case r'lowStock':
-      return (IsarNative.jsObjectGet(jsObj, r'lowStock')) as P;
-    case r'productName':
-      return (IsarNative.jsObjectGet(jsObj, r'productName') ?? '') as P;
-    case r'retailPrice':
-      return (IsarNative.jsObjectGet(jsObj, r'retailPrice') ??
-          double.negativeInfinity) as P;
-    case r'sku':
-      return (IsarNative.jsObjectGet(jsObj, r'sku') ?? '') as P;
-    case r'taxName':
-      return (IsarNative.jsObjectGet(jsObj, r'taxName')) as P;
-    case r'taxPercentage':
-      return (IsarNative.jsObjectGet(jsObj, r'taxPercentage')) as P;
-    case r'unit':
-      return (IsarNative.jsObjectGet(jsObj, r'unit') ?? '') as P;
-    case r'value':
-      return (IsarNative.jsObjectGet(jsObj, r'value') ??
-          double.negativeInfinity) as P;
-    case r'variantName':
-      return (IsarNative.jsObjectGet(jsObj, r'variantName') ?? '') as P;
     default:
       throw IsarError('Illegal propertyName');
   }
 }
 
-void _variantStockAttachLinks(
-    IsarCollection<dynamic> col, int id, VariantStock object) {}
+Id _variantStockGetId(VariantStock object) {
+  return object.id;
+}
+
+List<IsarLinkBase<dynamic>> _variantStockGetLinks(VariantStock object) {
+  return [];
+}
+
+void _variantStockAttach(
+    IsarCollection<dynamic> col, Id id, VariantStock object) {
+  object.id = id;
+}
 
 extension VariantStockQueryWhereSort
     on QueryBuilder<VariantStock, VariantStock, QWhere> {
@@ -363,34 +331,67 @@ extension VariantStockQueryFilter
   }
 
   QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
-      currentStockGreaterThan(double value) {
+      currentStockEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'currentStock',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
+      currentStockGreaterThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
         property: r'currentStock',
         value: value,
+        epsilon: epsilon,
       ));
     });
   }
 
   QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
-      currentStockLessThan(double value) {
+      currentStockLessThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
         property: r'currentStock',
         value: value,
+        epsilon: epsilon,
       ));
     });
   }
 
   QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
-      currentStockBetween(double lower, double upper) {
+      currentStockBetween(
+    double lower,
+    double upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
         property: r'currentStock',
         lower: lower,
-        includeLower: false,
+        includeLower: includeLower,
         upper: upper,
-        includeUpper: false,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
       ));
     });
   }
@@ -412,8 +413,8 @@ extension VariantStockQueryFilter
   QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
       fbranchIdGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -428,8 +429,8 @@ extension VariantStockQueryFilter
   QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
       fbranchIdLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -445,9 +446,9 @@ extension VariantStockQueryFilter
       fbranchIdBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -512,6 +513,26 @@ extension VariantStockQueryFilter
   }
 
   QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
+      fbranchIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'fbranchId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
+      fbranchIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'fbranchId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
       fvariantIdEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -528,8 +549,8 @@ extension VariantStockQueryFilter
   QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
       fvariantIdGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -544,8 +565,8 @@ extension VariantStockQueryFilter
   QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
       fvariantIdLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -561,9 +582,9 @@ extension VariantStockQueryFilter
       fvariantIdBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -623,6 +644,26 @@ extension VariantStockQueryFilter
         property: r'fvariantId',
         wildcard: pattern,
         caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
+      fvariantIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'fvariantId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
+      fvariantIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'fvariantId',
+        value: '',
       ));
     });
   }
@@ -690,34 +731,76 @@ extension VariantStockQueryFilter
   }
 
   QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
-      lowStockGreaterThan(double? value) {
+      lowStockIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'lowStock',
+      ));
+    });
+  }
+
+  QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
+      lowStockEqualTo(
+    double? value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lowStock',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
+      lowStockGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
         property: r'lowStock',
         value: value,
+        epsilon: epsilon,
       ));
     });
   }
 
   QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
-      lowStockLessThan(double? value) {
+      lowStockLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
         property: r'lowStock',
         value: value,
+        epsilon: epsilon,
       ));
     });
   }
 
   QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
-      lowStockBetween(double? lower, double? upper) {
+      lowStockBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
         property: r'lowStock',
         lower: lower,
-        includeLower: false,
+        includeLower: includeLower,
         upper: upper,
-        includeUpper: false,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
       ));
     });
   }
@@ -739,8 +822,8 @@ extension VariantStockQueryFilter
   QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
       productNameGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -755,8 +838,8 @@ extension VariantStockQueryFilter
   QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
       productNameLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -772,9 +855,9 @@ extension VariantStockQueryFilter
       productNameBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -839,34 +922,87 @@ extension VariantStockQueryFilter
   }
 
   QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
-      retailPriceGreaterThan(double value) {
+      productNameIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'productName',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
+      productNameIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'retailPrice',
-        value: value,
+        property: r'productName',
+        value: '',
       ));
     });
   }
 
   QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
-      retailPriceLessThan(double value) {
+      retailPriceEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'retailPrice',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
+      retailPriceGreaterThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'retailPrice',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
+      retailPriceLessThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
         property: r'retailPrice',
         value: value,
+        epsilon: epsilon,
       ));
     });
   }
 
   QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
-      retailPriceBetween(double lower, double upper) {
+      retailPriceBetween(
+    double lower,
+    double upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
         property: r'retailPrice',
         lower: lower,
-        includeLower: false,
+        includeLower: includeLower,
         upper: upper,
-        includeUpper: false,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
       ));
     });
   }
@@ -887,8 +1023,8 @@ extension VariantStockQueryFilter
   QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
       skuGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -902,8 +1038,8 @@ extension VariantStockQueryFilter
 
   QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition> skuLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -918,9 +1054,9 @@ extension VariantStockQueryFilter
   QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition> skuBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -984,10 +1120,38 @@ extension VariantStockQueryFilter
     });
   }
 
+  QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition> skuIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'sku',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
+      skuIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'sku',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
       taxNameIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'taxName',
+      ));
+    });
+  }
+
+  QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
+      taxNameIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'taxName',
       ));
     });
@@ -1010,8 +1174,8 @@ extension VariantStockQueryFilter
   QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
       taxNameGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1026,8 +1190,8 @@ extension VariantStockQueryFilter
   QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
       taxNameLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -1043,9 +1207,9 @@ extension VariantStockQueryFilter
       taxNameBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1110,6 +1274,26 @@ extension VariantStockQueryFilter
   }
 
   QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
+      taxNameIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'taxName',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
+      taxNameIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'taxName',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
       taxPercentageIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -1119,34 +1303,76 @@ extension VariantStockQueryFilter
   }
 
   QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
-      taxPercentageGreaterThan(double? value) {
+      taxPercentageIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'taxPercentage',
+      ));
+    });
+  }
+
+  QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
+      taxPercentageEqualTo(
+    double? value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'taxPercentage',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
+      taxPercentageGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
         property: r'taxPercentage',
         value: value,
+        epsilon: epsilon,
       ));
     });
   }
 
   QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
-      taxPercentageLessThan(double? value) {
+      taxPercentageLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
         property: r'taxPercentage',
         value: value,
+        epsilon: epsilon,
       ));
     });
   }
 
   QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
-      taxPercentageBetween(double? lower, double? upper) {
+      taxPercentageBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
         property: r'taxPercentage',
         lower: lower,
-        includeLower: false,
+        includeLower: includeLower,
         upper: upper,
-        includeUpper: false,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
       ));
     });
   }
@@ -1167,8 +1393,8 @@ extension VariantStockQueryFilter
   QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
       unitGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1182,8 +1408,8 @@ extension VariantStockQueryFilter
 
   QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition> unitLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -1198,9 +1424,9 @@ extension VariantStockQueryFilter
   QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition> unitBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1266,34 +1492,84 @@ extension VariantStockQueryFilter
   }
 
   QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
-      valueGreaterThan(double value) {
+      unitIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'unit',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
+      unitIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'unit',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition> valueEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
         property: r'value',
         value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
+      valueGreaterThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'value',
+        value: value,
+        epsilon: epsilon,
       ));
     });
   }
 
   QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition> valueLessThan(
-      double value) {
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
         property: r'value',
         value: value,
+        epsilon: epsilon,
       ));
     });
   }
 
   QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition> valueBetween(
-      double lower, double upper) {
+    double lower,
+    double upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
         property: r'value',
         lower: lower,
-        includeLower: false,
+        includeLower: includeLower,
         upper: upper,
-        includeUpper: false,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
       ));
     });
   }
@@ -1315,8 +1591,8 @@ extension VariantStockQueryFilter
   QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
       variantNameGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1331,8 +1607,8 @@ extension VariantStockQueryFilter
   QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
       variantNameLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -1348,9 +1624,9 @@ extension VariantStockQueryFilter
       variantNameBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1413,12 +1689,35 @@ extension VariantStockQueryFilter
       ));
     });
   }
+
+  QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
+      variantNameIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'variantName',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<VariantStock, VariantStock, QAfterFilterCondition>
+      variantNameIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'variantName',
+        value: '',
+      ));
+    });
+  }
 }
+
+extension VariantStockQueryObject
+    on QueryBuilder<VariantStock, VariantStock, QFilterCondition> {}
 
 extension VariantStockQueryLinks
     on QueryBuilder<VariantStock, VariantStock, QFilterCondition> {}
 
-extension VariantStockQueryWhereSortBy
+extension VariantStockQuerySortBy
     on QueryBuilder<VariantStock, VariantStock, QSortBy> {
   QueryBuilder<VariantStock, VariantStock, QAfterSortBy>
       sortByCanTrackingStock() {
@@ -1585,7 +1884,7 @@ extension VariantStockQueryWhereSortBy
   }
 }
 
-extension VariantStockQueryWhereSortThenBy
+extension VariantStockQuerySortThenBy
     on QueryBuilder<VariantStock, VariantStock, QSortThenBy> {
   QueryBuilder<VariantStock, VariantStock, QAfterSortBy>
       thenByCanTrackingStock() {

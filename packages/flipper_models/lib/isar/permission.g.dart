@@ -7,72 +7,65 @@ part of flipper_models;
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
 
 extension GetPermissionCollection on Isar {
-  IsarCollection<Permission> get permissions => collection();
+  IsarCollection<Permission> get permissions => this.collection();
 }
 
 const PermissionSchema = CollectionSchema(
   name: r'Permission',
-  schema:
-      r'{"name":"Permission","idName":"id","properties":[{"name":"name","type":"String"}],"indexes":[],"links":[]}',
-  idName: r'id',
-  propertyIds: {r'name': 0},
-  listProperties: {},
-  indexIds: {},
-  indexValueTypes: {},
-  linkIds: {},
-  backlinkLinkNames: {},
-  getId: _permissionGetId,
-  setId: _permissionSetId,
-  getLinks: _permissionGetLinks,
-  attachLinks: _permissionAttachLinks,
+  id: 5583744244740860356,
+  properties: {
+    r'name': PropertySchema(
+      id: 0,
+      name: r'name',
+      type: IsarType.string,
+    )
+  },
+  estimateSize: _permissionEstimateSize,
   serializeNative: _permissionSerializeNative,
   deserializeNative: _permissionDeserializeNative,
   deserializePropNative: _permissionDeserializePropNative,
   serializeWeb: _permissionSerializeWeb,
   deserializeWeb: _permissionDeserializeWeb,
   deserializePropWeb: _permissionDeserializePropWeb,
-  version: 4,
+  idName: r'id',
+  indexes: {},
+  links: {},
+  embeddedSchemas: {},
+  getId: _permissionGetId,
+  getLinks: _permissionGetLinks,
+  attach: _permissionAttach,
+  version: '3.0.0-dev.14',
 );
 
-int? _permissionGetId(Permission object) {
-  if (object.id == Isar.autoIncrement) {
-    return null;
-  } else {
-    return object.id;
-  }
+int _permissionEstimateSize(
+  Permission object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  bytesCount += 3 + object.name.length * 3;
+  return bytesCount;
 }
 
-void _permissionSetId(Permission object, int id) {
-  object.id = id;
+int _permissionSerializeNative(
+  Permission object,
+  IsarBinaryWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  writer.writeString(offsets[0], object.name);
+  return writer.usedBytes;
 }
 
-List<IsarLinkBase<dynamic>> _permissionGetLinks(Permission object) {
-  return [];
-}
-
-void _permissionSerializeNative(
-    IsarCollection<Permission> collection,
-    IsarCObject cObj,
-    Permission object,
-    int staticSize,
-    List<int> offsets,
-    AdapterAlloc alloc) {
-  final name$Bytes = IsarBinaryWriter.utf8Encoder.convert(object.name);
-  final size = (staticSize + 3 + (name$Bytes.length)) as int;
-  cObj.buffer = alloc(size);
-  cObj.buffer_length = size;
-
-  final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
-  final writer = IsarBinaryWriter(buffer, staticSize);
-  writer.writeHeader();
-  writer.writeByteList(offsets[0], name$Bytes);
-}
-
-Permission _permissionDeserializeNative(IsarCollection<Permission> collection,
-    int id, IsarBinaryReader reader, List<int> offsets) {
+Permission _permissionDeserializeNative(
+  Id id,
+  IsarBinaryReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
   final object = Permission(
     id: id,
     name: reader.readString(offsets[0]),
@@ -81,47 +74,49 @@ Permission _permissionDeserializeNative(IsarCollection<Permission> collection,
 }
 
 P _permissionDeserializePropNative<P>(
-    int id, IsarBinaryReader reader, int propertyIndex, int offset) {
-  switch (propertyIndex) {
-    case -1:
-      return id as P;
+  IsarBinaryReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
     case 0:
       return (reader.readString(offset)) as P;
     default:
-      throw IsarError('Illegal propertyIndex');
+      throw IsarError('Unknown property with id $propertyId');
   }
 }
 
 Object _permissionSerializeWeb(
     IsarCollection<Permission> collection, Permission object) {
-  final jsObj = IsarNative.newJsObject();
-  IsarNative.jsObjectSet(jsObj, r'id', object.id);
-  IsarNative.jsObjectSet(jsObj, r'name', object.name);
-  return jsObj;
+  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
 }
 
 Permission _permissionDeserializeWeb(
     IsarCollection<Permission> collection, Object jsObj) {
-  final object = Permission(
-    id: IsarNative.jsObjectGet(jsObj, r'id'),
-    name: IsarNative.jsObjectGet(jsObj, r'name') ?? '',
-  );
-  return object;
+  /*final object = Permission(id: IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int),name: IsarNative.jsObjectGet(jsObj, r'name') ?? '',);*/
+  //return object;
+  throw UnimplementedError();
 }
 
 P _permissionDeserializePropWeb<P>(Object jsObj, String propertyName) {
   switch (propertyName) {
-    case r'id':
-      return (IsarNative.jsObjectGet(jsObj, r'id')) as P;
-    case r'name':
-      return (IsarNative.jsObjectGet(jsObj, r'name') ?? '') as P;
     default:
       throw IsarError('Illegal propertyName');
   }
 }
 
-void _permissionAttachLinks(
-    IsarCollection<dynamic> col, int id, Permission object) {}
+Id _permissionGetId(Permission object) {
+  return object.id;
+}
+
+List<IsarLinkBase<dynamic>> _permissionGetLinks(Permission object) {
+  return [];
+}
+
+void _permissionAttach(IsarCollection<dynamic> col, Id id, Permission object) {
+  object.id = id;
+}
 
 extension PermissionQueryWhereSort
     on QueryBuilder<Permission, Permission, QWhere> {
@@ -270,8 +265,8 @@ extension PermissionQueryFilter
 
   QueryBuilder<Permission, Permission, QAfterFilterCondition> nameGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -285,8 +280,8 @@ extension PermissionQueryFilter
 
   QueryBuilder<Permission, Permission, QAfterFilterCondition> nameLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -301,9 +296,9 @@ extension PermissionQueryFilter
   QueryBuilder<Permission, Permission, QAfterFilterCondition> nameBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -366,12 +361,33 @@ extension PermissionQueryFilter
       ));
     });
   }
+
+  QueryBuilder<Permission, Permission, QAfterFilterCondition> nameIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'name',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Permission, Permission, QAfterFilterCondition> nameIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'name',
+        value: '',
+      ));
+    });
+  }
 }
+
+extension PermissionQueryObject
+    on QueryBuilder<Permission, Permission, QFilterCondition> {}
 
 extension PermissionQueryLinks
     on QueryBuilder<Permission, Permission, QFilterCondition> {}
 
-extension PermissionQueryWhereSortBy
+extension PermissionQuerySortBy
     on QueryBuilder<Permission, Permission, QSortBy> {
   QueryBuilder<Permission, Permission, QAfterSortBy> sortByName() {
     return QueryBuilder.apply(this, (query) {
@@ -386,7 +402,7 @@ extension PermissionQueryWhereSortBy
   }
 }
 
-extension PermissionQueryWhereSortThenBy
+extension PermissionQuerySortThenBy
     on QueryBuilder<Permission, Permission, QSortThenBy> {
   QueryBuilder<Permission, Permission, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {

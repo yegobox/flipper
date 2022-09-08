@@ -7,111 +7,120 @@ part of 'conversation.dart';
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
 
 extension GetConversationCollection on Isar {
-  IsarCollection<Conversation> get conversations => collection();
+  IsarCollection<Conversation> get conversations => this.collection();
 }
 
 const ConversationSchema = CollectionSchema(
   name: r'Conversation',
-  schema:
-      r'{"name":"Conversation","idName":"id","properties":[{"name":"createdAt","type":"Long"},{"name":"dbAvatars","type":"String"},{"name":"delivered","type":"Bool"},{"name":"lastMessage","type":"String"},{"name":"receiverId","type":"Long"},{"name":"senderId","type":"Long"},{"name":"senderName","type":"String"},{"name":"status","type":"String"}],"indexes":[],"links":[]}',
-  idName: r'id',
-  propertyIds: {
-    r'createdAt': 0,
-    r'dbAvatars': 1,
-    r'delivered': 2,
-    r'lastMessage': 3,
-    r'receiverId': 4,
-    r'senderId': 5,
-    r'senderName': 6,
-    r'status': 7
+  id: 7261696243536555740,
+  properties: {
+    r'createdAt': PropertySchema(
+      id: 0,
+      name: r'createdAt',
+      type: IsarType.long,
+    ),
+    r'dbAvatars': PropertySchema(
+      id: 1,
+      name: r'dbAvatars',
+      type: IsarType.string,
+    ),
+    r'delivered': PropertySchema(
+      id: 2,
+      name: r'delivered',
+      type: IsarType.bool,
+    ),
+    r'lastMessage': PropertySchema(
+      id: 3,
+      name: r'lastMessage',
+      type: IsarType.string,
+    ),
+    r'receiverId': PropertySchema(
+      id: 4,
+      name: r'receiverId',
+      type: IsarType.long,
+    ),
+    r'senderId': PropertySchema(
+      id: 5,
+      name: r'senderId',
+      type: IsarType.long,
+    ),
+    r'senderName': PropertySchema(
+      id: 6,
+      name: r'senderName',
+      type: IsarType.string,
+    ),
+    r'status': PropertySchema(
+      id: 7,
+      name: r'status',
+      type: IsarType.string,
+    )
   },
-  listProperties: {},
-  indexIds: {},
-  indexValueTypes: {},
-  linkIds: {},
-  backlinkLinkNames: {},
-  getId: _conversationGetId,
-  setId: _conversationSetId,
-  getLinks: _conversationGetLinks,
-  attachLinks: _conversationAttachLinks,
+  estimateSize: _conversationEstimateSize,
   serializeNative: _conversationSerializeNative,
   deserializeNative: _conversationDeserializeNative,
   deserializePropNative: _conversationDeserializePropNative,
   serializeWeb: _conversationSerializeWeb,
   deserializeWeb: _conversationDeserializeWeb,
   deserializePropWeb: _conversationDeserializePropWeb,
-  version: 4,
+  idName: r'id',
+  indexes: {},
+  links: {},
+  embeddedSchemas: {},
+  getId: _conversationGetId,
+  getLinks: _conversationGetLinks,
+  attach: _conversationAttach,
+  version: '3.0.0-dev.14',
 );
 
-int? _conversationGetId(Conversation object) {
-  if (object.id == Isar.autoIncrement) {
-    return null;
-  } else {
-    return object.id;
+int _conversationEstimateSize(
+  Conversation object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  {
+    final value = object.dbAvatars;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
   }
+  {
+    final value = object.lastMessage;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  bytesCount += 3 + object.senderName.length * 3;
+  bytesCount += 3 + object.status.length * 3;
+  return bytesCount;
 }
 
-void _conversationSetId(Conversation object, int id) {
-  object.id = id;
-}
-
-List<IsarLinkBase<dynamic>> _conversationGetLinks(Conversation object) {
-  return [];
-}
-
-void _conversationSerializeNative(
-    IsarCollection<Conversation> collection,
-    IsarCObject cObj,
-    Conversation object,
-    int staticSize,
-    List<int> offsets,
-    AdapterAlloc alloc) {
-  IsarUint8List? dbAvatars$Bytes;
-  final dbAvatars$Value = object.dbAvatars;
-  if (dbAvatars$Value != null) {
-    dbAvatars$Bytes = IsarBinaryWriter.utf8Encoder.convert(dbAvatars$Value);
-  }
-  IsarUint8List? lastMessage$Bytes;
-  final lastMessage$Value = object.lastMessage;
-  if (lastMessage$Value != null) {
-    lastMessage$Bytes = IsarBinaryWriter.utf8Encoder.convert(lastMessage$Value);
-  }
-  final senderName$Bytes =
-      IsarBinaryWriter.utf8Encoder.convert(object.senderName);
-  final status$Bytes = IsarBinaryWriter.utf8Encoder.convert(object.status);
-  final size = (staticSize +
-      3 +
-      (dbAvatars$Bytes?.length ?? 0) +
-      3 +
-      (lastMessage$Bytes?.length ?? 0) +
-      3 +
-      (senderName$Bytes.length) +
-      3 +
-      (status$Bytes.length)) as int;
-  cObj.buffer = alloc(size);
-  cObj.buffer_length = size;
-
-  final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
-  final writer = IsarBinaryWriter(buffer, staticSize);
-  writer.writeHeader();
+int _conversationSerializeNative(
+  Conversation object,
+  IsarBinaryWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
   writer.writeLong(offsets[0], object.createdAt);
-  writer.writeByteList(offsets[1], dbAvatars$Bytes);
+  writer.writeString(offsets[1], object.dbAvatars);
   writer.writeBool(offsets[2], object.delivered);
-  writer.writeByteList(offsets[3], lastMessage$Bytes);
+  writer.writeString(offsets[3], object.lastMessage);
   writer.writeLong(offsets[4], object.receiverId);
   writer.writeLong(offsets[5], object.senderId);
-  writer.writeByteList(offsets[6], senderName$Bytes);
-  writer.writeByteList(offsets[7], status$Bytes);
+  writer.writeString(offsets[6], object.senderName);
+  writer.writeString(offsets[7], object.status);
+  return writer.usedBytes;
 }
 
 Conversation _conversationDeserializeNative(
-    IsarCollection<Conversation> collection,
-    int id,
-    IsarBinaryReader reader,
-    List<int> offsets) {
+  Id id,
+  IsarBinaryReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
   final object = Conversation();
   object.createdAt = reader.readLong(offsets[0]);
   object.delivered = reader.readBool(offsets[2]);
@@ -125,10 +134,12 @@ Conversation _conversationDeserializeNative(
 }
 
 P _conversationDeserializePropNative<P>(
-    int id, IsarBinaryReader reader, int propertyIndex, int offset) {
-  switch (propertyIndex) {
-    case -1:
-      return id as P;
+  IsarBinaryReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
     case 0:
       return (reader.readLong(offset)) as P;
     case 1:
@@ -146,72 +157,41 @@ P _conversationDeserializePropNative<P>(
     case 7:
       return (reader.readString(offset)) as P;
     default:
-      throw IsarError('Illegal propertyIndex');
+      throw IsarError('Unknown property with id $propertyId');
   }
 }
 
 Object _conversationSerializeWeb(
     IsarCollection<Conversation> collection, Conversation object) {
-  final jsObj = IsarNative.newJsObject();
-  IsarNative.jsObjectSet(jsObj, r'createdAt', object.createdAt);
-  IsarNative.jsObjectSet(jsObj, r'dbAvatars', object.dbAvatars);
-  IsarNative.jsObjectSet(jsObj, r'delivered', object.delivered);
-  IsarNative.jsObjectSet(jsObj, r'id', object.id);
-  IsarNative.jsObjectSet(jsObj, r'lastMessage', object.lastMessage);
-  IsarNative.jsObjectSet(jsObj, r'receiverId', object.receiverId);
-  IsarNative.jsObjectSet(jsObj, r'senderId', object.senderId);
-  IsarNative.jsObjectSet(jsObj, r'senderName', object.senderName);
-  IsarNative.jsObjectSet(jsObj, r'status', object.status);
-  return jsObj;
+  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
 }
 
 Conversation _conversationDeserializeWeb(
     IsarCollection<Conversation> collection, Object jsObj) {
-  final object = Conversation();
-  object.createdAt = IsarNative.jsObjectGet(jsObj, r'createdAt') ??
-      (double.negativeInfinity as int);
-  object.delivered = IsarNative.jsObjectGet(jsObj, r'delivered') ?? false;
-  object.id = IsarNative.jsObjectGet(jsObj, r'id');
-  object.lastMessage = IsarNative.jsObjectGet(jsObj, r'lastMessage');
-  object.receiverId = IsarNative.jsObjectGet(jsObj, r'receiverId') ??
-      (double.negativeInfinity as int);
-  object.senderId = IsarNative.jsObjectGet(jsObj, r'senderId') ??
-      (double.negativeInfinity as int);
-  object.senderName = IsarNative.jsObjectGet(jsObj, r'senderName') ?? '';
-  object.status = IsarNative.jsObjectGet(jsObj, r'status') ?? '';
-  return object;
+  /*final object = Conversation();object.createdAt = IsarNative.jsObjectGet(jsObj, r'createdAt') ?? (double.negativeInfinity as int);object.delivered = IsarNative.jsObjectGet(jsObj, r'delivered') ?? false;object.id = IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int);object.lastMessage = IsarNative.jsObjectGet(jsObj, r'lastMessage') ;object.receiverId = IsarNative.jsObjectGet(jsObj, r'receiverId') ?? (double.negativeInfinity as int);object.senderId = IsarNative.jsObjectGet(jsObj, r'senderId') ?? (double.negativeInfinity as int);object.senderName = IsarNative.jsObjectGet(jsObj, r'senderName') ?? '';object.status = IsarNative.jsObjectGet(jsObj, r'status') ?? '';*/
+  //return object;
+  throw UnimplementedError();
 }
 
 P _conversationDeserializePropWeb<P>(Object jsObj, String propertyName) {
   switch (propertyName) {
-    case r'createdAt':
-      return (IsarNative.jsObjectGet(jsObj, r'createdAt') ??
-          (double.negativeInfinity as int)) as P;
-    case r'dbAvatars':
-      return (IsarNative.jsObjectGet(jsObj, r'dbAvatars')) as P;
-    case r'delivered':
-      return (IsarNative.jsObjectGet(jsObj, r'delivered') ?? false) as P;
-    case r'id':
-      return (IsarNative.jsObjectGet(jsObj, r'id')) as P;
-    case r'lastMessage':
-      return (IsarNative.jsObjectGet(jsObj, r'lastMessage')) as P;
-    case r'receiverId':
-      return (IsarNative.jsObjectGet(jsObj, r'receiverId') ??
-          (double.negativeInfinity as int)) as P;
-    case r'senderId':
-      return (IsarNative.jsObjectGet(jsObj, r'senderId') ??
-          (double.negativeInfinity as int)) as P;
-    case r'senderName':
-      return (IsarNative.jsObjectGet(jsObj, r'senderName') ?? '') as P;
-    case r'status':
-      return (IsarNative.jsObjectGet(jsObj, r'status') ?? '') as P;
     default:
       throw IsarError('Illegal propertyName');
   }
 }
 
-void _conversationAttachLinks(
-    IsarCollection<dynamic> col, int id, Conversation object) {}
+Id _conversationGetId(Conversation object) {
+  return object.id;
+}
+
+List<IsarLinkBase<dynamic>> _conversationGetLinks(Conversation object) {
+  return [];
+}
+
+void _conversationAttach(
+    IsarCollection<dynamic> col, Id id, Conversation object) {
+  object.id = id;
+}
 
 extension ConversationQueryWhereSort
     on QueryBuilder<Conversation, Conversation, QWhere> {
@@ -361,6 +341,15 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      dbAvatarsIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'dbAvatars',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       dbAvatarsEqualTo(
     String? value, {
     bool caseSensitive = true,
@@ -377,8 +366,8 @@ extension ConversationQueryFilter
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       dbAvatarsGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -393,8 +382,8 @@ extension ConversationQueryFilter
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       dbAvatarsLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -410,9 +399,9 @@ extension ConversationQueryFilter
       dbAvatarsBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -472,6 +461,26 @@ extension ConversationQueryFilter
         property: r'dbAvatars',
         wildcard: pattern,
         caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      dbAvatarsIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'dbAvatars',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      dbAvatarsIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'dbAvatars',
+        value: '',
       ));
     });
   }
@@ -549,6 +558,15 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      lastMessageIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'lastMessage',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       lastMessageEqualTo(
     String? value, {
     bool caseSensitive = true,
@@ -565,8 +583,8 @@ extension ConversationQueryFilter
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       lastMessageGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -581,8 +599,8 @@ extension ConversationQueryFilter
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       lastMessageLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -598,9 +616,9 @@ extension ConversationQueryFilter
       lastMessageBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -660,6 +678,26 @@ extension ConversationQueryFilter
         property: r'lastMessage',
         wildcard: pattern,
         caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      lastMessageIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lastMessage',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      lastMessageIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'lastMessage',
+        value: '',
       ));
     });
   }
@@ -793,8 +831,8 @@ extension ConversationQueryFilter
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       senderNameGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -809,8 +847,8 @@ extension ConversationQueryFilter
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       senderNameLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -826,9 +864,9 @@ extension ConversationQueryFilter
       senderNameBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -892,6 +930,26 @@ extension ConversationQueryFilter
     });
   }
 
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      senderNameIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'senderName',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      senderNameIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'senderName',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition> statusEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -908,8 +966,8 @@ extension ConversationQueryFilter
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       statusGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -924,8 +982,8 @@ extension ConversationQueryFilter
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       statusLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -940,9 +998,9 @@ extension ConversationQueryFilter
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition> statusBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1006,12 +1064,35 @@ extension ConversationQueryFilter
       ));
     });
   }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      statusIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'status',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      statusIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'status',
+        value: '',
+      ));
+    });
+  }
 }
+
+extension ConversationQueryObject
+    on QueryBuilder<Conversation, Conversation, QFilterCondition> {}
 
 extension ConversationQueryLinks
     on QueryBuilder<Conversation, Conversation, QFilterCondition> {}
 
-extension ConversationQueryWhereSortBy
+extension ConversationQuerySortBy
     on QueryBuilder<Conversation, Conversation, QSortBy> {
   QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
@@ -1113,7 +1194,7 @@ extension ConversationQueryWhereSortBy
   }
 }
 
-extension ConversationQueryWhereSortThenBy
+extension ConversationQuerySortThenBy
     on QueryBuilder<Conversation, Conversation, QSortThenBy> {
   QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByCreatedAt() {
     return QueryBuilder.apply(this, (query) {

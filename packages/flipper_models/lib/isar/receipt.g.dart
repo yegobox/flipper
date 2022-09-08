@@ -7,135 +7,160 @@ part of 'receipt.dart';
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
 
 extension GetReceiptCollection on Isar {
-  IsarCollection<Receipt> get receipts => collection();
+  IsarCollection<Receipt> get receipts => this.collection();
 }
 
 const ReceiptSchema = CollectionSchema(
   name: r'Receipt',
-  schema:
-      r'{"name":"Receipt","idName":"id","properties":[{"name":"intrlData","type":"String"},{"name":"mrcNo","type":"String"},{"name":"orderId","type":"Long"},{"name":"qrCode","type":"String"},{"name":"rcptNo","type":"Long"},{"name":"rcptSign","type":"String"},{"name":"receiptType","type":"String"},{"name":"resultCd","type":"String"},{"name":"resultDt","type":"String"},{"name":"resultMsg","type":"String"},{"name":"sdcId","type":"String"},{"name":"totRcptNo","type":"Long"},{"name":"vsdcRcptPbctDate","type":"String"}],"indexes":[{"name":"orderId","unique":false,"replace":false,"properties":[{"name":"orderId","type":"Value","caseSensitive":false}]}],"links":[]}',
-  idName: r'id',
-  propertyIds: {
-    r'intrlData': 0,
-    r'mrcNo': 1,
-    r'orderId': 2,
-    r'qrCode': 3,
-    r'rcptNo': 4,
-    r'rcptSign': 5,
-    r'receiptType': 6,
-    r'resultCd': 7,
-    r'resultDt': 8,
-    r'resultMsg': 9,
-    r'sdcId': 10,
-    r'totRcptNo': 11,
-    r'vsdcRcptPbctDate': 12
+  id: 4668855833497531014,
+  properties: {
+    r'intrlData': PropertySchema(
+      id: 0,
+      name: r'intrlData',
+      type: IsarType.string,
+    ),
+    r'mrcNo': PropertySchema(
+      id: 1,
+      name: r'mrcNo',
+      type: IsarType.string,
+    ),
+    r'orderId': PropertySchema(
+      id: 2,
+      name: r'orderId',
+      type: IsarType.long,
+    ),
+    r'qrCode': PropertySchema(
+      id: 3,
+      name: r'qrCode',
+      type: IsarType.string,
+    ),
+    r'rcptNo': PropertySchema(
+      id: 4,
+      name: r'rcptNo',
+      type: IsarType.long,
+    ),
+    r'rcptSign': PropertySchema(
+      id: 5,
+      name: r'rcptSign',
+      type: IsarType.string,
+    ),
+    r'receiptType': PropertySchema(
+      id: 6,
+      name: r'receiptType',
+      type: IsarType.string,
+    ),
+    r'resultCd': PropertySchema(
+      id: 7,
+      name: r'resultCd',
+      type: IsarType.string,
+    ),
+    r'resultDt': PropertySchema(
+      id: 8,
+      name: r'resultDt',
+      type: IsarType.string,
+    ),
+    r'resultMsg': PropertySchema(
+      id: 9,
+      name: r'resultMsg',
+      type: IsarType.string,
+    ),
+    r'sdcId': PropertySchema(
+      id: 10,
+      name: r'sdcId',
+      type: IsarType.string,
+    ),
+    r'totRcptNo': PropertySchema(
+      id: 11,
+      name: r'totRcptNo',
+      type: IsarType.long,
+    ),
+    r'vsdcRcptPbctDate': PropertySchema(
+      id: 12,
+      name: r'vsdcRcptPbctDate',
+      type: IsarType.string,
+    )
   },
-  listProperties: {},
-  indexIds: {r'orderId': 0},
-  indexValueTypes: {
-    r'orderId': [
-      IndexValueType.long,
-    ]
-  },
-  linkIds: {},
-  backlinkLinkNames: {},
-  getId: _receiptGetId,
-  setId: _receiptSetId,
-  getLinks: _receiptGetLinks,
-  attachLinks: _receiptAttachLinks,
+  estimateSize: _receiptEstimateSize,
   serializeNative: _receiptSerializeNative,
   deserializeNative: _receiptDeserializeNative,
   deserializePropNative: _receiptDeserializePropNative,
   serializeWeb: _receiptSerializeWeb,
   deserializeWeb: _receiptDeserializeWeb,
   deserializePropWeb: _receiptDeserializePropWeb,
-  version: 4,
+  idName: r'id',
+  indexes: {
+    r'orderId': IndexSchema(
+      id: -6176610178429382285,
+      name: r'orderId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'orderId',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
+    )
+  },
+  links: {},
+  embeddedSchemas: {},
+  getId: _receiptGetId,
+  getLinks: _receiptGetLinks,
+  attach: _receiptAttach,
+  version: '3.0.0-dev.14',
 );
 
-int? _receiptGetId(Receipt object) {
-  if (object.id == Isar.autoIncrement) {
-    return null;
-  } else {
-    return object.id;
-  }
+int _receiptEstimateSize(
+  Receipt object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  bytesCount += 3 + object.intrlData.length * 3;
+  bytesCount += 3 + object.mrcNo.length * 3;
+  bytesCount += 3 + object.qrCode.length * 3;
+  bytesCount += 3 + object.rcptSign.length * 3;
+  bytesCount += 3 + object.receiptType.length * 3;
+  bytesCount += 3 + object.resultCd.length * 3;
+  bytesCount += 3 + object.resultDt.length * 3;
+  bytesCount += 3 + object.resultMsg.length * 3;
+  bytesCount += 3 + object.sdcId.length * 3;
+  bytesCount += 3 + object.vsdcRcptPbctDate.length * 3;
+  return bytesCount;
 }
 
-void _receiptSetId(Receipt object, int id) {
-  object.id = id;
-}
-
-List<IsarLinkBase<dynamic>> _receiptGetLinks(Receipt object) {
-  return [];
-}
-
-void _receiptSerializeNative(
-    IsarCollection<Receipt> collection,
-    IsarCObject cObj,
-    Receipt object,
-    int staticSize,
-    List<int> offsets,
-    AdapterAlloc alloc) {
-  final intrlData$Bytes =
-      IsarBinaryWriter.utf8Encoder.convert(object.intrlData);
-  final mrcNo$Bytes = IsarBinaryWriter.utf8Encoder.convert(object.mrcNo);
-  final qrCode$Bytes = IsarBinaryWriter.utf8Encoder.convert(object.qrCode);
-  final rcptSign$Bytes = IsarBinaryWriter.utf8Encoder.convert(object.rcptSign);
-  final receiptType$Bytes =
-      IsarBinaryWriter.utf8Encoder.convert(object.receiptType);
-  final resultCd$Bytes = IsarBinaryWriter.utf8Encoder.convert(object.resultCd);
-  final resultDt$Bytes = IsarBinaryWriter.utf8Encoder.convert(object.resultDt);
-  final resultMsg$Bytes =
-      IsarBinaryWriter.utf8Encoder.convert(object.resultMsg);
-  final sdcId$Bytes = IsarBinaryWriter.utf8Encoder.convert(object.sdcId);
-  final vsdcRcptPbctDate$Bytes =
-      IsarBinaryWriter.utf8Encoder.convert(object.vsdcRcptPbctDate);
-  final size = (staticSize +
-      3 +
-      (intrlData$Bytes.length) +
-      3 +
-      (mrcNo$Bytes.length) +
-      3 +
-      (qrCode$Bytes.length) +
-      3 +
-      (rcptSign$Bytes.length) +
-      3 +
-      (receiptType$Bytes.length) +
-      3 +
-      (resultCd$Bytes.length) +
-      3 +
-      (resultDt$Bytes.length) +
-      3 +
-      (resultMsg$Bytes.length) +
-      3 +
-      (sdcId$Bytes.length) +
-      3 +
-      (vsdcRcptPbctDate$Bytes.length)) as int;
-  cObj.buffer = alloc(size);
-  cObj.buffer_length = size;
-
-  final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
-  final writer = IsarBinaryWriter(buffer, staticSize);
-  writer.writeHeader();
-  writer.writeByteList(offsets[0], intrlData$Bytes);
-  writer.writeByteList(offsets[1], mrcNo$Bytes);
+int _receiptSerializeNative(
+  Receipt object,
+  IsarBinaryWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  writer.writeString(offsets[0], object.intrlData);
+  writer.writeString(offsets[1], object.mrcNo);
   writer.writeLong(offsets[2], object.orderId);
-  writer.writeByteList(offsets[3], qrCode$Bytes);
+  writer.writeString(offsets[3], object.qrCode);
   writer.writeLong(offsets[4], object.rcptNo);
-  writer.writeByteList(offsets[5], rcptSign$Bytes);
-  writer.writeByteList(offsets[6], receiptType$Bytes);
-  writer.writeByteList(offsets[7], resultCd$Bytes);
-  writer.writeByteList(offsets[8], resultDt$Bytes);
-  writer.writeByteList(offsets[9], resultMsg$Bytes);
-  writer.writeByteList(offsets[10], sdcId$Bytes);
+  writer.writeString(offsets[5], object.rcptSign);
+  writer.writeString(offsets[6], object.receiptType);
+  writer.writeString(offsets[7], object.resultCd);
+  writer.writeString(offsets[8], object.resultDt);
+  writer.writeString(offsets[9], object.resultMsg);
+  writer.writeString(offsets[10], object.sdcId);
   writer.writeLong(offsets[11], object.totRcptNo);
-  writer.writeByteList(offsets[12], vsdcRcptPbctDate$Bytes);
+  writer.writeString(offsets[12], object.vsdcRcptPbctDate);
+  return writer.usedBytes;
 }
 
-Receipt _receiptDeserializeNative(IsarCollection<Receipt> collection, int id,
-    IsarBinaryReader reader, List<int> offsets) {
+Receipt _receiptDeserializeNative(
+  Id id,
+  IsarBinaryReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
   final object = Receipt();
   object.id = id;
   object.intrlData = reader.readString(offsets[0]);
@@ -155,10 +180,12 @@ Receipt _receiptDeserializeNative(IsarCollection<Receipt> collection, int id,
 }
 
 P _receiptDeserializePropNative<P>(
-    int id, IsarBinaryReader reader, int propertyIndex, int offset) {
-  switch (propertyIndex) {
-    case -1:
-      return id as P;
+  IsarBinaryReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
     case 0:
       return (reader.readString(offset)) as P;
     case 1:
@@ -186,93 +213,40 @@ P _receiptDeserializePropNative<P>(
     case 12:
       return (reader.readString(offset)) as P;
     default:
-      throw IsarError('Illegal propertyIndex');
+      throw IsarError('Unknown property with id $propertyId');
   }
 }
 
 Object _receiptSerializeWeb(
     IsarCollection<Receipt> collection, Receipt object) {
-  final jsObj = IsarNative.newJsObject();
-  IsarNative.jsObjectSet(jsObj, r'id', object.id);
-  IsarNative.jsObjectSet(jsObj, r'intrlData', object.intrlData);
-  IsarNative.jsObjectSet(jsObj, r'mrcNo', object.mrcNo);
-  IsarNative.jsObjectSet(jsObj, r'orderId', object.orderId);
-  IsarNative.jsObjectSet(jsObj, r'qrCode', object.qrCode);
-  IsarNative.jsObjectSet(jsObj, r'rcptNo', object.rcptNo);
-  IsarNative.jsObjectSet(jsObj, r'rcptSign', object.rcptSign);
-  IsarNative.jsObjectSet(jsObj, r'receiptType', object.receiptType);
-  IsarNative.jsObjectSet(jsObj, r'resultCd', object.resultCd);
-  IsarNative.jsObjectSet(jsObj, r'resultDt', object.resultDt);
-  IsarNative.jsObjectSet(jsObj, r'resultMsg', object.resultMsg);
-  IsarNative.jsObjectSet(jsObj, r'sdcId', object.sdcId);
-  IsarNative.jsObjectSet(jsObj, r'totRcptNo', object.totRcptNo);
-  IsarNative.jsObjectSet(jsObj, r'vsdcRcptPbctDate', object.vsdcRcptPbctDate);
-  return jsObj;
+  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
 }
 
 Receipt _receiptDeserializeWeb(
     IsarCollection<Receipt> collection, Object jsObj) {
-  final object = Receipt();
-  object.id = IsarNative.jsObjectGet(jsObj, r'id');
-  object.intrlData = IsarNative.jsObjectGet(jsObj, r'intrlData') ?? '';
-  object.mrcNo = IsarNative.jsObjectGet(jsObj, r'mrcNo') ?? '';
-  object.orderId = IsarNative.jsObjectGet(jsObj, r'orderId') ??
-      (double.negativeInfinity as int);
-  object.qrCode = IsarNative.jsObjectGet(jsObj, r'qrCode') ?? '';
-  object.rcptNo = IsarNative.jsObjectGet(jsObj, r'rcptNo') ??
-      (double.negativeInfinity as int);
-  object.rcptSign = IsarNative.jsObjectGet(jsObj, r'rcptSign') ?? '';
-  object.receiptType = IsarNative.jsObjectGet(jsObj, r'receiptType') ?? '';
-  object.resultCd = IsarNative.jsObjectGet(jsObj, r'resultCd') ?? '';
-  object.resultDt = IsarNative.jsObjectGet(jsObj, r'resultDt') ?? '';
-  object.resultMsg = IsarNative.jsObjectGet(jsObj, r'resultMsg') ?? '';
-  object.sdcId = IsarNative.jsObjectGet(jsObj, r'sdcId') ?? '';
-  object.totRcptNo = IsarNative.jsObjectGet(jsObj, r'totRcptNo') ??
-      (double.negativeInfinity as int);
-  object.vsdcRcptPbctDate =
-      IsarNative.jsObjectGet(jsObj, r'vsdcRcptPbctDate') ?? '';
-  return object;
+  /*final object = Receipt();object.id = IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int);object.intrlData = IsarNative.jsObjectGet(jsObj, r'intrlData') ?? '';object.mrcNo = IsarNative.jsObjectGet(jsObj, r'mrcNo') ?? '';object.orderId = IsarNative.jsObjectGet(jsObj, r'orderId') ?? (double.negativeInfinity as int);object.qrCode = IsarNative.jsObjectGet(jsObj, r'qrCode') ?? '';object.rcptNo = IsarNative.jsObjectGet(jsObj, r'rcptNo') ?? (double.negativeInfinity as int);object.rcptSign = IsarNative.jsObjectGet(jsObj, r'rcptSign') ?? '';object.receiptType = IsarNative.jsObjectGet(jsObj, r'receiptType') ?? '';object.resultCd = IsarNative.jsObjectGet(jsObj, r'resultCd') ?? '';object.resultDt = IsarNative.jsObjectGet(jsObj, r'resultDt') ?? '';object.resultMsg = IsarNative.jsObjectGet(jsObj, r'resultMsg') ?? '';object.sdcId = IsarNative.jsObjectGet(jsObj, r'sdcId') ?? '';object.totRcptNo = IsarNative.jsObjectGet(jsObj, r'totRcptNo') ?? (double.negativeInfinity as int);object.vsdcRcptPbctDate = IsarNative.jsObjectGet(jsObj, r'vsdcRcptPbctDate') ?? '';*/
+  //return object;
+  throw UnimplementedError();
 }
 
 P _receiptDeserializePropWeb<P>(Object jsObj, String propertyName) {
   switch (propertyName) {
-    case r'id':
-      return (IsarNative.jsObjectGet(jsObj, r'id')) as P;
-    case r'intrlData':
-      return (IsarNative.jsObjectGet(jsObj, r'intrlData') ?? '') as P;
-    case r'mrcNo':
-      return (IsarNative.jsObjectGet(jsObj, r'mrcNo') ?? '') as P;
-    case r'orderId':
-      return (IsarNative.jsObjectGet(jsObj, r'orderId') ??
-          (double.negativeInfinity as int)) as P;
-    case r'qrCode':
-      return (IsarNative.jsObjectGet(jsObj, r'qrCode') ?? '') as P;
-    case r'rcptNo':
-      return (IsarNative.jsObjectGet(jsObj, r'rcptNo') ??
-          (double.negativeInfinity as int)) as P;
-    case r'rcptSign':
-      return (IsarNative.jsObjectGet(jsObj, r'rcptSign') ?? '') as P;
-    case r'receiptType':
-      return (IsarNative.jsObjectGet(jsObj, r'receiptType') ?? '') as P;
-    case r'resultCd':
-      return (IsarNative.jsObjectGet(jsObj, r'resultCd') ?? '') as P;
-    case r'resultDt':
-      return (IsarNative.jsObjectGet(jsObj, r'resultDt') ?? '') as P;
-    case r'resultMsg':
-      return (IsarNative.jsObjectGet(jsObj, r'resultMsg') ?? '') as P;
-    case r'sdcId':
-      return (IsarNative.jsObjectGet(jsObj, r'sdcId') ?? '') as P;
-    case r'totRcptNo':
-      return (IsarNative.jsObjectGet(jsObj, r'totRcptNo') ??
-          (double.negativeInfinity as int)) as P;
-    case r'vsdcRcptPbctDate':
-      return (IsarNative.jsObjectGet(jsObj, r'vsdcRcptPbctDate') ?? '') as P;
     default:
       throw IsarError('Illegal propertyName');
   }
 }
 
-void _receiptAttachLinks(IsarCollection<dynamic> col, int id, Receipt object) {}
+Id _receiptGetId(Receipt object) {
+  return object.id;
+}
+
+List<IsarLinkBase<dynamic>> _receiptGetLinks(Receipt object) {
+  return [];
+}
+
+void _receiptAttach(IsarCollection<dynamic> col, Id id, Receipt object) {
+  object.id = id;
+}
 
 extension ReceiptQueryWhereSort on QueryBuilder<Receipt, Receipt, QWhere> {
   QueryBuilder<Receipt, Receipt, QAfterWhere> anyId() {
@@ -516,8 +490,8 @@ extension ReceiptQueryFilter
 
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> intrlDataGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -531,8 +505,8 @@ extension ReceiptQueryFilter
 
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> intrlDataLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -547,9 +521,9 @@ extension ReceiptQueryFilter
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> intrlDataBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -613,6 +587,24 @@ extension ReceiptQueryFilter
     });
   }
 
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> intrlDataIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'intrlData',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> intrlDataIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'intrlData',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> mrcNoEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -628,8 +620,8 @@ extension ReceiptQueryFilter
 
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> mrcNoGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -643,8 +635,8 @@ extension ReceiptQueryFilter
 
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> mrcNoLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -659,9 +651,9 @@ extension ReceiptQueryFilter
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> mrcNoBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -721,6 +713,24 @@ extension ReceiptQueryFilter
         property: r'mrcNo',
         wildcard: pattern,
         caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> mrcNoIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'mrcNo',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> mrcNoIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'mrcNo',
+        value: '',
       ));
     });
   }
@@ -793,8 +803,8 @@ extension ReceiptQueryFilter
 
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> qrCodeGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -808,8 +818,8 @@ extension ReceiptQueryFilter
 
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> qrCodeLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -824,9 +834,9 @@ extension ReceiptQueryFilter
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> qrCodeBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -886,6 +896,24 @@ extension ReceiptQueryFilter
         property: r'qrCode',
         wildcard: pattern,
         caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> qrCodeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'qrCode',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> qrCodeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'qrCode',
+        value: '',
       ));
     });
   }
@@ -958,8 +986,8 @@ extension ReceiptQueryFilter
 
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> rcptSignGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -973,8 +1001,8 @@ extension ReceiptQueryFilter
 
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> rcptSignLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -989,9 +1017,9 @@ extension ReceiptQueryFilter
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> rcptSignBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1055,6 +1083,24 @@ extension ReceiptQueryFilter
     });
   }
 
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> rcptSignIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'rcptSign',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> rcptSignIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'rcptSign',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> receiptTypeEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1070,8 +1116,8 @@ extension ReceiptQueryFilter
 
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> receiptTypeGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1085,8 +1131,8 @@ extension ReceiptQueryFilter
 
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> receiptTypeLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -1101,9 +1147,9 @@ extension ReceiptQueryFilter
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> receiptTypeBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1167,6 +1213,25 @@ extension ReceiptQueryFilter
     });
   }
 
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> receiptTypeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'receiptType',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition>
+      receiptTypeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'receiptType',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> resultCdEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1182,8 +1247,8 @@ extension ReceiptQueryFilter
 
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> resultCdGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1197,8 +1262,8 @@ extension ReceiptQueryFilter
 
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> resultCdLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -1213,9 +1278,9 @@ extension ReceiptQueryFilter
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> resultCdBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1279,6 +1344,24 @@ extension ReceiptQueryFilter
     });
   }
 
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> resultCdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'resultCd',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> resultCdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'resultCd',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> resultDtEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1294,8 +1377,8 @@ extension ReceiptQueryFilter
 
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> resultDtGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1309,8 +1392,8 @@ extension ReceiptQueryFilter
 
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> resultDtLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -1325,9 +1408,9 @@ extension ReceiptQueryFilter
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> resultDtBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1391,6 +1474,24 @@ extension ReceiptQueryFilter
     });
   }
 
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> resultDtIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'resultDt',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> resultDtIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'resultDt',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> resultMsgEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1406,8 +1507,8 @@ extension ReceiptQueryFilter
 
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> resultMsgGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1421,8 +1522,8 @@ extension ReceiptQueryFilter
 
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> resultMsgLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -1437,9 +1538,9 @@ extension ReceiptQueryFilter
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> resultMsgBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1503,6 +1604,24 @@ extension ReceiptQueryFilter
     });
   }
 
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> resultMsgIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'resultMsg',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> resultMsgIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'resultMsg',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> sdcIdEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1518,8 +1637,8 @@ extension ReceiptQueryFilter
 
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> sdcIdGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1533,8 +1652,8 @@ extension ReceiptQueryFilter
 
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> sdcIdLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -1549,9 +1668,9 @@ extension ReceiptQueryFilter
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> sdcIdBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1611,6 +1730,24 @@ extension ReceiptQueryFilter
         property: r'sdcId',
         wildcard: pattern,
         caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> sdcIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'sdcId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> sdcIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'sdcId',
+        value: '',
       ));
     });
   }
@@ -1684,8 +1821,8 @@ extension ReceiptQueryFilter
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition>
       vsdcRcptPbctDateGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1700,8 +1837,8 @@ extension ReceiptQueryFilter
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition>
       vsdcRcptPbctDateLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -1716,9 +1853,9 @@ extension ReceiptQueryFilter
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> vsdcRcptPbctDateBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1782,12 +1919,35 @@ extension ReceiptQueryFilter
       ));
     });
   }
+
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition>
+      vsdcRcptPbctDateIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'vsdcRcptPbctDate',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition>
+      vsdcRcptPbctDateIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'vsdcRcptPbctDate',
+        value: '',
+      ));
+    });
+  }
 }
+
+extension ReceiptQueryObject
+    on QueryBuilder<Receipt, Receipt, QFilterCondition> {}
 
 extension ReceiptQueryLinks
     on QueryBuilder<Receipt, Receipt, QFilterCondition> {}
 
-extension ReceiptQueryWhereSortBy on QueryBuilder<Receipt, Receipt, QSortBy> {
+extension ReceiptQuerySortBy on QueryBuilder<Receipt, Receipt, QSortBy> {
   QueryBuilder<Receipt, Receipt, QAfterSortBy> sortByIntrlData() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'intrlData', Sort.asc);
@@ -1945,7 +2105,7 @@ extension ReceiptQueryWhereSortBy on QueryBuilder<Receipt, Receipt, QSortBy> {
   }
 }
 
-extension ReceiptQueryWhereSortThenBy
+extension ReceiptQuerySortThenBy
     on QueryBuilder<Receipt, Receipt, QSortThenBy> {
   QueryBuilder<Receipt, Receipt, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {

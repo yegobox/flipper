@@ -7,85 +7,102 @@ part of 'voucher.dart';
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
 
 extension GetVoucherCollection on Isar {
-  IsarCollection<Voucher> get vouchers => collection();
+  IsarCollection<Voucher> get vouchers => this.collection();
 }
 
 const VoucherSchema = CollectionSchema(
   name: r'Voucher',
-  schema:
-      r'{"name":"Voucher","idName":"id","properties":[{"name":"createdAt","type":"Long"},{"name":"descriptor","type":"String"},{"name":"interval","type":"Long"},{"name":"used","type":"Bool"},{"name":"usedAt","type":"Long"},{"name":"value","type":"Long"}],"indexes":[],"links":[{"name":"features","target":"Feature"}]}',
-  idName: r'id',
-  propertyIds: {
-    r'createdAt': 0,
-    r'descriptor': 1,
-    r'interval': 2,
-    r'used': 3,
-    r'usedAt': 4,
-    r'value': 5
+  id: 6548118931563840322,
+  properties: {
+    r'createdAt': PropertySchema(
+      id: 0,
+      name: r'createdAt',
+      type: IsarType.long,
+    ),
+    r'descriptor': PropertySchema(
+      id: 1,
+      name: r'descriptor',
+      type: IsarType.string,
+    ),
+    r'interval': PropertySchema(
+      id: 2,
+      name: r'interval',
+      type: IsarType.long,
+    ),
+    r'used': PropertySchema(
+      id: 3,
+      name: r'used',
+      type: IsarType.bool,
+    ),
+    r'usedAt': PropertySchema(
+      id: 4,
+      name: r'usedAt',
+      type: IsarType.long,
+    ),
+    r'value': PropertySchema(
+      id: 5,
+      name: r'value',
+      type: IsarType.long,
+    )
   },
-  listProperties: {},
-  indexIds: {},
-  indexValueTypes: {},
-  linkIds: {r'features': 0},
-  backlinkLinkNames: {},
-  getId: _voucherGetId,
-  setId: _voucherSetId,
-  getLinks: _voucherGetLinks,
-  attachLinks: _voucherAttachLinks,
+  estimateSize: _voucherEstimateSize,
   serializeNative: _voucherSerializeNative,
   deserializeNative: _voucherDeserializeNative,
   deserializePropNative: _voucherDeserializePropNative,
   serializeWeb: _voucherSerializeWeb,
   deserializeWeb: _voucherDeserializeWeb,
   deserializePropWeb: _voucherDeserializePropWeb,
-  version: 4,
+  idName: r'id',
+  indexes: {},
+  links: {
+    r'features': LinkSchema(
+      id: -7255176189479997051,
+      name: r'features',
+      target: r'Feature',
+      isSingle: false,
+    )
+  },
+  embeddedSchemas: {},
+  getId: _voucherGetId,
+  getLinks: _voucherGetLinks,
+  attach: _voucherAttach,
+  version: '3.0.0-dev.14',
 );
 
-int? _voucherGetId(Voucher object) {
-  if (object.id == Isar.autoIncrement) {
-    return null;
-  } else {
-    return object.id;
-  }
+int _voucherEstimateSize(
+  Voucher object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  bytesCount += 3 + object.descriptor.length * 3;
+  return bytesCount;
 }
 
-void _voucherSetId(Voucher object, int id) {
-  object.id = id;
-}
-
-List<IsarLinkBase<dynamic>> _voucherGetLinks(Voucher object) {
-  return [object.features];
-}
-
-void _voucherSerializeNative(
-    IsarCollection<Voucher> collection,
-    IsarCObject cObj,
-    Voucher object,
-    int staticSize,
-    List<int> offsets,
-    AdapterAlloc alloc) {
-  final descriptor$Bytes =
-      IsarBinaryWriter.utf8Encoder.convert(object.descriptor);
-  final size = (staticSize + 3 + (descriptor$Bytes.length)) as int;
-  cObj.buffer = alloc(size);
-  cObj.buffer_length = size;
-
-  final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
-  final writer = IsarBinaryWriter(buffer, staticSize);
-  writer.writeHeader();
+int _voucherSerializeNative(
+  Voucher object,
+  IsarBinaryWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
   writer.writeLong(offsets[0], object.createdAt);
-  writer.writeByteList(offsets[1], descriptor$Bytes);
+  writer.writeString(offsets[1], object.descriptor);
   writer.writeLong(offsets[2], object.interval);
   writer.writeBool(offsets[3], object.used);
   writer.writeLong(offsets[4], object.usedAt);
   writer.writeLong(offsets[5], object.value);
+  return writer.usedBytes;
 }
 
-Voucher _voucherDeserializeNative(IsarCollection<Voucher> collection, int id,
-    IsarBinaryReader reader, List<int> offsets) {
+Voucher _voucherDeserializeNative(
+  Id id,
+  IsarBinaryReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
   final object = Voucher();
   object.createdAt = reader.readLong(offsets[0]);
   object.descriptor = reader.readString(offsets[1]);
@@ -94,15 +111,16 @@ Voucher _voucherDeserializeNative(IsarCollection<Voucher> collection, int id,
   object.used = reader.readBool(offsets[3]);
   object.usedAt = reader.readLong(offsets[4]);
   object.value = reader.readLong(offsets[5]);
-  _voucherAttachLinks(collection, id, object);
   return object;
 }
 
 P _voucherDeserializePropNative<P>(
-    int id, IsarBinaryReader reader, int propertyIndex, int offset) {
-  switch (propertyIndex) {
-    case -1:
-      return id as P;
+  IsarBinaryReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
     case 0:
       return (reader.readLong(offset)) as P;
     case 1:
@@ -116,68 +134,40 @@ P _voucherDeserializePropNative<P>(
     case 5:
       return (reader.readLong(offset)) as P;
     default:
-      throw IsarError('Illegal propertyIndex');
+      throw IsarError('Unknown property with id $propertyId');
   }
 }
 
 Object _voucherSerializeWeb(
     IsarCollection<Voucher> collection, Voucher object) {
-  final jsObj = IsarNative.newJsObject();
-  IsarNative.jsObjectSet(jsObj, r'createdAt', object.createdAt);
-  IsarNative.jsObjectSet(jsObj, r'descriptor', object.descriptor);
-  IsarNative.jsObjectSet(jsObj, r'id', object.id);
-  IsarNative.jsObjectSet(jsObj, r'interval', object.interval);
-  IsarNative.jsObjectSet(jsObj, r'used', object.used);
-  IsarNative.jsObjectSet(jsObj, r'usedAt', object.usedAt);
-  IsarNative.jsObjectSet(jsObj, r'value', object.value);
-  return jsObj;
+  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
 }
 
 Voucher _voucherDeserializeWeb(
     IsarCollection<Voucher> collection, Object jsObj) {
-  final object = Voucher();
-  object.createdAt = IsarNative.jsObjectGet(jsObj, r'createdAt') ??
-      (double.negativeInfinity as int);
-  object.descriptor = IsarNative.jsObjectGet(jsObj, r'descriptor') ?? '';
-  object.id = IsarNative.jsObjectGet(jsObj, r'id');
-  object.interval = IsarNative.jsObjectGet(jsObj, r'interval') ??
-      (double.negativeInfinity as int);
-  object.used = IsarNative.jsObjectGet(jsObj, r'used') ?? false;
-  object.usedAt = IsarNative.jsObjectGet(jsObj, r'usedAt') ??
-      (double.negativeInfinity as int);
-  object.value = IsarNative.jsObjectGet(jsObj, r'value') ??
-      (double.negativeInfinity as int);
-  _voucherAttachLinks(collection, IsarNative.jsObjectGet(jsObj, r'id'), object);
-  return object;
+  /*final object = Voucher();object.createdAt = IsarNative.jsObjectGet(jsObj, r'createdAt') ?? (double.negativeInfinity as int);object.descriptor = IsarNative.jsObjectGet(jsObj, r'descriptor') ?? '';object.id = IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int);object.interval = IsarNative.jsObjectGet(jsObj, r'interval') ?? (double.negativeInfinity as int);object.used = IsarNative.jsObjectGet(jsObj, r'used') ?? false;object.usedAt = IsarNative.jsObjectGet(jsObj, r'usedAt') ?? (double.negativeInfinity as int);object.value = IsarNative.jsObjectGet(jsObj, r'value') ?? (double.negativeInfinity as int);*/
+  //return object;
+  throw UnimplementedError();
 }
 
 P _voucherDeserializePropWeb<P>(Object jsObj, String propertyName) {
   switch (propertyName) {
-    case r'createdAt':
-      return (IsarNative.jsObjectGet(jsObj, r'createdAt') ??
-          (double.negativeInfinity as int)) as P;
-    case r'descriptor':
-      return (IsarNative.jsObjectGet(jsObj, r'descriptor') ?? '') as P;
-    case r'id':
-      return (IsarNative.jsObjectGet(jsObj, r'id')) as P;
-    case r'interval':
-      return (IsarNative.jsObjectGet(jsObj, r'interval') ??
-          (double.negativeInfinity as int)) as P;
-    case r'used':
-      return (IsarNative.jsObjectGet(jsObj, r'used') ?? false) as P;
-    case r'usedAt':
-      return (IsarNative.jsObjectGet(jsObj, r'usedAt') ??
-          (double.negativeInfinity as int)) as P;
-    case r'value':
-      return (IsarNative.jsObjectGet(jsObj, r'value') ??
-          (double.negativeInfinity as int)) as P;
     default:
       throw IsarError('Illegal propertyName');
   }
 }
 
-void _voucherAttachLinks(IsarCollection<dynamic> col, int id, Voucher object) {
-  object.features.attach(col, col.isar.features, r'features', id);
+Id _voucherGetId(Voucher object) {
+  return object.id;
+}
+
+List<IsarLinkBase<dynamic>> _voucherGetLinks(Voucher object) {
+  return [object.features];
+}
+
+void _voucherAttach(IsarCollection<dynamic> col, Id id, Voucher object) {
+  object.id = id;
+  object.features.attach(col, col.isar.collection<Feature>(), r'features', id);
 }
 
 extension VoucherQueryWhereSort on QueryBuilder<Voucher, Voucher, QWhere> {
@@ -325,8 +315,8 @@ extension VoucherQueryFilter
 
   QueryBuilder<Voucher, Voucher, QAfterFilterCondition> descriptorGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -340,8 +330,8 @@ extension VoucherQueryFilter
 
   QueryBuilder<Voucher, Voucher, QAfterFilterCondition> descriptorLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -356,9 +346,9 @@ extension VoucherQueryFilter
   QueryBuilder<Voucher, Voucher, QAfterFilterCondition> descriptorBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -418,6 +408,24 @@ extension VoucherQueryFilter
         property: r'descriptor',
         wildcard: pattern,
         caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> descriptorIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'descriptor',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> descriptorIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'descriptor',
+        value: '',
       ));
     });
   }
@@ -644,21 +652,70 @@ extension VoucherQueryFilter
   }
 }
 
+extension VoucherQueryObject
+    on QueryBuilder<Voucher, Voucher, QFilterCondition> {}
+
 extension VoucherQueryLinks
     on QueryBuilder<Voucher, Voucher, QFilterCondition> {
   QueryBuilder<Voucher, Voucher, QAfterFilterCondition> features(
       FilterQuery<Feature> q) {
     return QueryBuilder.apply(this, (query) {
-      return query.link(
-        query.collection.isar.features,
-        q,
-        r'features',
-      );
+      return query.link(q, r'features');
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> featuresLengthEqualTo(
+      int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'features', length, true, length, true);
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> featuresIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'features', 0, true, 0, true);
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> featuresIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'features', 0, false, 999999, true);
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> featuresLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'features', 0, true, length, include);
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition>
+      featuresLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'features', length, include, 999999, true);
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> featuresLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(
+          r'features', lower, includeLower, upper, includeUpper);
     });
   }
 }
 
-extension VoucherQueryWhereSortBy on QueryBuilder<Voucher, Voucher, QSortBy> {
+extension VoucherQuerySortBy on QueryBuilder<Voucher, Voucher, QSortBy> {
   QueryBuilder<Voucher, Voucher, QAfterSortBy> sortByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.asc);
@@ -732,7 +789,7 @@ extension VoucherQueryWhereSortBy on QueryBuilder<Voucher, Voucher, QSortBy> {
   }
 }
 
-extension VoucherQueryWhereSortThenBy
+extension VoucherQuerySortThenBy
     on QueryBuilder<Voucher, Voucher, QSortThenBy> {
   QueryBuilder<Voucher, Voucher, QAfterSortBy> thenByCreatedAt() {
     return QueryBuilder.apply(this, (query) {

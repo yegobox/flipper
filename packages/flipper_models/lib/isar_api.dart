@@ -122,7 +122,7 @@ class IsarAPI implements IsarApiInterface {
   Stream<Order?> pendingOrderStream() {
     int? currentOrderId = ProxyService.box.currentOrderId();
     log.d('currentOrderId: $currentOrderId');
-    return isar.orders.watchObject(currentOrderId ?? 0, initialReturn: true);
+    return isar.orders.watchObject(currentOrderId ?? 0, fireImmediately: true);
   }
 
   @override
@@ -813,14 +813,14 @@ class IsarAPI implements IsarApiInterface {
         .or()
         .phoneEqualTo(key)
         .build()
-        .watch(initialReturn: true)
+        .watch(fireImmediately: true)
         .asyncMap((event) => event.first);
   }
 
   @override
   Stream<Customer?> getCustomerByOrderId({required int id}) {
     return isar.customers
-        .watchObject(id, initialReturn: true)
+        .watchObject(id, fireImmediately: true)
         .asyncMap((event) => event);
   }
 
@@ -1193,7 +1193,7 @@ class IsarAPI implements IsarApiInterface {
         .where()
         .draftBranchIdEqualTo(false, branchId)
         .build()
-        .watch(initialReturn: true);
+        .watch(fireImmediately: true);
   }
 
   @override
@@ -1272,7 +1272,7 @@ class IsarAPI implements IsarApiInterface {
     return isar.stocks
         .where()
         .variantIdBranchIdEqualTo(variantId, ProxyService.box.getBranchId()!)
-        .watch(initialReturn: true)
+        .watch(fireImmediately: true)
         .asyncMap((event) => event.first);
   }
 
@@ -1582,7 +1582,7 @@ class IsarAPI implements IsarApiInterface {
     return isar.categorys
         .where()
         .branchIdEqualTo(branchId)
-        .watch(initialReturn: true);
+        .watch(fireImmediately: true);
   }
 
   @override

@@ -7,107 +7,117 @@ part of 'payment.dart';
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
 
 extension GetPaymentCollection on Isar {
-  IsarCollection<Payment> get payments => collection();
+  IsarCollection<Payment> get payments => this.collection();
 }
 
 const PaymentSchema = CollectionSchema(
   name: r'Payment',
-  schema:
-      r'{"name":"Payment","idName":"id","properties":[{"name":"amount","type":"Long"},{"name":"createdAt","type":"Long"},{"name":"interval","type":"Long"},{"name":"itemName","type":"String"},{"name":"note","type":"String"},{"name":"paymentType","type":"String"},{"name":"phoneNumber","type":"String"},{"name":"requestGuid","type":"String"},{"name":"userId","type":"Long"}],"indexes":[],"links":[]}',
-  idName: r'id',
-  propertyIds: {
-    r'amount': 0,
-    r'createdAt': 1,
-    r'interval': 2,
-    r'itemName': 3,
-    r'note': 4,
-    r'paymentType': 5,
-    r'phoneNumber': 6,
-    r'requestGuid': 7,
-    r'userId': 8
+  id: -6533700744042574122,
+  properties: {
+    r'amount': PropertySchema(
+      id: 0,
+      name: r'amount',
+      type: IsarType.long,
+    ),
+    r'createdAt': PropertySchema(
+      id: 1,
+      name: r'createdAt',
+      type: IsarType.long,
+    ),
+    r'interval': PropertySchema(
+      id: 2,
+      name: r'interval',
+      type: IsarType.long,
+    ),
+    r'itemName': PropertySchema(
+      id: 3,
+      name: r'itemName',
+      type: IsarType.string,
+    ),
+    r'note': PropertySchema(
+      id: 4,
+      name: r'note',
+      type: IsarType.string,
+    ),
+    r'paymentType': PropertySchema(
+      id: 5,
+      name: r'paymentType',
+      type: IsarType.string,
+    ),
+    r'phoneNumber': PropertySchema(
+      id: 6,
+      name: r'phoneNumber',
+      type: IsarType.string,
+    ),
+    r'requestGuid': PropertySchema(
+      id: 7,
+      name: r'requestGuid',
+      type: IsarType.string,
+    ),
+    r'userId': PropertySchema(
+      id: 8,
+      name: r'userId',
+      type: IsarType.long,
+    )
   },
-  listProperties: {},
-  indexIds: {},
-  indexValueTypes: {},
-  linkIds: {},
-  backlinkLinkNames: {},
-  getId: _paymentGetId,
-  setId: _paymentSetId,
-  getLinks: _paymentGetLinks,
-  attachLinks: _paymentAttachLinks,
+  estimateSize: _paymentEstimateSize,
   serializeNative: _paymentSerializeNative,
   deserializeNative: _paymentDeserializeNative,
   deserializePropNative: _paymentDeserializePropNative,
   serializeWeb: _paymentSerializeWeb,
   deserializeWeb: _paymentDeserializeWeb,
   deserializePropWeb: _paymentDeserializePropWeb,
-  version: 4,
+  idName: r'id',
+  indexes: {},
+  links: {},
+  embeddedSchemas: {},
+  getId: _paymentGetId,
+  getLinks: _paymentGetLinks,
+  attach: _paymentAttach,
+  version: '3.0.0-dev.14',
 );
 
-int? _paymentGetId(Payment object) {
-  if (object.id == Isar.autoIncrement) {
-    return null;
-  } else {
-    return object.id;
-  }
+int _paymentEstimateSize(
+  Payment object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  bytesCount += 3 + object.itemName.length * 3;
+  bytesCount += 3 + object.note.length * 3;
+  bytesCount += 3 + object.paymentType.length * 3;
+  bytesCount += 3 + object.phoneNumber.length * 3;
+  bytesCount += 3 + object.requestGuid.length * 3;
+  return bytesCount;
 }
 
-void _paymentSetId(Payment object, int id) {
-  object.id = id;
-}
-
-List<IsarLinkBase<dynamic>> _paymentGetLinks(Payment object) {
-  return [];
-}
-
-void _paymentSerializeNative(
-    IsarCollection<Payment> collection,
-    IsarCObject cObj,
-    Payment object,
-    int staticSize,
-    List<int> offsets,
-    AdapterAlloc alloc) {
-  final itemName$Bytes = IsarBinaryWriter.utf8Encoder.convert(object.itemName);
-  final note$Bytes = IsarBinaryWriter.utf8Encoder.convert(object.note);
-  final paymentType$Bytes =
-      IsarBinaryWriter.utf8Encoder.convert(object.paymentType);
-  final phoneNumber$Bytes =
-      IsarBinaryWriter.utf8Encoder.convert(object.phoneNumber);
-  final requestGuid$Bytes =
-      IsarBinaryWriter.utf8Encoder.convert(object.requestGuid);
-  final size = (staticSize +
-      3 +
-      (itemName$Bytes.length) +
-      3 +
-      (note$Bytes.length) +
-      3 +
-      (paymentType$Bytes.length) +
-      3 +
-      (phoneNumber$Bytes.length) +
-      3 +
-      (requestGuid$Bytes.length)) as int;
-  cObj.buffer = alloc(size);
-  cObj.buffer_length = size;
-
-  final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
-  final writer = IsarBinaryWriter(buffer, staticSize);
-  writer.writeHeader();
+int _paymentSerializeNative(
+  Payment object,
+  IsarBinaryWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
   writer.writeLong(offsets[0], object.amount);
   writer.writeLong(offsets[1], object.createdAt);
   writer.writeLong(offsets[2], object.interval);
-  writer.writeByteList(offsets[3], itemName$Bytes);
-  writer.writeByteList(offsets[4], note$Bytes);
-  writer.writeByteList(offsets[5], paymentType$Bytes);
-  writer.writeByteList(offsets[6], phoneNumber$Bytes);
-  writer.writeByteList(offsets[7], requestGuid$Bytes);
+  writer.writeString(offsets[3], object.itemName);
+  writer.writeString(offsets[4], object.note);
+  writer.writeString(offsets[5], object.paymentType);
+  writer.writeString(offsets[6], object.phoneNumber);
+  writer.writeString(offsets[7], object.requestGuid);
   writer.writeLong(offsets[8], object.userId);
+  return writer.usedBytes;
 }
 
-Payment _paymentDeserializeNative(IsarCollection<Payment> collection, int id,
-    IsarBinaryReader reader, List<int> offsets) {
+Payment _paymentDeserializeNative(
+  Id id,
+  IsarBinaryReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
   final object = Payment(
     amount: reader.readLong(offsets[0]),
     createdAt: reader.readLong(offsets[1]),
@@ -124,10 +134,12 @@ Payment _paymentDeserializeNative(IsarCollection<Payment> collection, int id,
 }
 
 P _paymentDeserializePropNative<P>(
-    int id, IsarBinaryReader reader, int propertyIndex, int offset) {
-  switch (propertyIndex) {
-    case -1:
-      return id as P;
+  IsarBinaryReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
     case 0:
       return (reader.readLong(offset)) as P;
     case 1:
@@ -147,79 +159,40 @@ P _paymentDeserializePropNative<P>(
     case 8:
       return (reader.readLong(offset)) as P;
     default:
-      throw IsarError('Illegal propertyIndex');
+      throw IsarError('Unknown property with id $propertyId');
   }
 }
 
 Object _paymentSerializeWeb(
     IsarCollection<Payment> collection, Payment object) {
-  final jsObj = IsarNative.newJsObject();
-  IsarNative.jsObjectSet(jsObj, r'amount', object.amount);
-  IsarNative.jsObjectSet(jsObj, r'createdAt', object.createdAt);
-  IsarNative.jsObjectSet(jsObj, r'id', object.id);
-  IsarNative.jsObjectSet(jsObj, r'interval', object.interval);
-  IsarNative.jsObjectSet(jsObj, r'itemName', object.itemName);
-  IsarNative.jsObjectSet(jsObj, r'note', object.note);
-  IsarNative.jsObjectSet(jsObj, r'paymentType', object.paymentType);
-  IsarNative.jsObjectSet(jsObj, r'phoneNumber', object.phoneNumber);
-  IsarNative.jsObjectSet(jsObj, r'requestGuid', object.requestGuid);
-  IsarNative.jsObjectSet(jsObj, r'userId', object.userId);
-  return jsObj;
+  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
 }
 
 Payment _paymentDeserializeWeb(
     IsarCollection<Payment> collection, Object jsObj) {
-  final object = Payment(
-    amount: IsarNative.jsObjectGet(jsObj, r'amount') ??
-        (double.negativeInfinity as int),
-    createdAt: IsarNative.jsObjectGet(jsObj, r'createdAt') ??
-        (double.negativeInfinity as int),
-    id: IsarNative.jsObjectGet(jsObj, r'id'),
-    interval: IsarNative.jsObjectGet(jsObj, r'interval') ??
-        (double.negativeInfinity as int),
-    itemName: IsarNative.jsObjectGet(jsObj, r'itemName') ?? '',
-    note: IsarNative.jsObjectGet(jsObj, r'note') ?? '',
-    paymentType: IsarNative.jsObjectGet(jsObj, r'paymentType') ?? '',
-    phoneNumber: IsarNative.jsObjectGet(jsObj, r'phoneNumber') ?? '',
-    requestGuid: IsarNative.jsObjectGet(jsObj, r'requestGuid') ?? '',
-    userId: IsarNative.jsObjectGet(jsObj, r'userId') ??
-        (double.negativeInfinity as int),
-  );
-  return object;
+  /*final object = Payment(amount: IsarNative.jsObjectGet(jsObj, r'amount') ?? (double.negativeInfinity as int),createdAt: IsarNative.jsObjectGet(jsObj, r'createdAt') ?? (double.negativeInfinity as int),id: IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int),interval: IsarNative.jsObjectGet(jsObj, r'interval') ?? (double.negativeInfinity as int),itemName: IsarNative.jsObjectGet(jsObj, r'itemName') ?? '',note: IsarNative.jsObjectGet(jsObj, r'note') ?? '',paymentType: IsarNative.jsObjectGet(jsObj, r'paymentType') ?? '',phoneNumber: IsarNative.jsObjectGet(jsObj, r'phoneNumber') ?? '',requestGuid: IsarNative.jsObjectGet(jsObj, r'requestGuid') ?? '',userId: IsarNative.jsObjectGet(jsObj, r'userId') ?? (double.negativeInfinity as int),);*/
+  //return object;
+  throw UnimplementedError();
 }
 
 P _paymentDeserializePropWeb<P>(Object jsObj, String propertyName) {
   switch (propertyName) {
-    case r'amount':
-      return (IsarNative.jsObjectGet(jsObj, r'amount') ??
-          (double.negativeInfinity as int)) as P;
-    case r'createdAt':
-      return (IsarNative.jsObjectGet(jsObj, r'createdAt') ??
-          (double.negativeInfinity as int)) as P;
-    case r'id':
-      return (IsarNative.jsObjectGet(jsObj, r'id')) as P;
-    case r'interval':
-      return (IsarNative.jsObjectGet(jsObj, r'interval') ??
-          (double.negativeInfinity as int)) as P;
-    case r'itemName':
-      return (IsarNative.jsObjectGet(jsObj, r'itemName') ?? '') as P;
-    case r'note':
-      return (IsarNative.jsObjectGet(jsObj, r'note') ?? '') as P;
-    case r'paymentType':
-      return (IsarNative.jsObjectGet(jsObj, r'paymentType') ?? '') as P;
-    case r'phoneNumber':
-      return (IsarNative.jsObjectGet(jsObj, r'phoneNumber') ?? '') as P;
-    case r'requestGuid':
-      return (IsarNative.jsObjectGet(jsObj, r'requestGuid') ?? '') as P;
-    case r'userId':
-      return (IsarNative.jsObjectGet(jsObj, r'userId') ??
-          (double.negativeInfinity as int)) as P;
     default:
       throw IsarError('Illegal propertyName');
   }
 }
 
-void _paymentAttachLinks(IsarCollection<dynamic> col, int id, Payment object) {}
+Id _paymentGetId(Payment object) {
+  return object.id;
+}
+
+List<IsarLinkBase<dynamic>> _paymentGetLinks(Payment object) {
+  return [];
+}
+
+void _paymentAttach(IsarCollection<dynamic> col, Id id, Payment object) {
+  object.id = id;
+}
 
 extension PaymentQueryWhereSort on QueryBuilder<Payment, Payment, QWhere> {
   QueryBuilder<Payment, Payment, QAfterWhere> anyId() {
@@ -524,8 +497,8 @@ extension PaymentQueryFilter
 
   QueryBuilder<Payment, Payment, QAfterFilterCondition> itemNameGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -539,8 +512,8 @@ extension PaymentQueryFilter
 
   QueryBuilder<Payment, Payment, QAfterFilterCondition> itemNameLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -555,9 +528,9 @@ extension PaymentQueryFilter
   QueryBuilder<Payment, Payment, QAfterFilterCondition> itemNameBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -621,6 +594,24 @@ extension PaymentQueryFilter
     });
   }
 
+  QueryBuilder<Payment, Payment, QAfterFilterCondition> itemNameIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'itemName',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Payment, Payment, QAfterFilterCondition> itemNameIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'itemName',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Payment, Payment, QAfterFilterCondition> noteEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -636,8 +627,8 @@ extension PaymentQueryFilter
 
   QueryBuilder<Payment, Payment, QAfterFilterCondition> noteGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -651,8 +642,8 @@ extension PaymentQueryFilter
 
   QueryBuilder<Payment, Payment, QAfterFilterCondition> noteLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -667,9 +658,9 @@ extension PaymentQueryFilter
   QueryBuilder<Payment, Payment, QAfterFilterCondition> noteBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -733,6 +724,24 @@ extension PaymentQueryFilter
     });
   }
 
+  QueryBuilder<Payment, Payment, QAfterFilterCondition> noteIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'note',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Payment, Payment, QAfterFilterCondition> noteIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'note',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Payment, Payment, QAfterFilterCondition> paymentTypeEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -748,8 +757,8 @@ extension PaymentQueryFilter
 
   QueryBuilder<Payment, Payment, QAfterFilterCondition> paymentTypeGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -763,8 +772,8 @@ extension PaymentQueryFilter
 
   QueryBuilder<Payment, Payment, QAfterFilterCondition> paymentTypeLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -779,9 +788,9 @@ extension PaymentQueryFilter
   QueryBuilder<Payment, Payment, QAfterFilterCondition> paymentTypeBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -845,6 +854,25 @@ extension PaymentQueryFilter
     });
   }
 
+  QueryBuilder<Payment, Payment, QAfterFilterCondition> paymentTypeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'paymentType',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Payment, Payment, QAfterFilterCondition>
+      paymentTypeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'paymentType',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Payment, Payment, QAfterFilterCondition> phoneNumberEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -860,8 +888,8 @@ extension PaymentQueryFilter
 
   QueryBuilder<Payment, Payment, QAfterFilterCondition> phoneNumberGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -875,8 +903,8 @@ extension PaymentQueryFilter
 
   QueryBuilder<Payment, Payment, QAfterFilterCondition> phoneNumberLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -891,9 +919,9 @@ extension PaymentQueryFilter
   QueryBuilder<Payment, Payment, QAfterFilterCondition> phoneNumberBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -957,6 +985,25 @@ extension PaymentQueryFilter
     });
   }
 
+  QueryBuilder<Payment, Payment, QAfterFilterCondition> phoneNumberIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'phoneNumber',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Payment, Payment, QAfterFilterCondition>
+      phoneNumberIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'phoneNumber',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Payment, Payment, QAfterFilterCondition> requestGuidEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -972,8 +1019,8 @@ extension PaymentQueryFilter
 
   QueryBuilder<Payment, Payment, QAfterFilterCondition> requestGuidGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -987,8 +1034,8 @@ extension PaymentQueryFilter
 
   QueryBuilder<Payment, Payment, QAfterFilterCondition> requestGuidLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -1003,9 +1050,9 @@ extension PaymentQueryFilter
   QueryBuilder<Payment, Payment, QAfterFilterCondition> requestGuidBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1069,6 +1116,25 @@ extension PaymentQueryFilter
     });
   }
 
+  QueryBuilder<Payment, Payment, QAfterFilterCondition> requestGuidIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'requestGuid',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Payment, Payment, QAfterFilterCondition>
+      requestGuidIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'requestGuid',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Payment, Payment, QAfterFilterCondition> userIdEqualTo(
       int value) {
     return QueryBuilder.apply(this, (query) {
@@ -1123,10 +1189,13 @@ extension PaymentQueryFilter
   }
 }
 
+extension PaymentQueryObject
+    on QueryBuilder<Payment, Payment, QFilterCondition> {}
+
 extension PaymentQueryLinks
     on QueryBuilder<Payment, Payment, QFilterCondition> {}
 
-extension PaymentQueryWhereSortBy on QueryBuilder<Payment, Payment, QSortBy> {
+extension PaymentQuerySortBy on QueryBuilder<Payment, Payment, QSortBy> {
   QueryBuilder<Payment, Payment, QAfterSortBy> sortByAmount() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'amount', Sort.asc);
@@ -1236,7 +1305,7 @@ extension PaymentQueryWhereSortBy on QueryBuilder<Payment, Payment, QSortBy> {
   }
 }
 
-extension PaymentQueryWhereSortThenBy
+extension PaymentQuerySortThenBy
     on QueryBuilder<Payment, Payment, QSortThenBy> {
   QueryBuilder<Payment, Payment, QAfterSortBy> thenByAmount() {
     return QueryBuilder.apply(this, (query) {

@@ -7,78 +7,91 @@ part of 'discount.dart';
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
 
 extension GetDiscountCollection on Isar {
-  IsarCollection<Discount> get discounts => collection();
+  IsarCollection<Discount> get discounts => this.collection();
 }
 
 const DiscountSchema = CollectionSchema(
   name: r'Discount',
-  schema:
-      r'{"name":"Discount","idName":"id","properties":[{"name":"amount","type":"Double"},{"name":"branchId","type":"Long"},{"name":"name","type":"String"}],"indexes":[{"name":"branchId","unique":false,"replace":false,"properties":[{"name":"branchId","type":"Value","caseSensitive":false}]}],"links":[]}',
-  idName: r'id',
-  propertyIds: {r'amount': 0, r'branchId': 1, r'name': 2},
-  listProperties: {},
-  indexIds: {r'branchId': 0},
-  indexValueTypes: {
-    r'branchId': [
-      IndexValueType.long,
-    ]
+  id: -5682473105823550468,
+  properties: {
+    r'amount': PropertySchema(
+      id: 0,
+      name: r'amount',
+      type: IsarType.double,
+    ),
+    r'branchId': PropertySchema(
+      id: 1,
+      name: r'branchId',
+      type: IsarType.long,
+    ),
+    r'name': PropertySchema(
+      id: 2,
+      name: r'name',
+      type: IsarType.string,
+    )
   },
-  linkIds: {},
-  backlinkLinkNames: {},
-  getId: _discountGetId,
-  setId: _discountSetId,
-  getLinks: _discountGetLinks,
-  attachLinks: _discountAttachLinks,
+  estimateSize: _discountEstimateSize,
   serializeNative: _discountSerializeNative,
   deserializeNative: _discountDeserializeNative,
   deserializePropNative: _discountDeserializePropNative,
   serializeWeb: _discountSerializeWeb,
   deserializeWeb: _discountDeserializeWeb,
   deserializePropWeb: _discountDeserializePropWeb,
-  version: 4,
+  idName: r'id',
+  indexes: {
+    r'branchId': IndexSchema(
+      id: 2037049677925728410,
+      name: r'branchId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'branchId',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
+    )
+  },
+  links: {},
+  embeddedSchemas: {},
+  getId: _discountGetId,
+  getLinks: _discountGetLinks,
+  attach: _discountAttach,
+  version: '3.0.0-dev.14',
 );
 
-int? _discountGetId(Discount object) {
-  if (object.id == Isar.autoIncrement) {
-    return null;
-  } else {
-    return object.id;
-  }
+int _discountEstimateSize(
+  Discount object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  bytesCount += 3 + object.name.length * 3;
+  return bytesCount;
 }
 
-void _discountSetId(Discount object, int id) {
-  object.id = id;
-}
-
-List<IsarLinkBase<dynamic>> _discountGetLinks(Discount object) {
-  return [];
-}
-
-void _discountSerializeNative(
-    IsarCollection<Discount> collection,
-    IsarCObject cObj,
-    Discount object,
-    int staticSize,
-    List<int> offsets,
-    AdapterAlloc alloc) {
-  final name$Bytes = IsarBinaryWriter.utf8Encoder.convert(object.name);
-  final size = (staticSize + 3 + (name$Bytes.length)) as int;
-  cObj.buffer = alloc(size);
-  cObj.buffer_length = size;
-
-  final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
-  final writer = IsarBinaryWriter(buffer, staticSize);
-  writer.writeHeader();
+int _discountSerializeNative(
+  Discount object,
+  IsarBinaryWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
   writer.writeDouble(offsets[0], object.amount);
   writer.writeLong(offsets[1], object.branchId);
-  writer.writeByteList(offsets[2], name$Bytes);
+  writer.writeString(offsets[2], object.name);
+  return writer.usedBytes;
 }
 
-Discount _discountDeserializeNative(IsarCollection<Discount> collection, int id,
-    IsarBinaryReader reader, List<int> offsets) {
+Discount _discountDeserializeNative(
+  Id id,
+  IsarBinaryReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
   final object = Discount(
     amount: reader.readDoubleOrNull(offsets[0]),
     branchId: reader.readLong(offsets[1]),
@@ -89,10 +102,12 @@ Discount _discountDeserializeNative(IsarCollection<Discount> collection, int id,
 }
 
 P _discountDeserializePropNative<P>(
-    int id, IsarBinaryReader reader, int propertyIndex, int offset) {
-  switch (propertyIndex) {
-    case -1:
-      return id as P;
+  IsarBinaryReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
     case 0:
       return (reader.readDoubleOrNull(offset)) as P;
     case 1:
@@ -100,50 +115,40 @@ P _discountDeserializePropNative<P>(
     case 2:
       return (reader.readString(offset)) as P;
     default:
-      throw IsarError('Illegal propertyIndex');
+      throw IsarError('Unknown property with id $propertyId');
   }
 }
 
 Object _discountSerializeWeb(
     IsarCollection<Discount> collection, Discount object) {
-  final jsObj = IsarNative.newJsObject();
-  IsarNative.jsObjectSet(jsObj, r'amount', object.amount);
-  IsarNative.jsObjectSet(jsObj, r'branchId', object.branchId);
-  IsarNative.jsObjectSet(jsObj, r'id', object.id);
-  IsarNative.jsObjectSet(jsObj, r'name', object.name);
-  return jsObj;
+  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
 }
 
 Discount _discountDeserializeWeb(
     IsarCollection<Discount> collection, Object jsObj) {
-  final object = Discount(
-    amount: IsarNative.jsObjectGet(jsObj, r'amount'),
-    branchId: IsarNative.jsObjectGet(jsObj, r'branchId') ??
-        (double.negativeInfinity as int),
-    id: IsarNative.jsObjectGet(jsObj, r'id'),
-    name: IsarNative.jsObjectGet(jsObj, r'name') ?? '',
-  );
-  return object;
+  /*final object = Discount(amount: IsarNative.jsObjectGet(jsObj, r'amount') ,branchId: IsarNative.jsObjectGet(jsObj, r'branchId') ?? (double.negativeInfinity as int),id: IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int),name: IsarNative.jsObjectGet(jsObj, r'name') ?? '',);*/
+  //return object;
+  throw UnimplementedError();
 }
 
 P _discountDeserializePropWeb<P>(Object jsObj, String propertyName) {
   switch (propertyName) {
-    case r'amount':
-      return (IsarNative.jsObjectGet(jsObj, r'amount')) as P;
-    case r'branchId':
-      return (IsarNative.jsObjectGet(jsObj, r'branchId') ??
-          (double.negativeInfinity as int)) as P;
-    case r'id':
-      return (IsarNative.jsObjectGet(jsObj, r'id')) as P;
-    case r'name':
-      return (IsarNative.jsObjectGet(jsObj, r'name') ?? '') as P;
     default:
       throw IsarError('Illegal propertyName');
   }
 }
 
-void _discountAttachLinks(
-    IsarCollection<dynamic> col, int id, Discount object) {}
+Id _discountGetId(Discount object) {
+  return object.id;
+}
+
+List<IsarLinkBase<dynamic>> _discountGetLinks(Discount object) {
+  return [];
+}
+
+void _discountAttach(IsarCollection<dynamic> col, Id id, Discount object) {
+  object.id = id;
+}
 
 extension DiscountQueryWhereSort on QueryBuilder<Discount, Discount, QWhere> {
   QueryBuilder<Discount, Discount, QAfterWhere> anyId() {
@@ -328,35 +333,72 @@ extension DiscountQueryFilter
     });
   }
 
-  QueryBuilder<Discount, Discount, QAfterFilterCondition> amountGreaterThan(
-      double? value) {
+  QueryBuilder<Discount, Discount, QAfterFilterCondition> amountIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'amount',
+      ));
+    });
+  }
+
+  QueryBuilder<Discount, Discount, QAfterFilterCondition> amountEqualTo(
+    double? value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
         property: r'amount',
         value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Discount, Discount, QAfterFilterCondition> amountGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'amount',
+        value: value,
+        epsilon: epsilon,
       ));
     });
   }
 
   QueryBuilder<Discount, Discount, QAfterFilterCondition> amountLessThan(
-      double? value) {
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
         property: r'amount',
         value: value,
+        epsilon: epsilon,
       ));
     });
   }
 
   QueryBuilder<Discount, Discount, QAfterFilterCondition> amountBetween(
-      double? lower, double? upper) {
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
         property: r'amount',
         lower: lower,
-        includeLower: false,
+        includeLower: includeLower,
         upper: upper,
-        includeUpper: false,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
       ));
     });
   }
@@ -481,8 +523,8 @@ extension DiscountQueryFilter
 
   QueryBuilder<Discount, Discount, QAfterFilterCondition> nameGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -496,8 +538,8 @@ extension DiscountQueryFilter
 
   QueryBuilder<Discount, Discount, QAfterFilterCondition> nameLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -512,9 +554,9 @@ extension DiscountQueryFilter
   QueryBuilder<Discount, Discount, QAfterFilterCondition> nameBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -577,13 +619,33 @@ extension DiscountQueryFilter
       ));
     });
   }
+
+  QueryBuilder<Discount, Discount, QAfterFilterCondition> nameIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'name',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Discount, Discount, QAfterFilterCondition> nameIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'name',
+        value: '',
+      ));
+    });
+  }
 }
+
+extension DiscountQueryObject
+    on QueryBuilder<Discount, Discount, QFilterCondition> {}
 
 extension DiscountQueryLinks
     on QueryBuilder<Discount, Discount, QFilterCondition> {}
 
-extension DiscountQueryWhereSortBy
-    on QueryBuilder<Discount, Discount, QSortBy> {
+extension DiscountQuerySortBy on QueryBuilder<Discount, Discount, QSortBy> {
   QueryBuilder<Discount, Discount, QAfterSortBy> sortByAmount() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'amount', Sort.asc);
@@ -621,7 +683,7 @@ extension DiscountQueryWhereSortBy
   }
 }
 
-extension DiscountQueryWhereSortThenBy
+extension DiscountQuerySortThenBy
     on QueryBuilder<Discount, Discount, QSortThenBy> {
   QueryBuilder<Discount, Discount, QAfterSortBy> thenByAmount() {
     return QueryBuilder.apply(this, (query) {

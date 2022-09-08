@@ -7,397 +7,516 @@ part of flipper_models;
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
 
 extension GetBusinessCollection on Isar {
-  IsarCollection<Business> get business => collection();
+  IsarCollection<Business> get business => this.collection();
 }
 
 const BusinessSchema = CollectionSchema(
   name: r'Business',
-  schema:
-      r'{"name":"Business","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"adrs","type":"String"},{"name":"backUpEnabled","type":"Bool"},{"name":"backupFileId","type":"String"},{"name":"bhfId","type":"String"},{"name":"businessUrl","type":"String"},{"name":"categoryId","type":"String"},{"name":"channels","type":"StringList"},{"name":"chatUid","type":"String"},{"name":"country","type":"String"},{"name":"createdAt","type":"String"},{"name":"currency","type":"String"},{"name":"deviceToken","type":"String"},{"name":"dvcSrlNo","type":"String"},{"name":"email","type":"String"},{"name":"firstName","type":"String"},{"name":"fullName","type":"String"},{"name":"hexColor","type":"String"},{"name":"imageUrl","type":"String"},{"name":"isDefault","type":"Bool"},{"name":"isLastSubscriptionPaymentSucceeded","type":"Bool"},{"name":"lastDbBackup","type":"String"},{"name":"lastName","type":"String"},{"name":"lastSeen","type":"Long"},{"name":"latitude","type":"String"},{"name":"longitude","type":"String"},{"name":"metadata","type":"String"},{"name":"name","type":"String"},{"name":"nextBillingDate","type":"String"},{"name":"previousBillingDate","type":"String"},{"name":"role","type":"String"},{"name":"subscriptionPlan","type":"String"},{"name":"table","type":"String"},{"name":"taxEnabled","type":"Bool"},{"name":"taxServerUrl","type":"String"},{"name":"timeZone","type":"String"},{"name":"tinNumber","type":"Long"},{"name":"type","type":"String"},{"name":"typeId","type":"String"},{"name":"userId","type":"String"}],"indexes":[{"name":"userId","unique":false,"replace":false,"properties":[{"name":"userId","type":"Hash","caseSensitive":true}]}],"links":[]}',
-  idName: r'id',
-  propertyIds: {
-    r'active': 0,
-    r'adrs': 1,
-    r'backUpEnabled': 2,
-    r'backupFileId': 3,
-    r'bhfId': 4,
-    r'businessUrl': 5,
-    r'categoryId': 6,
-    r'channels': 7,
-    r'chatUid': 8,
-    r'country': 9,
-    r'createdAt': 10,
-    r'currency': 11,
-    r'deviceToken': 12,
-    r'dvcSrlNo': 13,
-    r'email': 14,
-    r'firstName': 15,
-    r'fullName': 16,
-    r'hexColor': 17,
-    r'imageUrl': 18,
-    r'isDefault': 19,
-    r'isLastSubscriptionPaymentSucceeded': 20,
-    r'lastDbBackup': 21,
-    r'lastName': 22,
-    r'lastSeen': 23,
-    r'latitude': 24,
-    r'longitude': 25,
-    r'metadata': 26,
-    r'name': 27,
-    r'nextBillingDate': 28,
-    r'previousBillingDate': 29,
-    r'role': 30,
-    r'subscriptionPlan': 31,
-    r'table': 32,
-    r'taxEnabled': 33,
-    r'taxServerUrl': 34,
-    r'timeZone': 35,
-    r'tinNumber': 36,
-    r'type': 37,
-    r'typeId': 38,
-    r'userId': 39
+  id: -8587991543652827682,
+  properties: {
+    r'active': PropertySchema(
+      id: 0,
+      name: r'active',
+      type: IsarType.bool,
+    ),
+    r'adrs': PropertySchema(
+      id: 1,
+      name: r'adrs',
+      type: IsarType.string,
+    ),
+    r'backUpEnabled': PropertySchema(
+      id: 2,
+      name: r'backUpEnabled',
+      type: IsarType.bool,
+    ),
+    r'backupFileId': PropertySchema(
+      id: 3,
+      name: r'backupFileId',
+      type: IsarType.string,
+    ),
+    r'bhfId': PropertySchema(
+      id: 4,
+      name: r'bhfId',
+      type: IsarType.string,
+    ),
+    r'businessUrl': PropertySchema(
+      id: 5,
+      name: r'businessUrl',
+      type: IsarType.string,
+    ),
+    r'categoryId': PropertySchema(
+      id: 6,
+      name: r'categoryId',
+      type: IsarType.string,
+    ),
+    r'channels': PropertySchema(
+      id: 7,
+      name: r'channels',
+      type: IsarType.stringList,
+    ),
+    r'chatUid': PropertySchema(
+      id: 8,
+      name: r'chatUid',
+      type: IsarType.string,
+    ),
+    r'country': PropertySchema(
+      id: 9,
+      name: r'country',
+      type: IsarType.string,
+    ),
+    r'createdAt': PropertySchema(
+      id: 10,
+      name: r'createdAt',
+      type: IsarType.string,
+    ),
+    r'currency': PropertySchema(
+      id: 11,
+      name: r'currency',
+      type: IsarType.string,
+    ),
+    r'deviceToken': PropertySchema(
+      id: 12,
+      name: r'deviceToken',
+      type: IsarType.string,
+    ),
+    r'dvcSrlNo': PropertySchema(
+      id: 13,
+      name: r'dvcSrlNo',
+      type: IsarType.string,
+    ),
+    r'email': PropertySchema(
+      id: 14,
+      name: r'email',
+      type: IsarType.string,
+    ),
+    r'firstName': PropertySchema(
+      id: 15,
+      name: r'firstName',
+      type: IsarType.string,
+    ),
+    r'fullName': PropertySchema(
+      id: 16,
+      name: r'fullName',
+      type: IsarType.string,
+    ),
+    r'hexColor': PropertySchema(
+      id: 17,
+      name: r'hexColor',
+      type: IsarType.string,
+    ),
+    r'imageUrl': PropertySchema(
+      id: 18,
+      name: r'imageUrl',
+      type: IsarType.string,
+    ),
+    r'isDefault': PropertySchema(
+      id: 19,
+      name: r'isDefault',
+      type: IsarType.bool,
+    ),
+    r'isLastSubscriptionPaymentSucceeded': PropertySchema(
+      id: 20,
+      name: r'isLastSubscriptionPaymentSucceeded',
+      type: IsarType.bool,
+    ),
+    r'lastDbBackup': PropertySchema(
+      id: 21,
+      name: r'lastDbBackup',
+      type: IsarType.string,
+    ),
+    r'lastName': PropertySchema(
+      id: 22,
+      name: r'lastName',
+      type: IsarType.string,
+    ),
+    r'lastSeen': PropertySchema(
+      id: 23,
+      name: r'lastSeen',
+      type: IsarType.long,
+    ),
+    r'latitude': PropertySchema(
+      id: 24,
+      name: r'latitude',
+      type: IsarType.string,
+    ),
+    r'longitude': PropertySchema(
+      id: 25,
+      name: r'longitude',
+      type: IsarType.string,
+    ),
+    r'metadata': PropertySchema(
+      id: 26,
+      name: r'metadata',
+      type: IsarType.string,
+    ),
+    r'name': PropertySchema(
+      id: 27,
+      name: r'name',
+      type: IsarType.string,
+    ),
+    r'nextBillingDate': PropertySchema(
+      id: 28,
+      name: r'nextBillingDate',
+      type: IsarType.string,
+    ),
+    r'previousBillingDate': PropertySchema(
+      id: 29,
+      name: r'previousBillingDate',
+      type: IsarType.string,
+    ),
+    r'role': PropertySchema(
+      id: 30,
+      name: r'role',
+      type: IsarType.string,
+    ),
+    r'subscriptionPlan': PropertySchema(
+      id: 31,
+      name: r'subscriptionPlan',
+      type: IsarType.string,
+    ),
+    r'table': PropertySchema(
+      id: 32,
+      name: r'table',
+      type: IsarType.string,
+    ),
+    r'taxEnabled': PropertySchema(
+      id: 33,
+      name: r'taxEnabled',
+      type: IsarType.bool,
+    ),
+    r'taxServerUrl': PropertySchema(
+      id: 34,
+      name: r'taxServerUrl',
+      type: IsarType.string,
+    ),
+    r'timeZone': PropertySchema(
+      id: 35,
+      name: r'timeZone',
+      type: IsarType.string,
+    ),
+    r'tinNumber': PropertySchema(
+      id: 36,
+      name: r'tinNumber',
+      type: IsarType.long,
+    ),
+    r'type': PropertySchema(
+      id: 37,
+      name: r'type',
+      type: IsarType.string,
+    ),
+    r'typeId': PropertySchema(
+      id: 38,
+      name: r'typeId',
+      type: IsarType.string,
+    ),
+    r'userId': PropertySchema(
+      id: 39,
+      name: r'userId',
+      type: IsarType.string,
+    )
   },
-  listProperties: {r'channels'},
-  indexIds: {r'userId': 0},
-  indexValueTypes: {
-    r'userId': [
-      IndexValueType.stringHash,
-    ]
-  },
-  linkIds: {},
-  backlinkLinkNames: {},
-  getId: _businessGetId,
-  setId: _businessSetId,
-  getLinks: _businessGetLinks,
-  attachLinks: _businessAttachLinks,
+  estimateSize: _businessEstimateSize,
   serializeNative: _businessSerializeNative,
   deserializeNative: _businessDeserializeNative,
   deserializePropNative: _businessDeserializePropNative,
   serializeWeb: _businessSerializeWeb,
   deserializeWeb: _businessDeserializeWeb,
   deserializePropWeb: _businessDeserializePropWeb,
-  version: 4,
+  idName: r'id',
+  indexes: {
+    r'userId': IndexSchema(
+      id: -2005826577402374815,
+      name: r'userId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'userId',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
+    )
+  },
+  links: {},
+  embeddedSchemas: {},
+  getId: _businessGetId,
+  getLinks: _businessGetLinks,
+  attach: _businessAttach,
+  version: '3.0.0-dev.14',
 );
 
-int? _businessGetId(Business object) {
-  if (object.id == Isar.autoIncrement) {
-    return null;
-  } else {
-    return object.id;
-  }
-}
-
-void _businessSetId(Business object, int id) {
-  object.id = id;
-}
-
-List<IsarLinkBase<dynamic>> _businessGetLinks(Business object) {
-  return [];
-}
-
-void _businessSerializeNative(
-    IsarCollection<Business> collection,
-    IsarCObject cObj,
-    Business object,
-    int staticSize,
-    List<int> offsets,
-    AdapterAlloc alloc) {
-  IsarUint8List? adrs$Bytes;
-  final adrs$Value = object.adrs;
-  if (adrs$Value != null) {
-    adrs$Bytes = IsarBinaryWriter.utf8Encoder.convert(adrs$Value);
-  }
-  IsarUint8List? backupFileId$Bytes;
-  final backupFileId$Value = object.backupFileId;
-  if (backupFileId$Value != null) {
-    backupFileId$Bytes =
-        IsarBinaryWriter.utf8Encoder.convert(backupFileId$Value);
-  }
-  IsarUint8List? bhfId$Bytes;
-  final bhfId$Value = object.bhfId;
-  if (bhfId$Value != null) {
-    bhfId$Bytes = IsarBinaryWriter.utf8Encoder.convert(bhfId$Value);
-  }
-  IsarUint8List? businessUrl$Bytes;
-  final businessUrl$Value = object.businessUrl;
-  if (businessUrl$Value != null) {
-    businessUrl$Bytes = IsarBinaryWriter.utf8Encoder.convert(businessUrl$Value);
-  }
-  IsarUint8List? categoryId$Bytes;
-  final categoryId$Value = object.categoryId;
-  if (categoryId$Value != null) {
-    categoryId$Bytes = IsarBinaryWriter.utf8Encoder.convert(categoryId$Value);
-  }
-  var channels$BytesCount = 3 + (object.channels?.length ?? 0) * 3;
-  List<IsarUint8List?>? channels$BytesList;
-  final channels$Value = object.channels;
-  if (channels$Value != null) {
-    channels$BytesList = [];
-    for (final str in channels$Value) {
-      final bytes = IsarBinaryWriter.utf8Encoder.convert(str);
-      channels$BytesList.add(bytes);
-      channels$BytesCount += bytes.length as int;
+int _businessEstimateSize(
+  Business object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  {
+    final value = object.adrs;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
     }
   }
-  IsarUint8List? chatUid$Bytes;
-  final chatUid$Value = object.chatUid;
-  if (chatUid$Value != null) {
-    chatUid$Bytes = IsarBinaryWriter.utf8Encoder.convert(chatUid$Value);
+  {
+    final value = object.backupFileId;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
   }
-  IsarUint8List? country$Bytes;
-  final country$Value = object.country;
-  if (country$Value != null) {
-    country$Bytes = IsarBinaryWriter.utf8Encoder.convert(country$Value);
+  {
+    final value = object.bhfId;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
   }
-  IsarUint8List? createdAt$Bytes;
-  final createdAt$Value = object.createdAt;
-  if (createdAt$Value != null) {
-    createdAt$Bytes = IsarBinaryWriter.utf8Encoder.convert(createdAt$Value);
+  {
+    final value = object.businessUrl;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
   }
-  IsarUint8List? currency$Bytes;
-  final currency$Value = object.currency;
-  if (currency$Value != null) {
-    currency$Bytes = IsarBinaryWriter.utf8Encoder.convert(currency$Value);
+  {
+    final value = object.categoryId;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
   }
-  IsarUint8List? deviceToken$Bytes;
-  final deviceToken$Value = object.deviceToken;
-  if (deviceToken$Value != null) {
-    deviceToken$Bytes = IsarBinaryWriter.utf8Encoder.convert(deviceToken$Value);
+  {
+    final list = object.channels;
+    if (list != null) {
+      bytesCount += 3 + list.length * 3;
+      {
+        for (var i = 0; i < list.length; i++) {
+          final value = list[i];
+          bytesCount += value.length * 3;
+        }
+      }
+    }
   }
-  IsarUint8List? dvcSrlNo$Bytes;
-  final dvcSrlNo$Value = object.dvcSrlNo;
-  if (dvcSrlNo$Value != null) {
-    dvcSrlNo$Bytes = IsarBinaryWriter.utf8Encoder.convert(dvcSrlNo$Value);
+  {
+    final value = object.chatUid;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
   }
-  IsarUint8List? email$Bytes;
-  final email$Value = object.email;
-  if (email$Value != null) {
-    email$Bytes = IsarBinaryWriter.utf8Encoder.convert(email$Value);
+  {
+    final value = object.country;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
   }
-  IsarUint8List? firstName$Bytes;
-  final firstName$Value = object.firstName;
-  if (firstName$Value != null) {
-    firstName$Bytes = IsarBinaryWriter.utf8Encoder.convert(firstName$Value);
+  {
+    final value = object.createdAt;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
   }
-  IsarUint8List? fullName$Bytes;
-  final fullName$Value = object.fullName;
-  if (fullName$Value != null) {
-    fullName$Bytes = IsarBinaryWriter.utf8Encoder.convert(fullName$Value);
+  {
+    final value = object.currency;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
   }
-  IsarUint8List? hexColor$Bytes;
-  final hexColor$Value = object.hexColor;
-  if (hexColor$Value != null) {
-    hexColor$Bytes = IsarBinaryWriter.utf8Encoder.convert(hexColor$Value);
+  {
+    final value = object.deviceToken;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
   }
-  IsarUint8List? imageUrl$Bytes;
-  final imageUrl$Value = object.imageUrl;
-  if (imageUrl$Value != null) {
-    imageUrl$Bytes = IsarBinaryWriter.utf8Encoder.convert(imageUrl$Value);
+  {
+    final value = object.dvcSrlNo;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
   }
-  IsarUint8List? lastDbBackup$Bytes;
-  final lastDbBackup$Value = object.lastDbBackup;
-  if (lastDbBackup$Value != null) {
-    lastDbBackup$Bytes =
-        IsarBinaryWriter.utf8Encoder.convert(lastDbBackup$Value);
+  {
+    final value = object.email;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
   }
-  IsarUint8List? lastName$Bytes;
-  final lastName$Value = object.lastName;
-  if (lastName$Value != null) {
-    lastName$Bytes = IsarBinaryWriter.utf8Encoder.convert(lastName$Value);
+  {
+    final value = object.firstName;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
   }
-  IsarUint8List? latitude$Bytes;
-  final latitude$Value = object.latitude;
-  if (latitude$Value != null) {
-    latitude$Bytes = IsarBinaryWriter.utf8Encoder.convert(latitude$Value);
+  {
+    final value = object.fullName;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
   }
-  IsarUint8List? longitude$Bytes;
-  final longitude$Value = object.longitude;
-  if (longitude$Value != null) {
-    longitude$Bytes = IsarBinaryWriter.utf8Encoder.convert(longitude$Value);
+  {
+    final value = object.hexColor;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
   }
-  IsarUint8List? metadata$Bytes;
-  final metadata$Value = object.metadata;
-  if (metadata$Value != null) {
-    metadata$Bytes = IsarBinaryWriter.utf8Encoder.convert(metadata$Value);
+  {
+    final value = object.imageUrl;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
   }
-  IsarUint8List? name$Bytes;
-  final name$Value = object.name;
-  if (name$Value != null) {
-    name$Bytes = IsarBinaryWriter.utf8Encoder.convert(name$Value);
+  {
+    final value = object.lastDbBackup;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
   }
-  IsarUint8List? nextBillingDate$Bytes;
-  final nextBillingDate$Value = object.nextBillingDate;
-  if (nextBillingDate$Value != null) {
-    nextBillingDate$Bytes =
-        IsarBinaryWriter.utf8Encoder.convert(nextBillingDate$Value);
+  {
+    final value = object.lastName;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
   }
-  IsarUint8List? previousBillingDate$Bytes;
-  final previousBillingDate$Value = object.previousBillingDate;
-  if (previousBillingDate$Value != null) {
-    previousBillingDate$Bytes =
-        IsarBinaryWriter.utf8Encoder.convert(previousBillingDate$Value);
+  {
+    final value = object.latitude;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
   }
-  IsarUint8List? role$Bytes;
-  final role$Value = object.role;
-  if (role$Value != null) {
-    role$Bytes = IsarBinaryWriter.utf8Encoder.convert(role$Value);
+  {
+    final value = object.longitude;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
   }
-  IsarUint8List? subscriptionPlan$Bytes;
-  final subscriptionPlan$Value = object.subscriptionPlan;
-  if (subscriptionPlan$Value != null) {
-    subscriptionPlan$Bytes =
-        IsarBinaryWriter.utf8Encoder.convert(subscriptionPlan$Value);
+  {
+    final value = object.metadata;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
   }
-  IsarUint8List? table$Bytes;
-  final table$Value = object.table;
-  if (table$Value != null) {
-    table$Bytes = IsarBinaryWriter.utf8Encoder.convert(table$Value);
+  {
+    final value = object.name;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
   }
-  IsarUint8List? taxServerUrl$Bytes;
-  final taxServerUrl$Value = object.taxServerUrl;
-  if (taxServerUrl$Value != null) {
-    taxServerUrl$Bytes =
-        IsarBinaryWriter.utf8Encoder.convert(taxServerUrl$Value);
+  {
+    final value = object.nextBillingDate;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
   }
-  IsarUint8List? timeZone$Bytes;
-  final timeZone$Value = object.timeZone;
-  if (timeZone$Value != null) {
-    timeZone$Bytes = IsarBinaryWriter.utf8Encoder.convert(timeZone$Value);
+  {
+    final value = object.previousBillingDate;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
   }
-  IsarUint8List? type$Bytes;
-  final type$Value = object.type;
-  if (type$Value != null) {
-    type$Bytes = IsarBinaryWriter.utf8Encoder.convert(type$Value);
+  {
+    final value = object.role;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
   }
-  IsarUint8List? typeId$Bytes;
-  final typeId$Value = object.typeId;
-  if (typeId$Value != null) {
-    typeId$Bytes = IsarBinaryWriter.utf8Encoder.convert(typeId$Value);
+  {
+    final value = object.subscriptionPlan;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
   }
-  IsarUint8List? userId$Bytes;
-  final userId$Value = object.userId;
-  if (userId$Value != null) {
-    userId$Bytes = IsarBinaryWriter.utf8Encoder.convert(userId$Value);
+  {
+    final value = object.table;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
   }
-  final size = (staticSize +
-      3 +
-      (adrs$Bytes?.length ?? 0) +
-      3 +
-      (backupFileId$Bytes?.length ?? 0) +
-      3 +
-      (bhfId$Bytes?.length ?? 0) +
-      3 +
-      (businessUrl$Bytes?.length ?? 0) +
-      3 +
-      (categoryId$Bytes?.length ?? 0) +
-      channels$BytesCount +
-      3 +
-      (chatUid$Bytes?.length ?? 0) +
-      3 +
-      (country$Bytes?.length ?? 0) +
-      3 +
-      (createdAt$Bytes?.length ?? 0) +
-      3 +
-      (currency$Bytes?.length ?? 0) +
-      3 +
-      (deviceToken$Bytes?.length ?? 0) +
-      3 +
-      (dvcSrlNo$Bytes?.length ?? 0) +
-      3 +
-      (email$Bytes?.length ?? 0) +
-      3 +
-      (firstName$Bytes?.length ?? 0) +
-      3 +
-      (fullName$Bytes?.length ?? 0) +
-      3 +
-      (hexColor$Bytes?.length ?? 0) +
-      3 +
-      (imageUrl$Bytes?.length ?? 0) +
-      3 +
-      (lastDbBackup$Bytes?.length ?? 0) +
-      3 +
-      (lastName$Bytes?.length ?? 0) +
-      3 +
-      (latitude$Bytes?.length ?? 0) +
-      3 +
-      (longitude$Bytes?.length ?? 0) +
-      3 +
-      (metadata$Bytes?.length ?? 0) +
-      3 +
-      (name$Bytes?.length ?? 0) +
-      3 +
-      (nextBillingDate$Bytes?.length ?? 0) +
-      3 +
-      (previousBillingDate$Bytes?.length ?? 0) +
-      3 +
-      (role$Bytes?.length ?? 0) +
-      3 +
-      (subscriptionPlan$Bytes?.length ?? 0) +
-      3 +
-      (table$Bytes?.length ?? 0) +
-      3 +
-      (taxServerUrl$Bytes?.length ?? 0) +
-      3 +
-      (timeZone$Bytes?.length ?? 0) +
-      3 +
-      (type$Bytes?.length ?? 0) +
-      3 +
-      (typeId$Bytes?.length ?? 0) +
-      3 +
-      (userId$Bytes?.length ?? 0)) as int;
-  cObj.buffer = alloc(size);
-  cObj.buffer_length = size;
-
-  final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
-  final writer = IsarBinaryWriter(buffer, staticSize);
-  writer.writeHeader();
-  writer.writeBool(offsets[0], object.active);
-  writer.writeByteList(offsets[1], adrs$Bytes);
-  writer.writeBool(offsets[2], object.backUpEnabled);
-  writer.writeByteList(offsets[3], backupFileId$Bytes);
-  writer.writeByteList(offsets[4], bhfId$Bytes);
-  writer.writeByteList(offsets[5], businessUrl$Bytes);
-  writer.writeByteList(offsets[6], categoryId$Bytes);
-  writer.writeByteLists(offsets[7], channels$BytesList);
-  writer.writeByteList(offsets[8], chatUid$Bytes);
-  writer.writeByteList(offsets[9], country$Bytes);
-  writer.writeByteList(offsets[10], createdAt$Bytes);
-  writer.writeByteList(offsets[11], currency$Bytes);
-  writer.writeByteList(offsets[12], deviceToken$Bytes);
-  writer.writeByteList(offsets[13], dvcSrlNo$Bytes);
-  writer.writeByteList(offsets[14], email$Bytes);
-  writer.writeByteList(offsets[15], firstName$Bytes);
-  writer.writeByteList(offsets[16], fullName$Bytes);
-  writer.writeByteList(offsets[17], hexColor$Bytes);
-  writer.writeByteList(offsets[18], imageUrl$Bytes);
-  writer.writeBool(offsets[19], object.isDefault);
-  writer.writeBool(offsets[20], object.isLastSubscriptionPaymentSucceeded);
-  writer.writeByteList(offsets[21], lastDbBackup$Bytes);
-  writer.writeByteList(offsets[22], lastName$Bytes);
-  writer.writeLong(offsets[23], object.lastSeen);
-  writer.writeByteList(offsets[24], latitude$Bytes);
-  writer.writeByteList(offsets[25], longitude$Bytes);
-  writer.writeByteList(offsets[26], metadata$Bytes);
-  writer.writeByteList(offsets[27], name$Bytes);
-  writer.writeByteList(offsets[28], nextBillingDate$Bytes);
-  writer.writeByteList(offsets[29], previousBillingDate$Bytes);
-  writer.writeByteList(offsets[30], role$Bytes);
-  writer.writeByteList(offsets[31], subscriptionPlan$Bytes);
-  writer.writeByteList(offsets[32], table$Bytes);
-  writer.writeBool(offsets[33], object.taxEnabled);
-  writer.writeByteList(offsets[34], taxServerUrl$Bytes);
-  writer.writeByteList(offsets[35], timeZone$Bytes);
-  writer.writeLong(offsets[36], object.tinNumber);
-  writer.writeByteList(offsets[37], type$Bytes);
-  writer.writeByteList(offsets[38], typeId$Bytes);
-  writer.writeByteList(offsets[39], userId$Bytes);
+  {
+    final value = object.taxServerUrl;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.timeZone;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.type;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.typeId;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.userId;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  return bytesCount;
 }
 
-Business _businessDeserializeNative(IsarCollection<Business> collection, int id,
-    IsarBinaryReader reader, List<int> offsets) {
+int _businessSerializeNative(
+  Business object,
+  IsarBinaryWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  writer.writeBool(offsets[0], object.active);
+  writer.writeString(offsets[1], object.adrs);
+  writer.writeBool(offsets[2], object.backUpEnabled);
+  writer.writeString(offsets[3], object.backupFileId);
+  writer.writeString(offsets[4], object.bhfId);
+  writer.writeString(offsets[5], object.businessUrl);
+  writer.writeString(offsets[6], object.categoryId);
+  writer.writeStringList(offsets[7], object.channels);
+  writer.writeString(offsets[8], object.chatUid);
+  writer.writeString(offsets[9], object.country);
+  writer.writeString(offsets[10], object.createdAt);
+  writer.writeString(offsets[11], object.currency);
+  writer.writeString(offsets[12], object.deviceToken);
+  writer.writeString(offsets[13], object.dvcSrlNo);
+  writer.writeString(offsets[14], object.email);
+  writer.writeString(offsets[15], object.firstName);
+  writer.writeString(offsets[16], object.fullName);
+  writer.writeString(offsets[17], object.hexColor);
+  writer.writeString(offsets[18], object.imageUrl);
+  writer.writeBool(offsets[19], object.isDefault);
+  writer.writeBool(offsets[20], object.isLastSubscriptionPaymentSucceeded);
+  writer.writeString(offsets[21], object.lastDbBackup);
+  writer.writeString(offsets[22], object.lastName);
+  writer.writeLong(offsets[23], object.lastSeen);
+  writer.writeString(offsets[24], object.latitude);
+  writer.writeString(offsets[25], object.longitude);
+  writer.writeString(offsets[26], object.metadata);
+  writer.writeString(offsets[27], object.name);
+  writer.writeString(offsets[28], object.nextBillingDate);
+  writer.writeString(offsets[29], object.previousBillingDate);
+  writer.writeString(offsets[30], object.role);
+  writer.writeString(offsets[31], object.subscriptionPlan);
+  writer.writeString(offsets[32], object.table);
+  writer.writeBool(offsets[33], object.taxEnabled);
+  writer.writeString(offsets[34], object.taxServerUrl);
+  writer.writeString(offsets[35], object.timeZone);
+  writer.writeLong(offsets[36], object.tinNumber);
+  writer.writeString(offsets[37], object.type);
+  writer.writeString(offsets[38], object.typeId);
+  writer.writeString(offsets[39], object.userId);
+  return writer.usedBytes;
+}
+
+Business _businessDeserializeNative(
+  Id id,
+  IsarBinaryReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
   final object = Business(
     active: reader.readBoolOrNull(offsets[0]),
     adrs: reader.readStringOrNull(offsets[1]),
@@ -445,10 +564,12 @@ Business _businessDeserializeNative(IsarCollection<Business> collection, int id,
 }
 
 P _businessDeserializePropNative<P>(
-    int id, IsarBinaryReader reader, int propertyIndex, int offset) {
-  switch (propertyIndex) {
-    case -1:
-      return id as P;
+  IsarBinaryReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
     case 0:
       return (reader.readBoolOrNull(offset)) as P;
     case 1:
@@ -530,206 +651,40 @@ P _businessDeserializePropNative<P>(
     case 39:
       return (reader.readStringOrNull(offset)) as P;
     default:
-      throw IsarError('Illegal propertyIndex');
+      throw IsarError('Unknown property with id $propertyId');
   }
 }
 
 Object _businessSerializeWeb(
     IsarCollection<Business> collection, Business object) {
-  final jsObj = IsarNative.newJsObject();
-  IsarNative.jsObjectSet(jsObj, r'active', object.active);
-  IsarNative.jsObjectSet(jsObj, r'adrs', object.adrs);
-  IsarNative.jsObjectSet(jsObj, r'backUpEnabled', object.backUpEnabled);
-  IsarNative.jsObjectSet(jsObj, r'backupFileId', object.backupFileId);
-  IsarNative.jsObjectSet(jsObj, r'bhfId', object.bhfId);
-  IsarNative.jsObjectSet(jsObj, r'businessUrl', object.businessUrl);
-  IsarNative.jsObjectSet(jsObj, r'categoryId', object.categoryId);
-  IsarNative.jsObjectSet(jsObj, r'channels', object.channels);
-  IsarNative.jsObjectSet(jsObj, r'chatUid', object.chatUid);
-  IsarNative.jsObjectSet(jsObj, r'country', object.country);
-  IsarNative.jsObjectSet(jsObj, r'createdAt', object.createdAt);
-  IsarNative.jsObjectSet(jsObj, r'currency', object.currency);
-  IsarNative.jsObjectSet(jsObj, r'deviceToken', object.deviceToken);
-  IsarNative.jsObjectSet(jsObj, r'dvcSrlNo', object.dvcSrlNo);
-  IsarNative.jsObjectSet(jsObj, r'email', object.email);
-  IsarNative.jsObjectSet(jsObj, r'firstName', object.firstName);
-  IsarNative.jsObjectSet(jsObj, r'fullName', object.fullName);
-  IsarNative.jsObjectSet(jsObj, r'hexColor', object.hexColor);
-  IsarNative.jsObjectSet(jsObj, r'id', object.id);
-  IsarNative.jsObjectSet(jsObj, r'imageUrl', object.imageUrl);
-  IsarNative.jsObjectSet(jsObj, r'isDefault', object.isDefault);
-  IsarNative.jsObjectSet(jsObj, r'isLastSubscriptionPaymentSucceeded',
-      object.isLastSubscriptionPaymentSucceeded);
-  IsarNative.jsObjectSet(jsObj, r'lastDbBackup', object.lastDbBackup);
-  IsarNative.jsObjectSet(jsObj, r'lastName', object.lastName);
-  IsarNative.jsObjectSet(jsObj, r'lastSeen', object.lastSeen);
-  IsarNative.jsObjectSet(jsObj, r'latitude', object.latitude);
-  IsarNative.jsObjectSet(jsObj, r'longitude', object.longitude);
-  IsarNative.jsObjectSet(jsObj, r'metadata', object.metadata);
-  IsarNative.jsObjectSet(jsObj, r'name', object.name);
-  IsarNative.jsObjectSet(jsObj, r'nextBillingDate', object.nextBillingDate);
-  IsarNative.jsObjectSet(
-      jsObj, r'previousBillingDate', object.previousBillingDate);
-  IsarNative.jsObjectSet(jsObj, r'role', object.role);
-  IsarNative.jsObjectSet(jsObj, r'subscriptionPlan', object.subscriptionPlan);
-  IsarNative.jsObjectSet(jsObj, r'table', object.table);
-  IsarNative.jsObjectSet(jsObj, r'taxEnabled', object.taxEnabled);
-  IsarNative.jsObjectSet(jsObj, r'taxServerUrl', object.taxServerUrl);
-  IsarNative.jsObjectSet(jsObj, r'timeZone', object.timeZone);
-  IsarNative.jsObjectSet(jsObj, r'tinNumber', object.tinNumber);
-  IsarNative.jsObjectSet(jsObj, r'type', object.type);
-  IsarNative.jsObjectSet(jsObj, r'typeId', object.typeId);
-  IsarNative.jsObjectSet(jsObj, r'userId', object.userId);
-  return jsObj;
+  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
 }
 
 Business _businessDeserializeWeb(
     IsarCollection<Business> collection, Object jsObj) {
-  final object = Business(
-    active: IsarNative.jsObjectGet(jsObj, r'active'),
-    adrs: IsarNative.jsObjectGet(jsObj, r'adrs'),
-    backUpEnabled: IsarNative.jsObjectGet(jsObj, r'backUpEnabled'),
-    backupFileId: IsarNative.jsObjectGet(jsObj, r'backupFileId'),
-    bhfId: IsarNative.jsObjectGet(jsObj, r'bhfId'),
-    businessUrl: IsarNative.jsObjectGet(jsObj, r'businessUrl'),
-    categoryId: IsarNative.jsObjectGet(jsObj, r'categoryId'),
-    channels: (IsarNative.jsObjectGet(jsObj, r'channels') as List?)
-        ?.map((e) => e ?? '')
-        .toList()
-        .cast<String>(),
-    chatUid: IsarNative.jsObjectGet(jsObj, r'chatUid'),
-    country: IsarNative.jsObjectGet(jsObj, r'country'),
-    currency: IsarNative.jsObjectGet(jsObj, r'currency'),
-    deviceToken: IsarNative.jsObjectGet(jsObj, r'deviceToken'),
-    dvcSrlNo: IsarNative.jsObjectGet(jsObj, r'dvcSrlNo'),
-    email: IsarNative.jsObjectGet(jsObj, r'email'),
-    firstName: IsarNative.jsObjectGet(jsObj, r'firstName'),
-    fullName: IsarNative.jsObjectGet(jsObj, r'fullName'),
-    hexColor: IsarNative.jsObjectGet(jsObj, r'hexColor'),
-    id: IsarNative.jsObjectGet(jsObj, r'id'),
-    imageUrl: IsarNative.jsObjectGet(jsObj, r'imageUrl'),
-    isDefault: IsarNative.jsObjectGet(jsObj, r'isDefault'),
-    isLastSubscriptionPaymentSucceeded:
-        IsarNative.jsObjectGet(jsObj, r'isLastSubscriptionPaymentSucceeded'),
-    lastDbBackup: IsarNative.jsObjectGet(jsObj, r'lastDbBackup'),
-    lastName: IsarNative.jsObjectGet(jsObj, r'lastName'),
-    lastSeen: IsarNative.jsObjectGet(jsObj, r'lastSeen'),
-    latitude: IsarNative.jsObjectGet(jsObj, r'latitude'),
-    longitude: IsarNative.jsObjectGet(jsObj, r'longitude'),
-    metadata: IsarNative.jsObjectGet(jsObj, r'metadata'),
-    name: IsarNative.jsObjectGet(jsObj, r'name'),
-    nextBillingDate: IsarNative.jsObjectGet(jsObj, r'nextBillingDate'),
-    previousBillingDate: IsarNative.jsObjectGet(jsObj, r'previousBillingDate'),
-    role: IsarNative.jsObjectGet(jsObj, r'role'),
-    subscriptionPlan: IsarNative.jsObjectGet(jsObj, r'subscriptionPlan'),
-    table: IsarNative.jsObjectGet(jsObj, r'table'),
-    taxEnabled: IsarNative.jsObjectGet(jsObj, r'taxEnabled'),
-    taxServerUrl: IsarNative.jsObjectGet(jsObj, r'taxServerUrl'),
-    timeZone: IsarNative.jsObjectGet(jsObj, r'timeZone'),
-    tinNumber: IsarNative.jsObjectGet(jsObj, r'tinNumber'),
-    type: IsarNative.jsObjectGet(jsObj, r'type'),
-    typeId: IsarNative.jsObjectGet(jsObj, r'typeId'),
-    userId: IsarNative.jsObjectGet(jsObj, r'userId'),
-  );
-  object.createdAt = IsarNative.jsObjectGet(jsObj, r'createdAt');
-  return object;
+  /*final object = Business(active: IsarNative.jsObjectGet(jsObj, r'active') ,adrs: IsarNative.jsObjectGet(jsObj, r'adrs') ,backUpEnabled: IsarNative.jsObjectGet(jsObj, r'backUpEnabled') ,backupFileId: IsarNative.jsObjectGet(jsObj, r'backupFileId') ,bhfId: IsarNative.jsObjectGet(jsObj, r'bhfId') ,businessUrl: IsarNative.jsObjectGet(jsObj, r'businessUrl') ,categoryId: IsarNative.jsObjectGet(jsObj, r'categoryId') ,channels: (IsarNative.jsObjectGet(jsObj, r'channels') as List?)?.map((e) => e ?? '').toList().cast<String>() ,chatUid: IsarNative.jsObjectGet(jsObj, r'chatUid') ,country: IsarNative.jsObjectGet(jsObj, r'country') ,currency: IsarNative.jsObjectGet(jsObj, r'currency') ,deviceToken: IsarNative.jsObjectGet(jsObj, r'deviceToken') ,dvcSrlNo: IsarNative.jsObjectGet(jsObj, r'dvcSrlNo') ,email: IsarNative.jsObjectGet(jsObj, r'email') ,firstName: IsarNative.jsObjectGet(jsObj, r'firstName') ,fullName: IsarNative.jsObjectGet(jsObj, r'fullName') ,hexColor: IsarNative.jsObjectGet(jsObj, r'hexColor') ,id: IsarNative.jsObjectGet(jsObj, r'id') ,imageUrl: IsarNative.jsObjectGet(jsObj, r'imageUrl') ,isDefault: IsarNative.jsObjectGet(jsObj, r'isDefault') ,isLastSubscriptionPaymentSucceeded: IsarNative.jsObjectGet(jsObj, r'isLastSubscriptionPaymentSucceeded') ,lastDbBackup: IsarNative.jsObjectGet(jsObj, r'lastDbBackup') ,lastName: IsarNative.jsObjectGet(jsObj, r'lastName') ,lastSeen: IsarNative.jsObjectGet(jsObj, r'lastSeen') ,latitude: IsarNative.jsObjectGet(jsObj, r'latitude') ,longitude: IsarNative.jsObjectGet(jsObj, r'longitude') ,metadata: IsarNative.jsObjectGet(jsObj, r'metadata') ,name: IsarNative.jsObjectGet(jsObj, r'name') ,nextBillingDate: IsarNative.jsObjectGet(jsObj, r'nextBillingDate') ,previousBillingDate: IsarNative.jsObjectGet(jsObj, r'previousBillingDate') ,role: IsarNative.jsObjectGet(jsObj, r'role') ,subscriptionPlan: IsarNative.jsObjectGet(jsObj, r'subscriptionPlan') ,table: IsarNative.jsObjectGet(jsObj, r'table') ,taxEnabled: IsarNative.jsObjectGet(jsObj, r'taxEnabled') ,taxServerUrl: IsarNative.jsObjectGet(jsObj, r'taxServerUrl') ,timeZone: IsarNative.jsObjectGet(jsObj, r'timeZone') ,tinNumber: IsarNative.jsObjectGet(jsObj, r'tinNumber') ,type: IsarNative.jsObjectGet(jsObj, r'type') ,typeId: IsarNative.jsObjectGet(jsObj, r'typeId') ,userId: IsarNative.jsObjectGet(jsObj, r'userId') ,);object.createdAt = IsarNative.jsObjectGet(jsObj, r'createdAt') ;*/
+  //return object;
+  throw UnimplementedError();
 }
 
 P _businessDeserializePropWeb<P>(Object jsObj, String propertyName) {
   switch (propertyName) {
-    case r'active':
-      return (IsarNative.jsObjectGet(jsObj, r'active')) as P;
-    case r'adrs':
-      return (IsarNative.jsObjectGet(jsObj, r'adrs')) as P;
-    case r'backUpEnabled':
-      return (IsarNative.jsObjectGet(jsObj, r'backUpEnabled')) as P;
-    case r'backupFileId':
-      return (IsarNative.jsObjectGet(jsObj, r'backupFileId')) as P;
-    case r'bhfId':
-      return (IsarNative.jsObjectGet(jsObj, r'bhfId')) as P;
-    case r'businessUrl':
-      return (IsarNative.jsObjectGet(jsObj, r'businessUrl')) as P;
-    case r'categoryId':
-      return (IsarNative.jsObjectGet(jsObj, r'categoryId')) as P;
-    case r'channels':
-      return ((IsarNative.jsObjectGet(jsObj, r'channels') as List?)
-          ?.map((e) => e ?? '')
-          .toList()
-          .cast<String>()) as P;
-    case r'chatUid':
-      return (IsarNative.jsObjectGet(jsObj, r'chatUid')) as P;
-    case r'country':
-      return (IsarNative.jsObjectGet(jsObj, r'country')) as P;
-    case r'createdAt':
-      return (IsarNative.jsObjectGet(jsObj, r'createdAt')) as P;
-    case r'currency':
-      return (IsarNative.jsObjectGet(jsObj, r'currency')) as P;
-    case r'deviceToken':
-      return (IsarNative.jsObjectGet(jsObj, r'deviceToken')) as P;
-    case r'dvcSrlNo':
-      return (IsarNative.jsObjectGet(jsObj, r'dvcSrlNo')) as P;
-    case r'email':
-      return (IsarNative.jsObjectGet(jsObj, r'email')) as P;
-    case r'firstName':
-      return (IsarNative.jsObjectGet(jsObj, r'firstName')) as P;
-    case r'fullName':
-      return (IsarNative.jsObjectGet(jsObj, r'fullName')) as P;
-    case r'hexColor':
-      return (IsarNative.jsObjectGet(jsObj, r'hexColor')) as P;
-    case r'id':
-      return (IsarNative.jsObjectGet(jsObj, r'id')) as P;
-    case r'imageUrl':
-      return (IsarNative.jsObjectGet(jsObj, r'imageUrl')) as P;
-    case r'isDefault':
-      return (IsarNative.jsObjectGet(jsObj, r'isDefault')) as P;
-    case r'isLastSubscriptionPaymentSucceeded':
-      return (IsarNative.jsObjectGet(
-          jsObj, r'isLastSubscriptionPaymentSucceeded')) as P;
-    case r'lastDbBackup':
-      return (IsarNative.jsObjectGet(jsObj, r'lastDbBackup')) as P;
-    case r'lastName':
-      return (IsarNative.jsObjectGet(jsObj, r'lastName')) as P;
-    case r'lastSeen':
-      return (IsarNative.jsObjectGet(jsObj, r'lastSeen')) as P;
-    case r'latitude':
-      return (IsarNative.jsObjectGet(jsObj, r'latitude')) as P;
-    case r'longitude':
-      return (IsarNative.jsObjectGet(jsObj, r'longitude')) as P;
-    case r'metadata':
-      return (IsarNative.jsObjectGet(jsObj, r'metadata')) as P;
-    case r'name':
-      return (IsarNative.jsObjectGet(jsObj, r'name')) as P;
-    case r'nextBillingDate':
-      return (IsarNative.jsObjectGet(jsObj, r'nextBillingDate')) as P;
-    case r'previousBillingDate':
-      return (IsarNative.jsObjectGet(jsObj, r'previousBillingDate')) as P;
-    case r'role':
-      return (IsarNative.jsObjectGet(jsObj, r'role')) as P;
-    case r'subscriptionPlan':
-      return (IsarNative.jsObjectGet(jsObj, r'subscriptionPlan')) as P;
-    case r'table':
-      return (IsarNative.jsObjectGet(jsObj, r'table')) as P;
-    case r'taxEnabled':
-      return (IsarNative.jsObjectGet(jsObj, r'taxEnabled')) as P;
-    case r'taxServerUrl':
-      return (IsarNative.jsObjectGet(jsObj, r'taxServerUrl')) as P;
-    case r'timeZone':
-      return (IsarNative.jsObjectGet(jsObj, r'timeZone')) as P;
-    case r'tinNumber':
-      return (IsarNative.jsObjectGet(jsObj, r'tinNumber')) as P;
-    case r'type':
-      return (IsarNative.jsObjectGet(jsObj, r'type')) as P;
-    case r'typeId':
-      return (IsarNative.jsObjectGet(jsObj, r'typeId')) as P;
-    case r'userId':
-      return (IsarNative.jsObjectGet(jsObj, r'userId')) as P;
     default:
       throw IsarError('Illegal propertyName');
   }
 }
 
-void _businessAttachLinks(
-    IsarCollection<dynamic> col, int id, Business object) {}
+Id _businessGetId(Business object) {
+  return object.id ?? Isar.autoIncrement;
+}
+
+List<IsarLinkBase<dynamic>> _businessGetLinks(Business object) {
+  return [];
+}
+
+void _businessAttach(IsarCollection<dynamic> col, Id id, Business object) {
+  object.id = id;
+}
 
 extension BusinessQueryWhereSort on QueryBuilder<Business, Business, QWhere> {
   QueryBuilder<Business, Business, QAfterWhere> anyId() {
@@ -805,6 +760,26 @@ extension BusinessQueryWhere on QueryBuilder<Business, Business, QWhereClause> {
     });
   }
 
+  QueryBuilder<Business, Business, QAfterWhereClause> userIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'userId',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterWhereClause> userIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'userId',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterWhereClause> userIdEqualTo(
       String? userId) {
     return QueryBuilder.apply(this, (query) {
@@ -849,26 +824,6 @@ extension BusinessQueryWhere on QueryBuilder<Business, Business, QWhereClause> {
       }
     });
   }
-
-  QueryBuilder<Business, Business, QAfterWhereClause> userIdIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'userId',
-        value: [null],
-      ));
-    });
-  }
-
-  QueryBuilder<Business, Business, QAfterWhereClause> userIdIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'userId',
-        lower: [null],
-        includeLower: false,
-        upper: [],
-      ));
-    });
-  }
 }
 
 extension BusinessQueryFilter
@@ -876,6 +831,14 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition> activeIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'active',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> activeIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'active',
       ));
     });
@@ -899,6 +862,14 @@ extension BusinessQueryFilter
     });
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition> adrsIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'adrs',
+      ));
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition> adrsEqualTo(
     String? value, {
     bool caseSensitive = true,
@@ -914,8 +885,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> adrsGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -929,8 +900,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> adrsLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -945,9 +916,9 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition> adrsBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1011,10 +982,37 @@ extension BusinessQueryFilter
     });
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition> adrsIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'adrs',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> adrsIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'adrs',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition>
       backUpEnabledIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'backUpEnabled',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      backUpEnabledIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'backUpEnabled',
       ));
     });
@@ -1038,6 +1036,15 @@ extension BusinessQueryFilter
     });
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      backupFileIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'backupFileId',
+      ));
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition> backupFileIdEqualTo(
     String? value, {
     bool caseSensitive = true,
@@ -1054,8 +1061,8 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition>
       backupFileIdGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1069,8 +1076,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> backupFileIdLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -1085,9 +1092,9 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition> backupFileIdBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1152,9 +1159,37 @@ extension BusinessQueryFilter
     });
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      backupFileIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'backupFileId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      backupFileIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'backupFileId',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition> bhfIdIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'bhfId',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> bhfIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'bhfId',
       ));
     });
@@ -1175,8 +1210,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> bhfIdGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1190,8 +1225,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> bhfIdLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -1206,9 +1241,9 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition> bhfIdBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1272,9 +1307,36 @@ extension BusinessQueryFilter
     });
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition> bhfIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'bhfId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> bhfIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'bhfId',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition> businessUrlIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'businessUrl',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      businessUrlIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'businessUrl',
       ));
     });
@@ -1296,8 +1358,8 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition>
       businessUrlGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1311,8 +1373,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> businessUrlLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -1327,9 +1389,9 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition> businessUrlBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1393,9 +1455,37 @@ extension BusinessQueryFilter
     });
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition> businessUrlIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'businessUrl',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      businessUrlIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'businessUrl',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition> categoryIdIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'categoryId',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      categoryIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'categoryId',
       ));
     });
@@ -1416,8 +1506,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> categoryIdGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1431,8 +1521,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> categoryIdLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -1447,9 +1537,9 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition> categoryIdBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1513,6 +1603,25 @@ extension BusinessQueryFilter
     });
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition> categoryIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'categoryId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      categoryIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'categoryId',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition> channelsIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -1521,19 +1630,17 @@ extension BusinessQueryFilter
     });
   }
 
-  QueryBuilder<Business, Business, QAfterFilterCondition>
-      channelsElementIsNull() {
+  QueryBuilder<Business, Business, QAfterFilterCondition> channelsIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.equalTo(
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'channels',
-        value: null,
       ));
     });
   }
 
   QueryBuilder<Business, Business, QAfterFilterCondition>
       channelsElementEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1547,9 +1654,9 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition>
       channelsElementGreaterThan(
-    String? value, {
-    bool caseSensitive = true,
+    String value, {
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1563,9 +1670,9 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition>
       channelsElementLessThan(
-    String? value, {
-    bool caseSensitive = true,
+    String value, {
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -1579,11 +1686,11 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition>
       channelsElementBetween(
-    String? lower,
-    String? upper, {
-    bool caseSensitive = true,
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1647,9 +1754,123 @@ extension BusinessQueryFilter
     });
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      channelsElementIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'channels',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      channelsElementIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'channels',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> channelsLengthEqualTo(
+      int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'channels',
+        length,
+        true,
+        length,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> channelsIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'channels',
+        0,
+        true,
+        0,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> channelsIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'channels',
+        0,
+        false,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      channelsLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'channels',
+        0,
+        true,
+        length,
+        include,
+      );
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      channelsLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'channels',
+        length,
+        include,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> channelsLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'channels',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
+      );
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition> chatUidIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'chatUid',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> chatUidIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'chatUid',
       ));
     });
@@ -1670,8 +1891,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> chatUidGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1685,8 +1906,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> chatUidLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -1701,9 +1922,9 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition> chatUidBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1767,9 +1988,35 @@ extension BusinessQueryFilter
     });
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition> chatUidIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'chatUid',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> chatUidIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'chatUid',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition> countryIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'country',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> countryIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'country',
       ));
     });
@@ -1790,8 +2037,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> countryGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1805,8 +2052,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> countryLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -1821,9 +2068,9 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition> countryBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1887,9 +2134,35 @@ extension BusinessQueryFilter
     });
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition> countryIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'country',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> countryIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'country',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition> createdAtIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'createdAt',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> createdAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'createdAt',
       ));
     });
@@ -1910,8 +2183,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> createdAtGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1925,8 +2198,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> createdAtLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -1941,9 +2214,9 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition> createdAtBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -2007,9 +2280,36 @@ extension BusinessQueryFilter
     });
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition> createdAtIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'createdAt',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      createdAtIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'createdAt',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition> currencyIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'currency',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> currencyIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'currency',
       ));
     });
@@ -2030,8 +2330,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> currencyGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -2045,8 +2345,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> currencyLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -2061,9 +2361,9 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition> currencyBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -2127,9 +2427,36 @@ extension BusinessQueryFilter
     });
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition> currencyIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'currency',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> currencyIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'currency',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition> deviceTokenIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'deviceToken',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      deviceTokenIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'deviceToken',
       ));
     });
@@ -2151,8 +2478,8 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition>
       deviceTokenGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -2166,8 +2493,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> deviceTokenLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -2182,9 +2509,9 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition> deviceTokenBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -2248,9 +2575,36 @@ extension BusinessQueryFilter
     });
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition> deviceTokenIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'deviceToken',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      deviceTokenIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'deviceToken',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition> dvcSrlNoIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'dvcSrlNo',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> dvcSrlNoIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'dvcSrlNo',
       ));
     });
@@ -2271,8 +2625,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> dvcSrlNoGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -2286,8 +2640,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> dvcSrlNoLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -2302,9 +2656,9 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition> dvcSrlNoBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -2368,9 +2722,35 @@ extension BusinessQueryFilter
     });
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition> dvcSrlNoIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'dvcSrlNo',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> dvcSrlNoIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'dvcSrlNo',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition> emailIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'email',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> emailIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'email',
       ));
     });
@@ -2391,8 +2771,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> emailGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -2406,8 +2786,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> emailLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -2422,9 +2802,9 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition> emailBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -2488,9 +2868,35 @@ extension BusinessQueryFilter
     });
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition> emailIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'email',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> emailIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'email',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition> firstNameIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'firstName',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> firstNameIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'firstName',
       ));
     });
@@ -2511,8 +2917,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> firstNameGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -2526,8 +2932,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> firstNameLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -2542,9 +2948,9 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition> firstNameBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -2608,9 +3014,36 @@ extension BusinessQueryFilter
     });
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition> firstNameIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'firstName',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      firstNameIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'firstName',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition> fullNameIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'fullName',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> fullNameIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'fullName',
       ));
     });
@@ -2631,8 +3064,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> fullNameGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -2646,8 +3079,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> fullNameLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -2662,9 +3095,9 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition> fullNameBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -2728,9 +3161,35 @@ extension BusinessQueryFilter
     });
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition> fullNameIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'fullName',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> fullNameIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'fullName',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition> hexColorIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'hexColor',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> hexColorIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'hexColor',
       ));
     });
@@ -2751,8 +3210,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> hexColorGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -2766,8 +3225,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> hexColorLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -2782,9 +3241,9 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition> hexColorBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -2848,6 +3307,24 @@ extension BusinessQueryFilter
     });
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition> hexColorIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'hexColor',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> hexColorIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'hexColor',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition> idIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -2856,7 +3333,16 @@ extension BusinessQueryFilter
     });
   }
 
-  QueryBuilder<Business, Business, QAfterFilterCondition> idEqualTo(int value) {
+  QueryBuilder<Business, Business, QAfterFilterCondition> idIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'id',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> idEqualTo(
+      int? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -2866,7 +3352,7 @@ extension BusinessQueryFilter
   }
 
   QueryBuilder<Business, Business, QAfterFilterCondition> idGreaterThan(
-    int value, {
+    int? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -2879,7 +3365,7 @@ extension BusinessQueryFilter
   }
 
   QueryBuilder<Business, Business, QAfterFilterCondition> idLessThan(
-    int value, {
+    int? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -2892,8 +3378,8 @@ extension BusinessQueryFilter
   }
 
   QueryBuilder<Business, Business, QAfterFilterCondition> idBetween(
-    int lower,
-    int upper, {
+    int? lower,
+    int? upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -2916,6 +3402,14 @@ extension BusinessQueryFilter
     });
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition> imageUrlIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'imageUrl',
+      ));
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition> imageUrlEqualTo(
     String? value, {
     bool caseSensitive = true,
@@ -2931,8 +3425,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> imageUrlGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -2946,8 +3440,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> imageUrlLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -2962,9 +3456,9 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition> imageUrlBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -3028,9 +3522,35 @@ extension BusinessQueryFilter
     });
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition> imageUrlIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'imageUrl',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> imageUrlIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'imageUrl',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition> isDefaultIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'isDefault',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> isDefaultIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'isDefault',
       ));
     });
@@ -3056,6 +3576,15 @@ extension BusinessQueryFilter
   }
 
   QueryBuilder<Business, Business, QAfterFilterCondition>
+      isLastSubscriptionPaymentSucceededIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'isLastSubscriptionPaymentSucceeded',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition>
       isLastSubscriptionPaymentSucceededEqualTo(bool? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -3068,6 +3597,15 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition> lastDbBackupIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'lastDbBackup',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      lastDbBackupIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'lastDbBackup',
       ));
     });
@@ -3089,8 +3627,8 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition>
       lastDbBackupGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -3104,8 +3642,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> lastDbBackupLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -3120,9 +3658,9 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition> lastDbBackupBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -3187,9 +3725,37 @@ extension BusinessQueryFilter
     });
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      lastDbBackupIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lastDbBackup',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      lastDbBackupIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'lastDbBackup',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition> lastNameIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'lastName',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> lastNameIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'lastName',
       ));
     });
@@ -3210,8 +3776,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> lastNameGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -3225,8 +3791,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> lastNameLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -3241,9 +3807,9 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition> lastNameBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -3307,9 +3873,35 @@ extension BusinessQueryFilter
     });
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition> lastNameIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lastName',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> lastNameIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'lastName',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition> lastSeenIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'lastSeen',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> lastSeenIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'lastSeen',
       ));
     });
@@ -3376,6 +3968,14 @@ extension BusinessQueryFilter
     });
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition> latitudeIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'latitude',
+      ));
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition> latitudeEqualTo(
     String? value, {
     bool caseSensitive = true,
@@ -3391,8 +3991,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> latitudeGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -3406,8 +4006,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> latitudeLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -3422,9 +4022,9 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition> latitudeBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -3488,9 +4088,35 @@ extension BusinessQueryFilter
     });
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition> latitudeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'latitude',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> latitudeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'latitude',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition> longitudeIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'longitude',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> longitudeIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'longitude',
       ));
     });
@@ -3511,8 +4137,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> longitudeGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -3526,8 +4152,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> longitudeLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -3542,9 +4168,9 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition> longitudeBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -3608,9 +4234,36 @@ extension BusinessQueryFilter
     });
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition> longitudeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'longitude',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      longitudeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'longitude',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition> metadataIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'metadata',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> metadataIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'metadata',
       ));
     });
@@ -3631,8 +4284,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> metadataGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -3646,8 +4299,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> metadataLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -3662,9 +4315,9 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition> metadataBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -3728,9 +4381,35 @@ extension BusinessQueryFilter
     });
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition> metadataIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'metadata',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> metadataIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'metadata',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition> nameIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'name',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> nameIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'name',
       ));
     });
@@ -3751,8 +4430,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> nameGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -3766,8 +4445,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> nameLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -3782,9 +4461,9 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition> nameBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -3848,10 +4527,37 @@ extension BusinessQueryFilter
     });
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition> nameIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'name',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> nameIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'name',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition>
       nextBillingDateIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'nextBillingDate',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      nextBillingDateIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'nextBillingDate',
       ));
     });
@@ -3874,8 +4580,8 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition>
       nextBillingDateGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -3890,8 +4596,8 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition>
       nextBillingDateLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -3907,9 +4613,9 @@ extension BusinessQueryFilter
       nextBillingDateBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -3974,9 +4680,38 @@ extension BusinessQueryFilter
   }
 
   QueryBuilder<Business, Business, QAfterFilterCondition>
+      nextBillingDateIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'nextBillingDate',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      nextBillingDateIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'nextBillingDate',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition>
       previousBillingDateIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'previousBillingDate',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      previousBillingDateIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'previousBillingDate',
       ));
     });
@@ -3999,8 +4734,8 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition>
       previousBillingDateGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -4015,8 +4750,8 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition>
       previousBillingDateLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -4032,9 +4767,9 @@ extension BusinessQueryFilter
       previousBillingDateBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -4098,9 +4833,37 @@ extension BusinessQueryFilter
     });
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      previousBillingDateIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'previousBillingDate',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      previousBillingDateIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'previousBillingDate',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition> roleIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'role',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> roleIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'role',
       ));
     });
@@ -4121,8 +4884,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> roleGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -4136,8 +4899,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> roleLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -4152,9 +4915,9 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition> roleBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -4218,10 +4981,37 @@ extension BusinessQueryFilter
     });
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition> roleIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'role',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> roleIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'role',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition>
       subscriptionPlanIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'subscriptionPlan',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      subscriptionPlanIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'subscriptionPlan',
       ));
     });
@@ -4244,8 +5034,8 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition>
       subscriptionPlanGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -4260,8 +5050,8 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition>
       subscriptionPlanLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -4277,9 +5067,9 @@ extension BusinessQueryFilter
       subscriptionPlanBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -4343,9 +5133,37 @@ extension BusinessQueryFilter
     });
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      subscriptionPlanIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'subscriptionPlan',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      subscriptionPlanIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'subscriptionPlan',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition> tableIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'table',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> tableIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'table',
       ));
     });
@@ -4366,8 +5184,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> tableGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -4381,8 +5199,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> tableLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -4397,9 +5215,9 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition> tableBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -4463,9 +5281,36 @@ extension BusinessQueryFilter
     });
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition> tableIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'table',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> tableIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'table',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition> taxEnabledIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'taxEnabled',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      taxEnabledIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'taxEnabled',
       ));
     });
@@ -4489,6 +5334,15 @@ extension BusinessQueryFilter
     });
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      taxServerUrlIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'taxServerUrl',
+      ));
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition> taxServerUrlEqualTo(
     String? value, {
     bool caseSensitive = true,
@@ -4505,8 +5359,8 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition>
       taxServerUrlGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -4520,8 +5374,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> taxServerUrlLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -4536,9 +5390,9 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition> taxServerUrlBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -4603,9 +5457,37 @@ extension BusinessQueryFilter
     });
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      taxServerUrlIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'taxServerUrl',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      taxServerUrlIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'taxServerUrl',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition> timeZoneIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'timeZone',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> timeZoneIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'timeZone',
       ));
     });
@@ -4626,8 +5508,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> timeZoneGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -4641,8 +5523,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> timeZoneLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -4657,9 +5539,9 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition> timeZoneBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -4723,9 +5605,35 @@ extension BusinessQueryFilter
     });
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition> timeZoneIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'timeZone',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> timeZoneIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'timeZone',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition> tinNumberIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'tinNumber',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> tinNumberIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'tinNumber',
       ));
     });
@@ -4792,6 +5700,14 @@ extension BusinessQueryFilter
     });
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition> typeIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'type',
+      ));
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition> typeEqualTo(
     String? value, {
     bool caseSensitive = true,
@@ -4807,8 +5723,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> typeGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -4822,8 +5738,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> typeLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -4838,9 +5754,9 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition> typeBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -4904,9 +5820,35 @@ extension BusinessQueryFilter
     });
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition> typeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'type',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> typeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'type',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition> typeIdIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'typeId',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> typeIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'typeId',
       ));
     });
@@ -4927,8 +5869,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> typeIdGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -4942,8 +5884,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> typeIdLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -4958,9 +5900,9 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition> typeIdBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -5024,9 +5966,35 @@ extension BusinessQueryFilter
     });
   }
 
+  QueryBuilder<Business, Business, QAfterFilterCondition> typeIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'typeId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> typeIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'typeId',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterFilterCondition> userIdIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'userId',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> userIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'userId',
       ));
     });
@@ -5047,8 +6015,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> userIdGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -5062,8 +6030,8 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition> userIdLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -5078,9 +6046,9 @@ extension BusinessQueryFilter
   QueryBuilder<Business, Business, QAfterFilterCondition> userIdBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -5143,13 +6111,33 @@ extension BusinessQueryFilter
       ));
     });
   }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> userIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'userId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> userIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'userId',
+        value: '',
+      ));
+    });
+  }
 }
+
+extension BusinessQueryObject
+    on QueryBuilder<Business, Business, QFilterCondition> {}
 
 extension BusinessQueryLinks
     on QueryBuilder<Business, Business, QFilterCondition> {}
 
-extension BusinessQueryWhereSortBy
-    on QueryBuilder<Business, Business, QSortBy> {
+extension BusinessQuerySortBy on QueryBuilder<Business, Business, QSortBy> {
   QueryBuilder<Business, Business, QAfterSortBy> sortByActive() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'active', Sort.asc);
@@ -5622,7 +6610,7 @@ extension BusinessQueryWhereSortBy
   }
 }
 
-extension BusinessQueryWhereSortThenBy
+extension BusinessQuerySortThenBy
     on QueryBuilder<Business, Business, QSortThenBy> {
   QueryBuilder<Business, Business, QAfterSortBy> thenByActive() {
     return QueryBuilder.apply(this, (query) {

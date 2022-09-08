@@ -7,72 +7,65 @@ part of 'feature.dart';
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
 
 extension GetFeatureCollection on Isar {
-  IsarCollection<Feature> get features => collection();
+  IsarCollection<Feature> get features => this.collection();
 }
 
 const FeatureSchema = CollectionSchema(
   name: r'Feature',
-  schema:
-      r'{"name":"Feature","idName":"id","properties":[{"name":"name","type":"String"}],"indexes":[],"links":[]}',
-  idName: r'id',
-  propertyIds: {r'name': 0},
-  listProperties: {},
-  indexIds: {},
-  indexValueTypes: {},
-  linkIds: {},
-  backlinkLinkNames: {},
-  getId: _featureGetId,
-  setId: _featureSetId,
-  getLinks: _featureGetLinks,
-  attachLinks: _featureAttachLinks,
+  id: -8329400988643063949,
+  properties: {
+    r'name': PropertySchema(
+      id: 0,
+      name: r'name',
+      type: IsarType.string,
+    )
+  },
+  estimateSize: _featureEstimateSize,
   serializeNative: _featureSerializeNative,
   deserializeNative: _featureDeserializeNative,
   deserializePropNative: _featureDeserializePropNative,
   serializeWeb: _featureSerializeWeb,
   deserializeWeb: _featureDeserializeWeb,
   deserializePropWeb: _featureDeserializePropWeb,
-  version: 4,
+  idName: r'id',
+  indexes: {},
+  links: {},
+  embeddedSchemas: {},
+  getId: _featureGetId,
+  getLinks: _featureGetLinks,
+  attach: _featureAttach,
+  version: '3.0.0-dev.14',
 );
 
-int? _featureGetId(Feature object) {
-  if (object.id == Isar.autoIncrement) {
-    return null;
-  } else {
-    return object.id;
-  }
+int _featureEstimateSize(
+  Feature object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  bytesCount += 3 + object.name.length * 3;
+  return bytesCount;
 }
 
-void _featureSetId(Feature object, int id) {
-  object.id = id;
+int _featureSerializeNative(
+  Feature object,
+  IsarBinaryWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  writer.writeString(offsets[0], object.name);
+  return writer.usedBytes;
 }
 
-List<IsarLinkBase<dynamic>> _featureGetLinks(Feature object) {
-  return [];
-}
-
-void _featureSerializeNative(
-    IsarCollection<Feature> collection,
-    IsarCObject cObj,
-    Feature object,
-    int staticSize,
-    List<int> offsets,
-    AdapterAlloc alloc) {
-  final name$Bytes = IsarBinaryWriter.utf8Encoder.convert(object.name);
-  final size = (staticSize + 3 + (name$Bytes.length)) as int;
-  cObj.buffer = alloc(size);
-  cObj.buffer_length = size;
-
-  final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
-  final writer = IsarBinaryWriter(buffer, staticSize);
-  writer.writeHeader();
-  writer.writeByteList(offsets[0], name$Bytes);
-}
-
-Feature _featureDeserializeNative(IsarCollection<Feature> collection, int id,
-    IsarBinaryReader reader, List<int> offsets) {
+Feature _featureDeserializeNative(
+  Id id,
+  IsarBinaryReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
   final object = Feature(
     id: id,
     name: reader.readString(offsets[0]),
@@ -81,46 +74,49 @@ Feature _featureDeserializeNative(IsarCollection<Feature> collection, int id,
 }
 
 P _featureDeserializePropNative<P>(
-    int id, IsarBinaryReader reader, int propertyIndex, int offset) {
-  switch (propertyIndex) {
-    case -1:
-      return id as P;
+  IsarBinaryReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
     case 0:
       return (reader.readString(offset)) as P;
     default:
-      throw IsarError('Illegal propertyIndex');
+      throw IsarError('Unknown property with id $propertyId');
   }
 }
 
 Object _featureSerializeWeb(
     IsarCollection<Feature> collection, Feature object) {
-  final jsObj = IsarNative.newJsObject();
-  IsarNative.jsObjectSet(jsObj, r'id', object.id);
-  IsarNative.jsObjectSet(jsObj, r'name', object.name);
-  return jsObj;
+  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
 }
 
 Feature _featureDeserializeWeb(
     IsarCollection<Feature> collection, Object jsObj) {
-  final object = Feature(
-    id: IsarNative.jsObjectGet(jsObj, r'id'),
-    name: IsarNative.jsObjectGet(jsObj, r'name') ?? '',
-  );
-  return object;
+  /*final object = Feature(id: IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int),name: IsarNative.jsObjectGet(jsObj, r'name') ?? '',);*/
+  //return object;
+  throw UnimplementedError();
 }
 
 P _featureDeserializePropWeb<P>(Object jsObj, String propertyName) {
   switch (propertyName) {
-    case r'id':
-      return (IsarNative.jsObjectGet(jsObj, r'id')) as P;
-    case r'name':
-      return (IsarNative.jsObjectGet(jsObj, r'name') ?? '') as P;
     default:
       throw IsarError('Illegal propertyName');
   }
 }
 
-void _featureAttachLinks(IsarCollection<dynamic> col, int id, Feature object) {}
+Id _featureGetId(Feature object) {
+  return object.id;
+}
+
+List<IsarLinkBase<dynamic>> _featureGetLinks(Feature object) {
+  return [];
+}
+
+void _featureAttach(IsarCollection<dynamic> col, Id id, Feature object) {
+  object.id = id;
+}
 
 extension FeatureQueryWhereSort on QueryBuilder<Feature, Feature, QWhere> {
   QueryBuilder<Feature, Feature, QAfterWhere> anyId() {
@@ -266,8 +262,8 @@ extension FeatureQueryFilter
 
   QueryBuilder<Feature, Feature, QAfterFilterCondition> nameGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -281,8 +277,8 @@ extension FeatureQueryFilter
 
   QueryBuilder<Feature, Feature, QAfterFilterCondition> nameLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -297,9 +293,9 @@ extension FeatureQueryFilter
   QueryBuilder<Feature, Feature, QAfterFilterCondition> nameBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -362,12 +358,33 @@ extension FeatureQueryFilter
       ));
     });
   }
+
+  QueryBuilder<Feature, Feature, QAfterFilterCondition> nameIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'name',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Feature, Feature, QAfterFilterCondition> nameIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'name',
+        value: '',
+      ));
+    });
+  }
 }
+
+extension FeatureQueryObject
+    on QueryBuilder<Feature, Feature, QFilterCondition> {}
 
 extension FeatureQueryLinks
     on QueryBuilder<Feature, Feature, QFilterCondition> {}
 
-extension FeatureQueryWhereSortBy on QueryBuilder<Feature, Feature, QSortBy> {
+extension FeatureQuerySortBy on QueryBuilder<Feature, Feature, QSortBy> {
   QueryBuilder<Feature, Feature, QAfterSortBy> sortByName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.asc);
@@ -381,7 +398,7 @@ extension FeatureQueryWhereSortBy on QueryBuilder<Feature, Feature, QSortBy> {
   }
 }
 
-extension FeatureQueryWhereSortThenBy
+extension FeatureQuerySortThenBy
     on QueryBuilder<Feature, Feature, QSortThenBy> {
   QueryBuilder<Feature, Feature, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {

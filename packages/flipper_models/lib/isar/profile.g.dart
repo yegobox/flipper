@@ -7,187 +7,225 @@ part of flipper_models;
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
 
 extension GetProfileCollection on Isar {
-  IsarCollection<Profile> get profiles => collection();
+  IsarCollection<Profile> get profiles => this.collection();
 }
 
 const ProfileSchema = CollectionSchema(
   name: r'Profile',
-  schema:
-      r'{"name":"Profile","idName":"id","properties":[{"name":"about","type":"String"},{"name":"address","type":"String"},{"name":"businessId","type":"Long"},{"name":"cell","type":"String"},{"name":"city","type":"String"},{"name":"country","type":"String"},{"name":"coverPic","type":"String"},{"name":"district","type":"String"},{"name":"email","type":"String"},{"name":"livingAt","type":"String"},{"name":"name","type":"String"},{"name":"nationalId","type":"String"},{"name":"phone","type":"String"},{"name":"pincode","type":"String"},{"name":"profilePic","type":"String"},{"name":"state","type":"String"},{"name":"vaccinationCode","type":"String"}],"indexes":[{"name":"businessId","unique":false,"replace":false,"properties":[{"name":"businessId","type":"Value","caseSensitive":false}]}],"links":[]}',
-  idName: r'id',
-  propertyIds: {
-    r'about': 0,
-    r'address': 1,
-    r'businessId': 2,
-    r'cell': 3,
-    r'city': 4,
-    r'country': 5,
-    r'coverPic': 6,
-    r'district': 7,
-    r'email': 8,
-    r'livingAt': 9,
-    r'name': 10,
-    r'nationalId': 11,
-    r'phone': 12,
-    r'pincode': 13,
-    r'profilePic': 14,
-    r'state': 15,
-    r'vaccinationCode': 16
+  id: 1266279811925214857,
+  properties: {
+    r'about': PropertySchema(
+      id: 0,
+      name: r'about',
+      type: IsarType.string,
+    ),
+    r'address': PropertySchema(
+      id: 1,
+      name: r'address',
+      type: IsarType.string,
+    ),
+    r'businessId': PropertySchema(
+      id: 2,
+      name: r'businessId',
+      type: IsarType.long,
+    ),
+    r'cell': PropertySchema(
+      id: 3,
+      name: r'cell',
+      type: IsarType.string,
+    ),
+    r'city': PropertySchema(
+      id: 4,
+      name: r'city',
+      type: IsarType.string,
+    ),
+    r'country': PropertySchema(
+      id: 5,
+      name: r'country',
+      type: IsarType.string,
+    ),
+    r'coverPic': PropertySchema(
+      id: 6,
+      name: r'coverPic',
+      type: IsarType.string,
+    ),
+    r'district': PropertySchema(
+      id: 7,
+      name: r'district',
+      type: IsarType.string,
+    ),
+    r'email': PropertySchema(
+      id: 8,
+      name: r'email',
+      type: IsarType.string,
+    ),
+    r'livingAt': PropertySchema(
+      id: 9,
+      name: r'livingAt',
+      type: IsarType.string,
+    ),
+    r'name': PropertySchema(
+      id: 10,
+      name: r'name',
+      type: IsarType.string,
+    ),
+    r'nationalId': PropertySchema(
+      id: 11,
+      name: r'nationalId',
+      type: IsarType.string,
+    ),
+    r'phone': PropertySchema(
+      id: 12,
+      name: r'phone',
+      type: IsarType.string,
+    ),
+    r'pincode': PropertySchema(
+      id: 13,
+      name: r'pincode',
+      type: IsarType.string,
+    ),
+    r'profilePic': PropertySchema(
+      id: 14,
+      name: r'profilePic',
+      type: IsarType.string,
+    ),
+    r'state': PropertySchema(
+      id: 15,
+      name: r'state',
+      type: IsarType.string,
+    ),
+    r'vaccinationCode': PropertySchema(
+      id: 16,
+      name: r'vaccinationCode',
+      type: IsarType.string,
+    )
   },
-  listProperties: {},
-  indexIds: {r'businessId': 0},
-  indexValueTypes: {
-    r'businessId': [
-      IndexValueType.long,
-    ]
-  },
-  linkIds: {},
-  backlinkLinkNames: {},
-  getId: _profileGetId,
-  setId: _profileSetId,
-  getLinks: _profileGetLinks,
-  attachLinks: _profileAttachLinks,
+  estimateSize: _profileEstimateSize,
   serializeNative: _profileSerializeNative,
   deserializeNative: _profileDeserializeNative,
   deserializePropNative: _profileDeserializePropNative,
   serializeWeb: _profileSerializeWeb,
   deserializeWeb: _profileDeserializeWeb,
   deserializePropWeb: _profileDeserializePropWeb,
-  version: 4,
+  idName: r'id',
+  indexes: {
+    r'businessId': IndexSchema(
+      id: 2228048290814354584,
+      name: r'businessId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'businessId',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
+    )
+  },
+  links: {},
+  embeddedSchemas: {},
+  getId: _profileGetId,
+  getLinks: _profileGetLinks,
+  attach: _profileAttach,
+  version: '3.0.0-dev.14',
 );
 
-int? _profileGetId(Profile object) {
-  if (object.id == Isar.autoIncrement) {
-    return null;
-  } else {
-    return object.id;
+int _profileEstimateSize(
+  Profile object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  {
+    final value = object.about;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
   }
+  {
+    final value = object.address;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  bytesCount += 3 + object.cell.length * 3;
+  {
+    final value = object.city;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  bytesCount += 3 + object.country.length * 3;
+  {
+    final value = object.coverPic;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  bytesCount += 3 + object.district.length * 3;
+  bytesCount += 3 + object.email.length * 3;
+  bytesCount += 3 + object.livingAt.length * 3;
+  bytesCount += 3 + object.name.length * 3;
+  bytesCount += 3 + object.nationalId.length * 3;
+  bytesCount += 3 + object.phone.length * 3;
+  {
+    final value = object.pincode;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.profilePic;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.state;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  bytesCount += 3 + object.vaccinationCode.length * 3;
+  return bytesCount;
 }
 
-void _profileSetId(Profile object, int id) {
-  object.id = id;
-}
-
-List<IsarLinkBase<dynamic>> _profileGetLinks(Profile object) {
-  return [];
-}
-
-void _profileSerializeNative(
-    IsarCollection<Profile> collection,
-    IsarCObject cObj,
-    Profile object,
-    int staticSize,
-    List<int> offsets,
-    AdapterAlloc alloc) {
-  IsarUint8List? about$Bytes;
-  final about$Value = object.about;
-  if (about$Value != null) {
-    about$Bytes = IsarBinaryWriter.utf8Encoder.convert(about$Value);
-  }
-  IsarUint8List? address$Bytes;
-  final address$Value = object.address;
-  if (address$Value != null) {
-    address$Bytes = IsarBinaryWriter.utf8Encoder.convert(address$Value);
-  }
-  final cell$Bytes = IsarBinaryWriter.utf8Encoder.convert(object.cell);
-  IsarUint8List? city$Bytes;
-  final city$Value = object.city;
-  if (city$Value != null) {
-    city$Bytes = IsarBinaryWriter.utf8Encoder.convert(city$Value);
-  }
-  final country$Bytes = IsarBinaryWriter.utf8Encoder.convert(object.country);
-  IsarUint8List? coverPic$Bytes;
-  final coverPic$Value = object.coverPic;
-  if (coverPic$Value != null) {
-    coverPic$Bytes = IsarBinaryWriter.utf8Encoder.convert(coverPic$Value);
-  }
-  final district$Bytes = IsarBinaryWriter.utf8Encoder.convert(object.district);
-  final email$Bytes = IsarBinaryWriter.utf8Encoder.convert(object.email);
-  final livingAt$Bytes = IsarBinaryWriter.utf8Encoder.convert(object.livingAt);
-  final name$Bytes = IsarBinaryWriter.utf8Encoder.convert(object.name);
-  final nationalId$Bytes =
-      IsarBinaryWriter.utf8Encoder.convert(object.nationalId);
-  final phone$Bytes = IsarBinaryWriter.utf8Encoder.convert(object.phone);
-  IsarUint8List? pincode$Bytes;
-  final pincode$Value = object.pincode;
-  if (pincode$Value != null) {
-    pincode$Bytes = IsarBinaryWriter.utf8Encoder.convert(pincode$Value);
-  }
-  IsarUint8List? profilePic$Bytes;
-  final profilePic$Value = object.profilePic;
-  if (profilePic$Value != null) {
-    profilePic$Bytes = IsarBinaryWriter.utf8Encoder.convert(profilePic$Value);
-  }
-  IsarUint8List? state$Bytes;
-  final state$Value = object.state;
-  if (state$Value != null) {
-    state$Bytes = IsarBinaryWriter.utf8Encoder.convert(state$Value);
-  }
-  final vaccinationCode$Bytes =
-      IsarBinaryWriter.utf8Encoder.convert(object.vaccinationCode);
-  final size = (staticSize +
-      3 +
-      (about$Bytes?.length ?? 0) +
-      3 +
-      (address$Bytes?.length ?? 0) +
-      3 +
-      (cell$Bytes.length) +
-      3 +
-      (city$Bytes?.length ?? 0) +
-      3 +
-      (country$Bytes.length) +
-      3 +
-      (coverPic$Bytes?.length ?? 0) +
-      3 +
-      (district$Bytes.length) +
-      3 +
-      (email$Bytes.length) +
-      3 +
-      (livingAt$Bytes.length) +
-      3 +
-      (name$Bytes.length) +
-      3 +
-      (nationalId$Bytes.length) +
-      3 +
-      (phone$Bytes.length) +
-      3 +
-      (pincode$Bytes?.length ?? 0) +
-      3 +
-      (profilePic$Bytes?.length ?? 0) +
-      3 +
-      (state$Bytes?.length ?? 0) +
-      3 +
-      (vaccinationCode$Bytes.length)) as int;
-  cObj.buffer = alloc(size);
-  cObj.buffer_length = size;
-
-  final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
-  final writer = IsarBinaryWriter(buffer, staticSize);
-  writer.writeHeader();
-  writer.writeByteList(offsets[0], about$Bytes);
-  writer.writeByteList(offsets[1], address$Bytes);
+int _profileSerializeNative(
+  Profile object,
+  IsarBinaryWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  writer.writeString(offsets[0], object.about);
+  writer.writeString(offsets[1], object.address);
   writer.writeLong(offsets[2], object.businessId);
-  writer.writeByteList(offsets[3], cell$Bytes);
-  writer.writeByteList(offsets[4], city$Bytes);
-  writer.writeByteList(offsets[5], country$Bytes);
-  writer.writeByteList(offsets[6], coverPic$Bytes);
-  writer.writeByteList(offsets[7], district$Bytes);
-  writer.writeByteList(offsets[8], email$Bytes);
-  writer.writeByteList(offsets[9], livingAt$Bytes);
-  writer.writeByteList(offsets[10], name$Bytes);
-  writer.writeByteList(offsets[11], nationalId$Bytes);
-  writer.writeByteList(offsets[12], phone$Bytes);
-  writer.writeByteList(offsets[13], pincode$Bytes);
-  writer.writeByteList(offsets[14], profilePic$Bytes);
-  writer.writeByteList(offsets[15], state$Bytes);
-  writer.writeByteList(offsets[16], vaccinationCode$Bytes);
+  writer.writeString(offsets[3], object.cell);
+  writer.writeString(offsets[4], object.city);
+  writer.writeString(offsets[5], object.country);
+  writer.writeString(offsets[6], object.coverPic);
+  writer.writeString(offsets[7], object.district);
+  writer.writeString(offsets[8], object.email);
+  writer.writeString(offsets[9], object.livingAt);
+  writer.writeString(offsets[10], object.name);
+  writer.writeString(offsets[11], object.nationalId);
+  writer.writeString(offsets[12], object.phone);
+  writer.writeString(offsets[13], object.pincode);
+  writer.writeString(offsets[14], object.profilePic);
+  writer.writeString(offsets[15], object.state);
+  writer.writeString(offsets[16], object.vaccinationCode);
+  return writer.usedBytes;
 }
 
-Profile _profileDeserializeNative(IsarCollection<Profile> collection, int id,
-    IsarBinaryReader reader, List<int> offsets) {
+Profile _profileDeserializeNative(
+  Id id,
+  IsarBinaryReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
   final object = Profile(
     about: reader.readStringOrNull(offsets[0]),
     address: reader.readStringOrNull(offsets[1]),
@@ -212,10 +250,12 @@ Profile _profileDeserializeNative(IsarCollection<Profile> collection, int id,
 }
 
 P _profileDeserializePropNative<P>(
-    int id, IsarBinaryReader reader, int propertyIndex, int offset) {
-  switch (propertyIndex) {
-    case -1:
-      return id as P;
+  IsarBinaryReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
     case 0:
       return (reader.readStringOrNull(offset)) as P;
     case 1:
@@ -251,105 +291,40 @@ P _profileDeserializePropNative<P>(
     case 16:
       return (reader.readString(offset)) as P;
     default:
-      throw IsarError('Illegal propertyIndex');
+      throw IsarError('Unknown property with id $propertyId');
   }
 }
 
 Object _profileSerializeWeb(
     IsarCollection<Profile> collection, Profile object) {
-  final jsObj = IsarNative.newJsObject();
-  IsarNative.jsObjectSet(jsObj, r'about', object.about);
-  IsarNative.jsObjectSet(jsObj, r'address', object.address);
-  IsarNative.jsObjectSet(jsObj, r'businessId', object.businessId);
-  IsarNative.jsObjectSet(jsObj, r'cell', object.cell);
-  IsarNative.jsObjectSet(jsObj, r'city', object.city);
-  IsarNative.jsObjectSet(jsObj, r'country', object.country);
-  IsarNative.jsObjectSet(jsObj, r'coverPic', object.coverPic);
-  IsarNative.jsObjectSet(jsObj, r'district', object.district);
-  IsarNative.jsObjectSet(jsObj, r'email', object.email);
-  IsarNative.jsObjectSet(jsObj, r'id', object.id);
-  IsarNative.jsObjectSet(jsObj, r'livingAt', object.livingAt);
-  IsarNative.jsObjectSet(jsObj, r'name', object.name);
-  IsarNative.jsObjectSet(jsObj, r'nationalId', object.nationalId);
-  IsarNative.jsObjectSet(jsObj, r'phone', object.phone);
-  IsarNative.jsObjectSet(jsObj, r'pincode', object.pincode);
-  IsarNative.jsObjectSet(jsObj, r'profilePic', object.profilePic);
-  IsarNative.jsObjectSet(jsObj, r'state', object.state);
-  IsarNative.jsObjectSet(jsObj, r'vaccinationCode', object.vaccinationCode);
-  return jsObj;
+  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
 }
 
 Profile _profileDeserializeWeb(
     IsarCollection<Profile> collection, Object jsObj) {
-  final object = Profile(
-    about: IsarNative.jsObjectGet(jsObj, r'about'),
-    address: IsarNative.jsObjectGet(jsObj, r'address'),
-    businessId: IsarNative.jsObjectGet(jsObj, r'businessId') ??
-        (double.negativeInfinity as int),
-    cell: IsarNative.jsObjectGet(jsObj, r'cell') ?? '',
-    city: IsarNative.jsObjectGet(jsObj, r'city'),
-    country: IsarNative.jsObjectGet(jsObj, r'country') ?? '',
-    coverPic: IsarNative.jsObjectGet(jsObj, r'coverPic'),
-    district: IsarNative.jsObjectGet(jsObj, r'district') ?? '',
-    email: IsarNative.jsObjectGet(jsObj, r'email') ?? '',
-    id: IsarNative.jsObjectGet(jsObj, r'id'),
-    livingAt: IsarNative.jsObjectGet(jsObj, r'livingAt') ?? '',
-    name: IsarNative.jsObjectGet(jsObj, r'name') ?? '',
-    nationalId: IsarNative.jsObjectGet(jsObj, r'nationalId') ?? '',
-    phone: IsarNative.jsObjectGet(jsObj, r'phone') ?? '',
-    pincode: IsarNative.jsObjectGet(jsObj, r'pincode'),
-    profilePic: IsarNative.jsObjectGet(jsObj, r'profilePic'),
-    state: IsarNative.jsObjectGet(jsObj, r'state'),
-    vaccinationCode: IsarNative.jsObjectGet(jsObj, r'vaccinationCode') ?? '',
-  );
-  return object;
+  /*final object = Profile(about: IsarNative.jsObjectGet(jsObj, r'about') ,address: IsarNative.jsObjectGet(jsObj, r'address') ,businessId: IsarNative.jsObjectGet(jsObj, r'businessId') ?? (double.negativeInfinity as int),cell: IsarNative.jsObjectGet(jsObj, r'cell') ?? '',city: IsarNative.jsObjectGet(jsObj, r'city') ,country: IsarNative.jsObjectGet(jsObj, r'country') ?? '',coverPic: IsarNative.jsObjectGet(jsObj, r'coverPic') ,district: IsarNative.jsObjectGet(jsObj, r'district') ?? '',email: IsarNative.jsObjectGet(jsObj, r'email') ?? '',id: IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int),livingAt: IsarNative.jsObjectGet(jsObj, r'livingAt') ?? '',name: IsarNative.jsObjectGet(jsObj, r'name') ?? '',nationalId: IsarNative.jsObjectGet(jsObj, r'nationalId') ?? '',phone: IsarNative.jsObjectGet(jsObj, r'phone') ?? '',pincode: IsarNative.jsObjectGet(jsObj, r'pincode') ,profilePic: IsarNative.jsObjectGet(jsObj, r'profilePic') ,state: IsarNative.jsObjectGet(jsObj, r'state') ,vaccinationCode: IsarNative.jsObjectGet(jsObj, r'vaccinationCode') ?? '',);*/
+  //return object;
+  throw UnimplementedError();
 }
 
 P _profileDeserializePropWeb<P>(Object jsObj, String propertyName) {
   switch (propertyName) {
-    case r'about':
-      return (IsarNative.jsObjectGet(jsObj, r'about')) as P;
-    case r'address':
-      return (IsarNative.jsObjectGet(jsObj, r'address')) as P;
-    case r'businessId':
-      return (IsarNative.jsObjectGet(jsObj, r'businessId') ??
-          (double.negativeInfinity as int)) as P;
-    case r'cell':
-      return (IsarNative.jsObjectGet(jsObj, r'cell') ?? '') as P;
-    case r'city':
-      return (IsarNative.jsObjectGet(jsObj, r'city')) as P;
-    case r'country':
-      return (IsarNative.jsObjectGet(jsObj, r'country') ?? '') as P;
-    case r'coverPic':
-      return (IsarNative.jsObjectGet(jsObj, r'coverPic')) as P;
-    case r'district':
-      return (IsarNative.jsObjectGet(jsObj, r'district') ?? '') as P;
-    case r'email':
-      return (IsarNative.jsObjectGet(jsObj, r'email') ?? '') as P;
-    case r'id':
-      return (IsarNative.jsObjectGet(jsObj, r'id')) as P;
-    case r'livingAt':
-      return (IsarNative.jsObjectGet(jsObj, r'livingAt') ?? '') as P;
-    case r'name':
-      return (IsarNative.jsObjectGet(jsObj, r'name') ?? '') as P;
-    case r'nationalId':
-      return (IsarNative.jsObjectGet(jsObj, r'nationalId') ?? '') as P;
-    case r'phone':
-      return (IsarNative.jsObjectGet(jsObj, r'phone') ?? '') as P;
-    case r'pincode':
-      return (IsarNative.jsObjectGet(jsObj, r'pincode')) as P;
-    case r'profilePic':
-      return (IsarNative.jsObjectGet(jsObj, r'profilePic')) as P;
-    case r'state':
-      return (IsarNative.jsObjectGet(jsObj, r'state')) as P;
-    case r'vaccinationCode':
-      return (IsarNative.jsObjectGet(jsObj, r'vaccinationCode') ?? '') as P;
     default:
       throw IsarError('Illegal propertyName');
   }
 }
 
-void _profileAttachLinks(IsarCollection<dynamic> col, int id, Profile object) {}
+Id _profileGetId(Profile object) {
+  return object.id;
+}
+
+List<IsarLinkBase<dynamic>> _profileGetLinks(Profile object) {
+  return [];
+}
+
+void _profileAttach(IsarCollection<dynamic> col, Id id, Profile object) {
+  object.id = id;
+}
 
 extension ProfileQueryWhereSort on QueryBuilder<Profile, Profile, QWhere> {
   QueryBuilder<Profile, Profile, QAfterWhere> anyId() {
@@ -534,6 +509,14 @@ extension ProfileQueryFilter
     });
   }
 
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> aboutIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'about',
+      ));
+    });
+  }
+
   QueryBuilder<Profile, Profile, QAfterFilterCondition> aboutEqualTo(
     String? value, {
     bool caseSensitive = true,
@@ -549,8 +532,8 @@ extension ProfileQueryFilter
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> aboutGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -564,8 +547,8 @@ extension ProfileQueryFilter
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> aboutLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -580,9 +563,9 @@ extension ProfileQueryFilter
   QueryBuilder<Profile, Profile, QAfterFilterCondition> aboutBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -646,9 +629,35 @@ extension ProfileQueryFilter
     });
   }
 
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> aboutIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'about',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> aboutIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'about',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Profile, Profile, QAfterFilterCondition> addressIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'address',
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> addressIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'address',
       ));
     });
@@ -669,8 +678,8 @@ extension ProfileQueryFilter
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> addressGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -684,8 +693,8 @@ extension ProfileQueryFilter
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> addressLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -700,9 +709,9 @@ extension ProfileQueryFilter
   QueryBuilder<Profile, Profile, QAfterFilterCondition> addressBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -762,6 +771,24 @@ extension ProfileQueryFilter
         property: r'address',
         wildcard: pattern,
         caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> addressIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'address',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> addressIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'address',
+        value: '',
       ));
     });
   }
@@ -834,8 +861,8 @@ extension ProfileQueryFilter
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> cellGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -849,8 +876,8 @@ extension ProfileQueryFilter
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> cellLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -865,9 +892,9 @@ extension ProfileQueryFilter
   QueryBuilder<Profile, Profile, QAfterFilterCondition> cellBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -931,9 +958,35 @@ extension ProfileQueryFilter
     });
   }
 
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> cellIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'cell',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> cellIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'cell',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Profile, Profile, QAfterFilterCondition> cityIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'city',
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> cityIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'city',
       ));
     });
@@ -954,8 +1007,8 @@ extension ProfileQueryFilter
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> cityGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -969,8 +1022,8 @@ extension ProfileQueryFilter
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> cityLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -985,9 +1038,9 @@ extension ProfileQueryFilter
   QueryBuilder<Profile, Profile, QAfterFilterCondition> cityBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1051,6 +1104,24 @@ extension ProfileQueryFilter
     });
   }
 
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> cityIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'city',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> cityIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'city',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Profile, Profile, QAfterFilterCondition> countryEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1066,8 +1137,8 @@ extension ProfileQueryFilter
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> countryGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1081,8 +1152,8 @@ extension ProfileQueryFilter
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> countryLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -1097,9 +1168,9 @@ extension ProfileQueryFilter
   QueryBuilder<Profile, Profile, QAfterFilterCondition> countryBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1163,9 +1234,35 @@ extension ProfileQueryFilter
     });
   }
 
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> countryIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'country',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> countryIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'country',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Profile, Profile, QAfterFilterCondition> coverPicIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'coverPic',
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> coverPicIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'coverPic',
       ));
     });
@@ -1186,8 +1283,8 @@ extension ProfileQueryFilter
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> coverPicGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1201,8 +1298,8 @@ extension ProfileQueryFilter
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> coverPicLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -1217,9 +1314,9 @@ extension ProfileQueryFilter
   QueryBuilder<Profile, Profile, QAfterFilterCondition> coverPicBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1283,6 +1380,24 @@ extension ProfileQueryFilter
     });
   }
 
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> coverPicIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'coverPic',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> coverPicIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'coverPic',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Profile, Profile, QAfterFilterCondition> districtEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1298,8 +1413,8 @@ extension ProfileQueryFilter
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> districtGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1313,8 +1428,8 @@ extension ProfileQueryFilter
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> districtLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -1329,9 +1444,9 @@ extension ProfileQueryFilter
   QueryBuilder<Profile, Profile, QAfterFilterCondition> districtBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1395,6 +1510,24 @@ extension ProfileQueryFilter
     });
   }
 
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> districtIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'district',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> districtIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'district',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Profile, Profile, QAfterFilterCondition> emailEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1410,8 +1543,8 @@ extension ProfileQueryFilter
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> emailGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1425,8 +1558,8 @@ extension ProfileQueryFilter
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> emailLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -1441,9 +1574,9 @@ extension ProfileQueryFilter
   QueryBuilder<Profile, Profile, QAfterFilterCondition> emailBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1503,6 +1636,24 @@ extension ProfileQueryFilter
         property: r'email',
         wildcard: pattern,
         caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> emailIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'email',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> emailIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'email',
+        value: '',
       ));
     });
   }
@@ -1574,8 +1725,8 @@ extension ProfileQueryFilter
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> livingAtGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1589,8 +1740,8 @@ extension ProfileQueryFilter
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> livingAtLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -1605,9 +1756,9 @@ extension ProfileQueryFilter
   QueryBuilder<Profile, Profile, QAfterFilterCondition> livingAtBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1671,6 +1822,24 @@ extension ProfileQueryFilter
     });
   }
 
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> livingAtIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'livingAt',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> livingAtIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'livingAt',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Profile, Profile, QAfterFilterCondition> nameEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1686,8 +1855,8 @@ extension ProfileQueryFilter
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> nameGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1701,8 +1870,8 @@ extension ProfileQueryFilter
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> nameLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -1717,9 +1886,9 @@ extension ProfileQueryFilter
   QueryBuilder<Profile, Profile, QAfterFilterCondition> nameBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1783,6 +1952,24 @@ extension ProfileQueryFilter
     });
   }
 
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> nameIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'name',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> nameIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'name',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Profile, Profile, QAfterFilterCondition> nationalIdEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1798,8 +1985,8 @@ extension ProfileQueryFilter
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> nationalIdGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1813,8 +2000,8 @@ extension ProfileQueryFilter
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> nationalIdLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -1829,9 +2016,9 @@ extension ProfileQueryFilter
   QueryBuilder<Profile, Profile, QAfterFilterCondition> nationalIdBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1895,6 +2082,24 @@ extension ProfileQueryFilter
     });
   }
 
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> nationalIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'nationalId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> nationalIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'nationalId',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Profile, Profile, QAfterFilterCondition> phoneEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1910,8 +2115,8 @@ extension ProfileQueryFilter
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> phoneGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1925,8 +2130,8 @@ extension ProfileQueryFilter
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> phoneLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -1941,9 +2146,9 @@ extension ProfileQueryFilter
   QueryBuilder<Profile, Profile, QAfterFilterCondition> phoneBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -2007,9 +2212,35 @@ extension ProfileQueryFilter
     });
   }
 
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> phoneIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'phone',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> phoneIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'phone',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Profile, Profile, QAfterFilterCondition> pincodeIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'pincode',
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> pincodeIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'pincode',
       ));
     });
@@ -2030,8 +2261,8 @@ extension ProfileQueryFilter
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> pincodeGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -2045,8 +2276,8 @@ extension ProfileQueryFilter
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> pincodeLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -2061,9 +2292,9 @@ extension ProfileQueryFilter
   QueryBuilder<Profile, Profile, QAfterFilterCondition> pincodeBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -2127,9 +2358,35 @@ extension ProfileQueryFilter
     });
   }
 
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> pincodeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'pincode',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> pincodeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'pincode',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Profile, Profile, QAfterFilterCondition> profilePicIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'profilePic',
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> profilePicIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'profilePic',
       ));
     });
@@ -2150,8 +2407,8 @@ extension ProfileQueryFilter
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> profilePicGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -2165,8 +2422,8 @@ extension ProfileQueryFilter
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> profilePicLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -2181,9 +2438,9 @@ extension ProfileQueryFilter
   QueryBuilder<Profile, Profile, QAfterFilterCondition> profilePicBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -2247,9 +2504,35 @@ extension ProfileQueryFilter
     });
   }
 
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> profilePicIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'profilePic',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> profilePicIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'profilePic',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Profile, Profile, QAfterFilterCondition> stateIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'state',
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> stateIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'state',
       ));
     });
@@ -2270,8 +2553,8 @@ extension ProfileQueryFilter
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> stateGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -2285,8 +2568,8 @@ extension ProfileQueryFilter
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> stateLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -2301,9 +2584,9 @@ extension ProfileQueryFilter
   QueryBuilder<Profile, Profile, QAfterFilterCondition> stateBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -2367,6 +2650,24 @@ extension ProfileQueryFilter
     });
   }
 
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> stateIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'state',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> stateIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'state',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Profile, Profile, QAfterFilterCondition> vaccinationCodeEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -2383,8 +2684,8 @@ extension ProfileQueryFilter
   QueryBuilder<Profile, Profile, QAfterFilterCondition>
       vaccinationCodeGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -2398,8 +2699,8 @@ extension ProfileQueryFilter
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> vaccinationCodeLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -2414,9 +2715,9 @@ extension ProfileQueryFilter
   QueryBuilder<Profile, Profile, QAfterFilterCondition> vaccinationCodeBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -2480,12 +2781,35 @@ extension ProfileQueryFilter
       ));
     });
   }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition>
+      vaccinationCodeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'vaccinationCode',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition>
+      vaccinationCodeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'vaccinationCode',
+        value: '',
+      ));
+    });
+  }
 }
+
+extension ProfileQueryObject
+    on QueryBuilder<Profile, Profile, QFilterCondition> {}
 
 extension ProfileQueryLinks
     on QueryBuilder<Profile, Profile, QFilterCondition> {}
 
-extension ProfileQueryWhereSortBy on QueryBuilder<Profile, Profile, QSortBy> {
+extension ProfileQuerySortBy on QueryBuilder<Profile, Profile, QSortBy> {
   QueryBuilder<Profile, Profile, QAfterSortBy> sortByAbout() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'about', Sort.asc);
@@ -2691,7 +3015,7 @@ extension ProfileQueryWhereSortBy on QueryBuilder<Profile, Profile, QSortBy> {
   }
 }
 
-extension ProfileQueryWhereSortThenBy
+extension ProfileQuerySortThenBy
     on QueryBuilder<Profile, Profile, QSortThenBy> {
   QueryBuilder<Profile, Profile, QAfterSortBy> thenByAbout() {
     return QueryBuilder.apply(this, (query) {

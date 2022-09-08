@@ -7,85 +7,95 @@ part of flipper_models;
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
 
 extension GetCounterCollection on Isar {
-  IsarCollection<Counter> get counters => collection();
+  IsarCollection<Counter> get counters => this.collection();
 }
 
 const CounterSchema = CollectionSchema(
   name: r'Counter',
-  schema:
-      r'{"name":"Counter","idName":"id","properties":[{"name":"backed","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"businessId","type":"Long"},{"name":"curRcptNo","type":"Long"},{"name":"receiptType","type":"String"},{"name":"totRcptNo","type":"Long"}],"indexes":[],"links":[]}',
-  idName: r'id',
-  propertyIds: {
-    r'backed': 0,
-    r'branchId': 1,
-    r'businessId': 2,
-    r'curRcptNo': 3,
-    r'receiptType': 4,
-    r'totRcptNo': 5
+  id: -8560901831524329398,
+  properties: {
+    r'backed': PropertySchema(
+      id: 0,
+      name: r'backed',
+      type: IsarType.bool,
+    ),
+    r'branchId': PropertySchema(
+      id: 1,
+      name: r'branchId',
+      type: IsarType.long,
+    ),
+    r'businessId': PropertySchema(
+      id: 2,
+      name: r'businessId',
+      type: IsarType.long,
+    ),
+    r'curRcptNo': PropertySchema(
+      id: 3,
+      name: r'curRcptNo',
+      type: IsarType.long,
+    ),
+    r'receiptType': PropertySchema(
+      id: 4,
+      name: r'receiptType',
+      type: IsarType.string,
+    ),
+    r'totRcptNo': PropertySchema(
+      id: 5,
+      name: r'totRcptNo',
+      type: IsarType.long,
+    )
   },
-  listProperties: {},
-  indexIds: {},
-  indexValueTypes: {},
-  linkIds: {},
-  backlinkLinkNames: {},
-  getId: _counterGetId,
-  setId: _counterSetId,
-  getLinks: _counterGetLinks,
-  attachLinks: _counterAttachLinks,
+  estimateSize: _counterEstimateSize,
   serializeNative: _counterSerializeNative,
   deserializeNative: _counterDeserializeNative,
   deserializePropNative: _counterDeserializePropNative,
   serializeWeb: _counterSerializeWeb,
   deserializeWeb: _counterDeserializeWeb,
   deserializePropWeb: _counterDeserializePropWeb,
-  version: 4,
+  idName: r'id',
+  indexes: {},
+  links: {},
+  embeddedSchemas: {},
+  getId: _counterGetId,
+  getLinks: _counterGetLinks,
+  attach: _counterAttach,
+  version: '3.0.0-dev.14',
 );
 
-int? _counterGetId(Counter object) {
-  if (object.id == Isar.autoIncrement) {
-    return null;
-  } else {
-    return object.id;
-  }
+int _counterEstimateSize(
+  Counter object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  bytesCount += 3 + object.receiptType.length * 3;
+  return bytesCount;
 }
 
-void _counterSetId(Counter object, int id) {
-  object.id = id;
-}
-
-List<IsarLinkBase<dynamic>> _counterGetLinks(Counter object) {
-  return [];
-}
-
-void _counterSerializeNative(
-    IsarCollection<Counter> collection,
-    IsarCObject cObj,
-    Counter object,
-    int staticSize,
-    List<int> offsets,
-    AdapterAlloc alloc) {
-  final receiptType$Bytes =
-      IsarBinaryWriter.utf8Encoder.convert(object.receiptType);
-  final size = (staticSize + 3 + (receiptType$Bytes.length)) as int;
-  cObj.buffer = alloc(size);
-  cObj.buffer_length = size;
-
-  final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
-  final writer = IsarBinaryWriter(buffer, staticSize);
-  writer.writeHeader();
+int _counterSerializeNative(
+  Counter object,
+  IsarBinaryWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
   writer.writeBool(offsets[0], object.backed);
   writer.writeLong(offsets[1], object.branchId);
   writer.writeLong(offsets[2], object.businessId);
   writer.writeLong(offsets[3], object.curRcptNo);
-  writer.writeByteList(offsets[4], receiptType$Bytes);
+  writer.writeString(offsets[4], object.receiptType);
   writer.writeLong(offsets[5], object.totRcptNo);
+  return writer.usedBytes;
 }
 
-Counter _counterDeserializeNative(IsarCollection<Counter> collection, int id,
-    IsarBinaryReader reader, List<int> offsets) {
+Counter _counterDeserializeNative(
+  Id id,
+  IsarBinaryReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
   final object = Counter(
     backed: reader.readBoolOrNull(offsets[0]),
     id: id,
@@ -99,10 +109,12 @@ Counter _counterDeserializeNative(IsarCollection<Counter> collection, int id,
 }
 
 P _counterDeserializePropNative<P>(
-    int id, IsarBinaryReader reader, int propertyIndex, int offset) {
-  switch (propertyIndex) {
-    case -1:
-      return id as P;
+  IsarBinaryReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
     case 0:
       return (reader.readBoolOrNull(offset)) as P;
     case 1:
@@ -116,67 +128,40 @@ P _counterDeserializePropNative<P>(
     case 5:
       return (reader.readLong(offset)) as P;
     default:
-      throw IsarError('Illegal propertyIndex');
+      throw IsarError('Unknown property with id $propertyId');
   }
 }
 
 Object _counterSerializeWeb(
     IsarCollection<Counter> collection, Counter object) {
-  final jsObj = IsarNative.newJsObject();
-  IsarNative.jsObjectSet(jsObj, r'backed', object.backed);
-  IsarNative.jsObjectSet(jsObj, r'branchId', object.branchId);
-  IsarNative.jsObjectSet(jsObj, r'businessId', object.businessId);
-  IsarNative.jsObjectSet(jsObj, r'curRcptNo', object.curRcptNo);
-  IsarNative.jsObjectSet(jsObj, r'id', object.id);
-  IsarNative.jsObjectSet(jsObj, r'receiptType', object.receiptType);
-  IsarNative.jsObjectSet(jsObj, r'totRcptNo', object.totRcptNo);
-  return jsObj;
+  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
 }
 
 Counter _counterDeserializeWeb(
     IsarCollection<Counter> collection, Object jsObj) {
-  final object = Counter(
-    backed: IsarNative.jsObjectGet(jsObj, r'backed'),
-    id: IsarNative.jsObjectGet(jsObj, r'id'),
-  );
-  object.branchId = IsarNative.jsObjectGet(jsObj, r'branchId') ??
-      (double.negativeInfinity as int);
-  object.businessId = IsarNative.jsObjectGet(jsObj, r'businessId') ??
-      (double.negativeInfinity as int);
-  object.curRcptNo = IsarNative.jsObjectGet(jsObj, r'curRcptNo') ??
-      (double.negativeInfinity as int);
-  object.receiptType = IsarNative.jsObjectGet(jsObj, r'receiptType') ?? '';
-  object.totRcptNo = IsarNative.jsObjectGet(jsObj, r'totRcptNo') ??
-      (double.negativeInfinity as int);
-  return object;
+  /*final object = Counter(backed: IsarNative.jsObjectGet(jsObj, r'backed') ,id: IsarNative.jsObjectGet(jsObj, r'id') ,);object.branchId = IsarNative.jsObjectGet(jsObj, r'branchId') ?? (double.negativeInfinity as int);object.businessId = IsarNative.jsObjectGet(jsObj, r'businessId') ?? (double.negativeInfinity as int);object.curRcptNo = IsarNative.jsObjectGet(jsObj, r'curRcptNo') ?? (double.negativeInfinity as int);object.receiptType = IsarNative.jsObjectGet(jsObj, r'receiptType') ?? '';object.totRcptNo = IsarNative.jsObjectGet(jsObj, r'totRcptNo') ?? (double.negativeInfinity as int);*/
+  //return object;
+  throw UnimplementedError();
 }
 
 P _counterDeserializePropWeb<P>(Object jsObj, String propertyName) {
   switch (propertyName) {
-    case r'backed':
-      return (IsarNative.jsObjectGet(jsObj, r'backed')) as P;
-    case r'branchId':
-      return (IsarNative.jsObjectGet(jsObj, r'branchId') ??
-          (double.negativeInfinity as int)) as P;
-    case r'businessId':
-      return (IsarNative.jsObjectGet(jsObj, r'businessId') ??
-          (double.negativeInfinity as int)) as P;
-    case r'curRcptNo':
-      return (IsarNative.jsObjectGet(jsObj, r'curRcptNo') ??
-          (double.negativeInfinity as int)) as P;
-    case r'id':
-      return (IsarNative.jsObjectGet(jsObj, r'id')) as P;
-    case r'receiptType':
-      return (IsarNative.jsObjectGet(jsObj, r'receiptType') ?? '') as P;
-    case r'totRcptNo':
-      return (IsarNative.jsObjectGet(jsObj, r'totRcptNo') ??
-          (double.negativeInfinity as int)) as P;
     default:
       throw IsarError('Illegal propertyName');
   }
 }
 
-void _counterAttachLinks(IsarCollection<dynamic> col, int id, Counter object) {}
+Id _counterGetId(Counter object) {
+  return object.id ?? Isar.autoIncrement;
+}
+
+List<IsarLinkBase<dynamic>> _counterGetLinks(Counter object) {
+  return [];
+}
+
+void _counterAttach(IsarCollection<dynamic> col, Id id, Counter object) {
+  object.id = id;
+}
 
 extension CounterQueryWhereSort on QueryBuilder<Counter, Counter, QWhere> {
   QueryBuilder<Counter, Counter, QAfterWhere> anyId() {
@@ -258,6 +243,14 @@ extension CounterQueryFilter
   QueryBuilder<Counter, Counter, QAfterFilterCondition> backedIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'backed',
+      ));
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> backedIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'backed',
       ));
     });
@@ -440,7 +433,15 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> idEqualTo(int value) {
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> idIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'id',
+      ));
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> idEqualTo(int? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -450,7 +451,7 @@ extension CounterQueryFilter
   }
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition> idGreaterThan(
-    int value, {
+    int? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -463,7 +464,7 @@ extension CounterQueryFilter
   }
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition> idLessThan(
-    int value, {
+    int? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -476,8 +477,8 @@ extension CounterQueryFilter
   }
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition> idBetween(
-    int lower,
-    int upper, {
+    int? lower,
+    int? upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -507,8 +508,8 @@ extension CounterQueryFilter
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition> receiptTypeGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -522,8 +523,8 @@ extension CounterQueryFilter
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition> receiptTypeLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -538,9 +539,9 @@ extension CounterQueryFilter
   QueryBuilder<Counter, Counter, QAfterFilterCondition> receiptTypeBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -604,6 +605,25 @@ extension CounterQueryFilter
     });
   }
 
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> receiptTypeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'receiptType',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition>
+      receiptTypeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'receiptType',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Counter, Counter, QAfterFilterCondition> totRcptNoEqualTo(
       int value) {
     return QueryBuilder.apply(this, (query) {
@@ -658,10 +678,13 @@ extension CounterQueryFilter
   }
 }
 
+extension CounterQueryObject
+    on QueryBuilder<Counter, Counter, QFilterCondition> {}
+
 extension CounterQueryLinks
     on QueryBuilder<Counter, Counter, QFilterCondition> {}
 
-extension CounterQueryWhereSortBy on QueryBuilder<Counter, Counter, QSortBy> {
+extension CounterQuerySortBy on QueryBuilder<Counter, Counter, QSortBy> {
   QueryBuilder<Counter, Counter, QAfterSortBy> sortByBacked() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'backed', Sort.asc);
@@ -735,7 +758,7 @@ extension CounterQueryWhereSortBy on QueryBuilder<Counter, Counter, QSortBy> {
   }
 }
 
-extension CounterQueryWhereSortThenBy
+extension CounterQuerySortThenBy
     on QueryBuilder<Counter, Counter, QSortThenBy> {
   QueryBuilder<Counter, Counter, QAfterSortBy> thenByBacked() {
     return QueryBuilder.apply(this, (query) {

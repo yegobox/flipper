@@ -7,116 +7,130 @@ part of flipper_models;
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
 
 extension GetPColorCollection on Isar {
-  IsarCollection<PColor> get pColors => collection();
+  IsarCollection<PColor> get pColors => this.collection();
 }
 
 const PColorSchema = CollectionSchema(
   name: r'PColor',
-  schema:
-      r'{"name":"PColor","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"channels","type":"StringList"},{"name":"colors","type":"StringList"},{"name":"name","type":"String"},{"name":"table","type":"String"}],"indexes":[],"links":[]}',
-  idName: r'id',
-  propertyIds: {
-    r'active': 0,
-    r'branchId': 1,
-    r'channels': 2,
-    r'colors': 3,
-    r'name': 4,
-    r'table': 5
+  id: -6070363420638790310,
+  properties: {
+    r'active': PropertySchema(
+      id: 0,
+      name: r'active',
+      type: IsarType.bool,
+    ),
+    r'branchId': PropertySchema(
+      id: 1,
+      name: r'branchId',
+      type: IsarType.long,
+    ),
+    r'channels': PropertySchema(
+      id: 2,
+      name: r'channels',
+      type: IsarType.stringList,
+    ),
+    r'colors': PropertySchema(
+      id: 3,
+      name: r'colors',
+      type: IsarType.stringList,
+    ),
+    r'name': PropertySchema(
+      id: 4,
+      name: r'name',
+      type: IsarType.string,
+    ),
+    r'table': PropertySchema(
+      id: 5,
+      name: r'table',
+      type: IsarType.string,
+    )
   },
-  listProperties: {r'channels', r'colors'},
-  indexIds: {},
-  indexValueTypes: {},
-  linkIds: {},
-  backlinkLinkNames: {},
-  getId: _pColorGetId,
-  setId: _pColorSetId,
-  getLinks: _pColorGetLinks,
-  attachLinks: _pColorAttachLinks,
+  estimateSize: _pColorEstimateSize,
   serializeNative: _pColorSerializeNative,
   deserializeNative: _pColorDeserializeNative,
   deserializePropNative: _pColorDeserializePropNative,
   serializeWeb: _pColorSerializeWeb,
   deserializeWeb: _pColorDeserializeWeb,
   deserializePropWeb: _pColorDeserializePropWeb,
-  version: 4,
+  idName: r'id',
+  indexes: {},
+  links: {},
+  embeddedSchemas: {},
+  getId: _pColorGetId,
+  getLinks: _pColorGetLinks,
+  attach: _pColorAttach,
+  version: '3.0.0-dev.14',
 );
 
-int? _pColorGetId(PColor object) {
-  if (object.id == Isar.autoIncrement) {
-    return null;
-  } else {
-    return object.id;
-  }
-}
-
-void _pColorSetId(PColor object, int id) {
-  object.id = id;
-}
-
-List<IsarLinkBase<dynamic>> _pColorGetLinks(PColor object) {
-  return [];
-}
-
-void _pColorSerializeNative(IsarCollection<PColor> collection, IsarCObject cObj,
-    PColor object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
-  var channels$BytesCount = 3 + (object.channels?.length ?? 0) * 3;
-  List<IsarUint8List?>? channels$BytesList;
-  final channels$Value = object.channels;
-  if (channels$Value != null) {
-    channels$BytesList = [];
-    for (final str in channels$Value) {
-      final bytes = IsarBinaryWriter.utf8Encoder.convert(str);
-      channels$BytesList.add(bytes);
-      channels$BytesCount += bytes.length as int;
+int _pColorEstimateSize(
+  PColor object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  {
+    final list = object.channels;
+    if (list != null) {
+      bytesCount += 3 + list.length * 3;
+      {
+        for (var i = 0; i < list.length; i++) {
+          final value = list[i];
+          bytesCount += value.length * 3;
+        }
+      }
     }
   }
-  var colors$BytesCount = 3 + (object.colors?.length ?? 0) * 3;
-  List<IsarUint8List?>? colors$BytesList;
-  final colors$Value = object.colors;
-  if (colors$Value != null) {
-    colors$BytesList = [];
-    for (final str in colors$Value) {
-      final bytes = IsarBinaryWriter.utf8Encoder.convert(str);
-      colors$BytesList.add(bytes);
-      colors$BytesCount += bytes.length as int;
+  {
+    final list = object.colors;
+    if (list != null) {
+      bytesCount += 3 + list.length * 3;
+      {
+        for (var i = 0; i < list.length; i++) {
+          final value = list[i];
+          bytesCount += value.length * 3;
+        }
+      }
     }
   }
-  IsarUint8List? name$Bytes;
-  final name$Value = object.name;
-  if (name$Value != null) {
-    name$Bytes = IsarBinaryWriter.utf8Encoder.convert(name$Value);
+  {
+    final value = object.name;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
   }
-  IsarUint8List? table$Bytes;
-  final table$Value = object.table;
-  if (table$Value != null) {
-    table$Bytes = IsarBinaryWriter.utf8Encoder.convert(table$Value);
+  {
+    final value = object.table;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
   }
-  final size = (staticSize +
-      channels$BytesCount +
-      colors$BytesCount +
-      3 +
-      (name$Bytes?.length ?? 0) +
-      3 +
-      (table$Bytes?.length ?? 0)) as int;
-  cObj.buffer = alloc(size);
-  cObj.buffer_length = size;
+  return bytesCount;
+}
 
-  final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
-  final writer = IsarBinaryWriter(buffer, staticSize);
-  writer.writeHeader();
+int _pColorSerializeNative(
+  PColor object,
+  IsarBinaryWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
   writer.writeBool(offsets[0], object.active);
   writer.writeLong(offsets[1], object.branchId);
-  writer.writeByteLists(offsets[2], channels$BytesList);
-  writer.writeByteLists(offsets[3], colors$BytesList);
-  writer.writeByteList(offsets[4], name$Bytes);
-  writer.writeByteList(offsets[5], table$Bytes);
+  writer.writeStringList(offsets[2], object.channels);
+  writer.writeStringList(offsets[3], object.colors);
+  writer.writeString(offsets[4], object.name);
+  writer.writeString(offsets[5], object.table);
+  return writer.usedBytes;
 }
 
-PColor _pColorDeserializeNative(IsarCollection<PColor> collection, int id,
-    IsarBinaryReader reader, List<int> offsets) {
+PColor _pColorDeserializeNative(
+  Id id,
+  IsarBinaryReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
   final object = PColor();
   object.active = reader.readBool(offsets[0]);
   object.branchId = reader.readLongOrNull(offsets[1]);
@@ -129,10 +143,12 @@ PColor _pColorDeserializeNative(IsarCollection<PColor> collection, int id,
 }
 
 P _pColorDeserializePropNative<P>(
-    int id, IsarBinaryReader reader, int propertyIndex, int offset) {
-  switch (propertyIndex) {
-    case -1:
-      return id as P;
+  IsarBinaryReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
     case 0:
       return (reader.readBool(offset)) as P;
     case 1:
@@ -146,68 +162,38 @@ P _pColorDeserializePropNative<P>(
     case 5:
       return (reader.readStringOrNull(offset)) as P;
     default:
-      throw IsarError('Illegal propertyIndex');
+      throw IsarError('Unknown property with id $propertyId');
   }
 }
 
 Object _pColorSerializeWeb(IsarCollection<PColor> collection, PColor object) {
-  final jsObj = IsarNative.newJsObject();
-  IsarNative.jsObjectSet(jsObj, r'active', object.active);
-  IsarNative.jsObjectSet(jsObj, r'branchId', object.branchId);
-  IsarNative.jsObjectSet(jsObj, r'channels', object.channels);
-  IsarNative.jsObjectSet(jsObj, r'colors', object.colors);
-  IsarNative.jsObjectSet(jsObj, r'id', object.id);
-  IsarNative.jsObjectSet(jsObj, r'name', object.name);
-  IsarNative.jsObjectSet(jsObj, r'table', object.table);
-  return jsObj;
+  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
 }
 
 PColor _pColorDeserializeWeb(IsarCollection<PColor> collection, Object jsObj) {
-  final object = PColor();
-  object.active = IsarNative.jsObjectGet(jsObj, r'active') ?? false;
-  object.branchId = IsarNative.jsObjectGet(jsObj, r'branchId');
-  object.channels = (IsarNative.jsObjectGet(jsObj, r'channels') as List?)
-      ?.map((e) => e ?? '')
-      .toList()
-      .cast<String>();
-  object.colors = (IsarNative.jsObjectGet(jsObj, r'colors') as List?)
-      ?.map((e) => e ?? '')
-      .toList()
-      .cast<String>();
-  object.id = IsarNative.jsObjectGet(jsObj, r'id');
-  object.name = IsarNative.jsObjectGet(jsObj, r'name');
-  object.table = IsarNative.jsObjectGet(jsObj, r'table');
-  return object;
+  /*final object = PColor();object.active = IsarNative.jsObjectGet(jsObj, r'active') ?? false;object.branchId = IsarNative.jsObjectGet(jsObj, r'branchId') ;object.channels = (IsarNative.jsObjectGet(jsObj, r'channels') as List?)?.map((e) => e ?? '').toList().cast<String>() ;object.colors = (IsarNative.jsObjectGet(jsObj, r'colors') as List?)?.map((e) => e ?? '').toList().cast<String>() ;object.id = IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int);object.name = IsarNative.jsObjectGet(jsObj, r'name') ;object.table = IsarNative.jsObjectGet(jsObj, r'table') ;*/
+  //return object;
+  throw UnimplementedError();
 }
 
 P _pColorDeserializePropWeb<P>(Object jsObj, String propertyName) {
   switch (propertyName) {
-    case r'active':
-      return (IsarNative.jsObjectGet(jsObj, r'active') ?? false) as P;
-    case r'branchId':
-      return (IsarNative.jsObjectGet(jsObj, r'branchId')) as P;
-    case r'channels':
-      return ((IsarNative.jsObjectGet(jsObj, r'channels') as List?)
-          ?.map((e) => e ?? '')
-          .toList()
-          .cast<String>()) as P;
-    case r'colors':
-      return ((IsarNative.jsObjectGet(jsObj, r'colors') as List?)
-          ?.map((e) => e ?? '')
-          .toList()
-          .cast<String>()) as P;
-    case r'id':
-      return (IsarNative.jsObjectGet(jsObj, r'id')) as P;
-    case r'name':
-      return (IsarNative.jsObjectGet(jsObj, r'name')) as P;
-    case r'table':
-      return (IsarNative.jsObjectGet(jsObj, r'table')) as P;
     default:
       throw IsarError('Illegal propertyName');
   }
 }
 
-void _pColorAttachLinks(IsarCollection<dynamic> col, int id, PColor object) {}
+Id _pColorGetId(PColor object) {
+  return object.id;
+}
+
+List<IsarLinkBase<dynamic>> _pColorGetLinks(PColor object) {
+  return [];
+}
+
+void _pColorAttach(IsarCollection<dynamic> col, Id id, PColor object) {
+  object.id = id;
+}
 
 extension PColorQueryWhereSort on QueryBuilder<PColor, PColor, QWhere> {
   QueryBuilder<PColor, PColor, QAfterWhere> anyId() {
@@ -303,6 +289,14 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
     });
   }
 
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> branchIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'branchId',
+      ));
+    });
+  }
+
   QueryBuilder<PColor, PColor, QAfterFilterCondition> branchIdEqualTo(
       int? value) {
     return QueryBuilder.apply(this, (query) {
@@ -364,17 +358,16 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
     });
   }
 
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsElementIsNull() {
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.equalTo(
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'channels',
-        value: null,
       ));
     });
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsElementEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -388,9 +381,9 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition>
       channelsElementGreaterThan(
-    String? value, {
-    bool caseSensitive = true,
+    String value, {
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -403,9 +396,9 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsElementLessThan(
-    String? value, {
-    bool caseSensitive = true,
+    String value, {
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -418,11 +411,11 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsElementBetween(
-    String? lower,
-    String? upper, {
-    bool caseSensitive = true,
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -486,6 +479,109 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
     });
   }
 
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsElementIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'channels',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<PColor, PColor, QAfterFilterCondition>
+      channelsElementIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'channels',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsLengthEqualTo(
+      int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'channels',
+        length,
+        true,
+        length,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'channels',
+        0,
+        true,
+        0,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'channels',
+        0,
+        false,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'channels',
+        0,
+        true,
+        length,
+        include,
+      );
+    });
+  }
+
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'channels',
+        length,
+        include,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'channels',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
+      );
+    });
+  }
+
   QueryBuilder<PColor, PColor, QAfterFilterCondition> colorsIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -494,17 +590,16 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
     });
   }
 
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> colorsElementIsNull() {
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> colorsIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.equalTo(
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'colors',
-        value: null,
       ));
     });
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> colorsElementEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -517,9 +612,9 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> colorsElementGreaterThan(
-    String? value, {
-    bool caseSensitive = true,
+    String value, {
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -532,9 +627,9 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> colorsElementLessThan(
-    String? value, {
-    bool caseSensitive = true,
+    String value, {
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -547,11 +642,11 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> colorsElementBetween(
-    String? lower,
-    String? upper, {
-    bool caseSensitive = true,
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -615,6 +710,109 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
     });
   }
 
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> colorsElementIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'colors',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<PColor, PColor, QAfterFilterCondition>
+      colorsElementIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'colors',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> colorsLengthEqualTo(
+      int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'colors',
+        length,
+        true,
+        length,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> colorsIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'colors',
+        0,
+        true,
+        0,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> colorsIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'colors',
+        0,
+        false,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> colorsLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'colors',
+        0,
+        true,
+        length,
+        include,
+      );
+    });
+  }
+
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> colorsLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'colors',
+        length,
+        include,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> colorsLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'colors',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
+      );
+    });
+  }
+
   QueryBuilder<PColor, PColor, QAfterFilterCondition> idEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -675,6 +873,14 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
     });
   }
 
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> nameIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'name',
+      ));
+    });
+  }
+
   QueryBuilder<PColor, PColor, QAfterFilterCondition> nameEqualTo(
     String? value, {
     bool caseSensitive = true,
@@ -690,8 +896,8 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> nameGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -705,8 +911,8 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> nameLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -721,9 +927,9 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
   QueryBuilder<PColor, PColor, QAfterFilterCondition> nameBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -786,9 +992,35 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
     });
   }
 
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> nameIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'name',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> nameIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'name',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<PColor, PColor, QAfterFilterCondition> tableIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'table',
+      ));
+    });
+  }
+
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> tableIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'table',
       ));
     });
@@ -809,8 +1041,8 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> tableGreaterThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -824,8 +1056,8 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> tableLessThan(
     String? value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -840,9 +1072,9 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
   QueryBuilder<PColor, PColor, QAfterFilterCondition> tableBetween(
     String? lower,
     String? upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -905,11 +1137,31 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
       ));
     });
   }
+
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> tableIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'table',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> tableIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'table',
+        value: '',
+      ));
+    });
+  }
 }
+
+extension PColorQueryObject on QueryBuilder<PColor, PColor, QFilterCondition> {}
 
 extension PColorQueryLinks on QueryBuilder<PColor, PColor, QFilterCondition> {}
 
-extension PColorQueryWhereSortBy on QueryBuilder<PColor, PColor, QSortBy> {
+extension PColorQuerySortBy on QueryBuilder<PColor, PColor, QSortBy> {
   QueryBuilder<PColor, PColor, QAfterSortBy> sortByActive() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'active', Sort.asc);
@@ -959,8 +1211,7 @@ extension PColorQueryWhereSortBy on QueryBuilder<PColor, PColor, QSortBy> {
   }
 }
 
-extension PColorQueryWhereSortThenBy
-    on QueryBuilder<PColor, PColor, QSortThenBy> {
+extension PColorQuerySortThenBy on QueryBuilder<PColor, PColor, QSortThenBy> {
   QueryBuilder<PColor, PColor, QAfterSortBy> thenByActive() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'active', Sort.asc);

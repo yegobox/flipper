@@ -7,76 +7,98 @@ part of 'unit.dart';
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
 
 extension GetIUnitCollection on Isar {
-  IsarCollection<IUnit> get iUnits => collection();
+  IsarCollection<IUnit> get iUnits => this.collection();
 }
 
 const IUnitSchema = CollectionSchema(
   name: r'IUnit',
-  schema:
-      r'{"name":"IUnit","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"branchId","type":"Long"},{"name":"name","type":"String"},{"name":"value","type":"String"}],"indexes":[{"name":"branchId","unique":false,"replace":false,"properties":[{"name":"branchId","type":"Value","caseSensitive":false}]}],"links":[]}',
-  idName: r'id',
-  propertyIds: {r'active': 0, r'branchId': 1, r'name': 2, r'value': 3},
-  listProperties: {},
-  indexIds: {r'branchId': 0},
-  indexValueTypes: {
-    r'branchId': [
-      IndexValueType.long,
-    ]
+  id: 8808868791555578677,
+  properties: {
+    r'active': PropertySchema(
+      id: 0,
+      name: r'active',
+      type: IsarType.bool,
+    ),
+    r'branchId': PropertySchema(
+      id: 1,
+      name: r'branchId',
+      type: IsarType.long,
+    ),
+    r'name': PropertySchema(
+      id: 2,
+      name: r'name',
+      type: IsarType.string,
+    ),
+    r'value': PropertySchema(
+      id: 3,
+      name: r'value',
+      type: IsarType.string,
+    )
   },
-  linkIds: {},
-  backlinkLinkNames: {},
-  getId: _iUnitGetId,
-  setId: _iUnitSetId,
-  getLinks: _iUnitGetLinks,
-  attachLinks: _iUnitAttachLinks,
+  estimateSize: _iUnitEstimateSize,
   serializeNative: _iUnitSerializeNative,
   deserializeNative: _iUnitDeserializeNative,
   deserializePropNative: _iUnitDeserializePropNative,
   serializeWeb: _iUnitSerializeWeb,
   deserializeWeb: _iUnitDeserializeWeb,
   deserializePropWeb: _iUnitDeserializePropWeb,
-  version: 4,
+  idName: r'id',
+  indexes: {
+    r'branchId': IndexSchema(
+      id: 2037049677925728410,
+      name: r'branchId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'branchId',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
+    )
+  },
+  links: {},
+  embeddedSchemas: {},
+  getId: _iUnitGetId,
+  getLinks: _iUnitGetLinks,
+  attach: _iUnitAttach,
+  version: '3.0.0-dev.14',
 );
 
-int? _iUnitGetId(IUnit object) {
-  if (object.id == Isar.autoIncrement) {
-    return null;
-  } else {
-    return object.id;
-  }
+int _iUnitEstimateSize(
+  IUnit object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  bytesCount += 3 + object.name.length * 3;
+  bytesCount += 3 + object.value.length * 3;
+  return bytesCount;
 }
 
-void _iUnitSetId(IUnit object, int id) {
-  object.id = id;
-}
-
-List<IsarLinkBase<dynamic>> _iUnitGetLinks(IUnit object) {
-  return [];
-}
-
-void _iUnitSerializeNative(IsarCollection<IUnit> collection, IsarCObject cObj,
-    IUnit object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
-  final name$Bytes = IsarBinaryWriter.utf8Encoder.convert(object.name);
-  final value$Bytes = IsarBinaryWriter.utf8Encoder.convert(object.value);
-  final size =
-      (staticSize + 3 + (name$Bytes.length) + 3 + (value$Bytes.length)) as int;
-  cObj.buffer = alloc(size);
-  cObj.buffer_length = size;
-
-  final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
-  final writer = IsarBinaryWriter(buffer, staticSize);
-  writer.writeHeader();
+int _iUnitSerializeNative(
+  IUnit object,
+  IsarBinaryWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
   writer.writeBool(offsets[0], object.active);
   writer.writeLong(offsets[1], object.branchId);
-  writer.writeByteList(offsets[2], name$Bytes);
-  writer.writeByteList(offsets[3], value$Bytes);
+  writer.writeString(offsets[2], object.name);
+  writer.writeString(offsets[3], object.value);
+  return writer.usedBytes;
 }
 
-IUnit _iUnitDeserializeNative(IsarCollection<IUnit> collection, int id,
-    IsarBinaryReader reader, List<int> offsets) {
+IUnit _iUnitDeserializeNative(
+  Id id,
+  IsarBinaryReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
   final object = IUnit();
   object.active = reader.readBool(offsets[0]);
   object.branchId = reader.readLong(offsets[1]);
@@ -87,10 +109,12 @@ IUnit _iUnitDeserializeNative(IsarCollection<IUnit> collection, int id,
 }
 
 P _iUnitDeserializePropNative<P>(
-    int id, IsarBinaryReader reader, int propertyIndex, int offset) {
-  switch (propertyIndex) {
-    case -1:
-      return id as P;
+  IsarBinaryReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
     case 0:
       return (reader.readBool(offset)) as P;
     case 1:
@@ -100,50 +124,38 @@ P _iUnitDeserializePropNative<P>(
     case 3:
       return (reader.readString(offset)) as P;
     default:
-      throw IsarError('Illegal propertyIndex');
+      throw IsarError('Unknown property with id $propertyId');
   }
 }
 
 Object _iUnitSerializeWeb(IsarCollection<IUnit> collection, IUnit object) {
-  final jsObj = IsarNative.newJsObject();
-  IsarNative.jsObjectSet(jsObj, r'active', object.active);
-  IsarNative.jsObjectSet(jsObj, r'branchId', object.branchId);
-  IsarNative.jsObjectSet(jsObj, r'id', object.id);
-  IsarNative.jsObjectSet(jsObj, r'name', object.name);
-  IsarNative.jsObjectSet(jsObj, r'value', object.value);
-  return jsObj;
+  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
 }
 
 IUnit _iUnitDeserializeWeb(IsarCollection<IUnit> collection, Object jsObj) {
-  final object = IUnit();
-  object.active = IsarNative.jsObjectGet(jsObj, r'active') ?? false;
-  object.branchId = IsarNative.jsObjectGet(jsObj, r'branchId') ??
-      (double.negativeInfinity as int);
-  object.id = IsarNative.jsObjectGet(jsObj, r'id');
-  object.name = IsarNative.jsObjectGet(jsObj, r'name') ?? '';
-  object.value = IsarNative.jsObjectGet(jsObj, r'value') ?? '';
-  return object;
+  /*final object = IUnit();object.active = IsarNative.jsObjectGet(jsObj, r'active') ?? false;object.branchId = IsarNative.jsObjectGet(jsObj, r'branchId') ?? (double.negativeInfinity as int);object.id = IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int);object.name = IsarNative.jsObjectGet(jsObj, r'name') ?? '';object.value = IsarNative.jsObjectGet(jsObj, r'value') ?? '';*/
+  //return object;
+  throw UnimplementedError();
 }
 
 P _iUnitDeserializePropWeb<P>(Object jsObj, String propertyName) {
   switch (propertyName) {
-    case r'active':
-      return (IsarNative.jsObjectGet(jsObj, r'active') ?? false) as P;
-    case r'branchId':
-      return (IsarNative.jsObjectGet(jsObj, r'branchId') ??
-          (double.negativeInfinity as int)) as P;
-    case r'id':
-      return (IsarNative.jsObjectGet(jsObj, r'id')) as P;
-    case r'name':
-      return (IsarNative.jsObjectGet(jsObj, r'name') ?? '') as P;
-    case r'value':
-      return (IsarNative.jsObjectGet(jsObj, r'value') ?? '') as P;
     default:
       throw IsarError('Illegal propertyName');
   }
 }
 
-void _iUnitAttachLinks(IsarCollection<dynamic> col, int id, IUnit object) {}
+Id _iUnitGetId(IUnit object) {
+  return object.id;
+}
+
+List<IsarLinkBase<dynamic>> _iUnitGetLinks(IUnit object) {
+  return [];
+}
+
+void _iUnitAttach(IsarCollection<dynamic> col, Id id, IUnit object) {
+  object.id = id;
+}
 
 extension IUnitQueryWhereSort on QueryBuilder<IUnit, IUnit, QWhere> {
   QueryBuilder<IUnit, IUnit, QAfterWhere> anyId() {
@@ -446,8 +458,8 @@ extension IUnitQueryFilter on QueryBuilder<IUnit, IUnit, QFilterCondition> {
 
   QueryBuilder<IUnit, IUnit, QAfterFilterCondition> nameGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -461,8 +473,8 @@ extension IUnitQueryFilter on QueryBuilder<IUnit, IUnit, QFilterCondition> {
 
   QueryBuilder<IUnit, IUnit, QAfterFilterCondition> nameLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -477,9 +489,9 @@ extension IUnitQueryFilter on QueryBuilder<IUnit, IUnit, QFilterCondition> {
   QueryBuilder<IUnit, IUnit, QAfterFilterCondition> nameBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -541,6 +553,24 @@ extension IUnitQueryFilter on QueryBuilder<IUnit, IUnit, QFilterCondition> {
     });
   }
 
+  QueryBuilder<IUnit, IUnit, QAfterFilterCondition> nameIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'name',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<IUnit, IUnit, QAfterFilterCondition> nameIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'name',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<IUnit, IUnit, QAfterFilterCondition> valueEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -556,8 +586,8 @@ extension IUnitQueryFilter on QueryBuilder<IUnit, IUnit, QFilterCondition> {
 
   QueryBuilder<IUnit, IUnit, QAfterFilterCondition> valueGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -571,8 +601,8 @@ extension IUnitQueryFilter on QueryBuilder<IUnit, IUnit, QFilterCondition> {
 
   QueryBuilder<IUnit, IUnit, QAfterFilterCondition> valueLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -587,9 +617,9 @@ extension IUnitQueryFilter on QueryBuilder<IUnit, IUnit, QFilterCondition> {
   QueryBuilder<IUnit, IUnit, QAfterFilterCondition> valueBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -650,11 +680,31 @@ extension IUnitQueryFilter on QueryBuilder<IUnit, IUnit, QFilterCondition> {
       ));
     });
   }
+
+  QueryBuilder<IUnit, IUnit, QAfterFilterCondition> valueIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'value',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<IUnit, IUnit, QAfterFilterCondition> valueIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'value',
+        value: '',
+      ));
+    });
+  }
 }
+
+extension IUnitQueryObject on QueryBuilder<IUnit, IUnit, QFilterCondition> {}
 
 extension IUnitQueryLinks on QueryBuilder<IUnit, IUnit, QFilterCondition> {}
 
-extension IUnitQueryWhereSortBy on QueryBuilder<IUnit, IUnit, QSortBy> {
+extension IUnitQuerySortBy on QueryBuilder<IUnit, IUnit, QSortBy> {
   QueryBuilder<IUnit, IUnit, QAfterSortBy> sortByActive() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'active', Sort.asc);
@@ -704,7 +754,7 @@ extension IUnitQueryWhereSortBy on QueryBuilder<IUnit, IUnit, QSortBy> {
   }
 }
 
-extension IUnitQueryWhereSortThenBy on QueryBuilder<IUnit, IUnit, QSortThenBy> {
+extension IUnitQuerySortThenBy on QueryBuilder<IUnit, IUnit, QSortThenBy> {
   QueryBuilder<IUnit, IUnit, QAfterSortBy> thenByActive() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'active', Sort.asc);

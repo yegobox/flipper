@@ -7,83 +7,90 @@ part of 'pin.dart';
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
 
 extension GetPinCollection on Isar {
-  IsarCollection<Pin> get pins => collection();
+  IsarCollection<Pin> get pins => this.collection();
 }
 
 const PinSchema = CollectionSchema(
   name: r'Pin',
-  schema:
-      r'{"name":"Pin","idName":"id","properties":[{"name":"branchId","type":"Long"},{"name":"businessId","type":"Long"},{"name":"phoneNumber","type":"String"},{"name":"pin","type":"Long"},{"name":"userId","type":"String"}],"indexes":[],"links":[]}',
-  idName: r'id',
-  propertyIds: {
-    r'branchId': 0,
-    r'businessId': 1,
-    r'phoneNumber': 2,
-    r'pin': 3,
-    r'userId': 4
+  id: -7991167910665163133,
+  properties: {
+    r'branchId': PropertySchema(
+      id: 0,
+      name: r'branchId',
+      type: IsarType.long,
+    ),
+    r'businessId': PropertySchema(
+      id: 1,
+      name: r'businessId',
+      type: IsarType.long,
+    ),
+    r'phoneNumber': PropertySchema(
+      id: 2,
+      name: r'phoneNumber',
+      type: IsarType.string,
+    ),
+    r'pin': PropertySchema(
+      id: 3,
+      name: r'pin',
+      type: IsarType.long,
+    ),
+    r'userId': PropertySchema(
+      id: 4,
+      name: r'userId',
+      type: IsarType.string,
+    )
   },
-  listProperties: {},
-  indexIds: {},
-  indexValueTypes: {},
-  linkIds: {},
-  backlinkLinkNames: {},
-  getId: _pinGetId,
-  setId: _pinSetId,
-  getLinks: _pinGetLinks,
-  attachLinks: _pinAttachLinks,
+  estimateSize: _pinEstimateSize,
   serializeNative: _pinSerializeNative,
   deserializeNative: _pinDeserializeNative,
   deserializePropNative: _pinDeserializePropNative,
   serializeWeb: _pinSerializeWeb,
   deserializeWeb: _pinDeserializeWeb,
   deserializePropWeb: _pinDeserializePropWeb,
-  version: 4,
+  idName: r'id',
+  indexes: {},
+  links: {},
+  embeddedSchemas: {},
+  getId: _pinGetId,
+  getLinks: _pinGetLinks,
+  attach: _pinAttach,
+  version: '3.0.0-dev.14',
 );
 
-int? _pinGetId(Pin object) {
-  if (object.id == Isar.autoIncrement) {
-    return null;
-  } else {
-    return object.id;
-  }
+int _pinEstimateSize(
+  Pin object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  bytesCount += 3 + object.phoneNumber.length * 3;
+  bytesCount += 3 + object.userId.length * 3;
+  return bytesCount;
 }
 
-void _pinSetId(Pin object, int id) {
-  object.id = id;
-}
-
-List<IsarLinkBase<dynamic>> _pinGetLinks(Pin object) {
-  return [];
-}
-
-void _pinSerializeNative(IsarCollection<Pin> collection, IsarCObject cObj,
-    Pin object, int staticSize, List<int> offsets, AdapterAlloc alloc) {
-  final phoneNumber$Bytes =
-      IsarBinaryWriter.utf8Encoder.convert(object.phoneNumber);
-  final userId$Bytes = IsarBinaryWriter.utf8Encoder.convert(object.userId);
-  final size = (staticSize +
-      3 +
-      (phoneNumber$Bytes.length) +
-      3 +
-      (userId$Bytes.length)) as int;
-  cObj.buffer = alloc(size);
-  cObj.buffer_length = size;
-
-  final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
-  final writer = IsarBinaryWriter(buffer, staticSize);
-  writer.writeHeader();
+int _pinSerializeNative(
+  Pin object,
+  IsarBinaryWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
   writer.writeLong(offsets[0], object.branchId);
   writer.writeLong(offsets[1], object.businessId);
-  writer.writeByteList(offsets[2], phoneNumber$Bytes);
+  writer.writeString(offsets[2], object.phoneNumber);
   writer.writeLong(offsets[3], object.pin);
-  writer.writeByteList(offsets[4], userId$Bytes);
+  writer.writeString(offsets[4], object.userId);
+  return writer.usedBytes;
 }
 
-Pin _pinDeserializeNative(IsarCollection<Pin> collection, int id,
-    IsarBinaryReader reader, List<int> offsets) {
+Pin _pinDeserializeNative(
+  Id id,
+  IsarBinaryReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
   final object = Pin(
     branchId: reader.readLong(offsets[0]),
     businessId: reader.readLong(offsets[1]),
@@ -96,10 +103,12 @@ Pin _pinDeserializeNative(IsarCollection<Pin> collection, int id,
 }
 
 P _pinDeserializePropNative<P>(
-    int id, IsarBinaryReader reader, int propertyIndex, int offset) {
-  switch (propertyIndex) {
-    case -1:
-      return id as P;
+  IsarBinaryReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
     case 0:
       return (reader.readLong(offset)) as P;
     case 1:
@@ -111,59 +120,38 @@ P _pinDeserializePropNative<P>(
     case 4:
       return (reader.readString(offset)) as P;
     default:
-      throw IsarError('Illegal propertyIndex');
+      throw IsarError('Unknown property with id $propertyId');
   }
 }
 
 Object _pinSerializeWeb(IsarCollection<Pin> collection, Pin object) {
-  final jsObj = IsarNative.newJsObject();
-  IsarNative.jsObjectSet(jsObj, r'branchId', object.branchId);
-  IsarNative.jsObjectSet(jsObj, r'businessId', object.businessId);
-  IsarNative.jsObjectSet(jsObj, r'id', object.id);
-  IsarNative.jsObjectSet(jsObj, r'phoneNumber', object.phoneNumber);
-  IsarNative.jsObjectSet(jsObj, r'pin', object.pin);
-  IsarNative.jsObjectSet(jsObj, r'userId', object.userId);
-  return jsObj;
+  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
 }
 
 Pin _pinDeserializeWeb(IsarCollection<Pin> collection, Object jsObj) {
-  final object = Pin(
-    branchId: IsarNative.jsObjectGet(jsObj, r'branchId') ??
-        (double.negativeInfinity as int),
-    businessId: IsarNative.jsObjectGet(jsObj, r'businessId') ??
-        (double.negativeInfinity as int),
-    phoneNumber: IsarNative.jsObjectGet(jsObj, r'phoneNumber') ?? '',
-    pin: IsarNative.jsObjectGet(jsObj, r'pin') ??
-        (double.negativeInfinity as int),
-    userId: IsarNative.jsObjectGet(jsObj, r'userId') ?? '',
-  );
-  object.id = IsarNative.jsObjectGet(jsObj, r'id');
-  return object;
+  /*final object = Pin(branchId: IsarNative.jsObjectGet(jsObj, r'branchId') ?? (double.negativeInfinity as int),businessId: IsarNative.jsObjectGet(jsObj, r'businessId') ?? (double.negativeInfinity as int),phoneNumber: IsarNative.jsObjectGet(jsObj, r'phoneNumber') ?? '',pin: IsarNative.jsObjectGet(jsObj, r'pin') ?? (double.negativeInfinity as int),userId: IsarNative.jsObjectGet(jsObj, r'userId') ?? '',);object.id = IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int);*/
+  //return object;
+  throw UnimplementedError();
 }
 
 P _pinDeserializePropWeb<P>(Object jsObj, String propertyName) {
   switch (propertyName) {
-    case r'branchId':
-      return (IsarNative.jsObjectGet(jsObj, r'branchId') ??
-          (double.negativeInfinity as int)) as P;
-    case r'businessId':
-      return (IsarNative.jsObjectGet(jsObj, r'businessId') ??
-          (double.negativeInfinity as int)) as P;
-    case r'id':
-      return (IsarNative.jsObjectGet(jsObj, r'id')) as P;
-    case r'phoneNumber':
-      return (IsarNative.jsObjectGet(jsObj, r'phoneNumber') ?? '') as P;
-    case r'pin':
-      return (IsarNative.jsObjectGet(jsObj, r'pin') ??
-          (double.negativeInfinity as int)) as P;
-    case r'userId':
-      return (IsarNative.jsObjectGet(jsObj, r'userId') ?? '') as P;
     default:
       throw IsarError('Illegal propertyName');
   }
 }
 
-void _pinAttachLinks(IsarCollection<dynamic> col, int id, Pin object) {}
+Id _pinGetId(Pin object) {
+  return object.id;
+}
+
+List<IsarLinkBase<dynamic>> _pinGetLinks(Pin object) {
+  return [];
+}
+
+void _pinAttach(IsarCollection<dynamic> col, Id id, Pin object) {
+  object.id = id;
+}
 
 extension PinQueryWhereSort on QueryBuilder<Pin, Pin, QWhere> {
   QueryBuilder<Pin, Pin, QAfterWhere> anyId() {
@@ -412,8 +400,8 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
 
   QueryBuilder<Pin, Pin, QAfterFilterCondition> phoneNumberGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -427,8 +415,8 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
 
   QueryBuilder<Pin, Pin, QAfterFilterCondition> phoneNumberLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -443,9 +431,9 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
   QueryBuilder<Pin, Pin, QAfterFilterCondition> phoneNumberBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -505,6 +493,24 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
         property: r'phoneNumber',
         wildcard: pattern,
         caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Pin, Pin, QAfterFilterCondition> phoneNumberIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'phoneNumber',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Pin, Pin, QAfterFilterCondition> phoneNumberIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'phoneNumber',
+        value: '',
       ));
     });
   }
@@ -576,8 +582,8 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
 
   QueryBuilder<Pin, Pin, QAfterFilterCondition> userIdGreaterThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -591,8 +597,8 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
 
   QueryBuilder<Pin, Pin, QAfterFilterCondition> userIdLessThan(
     String value, {
-    bool caseSensitive = true,
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
@@ -607,9 +613,9 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
   QueryBuilder<Pin, Pin, QAfterFilterCondition> userIdBetween(
     String lower,
     String upper, {
-    bool caseSensitive = true,
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -670,11 +676,31 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
       ));
     });
   }
+
+  QueryBuilder<Pin, Pin, QAfterFilterCondition> userIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'userId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Pin, Pin, QAfterFilterCondition> userIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'userId',
+        value: '',
+      ));
+    });
+  }
 }
+
+extension PinQueryObject on QueryBuilder<Pin, Pin, QFilterCondition> {}
 
 extension PinQueryLinks on QueryBuilder<Pin, Pin, QFilterCondition> {}
 
-extension PinQueryWhereSortBy on QueryBuilder<Pin, Pin, QSortBy> {
+extension PinQuerySortBy on QueryBuilder<Pin, Pin, QSortBy> {
   QueryBuilder<Pin, Pin, QAfterSortBy> sortByBranchId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'branchId', Sort.asc);
@@ -736,7 +762,7 @@ extension PinQueryWhereSortBy on QueryBuilder<Pin, Pin, QSortBy> {
   }
 }
 
-extension PinQueryWhereSortThenBy on QueryBuilder<Pin, Pin, QSortThenBy> {
+extension PinQuerySortThenBy on QueryBuilder<Pin, Pin, QSortThenBy> {
   QueryBuilder<Pin, Pin, QAfterSortBy> thenByBranchId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'branchId', Sort.asc);
