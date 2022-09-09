@@ -31,14 +31,14 @@ dependencies:
 
   universal_platform: ^1.0.0+1
   animations: ^2.0.0
-  sentry_flutter: ^6.3.0
+  sentry_flutter: ^6.9.1
   fluent_ui:
   system_theme: ^2.0.0
   flutter_acrylic: ^0.1.0
   provider: ^6.0.1
-  firebase_auth_desktop: ^0.1.1-dev.6
-  firebase_core: ^1.10.2
-  firebase_core_desktop: ^0.1.1-dev.3
+  firebase_auth_desktop: ^1.0.2
+  firebase_core: ^1.22.0
+  firebase_core_desktop: ^1.0.2
   flutterfire_ui: ^0.4.3+8
   get_storage: ^2.0.3
   firebase_auth: ^3.3.19
