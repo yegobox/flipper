@@ -34,46 +34,6 @@ class KeyPadView extends StatelessWidget {
                   color: const Color(0xff000000).withOpacity(0.25)),
             ),
           ),
-          // InkWell(
-          //   onTap: () {
-          //     FlipperBottomSheet.showAddNoteToSaleBottomSheet(
-          //       model: model,
-          //       context: context,
-          //     );
-          //   },
-          //   child: IgnorePointer(
-          //     child: Container(
-          //       padding: const EdgeInsets.only(
-          //         right: 10,
-          //         top: 10,
-          //         left: 10,
-          //         bottom: 15,
-          //       ),
-          //       child: Row(
-          //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          //         children: <Widget>[
-          //           Expanded(
-          //             child: Container(
-          //               alignment: Alignment.center,
-          //               child: Container(
-          //                 padding: const EdgeInsets.only(right: 10),
-          //                 child: const TextButton(
-          //                   onPressed: null,
-          //                   child: Text(
-          //                     'AddNote',
-          //                     style: TextStyle(
-          //                       fontWeight: FontWeight.w600,
-          //                     ),
-          //                   ),
-          //                 ),
-          //               ),
-          //             ),
-          //           ),
-          //         ],
-          //       ),
-          //     ),
-          //   ),
-          // ),
           Expanded(
             child: Row(
               children: [

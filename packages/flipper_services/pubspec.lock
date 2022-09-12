@@ -428,13 +428,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "4.0.6"
-  downloads_path_provider_28:
-    dependency: transitive
-    description:
-      name: downloads_path_provider_28
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.1.2"
   email_validator:
     dependency: transitive
     description:
@@ -1393,6 +1386,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "4.5.0"
+  lecle_downloads_path_provider:
+    dependency: transitive
+    description:
+      name: lecle_downloads_path_provider
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.0.2+7"
   linkify:
     dependency: transitive
     description:

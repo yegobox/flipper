@@ -270,7 +270,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         await ProxyService.isarApi.variant(variantId: variationId);
     Stock? stock =
         await ProxyService.isarApi.stockByVariantId(variantId: variation!.id);
-    // log.i(stock);
+
     String name = '';
 
     if (variation.productName != 'Custom Amount') {
@@ -285,9 +285,6 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     OrderItem? existOrderItem = await ProxyService.isarApi
         .getOrderItemByVariantId(
             variantId: variationId, orderId: pendingOrder.id);
-
-    /// if is a new item to be added to the list then it will be added to the list
-    /// existOrderItem will return null which will go to adding item api.
     await addOrderItems(
       variationId: variationId,
       pendingOrder: pendingOrder,
@@ -298,7 +295,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       isCustom: customItem,
       item: existOrderItem,
     );
-
+    currentOrder();
     return true;
   }
 
@@ -322,10 +319,13 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     if (item != null && !isCustom) {
       item.qty = item.qty + quantity.toDouble();
       item.price = amountTotal / quantity; // price of one unit
-      pendingOrder!.subTotal = pendingOrder.subTotal + (amountTotal);
+
+      List<OrderItem> items =
+          await ProxyService.isarApi.orderItems(orderId: pendingOrder!.id);
+      pendingOrder.subTotal = items.fold(0, (a, b) => a + b.price);
+
       ProxyService.isarApi.update(data: pendingOrder);
       ProxyService.isarApi.update(data: item);
-      // return as have done update and we don't want to proceed.
       return;
     }
     if (pendingOrder != null) {
@@ -340,8 +340,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         ..createdAt = DateTime.now().toString()
         ..updatedAt = DateTime.now().toString()
         ..isTaxExempted = variation.isTaxExempted
-
-        /// RRA fields dutira muri variants (rent from variant model)
+        // RRA fields dutira muri variants (rent from variant model)
         ..dcRt = 0.0
         ..dcAmt = 0.0
         ..taxblAmt = pendingOrder.subTotal
@@ -377,7 +376,11 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         ..modrNm = variation.modrNm
         // end of fields twakuye muri variants
         ..remainingStock = stock.currentStock - quantity;
-      pendingOrder.subTotal = pendingOrder.subTotal + amountTotal;
+
+      List<OrderItem> items =
+          await ProxyService.isarApi.orderItems(orderId: pendingOrder.id);
+      pendingOrder.subTotal = items.fold(0, (a, b) => a + b.price);
+
       ProxyService.isarApi.update(data: pendingOrder);
 
       ProxyService.isarApi.addOrderItem(order: pendingOrder, item: newItem);
