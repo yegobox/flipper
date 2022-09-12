@@ -165,23 +165,28 @@ class _FlipperAppState extends State<FlipperApp>
                     destinations: [
                       NavigationDestination(
                         icon: SvgPicture.asset("assets/checkout.svg",
-                            semanticsLabel: 'Checkout'),
+                            semanticsLabel: 'Checkout',
+                            color: Color.fromARGB(255, 0, 6, 10)),
                         label: 'Checkout',
                         selectedIcon: SvgPicture.asset("assets/checkout.svg",
-                            semanticsLabel: 'Checkout'),
+                            semanticsLabel: 'Checkout',
+                            color: const Color(0xff006AFE)),
                       ),
                       NavigationDestination(
                         icon: SvgPicture.asset("assets/transactions.svg",
-                            semanticsLabel: 'Transactions'),
+                            semanticsLabel: 'Transactions',
+                            color: Color.fromARGB(255, 0, 6, 10)),
                         label: 'Transactions',
                         selectedIcon: SvgPicture.asset(
                             "assets/transactions.svg",
-                            semanticsLabel: 'Transactions'),
+                            semanticsLabel: 'Transactions',
+                            color: const Color(0xff006AFE)),
                       ),
                       NavigationDestination(
                         icon: BadgeIcon(
                           icon: SvgPicture.asset("assets/notifications.svg",
-                              semanticsLabel: 'Notifications'),
+                              semanticsLabel: 'Notifications',
+                              color: Color.fromARGB(255, 0, 6, 10)),
                           badgeCount: 0,
                           badgeColor: Color(0xff006AFE),
                           badgeTextStyle: TextStyle(
@@ -192,7 +197,8 @@ class _FlipperAppState extends State<FlipperApp>
                         label: 'Notifications',
                         selectedIcon: BadgeIcon(
                           icon: SvgPicture.asset("assets/notifications.svg",
-                              semanticsLabel: 'Notifications'),
+                              semanticsLabel: 'Notifications',
+                              color: const Color(0xff006AFE)),
                           badgeCount: 0,
                           badgeColor: Color(0xff006AFE),
                           badgeTextStyle: TextStyle(
@@ -203,10 +209,12 @@ class _FlipperAppState extends State<FlipperApp>
                       ),
                       NavigationDestination(
                         icon: SvgPicture.asset("assets/more.svg",
-                            semanticsLabel: 'More'),
+                            semanticsLabel: 'More',
+                            color: Color.fromARGB(255, 0, 6, 10)),
                         label: 'More',
                         selectedIcon: SvgPicture.asset("assets/more.svg",
-                            semanticsLabel: 'More'),
+                            semanticsLabel: 'More',
+                            color: const Color(0xff006AFE)),
                       ),
                     ],
                   ),
