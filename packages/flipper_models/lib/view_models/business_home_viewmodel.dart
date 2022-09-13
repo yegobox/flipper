@@ -128,6 +128,9 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         Order? pendingOrder = await ProxyService.isarApi.manageOrder();
         List<OrderItem> items =
             await ProxyService.isarApi.orderItems(orderId: pendingOrder.id);
+
+        /// handle this, this result into an error when we sold a real product and attempt to
+        /// sell a custom item again.
         OrderItem item = items.last;
         item.price = double.parse(ProxyService.keypad.key);
         item.taxAmt = double.parse(
@@ -272,7 +275,8 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         await ProxyService.isarApi.stockByVariantId(variantId: variation!.id);
 
     String name = '';
-
+    log.i(variation.productName);
+    log.i(variation.name);
     if (variation.productName != 'Custom Amount') {
       name = variation.productName + '(${variation.name})';
     } else {
@@ -657,7 +661,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     notifyListeners();
   }
 
-  Future<void> generateRRAReceipt(
+  Future<bool> generateRRAReceipt(
       {required List<OrderItem> items,
       required Business business,
       String? receiptType = ReceiptType.ns,
@@ -667,7 +671,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     Counter counter = await getCounter(receiptType);
     if (counter.backed != null && !counter.backed!) {
       callback("The counter is not up to date");
-      return;
+      return false;
     }
     Customer? customer =
         await ProxyService.isarApi.nGetCustomerByOrderId(id: order.id);
@@ -679,7 +683,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         counter: counter);
     if (receiptSignature == null) {
       callback("EBM V2 server is down, please try again later");
-      return;
+      return false;
     }
     order.receiptType = order.receiptType == null
         ? receiptType
@@ -710,6 +714,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
           ..curRcptNo = receiptSignature.data.rcptNo + 1);
     receiptReady = true;
     notifyListeners();
+    return true;
   }
 
   Future<Counter> getCounter(String? receiptType) async {

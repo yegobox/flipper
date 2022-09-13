@@ -66,7 +66,7 @@ class _AddVariationState extends State<AddVariation> {
                     ..productId = model.product.id!
                     ..unit = model.productService.currentUnit!
                     ..isTaxExempted = isTaxExempted
-                    ..productName = model.product.name
+                    ..productName = model.product.productName
                     ..branchId = model.productService.branchId!
                     ..id = variantId
                     ..branchId = ProxyService.box.getBranchId()!

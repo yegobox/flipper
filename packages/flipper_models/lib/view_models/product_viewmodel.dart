@@ -30,9 +30,9 @@ class ProductViewModel extends ReactiveViewModel {
 
   get product => productService.product;
 
-  String? _name;
+  String? _productName;
 
-  get name => _name;
+  get productName => _productName;
 
   get currentColor => _appService.currentColor;
 
@@ -88,15 +88,15 @@ class ProductViewModel extends ReactiveViewModel {
 
   void isPriceSet(bool price) {
     _price = price;
-    _lock = !price || _name == null;
+    _lock = !price || _productName == null;
     notifyListeners();
   }
 
   bool _price = false;
 
-  void setName({String? name}) {
-    _name = name;
-    final cleaned = name?.trim();
+  void setName({String? productName}) {
+    _productName = productName;
+    final cleaned = productName?.trim();
     _lock = cleaned?.length == null || !_price;
     notifyListeners();
   }
@@ -120,13 +120,13 @@ class ProductViewModel extends ReactiveViewModel {
   Future<void> createCategory() async {
     final int? branchId = ProxyService.box.read(key: 'branchId');
     final categoryId = DateTime.now().millisecondsSinceEpoch;
-    if (name == null) return;
+    if (productName == null) return;
     final Category category = Category()
       ..id = categoryId
       ..active = true
       ..table = AppTables.category
       ..focused = false
-      ..name = name
+      ..name = productName
       ..branchId = branchId!;
     await ProxyService.isarApi.create(endPoint: 'category', data: category);
     _appService.loadCategories();
@@ -329,9 +329,8 @@ class ProductViewModel extends ReactiveViewModel {
   }
 
   /// Add a product into the system
-  Future<bool> addProduct(
-      {required Product mproduct, required String name}) async {
-    mproduct.name = name;
+  Future<bool> addProduct({required Product mproduct}) async {
+    mproduct.name = productName;
     mproduct.barCode = productService.barCode.toString();
     mproduct.color = currentColor;
     mproduct.color = currentColor;
@@ -340,7 +339,7 @@ class ProductViewModel extends ReactiveViewModel {
         .getVariantByProductId(productId: mproduct.id);
 
     for (Variant variant in variants) {
-      variant.productName = name;
+      variant.productName = productName;
       variant.prc = variant.retailPrice;
       variant.productId = mproduct.id;
       variant.pkgUnitCd = "NT";

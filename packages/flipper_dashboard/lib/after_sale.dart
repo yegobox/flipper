@@ -293,7 +293,7 @@ class _AfterSaleState extends State<AfterSale> {
             List<OrderItem> items =
                 await ProxyService.isarApi.orderItems(orderId: widget.order.id);
 
-            model.generateRRAReceipt(
+            final bool isDone = await model.generateRRAReceipt(
                 items: items,
                 business: business!,
                 order: widget.order,
@@ -304,6 +304,15 @@ class _AfterSaleState extends State<AfterSale> {
                     content: Text(value),
                   ));
                 });
+
+            ///when we don't want to wait for the user to press print button
+            if (isDone) {
+              model.printReceipt(
+                  items: items,
+                  business: business,
+                  oorder: widget.order,
+                  receiptType: widget.receiptType!);
+            }
           }
         },
         viewModelBuilder: () => BusinessHomeViewModel());

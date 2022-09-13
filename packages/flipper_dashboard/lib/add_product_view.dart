@@ -63,7 +63,7 @@ class _AddProductViewState extends State<AddProductView> {
         model.loadColors();
         model.loadUnits();
         //start locking the save button
-        model.setName(name: ' ');
+        model.setName(productName: ' ');
 
         /// get the regular variant then get it's price to fill in the form when we are in edit mode!
         /// normal this is a List of variants where match the productId and take where we have the regular variant
@@ -101,8 +101,7 @@ class _AddProductViewState extends State<AddProductView> {
               disableButton: model.lock,
               showActionButton: true,
               onPressedCallback: () async {
-                await model.addProduct(
-                    mproduct: model.product, name: productName.text);
+                await model.addProduct(mproduct: model.product);
                 // then re-update the product default variant with retail price
                 // retailPriceController this is to present missing out key stroke.
                 await model.updateRegularVariant(
@@ -141,7 +140,7 @@ class _AddProductViewState extends State<AddProductView> {
                         controller: productName,
                         onChanged: (value) {
                           /// for locking on unlocking the save button
-                          model.setName(name: value);
+                          model.setName(productName: value);
                         },
                       ),
                     ),

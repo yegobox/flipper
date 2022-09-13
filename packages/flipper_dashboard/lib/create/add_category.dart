@@ -27,7 +27,7 @@ class AddCategory extends StatelessWidget {
               style: const TextStyle(color: Colors.black),
               onChanged: (name) {
                 if (name != '') {
-                  model.setName(name: name);
+                  model.setName(productName: name);
                 }
               },
               decoration: const InputDecoration(

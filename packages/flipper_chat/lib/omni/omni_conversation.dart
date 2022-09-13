@@ -82,7 +82,7 @@ class _OmniConversationState extends State<OmniConversation> {
     const result = null;
     if (result != null) {
       _setAttachmentUploading(true);
-      final name = result.files.single.name;
+      final name = result.files.single.productName;
       final filePath = result.files.single.path;
       final file = File(filePath!);
 
