@@ -7,7 +7,7 @@ part of flipper_models;
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
 
 extension GetStockCollection on Isar {
   IsarCollection<Stock> get stocks => this.collection();
@@ -79,12 +79,9 @@ const StockSchema = CollectionSchema(
     )
   },
   estimateSize: _stockEstimateSize,
-  serializeNative: _stockSerializeNative,
-  deserializeNative: _stockDeserializeNative,
-  deserializePropNative: _stockDeserializePropNative,
-  serializeWeb: _stockSerializeWeb,
-  deserializeWeb: _stockDeserializeWeb,
-  deserializePropWeb: _stockDeserializePropWeb,
+  serialize: _stockSerialize,
+  deserialize: _stockDeserialize,
+  deserializeProp: _stockDeserializeProp,
   idName: r'id',
   indexes: {
     r'branchId': IndexSchema(
@@ -137,7 +134,7 @@ const StockSchema = CollectionSchema(
   getId: _stockGetId,
   getLinks: _stockGetLinks,
   attach: _stockAttach,
-  version: '3.0.0-dev.14',
+  version: '3.0.0',
 );
 
 int _stockEstimateSize(
@@ -149,9 +146,9 @@ int _stockEstimateSize(
   return bytesCount;
 }
 
-int _stockSerializeNative(
+void _stockSerialize(
   Stock object,
-  IsarBinaryWriter writer,
+  IsarWriter writer,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -167,12 +164,11 @@ int _stockSerializeNative(
   writer.writeDouble(offsets[9], object.supplyPrice);
   writer.writeDouble(offsets[10], object.value);
   writer.writeLong(offsets[11], object.variantId);
-  return writer.usedBytes;
 }
 
-Stock _stockDeserializeNative(
+Stock _stockDeserialize(
   Id id,
-  IsarBinaryReader reader,
+  IsarReader reader,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -193,8 +189,8 @@ Stock _stockDeserializeNative(
   return object;
 }
 
-P _stockDeserializePropNative<P>(
-  IsarBinaryReader reader,
+P _stockDeserializeProp<P>(
+  IsarReader reader,
   int propertyId,
   int offset,
   Map<Type, List<int>> allOffsets,
@@ -226,23 +222,6 @@ P _stockDeserializePropNative<P>(
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
-  }
-}
-
-Object _stockSerializeWeb(IsarCollection<Stock> collection, Stock object) {
-  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
-}
-
-Stock _stockDeserializeWeb(IsarCollection<Stock> collection, Object jsObj) {
-  /*final object = Stock();object.active = IsarNative.jsObjectGet(jsObj, r'active') ;object.branchId = IsarNative.jsObjectGet(jsObj, r'branchId') ?? (double.negativeInfinity as int);object.canTrackingStock = IsarNative.jsObjectGet(jsObj, r'canTrackingStock') ;object.currentStock = IsarNative.jsObjectGet(jsObj, r'currentStock') ?? double.negativeInfinity;object.id = IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int);object.lowStock = IsarNative.jsObjectGet(jsObj, r'lowStock') ;object.productId = IsarNative.jsObjectGet(jsObj, r'productId') ?? (double.negativeInfinity as int);object.retailPrice = IsarNative.jsObjectGet(jsObj, r'retailPrice') ;object.rsdQty = IsarNative.jsObjectGet(jsObj, r'rsdQty') ;object.showLowStockAlert = IsarNative.jsObjectGet(jsObj, r'showLowStockAlert') ;object.supplyPrice = IsarNative.jsObjectGet(jsObj, r'supplyPrice') ;object.value = IsarNative.jsObjectGet(jsObj, r'value') ;object.variantId = IsarNative.jsObjectGet(jsObj, r'variantId') ?? (double.negativeInfinity as int);*/
-  //return object;
-  throw UnimplementedError();
-}
-
-P _stockDeserializePropWeb<P>(Object jsObj, String propertyName) {
-  switch (propertyName) {
-    default:
-      throw IsarError('Illegal propertyName');
   }
 }
 
@@ -291,7 +270,7 @@ extension StockQueryWhereSort on QueryBuilder<Stock, Stock, QWhere> {
 }
 
 extension StockQueryWhere on QueryBuilder<Stock, Stock, QWhereClause> {
-  QueryBuilder<Stock, Stock, QAfterWhereClause> idEqualTo(int id) {
+  QueryBuilder<Stock, Stock, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(
         lower: id,
@@ -300,7 +279,7 @@ extension StockQueryWhere on QueryBuilder<Stock, Stock, QWhereClause> {
     });
   }
 
-  QueryBuilder<Stock, Stock, QAfterWhereClause> idNotEqualTo(int id) {
+  QueryBuilder<Stock, Stock, QAfterWhereClause> idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -322,7 +301,7 @@ extension StockQueryWhere on QueryBuilder<Stock, Stock, QWhereClause> {
     });
   }
 
-  QueryBuilder<Stock, Stock, QAfterWhereClause> idGreaterThan(int id,
+  QueryBuilder<Stock, Stock, QAfterWhereClause> idGreaterThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -331,7 +310,7 @@ extension StockQueryWhere on QueryBuilder<Stock, Stock, QWhereClause> {
     });
   }
 
-  QueryBuilder<Stock, Stock, QAfterWhereClause> idLessThan(int id,
+  QueryBuilder<Stock, Stock, QAfterWhereClause> idLessThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -341,8 +320,8 @@ extension StockQueryWhere on QueryBuilder<Stock, Stock, QWhereClause> {
   }
 
   QueryBuilder<Stock, Stock, QAfterWhereClause> idBetween(
-    int lowerId,
-    int upperId, {
+    Id lowerId,
+    Id upperId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -888,7 +867,7 @@ extension StockQueryFilter on QueryBuilder<Stock, Stock, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Stock, Stock, QAfterFilterCondition> idEqualTo(int value) {
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -898,7 +877,7 @@ extension StockQueryFilter on QueryBuilder<Stock, Stock, QFilterCondition> {
   }
 
   QueryBuilder<Stock, Stock, QAfterFilterCondition> idGreaterThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -911,7 +890,7 @@ extension StockQueryFilter on QueryBuilder<Stock, Stock, QFilterCondition> {
   }
 
   QueryBuilder<Stock, Stock, QAfterFilterCondition> idLessThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -924,8 +903,8 @@ extension StockQueryFilter on QueryBuilder<Stock, Stock, QFilterCondition> {
   }
 
   QueryBuilder<Stock, Stock, QAfterFilterCondition> idBetween(
-    int lower,
-    int upper, {
+    Id lower,
+    Id upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {

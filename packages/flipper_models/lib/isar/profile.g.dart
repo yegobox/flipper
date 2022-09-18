@@ -7,7 +7,7 @@ part of flipper_models;
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
 
 extension GetProfileCollection on Isar {
   IsarCollection<Profile> get profiles => this.collection();
@@ -104,12 +104,9 @@ const ProfileSchema = CollectionSchema(
     )
   },
   estimateSize: _profileEstimateSize,
-  serializeNative: _profileSerializeNative,
-  deserializeNative: _profileDeserializeNative,
-  deserializePropNative: _profileDeserializePropNative,
-  serializeWeb: _profileSerializeWeb,
-  deserializeWeb: _profileDeserializeWeb,
-  deserializePropWeb: _profileDeserializePropWeb,
+  serialize: _profileSerialize,
+  deserialize: _profileDeserialize,
+  deserializeProp: _profileDeserializeProp,
   idName: r'id',
   indexes: {
     r'businessId': IndexSchema(
@@ -131,7 +128,7 @@ const ProfileSchema = CollectionSchema(
   getId: _profileGetId,
   getLinks: _profileGetLinks,
   attach: _profileAttach,
-  version: '3.0.0-dev.14',
+  version: '3.0.0',
 );
 
 int _profileEstimateSize(
@@ -194,9 +191,9 @@ int _profileEstimateSize(
   return bytesCount;
 }
 
-int _profileSerializeNative(
+void _profileSerialize(
   Profile object,
-  IsarBinaryWriter writer,
+  IsarWriter writer,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -217,12 +214,11 @@ int _profileSerializeNative(
   writer.writeString(offsets[14], object.profilePic);
   writer.writeString(offsets[15], object.state);
   writer.writeString(offsets[16], object.vaccinationCode);
-  return writer.usedBytes;
 }
 
-Profile _profileDeserializeNative(
+Profile _profileDeserialize(
   Id id,
-  IsarBinaryReader reader,
+  IsarReader reader,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -249,8 +245,8 @@ Profile _profileDeserializeNative(
   return object;
 }
 
-P _profileDeserializePropNative<P>(
-  IsarBinaryReader reader,
+P _profileDeserializeProp<P>(
+  IsarReader reader,
   int propertyId,
   int offset,
   Map<Type, List<int>> allOffsets,
@@ -295,25 +291,6 @@ P _profileDeserializePropNative<P>(
   }
 }
 
-Object _profileSerializeWeb(
-    IsarCollection<Profile> collection, Profile object) {
-  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
-}
-
-Profile _profileDeserializeWeb(
-    IsarCollection<Profile> collection, Object jsObj) {
-  /*final object = Profile(about: IsarNative.jsObjectGet(jsObj, r'about') ,address: IsarNative.jsObjectGet(jsObj, r'address') ,businessId: IsarNative.jsObjectGet(jsObj, r'businessId') ?? (double.negativeInfinity as int),cell: IsarNative.jsObjectGet(jsObj, r'cell') ?? '',city: IsarNative.jsObjectGet(jsObj, r'city') ,country: IsarNative.jsObjectGet(jsObj, r'country') ?? '',coverPic: IsarNative.jsObjectGet(jsObj, r'coverPic') ,district: IsarNative.jsObjectGet(jsObj, r'district') ?? '',email: IsarNative.jsObjectGet(jsObj, r'email') ?? '',id: IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int),livingAt: IsarNative.jsObjectGet(jsObj, r'livingAt') ?? '',name: IsarNative.jsObjectGet(jsObj, r'name') ?? '',nationalId: IsarNative.jsObjectGet(jsObj, r'nationalId') ?? '',phone: IsarNative.jsObjectGet(jsObj, r'phone') ?? '',pincode: IsarNative.jsObjectGet(jsObj, r'pincode') ,profilePic: IsarNative.jsObjectGet(jsObj, r'profilePic') ,state: IsarNative.jsObjectGet(jsObj, r'state') ,vaccinationCode: IsarNative.jsObjectGet(jsObj, r'vaccinationCode') ?? '',);*/
-  //return object;
-  throw UnimplementedError();
-}
-
-P _profileDeserializePropWeb<P>(Object jsObj, String propertyName) {
-  switch (propertyName) {
-    default:
-      throw IsarError('Illegal propertyName');
-  }
-}
-
 Id _profileGetId(Profile object) {
   return object.id;
 }
@@ -343,7 +320,7 @@ extension ProfileQueryWhereSort on QueryBuilder<Profile, Profile, QWhere> {
 }
 
 extension ProfileQueryWhere on QueryBuilder<Profile, Profile, QWhereClause> {
-  QueryBuilder<Profile, Profile, QAfterWhereClause> idEqualTo(int id) {
+  QueryBuilder<Profile, Profile, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(
         lower: id,
@@ -352,7 +329,7 @@ extension ProfileQueryWhere on QueryBuilder<Profile, Profile, QWhereClause> {
     });
   }
 
-  QueryBuilder<Profile, Profile, QAfterWhereClause> idNotEqualTo(int id) {
+  QueryBuilder<Profile, Profile, QAfterWhereClause> idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -374,7 +351,7 @@ extension ProfileQueryWhere on QueryBuilder<Profile, Profile, QWhereClause> {
     });
   }
 
-  QueryBuilder<Profile, Profile, QAfterWhereClause> idGreaterThan(int id,
+  QueryBuilder<Profile, Profile, QAfterWhereClause> idGreaterThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -383,7 +360,7 @@ extension ProfileQueryWhere on QueryBuilder<Profile, Profile, QWhereClause> {
     });
   }
 
-  QueryBuilder<Profile, Profile, QAfterWhereClause> idLessThan(int id,
+  QueryBuilder<Profile, Profile, QAfterWhereClause> idLessThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -393,8 +370,8 @@ extension ProfileQueryWhere on QueryBuilder<Profile, Profile, QWhereClause> {
   }
 
   QueryBuilder<Profile, Profile, QAfterWhereClause> idBetween(
-    int lowerId,
-    int upperId, {
+    Id lowerId,
+    Id upperId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -1658,7 +1635,7 @@ extension ProfileQueryFilter
     });
   }
 
-  QueryBuilder<Profile, Profile, QAfterFilterCondition> idEqualTo(int value) {
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -1668,7 +1645,7 @@ extension ProfileQueryFilter
   }
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> idGreaterThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1681,7 +1658,7 @@ extension ProfileQueryFilter
   }
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> idLessThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1694,8 +1671,8 @@ extension ProfileQueryFilter
   }
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> idBetween(
-    int lower,
-    int upper, {
+    Id lower,
+    Id upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {

@@ -7,7 +7,7 @@ part of 'customer.dart';
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
 
 extension GetCustomerCollection on Isar {
   IsarCollection<Customer> get customers => this.collection();
@@ -59,12 +59,9 @@ const CustomerSchema = CollectionSchema(
     )
   },
   estimateSize: _customerEstimateSize,
-  serializeNative: _customerSerializeNative,
-  deserializeNative: _customerDeserializeNative,
-  deserializePropNative: _customerDeserializePropNative,
-  serializeWeb: _customerSerializeWeb,
-  deserializeWeb: _customerDeserializeWeb,
-  deserializePropWeb: _customerDeserializePropWeb,
+  serialize: _customerSerialize,
+  deserialize: _customerDeserialize,
+  deserializeProp: _customerDeserializeProp,
   idName: r'id',
   indexes: {},
   links: {},
@@ -72,7 +69,7 @@ const CustomerSchema = CollectionSchema(
   getId: _customerGetId,
   getLinks: _customerGetLinks,
   attach: _customerAttach,
-  version: '3.0.0-dev.14',
+  version: '3.0.0',
 );
 
 int _customerEstimateSize(
@@ -105,9 +102,9 @@ int _customerEstimateSize(
   return bytesCount;
 }
 
-int _customerSerializeNative(
+void _customerSerialize(
   Customer object,
-  IsarBinaryWriter writer,
+  IsarWriter writer,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -119,12 +116,11 @@ int _customerSerializeNative(
   writer.writeString(offsets[5], object.phone);
   writer.writeString(offsets[6], object.tinNumber);
   writer.writeString(offsets[7], object.updatedAt);
-  return writer.usedBytes;
 }
 
-Customer _customerDeserializeNative(
+Customer _customerDeserialize(
   Id id,
-  IsarBinaryReader reader,
+  IsarReader reader,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -141,8 +137,8 @@ Customer _customerDeserializeNative(
   return object;
 }
 
-P _customerDeserializePropNative<P>(
-  IsarBinaryReader reader,
+P _customerDeserializeProp<P>(
+  IsarReader reader,
   int propertyId,
   int offset,
   Map<Type, List<int>> allOffsets,
@@ -169,25 +165,6 @@ P _customerDeserializePropNative<P>(
   }
 }
 
-Object _customerSerializeWeb(
-    IsarCollection<Customer> collection, Customer object) {
-  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
-}
-
-Customer _customerDeserializeWeb(
-    IsarCollection<Customer> collection, Object jsObj) {
-  /*final object = Customer();object.address = IsarNative.jsObjectGet(jsObj, r'address') ;object.branchId = IsarNative.jsObjectGet(jsObj, r'branchId') ?? (double.negativeInfinity as int);object.email = IsarNative.jsObjectGet(jsObj, r'email') ?? '';object.id = IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int);object.name = IsarNative.jsObjectGet(jsObj, r'name') ?? '';object.orderId = IsarNative.jsObjectGet(jsObj, r'orderId') ?? (double.negativeInfinity as int);object.phone = IsarNative.jsObjectGet(jsObj, r'phone') ?? '';object.tinNumber = IsarNative.jsObjectGet(jsObj, r'tinNumber') ;object.updatedAt = IsarNative.jsObjectGet(jsObj, r'updatedAt') ;*/
-  //return object;
-  throw UnimplementedError();
-}
-
-P _customerDeserializePropWeb<P>(Object jsObj, String propertyName) {
-  switch (propertyName) {
-    default:
-      throw IsarError('Illegal propertyName');
-  }
-}
-
 Id _customerGetId(Customer object) {
   return object.id;
 }
@@ -209,7 +186,7 @@ extension CustomerQueryWhereSort on QueryBuilder<Customer, Customer, QWhere> {
 }
 
 extension CustomerQueryWhere on QueryBuilder<Customer, Customer, QWhereClause> {
-  QueryBuilder<Customer, Customer, QAfterWhereClause> idEqualTo(int id) {
+  QueryBuilder<Customer, Customer, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(
         lower: id,
@@ -218,7 +195,7 @@ extension CustomerQueryWhere on QueryBuilder<Customer, Customer, QWhereClause> {
     });
   }
 
-  QueryBuilder<Customer, Customer, QAfterWhereClause> idNotEqualTo(int id) {
+  QueryBuilder<Customer, Customer, QAfterWhereClause> idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -240,7 +217,7 @@ extension CustomerQueryWhere on QueryBuilder<Customer, Customer, QWhereClause> {
     });
   }
 
-  QueryBuilder<Customer, Customer, QAfterWhereClause> idGreaterThan(int id,
+  QueryBuilder<Customer, Customer, QAfterWhereClause> idGreaterThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -249,7 +226,7 @@ extension CustomerQueryWhere on QueryBuilder<Customer, Customer, QWhereClause> {
     });
   }
 
-  QueryBuilder<Customer, Customer, QAfterWhereClause> idLessThan(int id,
+  QueryBuilder<Customer, Customer, QAfterWhereClause> idLessThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -259,8 +236,8 @@ extension CustomerQueryWhere on QueryBuilder<Customer, Customer, QWhereClause> {
   }
 
   QueryBuilder<Customer, Customer, QAfterWhereClause> idBetween(
-    int lowerId,
-    int upperId, {
+    Id lowerId,
+    Id upperId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -606,7 +583,7 @@ extension CustomerQueryFilter
     });
   }
 
-  QueryBuilder<Customer, Customer, QAfterFilterCondition> idEqualTo(int value) {
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -616,7 +593,7 @@ extension CustomerQueryFilter
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> idGreaterThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -629,7 +606,7 @@ extension CustomerQueryFilter
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> idLessThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -642,8 +619,8 @@ extension CustomerQueryFilter
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> idBetween(
-    int lower,
-    int upper, {
+    Id lower,
+    Id upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {

@@ -126,11 +126,17 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         currentOrder();
       } else if (ProxyService.keypad.key.length > 1) {
         Order? pendingOrder = await ProxyService.isarApi.manageOrder();
-        List<OrderItem> items =
-            await ProxyService.isarApi.orderItems(orderId: pendingOrder.id);
-
-        /// handle this, this result into an error when we sold a real product and attempt to
-        /// sell a custom item again.
+        List<OrderItem> items = [];
+        items = await ProxyService.isarApi.orderItems(orderId: pendingOrder.id);
+        double amount = double.parse(ProxyService.keypad.key);
+        Variant? variation = await ProxyService.isarApi.getCustomVariant();
+        if (items.isEmpty) {
+          await saveOrder(
+              amountTotal: amount,
+              variationId: variation!.id,
+              customItem: true);
+        }
+        items = await ProxyService.isarApi.orderItems(orderId: pendingOrder.id);
         OrderItem item = items.last;
         item.price = double.parse(ProxyService.keypad.key);
         item.taxAmt = double.parse(

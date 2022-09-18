@@ -7,7 +7,7 @@ part of 'receipt.dart';
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
 
 extension GetReceiptCollection on Isar {
   IsarCollection<Receipt> get receipts => this.collection();
@@ -84,12 +84,9 @@ const ReceiptSchema = CollectionSchema(
     )
   },
   estimateSize: _receiptEstimateSize,
-  serializeNative: _receiptSerializeNative,
-  deserializeNative: _receiptDeserializeNative,
-  deserializePropNative: _receiptDeserializePropNative,
-  serializeWeb: _receiptSerializeWeb,
-  deserializeWeb: _receiptDeserializeWeb,
-  deserializePropWeb: _receiptDeserializePropWeb,
+  serialize: _receiptSerialize,
+  deserialize: _receiptDeserialize,
+  deserializeProp: _receiptDeserializeProp,
   idName: r'id',
   indexes: {
     r'orderId': IndexSchema(
@@ -111,7 +108,7 @@ const ReceiptSchema = CollectionSchema(
   getId: _receiptGetId,
   getLinks: _receiptGetLinks,
   attach: _receiptAttach,
-  version: '3.0.0-dev.14',
+  version: '3.0.0',
 );
 
 int _receiptEstimateSize(
@@ -133,9 +130,9 @@ int _receiptEstimateSize(
   return bytesCount;
 }
 
-int _receiptSerializeNative(
+void _receiptSerialize(
   Receipt object,
-  IsarBinaryWriter writer,
+  IsarWriter writer,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -152,12 +149,11 @@ int _receiptSerializeNative(
   writer.writeString(offsets[10], object.sdcId);
   writer.writeLong(offsets[11], object.totRcptNo);
   writer.writeString(offsets[12], object.vsdcRcptPbctDate);
-  return writer.usedBytes;
 }
 
-Receipt _receiptDeserializeNative(
+Receipt _receiptDeserialize(
   Id id,
-  IsarBinaryReader reader,
+  IsarReader reader,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -179,8 +175,8 @@ Receipt _receiptDeserializeNative(
   return object;
 }
 
-P _receiptDeserializePropNative<P>(
-  IsarBinaryReader reader,
+P _receiptDeserializeProp<P>(
+  IsarReader reader,
   int propertyId,
   int offset,
   Map<Type, List<int>> allOffsets,
@@ -217,25 +213,6 @@ P _receiptDeserializePropNative<P>(
   }
 }
 
-Object _receiptSerializeWeb(
-    IsarCollection<Receipt> collection, Receipt object) {
-  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
-}
-
-Receipt _receiptDeserializeWeb(
-    IsarCollection<Receipt> collection, Object jsObj) {
-  /*final object = Receipt();object.id = IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int);object.intrlData = IsarNative.jsObjectGet(jsObj, r'intrlData') ?? '';object.mrcNo = IsarNative.jsObjectGet(jsObj, r'mrcNo') ?? '';object.orderId = IsarNative.jsObjectGet(jsObj, r'orderId') ?? (double.negativeInfinity as int);object.qrCode = IsarNative.jsObjectGet(jsObj, r'qrCode') ?? '';object.rcptNo = IsarNative.jsObjectGet(jsObj, r'rcptNo') ?? (double.negativeInfinity as int);object.rcptSign = IsarNative.jsObjectGet(jsObj, r'rcptSign') ?? '';object.receiptType = IsarNative.jsObjectGet(jsObj, r'receiptType') ?? '';object.resultCd = IsarNative.jsObjectGet(jsObj, r'resultCd') ?? '';object.resultDt = IsarNative.jsObjectGet(jsObj, r'resultDt') ?? '';object.resultMsg = IsarNative.jsObjectGet(jsObj, r'resultMsg') ?? '';object.sdcId = IsarNative.jsObjectGet(jsObj, r'sdcId') ?? '';object.totRcptNo = IsarNative.jsObjectGet(jsObj, r'totRcptNo') ?? (double.negativeInfinity as int);object.vsdcRcptPbctDate = IsarNative.jsObjectGet(jsObj, r'vsdcRcptPbctDate') ?? '';*/
-  //return object;
-  throw UnimplementedError();
-}
-
-P _receiptDeserializePropWeb<P>(Object jsObj, String propertyName) {
-  switch (propertyName) {
-    default:
-      throw IsarError('Illegal propertyName');
-  }
-}
-
 Id _receiptGetId(Receipt object) {
   return object.id;
 }
@@ -265,7 +242,7 @@ extension ReceiptQueryWhereSort on QueryBuilder<Receipt, Receipt, QWhere> {
 }
 
 extension ReceiptQueryWhere on QueryBuilder<Receipt, Receipt, QWhereClause> {
-  QueryBuilder<Receipt, Receipt, QAfterWhereClause> idEqualTo(int id) {
+  QueryBuilder<Receipt, Receipt, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(
         lower: id,
@@ -274,7 +251,7 @@ extension ReceiptQueryWhere on QueryBuilder<Receipt, Receipt, QWhereClause> {
     });
   }
 
-  QueryBuilder<Receipt, Receipt, QAfterWhereClause> idNotEqualTo(int id) {
+  QueryBuilder<Receipt, Receipt, QAfterWhereClause> idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -296,7 +273,7 @@ extension ReceiptQueryWhere on QueryBuilder<Receipt, Receipt, QWhereClause> {
     });
   }
 
-  QueryBuilder<Receipt, Receipt, QAfterWhereClause> idGreaterThan(int id,
+  QueryBuilder<Receipt, Receipt, QAfterWhereClause> idGreaterThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -305,7 +282,7 @@ extension ReceiptQueryWhere on QueryBuilder<Receipt, Receipt, QWhereClause> {
     });
   }
 
-  QueryBuilder<Receipt, Receipt, QAfterWhereClause> idLessThan(int id,
+  QueryBuilder<Receipt, Receipt, QAfterWhereClause> idLessThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -315,8 +292,8 @@ extension ReceiptQueryWhere on QueryBuilder<Receipt, Receipt, QWhereClause> {
   }
 
   QueryBuilder<Receipt, Receipt, QAfterWhereClause> idBetween(
-    int lowerId,
-    int upperId, {
+    Id lowerId,
+    Id upperId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -423,7 +400,7 @@ extension ReceiptQueryWhere on QueryBuilder<Receipt, Receipt, QWhereClause> {
 
 extension ReceiptQueryFilter
     on QueryBuilder<Receipt, Receipt, QFilterCondition> {
-  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> idEqualTo(int value) {
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -433,7 +410,7 @@ extension ReceiptQueryFilter
   }
 
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> idGreaterThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -446,7 +423,7 @@ extension ReceiptQueryFilter
   }
 
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> idLessThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -459,8 +436,8 @@ extension ReceiptQueryFilter
   }
 
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> idBetween(
-    int lower,
-    int upper, {
+    Id lower,
+    Id upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {

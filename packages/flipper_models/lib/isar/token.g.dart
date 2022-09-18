@@ -7,7 +7,7 @@ part of flipper_models;
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
 
 extension GetTokenCollection on Isar {
   IsarCollection<Token> get tokens => this.collection();
@@ -34,12 +34,9 @@ const TokenSchema = CollectionSchema(
     )
   },
   estimateSize: _tokenEstimateSize,
-  serializeNative: _tokenSerializeNative,
-  deserializeNative: _tokenDeserializeNative,
-  deserializePropNative: _tokenDeserializePropNative,
-  serializeWeb: _tokenSerializeWeb,
-  deserializeWeb: _tokenDeserializeWeb,
-  deserializePropWeb: _tokenDeserializePropWeb,
+  serialize: _tokenSerialize,
+  deserialize: _tokenDeserialize,
+  deserializeProp: _tokenDeserializeProp,
   idName: r'id',
   indexes: {
     r'userId': IndexSchema(
@@ -61,7 +58,7 @@ const TokenSchema = CollectionSchema(
   getId: _tokenGetId,
   getLinks: _tokenGetLinks,
   attach: _tokenAttach,
-  version: '3.0.0-dev.14',
+  version: '3.0.0',
 );
 
 int _tokenEstimateSize(
@@ -91,21 +88,20 @@ int _tokenEstimateSize(
   return bytesCount;
 }
 
-int _tokenSerializeNative(
+void _tokenSerialize(
   Token object,
-  IsarBinaryWriter writer,
+  IsarWriter writer,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeString(offsets[0], object.token);
   writer.writeString(offsets[1], object.type);
   writer.writeString(offsets[2], object.userId);
-  return writer.usedBytes;
 }
 
-Token _tokenDeserializeNative(
+Token _tokenDeserialize(
   Id id,
-  IsarBinaryReader reader,
+  IsarReader reader,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -118,8 +114,8 @@ Token _tokenDeserializeNative(
   return object;
 }
 
-P _tokenDeserializePropNative<P>(
-  IsarBinaryReader reader,
+P _tokenDeserializeProp<P>(
+  IsarReader reader,
   int propertyId,
   int offset,
   Map<Type, List<int>> allOffsets,
@@ -133,23 +129,6 @@ P _tokenDeserializePropNative<P>(
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
-  }
-}
-
-Object _tokenSerializeWeb(IsarCollection<Token> collection, Token object) {
-  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
-}
-
-Token _tokenDeserializeWeb(IsarCollection<Token> collection, Object jsObj) {
-  /*final object = Token(token: IsarNative.jsObjectGet(jsObj, r'token') ,type: IsarNative.jsObjectGet(jsObj, r'type') ,userId: IsarNative.jsObjectGet(jsObj, r'userId') ,);object.id = IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int);*/
-  //return object;
-  throw UnimplementedError();
-}
-
-P _tokenDeserializePropWeb<P>(Object jsObj, String propertyName) {
-  switch (propertyName) {
-    default:
-      throw IsarError('Illegal propertyName');
   }
 }
 
@@ -174,7 +153,7 @@ extension TokenQueryWhereSort on QueryBuilder<Token, Token, QWhere> {
 }
 
 extension TokenQueryWhere on QueryBuilder<Token, Token, QWhereClause> {
-  QueryBuilder<Token, Token, QAfterWhereClause> idEqualTo(int id) {
+  QueryBuilder<Token, Token, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(
         lower: id,
@@ -183,7 +162,7 @@ extension TokenQueryWhere on QueryBuilder<Token, Token, QWhereClause> {
     });
   }
 
-  QueryBuilder<Token, Token, QAfterWhereClause> idNotEqualTo(int id) {
+  QueryBuilder<Token, Token, QAfterWhereClause> idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -205,7 +184,7 @@ extension TokenQueryWhere on QueryBuilder<Token, Token, QWhereClause> {
     });
   }
 
-  QueryBuilder<Token, Token, QAfterWhereClause> idGreaterThan(int id,
+  QueryBuilder<Token, Token, QAfterWhereClause> idGreaterThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -214,7 +193,7 @@ extension TokenQueryWhere on QueryBuilder<Token, Token, QWhereClause> {
     });
   }
 
-  QueryBuilder<Token, Token, QAfterWhereClause> idLessThan(int id,
+  QueryBuilder<Token, Token, QAfterWhereClause> idLessThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -224,8 +203,8 @@ extension TokenQueryWhere on QueryBuilder<Token, Token, QWhereClause> {
   }
 
   QueryBuilder<Token, Token, QAfterWhereClause> idBetween(
-    int lowerId,
-    int upperId, {
+    Id lowerId,
+    Id upperId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -305,7 +284,7 @@ extension TokenQueryWhere on QueryBuilder<Token, Token, QWhereClause> {
 }
 
 extension TokenQueryFilter on QueryBuilder<Token, Token, QFilterCondition> {
-  QueryBuilder<Token, Token, QAfterFilterCondition> idEqualTo(int value) {
+  QueryBuilder<Token, Token, QAfterFilterCondition> idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -315,7 +294,7 @@ extension TokenQueryFilter on QueryBuilder<Token, Token, QFilterCondition> {
   }
 
   QueryBuilder<Token, Token, QAfterFilterCondition> idGreaterThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -328,7 +307,7 @@ extension TokenQueryFilter on QueryBuilder<Token, Token, QFilterCondition> {
   }
 
   QueryBuilder<Token, Token, QAfterFilterCondition> idLessThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -341,8 +320,8 @@ extension TokenQueryFilter on QueryBuilder<Token, Token, QFilterCondition> {
   }
 
   QueryBuilder<Token, Token, QAfterFilterCondition> idBetween(
-    int lower,
-    int upper, {
+    Id lower,
+    Id upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {

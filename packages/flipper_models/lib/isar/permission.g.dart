@@ -7,7 +7,7 @@ part of flipper_models;
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
 
 extension GetPermissionCollection on Isar {
   IsarCollection<Permission> get permissions => this.collection();
@@ -24,12 +24,9 @@ const PermissionSchema = CollectionSchema(
     )
   },
   estimateSize: _permissionEstimateSize,
-  serializeNative: _permissionSerializeNative,
-  deserializeNative: _permissionDeserializeNative,
-  deserializePropNative: _permissionDeserializePropNative,
-  serializeWeb: _permissionSerializeWeb,
-  deserializeWeb: _permissionDeserializeWeb,
-  deserializePropWeb: _permissionDeserializePropWeb,
+  serialize: _permissionSerialize,
+  deserialize: _permissionDeserialize,
+  deserializeProp: _permissionDeserializeProp,
   idName: r'id',
   indexes: {},
   links: {},
@@ -37,7 +34,7 @@ const PermissionSchema = CollectionSchema(
   getId: _permissionGetId,
   getLinks: _permissionGetLinks,
   attach: _permissionAttach,
-  version: '3.0.0-dev.14',
+  version: '3.0.0',
 );
 
 int _permissionEstimateSize(
@@ -50,19 +47,18 @@ int _permissionEstimateSize(
   return bytesCount;
 }
 
-int _permissionSerializeNative(
+void _permissionSerialize(
   Permission object,
-  IsarBinaryWriter writer,
+  IsarWriter writer,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeString(offsets[0], object.name);
-  return writer.usedBytes;
 }
 
-Permission _permissionDeserializeNative(
+Permission _permissionDeserialize(
   Id id,
-  IsarBinaryReader reader,
+  IsarReader reader,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -73,8 +69,8 @@ Permission _permissionDeserializeNative(
   return object;
 }
 
-P _permissionDeserializePropNative<P>(
-  IsarBinaryReader reader,
+P _permissionDeserializeProp<P>(
+  IsarReader reader,
   int propertyId,
   int offset,
   Map<Type, List<int>> allOffsets,
@@ -84,25 +80,6 @@ P _permissionDeserializePropNative<P>(
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
-  }
-}
-
-Object _permissionSerializeWeb(
-    IsarCollection<Permission> collection, Permission object) {
-  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
-}
-
-Permission _permissionDeserializeWeb(
-    IsarCollection<Permission> collection, Object jsObj) {
-  /*final object = Permission(id: IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int),name: IsarNative.jsObjectGet(jsObj, r'name') ?? '',);*/
-  //return object;
-  throw UnimplementedError();
-}
-
-P _permissionDeserializePropWeb<P>(Object jsObj, String propertyName) {
-  switch (propertyName) {
-    default:
-      throw IsarError('Illegal propertyName');
   }
 }
 
@@ -129,7 +106,7 @@ extension PermissionQueryWhereSort
 
 extension PermissionQueryWhere
     on QueryBuilder<Permission, Permission, QWhereClause> {
-  QueryBuilder<Permission, Permission, QAfterWhereClause> idEqualTo(int id) {
+  QueryBuilder<Permission, Permission, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(
         lower: id,
@@ -138,7 +115,7 @@ extension PermissionQueryWhere
     });
   }
 
-  QueryBuilder<Permission, Permission, QAfterWhereClause> idNotEqualTo(int id) {
+  QueryBuilder<Permission, Permission, QAfterWhereClause> idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -160,7 +137,7 @@ extension PermissionQueryWhere
     });
   }
 
-  QueryBuilder<Permission, Permission, QAfterWhereClause> idGreaterThan(int id,
+  QueryBuilder<Permission, Permission, QAfterWhereClause> idGreaterThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -169,7 +146,7 @@ extension PermissionQueryWhere
     });
   }
 
-  QueryBuilder<Permission, Permission, QAfterWhereClause> idLessThan(int id,
+  QueryBuilder<Permission, Permission, QAfterWhereClause> idLessThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -179,8 +156,8 @@ extension PermissionQueryWhere
   }
 
   QueryBuilder<Permission, Permission, QAfterWhereClause> idBetween(
-    int lowerId,
-    int upperId, {
+    Id lowerId,
+    Id upperId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -198,7 +175,7 @@ extension PermissionQueryWhere
 extension PermissionQueryFilter
     on QueryBuilder<Permission, Permission, QFilterCondition> {
   QueryBuilder<Permission, Permission, QAfterFilterCondition> idEqualTo(
-      int value) {
+      Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -208,7 +185,7 @@ extension PermissionQueryFilter
   }
 
   QueryBuilder<Permission, Permission, QAfterFilterCondition> idGreaterThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -221,7 +198,7 @@ extension PermissionQueryFilter
   }
 
   QueryBuilder<Permission, Permission, QAfterFilterCondition> idLessThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -234,8 +211,8 @@ extension PermissionQueryFilter
   }
 
   QueryBuilder<Permission, Permission, QAfterFilterCondition> idBetween(
-    int lower,
-    int upper, {
+    Id lower,
+    Id upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {

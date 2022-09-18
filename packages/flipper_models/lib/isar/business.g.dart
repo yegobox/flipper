@@ -7,7 +7,7 @@ part of flipper_models;
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
 
 extension GetBusinessCollection on Isar {
   IsarCollection<Business> get business => this.collection();
@@ -219,12 +219,9 @@ const BusinessSchema = CollectionSchema(
     )
   },
   estimateSize: _businessEstimateSize,
-  serializeNative: _businessSerializeNative,
-  deserializeNative: _businessDeserializeNative,
-  deserializePropNative: _businessDeserializePropNative,
-  serializeWeb: _businessSerializeWeb,
-  deserializeWeb: _businessDeserializeWeb,
-  deserializePropWeb: _businessDeserializePropWeb,
+  serialize: _businessSerialize,
+  deserialize: _businessDeserialize,
+  deserializeProp: _businessDeserializeProp,
   idName: r'id',
   indexes: {
     r'userId': IndexSchema(
@@ -246,7 +243,7 @@ const BusinessSchema = CollectionSchema(
   getId: _businessGetId,
   getLinks: _businessGetLinks,
   attach: _businessAttach,
-  version: '3.0.0-dev.14',
+  version: '3.0.0',
 );
 
 int _businessEstimateSize(
@@ -462,9 +459,9 @@ int _businessEstimateSize(
   return bytesCount;
 }
 
-int _businessSerializeNative(
+void _businessSerialize(
   Business object,
-  IsarBinaryWriter writer,
+  IsarWriter writer,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -508,12 +505,11 @@ int _businessSerializeNative(
   writer.writeString(offsets[37], object.type);
   writer.writeString(offsets[38], object.typeId);
   writer.writeString(offsets[39], object.userId);
-  return writer.usedBytes;
 }
 
-Business _businessDeserializeNative(
+Business _businessDeserialize(
   Id id,
-  IsarBinaryReader reader,
+  IsarReader reader,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -563,8 +559,8 @@ Business _businessDeserializeNative(
   return object;
 }
 
-P _businessDeserializePropNative<P>(
-  IsarBinaryReader reader,
+P _businessDeserializeProp<P>(
+  IsarReader reader,
   int propertyId,
   int offset,
   Map<Type, List<int>> allOffsets,
@@ -655,25 +651,6 @@ P _businessDeserializePropNative<P>(
   }
 }
 
-Object _businessSerializeWeb(
-    IsarCollection<Business> collection, Business object) {
-  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
-}
-
-Business _businessDeserializeWeb(
-    IsarCollection<Business> collection, Object jsObj) {
-  /*final object = Business(active: IsarNative.jsObjectGet(jsObj, r'active') ,adrs: IsarNative.jsObjectGet(jsObj, r'adrs') ,backUpEnabled: IsarNative.jsObjectGet(jsObj, r'backUpEnabled') ,backupFileId: IsarNative.jsObjectGet(jsObj, r'backupFileId') ,bhfId: IsarNative.jsObjectGet(jsObj, r'bhfId') ,businessUrl: IsarNative.jsObjectGet(jsObj, r'businessUrl') ,categoryId: IsarNative.jsObjectGet(jsObj, r'categoryId') ,channels: (IsarNative.jsObjectGet(jsObj, r'channels') as List?)?.map((e) => e ?? '').toList().cast<String>() ,chatUid: IsarNative.jsObjectGet(jsObj, r'chatUid') ,country: IsarNative.jsObjectGet(jsObj, r'country') ,currency: IsarNative.jsObjectGet(jsObj, r'currency') ,deviceToken: IsarNative.jsObjectGet(jsObj, r'deviceToken') ,dvcSrlNo: IsarNative.jsObjectGet(jsObj, r'dvcSrlNo') ,email: IsarNative.jsObjectGet(jsObj, r'email') ,firstName: IsarNative.jsObjectGet(jsObj, r'firstName') ,fullName: IsarNative.jsObjectGet(jsObj, r'fullName') ,hexColor: IsarNative.jsObjectGet(jsObj, r'hexColor') ,id: IsarNative.jsObjectGet(jsObj, r'id') ,imageUrl: IsarNative.jsObjectGet(jsObj, r'imageUrl') ,isDefault: IsarNative.jsObjectGet(jsObj, r'isDefault') ,isLastSubscriptionPaymentSucceeded: IsarNative.jsObjectGet(jsObj, r'isLastSubscriptionPaymentSucceeded') ,lastDbBackup: IsarNative.jsObjectGet(jsObj, r'lastDbBackup') ,lastName: IsarNative.jsObjectGet(jsObj, r'lastName') ,lastSeen: IsarNative.jsObjectGet(jsObj, r'lastSeen') ,latitude: IsarNative.jsObjectGet(jsObj, r'latitude') ,longitude: IsarNative.jsObjectGet(jsObj, r'longitude') ,metadata: IsarNative.jsObjectGet(jsObj, r'metadata') ,name: IsarNative.jsObjectGet(jsObj, r'name') ,nextBillingDate: IsarNative.jsObjectGet(jsObj, r'nextBillingDate') ,previousBillingDate: IsarNative.jsObjectGet(jsObj, r'previousBillingDate') ,role: IsarNative.jsObjectGet(jsObj, r'role') ,subscriptionPlan: IsarNative.jsObjectGet(jsObj, r'subscriptionPlan') ,table: IsarNative.jsObjectGet(jsObj, r'table') ,taxEnabled: IsarNative.jsObjectGet(jsObj, r'taxEnabled') ,taxServerUrl: IsarNative.jsObjectGet(jsObj, r'taxServerUrl') ,timeZone: IsarNative.jsObjectGet(jsObj, r'timeZone') ,tinNumber: IsarNative.jsObjectGet(jsObj, r'tinNumber') ,type: IsarNative.jsObjectGet(jsObj, r'type') ,typeId: IsarNative.jsObjectGet(jsObj, r'typeId') ,userId: IsarNative.jsObjectGet(jsObj, r'userId') ,);object.createdAt = IsarNative.jsObjectGet(jsObj, r'createdAt') ;*/
-  //return object;
-  throw UnimplementedError();
-}
-
-P _businessDeserializePropWeb<P>(Object jsObj, String propertyName) {
-  switch (propertyName) {
-    default:
-      throw IsarError('Illegal propertyName');
-  }
-}
-
 Id _businessGetId(Business object) {
   return object.id ?? Isar.autoIncrement;
 }
@@ -695,7 +672,7 @@ extension BusinessQueryWhereSort on QueryBuilder<Business, Business, QWhere> {
 }
 
 extension BusinessQueryWhere on QueryBuilder<Business, Business, QWhereClause> {
-  QueryBuilder<Business, Business, QAfterWhereClause> idEqualTo(int id) {
+  QueryBuilder<Business, Business, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(
         lower: id,
@@ -704,7 +681,7 @@ extension BusinessQueryWhere on QueryBuilder<Business, Business, QWhereClause> {
     });
   }
 
-  QueryBuilder<Business, Business, QAfterWhereClause> idNotEqualTo(int id) {
+  QueryBuilder<Business, Business, QAfterWhereClause> idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -726,7 +703,7 @@ extension BusinessQueryWhere on QueryBuilder<Business, Business, QWhereClause> {
     });
   }
 
-  QueryBuilder<Business, Business, QAfterWhereClause> idGreaterThan(int id,
+  QueryBuilder<Business, Business, QAfterWhereClause> idGreaterThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -735,7 +712,7 @@ extension BusinessQueryWhere on QueryBuilder<Business, Business, QWhereClause> {
     });
   }
 
-  QueryBuilder<Business, Business, QAfterWhereClause> idLessThan(int id,
+  QueryBuilder<Business, Business, QAfterWhereClause> idLessThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -745,8 +722,8 @@ extension BusinessQueryWhere on QueryBuilder<Business, Business, QWhereClause> {
   }
 
   QueryBuilder<Business, Business, QAfterWhereClause> idBetween(
-    int lowerId,
-    int upperId, {
+    Id lowerId,
+    Id upperId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -3341,8 +3318,7 @@ extension BusinessQueryFilter
     });
   }
 
-  QueryBuilder<Business, Business, QAfterFilterCondition> idEqualTo(
-      int? value) {
+  QueryBuilder<Business, Business, QAfterFilterCondition> idEqualTo(Id? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -3352,7 +3328,7 @@ extension BusinessQueryFilter
   }
 
   QueryBuilder<Business, Business, QAfterFilterCondition> idGreaterThan(
-    int? value, {
+    Id? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -3365,7 +3341,7 @@ extension BusinessQueryFilter
   }
 
   QueryBuilder<Business, Business, QAfterFilterCondition> idLessThan(
-    int? value, {
+    Id? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -3378,8 +3354,8 @@ extension BusinessQueryFilter
   }
 
   QueryBuilder<Business, Business, QAfterFilterCondition> idBetween(
-    int? lower,
-    int? upper, {
+    Id? lower,
+    Id? upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {

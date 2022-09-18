@@ -7,7 +7,7 @@ part of 'feature.dart';
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
 
 extension GetFeatureCollection on Isar {
   IsarCollection<Feature> get features => this.collection();
@@ -24,12 +24,9 @@ const FeatureSchema = CollectionSchema(
     )
   },
   estimateSize: _featureEstimateSize,
-  serializeNative: _featureSerializeNative,
-  deserializeNative: _featureDeserializeNative,
-  deserializePropNative: _featureDeserializePropNative,
-  serializeWeb: _featureSerializeWeb,
-  deserializeWeb: _featureDeserializeWeb,
-  deserializePropWeb: _featureDeserializePropWeb,
+  serialize: _featureSerialize,
+  deserialize: _featureDeserialize,
+  deserializeProp: _featureDeserializeProp,
   idName: r'id',
   indexes: {},
   links: {},
@@ -37,7 +34,7 @@ const FeatureSchema = CollectionSchema(
   getId: _featureGetId,
   getLinks: _featureGetLinks,
   attach: _featureAttach,
-  version: '3.0.0-dev.14',
+  version: '3.0.0',
 );
 
 int _featureEstimateSize(
@@ -50,19 +47,18 @@ int _featureEstimateSize(
   return bytesCount;
 }
 
-int _featureSerializeNative(
+void _featureSerialize(
   Feature object,
-  IsarBinaryWriter writer,
+  IsarWriter writer,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeString(offsets[0], object.name);
-  return writer.usedBytes;
 }
 
-Feature _featureDeserializeNative(
+Feature _featureDeserialize(
   Id id,
-  IsarBinaryReader reader,
+  IsarReader reader,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -73,8 +69,8 @@ Feature _featureDeserializeNative(
   return object;
 }
 
-P _featureDeserializePropNative<P>(
-  IsarBinaryReader reader,
+P _featureDeserializeProp<P>(
+  IsarReader reader,
   int propertyId,
   int offset,
   Map<Type, List<int>> allOffsets,
@@ -84,25 +80,6 @@ P _featureDeserializePropNative<P>(
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
-  }
-}
-
-Object _featureSerializeWeb(
-    IsarCollection<Feature> collection, Feature object) {
-  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
-}
-
-Feature _featureDeserializeWeb(
-    IsarCollection<Feature> collection, Object jsObj) {
-  /*final object = Feature(id: IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int),name: IsarNative.jsObjectGet(jsObj, r'name') ?? '',);*/
-  //return object;
-  throw UnimplementedError();
-}
-
-P _featureDeserializePropWeb<P>(Object jsObj, String propertyName) {
-  switch (propertyName) {
-    default:
-      throw IsarError('Illegal propertyName');
   }
 }
 
@@ -127,7 +104,7 @@ extension FeatureQueryWhereSort on QueryBuilder<Feature, Feature, QWhere> {
 }
 
 extension FeatureQueryWhere on QueryBuilder<Feature, Feature, QWhereClause> {
-  QueryBuilder<Feature, Feature, QAfterWhereClause> idEqualTo(int id) {
+  QueryBuilder<Feature, Feature, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(
         lower: id,
@@ -136,7 +113,7 @@ extension FeatureQueryWhere on QueryBuilder<Feature, Feature, QWhereClause> {
     });
   }
 
-  QueryBuilder<Feature, Feature, QAfterWhereClause> idNotEqualTo(int id) {
+  QueryBuilder<Feature, Feature, QAfterWhereClause> idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -158,7 +135,7 @@ extension FeatureQueryWhere on QueryBuilder<Feature, Feature, QWhereClause> {
     });
   }
 
-  QueryBuilder<Feature, Feature, QAfterWhereClause> idGreaterThan(int id,
+  QueryBuilder<Feature, Feature, QAfterWhereClause> idGreaterThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -167,7 +144,7 @@ extension FeatureQueryWhere on QueryBuilder<Feature, Feature, QWhereClause> {
     });
   }
 
-  QueryBuilder<Feature, Feature, QAfterWhereClause> idLessThan(int id,
+  QueryBuilder<Feature, Feature, QAfterWhereClause> idLessThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -177,8 +154,8 @@ extension FeatureQueryWhere on QueryBuilder<Feature, Feature, QWhereClause> {
   }
 
   QueryBuilder<Feature, Feature, QAfterWhereClause> idBetween(
-    int lowerId,
-    int upperId, {
+    Id lowerId,
+    Id upperId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -195,7 +172,7 @@ extension FeatureQueryWhere on QueryBuilder<Feature, Feature, QWhereClause> {
 
 extension FeatureQueryFilter
     on QueryBuilder<Feature, Feature, QFilterCondition> {
-  QueryBuilder<Feature, Feature, QAfterFilterCondition> idEqualTo(int value) {
+  QueryBuilder<Feature, Feature, QAfterFilterCondition> idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -205,7 +182,7 @@ extension FeatureQueryFilter
   }
 
   QueryBuilder<Feature, Feature, QAfterFilterCondition> idGreaterThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -218,7 +195,7 @@ extension FeatureQueryFilter
   }
 
   QueryBuilder<Feature, Feature, QAfterFilterCondition> idLessThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -231,8 +208,8 @@ extension FeatureQueryFilter
   }
 
   QueryBuilder<Feature, Feature, QAfterFilterCondition> idBetween(
-    int lower,
-    int upper, {
+    Id lower,
+    Id upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {

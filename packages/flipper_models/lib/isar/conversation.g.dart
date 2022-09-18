@@ -7,7 +7,7 @@ part of 'conversation.dart';
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
 
 extension GetConversationCollection on Isar {
   IsarCollection<Conversation> get conversations => this.collection();
@@ -59,12 +59,9 @@ const ConversationSchema = CollectionSchema(
     )
   },
   estimateSize: _conversationEstimateSize,
-  serializeNative: _conversationSerializeNative,
-  deserializeNative: _conversationDeserializeNative,
-  deserializePropNative: _conversationDeserializePropNative,
-  serializeWeb: _conversationSerializeWeb,
-  deserializeWeb: _conversationDeserializeWeb,
-  deserializePropWeb: _conversationDeserializePropWeb,
+  serialize: _conversationSerialize,
+  deserialize: _conversationDeserialize,
+  deserializeProp: _conversationDeserializeProp,
   idName: r'id',
   indexes: {},
   links: {},
@@ -72,7 +69,7 @@ const ConversationSchema = CollectionSchema(
   getId: _conversationGetId,
   getLinks: _conversationGetLinks,
   attach: _conversationAttach,
-  version: '3.0.0-dev.14',
+  version: '3.0.0',
 );
 
 int _conversationEstimateSize(
@@ -98,9 +95,9 @@ int _conversationEstimateSize(
   return bytesCount;
 }
 
-int _conversationSerializeNative(
+void _conversationSerialize(
   Conversation object,
-  IsarBinaryWriter writer,
+  IsarWriter writer,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -112,12 +109,11 @@ int _conversationSerializeNative(
   writer.writeLong(offsets[5], object.senderId);
   writer.writeString(offsets[6], object.senderName);
   writer.writeString(offsets[7], object.status);
-  return writer.usedBytes;
 }
 
-Conversation _conversationDeserializeNative(
+Conversation _conversationDeserialize(
   Id id,
-  IsarBinaryReader reader,
+  IsarReader reader,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -133,8 +129,8 @@ Conversation _conversationDeserializeNative(
   return object;
 }
 
-P _conversationDeserializePropNative<P>(
-  IsarBinaryReader reader,
+P _conversationDeserializeProp<P>(
+  IsarReader reader,
   int propertyId,
   int offset,
   Map<Type, List<int>> allOffsets,
@@ -158,25 +154,6 @@ P _conversationDeserializePropNative<P>(
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
-  }
-}
-
-Object _conversationSerializeWeb(
-    IsarCollection<Conversation> collection, Conversation object) {
-  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
-}
-
-Conversation _conversationDeserializeWeb(
-    IsarCollection<Conversation> collection, Object jsObj) {
-  /*final object = Conversation();object.createdAt = IsarNative.jsObjectGet(jsObj, r'createdAt') ?? (double.negativeInfinity as int);object.delivered = IsarNative.jsObjectGet(jsObj, r'delivered') ?? false;object.id = IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int);object.lastMessage = IsarNative.jsObjectGet(jsObj, r'lastMessage') ;object.receiverId = IsarNative.jsObjectGet(jsObj, r'receiverId') ?? (double.negativeInfinity as int);object.senderId = IsarNative.jsObjectGet(jsObj, r'senderId') ?? (double.negativeInfinity as int);object.senderName = IsarNative.jsObjectGet(jsObj, r'senderName') ?? '';object.status = IsarNative.jsObjectGet(jsObj, r'status') ?? '';*/
-  //return object;
-  throw UnimplementedError();
-}
-
-P _conversationDeserializePropWeb<P>(Object jsObj, String propertyName) {
-  switch (propertyName) {
-    default:
-      throw IsarError('Illegal propertyName');
   }
 }
 
@@ -204,8 +181,7 @@ extension ConversationQueryWhereSort
 
 extension ConversationQueryWhere
     on QueryBuilder<Conversation, Conversation, QWhereClause> {
-  QueryBuilder<Conversation, Conversation, QAfterWhereClause> idEqualTo(
-      int id) {
+  QueryBuilder<Conversation, Conversation, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(
         lower: id,
@@ -215,7 +191,7 @@ extension ConversationQueryWhere
   }
 
   QueryBuilder<Conversation, Conversation, QAfterWhereClause> idNotEqualTo(
-      int id) {
+      Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -238,7 +214,7 @@ extension ConversationQueryWhere
   }
 
   QueryBuilder<Conversation, Conversation, QAfterWhereClause> idGreaterThan(
-      int id,
+      Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -247,7 +223,7 @@ extension ConversationQueryWhere
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterWhereClause> idLessThan(int id,
+  QueryBuilder<Conversation, Conversation, QAfterWhereClause> idLessThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -257,8 +233,8 @@ extension ConversationQueryWhere
   }
 
   QueryBuilder<Conversation, Conversation, QAfterWhereClause> idBetween(
-    int lowerId,
-    int upperId, {
+    Id lowerId,
+    Id upperId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -496,7 +472,7 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition> idEqualTo(
-      int value) {
+      Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -506,7 +482,7 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition> idGreaterThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -519,7 +495,7 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition> idLessThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -532,8 +508,8 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition> idBetween(
-    int lower,
-    int upper, {
+    Id lower,
+    Id upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {

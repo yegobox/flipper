@@ -7,7 +7,7 @@ part of flipper_models;
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
 
 extension GetVariantCollection on Isar {
   IsarCollection<Variant> get variants => this.collection();
@@ -229,12 +229,9 @@ const VariantSchema = CollectionSchema(
     )
   },
   estimateSize: _variantEstimateSize,
-  serializeNative: _variantSerializeNative,
-  deserializeNative: _variantDeserializeNative,
-  deserializePropNative: _variantDeserializePropNative,
-  serializeWeb: _variantSerializeWeb,
-  deserializeWeb: _variantDeserializeWeb,
-  deserializePropWeb: _variantDeserializePropWeb,
+  serialize: _variantSerialize,
+  deserialize: _variantDeserialize,
+  deserializeProp: _variantDeserializeProp,
   idName: r'id',
   indexes: {
     r'name': IndexSchema(
@@ -269,7 +266,7 @@ const VariantSchema = CollectionSchema(
   getId: _variantGetId,
   getLinks: _variantGetLinks,
   attach: _variantAttach,
-  version: '3.0.0-dev.14',
+  version: '3.0.0',
 );
 
 int _variantEstimateSize(
@@ -436,9 +433,9 @@ int _variantEstimateSize(
   return bytesCount;
 }
 
-int _variantSerializeNative(
+void _variantSerialize(
   Variant object,
-  IsarBinaryWriter writer,
+  IsarWriter writer,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -484,12 +481,11 @@ int _variantSerializeNative(
   writer.writeLong(offsets[39], object.tin);
   writer.writeString(offsets[40], object.unit);
   writer.writeString(offsets[41], object.useYn);
-  return writer.usedBytes;
 }
 
-Variant _variantDeserializeNative(
+Variant _variantDeserialize(
   Id id,
-  IsarBinaryReader reader,
+  IsarReader reader,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -540,8 +536,8 @@ Variant _variantDeserializeNative(
   return object;
 }
 
-P _variantDeserializePropNative<P>(
-  IsarBinaryReader reader,
+P _variantDeserializeProp<P>(
+  IsarReader reader,
   int propertyId,
   int offset,
   Map<Type, List<int>> allOffsets,
@@ -636,25 +632,6 @@ P _variantDeserializePropNative<P>(
   }
 }
 
-Object _variantSerializeWeb(
-    IsarCollection<Variant> collection, Variant object) {
-  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
-}
-
-Variant _variantDeserializeWeb(
-    IsarCollection<Variant> collection, Object jsObj) {
-  /*final object = Variant();object.addInfo = IsarNative.jsObjectGet(jsObj, r'addInfo') ;object.bcd = IsarNative.jsObjectGet(jsObj, r'bcd') ;object.bhfId = IsarNative.jsObjectGet(jsObj, r'bhfId') ;object.branchId = IsarNative.jsObjectGet(jsObj, r'branchId') ?? (double.negativeInfinity as int);object.dftPrc = IsarNative.jsObjectGet(jsObj, r'dftPrc') ;object.id = IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int);object.isTaxExempted = IsarNative.jsObjectGet(jsObj, r'isTaxExempted') ?? false;object.isrcAmt = IsarNative.jsObjectGet(jsObj, r'isrcAmt') ;object.isrcAplcbYn = IsarNative.jsObjectGet(jsObj, r'isrcAplcbYn') ;object.isrcRt = IsarNative.jsObjectGet(jsObj, r'isrcRt') ;object.isrccCd = IsarNative.jsObjectGet(jsObj, r'isrccCd') ;object.isrccNm = IsarNative.jsObjectGet(jsObj, r'isrccNm') ;object.itemCd = IsarNative.jsObjectGet(jsObj, r'itemCd') ;object.itemClsCd = IsarNative.jsObjectGet(jsObj, r'itemClsCd') ;object.itemNm = IsarNative.jsObjectGet(jsObj, r'itemNm') ;object.itemSeq = IsarNative.jsObjectGet(jsObj, r'itemSeq') ;object.itemStdNm = IsarNative.jsObjectGet(jsObj, r'itemStdNm') ;object.itemTyCd = IsarNative.jsObjectGet(jsObj, r'itemTyCd') ;object.modrId = IsarNative.jsObjectGet(jsObj, r'modrId') ;object.modrNm = IsarNative.jsObjectGet(jsObj, r'modrNm') ;object.name = IsarNative.jsObjectGet(jsObj, r'name') ?? '';object.orgnNatCd = IsarNative.jsObjectGet(jsObj, r'orgnNatCd') ;object.pkg = IsarNative.jsObjectGet(jsObj, r'pkg') ;object.pkgUnitCd = IsarNative.jsObjectGet(jsObj, r'pkgUnitCd') ;object.prc = IsarNative.jsObjectGet(jsObj, r'prc') ;object.productId = IsarNative.jsObjectGet(jsObj, r'productId') ?? (double.negativeInfinity as int);object.productName = IsarNative.jsObjectGet(jsObj, r'productName') ?? '';object.qty = IsarNative.jsObjectGet(jsObj, r'qty') ;object.qtyUnitCd = IsarNative.jsObjectGet(jsObj, r'qtyUnitCd') ;object.regrId = IsarNative.jsObjectGet(jsObj, r'regrId') ;object.regrNm = IsarNative.jsObjectGet(jsObj, r'regrNm') ;object.retailPrice = IsarNative.jsObjectGet(jsObj, r'retailPrice') ?? double.negativeInfinity;object.rsdQty = IsarNative.jsObjectGet(jsObj, r'rsdQty') ;object.sku = IsarNative.jsObjectGet(jsObj, r'sku') ?? '';object.splyAmt = IsarNative.jsObjectGet(jsObj, r'splyAmt') ;object.supplyPrice = IsarNative.jsObjectGet(jsObj, r'supplyPrice') ?? double.negativeInfinity;object.table = IsarNative.jsObjectGet(jsObj, r'table') ?? '';object.taxName = IsarNative.jsObjectGet(jsObj, r'taxName') ;object.taxPercentage = IsarNative.jsObjectGet(jsObj, r'taxPercentage') ;object.taxTyCd = IsarNative.jsObjectGet(jsObj, r'taxTyCd') ;object.tin = IsarNative.jsObjectGet(jsObj, r'tin') ;object.unit = IsarNative.jsObjectGet(jsObj, r'unit') ?? '';object.useYn = IsarNative.jsObjectGet(jsObj, r'useYn') ;*/
-  //return object;
-  throw UnimplementedError();
-}
-
-P _variantDeserializePropWeb<P>(Object jsObj, String propertyName) {
-  switch (propertyName) {
-    default:
-      throw IsarError('Illegal propertyName');
-  }
-}
-
 Id _variantGetId(Variant object) {
   return object.id;
 }
@@ -684,7 +661,7 @@ extension VariantQueryWhereSort on QueryBuilder<Variant, Variant, QWhere> {
 }
 
 extension VariantQueryWhere on QueryBuilder<Variant, Variant, QWhereClause> {
-  QueryBuilder<Variant, Variant, QAfterWhereClause> idEqualTo(int id) {
+  QueryBuilder<Variant, Variant, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(
         lower: id,
@@ -693,7 +670,7 @@ extension VariantQueryWhere on QueryBuilder<Variant, Variant, QWhereClause> {
     });
   }
 
-  QueryBuilder<Variant, Variant, QAfterWhereClause> idNotEqualTo(int id) {
+  QueryBuilder<Variant, Variant, QAfterWhereClause> idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -715,7 +692,7 @@ extension VariantQueryWhere on QueryBuilder<Variant, Variant, QWhereClause> {
     });
   }
 
-  QueryBuilder<Variant, Variant, QAfterWhereClause> idGreaterThan(int id,
+  QueryBuilder<Variant, Variant, QAfterWhereClause> idGreaterThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -724,7 +701,7 @@ extension VariantQueryWhere on QueryBuilder<Variant, Variant, QWhereClause> {
     });
   }
 
-  QueryBuilder<Variant, Variant, QAfterWhereClause> idLessThan(int id,
+  QueryBuilder<Variant, Variant, QAfterWhereClause> idLessThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -734,8 +711,8 @@ extension VariantQueryWhere on QueryBuilder<Variant, Variant, QWhereClause> {
   }
 
   QueryBuilder<Variant, Variant, QAfterWhereClause> idBetween(
-    int lowerId,
-    int upperId, {
+    Id lowerId,
+    Id upperId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -1455,7 +1432,7 @@ extension VariantQueryFilter
     });
   }
 
-  QueryBuilder<Variant, Variant, QAfterFilterCondition> idEqualTo(int value) {
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -1465,7 +1442,7 @@ extension VariantQueryFilter
   }
 
   QueryBuilder<Variant, Variant, QAfterFilterCondition> idGreaterThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1478,7 +1455,7 @@ extension VariantQueryFilter
   }
 
   QueryBuilder<Variant, Variant, QAfterFilterCondition> idLessThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1491,8 +1468,8 @@ extension VariantQueryFilter
   }
 
   QueryBuilder<Variant, Variant, QAfterFilterCondition> idBetween(
-    int lower,
-    int upper, {
+    Id lower,
+    Id upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {

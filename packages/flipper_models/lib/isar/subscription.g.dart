@@ -7,7 +7,7 @@ part of flipper_models;
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
 
 extension GetSubscriptionCollection on Isar {
   IsarCollection<Subscription> get subscriptions => this.collection();
@@ -49,12 +49,9 @@ const SubscriptionSchema = CollectionSchema(
     )
   },
   estimateSize: _subscriptionEstimateSize,
-  serializeNative: _subscriptionSerializeNative,
-  deserializeNative: _subscriptionDeserializeNative,
-  deserializePropNative: _subscriptionDeserializePropNative,
-  serializeWeb: _subscriptionSerializeWeb,
-  deserializeWeb: _subscriptionDeserializeWeb,
-  deserializePropWeb: _subscriptionDeserializePropWeb,
+  serialize: _subscriptionSerialize,
+  deserialize: _subscriptionDeserialize,
+  deserializeProp: _subscriptionDeserializeProp,
   idName: r'id',
   indexes: {
     r'userId': IndexSchema(
@@ -76,14 +73,14 @@ const SubscriptionSchema = CollectionSchema(
       id: -3702405399721331688,
       name: r'features',
       target: r'Feature',
-      isSingle: true,
+      single: true,
     )
   },
   embeddedSchemas: {},
   getId: _subscriptionGetId,
   getLinks: _subscriptionGetLinks,
   attach: _subscriptionAttach,
-  version: '3.0.0-dev.14',
+  version: '3.0.0',
 );
 
 int _subscriptionEstimateSize(
@@ -98,9 +95,9 @@ int _subscriptionEstimateSize(
   return bytesCount;
 }
 
-int _subscriptionSerializeNative(
+void _subscriptionSerialize(
   Subscription object,
-  IsarBinaryWriter writer,
+  IsarWriter writer,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -110,12 +107,11 @@ int _subscriptionSerializeNative(
   writer.writeString(offsets[3], object.nextBillingDate);
   writer.writeDouble(offsets[4], object.recurring);
   writer.writeLong(offsets[5], object.userId);
-  return writer.usedBytes;
 }
 
-Subscription _subscriptionDeserializeNative(
+Subscription _subscriptionDeserialize(
   Id id,
-  IsarBinaryReader reader,
+  IsarReader reader,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -131,8 +127,8 @@ Subscription _subscriptionDeserializeNative(
   return object;
 }
 
-P _subscriptionDeserializePropNative<P>(
-  IsarBinaryReader reader,
+P _subscriptionDeserializeProp<P>(
+  IsarReader reader,
   int propertyId,
   int offset,
   Map<Type, List<int>> allOffsets,
@@ -152,25 +148,6 @@ P _subscriptionDeserializePropNative<P>(
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
-  }
-}
-
-Object _subscriptionSerializeWeb(
-    IsarCollection<Subscription> collection, Subscription object) {
-  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
-}
-
-Subscription _subscriptionDeserializeWeb(
-    IsarCollection<Subscription> collection, Object jsObj) {
-  /*final object = Subscription(descriptor: IsarNative.jsObjectGet(jsObj, r'descriptor') ?? '',id: IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int),interval: IsarNative.jsObjectGet(jsObj, r'interval') ?? (double.negativeInfinity as int),lastBillingDate: IsarNative.jsObjectGet(jsObj, r'lastBillingDate') ?? '',nextBillingDate: IsarNative.jsObjectGet(jsObj, r'nextBillingDate') ?? '',recurring: IsarNative.jsObjectGet(jsObj, r'recurring') ?? double.negativeInfinity,userId: IsarNative.jsObjectGet(jsObj, r'userId') ?? (double.negativeInfinity as int),);*/
-  //return object;
-  throw UnimplementedError();
-}
-
-P _subscriptionDeserializePropWeb<P>(Object jsObj, String propertyName) {
-  switch (propertyName) {
-    default:
-      throw IsarError('Illegal propertyName');
   }
 }
 
@@ -207,8 +184,7 @@ extension SubscriptionQueryWhereSort
 
 extension SubscriptionQueryWhere
     on QueryBuilder<Subscription, Subscription, QWhereClause> {
-  QueryBuilder<Subscription, Subscription, QAfterWhereClause> idEqualTo(
-      int id) {
+  QueryBuilder<Subscription, Subscription, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(
         lower: id,
@@ -218,7 +194,7 @@ extension SubscriptionQueryWhere
   }
 
   QueryBuilder<Subscription, Subscription, QAfterWhereClause> idNotEqualTo(
-      int id) {
+      Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -241,7 +217,7 @@ extension SubscriptionQueryWhere
   }
 
   QueryBuilder<Subscription, Subscription, QAfterWhereClause> idGreaterThan(
-      int id,
+      Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -250,7 +226,7 @@ extension SubscriptionQueryWhere
     });
   }
 
-  QueryBuilder<Subscription, Subscription, QAfterWhereClause> idLessThan(int id,
+  QueryBuilder<Subscription, Subscription, QAfterWhereClause> idLessThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -260,8 +236,8 @@ extension SubscriptionQueryWhere
   }
 
   QueryBuilder<Subscription, Subscription, QAfterWhereClause> idBetween(
-    int lowerId,
-    int upperId, {
+    Id lowerId,
+    Id upperId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -505,7 +481,7 @@ extension SubscriptionQueryFilter
   }
 
   QueryBuilder<Subscription, Subscription, QAfterFilterCondition> idEqualTo(
-      int value) {
+      Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -515,7 +491,7 @@ extension SubscriptionQueryFilter
   }
 
   QueryBuilder<Subscription, Subscription, QAfterFilterCondition> idGreaterThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -528,7 +504,7 @@ extension SubscriptionQueryFilter
   }
 
   QueryBuilder<Subscription, Subscription, QAfterFilterCondition> idLessThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -541,8 +517,8 @@ extension SubscriptionQueryFilter
   }
 
   QueryBuilder<Subscription, Subscription, QAfterFilterCondition> idBetween(
-    int lower,
-    int upper, {
+    Id lower,
+    Id upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {

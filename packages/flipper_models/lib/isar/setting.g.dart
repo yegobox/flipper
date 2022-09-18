@@ -7,7 +7,7 @@ part of 'setting.dart';
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
 
 extension GetSettingCollection on Isar {
   IsarCollection<Setting> get settings => this.collection();
@@ -69,12 +69,9 @@ const SettingSchema = CollectionSchema(
     )
   },
   estimateSize: _settingEstimateSize,
-  serializeNative: _settingSerializeNative,
-  deserializeNative: _settingDeserializeNative,
-  deserializePropNative: _settingDeserializePropNative,
-  serializeWeb: _settingSerializeWeb,
-  deserializeWeb: _settingDeserializeWeb,
-  deserializePropWeb: _settingDeserializePropWeb,
+  serialize: _settingSerialize,
+  deserialize: _settingDeserialize,
+  deserializeProp: _settingDeserializeProp,
   idName: r'id',
   indexes: {
     r'userId': IndexSchema(
@@ -96,7 +93,7 @@ const SettingSchema = CollectionSchema(
   getId: _settingGetId,
   getLinks: _settingGetLinks,
   attach: _settingAttach,
-  version: '3.0.0-dev.14',
+  version: '3.0.0',
 );
 
 int _settingEstimateSize(
@@ -116,9 +113,9 @@ int _settingEstimateSize(
   return bytesCount;
 }
 
-int _settingSerializeNative(
+void _settingSerialize(
   Setting object,
-  IsarBinaryWriter writer,
+  IsarWriter writer,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -132,12 +129,11 @@ int _settingSerializeNative(
   writer.writeBool(offsets[7], object.openReceiptFileOSaleComplete);
   writer.writeBool(offsets[8], object.sendDailyReport);
   writer.writeLong(offsets[9], object.userId);
-  return writer.usedBytes;
 }
 
-Setting _settingDeserializeNative(
+Setting _settingDeserialize(
   Id id,
-  IsarBinaryReader reader,
+  IsarReader reader,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -157,8 +153,8 @@ Setting _settingDeserializeNative(
   return object;
 }
 
-P _settingDeserializePropNative<P>(
-  IsarBinaryReader reader,
+P _settingDeserializeProp<P>(
+  IsarReader reader,
   int propertyId,
   int offset,
   Map<Type, List<int>> allOffsets,
@@ -186,25 +182,6 @@ P _settingDeserializePropNative<P>(
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
-  }
-}
-
-Object _settingSerializeWeb(
-    IsarCollection<Setting> collection, Setting object) {
-  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
-}
-
-Setting _settingDeserializeWeb(
-    IsarCollection<Setting> collection, Object jsObj) {
-  /*final object = Setting(attendnaceDocCreated: IsarNative.jsObjectGet(jsObj, r'attendnaceDocCreated') ,autoPrint: IsarNative.jsObjectGet(jsObj, r'autoPrint') ,defaultLanguage: IsarNative.jsObjectGet(jsObj, r'defaultLanguage') ,email: IsarNative.jsObjectGet(jsObj, r'email') ?? '',googleSheetDocCreated: IsarNative.jsObjectGet(jsObj, r'googleSheetDocCreated') ,hasPin: IsarNative.jsObjectGet(jsObj, r'hasPin') ?? '',id: IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int),isAttendanceEnabled: IsarNative.jsObjectGet(jsObj, r'isAttendanceEnabled') ,openReceiptFileOSaleComplete: IsarNative.jsObjectGet(jsObj, r'openReceiptFileOSaleComplete') ,sendDailyReport: IsarNative.jsObjectGet(jsObj, r'sendDailyReport') ,userId: IsarNative.jsObjectGet(jsObj, r'userId') ?? (double.negativeInfinity as int),);*/
-  //return object;
-  throw UnimplementedError();
-}
-
-P _settingDeserializePropWeb<P>(Object jsObj, String propertyName) {
-  switch (propertyName) {
-    default:
-      throw IsarError('Illegal propertyName');
   }
 }
 
@@ -237,7 +214,7 @@ extension SettingQueryWhereSort on QueryBuilder<Setting, Setting, QWhere> {
 }
 
 extension SettingQueryWhere on QueryBuilder<Setting, Setting, QWhereClause> {
-  QueryBuilder<Setting, Setting, QAfterWhereClause> idEqualTo(int id) {
+  QueryBuilder<Setting, Setting, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(
         lower: id,
@@ -246,7 +223,7 @@ extension SettingQueryWhere on QueryBuilder<Setting, Setting, QWhereClause> {
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterWhereClause> idNotEqualTo(int id) {
+  QueryBuilder<Setting, Setting, QAfterWhereClause> idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -268,7 +245,7 @@ extension SettingQueryWhere on QueryBuilder<Setting, Setting, QWhereClause> {
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterWhereClause> idGreaterThan(int id,
+  QueryBuilder<Setting, Setting, QAfterWhereClause> idGreaterThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -277,7 +254,7 @@ extension SettingQueryWhere on QueryBuilder<Setting, Setting, QWhereClause> {
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterWhereClause> idLessThan(int id,
+  QueryBuilder<Setting, Setting, QAfterWhereClause> idLessThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -287,8 +264,8 @@ extension SettingQueryWhere on QueryBuilder<Setting, Setting, QWhereClause> {
   }
 
   QueryBuilder<Setting, Setting, QAfterWhereClause> idBetween(
-    int lowerId,
-    int upperId, {
+    Id lowerId,
+    Id upperId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -888,7 +865,7 @@ extension SettingQueryFilter
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> idEqualTo(int value) {
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -898,7 +875,7 @@ extension SettingQueryFilter
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition> idGreaterThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -911,7 +888,7 @@ extension SettingQueryFilter
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition> idLessThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -924,8 +901,8 @@ extension SettingQueryFilter
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition> idBetween(
-    int lower,
-    int upper, {
+    Id lower,
+    Id upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {

@@ -7,7 +7,7 @@ part of flipper_models;
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
 
 extension GetProductCollection on Isar {
   IsarCollection<Product> get products => this.collection();
@@ -124,12 +124,9 @@ const ProductSchema = CollectionSchema(
     )
   },
   estimateSize: _productEstimateSize,
-  serializeNative: _productSerializeNative,
-  deserializeNative: _productDeserializeNative,
-  deserializePropNative: _productDeserializePropNative,
-  serializeWeb: _productSerializeWeb,
-  deserializeWeb: _productDeserializeWeb,
-  deserializePropWeb: _productDeserializePropWeb,
+  serialize: _productSerialize,
+  deserialize: _productDeserialize,
+  deserializeProp: _productDeserializeProp,
   idName: r'id',
   indexes: {
     r'name': IndexSchema(
@@ -195,14 +192,14 @@ const ProductSchema = CollectionSchema(
       id: -6238971154009720285,
       name: r'variants',
       target: r'Variant',
-      isSingle: false,
+      single: false,
     )
   },
   embeddedSchemas: {},
   getId: _productGetId,
   getLinks: _productGetLinks,
   attach: _productAttach,
-  version: '3.0.0-dev.14',
+  version: '3.0.0',
 );
 
 int _productEstimateSize(
@@ -282,9 +279,9 @@ int _productEstimateSize(
   return bytesCount;
 }
 
-int _productSerializeNative(
+void _productSerialize(
   Product object,
-  IsarBinaryWriter writer,
+  IsarWriter writer,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -309,12 +306,11 @@ int _productSerializeNative(
   writer.writeString(offsets[18], object.table);
   writer.writeString(offsets[19], object.taxId);
   writer.writeString(offsets[20], object.unit);
-  return writer.usedBytes;
 }
 
-Product _productDeserializeNative(
+Product _productDeserialize(
   Id id,
-  IsarBinaryReader reader,
+  IsarReader reader,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -344,8 +340,8 @@ Product _productDeserializeNative(
   return object;
 }
 
-P _productDeserializePropNative<P>(
-  IsarBinaryReader reader,
+P _productDeserializeProp<P>(
+  IsarReader reader,
   int propertyId,
   int offset,
   Map<Type, List<int>> allOffsets,
@@ -398,25 +394,6 @@ P _productDeserializePropNative<P>(
   }
 }
 
-Object _productSerializeWeb(
-    IsarCollection<Product> collection, Product object) {
-  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
-}
-
-Product _productDeserializeWeb(
-    IsarCollection<Product> collection, Object jsObj) {
-  /*final object = Product();object.active = IsarNative.jsObjectGet(jsObj, r'active') ?? false;object.barCode = IsarNative.jsObjectGet(jsObj, r'barCode') ;object.branchId = IsarNative.jsObjectGet(jsObj, r'branchId') ?? (double.negativeInfinity as int);object.businessId = IsarNative.jsObjectGet(jsObj, r'businessId') ?? (double.negativeInfinity as int);object.categoryId = IsarNative.jsObjectGet(jsObj, r'categoryId') ;object.color = IsarNative.jsObjectGet(jsObj, r'color') ?? '';object.createdAt = IsarNative.jsObjectGet(jsObj, r'createdAt') ;object.currentUpdate = IsarNative.jsObjectGet(jsObj, r'currentUpdate') ;object.description = IsarNative.jsObjectGet(jsObj, r'description') ;object.draft = IsarNative.jsObjectGet(jsObj, r'draft') ;object.expiryDate = IsarNative.jsObjectGet(jsObj, r'expiryDate') ;object.hasPicture = IsarNative.jsObjectGet(jsObj, r'hasPicture') ?? false;object.id = IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int);object.imageLocal = IsarNative.jsObjectGet(jsObj, r'imageLocal') ;object.imageUrl = IsarNative.jsObjectGet(jsObj, r'imageUrl') ;object.name = IsarNative.jsObjectGet(jsObj, r'name') ?? '';object.picture = IsarNative.jsObjectGet(jsObj, r'picture') ;object.supplierId = IsarNative.jsObjectGet(jsObj, r'supplierId') ;object.synced = IsarNative.jsObjectGet(jsObj, r'synced') ;object.table = IsarNative.jsObjectGet(jsObj, r'table') ;object.taxId = IsarNative.jsObjectGet(jsObj, r'taxId') ;object.unit = IsarNative.jsObjectGet(jsObj, r'unit') ;*/
-  //return object;
-  throw UnimplementedError();
-}
-
-P _productDeserializePropWeb<P>(Object jsObj, String propertyName) {
-  switch (propertyName) {
-    default:
-      throw IsarError('Illegal propertyName');
-  }
-}
-
 Id _productGetId(Product object) {
   return object.id;
 }
@@ -455,7 +432,7 @@ extension ProductQueryWhereSort on QueryBuilder<Product, Product, QWhere> {
 }
 
 extension ProductQueryWhere on QueryBuilder<Product, Product, QWhereClause> {
-  QueryBuilder<Product, Product, QAfterWhereClause> idEqualTo(int id) {
+  QueryBuilder<Product, Product, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(
         lower: id,
@@ -464,7 +441,7 @@ extension ProductQueryWhere on QueryBuilder<Product, Product, QWhereClause> {
     });
   }
 
-  QueryBuilder<Product, Product, QAfterWhereClause> idNotEqualTo(int id) {
+  QueryBuilder<Product, Product, QAfterWhereClause> idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -486,7 +463,7 @@ extension ProductQueryWhere on QueryBuilder<Product, Product, QWhereClause> {
     });
   }
 
-  QueryBuilder<Product, Product, QAfterWhereClause> idGreaterThan(int id,
+  QueryBuilder<Product, Product, QAfterWhereClause> idGreaterThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -495,7 +472,7 @@ extension ProductQueryWhere on QueryBuilder<Product, Product, QWhereClause> {
     });
   }
 
-  QueryBuilder<Product, Product, QAfterWhereClause> idLessThan(int id,
+  QueryBuilder<Product, Product, QAfterWhereClause> idLessThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -505,8 +482,8 @@ extension ProductQueryWhere on QueryBuilder<Product, Product, QWhereClause> {
   }
 
   QueryBuilder<Product, Product, QAfterWhereClause> idBetween(
-    int lowerId,
-    int upperId, {
+    Id lowerId,
+    Id upperId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -1923,7 +1900,7 @@ extension ProductQueryFilter
     });
   }
 
-  QueryBuilder<Product, Product, QAfterFilterCondition> idEqualTo(int value) {
+  QueryBuilder<Product, Product, QAfterFilterCondition> idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -1933,7 +1910,7 @@ extension ProductQueryFilter
   }
 
   QueryBuilder<Product, Product, QAfterFilterCondition> idGreaterThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1946,7 +1923,7 @@ extension ProductQueryFilter
   }
 
   QueryBuilder<Product, Product, QAfterFilterCondition> idLessThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1959,8 +1936,8 @@ extension ProductQueryFilter
   }
 
   QueryBuilder<Product, Product, QAfterFilterCondition> idBetween(
-    int lower,
-    int upper, {
+    Id lower,
+    Id upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {

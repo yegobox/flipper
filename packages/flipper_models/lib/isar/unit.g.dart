@@ -7,7 +7,7 @@ part of 'unit.dart';
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
 
 extension GetIUnitCollection on Isar {
   IsarCollection<IUnit> get iUnits => this.collection();
@@ -39,12 +39,9 @@ const IUnitSchema = CollectionSchema(
     )
   },
   estimateSize: _iUnitEstimateSize,
-  serializeNative: _iUnitSerializeNative,
-  deserializeNative: _iUnitDeserializeNative,
-  deserializePropNative: _iUnitDeserializePropNative,
-  serializeWeb: _iUnitSerializeWeb,
-  deserializeWeb: _iUnitDeserializeWeb,
-  deserializePropWeb: _iUnitDeserializePropWeb,
+  serialize: _iUnitSerialize,
+  deserialize: _iUnitDeserialize,
+  deserializeProp: _iUnitDeserializeProp,
   idName: r'id',
   indexes: {
     r'branchId': IndexSchema(
@@ -66,7 +63,7 @@ const IUnitSchema = CollectionSchema(
   getId: _iUnitGetId,
   getLinks: _iUnitGetLinks,
   attach: _iUnitAttach,
-  version: '3.0.0-dev.14',
+  version: '3.0.0',
 );
 
 int _iUnitEstimateSize(
@@ -80,9 +77,9 @@ int _iUnitEstimateSize(
   return bytesCount;
 }
 
-int _iUnitSerializeNative(
+void _iUnitSerialize(
   IUnit object,
-  IsarBinaryWriter writer,
+  IsarWriter writer,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -90,12 +87,11 @@ int _iUnitSerializeNative(
   writer.writeLong(offsets[1], object.branchId);
   writer.writeString(offsets[2], object.name);
   writer.writeString(offsets[3], object.value);
-  return writer.usedBytes;
 }
 
-IUnit _iUnitDeserializeNative(
+IUnit _iUnitDeserialize(
   Id id,
-  IsarBinaryReader reader,
+  IsarReader reader,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -108,8 +104,8 @@ IUnit _iUnitDeserializeNative(
   return object;
 }
 
-P _iUnitDeserializePropNative<P>(
-  IsarBinaryReader reader,
+P _iUnitDeserializeProp<P>(
+  IsarReader reader,
   int propertyId,
   int offset,
   Map<Type, List<int>> allOffsets,
@@ -125,23 +121,6 @@ P _iUnitDeserializePropNative<P>(
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
-  }
-}
-
-Object _iUnitSerializeWeb(IsarCollection<IUnit> collection, IUnit object) {
-  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
-}
-
-IUnit _iUnitDeserializeWeb(IsarCollection<IUnit> collection, Object jsObj) {
-  /*final object = IUnit();object.active = IsarNative.jsObjectGet(jsObj, r'active') ?? false;object.branchId = IsarNative.jsObjectGet(jsObj, r'branchId') ?? (double.negativeInfinity as int);object.id = IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int);object.name = IsarNative.jsObjectGet(jsObj, r'name') ?? '';object.value = IsarNative.jsObjectGet(jsObj, r'value') ?? '';*/
-  //return object;
-  throw UnimplementedError();
-}
-
-P _iUnitDeserializePropWeb<P>(Object jsObj, String propertyName) {
-  switch (propertyName) {
-    default:
-      throw IsarError('Illegal propertyName');
   }
 }
 
@@ -174,7 +153,7 @@ extension IUnitQueryWhereSort on QueryBuilder<IUnit, IUnit, QWhere> {
 }
 
 extension IUnitQueryWhere on QueryBuilder<IUnit, IUnit, QWhereClause> {
-  QueryBuilder<IUnit, IUnit, QAfterWhereClause> idEqualTo(int id) {
+  QueryBuilder<IUnit, IUnit, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(
         lower: id,
@@ -183,7 +162,7 @@ extension IUnitQueryWhere on QueryBuilder<IUnit, IUnit, QWhereClause> {
     });
   }
 
-  QueryBuilder<IUnit, IUnit, QAfterWhereClause> idNotEqualTo(int id) {
+  QueryBuilder<IUnit, IUnit, QAfterWhereClause> idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -205,7 +184,7 @@ extension IUnitQueryWhere on QueryBuilder<IUnit, IUnit, QWhereClause> {
     });
   }
 
-  QueryBuilder<IUnit, IUnit, QAfterWhereClause> idGreaterThan(int id,
+  QueryBuilder<IUnit, IUnit, QAfterWhereClause> idGreaterThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -214,7 +193,7 @@ extension IUnitQueryWhere on QueryBuilder<IUnit, IUnit, QWhereClause> {
     });
   }
 
-  QueryBuilder<IUnit, IUnit, QAfterWhereClause> idLessThan(int id,
+  QueryBuilder<IUnit, IUnit, QAfterWhereClause> idLessThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -224,8 +203,8 @@ extension IUnitQueryWhere on QueryBuilder<IUnit, IUnit, QWhereClause> {
   }
 
   QueryBuilder<IUnit, IUnit, QAfterWhereClause> idBetween(
-    int lowerId,
-    int upperId, {
+    Id lowerId,
+    Id upperId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -391,7 +370,7 @@ extension IUnitQueryFilter on QueryBuilder<IUnit, IUnit, QFilterCondition> {
     });
   }
 
-  QueryBuilder<IUnit, IUnit, QAfterFilterCondition> idEqualTo(int value) {
+  QueryBuilder<IUnit, IUnit, QAfterFilterCondition> idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -401,7 +380,7 @@ extension IUnitQueryFilter on QueryBuilder<IUnit, IUnit, QFilterCondition> {
   }
 
   QueryBuilder<IUnit, IUnit, QAfterFilterCondition> idGreaterThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -414,7 +393,7 @@ extension IUnitQueryFilter on QueryBuilder<IUnit, IUnit, QFilterCondition> {
   }
 
   QueryBuilder<IUnit, IUnit, QAfterFilterCondition> idLessThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -427,8 +406,8 @@ extension IUnitQueryFilter on QueryBuilder<IUnit, IUnit, QFilterCondition> {
   }
 
   QueryBuilder<IUnit, IUnit, QAfterFilterCondition> idBetween(
-    int lower,
-    int upper, {
+    Id lower,
+    Id upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {

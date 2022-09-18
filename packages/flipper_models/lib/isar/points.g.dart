@@ -7,7 +7,7 @@ part of flipper_models;
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
 
 extension GetIPointCollection on Isar {
   IsarCollection<IPoint> get iPoints => this.collection();
@@ -29,12 +29,9 @@ const IPointSchema = CollectionSchema(
     )
   },
   estimateSize: _iPointEstimateSize,
-  serializeNative: _iPointSerializeNative,
-  deserializeNative: _iPointDeserializeNative,
-  deserializePropNative: _iPointDeserializePropNative,
-  serializeWeb: _iPointSerializeWeb,
-  deserializeWeb: _iPointDeserializeWeb,
-  deserializePropWeb: _iPointDeserializePropWeb,
+  serialize: _iPointSerialize,
+  deserialize: _iPointDeserialize,
+  deserializeProp: _iPointDeserializeProp,
   idName: r'id',
   indexes: {
     r'userId': IndexSchema(
@@ -56,7 +53,7 @@ const IPointSchema = CollectionSchema(
   getId: _iPointGetId,
   getLinks: _iPointGetLinks,
   attach: _iPointAttach,
-  version: '3.0.0-dev.14',
+  version: '3.0.0',
 );
 
 int _iPointEstimateSize(
@@ -68,20 +65,19 @@ int _iPointEstimateSize(
   return bytesCount;
 }
 
-int _iPointSerializeNative(
+void _iPointSerialize(
   IPoint object,
-  IsarBinaryWriter writer,
+  IsarWriter writer,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeInt(offsets[0], object.userId);
   writer.writeLong(offsets[1], object.value);
-  return writer.usedBytes;
 }
 
-IPoint _iPointDeserializeNative(
+IPoint _iPointDeserialize(
   Id id,
-  IsarBinaryReader reader,
+  IsarReader reader,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -93,8 +89,8 @@ IPoint _iPointDeserializeNative(
   return object;
 }
 
-P _iPointDeserializePropNative<P>(
-  IsarBinaryReader reader,
+P _iPointDeserializeProp<P>(
+  IsarReader reader,
   int propertyId,
   int offset,
   Map<Type, List<int>> allOffsets,
@@ -106,23 +102,6 @@ P _iPointDeserializePropNative<P>(
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
-  }
-}
-
-Object _iPointSerializeWeb(IsarCollection<IPoint> collection, IPoint object) {
-  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
-}
-
-IPoint _iPointDeserializeWeb(IsarCollection<IPoint> collection, Object jsObj) {
-  /*final object = IPoint(id: IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int),userId: IsarNative.jsObjectGet(jsObj, r'userId') ?? (double.negativeInfinity as int),value: IsarNative.jsObjectGet(jsObj, r'value') ?? (double.negativeInfinity as int),);*/
-  //return object;
-  throw UnimplementedError();
-}
-
-P _iPointDeserializePropWeb<P>(Object jsObj, String propertyName) {
-  switch (propertyName) {
-    default:
-      throw IsarError('Illegal propertyName');
   }
 }
 
@@ -155,7 +134,7 @@ extension IPointQueryWhereSort on QueryBuilder<IPoint, IPoint, QWhere> {
 }
 
 extension IPointQueryWhere on QueryBuilder<IPoint, IPoint, QWhereClause> {
-  QueryBuilder<IPoint, IPoint, QAfterWhereClause> idEqualTo(int id) {
+  QueryBuilder<IPoint, IPoint, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(
         lower: id,
@@ -164,7 +143,7 @@ extension IPointQueryWhere on QueryBuilder<IPoint, IPoint, QWhereClause> {
     });
   }
 
-  QueryBuilder<IPoint, IPoint, QAfterWhereClause> idNotEqualTo(int id) {
+  QueryBuilder<IPoint, IPoint, QAfterWhereClause> idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -186,7 +165,7 @@ extension IPointQueryWhere on QueryBuilder<IPoint, IPoint, QWhereClause> {
     });
   }
 
-  QueryBuilder<IPoint, IPoint, QAfterWhereClause> idGreaterThan(int id,
+  QueryBuilder<IPoint, IPoint, QAfterWhereClause> idGreaterThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -195,7 +174,7 @@ extension IPointQueryWhere on QueryBuilder<IPoint, IPoint, QWhereClause> {
     });
   }
 
-  QueryBuilder<IPoint, IPoint, QAfterWhereClause> idLessThan(int id,
+  QueryBuilder<IPoint, IPoint, QAfterWhereClause> idLessThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -205,8 +184,8 @@ extension IPointQueryWhere on QueryBuilder<IPoint, IPoint, QWhereClause> {
   }
 
   QueryBuilder<IPoint, IPoint, QAfterWhereClause> idBetween(
-    int lowerId,
-    int upperId, {
+    Id lowerId,
+    Id upperId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -310,7 +289,7 @@ extension IPointQueryWhere on QueryBuilder<IPoint, IPoint, QWhereClause> {
 }
 
 extension IPointQueryFilter on QueryBuilder<IPoint, IPoint, QFilterCondition> {
-  QueryBuilder<IPoint, IPoint, QAfterFilterCondition> idEqualTo(int value) {
+  QueryBuilder<IPoint, IPoint, QAfterFilterCondition> idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -320,7 +299,7 @@ extension IPointQueryFilter on QueryBuilder<IPoint, IPoint, QFilterCondition> {
   }
 
   QueryBuilder<IPoint, IPoint, QAfterFilterCondition> idGreaterThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -333,7 +312,7 @@ extension IPointQueryFilter on QueryBuilder<IPoint, IPoint, QFilterCondition> {
   }
 
   QueryBuilder<IPoint, IPoint, QAfterFilterCondition> idLessThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -346,8 +325,8 @@ extension IPointQueryFilter on QueryBuilder<IPoint, IPoint, QFilterCondition> {
   }
 
   QueryBuilder<IPoint, IPoint, QAfterFilterCondition> idBetween(
-    int lower,
-    int upper, {
+    Id lower,
+    Id upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {

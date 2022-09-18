@@ -7,7 +7,7 @@ part of 'payment.dart';
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
 
 extension GetPaymentCollection on Isar {
   IsarCollection<Payment> get payments => this.collection();
@@ -64,12 +64,9 @@ const PaymentSchema = CollectionSchema(
     )
   },
   estimateSize: _paymentEstimateSize,
-  serializeNative: _paymentSerializeNative,
-  deserializeNative: _paymentDeserializeNative,
-  deserializePropNative: _paymentDeserializePropNative,
-  serializeWeb: _paymentSerializeWeb,
-  deserializeWeb: _paymentDeserializeWeb,
-  deserializePropWeb: _paymentDeserializePropWeb,
+  serialize: _paymentSerialize,
+  deserialize: _paymentDeserialize,
+  deserializeProp: _paymentDeserializeProp,
   idName: r'id',
   indexes: {},
   links: {},
@@ -77,7 +74,7 @@ const PaymentSchema = CollectionSchema(
   getId: _paymentGetId,
   getLinks: _paymentGetLinks,
   attach: _paymentAttach,
-  version: '3.0.0-dev.14',
+  version: '3.0.0',
 );
 
 int _paymentEstimateSize(
@@ -94,9 +91,9 @@ int _paymentEstimateSize(
   return bytesCount;
 }
 
-int _paymentSerializeNative(
+void _paymentSerialize(
   Payment object,
-  IsarBinaryWriter writer,
+  IsarWriter writer,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -109,12 +106,11 @@ int _paymentSerializeNative(
   writer.writeString(offsets[6], object.phoneNumber);
   writer.writeString(offsets[7], object.requestGuid);
   writer.writeLong(offsets[8], object.userId);
-  return writer.usedBytes;
 }
 
-Payment _paymentDeserializeNative(
+Payment _paymentDeserialize(
   Id id,
-  IsarBinaryReader reader,
+  IsarReader reader,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -133,8 +129,8 @@ Payment _paymentDeserializeNative(
   return object;
 }
 
-P _paymentDeserializePropNative<P>(
-  IsarBinaryReader reader,
+P _paymentDeserializeProp<P>(
+  IsarReader reader,
   int propertyId,
   int offset,
   Map<Type, List<int>> allOffsets,
@@ -163,25 +159,6 @@ P _paymentDeserializePropNative<P>(
   }
 }
 
-Object _paymentSerializeWeb(
-    IsarCollection<Payment> collection, Payment object) {
-  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
-}
-
-Payment _paymentDeserializeWeb(
-    IsarCollection<Payment> collection, Object jsObj) {
-  /*final object = Payment(amount: IsarNative.jsObjectGet(jsObj, r'amount') ?? (double.negativeInfinity as int),createdAt: IsarNative.jsObjectGet(jsObj, r'createdAt') ?? (double.negativeInfinity as int),id: IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int),interval: IsarNative.jsObjectGet(jsObj, r'interval') ?? (double.negativeInfinity as int),itemName: IsarNative.jsObjectGet(jsObj, r'itemName') ?? '',note: IsarNative.jsObjectGet(jsObj, r'note') ?? '',paymentType: IsarNative.jsObjectGet(jsObj, r'paymentType') ?? '',phoneNumber: IsarNative.jsObjectGet(jsObj, r'phoneNumber') ?? '',requestGuid: IsarNative.jsObjectGet(jsObj, r'requestGuid') ?? '',userId: IsarNative.jsObjectGet(jsObj, r'userId') ?? (double.negativeInfinity as int),);*/
-  //return object;
-  throw UnimplementedError();
-}
-
-P _paymentDeserializePropWeb<P>(Object jsObj, String propertyName) {
-  switch (propertyName) {
-    default:
-      throw IsarError('Illegal propertyName');
-  }
-}
-
 Id _paymentGetId(Payment object) {
   return object.id;
 }
@@ -203,7 +180,7 @@ extension PaymentQueryWhereSort on QueryBuilder<Payment, Payment, QWhere> {
 }
 
 extension PaymentQueryWhere on QueryBuilder<Payment, Payment, QWhereClause> {
-  QueryBuilder<Payment, Payment, QAfterWhereClause> idEqualTo(int id) {
+  QueryBuilder<Payment, Payment, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(
         lower: id,
@@ -212,7 +189,7 @@ extension PaymentQueryWhere on QueryBuilder<Payment, Payment, QWhereClause> {
     });
   }
 
-  QueryBuilder<Payment, Payment, QAfterWhereClause> idNotEqualTo(int id) {
+  QueryBuilder<Payment, Payment, QAfterWhereClause> idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -234,7 +211,7 @@ extension PaymentQueryWhere on QueryBuilder<Payment, Payment, QWhereClause> {
     });
   }
 
-  QueryBuilder<Payment, Payment, QAfterWhereClause> idGreaterThan(int id,
+  QueryBuilder<Payment, Payment, QAfterWhereClause> idGreaterThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -243,7 +220,7 @@ extension PaymentQueryWhere on QueryBuilder<Payment, Payment, QWhereClause> {
     });
   }
 
-  QueryBuilder<Payment, Payment, QAfterWhereClause> idLessThan(int id,
+  QueryBuilder<Payment, Payment, QAfterWhereClause> idLessThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -253,8 +230,8 @@ extension PaymentQueryWhere on QueryBuilder<Payment, Payment, QWhereClause> {
   }
 
   QueryBuilder<Payment, Payment, QAfterWhereClause> idBetween(
-    int lowerId,
-    int upperId, {
+    Id lowerId,
+    Id upperId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -377,7 +354,7 @@ extension PaymentQueryFilter
     });
   }
 
-  QueryBuilder<Payment, Payment, QAfterFilterCondition> idEqualTo(int value) {
+  QueryBuilder<Payment, Payment, QAfterFilterCondition> idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -387,7 +364,7 @@ extension PaymentQueryFilter
   }
 
   QueryBuilder<Payment, Payment, QAfterFilterCondition> idGreaterThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -400,7 +377,7 @@ extension PaymentQueryFilter
   }
 
   QueryBuilder<Payment, Payment, QAfterFilterCondition> idLessThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -413,8 +390,8 @@ extension PaymentQueryFilter
   }
 
   QueryBuilder<Payment, Payment, QAfterFilterCondition> idBetween(
-    int lower,
-    int upper, {
+    Id lower,
+    Id upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {

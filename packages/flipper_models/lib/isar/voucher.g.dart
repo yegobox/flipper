@@ -7,7 +7,7 @@ part of 'voucher.dart';
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
 
 extension GetVoucherCollection on Isar {
   IsarCollection<Voucher> get vouchers => this.collection();
@@ -49,12 +49,9 @@ const VoucherSchema = CollectionSchema(
     )
   },
   estimateSize: _voucherEstimateSize,
-  serializeNative: _voucherSerializeNative,
-  deserializeNative: _voucherDeserializeNative,
-  deserializePropNative: _voucherDeserializePropNative,
-  serializeWeb: _voucherSerializeWeb,
-  deserializeWeb: _voucherDeserializeWeb,
-  deserializePropWeb: _voucherDeserializePropWeb,
+  serialize: _voucherSerialize,
+  deserialize: _voucherDeserialize,
+  deserializeProp: _voucherDeserializeProp,
   idName: r'id',
   indexes: {},
   links: {
@@ -62,14 +59,14 @@ const VoucherSchema = CollectionSchema(
       id: -7255176189479997051,
       name: r'features',
       target: r'Feature',
-      isSingle: false,
+      single: false,
     )
   },
   embeddedSchemas: {},
   getId: _voucherGetId,
   getLinks: _voucherGetLinks,
   attach: _voucherAttach,
-  version: '3.0.0-dev.14',
+  version: '3.0.0',
 );
 
 int _voucherEstimateSize(
@@ -82,9 +79,9 @@ int _voucherEstimateSize(
   return bytesCount;
 }
 
-int _voucherSerializeNative(
+void _voucherSerialize(
   Voucher object,
-  IsarBinaryWriter writer,
+  IsarWriter writer,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -94,12 +91,11 @@ int _voucherSerializeNative(
   writer.writeBool(offsets[3], object.used);
   writer.writeLong(offsets[4], object.usedAt);
   writer.writeLong(offsets[5], object.value);
-  return writer.usedBytes;
 }
 
-Voucher _voucherDeserializeNative(
+Voucher _voucherDeserialize(
   Id id,
-  IsarBinaryReader reader,
+  IsarReader reader,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -114,8 +110,8 @@ Voucher _voucherDeserializeNative(
   return object;
 }
 
-P _voucherDeserializePropNative<P>(
-  IsarBinaryReader reader,
+P _voucherDeserializeProp<P>(
+  IsarReader reader,
   int propertyId,
   int offset,
   Map<Type, List<int>> allOffsets,
@@ -135,25 +131,6 @@ P _voucherDeserializePropNative<P>(
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
-  }
-}
-
-Object _voucherSerializeWeb(
-    IsarCollection<Voucher> collection, Voucher object) {
-  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
-}
-
-Voucher _voucherDeserializeWeb(
-    IsarCollection<Voucher> collection, Object jsObj) {
-  /*final object = Voucher();object.createdAt = IsarNative.jsObjectGet(jsObj, r'createdAt') ?? (double.negativeInfinity as int);object.descriptor = IsarNative.jsObjectGet(jsObj, r'descriptor') ?? '';object.id = IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int);object.interval = IsarNative.jsObjectGet(jsObj, r'interval') ?? (double.negativeInfinity as int);object.used = IsarNative.jsObjectGet(jsObj, r'used') ?? false;object.usedAt = IsarNative.jsObjectGet(jsObj, r'usedAt') ?? (double.negativeInfinity as int);object.value = IsarNative.jsObjectGet(jsObj, r'value') ?? (double.negativeInfinity as int);*/
-  //return object;
-  throw UnimplementedError();
-}
-
-P _voucherDeserializePropWeb<P>(Object jsObj, String propertyName) {
-  switch (propertyName) {
-    default:
-      throw IsarError('Illegal propertyName');
   }
 }
 
@@ -179,7 +156,7 @@ extension VoucherQueryWhereSort on QueryBuilder<Voucher, Voucher, QWhere> {
 }
 
 extension VoucherQueryWhere on QueryBuilder<Voucher, Voucher, QWhereClause> {
-  QueryBuilder<Voucher, Voucher, QAfterWhereClause> idEqualTo(int id) {
+  QueryBuilder<Voucher, Voucher, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(
         lower: id,
@@ -188,7 +165,7 @@ extension VoucherQueryWhere on QueryBuilder<Voucher, Voucher, QWhereClause> {
     });
   }
 
-  QueryBuilder<Voucher, Voucher, QAfterWhereClause> idNotEqualTo(int id) {
+  QueryBuilder<Voucher, Voucher, QAfterWhereClause> idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -210,7 +187,7 @@ extension VoucherQueryWhere on QueryBuilder<Voucher, Voucher, QWhereClause> {
     });
   }
 
-  QueryBuilder<Voucher, Voucher, QAfterWhereClause> idGreaterThan(int id,
+  QueryBuilder<Voucher, Voucher, QAfterWhereClause> idGreaterThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -219,7 +196,7 @@ extension VoucherQueryWhere on QueryBuilder<Voucher, Voucher, QWhereClause> {
     });
   }
 
-  QueryBuilder<Voucher, Voucher, QAfterWhereClause> idLessThan(int id,
+  QueryBuilder<Voucher, Voucher, QAfterWhereClause> idLessThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -229,8 +206,8 @@ extension VoucherQueryWhere on QueryBuilder<Voucher, Voucher, QWhereClause> {
   }
 
   QueryBuilder<Voucher, Voucher, QAfterWhereClause> idBetween(
-    int lowerId,
-    int upperId, {
+    Id lowerId,
+    Id upperId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -430,7 +407,7 @@ extension VoucherQueryFilter
     });
   }
 
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> idEqualTo(int value) {
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -440,7 +417,7 @@ extension VoucherQueryFilter
   }
 
   QueryBuilder<Voucher, Voucher, QAfterFilterCondition> idGreaterThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -453,7 +430,7 @@ extension VoucherQueryFilter
   }
 
   QueryBuilder<Voucher, Voucher, QAfterFilterCondition> idLessThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -466,8 +443,8 @@ extension VoucherQueryFilter
   }
 
   QueryBuilder<Voucher, Voucher, QAfterFilterCondition> idBetween(
-    int lower,
-    int upper, {
+    Id lower,
+    Id upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {

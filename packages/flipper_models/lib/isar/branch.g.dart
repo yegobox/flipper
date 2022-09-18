@@ -7,7 +7,7 @@ part of flipper_models;
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
 
 extension GetBranchCollection on Isar {
   IsarCollection<Branch> get branchs => this.collection();
@@ -59,12 +59,9 @@ const BranchSchema = CollectionSchema(
     )
   },
   estimateSize: _branchEstimateSize,
-  serializeNative: _branchSerializeNative,
-  deserializeNative: _branchDeserializeNative,
-  deserializePropNative: _branchDeserializePropNative,
-  serializeWeb: _branchSerializeWeb,
-  deserializeWeb: _branchDeserializeWeb,
-  deserializePropWeb: _branchDeserializePropWeb,
+  serialize: _branchSerialize,
+  deserialize: _branchDeserialize,
+  deserializeProp: _branchDeserializeProp,
   idName: r'id',
   indexes: {},
   links: {},
@@ -72,7 +69,7 @@ const BranchSchema = CollectionSchema(
   getId: _branchGetId,
   getLinks: _branchGetLinks,
   attach: _branchAttach,
-  version: '3.0.0-dev.14',
+  version: '3.0.0',
 );
 
 int _branchEstimateSize(
@@ -114,9 +111,9 @@ int _branchEstimateSize(
   return bytesCount;
 }
 
-int _branchSerializeNative(
+void _branchSerialize(
   Branch object,
-  IsarBinaryWriter writer,
+  IsarWriter writer,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -128,12 +125,11 @@ int _branchSerializeNative(
   writer.writeString(offsets[5], object.longitude);
   writer.writeString(offsets[6], object.name);
   writer.writeString(offsets[7], object.table);
-  return writer.usedBytes;
 }
 
-Branch _branchDeserializeNative(
+Branch _branchDeserialize(
   Id id,
-  IsarBinaryReader reader,
+  IsarReader reader,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -151,8 +147,8 @@ Branch _branchDeserializeNative(
   return object;
 }
 
-P _branchDeserializePropNative<P>(
-  IsarBinaryReader reader,
+P _branchDeserializeProp<P>(
+  IsarReader reader,
   int propertyId,
   int offset,
   Map<Type, List<int>> allOffsets,
@@ -179,23 +175,6 @@ P _branchDeserializePropNative<P>(
   }
 }
 
-Object _branchSerializeWeb(IsarCollection<Branch> collection, Branch object) {
-  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
-}
-
-Branch _branchDeserializeWeb(IsarCollection<Branch> collection, Object jsObj) {
-  /*final object = Branch(active: IsarNative.jsObjectGet(jsObj, r'active') ,businessId: IsarNative.jsObjectGet(jsObj, r'businessId') ,description: IsarNative.jsObjectGet(jsObj, r'description') ,id: IsarNative.jsObjectGet(jsObj, r'id') ,isDefault: IsarNative.jsObjectGet(jsObj, r'isDefault') ?? false,latitude: IsarNative.jsObjectGet(jsObj, r'latitude') ,longitude: IsarNative.jsObjectGet(jsObj, r'longitude') ,name: IsarNative.jsObjectGet(jsObj, r'name') ,table: IsarNative.jsObjectGet(jsObj, r'table') ,);*/
-  //return object;
-  throw UnimplementedError();
-}
-
-P _branchDeserializePropWeb<P>(Object jsObj, String propertyName) {
-  switch (propertyName) {
-    default:
-      throw IsarError('Illegal propertyName');
-  }
-}
-
 Id _branchGetId(Branch object) {
   return object.id ?? Isar.autoIncrement;
 }
@@ -217,7 +196,7 @@ extension BranchQueryWhereSort on QueryBuilder<Branch, Branch, QWhere> {
 }
 
 extension BranchQueryWhere on QueryBuilder<Branch, Branch, QWhereClause> {
-  QueryBuilder<Branch, Branch, QAfterWhereClause> idEqualTo(int id) {
+  QueryBuilder<Branch, Branch, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(
         lower: id,
@@ -226,7 +205,7 @@ extension BranchQueryWhere on QueryBuilder<Branch, Branch, QWhereClause> {
     });
   }
 
-  QueryBuilder<Branch, Branch, QAfterWhereClause> idNotEqualTo(int id) {
+  QueryBuilder<Branch, Branch, QAfterWhereClause> idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -248,7 +227,7 @@ extension BranchQueryWhere on QueryBuilder<Branch, Branch, QWhereClause> {
     });
   }
 
-  QueryBuilder<Branch, Branch, QAfterWhereClause> idGreaterThan(int id,
+  QueryBuilder<Branch, Branch, QAfterWhereClause> idGreaterThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -257,7 +236,7 @@ extension BranchQueryWhere on QueryBuilder<Branch, Branch, QWhereClause> {
     });
   }
 
-  QueryBuilder<Branch, Branch, QAfterWhereClause> idLessThan(int id,
+  QueryBuilder<Branch, Branch, QAfterWhereClause> idLessThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -267,8 +246,8 @@ extension BranchQueryWhere on QueryBuilder<Branch, Branch, QWhereClause> {
   }
 
   QueryBuilder<Branch, Branch, QAfterWhereClause> idBetween(
-    int lowerId,
-    int upperId, {
+    Id lowerId,
+    Id upperId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -541,7 +520,7 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Branch, Branch, QAfterFilterCondition> idEqualTo(int? value) {
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> idEqualTo(Id? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -551,7 +530,7 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> idGreaterThan(
-    int? value, {
+    Id? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -564,7 +543,7 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> idLessThan(
-    int? value, {
+    Id? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -577,8 +556,8 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> idBetween(
-    int? lower,
-    int? upper, {
+    Id? lower,
+    Id? upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {

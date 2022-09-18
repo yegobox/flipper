@@ -7,7 +7,7 @@ part of flipper_models;
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
 
 extension GetITenantCollection on Isar {
   IsarCollection<ITenant> get iTenants => this.collection();
@@ -39,12 +39,9 @@ const ITenantSchema = CollectionSchema(
     )
   },
   estimateSize: _iTenantEstimateSize,
-  serializeNative: _iTenantSerializeNative,
-  deserializeNative: _iTenantDeserializeNative,
-  deserializePropNative: _iTenantDeserializePropNative,
-  serializeWeb: _iTenantSerializeWeb,
-  deserializeWeb: _iTenantDeserializeWeb,
-  deserializePropWeb: _iTenantDeserializePropWeb,
+  serialize: _iTenantSerialize,
+  deserialize: _iTenantDeserialize,
+  deserializeProp: _iTenantDeserializeProp,
   idName: r'id',
   indexes: {},
   links: {},
@@ -52,7 +49,7 @@ const ITenantSchema = CollectionSchema(
   getId: _iTenantGetId,
   getLinks: _iTenantGetLinks,
   attach: _iTenantAttach,
-  version: '3.0.0-dev.14',
+  version: '3.0.0',
 );
 
 int _iTenantEstimateSize(
@@ -67,9 +64,9 @@ int _iTenantEstimateSize(
   return bytesCount;
 }
 
-int _iTenantSerializeNative(
+void _iTenantSerialize(
   ITenant object,
-  IsarBinaryWriter writer,
+  IsarWriter writer,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -77,12 +74,11 @@ int _iTenantSerializeNative(
   writer.writeString(offsets[1], object.email);
   writer.writeString(offsets[2], object.name);
   writer.writeString(offsets[3], object.phoneNumber);
-  return writer.usedBytes;
 }
 
-ITenant _iTenantDeserializeNative(
+ITenant _iTenantDeserialize(
   Id id,
-  IsarBinaryReader reader,
+  IsarReader reader,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -96,8 +92,8 @@ ITenant _iTenantDeserializeNative(
   return object;
 }
 
-P _iTenantDeserializePropNative<P>(
-  IsarBinaryReader reader,
+P _iTenantDeserializeProp<P>(
+  IsarReader reader,
   int propertyId,
   int offset,
   Map<Type, List<int>> allOffsets,
@@ -113,25 +109,6 @@ P _iTenantDeserializePropNative<P>(
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
-  }
-}
-
-Object _iTenantSerializeWeb(
-    IsarCollection<ITenant> collection, ITenant object) {
-  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
-}
-
-ITenant _iTenantDeserializeWeb(
-    IsarCollection<ITenant> collection, Object jsObj) {
-  /*final object = ITenant(businessId: IsarNative.jsObjectGet(jsObj, r'businessId') ?? (double.negativeInfinity as int),email: IsarNative.jsObjectGet(jsObj, r'email') ?? '',id: IsarNative.jsObjectGet(jsObj, r'id') ,name: IsarNative.jsObjectGet(jsObj, r'name') ?? '',phoneNumber: IsarNative.jsObjectGet(jsObj, r'phoneNumber') ?? '',);*/
-  //return object;
-  throw UnimplementedError();
-}
-
-P _iTenantDeserializePropWeb<P>(Object jsObj, String propertyName) {
-  switch (propertyName) {
-    default:
-      throw IsarError('Illegal propertyName');
   }
 }
 
@@ -156,7 +133,7 @@ extension ITenantQueryWhereSort on QueryBuilder<ITenant, ITenant, QWhere> {
 }
 
 extension ITenantQueryWhere on QueryBuilder<ITenant, ITenant, QWhereClause> {
-  QueryBuilder<ITenant, ITenant, QAfterWhereClause> idEqualTo(int id) {
+  QueryBuilder<ITenant, ITenant, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(
         lower: id,
@@ -165,7 +142,7 @@ extension ITenantQueryWhere on QueryBuilder<ITenant, ITenant, QWhereClause> {
     });
   }
 
-  QueryBuilder<ITenant, ITenant, QAfterWhereClause> idNotEqualTo(int id) {
+  QueryBuilder<ITenant, ITenant, QAfterWhereClause> idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -187,7 +164,7 @@ extension ITenantQueryWhere on QueryBuilder<ITenant, ITenant, QWhereClause> {
     });
   }
 
-  QueryBuilder<ITenant, ITenant, QAfterWhereClause> idGreaterThan(int id,
+  QueryBuilder<ITenant, ITenant, QAfterWhereClause> idGreaterThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -196,7 +173,7 @@ extension ITenantQueryWhere on QueryBuilder<ITenant, ITenant, QWhereClause> {
     });
   }
 
-  QueryBuilder<ITenant, ITenant, QAfterWhereClause> idLessThan(int id,
+  QueryBuilder<ITenant, ITenant, QAfterWhereClause> idLessThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -206,8 +183,8 @@ extension ITenantQueryWhere on QueryBuilder<ITenant, ITenant, QWhereClause> {
   }
 
   QueryBuilder<ITenant, ITenant, QAfterWhereClause> idBetween(
-    int lowerId,
-    int upperId, {
+    Id lowerId,
+    Id upperId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -423,7 +400,7 @@ extension ITenantQueryFilter
     });
   }
 
-  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> idEqualTo(int? value) {
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> idEqualTo(Id? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -433,7 +410,7 @@ extension ITenantQueryFilter
   }
 
   QueryBuilder<ITenant, ITenant, QAfterFilterCondition> idGreaterThan(
-    int? value, {
+    Id? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -446,7 +423,7 @@ extension ITenantQueryFilter
   }
 
   QueryBuilder<ITenant, ITenant, QAfterFilterCondition> idLessThan(
-    int? value, {
+    Id? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -459,8 +436,8 @@ extension ITenantQueryFilter
   }
 
   QueryBuilder<ITenant, ITenant, QAfterFilterCondition> idBetween(
-    int? lower,
-    int? upper, {
+    Id? lower,
+    Id? upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {

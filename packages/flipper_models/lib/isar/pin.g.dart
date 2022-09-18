@@ -7,7 +7,7 @@ part of 'pin.dart';
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
 
 extension GetPinCollection on Isar {
   IsarCollection<Pin> get pins => this.collection();
@@ -44,12 +44,9 @@ const PinSchema = CollectionSchema(
     )
   },
   estimateSize: _pinEstimateSize,
-  serializeNative: _pinSerializeNative,
-  deserializeNative: _pinDeserializeNative,
-  deserializePropNative: _pinDeserializePropNative,
-  serializeWeb: _pinSerializeWeb,
-  deserializeWeb: _pinDeserializeWeb,
-  deserializePropWeb: _pinDeserializePropWeb,
+  serialize: _pinSerialize,
+  deserialize: _pinDeserialize,
+  deserializeProp: _pinDeserializeProp,
   idName: r'id',
   indexes: {},
   links: {},
@@ -57,7 +54,7 @@ const PinSchema = CollectionSchema(
   getId: _pinGetId,
   getLinks: _pinGetLinks,
   attach: _pinAttach,
-  version: '3.0.0-dev.14',
+  version: '3.0.0',
 );
 
 int _pinEstimateSize(
@@ -71,9 +68,9 @@ int _pinEstimateSize(
   return bytesCount;
 }
 
-int _pinSerializeNative(
+void _pinSerialize(
   Pin object,
-  IsarBinaryWriter writer,
+  IsarWriter writer,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -82,12 +79,11 @@ int _pinSerializeNative(
   writer.writeString(offsets[2], object.phoneNumber);
   writer.writeLong(offsets[3], object.pin);
   writer.writeString(offsets[4], object.userId);
-  return writer.usedBytes;
 }
 
-Pin _pinDeserializeNative(
+Pin _pinDeserialize(
   Id id,
-  IsarBinaryReader reader,
+  IsarReader reader,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -102,8 +98,8 @@ Pin _pinDeserializeNative(
   return object;
 }
 
-P _pinDeserializePropNative<P>(
-  IsarBinaryReader reader,
+P _pinDeserializeProp<P>(
+  IsarReader reader,
   int propertyId,
   int offset,
   Map<Type, List<int>> allOffsets,
@@ -121,23 +117,6 @@ P _pinDeserializePropNative<P>(
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
-  }
-}
-
-Object _pinSerializeWeb(IsarCollection<Pin> collection, Pin object) {
-  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
-}
-
-Pin _pinDeserializeWeb(IsarCollection<Pin> collection, Object jsObj) {
-  /*final object = Pin(branchId: IsarNative.jsObjectGet(jsObj, r'branchId') ?? (double.negativeInfinity as int),businessId: IsarNative.jsObjectGet(jsObj, r'businessId') ?? (double.negativeInfinity as int),phoneNumber: IsarNative.jsObjectGet(jsObj, r'phoneNumber') ?? '',pin: IsarNative.jsObjectGet(jsObj, r'pin') ?? (double.negativeInfinity as int),userId: IsarNative.jsObjectGet(jsObj, r'userId') ?? '',);object.id = IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int);*/
-  //return object;
-  throw UnimplementedError();
-}
-
-P _pinDeserializePropWeb<P>(Object jsObj, String propertyName) {
-  switch (propertyName) {
-    default:
-      throw IsarError('Illegal propertyName');
   }
 }
 
@@ -162,7 +141,7 @@ extension PinQueryWhereSort on QueryBuilder<Pin, Pin, QWhere> {
 }
 
 extension PinQueryWhere on QueryBuilder<Pin, Pin, QWhereClause> {
-  QueryBuilder<Pin, Pin, QAfterWhereClause> idEqualTo(int id) {
+  QueryBuilder<Pin, Pin, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(
         lower: id,
@@ -171,7 +150,7 @@ extension PinQueryWhere on QueryBuilder<Pin, Pin, QWhereClause> {
     });
   }
 
-  QueryBuilder<Pin, Pin, QAfterWhereClause> idNotEqualTo(int id) {
+  QueryBuilder<Pin, Pin, QAfterWhereClause> idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -193,7 +172,7 @@ extension PinQueryWhere on QueryBuilder<Pin, Pin, QWhereClause> {
     });
   }
 
-  QueryBuilder<Pin, Pin, QAfterWhereClause> idGreaterThan(int id,
+  QueryBuilder<Pin, Pin, QAfterWhereClause> idGreaterThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -202,7 +181,7 @@ extension PinQueryWhere on QueryBuilder<Pin, Pin, QWhereClause> {
     });
   }
 
-  QueryBuilder<Pin, Pin, QAfterWhereClause> idLessThan(int id,
+  QueryBuilder<Pin, Pin, QAfterWhereClause> idLessThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -212,8 +191,8 @@ extension PinQueryWhere on QueryBuilder<Pin, Pin, QWhereClause> {
   }
 
   QueryBuilder<Pin, Pin, QAfterWhereClause> idBetween(
-    int lowerId,
-    int upperId, {
+    Id lowerId,
+    Id upperId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -333,7 +312,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> idEqualTo(int value) {
+  QueryBuilder<Pin, Pin, QAfterFilterCondition> idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -343,7 +322,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
   }
 
   QueryBuilder<Pin, Pin, QAfterFilterCondition> idGreaterThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -356,7 +335,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
   }
 
   QueryBuilder<Pin, Pin, QAfterFilterCondition> idLessThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -369,8 +348,8 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
   }
 
   QueryBuilder<Pin, Pin, QAfterFilterCondition> idBetween(
-    int lower,
-    int upper, {
+    Id lower,
+    Id upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {

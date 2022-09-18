@@ -7,7 +7,7 @@ part of flipper_models;
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
 
 extension GetCategoryCollection on Isar {
   IsarCollection<Category> get categorys => this.collection();
@@ -44,12 +44,9 @@ const CategorySchema = CollectionSchema(
     )
   },
   estimateSize: _categoryEstimateSize,
-  serializeNative: _categorySerializeNative,
-  deserializeNative: _categoryDeserializeNative,
-  deserializePropNative: _categoryDeserializePropNative,
-  serializeWeb: _categorySerializeWeb,
-  deserializeWeb: _categoryDeserializeWeb,
-  deserializePropWeb: _categoryDeserializePropWeb,
+  serialize: _categorySerialize,
+  deserialize: _categoryDeserialize,
+  deserializeProp: _categoryDeserializeProp,
   idName: r'id',
   indexes: {
     r'branchId': IndexSchema(
@@ -71,7 +68,7 @@ const CategorySchema = CollectionSchema(
   getId: _categoryGetId,
   getLinks: _categoryGetLinks,
   attach: _categoryAttach,
-  version: '3.0.0-dev.14',
+  version: '3.0.0',
 );
 
 int _categoryEstimateSize(
@@ -90,9 +87,9 @@ int _categoryEstimateSize(
   return bytesCount;
 }
 
-int _categorySerializeNative(
+void _categorySerialize(
   Category object,
-  IsarBinaryWriter writer,
+  IsarWriter writer,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -101,12 +98,11 @@ int _categorySerializeNative(
   writer.writeBool(offsets[2], object.focused);
   writer.writeString(offsets[3], object.name);
   writer.writeString(offsets[4], object.table);
-  return writer.usedBytes;
 }
 
-Category _categoryDeserializeNative(
+Category _categoryDeserialize(
   Id id,
-  IsarBinaryReader reader,
+  IsarReader reader,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -120,8 +116,8 @@ Category _categoryDeserializeNative(
   return object;
 }
 
-P _categoryDeserializePropNative<P>(
-  IsarBinaryReader reader,
+P _categoryDeserializeProp<P>(
+  IsarReader reader,
   int propertyId,
   int offset,
   Map<Type, List<int>> allOffsets,
@@ -139,25 +135,6 @@ P _categoryDeserializePropNative<P>(
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
-  }
-}
-
-Object _categorySerializeWeb(
-    IsarCollection<Category> collection, Category object) {
-  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
-}
-
-Category _categoryDeserializeWeb(
-    IsarCollection<Category> collection, Object jsObj) {
-  /*final object = Category();object.active = IsarNative.jsObjectGet(jsObj, r'active') ?? false;object.branchId = IsarNative.jsObjectGet(jsObj, r'branchId') ?? (double.negativeInfinity as int);object.focused = IsarNative.jsObjectGet(jsObj, r'focused') ?? false;object.id = IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int);object.name = IsarNative.jsObjectGet(jsObj, r'name') ?? '';object.table = IsarNative.jsObjectGet(jsObj, r'table') ;*/
-  //return object;
-  throw UnimplementedError();
-}
-
-P _categoryDeserializePropWeb<P>(Object jsObj, String propertyName) {
-  switch (propertyName) {
-    default:
-      throw IsarError('Illegal propertyName');
   }
 }
 
@@ -190,7 +167,7 @@ extension CategoryQueryWhereSort on QueryBuilder<Category, Category, QWhere> {
 }
 
 extension CategoryQueryWhere on QueryBuilder<Category, Category, QWhereClause> {
-  QueryBuilder<Category, Category, QAfterWhereClause> idEqualTo(int id) {
+  QueryBuilder<Category, Category, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(
         lower: id,
@@ -199,7 +176,7 @@ extension CategoryQueryWhere on QueryBuilder<Category, Category, QWhereClause> {
     });
   }
 
-  QueryBuilder<Category, Category, QAfterWhereClause> idNotEqualTo(int id) {
+  QueryBuilder<Category, Category, QAfterWhereClause> idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -221,7 +198,7 @@ extension CategoryQueryWhere on QueryBuilder<Category, Category, QWhereClause> {
     });
   }
 
-  QueryBuilder<Category, Category, QAfterWhereClause> idGreaterThan(int id,
+  QueryBuilder<Category, Category, QAfterWhereClause> idGreaterThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -230,7 +207,7 @@ extension CategoryQueryWhere on QueryBuilder<Category, Category, QWhereClause> {
     });
   }
 
-  QueryBuilder<Category, Category, QAfterWhereClause> idLessThan(int id,
+  QueryBuilder<Category, Category, QAfterWhereClause> idLessThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -240,8 +217,8 @@ extension CategoryQueryWhere on QueryBuilder<Category, Category, QWhereClause> {
   }
 
   QueryBuilder<Category, Category, QAfterWhereClause> idBetween(
-    int lowerId,
-    int upperId, {
+    Id lowerId,
+    Id upperId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -421,7 +398,7 @@ extension CategoryQueryFilter
     });
   }
 
-  QueryBuilder<Category, Category, QAfterFilterCondition> idEqualTo(int value) {
+  QueryBuilder<Category, Category, QAfterFilterCondition> idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -431,7 +408,7 @@ extension CategoryQueryFilter
   }
 
   QueryBuilder<Category, Category, QAfterFilterCondition> idGreaterThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -444,7 +421,7 @@ extension CategoryQueryFilter
   }
 
   QueryBuilder<Category, Category, QAfterFilterCondition> idLessThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -457,8 +434,8 @@ extension CategoryQueryFilter
   }
 
   QueryBuilder<Category, Category, QAfterFilterCondition> idBetween(
-    int lower,
-    int upper, {
+    Id lower,
+    Id upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {

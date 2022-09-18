@@ -1252,14 +1252,14 @@ packages:
       name: isar
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.0.0-dev.14"
+    version: "3.0.0"
   isar_flutter_libs:
     dependency: transitive
     description:
       name: isar_flutter_libs
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.0.0-dev.14"
+    version: "3.0.0"
   js:
     dependency: transitive
     description:

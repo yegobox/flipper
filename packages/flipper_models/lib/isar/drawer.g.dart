@@ -7,7 +7,7 @@ part of 'drawer.dart';
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
 
 extension GetDrawersCollection on Isar {
   IsarCollection<Drawers> get drawers => this.collection();
@@ -104,12 +104,9 @@ const DrawersSchema = CollectionSchema(
     )
   },
   estimateSize: _drawersEstimateSize,
-  serializeNative: _drawersSerializeNative,
-  deserializeNative: _drawersDeserializeNative,
-  deserializePropNative: _drawersDeserializePropNative,
-  serializeWeb: _drawersSerializeWeb,
-  deserializeWeb: _drawersDeserializeWeb,
-  deserializePropWeb: _drawersDeserializePropWeb,
+  serialize: _drawersSerialize,
+  deserialize: _drawersDeserialize,
+  deserializeProp: _drawersDeserializeProp,
   idName: r'id',
   indexes: {
     r'cashierId': IndexSchema(
@@ -149,7 +146,7 @@ const DrawersSchema = CollectionSchema(
   getId: _drawersGetId,
   getLinks: _drawersGetLinks,
   attach: _drawersAttach,
-  version: '3.0.0-dev.14',
+  version: '3.0.0',
 );
 
 int _drawersEstimateSize(
@@ -185,9 +182,9 @@ int _drawersEstimateSize(
   return bytesCount;
 }
 
-int _drawersSerializeNative(
+void _drawersSerialize(
   Drawers object,
-  IsarBinaryWriter writer,
+  IsarWriter writer,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -208,12 +205,11 @@ int _drawersSerializeNative(
   writer.writeDouble(offsets[14], object.totalNsSaleIncome);
   writer.writeLong(offsets[15], object.trSaleCount);
   writer.writeString(offsets[16], object.tradeName);
-  return writer.usedBytes;
 }
 
-Drawers _drawersDeserializeNative(
+Drawers _drawersDeserialize(
   Id id,
-  IsarBinaryReader reader,
+  IsarReader reader,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -239,8 +235,8 @@ Drawers _drawersDeserializeNative(
   return object;
 }
 
-P _drawersDeserializePropNative<P>(
-  IsarBinaryReader reader,
+P _drawersDeserializeProp<P>(
+  IsarReader reader,
   int propertyId,
   int offset,
   Map<Type, List<int>> allOffsets,
@@ -285,25 +281,6 @@ P _drawersDeserializePropNative<P>(
   }
 }
 
-Object _drawersSerializeWeb(
-    IsarCollection<Drawers> collection, Drawers object) {
-  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
-}
-
-Drawers _drawersDeserializeWeb(
-    IsarCollection<Drawers> collection, Object jsObj) {
-  /*final object = Drawers();object.cashierId = IsarNative.jsObjectGet(jsObj, r'cashierId') ?? (double.negativeInfinity as int);object.closingBalance = IsarNative.jsObjectGet(jsObj, r'closingBalance') ?? double.negativeInfinity;object.closingDateTime = IsarNative.jsObjectGet(jsObj, r'closingDateTime') ;object.csSaleCount = IsarNative.jsObjectGet(jsObj, r'csSaleCount') ;object.id = IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int);object.incompleteSale = IsarNative.jsObjectGet(jsObj, r'incompleteSale') ;object.nrSaleCount = IsarNative.jsObjectGet(jsObj, r'nrSaleCount') ;object.nsSaleCount = IsarNative.jsObjectGet(jsObj, r'nsSaleCount') ;object.open = IsarNative.jsObjectGet(jsObj, r'open') ?? false;object.openingBalance = IsarNative.jsObjectGet(jsObj, r'openingBalance') ?? double.negativeInfinity;object.openingDateTime = IsarNative.jsObjectGet(jsObj, r'openingDateTime') ;object.otherTransactions = IsarNative.jsObjectGet(jsObj, r'otherTransactions') ;object.paymentMode = IsarNative.jsObjectGet(jsObj, r'paymentMode') ;object.psSaleCount = IsarNative.jsObjectGet(jsObj, r'psSaleCount') ;object.totalCsSaleIncome = IsarNative.jsObjectGet(jsObj, r'totalCsSaleIncome') ;object.totalNsSaleIncome = IsarNative.jsObjectGet(jsObj, r'totalNsSaleIncome') ;object.trSaleCount = IsarNative.jsObjectGet(jsObj, r'trSaleCount') ;object.tradeName = IsarNative.jsObjectGet(jsObj, r'tradeName') ;*/
-  //return object;
-  throw UnimplementedError();
-}
-
-P _drawersDeserializePropWeb<P>(Object jsObj, String propertyName) {
-  switch (propertyName) {
-    default:
-      throw IsarError('Illegal propertyName');
-  }
-}
-
 Id _drawersGetId(Drawers object) {
   return object.id;
 }
@@ -341,7 +318,7 @@ extension DrawersQueryWhereSort on QueryBuilder<Drawers, Drawers, QWhere> {
 }
 
 extension DrawersQueryWhere on QueryBuilder<Drawers, Drawers, QWhereClause> {
-  QueryBuilder<Drawers, Drawers, QAfterWhereClause> idEqualTo(int id) {
+  QueryBuilder<Drawers, Drawers, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(
         lower: id,
@@ -350,7 +327,7 @@ extension DrawersQueryWhere on QueryBuilder<Drawers, Drawers, QWhereClause> {
     });
   }
 
-  QueryBuilder<Drawers, Drawers, QAfterWhereClause> idNotEqualTo(int id) {
+  QueryBuilder<Drawers, Drawers, QAfterWhereClause> idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -372,7 +349,7 @@ extension DrawersQueryWhere on QueryBuilder<Drawers, Drawers, QWhereClause> {
     });
   }
 
-  QueryBuilder<Drawers, Drawers, QAfterWhereClause> idGreaterThan(int id,
+  QueryBuilder<Drawers, Drawers, QAfterWhereClause> idGreaterThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -381,7 +358,7 @@ extension DrawersQueryWhere on QueryBuilder<Drawers, Drawers, QWhereClause> {
     });
   }
 
-  QueryBuilder<Drawers, Drawers, QAfterWhereClause> idLessThan(int id,
+  QueryBuilder<Drawers, Drawers, QAfterWhereClause> idLessThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -391,8 +368,8 @@ extension DrawersQueryWhere on QueryBuilder<Drawers, Drawers, QWhereClause> {
   }
 
   QueryBuilder<Drawers, Drawers, QAfterWhereClause> idBetween(
-    int lowerId,
-    int upperId, {
+    Id lowerId,
+    Id upperId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -976,7 +953,7 @@ extension DrawersQueryFilter
     });
   }
 
-  QueryBuilder<Drawers, Drawers, QAfterFilterCondition> idEqualTo(int value) {
+  QueryBuilder<Drawers, Drawers, QAfterFilterCondition> idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -986,7 +963,7 @@ extension DrawersQueryFilter
   }
 
   QueryBuilder<Drawers, Drawers, QAfterFilterCondition> idGreaterThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -999,7 +976,7 @@ extension DrawersQueryFilter
   }
 
   QueryBuilder<Drawers, Drawers, QAfterFilterCondition> idLessThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1012,8 +989,8 @@ extension DrawersQueryFilter
   }
 
   QueryBuilder<Drawers, Drawers, QAfterFilterCondition> idBetween(
-    int lower,
-    int upper, {
+    Id lower,
+    Id upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {

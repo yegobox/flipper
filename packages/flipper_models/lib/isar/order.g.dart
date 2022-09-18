@@ -7,7 +7,7 @@ part of 'order.dart';
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
 
 extension GetOrderCollection on Isar {
   IsarCollection<Order> get orders => this.collection();
@@ -104,12 +104,9 @@ const OrderSchema = CollectionSchema(
     )
   },
   estimateSize: _orderEstimateSize,
-  serializeNative: _orderSerializeNative,
-  deserializeNative: _orderDeserializeNative,
-  deserializePropNative: _orderDeserializePropNative,
-  serializeWeb: _orderSerializeWeb,
-  deserializeWeb: _orderDeserializeWeb,
-  deserializePropWeb: _orderDeserializePropWeb,
+  serialize: _orderSerialize,
+  deserialize: _orderDeserialize,
+  deserializeProp: _orderDeserializeProp,
   idName: r'id',
   indexes: {
     r'branchId': IndexSchema(
@@ -149,20 +146,20 @@ const OrderSchema = CollectionSchema(
       id: -2882418569269634219,
       name: r'orderItems',
       target: r'OrderItem',
-      isSingle: false,
+      single: false,
     ),
     r'discounts': LinkSchema(
       id: 5408291939349920316,
       name: r'discounts',
       target: r'Discount',
-      isSingle: false,
+      single: false,
     )
   },
   embeddedSchemas: {},
   getId: _orderGetId,
   getLinks: _orderGetLinks,
   attach: _orderAttach,
-  version: '3.0.0-dev.14',
+  version: '3.0.0',
 );
 
 int _orderEstimateSize(
@@ -198,9 +195,9 @@ int _orderEstimateSize(
   return bytesCount;
 }
 
-int _orderSerializeNative(
+void _orderSerialize(
   Order object,
-  IsarBinaryWriter writer,
+  IsarWriter writer,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -221,12 +218,11 @@ int _orderSerializeNative(
   writer.writeString(offsets[14], object.status);
   writer.writeDouble(offsets[15], object.subTotal);
   writer.writeString(offsets[16], object.updatedAt);
-  return writer.usedBytes;
 }
 
-Order _orderDeserializeNative(
+Order _orderDeserialize(
   Id id,
-  IsarBinaryReader reader,
+  IsarReader reader,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -252,8 +248,8 @@ Order _orderDeserializeNative(
   return object;
 }
 
-P _orderDeserializePropNative<P>(
-  IsarBinaryReader reader,
+P _orderDeserializeProp<P>(
+  IsarReader reader,
   int propertyId,
   int offset,
   Map<Type, List<int>> allOffsets,
@@ -298,23 +294,6 @@ P _orderDeserializePropNative<P>(
   }
 }
 
-Object _orderSerializeWeb(IsarCollection<Order> collection, Order object) {
-  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
-}
-
-Order _orderDeserializeWeb(IsarCollection<Order> collection, Object jsObj) {
-  /*final object = Order();object.active = IsarNative.jsObjectGet(jsObj, r'active') ?? false;object.branchId = IsarNative.jsObjectGet(jsObj, r'branchId') ?? (double.negativeInfinity as int);object.cashReceived = IsarNative.jsObjectGet(jsObj, r'cashReceived') ?? double.negativeInfinity;object.createdAt = IsarNative.jsObjectGet(jsObj, r'createdAt') ?? '';object.customerChangeDue = IsarNative.jsObjectGet(jsObj, r'customerChangeDue') ?? double.negativeInfinity;object.customerId = IsarNative.jsObjectGet(jsObj, r'customerId') ;object.draft = IsarNative.jsObjectGet(jsObj, r'draft') ?? false;object.id = IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int);object.note = IsarNative.jsObjectGet(jsObj, r'note') ;object.orderNumber = IsarNative.jsObjectGet(jsObj, r'orderNumber') ?? '';object.orderType = IsarNative.jsObjectGet(jsObj, r'orderType') ?? '';object.paymentType = IsarNative.jsObjectGet(jsObj, r'paymentType') ?? '';object.receiptType = IsarNative.jsObjectGet(jsObj, r'receiptType') ;object.reference = IsarNative.jsObjectGet(jsObj, r'reference') ?? '';object.reported = IsarNative.jsObjectGet(jsObj, r'reported') ;object.status = IsarNative.jsObjectGet(jsObj, r'status') ?? '';object.subTotal = IsarNative.jsObjectGet(jsObj, r'subTotal') ?? double.negativeInfinity;object.updatedAt = IsarNative.jsObjectGet(jsObj, r'updatedAt') ;*/
-  //return object;
-  throw UnimplementedError();
-}
-
-P _orderDeserializePropWeb<P>(Object jsObj, String propertyName) {
-  switch (propertyName) {
-    default:
-      throw IsarError('Illegal propertyName');
-  }
-}
-
 Id _orderGetId(Order object) {
   return object.id;
 }
@@ -348,7 +327,7 @@ extension OrderQueryWhereSort on QueryBuilder<Order, Order, QWhere> {
 }
 
 extension OrderQueryWhere on QueryBuilder<Order, Order, QWhereClause> {
-  QueryBuilder<Order, Order, QAfterWhereClause> idEqualTo(int id) {
+  QueryBuilder<Order, Order, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(
         lower: id,
@@ -357,7 +336,7 @@ extension OrderQueryWhere on QueryBuilder<Order, Order, QWhereClause> {
     });
   }
 
-  QueryBuilder<Order, Order, QAfterWhereClause> idNotEqualTo(int id) {
+  QueryBuilder<Order, Order, QAfterWhereClause> idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -379,7 +358,7 @@ extension OrderQueryWhere on QueryBuilder<Order, Order, QWhereClause> {
     });
   }
 
-  QueryBuilder<Order, Order, QAfterWhereClause> idGreaterThan(int id,
+  QueryBuilder<Order, Order, QAfterWhereClause> idGreaterThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -388,7 +367,7 @@ extension OrderQueryWhere on QueryBuilder<Order, Order, QWhereClause> {
     });
   }
 
-  QueryBuilder<Order, Order, QAfterWhereClause> idLessThan(int id,
+  QueryBuilder<Order, Order, QAfterWhereClause> idLessThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -398,8 +377,8 @@ extension OrderQueryWhere on QueryBuilder<Order, Order, QWhereClause> {
   }
 
   QueryBuilder<Order, Order, QAfterWhereClause> idBetween(
-    int lowerId,
-    int upperId, {
+    Id lowerId,
+    Id upperId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -1037,7 +1016,7 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Order, Order, QAfterFilterCondition> idEqualTo(int value) {
+  QueryBuilder<Order, Order, QAfterFilterCondition> idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -1047,7 +1026,7 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
   }
 
   QueryBuilder<Order, Order, QAfterFilterCondition> idGreaterThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1060,7 +1039,7 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
   }
 
   QueryBuilder<Order, Order, QAfterFilterCondition> idLessThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1073,8 +1052,8 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
   }
 
   QueryBuilder<Order, Order, QAfterFilterCondition> idBetween(
-    int lower,
-    int upper, {
+    Id lower,
+    Id upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {

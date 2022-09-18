@@ -7,7 +7,7 @@ part of flipper_models;
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
 
 extension GetPColorCollection on Isar {
   IsarCollection<PColor> get pColors => this.collection();
@@ -49,12 +49,9 @@ const PColorSchema = CollectionSchema(
     )
   },
   estimateSize: _pColorEstimateSize,
-  serializeNative: _pColorSerializeNative,
-  deserializeNative: _pColorDeserializeNative,
-  deserializePropNative: _pColorDeserializePropNative,
-  serializeWeb: _pColorSerializeWeb,
-  deserializeWeb: _pColorDeserializeWeb,
-  deserializePropWeb: _pColorDeserializePropWeb,
+  serialize: _pColorSerialize,
+  deserialize: _pColorDeserialize,
+  deserializeProp: _pColorDeserializeProp,
   idName: r'id',
   indexes: {},
   links: {},
@@ -62,7 +59,7 @@ const PColorSchema = CollectionSchema(
   getId: _pColorGetId,
   getLinks: _pColorGetLinks,
   attach: _pColorAttach,
-  version: '3.0.0-dev.14',
+  version: '3.0.0',
 );
 
 int _pColorEstimateSize(
@@ -110,9 +107,9 @@ int _pColorEstimateSize(
   return bytesCount;
 }
 
-int _pColorSerializeNative(
+void _pColorSerialize(
   PColor object,
-  IsarBinaryWriter writer,
+  IsarWriter writer,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -122,12 +119,11 @@ int _pColorSerializeNative(
   writer.writeStringList(offsets[3], object.colors);
   writer.writeString(offsets[4], object.name);
   writer.writeString(offsets[5], object.table);
-  return writer.usedBytes;
 }
 
-PColor _pColorDeserializeNative(
+PColor _pColorDeserialize(
   Id id,
-  IsarBinaryReader reader,
+  IsarReader reader,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -142,8 +138,8 @@ PColor _pColorDeserializeNative(
   return object;
 }
 
-P _pColorDeserializePropNative<P>(
-  IsarBinaryReader reader,
+P _pColorDeserializeProp<P>(
+  IsarReader reader,
   int propertyId,
   int offset,
   Map<Type, List<int>> allOffsets,
@@ -163,23 +159,6 @@ P _pColorDeserializePropNative<P>(
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
-  }
-}
-
-Object _pColorSerializeWeb(IsarCollection<PColor> collection, PColor object) {
-  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
-}
-
-PColor _pColorDeserializeWeb(IsarCollection<PColor> collection, Object jsObj) {
-  /*final object = PColor();object.active = IsarNative.jsObjectGet(jsObj, r'active') ?? false;object.branchId = IsarNative.jsObjectGet(jsObj, r'branchId') ;object.channels = (IsarNative.jsObjectGet(jsObj, r'channels') as List?)?.map((e) => e ?? '').toList().cast<String>() ;object.colors = (IsarNative.jsObjectGet(jsObj, r'colors') as List?)?.map((e) => e ?? '').toList().cast<String>() ;object.id = IsarNative.jsObjectGet(jsObj, r'id') ?? (double.negativeInfinity as int);object.name = IsarNative.jsObjectGet(jsObj, r'name') ;object.table = IsarNative.jsObjectGet(jsObj, r'table') ;*/
-  //return object;
-  throw UnimplementedError();
-}
-
-P _pColorDeserializePropWeb<P>(Object jsObj, String propertyName) {
-  switch (propertyName) {
-    default:
-      throw IsarError('Illegal propertyName');
   }
 }
 
@@ -204,7 +183,7 @@ extension PColorQueryWhereSort on QueryBuilder<PColor, PColor, QWhere> {
 }
 
 extension PColorQueryWhere on QueryBuilder<PColor, PColor, QWhereClause> {
-  QueryBuilder<PColor, PColor, QAfterWhereClause> idEqualTo(int id) {
+  QueryBuilder<PColor, PColor, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(
         lower: id,
@@ -213,7 +192,7 @@ extension PColorQueryWhere on QueryBuilder<PColor, PColor, QWhereClause> {
     });
   }
 
-  QueryBuilder<PColor, PColor, QAfterWhereClause> idNotEqualTo(int id) {
+  QueryBuilder<PColor, PColor, QAfterWhereClause> idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -235,7 +214,7 @@ extension PColorQueryWhere on QueryBuilder<PColor, PColor, QWhereClause> {
     });
   }
 
-  QueryBuilder<PColor, PColor, QAfterWhereClause> idGreaterThan(int id,
+  QueryBuilder<PColor, PColor, QAfterWhereClause> idGreaterThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -244,7 +223,7 @@ extension PColorQueryWhere on QueryBuilder<PColor, PColor, QWhereClause> {
     });
   }
 
-  QueryBuilder<PColor, PColor, QAfterWhereClause> idLessThan(int id,
+  QueryBuilder<PColor, PColor, QAfterWhereClause> idLessThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -254,8 +233,8 @@ extension PColorQueryWhere on QueryBuilder<PColor, PColor, QWhereClause> {
   }
 
   QueryBuilder<PColor, PColor, QAfterWhereClause> idBetween(
-    int lowerId,
-    int upperId, {
+    Id lowerId,
+    Id upperId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -813,7 +792,7 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
     });
   }
 
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> idEqualTo(int value) {
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -823,7 +802,7 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> idGreaterThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -836,7 +815,7 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> idLessThan(
-    int value, {
+    Id value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -849,8 +828,8 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> idBetween(
-    int lower,
-    int upper, {
+    Id lower,
+    Id upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {

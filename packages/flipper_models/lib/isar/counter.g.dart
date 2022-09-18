@@ -7,7 +7,7 @@ part of flipper_models;
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, avoid_js_rounded_ints, prefer_final_locals
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
 
 extension GetCounterCollection on Isar {
   IsarCollection<Counter> get counters => this.collection();
@@ -49,12 +49,9 @@ const CounterSchema = CollectionSchema(
     )
   },
   estimateSize: _counterEstimateSize,
-  serializeNative: _counterSerializeNative,
-  deserializeNative: _counterDeserializeNative,
-  deserializePropNative: _counterDeserializePropNative,
-  serializeWeb: _counterSerializeWeb,
-  deserializeWeb: _counterDeserializeWeb,
-  deserializePropWeb: _counterDeserializePropWeb,
+  serialize: _counterSerialize,
+  deserialize: _counterDeserialize,
+  deserializeProp: _counterDeserializeProp,
   idName: r'id',
   indexes: {},
   links: {},
@@ -62,7 +59,7 @@ const CounterSchema = CollectionSchema(
   getId: _counterGetId,
   getLinks: _counterGetLinks,
   attach: _counterAttach,
-  version: '3.0.0-dev.14',
+  version: '3.0.0',
 );
 
 int _counterEstimateSize(
@@ -75,9 +72,9 @@ int _counterEstimateSize(
   return bytesCount;
 }
 
-int _counterSerializeNative(
+void _counterSerialize(
   Counter object,
-  IsarBinaryWriter writer,
+  IsarWriter writer,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -87,12 +84,11 @@ int _counterSerializeNative(
   writer.writeLong(offsets[3], object.curRcptNo);
   writer.writeString(offsets[4], object.receiptType);
   writer.writeLong(offsets[5], object.totRcptNo);
-  return writer.usedBytes;
 }
 
-Counter _counterDeserializeNative(
+Counter _counterDeserialize(
   Id id,
-  IsarBinaryReader reader,
+  IsarReader reader,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -108,8 +104,8 @@ Counter _counterDeserializeNative(
   return object;
 }
 
-P _counterDeserializePropNative<P>(
-  IsarBinaryReader reader,
+P _counterDeserializeProp<P>(
+  IsarReader reader,
   int propertyId,
   int offset,
   Map<Type, List<int>> allOffsets,
@@ -129,25 +125,6 @@ P _counterDeserializePropNative<P>(
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
-  }
-}
-
-Object _counterSerializeWeb(
-    IsarCollection<Counter> collection, Counter object) {
-  /*final jsObj = IsarNative.newJsObject();*/ throw UnimplementedError();
-}
-
-Counter _counterDeserializeWeb(
-    IsarCollection<Counter> collection, Object jsObj) {
-  /*final object = Counter(backed: IsarNative.jsObjectGet(jsObj, r'backed') ,id: IsarNative.jsObjectGet(jsObj, r'id') ,);object.branchId = IsarNative.jsObjectGet(jsObj, r'branchId') ?? (double.negativeInfinity as int);object.businessId = IsarNative.jsObjectGet(jsObj, r'businessId') ?? (double.negativeInfinity as int);object.curRcptNo = IsarNative.jsObjectGet(jsObj, r'curRcptNo') ?? (double.negativeInfinity as int);object.receiptType = IsarNative.jsObjectGet(jsObj, r'receiptType') ?? '';object.totRcptNo = IsarNative.jsObjectGet(jsObj, r'totRcptNo') ?? (double.negativeInfinity as int);*/
-  //return object;
-  throw UnimplementedError();
-}
-
-P _counterDeserializePropWeb<P>(Object jsObj, String propertyName) {
-  switch (propertyName) {
-    default:
-      throw IsarError('Illegal propertyName');
   }
 }
 
@@ -172,7 +149,7 @@ extension CounterQueryWhereSort on QueryBuilder<Counter, Counter, QWhere> {
 }
 
 extension CounterQueryWhere on QueryBuilder<Counter, Counter, QWhereClause> {
-  QueryBuilder<Counter, Counter, QAfterWhereClause> idEqualTo(int id) {
+  QueryBuilder<Counter, Counter, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(
         lower: id,
@@ -181,7 +158,7 @@ extension CounterQueryWhere on QueryBuilder<Counter, Counter, QWhereClause> {
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterWhereClause> idNotEqualTo(int id) {
+  QueryBuilder<Counter, Counter, QAfterWhereClause> idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -203,7 +180,7 @@ extension CounterQueryWhere on QueryBuilder<Counter, Counter, QWhereClause> {
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterWhereClause> idGreaterThan(int id,
+  QueryBuilder<Counter, Counter, QAfterWhereClause> idGreaterThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -212,7 +189,7 @@ extension CounterQueryWhere on QueryBuilder<Counter, Counter, QWhereClause> {
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterWhereClause> idLessThan(int id,
+  QueryBuilder<Counter, Counter, QAfterWhereClause> idLessThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -222,8 +199,8 @@ extension CounterQueryWhere on QueryBuilder<Counter, Counter, QWhereClause> {
   }
 
   QueryBuilder<Counter, Counter, QAfterWhereClause> idBetween(
-    int lowerId,
-    int upperId, {
+    Id lowerId,
+    Id upperId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -441,7 +418,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> idEqualTo(int? value) {
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> idEqualTo(Id? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -451,7 +428,7 @@ extension CounterQueryFilter
   }
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition> idGreaterThan(
-    int? value, {
+    Id? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -464,7 +441,7 @@ extension CounterQueryFilter
   }
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition> idLessThan(
-    int? value, {
+    Id? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -477,8 +454,8 @@ extension CounterQueryFilter
   }
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition> idBetween(
-    int? lower,
-    int? upper, {
+    Id? lower,
+    Id? upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
