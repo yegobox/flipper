@@ -93,7 +93,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   }
 
   void addKey(String key) async {
-    if (key == 'C' && double.parse(ProxyService.keypad.key) != 0.0) {
+    if (key == 'C') {
       //remove last orderItem added
       Order? pendingOrder = await ProxyService.isarApi.manageOrder();
       log.i(pendingOrder.id);

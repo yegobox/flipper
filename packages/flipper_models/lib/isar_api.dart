@@ -45,6 +45,8 @@ class IsarAPI implements IsarApiInterface {
     }
     if (iisar == null) {
       isar = await Isar.open(
+        // compactOnLaunch:
+        // CompactCondition(minBytes: 100, minFileSize: 100, minRatio: 2.0),
         [
           OrderSchema,
           BusinessSchema,
