@@ -27,24 +27,27 @@ class Marketing implements WhatsApp, SMS {
       'Authorization': 'Bearer ${token!.token}'
     };
 
-    var request =
-        http.Request('POST', Uri.parse('$wUrl/104559025664071/messages'));
-    request.body = json.encode({
-      "messaging_product": "whatsapp",
-      "to": numbers.first,
-      "type": "text",
-      "text": {"body": "$message"}
-    });
-    request.headers.addAll(headers);
+    for (String number in numbers) {
+      var request =
+          http.Request('POST', Uri.parse('$wUrl/104559025664071/messages'));
+      request.body = json.encode({
+        "messaging_product": "whatsapp",
+        "to": number,
+        "type": "text",
+        "text": {"body": "$message"}
+      });
+      request.headers.addAll(headers);
 
-    http.StreamedResponse response = await request.send();
+      http.StreamedResponse response = await request.send();
 
-    if (response.statusCode == 200) {
-      log(await response.stream.bytesToString());
-      return 200;
-    } else {
-      return response.statusCode;
+      if (response.statusCode == 200) {
+        log(await response.stream.bytesToString());
+        return 200;
+      } else {
+        return response.statusCode;
+      }
     }
+    return 0;
   }
 
   @override
