@@ -125,8 +125,12 @@ class _FlipperAppState extends State<FlipperApp>
           ProxyService.notification.listen(context);
           ProxyService.dynamicLink.handleDynamicLink(context);
           model.loadReport();
-          await [perm.Permission.storage, perm.Permission.manageExternalStorage]
-              .request();
+          if (!isWindows) {
+            await [
+              perm.Permission.storage,
+              perm.Permission.manageExternalStorage
+            ].request();
+          }
         },
         builder: (context, model, child) {
           return WillPopScope(

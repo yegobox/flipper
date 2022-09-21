@@ -288,12 +288,13 @@ class ProductViewModel extends ReactiveViewModel {
   /// When called should check the related product's variant and set the retail and or supply price
   /// of related stock
   Future<void> updateRegularVariant(
-      {double? supplyPrice, double? retailPrice}) async {
+      {double? supplyPrice, double? retailPrice, int? productId}) async {
+    Product? product = await ProxyService.isarApi.getProduct(id: productId!);
     if (supplyPrice != null) {
       for (Variant variation in variants!) {
         if (variation.name == "Regular") {
           variation.supplyPrice = supplyPrice;
-
+          variation.productName = product!.name;
           variation.productId = variation.productId;
           ProxyService.isarApi.update(data: variation);
           Stock? stock = await ProxyService.isarApi
@@ -313,6 +314,7 @@ class ProductViewModel extends ReactiveViewModel {
           variation.retailPrice = retailPrice;
           variation.productId = variation.productId;
           variation.prc = retailPrice;
+          variation.productName = product!.name;
           ProxyService.isarApi.update(data: variation);
           Stock? stock = await ProxyService.isarApi
               .stockByVariantId(variantId: variation.id);
@@ -325,16 +327,18 @@ class ProductViewModel extends ReactiveViewModel {
         }
       }
     }
-    productService.variantsProduct(productId: product.id!);
+    productService.variantsProduct(productId: product!.id);
   }
 
   /// Add a product into the system
   Future<bool> addProduct({required Product mproduct}) async {
+    // String mproductName =
     mproduct.name = productName;
     mproduct.barCode = productService.barCode.toString();
     mproduct.color = currentColor;
     mproduct.color = currentColor;
     mproduct.draft = false;
+    final response = await ProxyService.isarApi.update(data: mproduct);
     List<Variant> variants = await ProxyService.isarApi
         .getVariantByProductId(productId: mproduct.id);
 
@@ -348,7 +352,7 @@ class ProductViewModel extends ReactiveViewModel {
         ProxyService.tax.saveItem(variation: variant);
       }
     }
-    final response = await ProxyService.isarApi.update(data: mproduct);
+
     return response == 200;
   }
 

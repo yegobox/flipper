@@ -36,7 +36,8 @@ class IsarAPI implements IsarApiInterface {
   late Isar isar;
   Future<IsarApiInterface> getInstance({Isar? iisar}) async {
     if (foundation.kDebugMode && !isAndroid) {
-      apihub = "http://localhost:8082";
+      // apihub = "http://localhost:8082";
+      apihub = "https://apihub.yegobox.com";
     } else if (foundation.kDebugMode && isAndroid) {
       // apihub = "http://10.0.2.2:8082";
       apihub = "https://apihub.yegobox.com";

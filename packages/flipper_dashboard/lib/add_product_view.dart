@@ -105,9 +105,11 @@ class _AddProductViewState extends State<AddProductView> {
                 // then re-update the product default variant with retail price
                 // retailPriceController this is to present missing out key stroke.
                 await model.updateRegularVariant(
-                    retailPrice: double.parse(retailPriceController.text));
+                    retailPrice: double.parse(retailPriceController.text),
+                    productId: model.product.id);
                 await model.updateRegularVariant(
-                    supplyPrice: double.parse(supplyPriceController.text));
+                    supplyPrice: double.parse(supplyPriceController.text),
+                    productId: model.product.id);
                 await model.loadProducts();
                 GoRouter.of(context).pop();
               },
@@ -174,7 +176,8 @@ class _AddProductViewState extends State<AddProductView> {
                       if (trimed.isNotEmpty) {
                         model.isPriceSet(true);
                         await model.updateRegularVariant(
-                            retailPrice: double.parse(value));
+                            retailPrice: double.parse(value),
+                            productId: model.product.id);
                       } else {
                         model.isPriceSet(false);
                       }
@@ -187,7 +190,8 @@ class _AddProductViewState extends State<AddProductView> {
                       String trimed = value.trim();
                       if (trimed.isNotEmpty) {
                         await model.updateRegularVariant(
-                            supplyPrice: double.parse(value));
+                            supplyPrice: double.parse(value),
+                            productId: model.product.id);
                       }
                     },
                   ),
