@@ -16,7 +16,6 @@ import 'package:flipper_services/local_notification_service.dart';
 import 'package:flipper_services/event_service.dart';
 import 'package:flipper_services/cron_service.dart';
 import 'package:flipper_services/setting_service.dart';
-import 'package:flipper_services/analytic_service.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'abstractions/api.dart';
 import 'abstractions/dynamic_link.dart';
@@ -41,10 +40,9 @@ final FlipperLocation _location = locator<FlipperLocation>();
 final LocalStorage _box = locator<LocalStorage>();
 final UploadT _upload = locator<UploadT>();
 final AppService _appService = locator<AppService>();
-final AnalyticService _analytic = locator<AnalyticService>();
 final ProductService _productService = locator<ProductService>();
 final KeyPadService _keypad = locator<KeyPadService>();
-final LanguageService _locale = locator<LanguageService>();
+final Language _locale = locator<Language>();
 // RemoteService
 final Remote _remoteConfig = locator<Remote>();
 final Country _country = locator<Country>();
@@ -83,7 +81,7 @@ abstract class ProxyService {
   static UploadT get upload => _upload;
   static KeyPadService get keypad => _keypad;
   static Country get country => _country;
-  static LanguageService get locale => _locale;
+  static Language get locale => _locale;
   static Remote get remoteConfig => _remoteConfig;
   static Analytic get analytics => _analytics;
   static SettingsService get settings => _settings;
@@ -93,7 +91,6 @@ abstract class ProxyService {
   static LNotification get notification => _notification;
   static FlipperFirestore get firestore => _firestore;
   static Review get review => _review;
-  static AnalyticService get analytic => _analytic;
   static SyncApiInterface get syncApi => _syncApi;
   static SystemTime get systemTime => _systemTime;
   static BillingService get billing => _billingService;

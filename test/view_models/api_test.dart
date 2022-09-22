@@ -1,49 +1,25 @@
-import 'package:flipper_models/isar_api.dart';
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:test/test.dart';
-import 'package:flipper_services/locator.dart';
-import '../helpers/test_helpers.dart';
 import 'common.dart';
+import 'package:get_storage/get_storage.dart';
 
 void main() {
   group('Isar API', () {
-    late Isar isar;
     late Product product;
-
+    late int count = 0;
     late Order order;
 
     setUp(() async {
-      isar = await openTempIsar([
-        OrderSchema,
-        BusinessSchema,
-        BranchSchema,
-        OrderItemSchema,
-        ProductSchema,
-        VariantSchema,
-        ProfileSchema,
-        SubscriptionSchema,
-        IPointSchema,
-        StockSchema,
-        FeatureSchema,
-        VoucherSchema,
-        PColorSchema,
-        CategorySchema,
-        IUnitSchema,
-        SettingSchema,
-        DiscountSchema,
-        CustomerSchema,
-        PinSchema,
-        ReceiptSchema,
-      ]);
-      IsarAPI().getInstance(iisar: isar);
-      await setupLocator();
-      registerServices();
-    });
-
-    tearDown(() async {
-      unregisterServices();
-      // await isar.close();
+      if (count == 0) {
+        await GetStorage.init();
+        await setupLocator();
+        ProxyService.box.write(key: 'userId', value: "1");
+        ProxyService.box.write(key: 'businessId', value: 1);
+        ProxyService.box.write(key: 'branchId', value: 1);
+      }
+      count = 1;
     });
 
     isarTest('Test we have a Testing product', () async {
@@ -56,13 +32,7 @@ void main() {
     isarTest('Test can create order', () async {
       order = await ProxyService.isarApi.manageOrder();
       expect(order, isA<Order>());
+      expect(1, 1);
     });
-
-    // isarTest('Can update order add NS on it as receipt type', () async {
-    //   order.receiptType = "NS";
-    //   await ProxyService.isarApi.update(data: order);
-    //   // Order? updated = await ProxyService.isarApi.getOrderById(id: order.id);
-    //   expect(order.receiptType, isA<void>());
-    // });
   });
 }

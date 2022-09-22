@@ -1,4 +1,5 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flipper_models/isar_api.dart';
 
 import 'package:flipper_services/abstractions/location.dart';
 import 'package:flipper_services/abstractions/remote.dart';
@@ -13,6 +14,7 @@ import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+import '../view_models/common.dart';
 import 'test_helpers.mocks.dart';
 import 'package:flipper_services/locator.dart';
 
@@ -39,6 +41,37 @@ BillingService getAndRegisterBillingService() {
 
   when(service.addPoints(userId: 1, points: 2))
       .thenThrow(VoucherException(term: 'Voucher not found'));
+
+  return service;
+}
+
+Future<IsarApiInterface> getAndRegisterApiService() async {
+  _removeRegistrationIfExists<IsarApiInterface>();
+  Isar isar = await openTempIsar([
+    OrderSchema,
+    BusinessSchema,
+    BranchSchema,
+    OrderItemSchema,
+    ProductSchema,
+    VariantSchema,
+    ProfileSchema,
+    SubscriptionSchema,
+    IPointSchema,
+    StockSchema,
+    FeatureSchema,
+    VoucherSchema,
+    PColorSchema,
+    CategorySchema,
+    IUnitSchema,
+    SettingSchema,
+    DiscountSchema,
+    CustomerSchema,
+    PinSchema,
+    ReceiptSchema,
+  ]);
+
+  final service = await IsarAPI().getInstance(iisar: isar);
+  locator.registerSingleton<IsarApiInterface>(service);
 
   return service;
 }
@@ -170,6 +203,7 @@ void registerServices() {
   getAndRegisterLanguage();
   getAndRegisterLanguageService();
   getAndRegisterBillingService();
+  getAndRegisterApiService();
 }
 
 void unregisterServices() {
@@ -178,6 +212,7 @@ void unregisterServices() {
   locator.unregister<LocalStorage>();
   locator.unregister<LanguageService>();
   locator.unregister<BillingService>();
+  locator.unregister<IsarApiInterface>();
 }
 
 void _removeRegistrationIfExists<T extends Object>() {

@@ -16,7 +16,6 @@ import 'package:flipper_services/language_service.dart';
 import 'package:flipper_services/event_service.dart';
 import 'package:flipper_services/mobile_upload.dart';
 import 'package:flipper_services/product_service.dart';
-import 'package:flipper_services/analytic_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/remote_config_service.dart';
 import 'package:flipper_services/cron_service.dart';
@@ -154,10 +153,6 @@ abstract class ThirdPartyServicesModule {
     return appAnalytic;
   }
 
-  ///TODOcheck if code from LanguageService can work fully on windows
-  @lazySingleton
-  LanguageService get languageService;
-
   @lazySingleton
   Country get country {
     late Country country;
@@ -193,6 +188,20 @@ abstract class ThirdPartyServicesModule {
   KeyPadService get keypadService;
   @preResolve
   Future<IsarApiInterface> get isarApi => IsarAPI().getInstance();
+
+  ///TODOcheck if code from LanguageService can work fully on windows
+  @lazySingleton
+  Language get languageService {
+    late Language languageService;
+    if (UniversalPlatform.isAndroid ||
+        UniversalPlatform.isMacOS ||
+        UniversalPlatform.isIOS) {
+      languageService = LanguageService();
+    } else {
+      languageService = UnImplementedLanguage();
+    }
+    return languageService;
+  }
 
   @lazySingleton
   TaxApi get taxApiService {
@@ -264,9 +273,6 @@ abstract class ThirdPartyServicesModule {
 
   @lazySingleton
   EventService get loginService;
-
-  @lazySingleton
-  AnalyticService get analytic;
 
   @lazySingleton
   ProductService get productService;
