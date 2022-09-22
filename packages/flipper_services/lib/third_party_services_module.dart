@@ -190,9 +190,10 @@ abstract class ThirdPartyServicesModule {
   @preResolve
   Future<IsarApiInterface> get isarApi async {
     //first check if we are in testing mode.
-    if (bool.fromEnvironment('TEST', defaultValue: false) == false) {
+    if (bool.fromEnvironment('Test', defaultValue: false) == false) {
       return IsarAPI().getInstance();
     } else {
+      print("in test mode");
       late Isar isar;
       isar = await openTempIsar([
         OrderSchema,
