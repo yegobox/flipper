@@ -9,6 +9,7 @@ import 'package:flipper_services/abstractions/sync.dart';
 import 'package:flipper_services/abstractions/system_time.dart';
 import 'package:flipper_services/billing_service.dart';
 import 'package:flipper_services/blue_thooth_service.dart';
+import 'package:flipper_services/common.dart';
 import 'package:flipper_services/firebase_analytics_service.dart';
 import 'package:flipper_services/force_data_service.dart';
 import 'package:flipper_services/in_app_review.dart';
@@ -187,7 +188,42 @@ abstract class ThirdPartyServicesModule {
   @lazySingleton
   KeyPadService get keypadService;
   @preResolve
-  Future<IsarApiInterface> get isarApi => IsarAPI().getInstance();
+  Future<IsarApiInterface> get isarApi async {
+    //first check if we are in testing mode.
+    if (bool.fromEnvironment('TEST', defaultValue: false) == false) {
+      return IsarAPI().getInstance();
+    } else {
+      late Isar isar;
+      isar = await openTempIsar([
+        OrderSchema,
+        BusinessSchema,
+        BranchSchema,
+        OrderItemSchema,
+        ProductSchema,
+        VariantSchema,
+        ProfileSchema,
+        SubscriptionSchema,
+        IPointSchema,
+        StockSchema,
+        FeatureSchema,
+        VoucherSchema,
+        PColorSchema,
+        CategorySchema,
+        IUnitSchema,
+        SettingSchema,
+        DiscountSchema,
+        CustomerSchema,
+        PinSchema,
+        ReceiptSchema,
+        DrawersSchema,
+        ITenantSchema,
+        PermissionSchema,
+        CounterSchema,
+        TokenSchema
+      ]);
+      return IsarAPI().getInstance(iisar: isar);
+    }
+  }
 
   ///TODOcheck if code from LanguageService can work fully on windows
   @lazySingleton
