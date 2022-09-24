@@ -6,7 +6,7 @@ library flipper_models;
 import 'package:isar/isar.dart';
 part 'branch.g.dart';
 
-@Collection()
+@collection
 class Branch {
   Branch({
     this.id,

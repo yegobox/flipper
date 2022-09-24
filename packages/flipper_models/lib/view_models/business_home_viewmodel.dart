@@ -815,5 +815,5 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   @override
   List<ReactiveServiceMixin> get reactiveServices =>
-      [keypad, app, productService, settingService, languageService];
+      [keypad, app, productService, settingService];
 }

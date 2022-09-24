@@ -49,7 +49,7 @@ const ITenantSchema = CollectionSchema(
   getId: _iTenantGetId,
   getLinks: _iTenantGetLinks,
   attach: _iTenantAttach,
-  version: '3.0.0',
+  version: '3.0.1',
 );
 
 int _iTenantEstimateSize(

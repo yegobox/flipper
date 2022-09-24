@@ -1807,6 +1807,11 @@ class IsarAPI implements IsarApiInterface {
   String dbPath() {
     return isar.path!;
   }
+  // You can either directly export the entire database file with the isar.copyToFile() method, or you can use collection.where().exportJson() to export a query result to json
+  // @override
+  // String public() {
+  //   // return isar.j
+  // }
 
   @override
   Future<Token?> whatsAppToken() {

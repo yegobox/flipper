@@ -74,7 +74,7 @@ const PaymentSchema = CollectionSchema(
   getId: _paymentGetId,
   getLinks: _paymentGetLinks,
   attach: _paymentAttach,
-  version: '3.0.0',
+  version: '3.0.1',
 );
 
 int _paymentEstimateSize(

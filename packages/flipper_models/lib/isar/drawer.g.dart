@@ -146,7 +146,7 @@ const DrawersSchema = CollectionSchema(
   getId: _drawersGetId,
   getLinks: _drawersGetLinks,
   attach: _drawersAttach,
-  version: '3.0.0',
+  version: '3.0.1',
 );
 
 int _drawersEstimateSize(

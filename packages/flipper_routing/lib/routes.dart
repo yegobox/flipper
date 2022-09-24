@@ -277,3 +277,7 @@ class AppSetup {
 
 // AWS
 // AWS Billing and Cost Management console
+// https://resocoder.com/2021/01/02/flutter-integration-test-tutorial-firebase-test-lab-codemagic/
+// flutter drive --driver=test_driver/integration_test.dart --target=integration_test/app_test.dart
+
+// choco install NuGet.CommandLine

@@ -58,7 +58,7 @@ const DiscountSchema = CollectionSchema(
   getId: _discountGetId,
   getLinks: _discountGetLinks,
   attach: _discountAttach,
-  version: '3.0.0',
+  version: '3.0.1',
 );
 
 int _discountEstimateSize(

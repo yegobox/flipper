@@ -143,8 +143,7 @@ class SettingViewModel extends ReactiveViewModel {
   }
 
   @override
-  List<ReactiveServiceMixin> get reactiveServices =>
-      [kSetting, languageService];
+  List<ReactiveServiceMixin> get reactiveServices => [kSetting];
 
   Future<void> enableAttendance(Function callback) async {
     kSetting.toggleAttendanceSetting();

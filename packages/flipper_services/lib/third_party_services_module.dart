@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flipper_models/marketing.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:flipper_models/rw_tax.dart';
@@ -191,9 +193,10 @@ abstract class ThirdPartyServicesModule {
   Future<IsarApiInterface> get isarApi async {
     //first check if we are in testing mode.
     if (const bool.fromEnvironment('Test', defaultValue: false) == false) {
-      return IsarAPI().getInstance();
+      log('in prod mode');
+      return await IsarAPI().getInstance();
     } else {
-      print("in test mode");
+      log("in test mode");
       late Isar isar;
       isar = await openTempIsar([
         OrderSchema,
@@ -222,11 +225,11 @@ abstract class ThirdPartyServicesModule {
         CounterSchema,
         TokenSchema
       ]);
-      return IsarAPI().getInstance(iisar: isar);
+      return await IsarAPI().getInstance(iisar: isar);
     }
   }
 
-  ///TODOcheck if code from LanguageService can work fully on windows
+  //TODOcheck if code from LanguageService can work fully on windows
   @lazySingleton
   Language get languageService {
     late Language languageService;

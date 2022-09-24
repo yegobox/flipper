@@ -291,7 +291,7 @@ const OrderItemSchema = CollectionSchema(
   getId: _orderItemGetId,
   getLinks: _orderItemGetLinks,
   attach: _orderItemAttach,
-  version: '3.0.0',
+  version: '3.0.1',
 );
 
 int _orderItemEstimateSize(
