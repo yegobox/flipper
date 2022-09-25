@@ -6,10 +6,20 @@ import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_dashboard/widgets/back_button.dart' as back;
 
-class PinLogin extends StatelessWidget {
+class PinLogin extends StatefulWidget {
   PinLogin({Key? key}) : super(key: key);
+
+  @override
+  State<PinLogin> createState() => _PinLoginState();
+}
+
+class _PinLoginState extends State<PinLogin> {
   final GlobalKey<FormState> _form = GlobalKey<FormState>();
+
   final TextEditingController _pin = TextEditingController();
+
+  bool _isObscure = true;
+
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<LoginViewModel>.reactive(
@@ -32,8 +42,20 @@ class PinLogin extends StatelessWidget {
                           child: Column(
                             children: [
                               TextFormField(
-                                obscureText: true,
+                                obscureText: _isObscure,
                                 decoration: InputDecoration(
+                                    suffixIcon: IconButton(
+                                      icon: Icon(
+                                        _isObscure
+                                            ? Icons.visibility
+                                            : Icons.visibility_off,
+                                      ),
+                                      onPressed: () {
+                                        setState(() {
+                                          _isObscure = !_isObscure;
+                                        });
+                                      },
+                                    ),
                                     enabled: true,
                                     border: const OutlineInputBorder(),
                                     labelText: "Enter your PIN"),
@@ -51,6 +73,7 @@ class PinLogin extends StatelessWidget {
                                 width: double.infinity,
                                 height: 40,
                                 child: BoxButton(
+                                  borderRadius: 2,
                                   onTap: () async {
                                     if (_form.currentState!.validate()) {
                                       try {
@@ -92,10 +115,6 @@ class PinLogin extends StatelessWidget {
                           ),
                         ),
                       ),
-                      // const Positioned(
-                      //   bottom: 0,
-                      //   child: Text('Product of yegobox ltd'),
-                      // ),
                     ],
                   ),
                 ),

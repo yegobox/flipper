@@ -10,7 +10,7 @@ import 'package:flutter/material.dart';
 class SettingViewModel extends ReactiveViewModel {
   ThemeMode themeMode = ThemeMode.system;
   final kSetting = locator<SettingsService>();
-  final languageService = locator<LanguageService>();
+  final languageService = locator<Language>();
   bool _updateStarted = false;
   Setting? _setting;
   Setting? get setting => _setting;

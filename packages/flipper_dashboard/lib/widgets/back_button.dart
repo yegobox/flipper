@@ -1,37 +1,55 @@
-import 'package:go_router/go_router.dart';
-
-import 'styles.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
+import 'package:go_router/go_router.dart';
 
 class BackButton extends StatelessWidget {
   const BackButton({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
-      onPressed: () {
-        GoRouter.of(context).pop();
-      },
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          SvgPicture.asset(
-            'assets/svg/arrow_left.svg',
-            height: 14,
-            width: 14,
+    return SizedBox(
+      height: 80,
+      width: 80,
+      child: OutlinedButton(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SvgPicture.asset(
+              'assets/svg/arrow_left.svg',
+              height: 14,
+              width: 14,
+              color: Colors.white,
+            ),
+            const Gap(5),
+            Text('Back', style: TextStyle(color: Colors.white)),
+          ],
+        ),
+        style: ButtonStyle(
+          shape: MaterialStateProperty.resolveWith<OutlinedBorder>((states) =>
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(0))),
+          side: MaterialStateProperty.resolveWith<BorderSide>(
+              (states) => BorderSide(
+                    color: const Color(0xff006AFE),
+                  )),
+          backgroundColor:
+              MaterialStateProperty.all<Color>(const Color(0xff006AFE)),
+          overlayColor: MaterialStateProperty.resolveWith<Color?>(
+            (Set<MaterialState> states) {
+              if (states.contains(MaterialState.hovered)) {
+                return Colors.blue.withOpacity(0.04);
+              }
+              if (states.contains(MaterialState.focused) ||
+                  states.contains(MaterialState.pressed)) {
+                return Colors.blue.withOpacity(0.12);
+              }
+              return null;
+            },
           ),
-          const Gap(5),
-          Text('Back', style: TextStyle(color: Styles.highlightColor)),
-        ],
-      ),
-      style: ElevatedButton.styleFrom(
-        elevation: 0,
-        fixedSize: const Size(90, 0),
-        primary: Styles.bgWithOpacityColor,
-        shape: const StadiumBorder(),
-        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+        ),
+        onPressed: () {
+          GoRouter.of(context).pop();
+        },
       ),
     );
   }

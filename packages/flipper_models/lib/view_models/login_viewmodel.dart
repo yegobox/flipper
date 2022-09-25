@@ -78,6 +78,7 @@ class LoginViewModel extends FormViewModel {
         // TODOtenant's is not useful when sync is not supported.
         loginInfo.redirecting = false;
 
+        notifyListeners();
         //TODOSubmit this data in Device model to know which device is logged in
         //I will work on this when sync on isar is complete I don't want to use firestoreanymore!
         // final deviceInfoPlugin = DeviceInfoPlugin();

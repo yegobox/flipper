@@ -3,7 +3,6 @@ import 'package:flipper_ui/src/shared/styles.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_loading/indicator/ball_pulse_indicator.dart';
 import 'package:flipper_loading/loading.dart';
-import './utils.dart';
 
 class BoxButton extends StatelessWidget {
   final String title;
@@ -49,10 +48,10 @@ class BoxButton extends StatelessWidget {
                 borderRadius: BorderRadius.circular(borderRadius),
               )
             : BoxDecoration(
-                color: HexColor('#F1F1F1'),
+                color: const Color(0xff006AFE),
                 borderRadius: BorderRadius.circular(borderRadius),
                 border: Border.all(
-                  color: HexColor('#8A8886'),
+                  color: const Color(0xff006AFE),
                   width: 1,
                 ),
               ),
@@ -65,8 +64,6 @@ class BoxButton extends StatelessWidget {
                   Text(
                     title,
                     style: bodyStyle.copyWith(
-                      // fontSize: 18,
-                      // fontWeight: !outline ? FontWeight.bold : FontWeight.w400,
                       color: !outline ? Colors.white : kcPrimaryColor,
                     ),
                   ),

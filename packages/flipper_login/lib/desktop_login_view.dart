@@ -86,53 +86,6 @@ class _DesktopLoginViewState extends State<DesktopLoginView> {
                         size: 200.0,
                       ),
                     ),
-                    !switchToPinLogin
-                        ? const Text('Use mobile app to scan and log in')
-                        : SizedBox(
-                            height: 40,
-                            width: 350,
-                            child: OutlinedButton(
-                              child: Text(
-                                'Switch to PIN login',
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              style: ButtonStyle(
-                                shape: MaterialStateProperty.resolveWith<
-                                        OutlinedBorder>(
-                                    (states) => RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(0))),
-                                side: MaterialStateProperty
-                                    .resolveWith<BorderSide>(
-                                        (states) => BorderSide(
-                                              color: const Color(0xff006AFE),
-                                            )),
-                                backgroundColor:
-                                    MaterialStateProperty.all<Color>(
-                                        const Color(0xff006AFE)),
-                                overlayColor:
-                                    MaterialStateProperty.resolveWith<Color?>(
-                                  (Set<MaterialState> states) {
-                                    if (states
-                                        .contains(MaterialState.hovered)) {
-                                      return Colors.blue.withOpacity(0.04);
-                                    }
-                                    if (states
-                                            .contains(MaterialState.focused) ||
-                                        states
-                                            .contains(MaterialState.pressed)) {
-                                      return Colors.blue.withOpacity(0.12);
-                                    }
-                                    return null;
-                                  },
-                                ),
-                              ),
-                              onPressed: () {
-                                loginInfo.redirecting = true;
-                                GoRouter.of(context).push("/pin");
-                              },
-                            ),
-                          ),
                     SizedBox(
                         width: 450,
                         child: Text(
@@ -167,6 +120,47 @@ class _DesktopLoginViewState extends State<DesktopLoginView> {
                                 fontWeight: FontWeight.w400,
                                 fontSize: 15,
                                 color: Colors.black))),
+                    SizedBox(height: 10),
+                    SizedBox(
+                      height: 40,
+                      width: 350,
+                      child: OutlinedButton(
+                        child: Text(
+                          'Switch to PIN login',
+                          style: TextStyle(color: Color(0xff006AFE)),
+                        ),
+                        style: ButtonStyle(
+                          shape:
+                              MaterialStateProperty.resolveWith<OutlinedBorder>(
+                                  (states) => RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(0))),
+                          side: MaterialStateProperty.resolveWith<BorderSide>(
+                              (states) => BorderSide(
+                                    color: const Color(0xff006AFE)
+                                        .withOpacity(0.1),
+                                  )),
+                          backgroundColor: MaterialStateProperty.all<Color>(
+                              const Color(0xff006AFE).withOpacity(0.1)),
+                          overlayColor:
+                              MaterialStateProperty.resolveWith<Color?>(
+                            (Set<MaterialState> states) {
+                              if (states.contains(MaterialState.hovered)) {
+                                return Color(0xff006AFE).withOpacity(0.5);
+                              }
+                              if (states.contains(MaterialState.focused) ||
+                                  states.contains(MaterialState.pressed)) {
+                                return Color(0xff006AFE).withOpacity(0.5);
+                              }
+                              return Color(0xff006AFE).withOpacity(0.5);
+                            },
+                          ),
+                        ),
+                        onPressed: () {
+                          loginInfo.redirecting = true;
+                          GoRouter.of(context).push("/pin");
+                        },
+                      ),
+                    ),
                     Spacer(),
                   ],
                 ),
