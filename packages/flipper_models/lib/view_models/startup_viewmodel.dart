@@ -56,6 +56,7 @@ class StartUpViewModel extends BaseViewModel {
         navigationCallback("signup");
       } else {
         log.i(e.toString());
+        ProxyService.isarApi.logOut();
         loginInfo.isLoggedIn = false;
         navigationCallback("login");
       }

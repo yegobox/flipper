@@ -28,6 +28,10 @@ class _LoginChoicesState extends State<LoginChoices> {
           String? userId = ProxyService.box.getUserId();
           List<Business> _b =
               await ProxyService.isarApi.businesses(userId: userId!);
+          if (_b.isEmpty) {
+            ProxyService.isarApi.logOut();
+            GoRouter.of(context).go("/login");
+          }
 
           setState(() {
             _businesses = _b;
@@ -48,11 +52,7 @@ class _LoginChoicesState extends State<LoginChoices> {
                               children: _businesses
                                   .map((e) => Card(
                                         margin: const EdgeInsets.fromLTRB(
-                                          8.0,
-                                          20,
-                                          8,
-                                          0,
-                                        ),
+                                            8.0, 20, 8, 0),
                                         child: Column(
                                           mainAxisAlignment:
                                               MainAxisAlignment.center,
