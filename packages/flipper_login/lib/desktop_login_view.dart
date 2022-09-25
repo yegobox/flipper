@@ -2,6 +2,7 @@ import 'package:flipper_dashboard/no_net.dart';
 import 'package:flipper_models/view_models/gate.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/isar_models.dart';
@@ -75,9 +76,10 @@ class _DesktopLoginViewState extends State<DesktopLoginView> {
               return Center(
                 child: Column(
                   children: [
+                    Spacer(),
                     SizedBox(
-                      height: 400.0,
-                      width: 400.0,
+                      height: 250.0,
+                      width: 250.0,
                       child: QrImageView(
                         data: loginCode ?? '000',
                         version: QrVersions.auto,
@@ -86,30 +88,86 @@ class _DesktopLoginViewState extends State<DesktopLoginView> {
                     ),
                     !switchToPinLogin
                         ? const Text('Use mobile app to scan and log in')
-                        : OutlinedButton(
-                            child: Text('Switch to PIN login'),
-                            style: ButtonStyle(
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                  const Color(0xff006AFE)),
-                              overlayColor:
-                                  MaterialStateProperty.resolveWith<Color?>(
-                                (Set<MaterialState> states) {
-                                  if (states.contains(MaterialState.hovered)) {
-                                    return Colors.blue.withOpacity(0.04);
-                                  }
-                                  if (states.contains(MaterialState.focused) ||
-                                      states.contains(MaterialState.pressed)) {
-                                    return Colors.blue.withOpacity(0.12);
-                                  }
-                                  return null; // Defer to the widget's default.
-                                },
+                        : SizedBox(
+                            height: 40,
+                            width: 350,
+                            child: OutlinedButton(
+                              child: Text(
+                                'Switch to PIN login',
+                                style: TextStyle(color: Colors.white),
                               ),
+                              style: ButtonStyle(
+                                shape: MaterialStateProperty.resolveWith<
+                                        OutlinedBorder>(
+                                    (states) => RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(0))),
+                                side: MaterialStateProperty
+                                    .resolveWith<BorderSide>(
+                                        (states) => BorderSide(
+                                              color: const Color(0xff006AFE),
+                                            )),
+                                backgroundColor:
+                                    MaterialStateProperty.all<Color>(
+                                        const Color(0xff006AFE)),
+                                overlayColor:
+                                    MaterialStateProperty.resolveWith<Color?>(
+                                  (Set<MaterialState> states) {
+                                    if (states
+                                        .contains(MaterialState.hovered)) {
+                                      return Colors.blue.withOpacity(0.04);
+                                    }
+                                    if (states
+                                            .contains(MaterialState.focused) ||
+                                        states
+                                            .contains(MaterialState.pressed)) {
+                                      return Colors.blue.withOpacity(0.12);
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              ),
+                              onPressed: () {
+                                loginInfo.redirecting = true;
+                                GoRouter.of(context).push("/pin");
+                              },
                             ),
-                            onPressed: () {
-                              loginInfo.redirecting = true;
-                              GoRouter.of(context).push("/pin");
-                            },
                           ),
+                    SizedBox(
+                        width: 450,
+                        child: Text(
+                          'Log in to Flipper by QR Code',
+                          style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.w400,
+                              fontSize: 20,
+                              color: Colors.black),
+                        )),
+                    SizedBox(height: 10),
+                    SizedBox(
+                      width: 380,
+                      child: Text('1.Open Flipper on your phone',
+                          style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.w400,
+                              fontSize: 15,
+                              color: Colors.black)),
+                    ),
+                    SizedBox(
+                        width: 380,
+                        child: Text(
+                            '2.Go to Settings > Devices > Link Desktop Device',
+                            style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w400,
+                                fontSize: 15,
+                                color: Colors.black))),
+                    SizedBox(
+                        width: 380,
+                        child: Text(
+                            '3.Point your phone at this screen to confirm login',
+                            style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w400,
+                                fontSize: 15,
+                                color: Colors.black))),
+                    Spacer(),
                   ],
                 ),
               );

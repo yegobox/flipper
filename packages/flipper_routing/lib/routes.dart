@@ -285,3 +285,6 @@ class AppSetup {
 // Getting the path of the installed
 // $p = (Get-packageProvider -name nuget);
 // $p.ProviderPath
+
+// GoogleFonts.poppins(
+//               fontWeight: FontWeight.w400, fontSize: 20, color: Colors.white)
