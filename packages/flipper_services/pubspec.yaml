@@ -12,11 +12,11 @@ dependencies:
   flutter:
     sdk: flutter
   flipper_rw: ^1.0.1-dev.3
-  stacked: ^2.3.8
-  firebase_remote_config: ^2.0.0
+  stacked: ^3.0.0
+  firebase_remote_config: ^2.0.18
   share_plus: ^4.0.3
   in_app_review: ^2.0.4
-  firebase_messaging: ^11.2.8
+  firebase_messaging: ^13.0.3
   flutter_local_notifications: ^9.3.1
   get_storage: ^2.0.3
   image: ^3.0.2
@@ -30,7 +30,7 @@ dependencies:
   cron: ^0.4.0
   dio: ^4.0.4
 
-  firebase_analytics: ^9.1.2
+  firebase_analytics: ^9.3.6
   firebase_crashlytics: ^2.5.0
   # location: ^4.3.0
   location:
@@ -38,10 +38,10 @@ dependencies:
       url: https://github.com/Yczar/flutterlocation.git
       path: packages/location
   flutter_luban: ^0.1.13
-  flutter_uploader: ^3.0.0-beta.3
+  flutter_uploader: ^3.0.0-beta.4
   injectable: ^1.5.3
   google_sign_in: ^5.0.0
-  firebase_dynamic_links: ^4.2.5
+  firebase_dynamic_links: ^4.3.8
   http: ^0.13.4
   intl: ^0.17.0
   image_picker: ^0.8.4+6

@@ -43,12 +43,11 @@ dependencies:
   get_storage: ^2.0.3
   firebase_auth: ^3.3.19
   google_fonts: ^3.0.1
-  stacked: ^2.3.8
-  firebase_messaging: ^11.2.8
+  stacked: ^3.0.0
+  firebase_messaging: ^13.0.3
   overlay_support: ^2.0.0-beta.0
   flex_color_scheme: ^4.2.0
   path_provider: ^2.0.8
-  firebase_messaging_platform_interface: ^3.2.1
   logger: ^1.1.0
   firebase_crashlytics: ^2.5.0
   path: ^1.8.0

@@ -17,7 +17,7 @@ dependencies:
   stacked_services: ^0.8.16
   firebase_auth: ^3.3.19
   go_router: ^3.1.0
-  stacked: ^2.2.5
+  stacked: ^3.0.0
   # objectbox: ^1.4.1
   # objectbox_sync_flutter_libs: ^1.4.1
   built_value: ^8.1.4
