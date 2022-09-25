@@ -28,6 +28,7 @@ class _LoginChoicesState extends State<LoginChoices> {
           String? userId = ProxyService.box.getUserId();
           List<Business> _b =
               await ProxyService.isarApi.businesses(userId: userId!);
+
           setState(() {
             _businesses = _b;
           });

@@ -79,8 +79,6 @@ class IsarAPI implements IsarApiInterface {
     } else {
       isar = iisar;
     }
-
-    log.i(isar.path);
     return this;
   }
 

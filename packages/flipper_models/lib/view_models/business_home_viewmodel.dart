@@ -22,7 +22,7 @@ import 'package:receipt/print.dart';
 
 class BusinessHomeViewModel extends ReactiveViewModel {
   final settingService = locator<SettingsService>();
-  final languageService = locator<LanguageService>();
+  final languageService = locator<Language>();
   final log = getLogger('BusinessHomeViewModel');
   final KeyPadService keypad = locator<KeyPadService>();
   final ProductService productService = locator<ProductService>();

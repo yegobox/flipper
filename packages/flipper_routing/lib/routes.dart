@@ -281,3 +281,7 @@ class AppSetup {
 // flutter drive --driver=test_driver/integration_test.dart --target=integration_test/app_test.dart
 
 // choco install NuGet.CommandLine
+
+// Getting the path of the installed
+// $p = (Get-packageProvider -name nuget);
+// $p.ProviderPath

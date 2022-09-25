@@ -8,18 +8,20 @@ import 'package:get_storage/get_storage.dart';
 void main() {
   group('Isar API', () {
     late Product product;
-    late int count = 0;
     late Order order;
 
-    setUp(() async {
-      if (count == 0) {
-        await GetStorage.init();
-        await setupLocator();
-        ProxyService.box.write(key: 'userId', value: "1");
-        ProxyService.box.write(key: 'businessId', value: 1);
-        ProxyService.box.write(key: 'branchId', value: 1);
-      }
-      count = 1;
+    setUpAll(() async {
+      await GetStorage.init();
+      await setupLocator();
+      ProxyService.box.write(key: 'userId', value: "1");
+      ProxyService.box.write(key: 'businessId', value: 1);
+      ProxyService.box.write(key: 'branchId', value: 1);
+    });
+
+    tearDownAll(() {
+      ProxyService.box.remove(key: "userId");
+      ProxyService.box.remove(key: "businessId");
+      ProxyService.box.remove(key: "branchId");
     });
 
     isarTest('Test we have a Testing product', () async {
