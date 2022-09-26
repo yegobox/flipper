@@ -53,8 +53,8 @@ android {
         applicationId "rw.flipper"
         minSdkVersion 21
         // minSdkVersion flutter.minSdkVersion
-        // targetSdkVersion flutter.targetSdkVersion
-        targetSdkVersion 33
+        targetSdkVersion flutter.targetSdkVersion
+        // targetSdkVersion 33
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }
