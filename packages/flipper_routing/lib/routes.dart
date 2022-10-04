@@ -4,6 +4,7 @@ import 'package:stacked/stacked_annotations.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 // leave stacked for logging purposes
+// only stacked is used for their model and service but not for routing as we use go-router
 @StackedApp(
   routes: [],
   dependencies: [
