@@ -70,9 +70,6 @@
 [submodule "open-sources/dart_pdf"]
 	path = open-sources/dart_pdf
 	url = https://github.com/yegobox/dart_pdf.git
-[submodule "open-sources/open_file"]
-	path = open-sources/open_file
-	url = https://github.com/yegobox/open_file.git
 	
 [submodule "open-sources/plus_plugins"]
 	path = open-sources/plus_plugins

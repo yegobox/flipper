@@ -19,7 +19,7 @@ dependencies:
   flutter_chat_ui: ^1.5.5
   timeago: ^3.2.1
   mime: ^1.0.1
-  open_file: ^3.2.1
+  open_filex: ^4.1.1
   ant_icons: ^2.0.0-nullsafety.0
   pubnub: ^4.1.4
   feather_icons: ^1.1.0-nullsafety.0

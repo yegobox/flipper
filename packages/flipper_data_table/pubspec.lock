@@ -1409,13 +1409,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.2"
-  open_file:
-    dependency: "direct overridden"
+  open_filex:
+    dependency: transitive
     description:
-      path: "../../open-sources/open_file"
-      relative: true
-    source: path
-    version: "3.2.1-dev"
+      name: open_filex
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "4.1.1"
   os_detect:
     dependency: transitive
     description:

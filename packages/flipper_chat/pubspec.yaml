@@ -19,7 +19,7 @@ dependencies:
   timeago: ^3.2.1
 
   mime: ^1.0.1
-  open_file: ^3.2.1
+  open_filex: ^4.1.1
   image_picker: ^0.8.0+4
   firebase_storage: ^10.2.9
   file_picker: ^4.6.1-dev

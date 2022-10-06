@@ -11,11 +11,11 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mime/mime.dart';
-import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_firebase_chat_core/flutter_firebase_chat_core.dart';
 
 import 'custom_input_chat.dart';
+import 'package:open_filex/open_filex.dart';
 
 // ignore: must_be_immutable
 class OmniConversation extends StatefulWidget {
@@ -161,7 +161,7 @@ class _OmniConversationState extends State<OmniConversation> {
           await file.writeAsBytes(bytes);
         }
       }
-      await OpenFile.open(localPath);
+      await OpenFilex.open(localPath);
     }
   }
 
