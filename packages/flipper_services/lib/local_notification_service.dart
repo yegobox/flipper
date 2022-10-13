@@ -80,7 +80,21 @@ class LocalNotificationService implements LNotification {
         notificationDetails,
         payload: action,
       );
-    } on Exception catch (e) {}
+    } on Exception {}
+  }
+
+  void onDidReceiveNotificationResponse(
+      NotificationResponse notificationResponse) async {
+    final String? payload = notificationResponse.payload;
+    if (notificationResponse.payload != null) {
+      debugPrint('notification payload: $payload');
+    }
+
+    final List<String> split = notificationResponse.payload!.split('_');
+    final String action = split[0];
+    final String Id = split[1];
+    // FIXME the navigation soon.
+    // await navigationLogic(action, Id, context);
   }
 
   @override
@@ -103,15 +117,7 @@ class LocalNotificationService implements LNotification {
     );
 
     _notificationsPlugin.initialize(initializationSettings,
-        onSelectNotification: (String? id) async {
-      if (id != null) {
-        // split  id based on '_'
-        final List<String> split = id.split('_');
-        final String action = split[0];
-        final String Id = split[1];
-        await navigationLogic(action, Id, context);
-      }
-    });
+        onDidReceiveNotificationResponse: onDidReceiveNotificationResponse);
 
     int? businessId = await ProxyService.box.read(key: 'businessId');
     String? userId = ProxyService.box.read(key: 'userId');

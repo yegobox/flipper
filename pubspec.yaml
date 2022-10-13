@@ -25,8 +25,8 @@ dependencies:
   flutter:
     sdk: flutter
   # objectbox_sync_flutter_libs: ^1.4.1
-  isar: 3.0.1
-  isar_flutter_libs: 3.0.1
+  isar: 3.0.2
+  isar_flutter_libs: 3.0.2
   loading: ^1.0.2
 
   universal_platform: ^1.0.0+1
