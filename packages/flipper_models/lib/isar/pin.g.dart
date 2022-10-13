@@ -54,7 +54,7 @@ const PinSchema = CollectionSchema(
   getId: _pinGetId,
   getLinks: _pinGetLinks,
   attach: _pinAttach,
-  version: '3.0.1',
+  version: '3.0.2',
 );
 
 int _pinEstimateSize(
