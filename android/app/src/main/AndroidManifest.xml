@@ -10,10 +10,10 @@
     <!-- Remove unnecessary permission -->
     <!-- https://developer.android.com/guide/topics/data/autobackup#include-exclude-android-12 -->
     <!--TODO: Test backup https://developer.android.com/guide/topics/data/testingbackup -->
-    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" tools:node="remove" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:node="remove" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" tools:node="remove" />
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" tools:node="remove" />
+
+    <!-- <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:node="remove" /> -->
+    <!-- <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" tools:node="remove" /> -->
+    <!-- <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" tools:node="remove" /> -->
 
     <!-- android:requestLegacyExternalStorage="true" -->
    <application

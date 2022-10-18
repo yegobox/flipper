@@ -92,13 +92,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "8.1.0"
-  bluetooth_thermal_printer:
-    dependency: transitive
-    description:
-      name: bluetooth_thermal_printer
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.0.6"
   boolean_selector:
     dependency: transitive
     description:
