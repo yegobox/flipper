@@ -19,4 +19,4 @@ dependencies:
   flipper_rw: ^1.0.1-dev.3
   flipper_finance: ^0.0.1
   logger: ^1.1.0
-  flutterfire_ui: ^0.4.3+8
+  flutterfire_ui: ^0.4.3+17

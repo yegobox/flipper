@@ -12,4 +12,5 @@ cd .. && cd dart_pdf &&  git checkout main && git commit -am "clean-up" && git p
 cd .. && cd flutter_chat_ui &&  git checkout main && git commit -am "clean-up" && git push origin main
 cd .. && cd flutter_firebase_chat_core &&  git checkout main && git commit -am "clean-up" && git push origin main
 cd .. && cd flutter_list_drag_and_drop &&  git checkout main && git commit -am "clean-up" && git push origin main
+cd .. && cd flutterfire_desktop &&  git checkout main && git commit -am "clean-up" && git push origin main
 cd .. && cd receipt &&  git checkout main && git commit -am "clean-up" && git push origin main

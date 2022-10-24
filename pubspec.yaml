@@ -36,20 +36,20 @@ dependencies:
   system_theme: ^2.0.0
   flutter_acrylic: ^0.1.0
   provider: ^6.0.1
-  firebase_auth_desktop: ^1.0.0
-  firebase_core: ^1.22.0
-  firebase_core_desktop: ^1.0.0
-  flutterfire_ui: ^0.4.3+8
+  firebase_auth_desktop: ^1.0.2
+  firebase_core: ^2.1.0
+  firebase_core_desktop: ^1.0.2-dev
+  flutterfire_ui: ^0.4.3+17
   get_storage: ^2.0.3
-  firebase_auth: ^3.3.19
+  firebase_auth: ^4.0.2
   google_fonts: ^3.0.1
   stacked: ^3.0.0
-  firebase_messaging: ^13.0.3
+  firebase_messaging: ^14.0.2
   overlay_support: ^2.0.0-beta.0
   flex_color_scheme: ^4.2.0
   path_provider: ^2.0.8
   logger: ^1.1.0
-  firebase_crashlytics: ^2.5.0
+  firebase_crashlytics: ^3.0.2
   path: ^1.8.0
   flutter_riverpod: any
 

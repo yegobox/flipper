@@ -13,12 +13,12 @@ dependencies:
   flutter:
     sdk: flutter
   flipper_rw: ^1.0.1-dev.3
-  flutterfire_ui: ^0.4.3+8
+  flutterfire_ui: ^0.4.3+17
   # FIXME: make sure this flutter_form_bloc is updted to remote warning.
   flutter_form_bloc: ^0.29.3
-  firebase_auth_desktop: ^1.0.0
-  firebase_core: ^1.22.0
-  firebase_core_desktop: ^1.0.0
+  firebase_auth_desktop: ^1.0.2
+  firebase_core: ^2.1.0
+  firebase_core_desktop: ^1.0.2-dev
   flipper_services: ^0.0.1-dev.6
   flipper_dashboard: ^0.0.1-dev.5
   universal_platform: ^1.0.0+1
@@ -28,7 +28,7 @@ dependencies:
   stacked: ^3.0.0
   google_fonts: ^3.0.1
   flipper_ui: ^1.0.3
-  firebase_auth: ^3.3.19
+  firebase_auth: ^4.0.2
   go_router: ^3.1.0
   flipper_routing: ^0.0.1-dev.3
   connectivity_plus: ^2.2.0

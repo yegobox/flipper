@@ -1,4 +1,4 @@
-# melos_managed_dependency_overrides: cli_dialog,dart_console,device_info_plus,device_info_plus_linux,device_info_plus_macos,device_info_plus_platform_interface,device_info_plus_web,device_info_plus_windows,example,file_picker,flipper_chat,flipper_dashboard,flipper_data_table,flipper_finance,flipper_loading,flipper_localize,flipper_login,flipper_models,flipper_rw,flipper_services,flipper_ui,flutter_chat_types,flutter_chat_ui,flutter_datetime_picker,flutter_firebase_chat_core,flutter_slidable,msix,package_info_plus,package_info_plus_linux,package_info_plus_macos,package_info_plus_platform_interface,package_info_plus_web,package_info_plus_windows,pdf,printing,pubnub,qr_code_scanner,qr_flutter,receipt,scrollable_positioned_list,upgrader,win32
+# melos_managed_dependency_overrides: cli_dialog,dart_console,device_info_plus,device_info_plus_linux,device_info_plus_macos,device_info_plus_platform_interface,device_info_plus_web,device_info_plus_windows,example,file_picker,flipper_chat,flipper_dashboard,flipper_data_table,flipper_finance,flipper_loading,flipper_localize,flipper_login,flipper_models,flipper_rw,flipper_services,flipper_ui,flutter_chat_types,flutter_chat_ui,flutter_datetime_picker,flutter_firebase_chat_core,flutter_slidable,msix,package_info_plus,package_info_plus_linux,package_info_plus_macos,package_info_plus_platform_interface,package_info_plus_web,package_info_plus_windows,pdf,printing,pubnub,qr_code_scanner,qr_flutter,receipt,scrollable_positioned_list,upgrader,win32,firebase_auth_dart,firebase_auth_desktop,firebase_core_dart,firebase_core_desktop
 dependency_overrides:
   cli_dialog:
     path: ..\\..\\open-sources\\cli_dialog
@@ -20,6 +20,14 @@ dependency_overrides:
     path: ..\\flipper_ui\\example
   file_picker:
     path: ..\\..\\open-sources\\flutter_file_picker
+  firebase_auth_dart:
+    path: ..\\..\\open-sources\\flutterfire_desktop\\packages\\firebase_auth\\firebase_auth_dart
+  firebase_auth_desktop:
+    path: ..\\..\\open-sources\\flutterfire_desktop\\packages\\firebase_auth\\firebase_auth_desktop
+  firebase_core_dart:
+    path: ..\\..\\open-sources\\flutterfire_desktop\\packages\\firebase_core\\firebase_core_dart
+  firebase_core_desktop:
+    path: ..\\..\\open-sources\\flutterfire_desktop\\packages\\firebase_core\\firebase_core_desktop
   flipper_chat:
     path: ..\\flipper_chat
   flipper_dashboard:
