@@ -94,7 +94,7 @@ const VariantStockSchema = CollectionSchema(
   getId: _variantStockGetId,
   getLinks: _variantStockGetLinks,
   attach: _variantStockAttach,
-  version: '3.0.2',
+  version: '3.0.4',
 );
 
 int _variantStockEstimateSize(

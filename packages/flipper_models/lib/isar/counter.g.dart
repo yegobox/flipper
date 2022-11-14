@@ -59,7 +59,7 @@ const CounterSchema = CollectionSchema(
   getId: _counterGetId,
   getLinks: _counterGetLinks,
   attach: _counterAttach,
-  version: '3.0.2',
+  version: '3.0.4',
 );
 
 int _counterEstimateSize(

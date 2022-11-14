@@ -204,20 +204,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.1"
-  cli_dialog:
-    dependency: "direct overridden"
-    description:
-      path: "../../open-sources/cli_dialog"
-      relative: true
-    source: path
-    version: "0.5.0-dev"
-  cli_util:
-    dependency: transitive
-    description:
-      name: cli_util
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.3.5"
   clock:
     dependency: transitive
     description:
@@ -351,13 +337,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.5"
-  dart_console:
-    dependency: "direct overridden"
-    description:
-      path: "../../open-sources/dart_console"
-      relative: true
-    source: path
-    version: "1.1.0-pre.1"
   dart_style:
     dependency: transitive
     description:
@@ -470,13 +449,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.1+6"
-  example:
-    dependency: "direct overridden"
-    description:
-      path: "../flipper_ui/example"
-      relative: true
-    source: path
-    version: "1.0.0+1"
   fake_async:
     dependency: transitive
     description:
@@ -957,7 +929,7 @@ packages:
       name: flutter_local_notifications
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "12.0.1+1"
+    version: "12.0.3"
   flutter_local_notifications_linux:
     dependency: transitive
     description:
@@ -1371,21 +1343,21 @@ packages:
       name: isar
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.0.2"
+    version: "3.0.4"
   isar_flutter_libs:
     dependency: "direct main"
     description:
       name: isar_flutter_libs
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.0.2"
+    version: "3.0.4"
   isar_generator:
     dependency: "direct dev"
     description:
       name: isar_generator
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.0.2"
+    version: "3.0.4"
   js:
     dependency: transitive
     description:
@@ -1493,13 +1465,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.2"
-  msix:
-    dependency: "direct overridden"
-    description:
-      path: "../../open-sources/msix"
-      relative: true
-    source: path
-    version: "3.6.2-dev"
   nested:
     dependency: transitive
     description:

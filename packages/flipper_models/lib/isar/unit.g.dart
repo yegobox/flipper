@@ -63,7 +63,7 @@ const IUnitSchema = CollectionSchema(
   getId: _iUnitGetId,
   getLinks: _iUnitGetLinks,
   attach: _iUnitAttach,
-  version: '3.0.2',
+  version: '3.0.4',
 );
 
 int _iUnitEstimateSize(

@@ -59,7 +59,7 @@ const PColorSchema = CollectionSchema(
   getId: _pColorGetId,
   getLinks: _pColorGetLinks,
   attach: _pColorAttach,
-  version: '3.0.2',
+  version: '3.0.4',
 );
 
 int _pColorEstimateSize(

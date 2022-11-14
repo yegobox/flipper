@@ -134,7 +134,7 @@ const StockSchema = CollectionSchema(
   getId: _stockGetId,
   getLinks: _stockGetLinks,
   attach: _stockAttach,
-  version: '3.0.2',
+  version: '3.0.4',
 );
 
 int _stockEstimateSize(
