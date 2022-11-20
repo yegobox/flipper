@@ -30,7 +30,7 @@ class BlueToothPrinterService implements Printer {
   //   // use the printing package to generate PDF and save them in known place
 
   //   final ByteData data =
-  //       await rootBundle.load('packages/flipper/assets/fliper-logo.png');
+  //       await rootBundle.load('packages/flipper/assets/logo.png');
   //   final Uint8List imgBytes = data.buffer.asUint8List();
   //   final Image? image = decodeImage(imgBytes) as Image;
   //   bytes += generator.image(image!);

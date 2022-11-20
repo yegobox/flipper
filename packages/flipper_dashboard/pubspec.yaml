@@ -78,7 +78,7 @@ flutter:
   # the material Icons class.
   uses-material-design: true
   assets:
-    - ../../assets/fliper-logo.png
+    - ../../assets/logo.png
     - ../../assets/
     - ../../assets/images/
     - ../../assets/icons/

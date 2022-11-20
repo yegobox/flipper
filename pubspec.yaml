@@ -81,7 +81,7 @@ dev_dependencies:
   mockito:
   test:
   hive_generator: ^1.1.0
-  flutter_launcher_icons: ^0.9.2
+  flutter_launcher_icons: ^0.11.0
   # objectbox_generator: ^1.4.0
   matcher: ^0.12.10
   msix: ^3.6.2-dev
@@ -92,6 +92,19 @@ flutter_icons:
   ios: true
   remove_alpha_ios: true
   image_path: "assets/icon/icon.png"
+  min_sdk_android: 21
+  web:
+    generate: true
+    image_path: "assets/icon/icon.png"
+    background_color: "#1ABCFE"
+    theme_color: "#1ABCFE"
+  windows:
+    generate: true
+    image_path: "assets/icon/icon.png"
+    icon_size: 48 # min:48, max:256, default: 48
+  macos:
+    generate: true
+    image_path: "assets/icon/icon.png"
 msix_config:
   display_name: flipperApp
   publisher_display_name: yegobox ltd
@@ -114,7 +127,7 @@ flutter:
   #       - package:flipper_finance/app.dart
   uses-material-design: true
   assets:
-    - assets/fliper-logo.png
+    - assets/logo.png
     - assets/
     - assets/images/
     - assets/icons/
@@ -157,7 +170,7 @@ flutter_native_splash:
   # set.
   color_dark: "#042a49"
   #background_image_dark: "assets/dark-background.png"
-  image_dark: assets/logo_wht.png
+  image_dark: assets/logo.png
   #branding_dark: assets/dart_dark.png
 
   # Android 12 handles the splash screen differently than previous versions.  Please visit

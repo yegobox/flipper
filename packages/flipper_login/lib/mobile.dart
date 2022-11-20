@@ -47,7 +47,7 @@ class _MobileLoginState extends State<MobileLogin> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
                 Image.asset(
-                  'assets/fliper-logo.png',
+                  'assets/logo.png',
                   width: 80,
                   height: 80,
                 ),
