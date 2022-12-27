@@ -1,0 +1,12 @@
+name: flipper_nfc
+description: NFC support.
+version: 0.0.1-dev.3
+repository: https://github.com/yegobox/packages
+
+environment:
+  sdk: ">=2.17.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  nfc_manager: ^3.2.0
