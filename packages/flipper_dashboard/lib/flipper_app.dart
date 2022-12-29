@@ -59,6 +59,8 @@ class _FlipperAppState extends State<FlipperApp>
     ProxyService.cron.connectBlueToothPrinter();
     ProxyService.cron.deleteReceivedMessageFromServer();
 
+    // NFC.start();
+
     /// This is one solution to have data synced across devices. and connected clients
     /// once the objectbox sync is available the option will be evaluated and added. to package and maybe also
     /// the two solution will be sold differently with different price.

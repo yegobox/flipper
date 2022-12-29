@@ -1,11 +1,9 @@
 import 'dart:developer';
 import 'dart:io';
 
-import 'package:flutter/material.dart';
 import 'package:nfc_manager/nfc_manager.dart';
 
 Future<void> startSession({
-  required BuildContext context,
   required Future<String?> Function(NfcTag) handleTag,
   String alertMessage = 'Hold your device near the item.',
 }) async {
