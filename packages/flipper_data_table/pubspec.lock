@@ -1277,12 +1277,10 @@ packages:
   location:
     dependency: transitive
     description:
-      path: "packages/location"
-      ref: HEAD
-      resolved-ref: "91fc47700e0645fc4d4616fe8123672fa0b5e9c5"
-      url: "https://github.com/Yczar/flutterlocation.git"
-    source: git
-    version: "4.3.0"
+      name: location
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "4.4.0"
   location_platform_interface:
     dependency: transitive
     description:

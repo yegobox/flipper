@@ -33,11 +33,9 @@ dependencies:
 
   firebase_analytics: ^10.0.2
   firebase_crashlytics: ^3.0.2
-  # location: ^4.3.0
-  location:
-    git:
-      url: https://github.com/Yczar/flutterlocation.git
-      path: packages/location
+  # FIXME: check if this is not causing the issue when deploying to
+  # google play
+  location: ^4.4.0
   flutter_luban: ^0.1.13
   flutter_uploader: ^3.0.0-beta.4
   injectable: ^1.5.3
