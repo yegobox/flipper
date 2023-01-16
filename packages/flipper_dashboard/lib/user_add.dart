@@ -3,7 +3,9 @@ import 'dart:developer';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:stacked/stacked.dart';
+import 'customappbar.dart';
 
 class UserAdd extends StatefulWidget {
   const UserAdd({Key? key}) : super(key: key);
@@ -28,8 +30,11 @@ class _UserAddState extends State<UserAdd> {
         viewModelBuilder: () => AddUserViewModel(),
         builder: (context, model, widget) {
           return Scaffold(
-            appBar: AppBar(
-              title: const Text("Add Users"),
+            appBar: CustomAppBar(
+              title: 'Add a user',
+              onPop: () async {
+                GoRouter.of(context).pop();
+              },
             ),
             body: SafeArea(
               child: Column(
@@ -62,7 +67,8 @@ class _UserAddState extends State<UserAdd> {
                             decoration: InputDecoration(
                                 enabled: true,
                                 border: const OutlineInputBorder(),
-                                suffixIcon: const Icon(Icons.person),
+                                suffixIcon: const Icon(Icons.person,
+                                    color: Colors.blue),
                                 hintText: "Name of the user"),
                           ),
                           const SizedBox(height: 10),
@@ -80,12 +86,17 @@ class _UserAddState extends State<UserAdd> {
                                 if (value == null) {
                                   return "You need a phone number";
                                 }
+                                final RegExp phoneExp = new RegExp(r'^\d{10}$');
+                                if (!phoneExp.hasMatch(value)) {
+                                  return "Invalid phone number";
+                                }
                                 return null;
                               },
                               decoration: InputDecoration(
                                   enabled: true,
                                   border: const OutlineInputBorder(),
-                                  suffixIcon: const Icon(Icons.phone),
+                                  suffixIcon: const Icon(Icons.phone,
+                                      color: Colors.blue),
                                   hintText: "Phone number")),
                           _steps != 0 && _steps != 1
                               ? Row(
@@ -94,7 +105,10 @@ class _UserAddState extends State<UserAdd> {
                                   children: [
                                     const SizedBox(width: 10),
                                     OutlinedButton(
-                                        child: Text("Add user"),
+                                        child: Text(
+                                          "Add user",
+                                          style: TextStyle(color: Colors.white),
+                                        ),
                                         style: ButtonStyle(
                                           backgroundColor:
                                               MaterialStateProperty.all<Color>(
@@ -120,6 +134,7 @@ class _UserAddState extends State<UserAdd> {
                                         ),
                                         onPressed: () async {
                                           if (_sub.currentState!.validate()) {
+                                            log(_phoneController.text);
                                             try {
                                               await ProxyService.isarApi.user(
                                                   userPhone:
@@ -130,7 +145,6 @@ class _UserAddState extends State<UserAdd> {
                                               Branch? branch =
                                                   await ProxyService.isarApi
                                                       .defaultBranch();
-
                                               await ProxyService.isarApi
                                                   .saveTenant(
                                                       _phoneController.text,
@@ -148,6 +162,14 @@ class _UserAddState extends State<UserAdd> {
                                               );
                                             } catch (e) {
                                               log(e.toString());
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                const SnackBar(
+                                                  backgroundColor: Colors.red,
+                                                  content: Text(
+                                                      "Error while adding user"),
+                                                ),
+                                              );
                                             }
                                           }
                                         }),
@@ -163,10 +185,7 @@ class _UserAddState extends State<UserAdd> {
                       children: _tenants
                           .map((e) => ListTile(
                                 leading: Text(e.name),
-                                trailing: Checkbox(
-                                  value: true,
-                                  onChanged: (value) {},
-                                ),
+                                trailing: Icon(Icons.nfc, color: Colors.blue),
                               ))
                           .toList()),
                 ],
@@ -176,11 +195,12 @@ class _UserAddState extends State<UserAdd> {
         });
   }
 
-  Future<void> loadTenants() async {
+  Future<List<ITenant>> loadTenants() async {
     List<ITenant> users = await ProxyService.isarApi
         .tenants(businessId: ProxyService.box.getBusinessId()!);
     setState(() {
-      _tenants = users;
+      _tenants = [..._tenants, ...users];
     });
+    return _tenants;
   }
 }

@@ -1153,20 +1153,23 @@ class IsarAPI implements IsarApiInterface {
   /// then call add this user to tenants of specific business/branch.
   @override
   Future<SyncF> user({required String userPhone}) async {
+    log.i(userPhone);
     final response = await http.post(
       Uri.parse(apihub + '/v2/api/user'),
       headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
+        'Content-Type': 'application/json',
       },
-      body: jsonEncode(
-        <String, String>{'phoneNumber': userPhone},
+      body: json.encode(
+        {"phoneNumber": userPhone},
       ),
     );
     if (response.statusCode == 200) {
+      log.d(response.body);
       return syncFFromJson(response.body);
     } else if (response.statusCode == 401) {
       throw SessionException(term: "session expired");
     } else if (response.statusCode == 500) {
+      log.d(response.body);
       throw ErrorReadingFromYBServer(term: "Error from server");
     } else {
       throw Exception('403 Error');
