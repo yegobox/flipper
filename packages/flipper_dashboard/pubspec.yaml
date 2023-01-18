@@ -1,22 +1,24 @@
 name: flipper_dashboard
 description: flipper models scaffold.
 version: 0.0.1-dev.7
-# publish_to: "none"
-repository: https://github.com/yegobox/packages
+publish_to: "none"
+repository: https://github.com/yegobox
 
 environment:
-  sdk: ">=2.17.0 <3.0.0"
+  sdk: ">=2.18.6 <3.0.0"
+  flutter: ">=1.17.0"
 
 dependencies:
   flutter:
     sdk: flutter
   flipper_ui: ^1.0.3
+  flipper_nfc: ^1.0.1
   get: ^4.6.1
   flipper_localize: ^0.0.2
   flipper_models: ^0.0.1-dev.7
   flipper_rw: ^1.0.1-dev.3
   flipper_routing: ^0.0.1-dev.3
-  flutter_chat_ui: ^1.5.5
+
   timeago: ^3.2.1
   mime: ^1.0.1
   open_filex: ^4.1.1
@@ -45,12 +47,12 @@ dependencies:
   google_fonts: ^3.0.1
   number_display: ^3.0.0
   firebase_auth_desktop: ^1.0.2
-  firebase_core: ^2.1.0
+  firebase_core: ^2.4.1
   firebase_core_desktop: ^1.0.2-dev
   cupertino_icons: ^1.0.4
   flipper_services: ^0.0.1-dev.6
   flutter_vector_icons: ^1.0.0
-  flipper_chat: ^0.0.1-dev.5
+
   uuid: ^3.0.5
   flipper_login: ^0.0.1-dev.5
   intl: ^0.17.0
@@ -80,7 +82,6 @@ flutter:
   assets:
     - ../../assets/logo.png
     - ../../assets/
-    - ../../assets/images/
     - ../../assets/icons/
     - ../../assets/svg/
     - ../../google_fonts/

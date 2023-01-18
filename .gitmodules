@@ -6,15 +6,6 @@
 [submodule "open-sources/animated_toggle_switch"]
 	path = open-sources/animated_toggle_switch
 	url = https://github.com/yegobox/animated_toggle_switch.git
-[submodule "open-sources/flutter_firebase_chat_core"]
-	path = open-sources/flutter_firebase_chat_core
-	url = https://github.com/yegobox/flutter_firebase_chat_core.git
-[submodule "open-sources/flutter_chat_ui"]
-	path = open-sources/flutter_chat_ui
-	url = https://github.com/yegobox/flutter_chat_ui.git
-[submodule "open-sources/flutter_chat_types"]
-	path = open-sources/flutter_chat_types
-	url = https://github.com/yegobox/flutter_chat_types.git
 [submodule "open-sources/firestore_cache"]
 	path = open-sources/firestore_cache
 	url = https://github.com/yegobox/firestore_cache.git

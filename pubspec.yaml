@@ -37,9 +37,9 @@ dependencies:
   flutter_acrylic: ^0.1.0
   provider: ^6.0.1
   firebase_auth_desktop: ^1.0.2
-  firebase_core: ^2.1.0
+  firebase_core: ^2.4.1
   firebase_core_desktop: ^1.0.2-dev
-  flutterfire_ui: ^0.4.3+17
+  firebase_ui_auth: ^1.1.8
   get_storage: ^2.0.3
   firebase_auth: ^4.0.2
   google_fonts: ^3.0.1
@@ -63,10 +63,10 @@ dependencies:
   flipper_routing: ^0.0.1-dev.3
   flipper_localize: ^0.0.2
   flipper_data_table: 1.0.0-dev.2
-  flipper_chat: ^0.0.1-dev.5
+
   # deal with clean splash screen
   flutter_native_splash: ^2.2.2
-
+  firebase_ui_localizations: ^1.1.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -129,7 +129,6 @@ flutter:
   assets:
     - assets/logo.png
     - assets/
-    - assets/images/
     - assets/icons/
     - google_fonts/
 generate: true

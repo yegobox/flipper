@@ -600,6 +600,16 @@ class MockFirebaseMessaging extends _i1.Mock implements _i11.FirebaseMessaging {
         returnValueForMissingStub: _i12.Future<void>.value(),
       ) as _i12.Future<void>);
   @override
+  _i12.Future<void> setDeliveryMetricsExportToBigQuery(bool? enabled) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #setDeliveryMetricsExportToBigQuery,
+          [enabled],
+        ),
+        returnValue: _i12.Future<void>.value(),
+        returnValueForMissingStub: _i12.Future<void>.value(),
+      ) as _i12.Future<void>);
+  @override
   _i12.Future<void> setForegroundNotificationPresentationOptions({
     bool? alert = false,
     bool? badge = false,
@@ -958,19 +968,18 @@ class MockKeyPadService extends _i1.Mock implements _i14.KeyPadService {
         returnValueForMissingStub: null,
       );
   @override
-  void customQtyIncrease({int? qty}) => super.noSuchMethod(
-        Invocation.method(
-          #customQtyIncrease,
-          [],
-          {#qty: qty},
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
-  void increaseQty() => super.noSuchMethod(
+  void increaseQty({
+    required bool? custom,
+    int? qty,
+  }) =>
+      super.noSuchMethod(
         Invocation.method(
           #increaseQty,
           [],
+          {
+            #custom: custom,
+            #qty: qty,
+          },
         ),
         returnValueForMissingStub: null,
       );

@@ -12,7 +12,6 @@ import 'package:azlistview/azlistview.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
-import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 
 class MessageViewModel extends BusinessHomeViewModel {
   //save chat_data in a list

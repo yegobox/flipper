@@ -130,14 +130,14 @@ class KeyPadService with ReactiveServiceMixin {
     }
   }
 
-  void customQtyIncrease({int? qty}) {
-    _quantity.value = 0;
-    _quantity.value = qty!;
-  }
-
-  void increaseQty() {
-    _quantity.value++;
-    notifyListeners();
+  void increaseQty({required bool custom, int? qty}) {
+    if (custom) {
+      _quantity.value = 0;
+      _quantity.value = qty!;
+    } else {
+      _quantity.value++;
+      notifyListeners();
+    }
   }
 
   /// can not set -1 quantity
@@ -148,7 +148,6 @@ class KeyPadService with ReactiveServiceMixin {
     if (_quantity.value == 0) {
       _quantity.value = 1;
     }
-    log.i(quantity);
     notifyListeners();
   }
 

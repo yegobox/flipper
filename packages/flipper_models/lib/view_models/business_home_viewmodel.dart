@@ -210,6 +210,20 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     ProxyService.keypad.reset();
   }
 
+  void handleCustomQtySetBeforeSelectingVariation() {
+    if (_currentItemStock != null) {
+      keypad.setAmount(amount: _currentItemStock!.retailPrice! * quantity);
+    }
+  }
+
+  /// setAmount is the amount shown on top of product when increasing the quantity
+  void customQtyIncrease(int quantity) {
+    ProxyService.keypad.increaseQty(custom: true, qty: quantity);
+    if (_currentItemStock != null) {
+      keypad.setAmount(amount: _currentItemStock!.retailPrice! * quantity);
+    }
+  }
+
   /// We take _variantsStocks[0] because we know
   void decreaseQty(Function callback) {
     ProxyService.keypad.decreaseQty();
@@ -219,24 +233,10 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     callback(quantity);
   }
 
-  void handleCustomQtySetBeforeSelectingVariation() {
-    if (_currentItemStock != null) {
-      keypad.setAmount(amount: _currentItemStock!.retailPrice! * quantity);
-    }
-  }
-
-  /// setAmount is the amount shown on top of product when increasing the quantity
-  void customQtyIncrease(int quantity) {
-    ProxyService.keypad.customQtyIncrease(qty: quantity);
-    if (_currentItemStock != null) {
-      keypad.setAmount(amount: _currentItemStock!.retailPrice! * quantity);
-    }
-  }
-
   /// setAmount is the amount shown on top of product when increasing the quantity
 
   void increaseQty(Function callback) {
-    ProxyService.keypad.increaseQty();
+    ProxyService.keypad.increaseQty(custom: false);
     if (_currentItemStock != null) {
       keypad.setAmount(amount: _currentItemStock!.retailPrice! * quantity);
     }
@@ -465,7 +465,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   /// this is to reset the value for a new sale to come!
   void clearPreviousSaleCounts() {
     keypad.setAmount(amount: 0);
-    keypad.customQtyIncrease(qty: 1);
+    keypad.increaseQty(custom: true, qty: 1);
   }
 
   void addNoteToSale({required String note, required Function callback}) async {
@@ -812,6 +812,19 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     ProxyService.isarApi.update(data: branch..isDefault = true);
     ProxyService.box.write(key: 'branchId', value: branch.id);
   }
+
+  // steps to add a product in sale order(prepare the product)
+  // 1. get variant of given product
+  // 2. call loadVariantStock with variantId passed in
+  // 3. call handleCustomQtySetBeforeSelectingVariation
+  // 4. model.keypad.setAmount(amount: variant.retailPrice * model.quantity)
+  // increment
+  // 5. call decreaseQty with custom false to increment
+  // 6. finally call saveOrder(
+  //   variationId: model.checked,
+  //   amountTotal: model.amountTotal,
+  //   customItem: false,
+  // )
 
   @override
   List<ReactiveServiceMixin> get reactiveServices =>

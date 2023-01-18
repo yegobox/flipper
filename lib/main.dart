@@ -51,10 +51,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:universal_platform/universal_platform.dart';
-import 'package:flutterfire_ui/i10n.dart';
-import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
-
 import 'init.dart'
     if (dart.library.html) 'web_init.dart'
     if (dart.library.io) 'io_init.dart';
@@ -506,14 +503,14 @@ void main() async {
             //TODOimplement my own as this is killing design
             // theme: GThemeGenerator.generate(),
             // darkTheme: GThemeGenerator.generateDark(),
-            localizationsDelegates: [
-              FlutterFireUILocalizations.withDefaultOverrides(
-                const LabelOverrides(),
-              ),
-              const FlipperLocalizationsDelegate(),
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-            ],
+            // localizationsDelegates: const [
+            // FlutterFireUILocalizations.withDefaultOverrides(
+            //   const LabelOverrides(),
+            // ),
+            // FlipperLocalizationsDelegate(),
+            // GlobalMaterialLocalizations.delegate,
+            // GlobalWidgetsLocalizations.delegate,
+            // ],
             supportedLocales: const [
               Locale('en', 'US'), // English
               Locale('es', 'ES'), // Spanish

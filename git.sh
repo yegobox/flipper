@@ -19,6 +19,5 @@ cd .. && cd pubnub &&  git checkout master  && git add . && git commit -am "clea
 cd .. && cd upgrader &&  git checkout master  && git add . && git commit -am "clean-up" && git push origin master
 cd .. && cd system_time_check &&  git checkout main  && git add . && git commit -am "clean-up" && git push origin main
 cd .. && cd flutter_file_picker &&  git checkout master  && git add . && git commit -am "clean-up" && git push origin master
-cd .. && cd flutter_chat_types &&  git checkout main  && git add . && git commit -am "clean-up" && git push origin main
 cd .. && cd animated_toggle_switch &&  git checkout  && git add . &&  main && git commit -am "clean-up" && git push origin main
 cd .. && cd animated_toggle_switch &&  git checkout  && git add . &&  main && git commit -am "clean-up" && git push origin main

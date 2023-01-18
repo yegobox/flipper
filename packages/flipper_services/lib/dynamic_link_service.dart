@@ -6,7 +6,6 @@ import 'package:flutter/cupertino.dart';
 import 'abstractions/dynamic_link.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_routing/routes.router.dart';
-import 'package:flutter_firebase_chat_core/flutter_firebase_chat_core.dart';
 import 'package:go_router/go_router.dart';
 
 class UnSupportedDynamicLink implements DynamicLink {
@@ -48,7 +47,7 @@ class DynamicLinkService implements DynamicLink {
     if (isRefer) {
       String? code = deepLink.queryParameters['code'];
       if (ProxyService.remoteConfig.isRemoteLoggingDynamicLinkEnabled()) {
-        FirebaseChatCore.instance.logDynamicLink(code!);
+        // FirebaseChatCore.instance.logDynamicLink(code!);
       }
       //save the code in localstorage to be used later
       ProxyService.box.write(key: 'referralCode', value: code.toString());

@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:developer';
+
 import 'package:flipper_chat/omni/update_profile.dart';
 import 'package:flipper_dashboard/bottom_sheet.dart';
 import 'package:flipper_models/isar_models.dart';
@@ -12,12 +15,13 @@ import 'package:stacked/stacked.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:permission_handler/permission_handler.dart' as perm;
-
+import 'package:flipper_nfc/flipper_nfc.dart';
 import 'badge_icon.dart';
 import 'page_switcher.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 final isMacOs = UniversalPlatform.isMacOS;
+final isIos = UniversalPlatform.isIOS;
 final isAndroid = UniversalPlatform.isAndroid;
 final isWeb = UniversalPlatform.isWeb;
 
@@ -31,13 +35,15 @@ class FlipperApp extends StatefulWidget {
 }
 
 class _FlipperAppState extends State<FlipperApp>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late TabController _tabController;
   final TextEditingController controller = TextEditingController();
   int tabselected = 0;
+  Timer? _whileLoop;
 
   @override
   void initState() {
+    WidgetsBinding.instance.addObserver(this);
     _tabController = TabController(length: 3, vsync: this);
     ProxyService.event.connect();
     ProxyService.firestore.configureEbm();
@@ -58,8 +64,6 @@ class _FlipperAppState extends State<FlipperApp>
     ProxyService.cron.schedule();
     ProxyService.cron.connectBlueToothPrinter();
     ProxyService.cron.deleteReceivedMessageFromServer();
-
-    // NFC.start();
 
     /// This is one solution to have data synced across devices. and connected clients
     /// once the objectbox sync is available the option will be evaluated and added. to package and maybe also
@@ -113,8 +117,41 @@ class _FlipperAppState extends State<FlipperApp>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
     _tabController.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.resumed:
+        if (isAndroid || isIos) {
+          _whileLoop = Timer.periodic(Duration(seconds: 1), (timer) {
+            // Your code here
+            // This code will run every 1 second while the app is in the foreground
+            final nfc = NFCManager();
+            nfc.startNFC(
+              callback: (nfcData) {
+                String cleanedData =
+                    nfcData.split(RegExp(r"(NFC_DATA:|en|\\x02)")).last;
+                log(cleanedData);
+              },
+              textData: "123444444:22334:+250783054874",
+              write: false,
+            );
+          });
+        }
+
+        break;
+      case AppLifecycleState.paused:
+        if (_whileLoop != null) {
+          _whileLoop?.cancel();
+        }
+        break;
+      default:
+        break;
+    }
   }
 
   @override

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flutterfire_ui/auth.dart';
+import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:flipper_dashboard/setting_view_model.dart';
 

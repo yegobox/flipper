@@ -180,6 +180,9 @@ class _UserAddState extends State<UserAdd> {
                       ),
                     ),
                   ),
+                  //on click of the trailing icon
+                  // call the YB API to patch this tenant as enabled nfc
+                  // then
                   ListView(
                       shrinkWrap: true,
                       children: _tenants

@@ -6,7 +6,8 @@ import 'package:go_router/go_router.dart';
 import 'config.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flutter/material.dart';
-import 'package:flutterfire_ui/auth.dart';
+import 'package:firebase_ui_auth/firebase_ui_auth.dart';
+
 import 'decorations.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/routes.logger.dart';
@@ -146,21 +147,29 @@ class _LoginViewState extends State<LoginView>
         ProxyService.remoteConfig.isFacebookLoginAvailable() &&
         ProxyService.remoteConfig.isTwitterLoginAvailable()) {
       return const [
-        PhoneProviderConfiguration(),
-        // EmailProviderConfiguration(),
-        GoogleProviderConfiguration(clientId: GOOGLE_CLIENT_ID),
-        FacebookProviderConfiguration(clientId: FACEBOOK_CLIENT_ID),
-        TwitterProviderConfiguration(
-          apiKey: TWITTER_API_KEY,
-          apiSecretKey: TWITTER_API_SECRET_KEY,
-          redirectUri: TWITTER_REDIRECT_URI,
-        ),
+        EmailAuthProvider(),
+        emailLinkProviderConfig,
+        PhoneAuthProvider(),
+        GoogleProvider(clientId: GOOGLE_CLIENT_ID),
+        // PhoneAuthProvider(),
+        // // EmailProviderConfiguration(),
+        // GoogleProviderConfiguration(clientId: GOOGLE_CLIENT_ID),
+        // FacebookProviderConfiguration(clientId: FACEBOOK_CLIENT_ID),
+        // TwitterProviderConfiguration(
+        //   apiKey: TWITTER_API_KEY,
+        //   apiSecretKey: TWITTER_API_SECRET_KEY,
+        //   redirectUri: TWITTER_REDIRECT_URI,
+        // ),
       ];
     } else if (ProxyService.remoteConfig.isGoogleLoginAvailable()) {
       return const [
-        PhoneProviderConfiguration(),
-        // EmailProviderConfiguration(),
-        GoogleProviderConfiguration(clientId: GOOGLE_CLIENT_ID),
+        // PhoneProviderConfiguration(),
+        // // EmailProviderConfiguration(),
+        // GoogleProviderConfiguration(clientId: GOOGLE_CLIENT_ID),
+        EmailAuthProvider(),
+        emailLinkProviderConfig,
+        PhoneAuthProvider(),
+        GoogleProvider(clientId: GOOGLE_CLIENT_ID),
       ];
     } else {
       return const [

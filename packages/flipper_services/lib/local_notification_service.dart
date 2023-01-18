@@ -3,8 +3,6 @@ import 'package:flipper_rw/bottom_sheets/activate_subscription.dart';
 import 'package:flipper_rw/bottom_sheets/subscription_widget.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flipper_dashboard/bottom_sheet.dart';
-import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
-import 'package:flutter_firebase_chat_core/flutter_firebase_chat_core.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flipper_routing/routes.logger.dart';
@@ -147,8 +145,8 @@ class LocalNotificationService implements LNotification {
       String action, String kId, BuildContext context) async {
     switch (action) {
       case 'chat':
-        types.Room? room = await FirebaseChatCore.instance.roomFromId(kId);
-        GoRouter.of(context).go(Routes.convo + '/' + room!.id);
+        // types.Room? room = await FirebaseChatCore.instance.roomFromId(kId);
+        GoRouter.of(context).go(Routes.convo + '/' + "room!.id");
 
         break;
       case 'order':
