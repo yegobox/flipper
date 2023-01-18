@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show SynchronousFuture;
 import 'dart:async';
-import 'package:flutterfire_ui/i10n.dart';
+import 'package:firebase_ui_localizations/firebase_ui_localizations.dart';
 
 class LabelOverrides extends DefaultLocalizations {
   const LabelOverrides();

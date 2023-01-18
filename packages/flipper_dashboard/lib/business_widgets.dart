@@ -1,4 +1,4 @@
-import 'package:flipper_rw/helpers/utils.dart';
+import 'package:flipper_ui/helpers/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flipper_models/isar_models.dart';

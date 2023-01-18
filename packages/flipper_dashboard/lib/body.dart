@@ -1,6 +1,6 @@
 import 'package:flipper_dashboard/transactions.dart';
 import 'package:flipper_localize/flipper_localize.dart';
-import 'package:flipper_rw/bottom_sheets/general_bottom_sheet.dart';
+import 'package:flipper_ui/bottom_sheets/general_bottom_sheet.dart';
 import 'package:flipper_dashboard/sales_buttons_controller.dart';
 import 'package:flipper_dashboard/keypad_view.dart';
 import 'package:flipper_dashboard/payable_view.dart';

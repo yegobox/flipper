@@ -1,4 +1,4 @@
-import 'package:flipper_rw/dialogs/main.dart';
+import 'package:flipper_ui/dialogs/main.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_ui/flipper_ui.dart';

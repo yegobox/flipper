@@ -1,6 +1,6 @@
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_dashboard/setting_view_model.dart';
-import 'package:flipper_rw/bottom_sheets/general_bottom_sheet.dart';
+import 'package:flipper_ui/bottom_sheets/general_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:stacked/stacked.dart';

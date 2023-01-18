@@ -1,4 +1,4 @@
-# melos_managed_dependency_overrides: device_info_plus,device_info_plus_linux,device_info_plus_macos,device_info_plus_platform_interface,device_info_plus_web,device_info_plus_windows,file_picker,firebase_auth_dart,firebase_auth_desktop,firebase_core_dart,firebase_core_desktop,flipper_dashboard,flipper_data_table,flipper_finance,flipper_loading,flipper_localize,flipper_login,flipper_models,flipper_rw,flipper_services,flipper_ui,flutter_datetime_picker,flutter_slidable,package_info_plus,package_info_plus_linux,package_info_plus_macos,package_info_plus_platform_interface,package_info_plus_web,package_info_plus_windows,pdf,printing,pubnub,qr_code_scanner,qr_flutter,receipt,scrollable_positioned_list,upgrader,win32
+# melos_managed_dependency_overrides: device_info_plus,device_info_plus_linux,device_info_plus_macos,device_info_plus_platform_interface,device_info_plus_web,device_info_plus_windows,file_picker,firebase_auth_dart,firebase_auth_desktop,firebase_core_dart,firebase_core_desktop,flipper_dashboard,flipper_data_table,flipper_finance,flipper_loading,flipper_localize,flipper_login,flipper_models,flipper_services,flipper_ui,flutter_datetime_picker,flutter_slidable,package_info_plus,package_info_plus_linux,package_info_plus_macos,package_info_plus_platform_interface,package_info_plus_web,package_info_plus_windows,pdf,printing,pubnub,qr_code_scanner,qr_flutter,receipt,scrollable_positioned_list,upgrader,win32
 dependency_overrides:
   device_info_plus:
     path: ..\\..\\open-sources\\plus_plugins\\packages\\device_info_plus\\device_info_plus
@@ -36,8 +36,6 @@ dependency_overrides:
     path: ..\\flipper_login
   flipper_models:
     path: ..\\flipper_models
-  flipper_rw:
-    path: ..\\..
   flipper_services:
     path: ..\\flipper_services
   flipper_ui:

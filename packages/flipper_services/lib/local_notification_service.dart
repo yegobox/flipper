@@ -1,6 +1,6 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flipper_rw/bottom_sheets/activate_subscription.dart';
-import 'package:flipper_rw/bottom_sheets/subscription_widget.dart';
+import 'package:flipper_ui/bottom_sheets/activate_subscription.dart';
+import 'package:flipper_ui/bottom_sheets/subscription_widget.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flipper_dashboard/bottom_sheet.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';

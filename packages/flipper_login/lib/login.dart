@@ -1,5 +1,7 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart'
+    hide PhoneAuthProvider, EmailAuthProvider;
+import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
 import 'package:flipper_dashboard/startup_view.dart';
 import 'package:flipper_models/view_models/gate.dart';
 import 'package:go_router/go_router.dart';
@@ -7,7 +9,6 @@ import 'config.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
-
 import 'decorations.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/routes.logger.dart';
@@ -75,7 +76,8 @@ class _LoginViewState extends State<LoginView>
 
   @override
   void didChangeDependencies() {
-    context.dependOnInheritedWidgetOfExactType<FlutterFireUIActions>();
+    // FlutterFireUIActions
+    // context.dependOnInheritedWidgetOfExactType<FirebaseAuthAc>();
 
     super.didChangeDependencies();
   }
@@ -133,7 +135,7 @@ class _LoginViewState extends State<LoginView>
                           ),
                         );
                       },
-                      providerConfigs: providers(),
+                      providers: providers(),
                     ),
                   ),
                 );
@@ -142,38 +144,23 @@ class _LoginViewState extends State<LoginView>
     );
   }
 
-  List<ProviderConfiguration> providers() {
+  List<AuthProvider> providers() {
     if (ProxyService.remoteConfig.isGoogleLoginAvailable() &&
         ProxyService.remoteConfig.isFacebookLoginAvailable() &&
         ProxyService.remoteConfig.isTwitterLoginAvailable()) {
-      return const [
-        EmailAuthProvider(),
-        emailLinkProviderConfig,
+      return [
         PhoneAuthProvider(),
-        GoogleProvider(clientId: GOOGLE_CLIENT_ID),
-        // PhoneAuthProvider(),
-        // // EmailProviderConfiguration(),
-        // GoogleProviderConfiguration(clientId: GOOGLE_CLIENT_ID),
-        // FacebookProviderConfiguration(clientId: FACEBOOK_CLIENT_ID),
-        // TwitterProviderConfiguration(
-        //   apiKey: TWITTER_API_KEY,
-        //   apiSecretKey: TWITTER_API_SECRET_KEY,
-        //   redirectUri: TWITTER_REDIRECT_URI,
-        // ),
+        //add otherProviders
       ];
     } else if (ProxyService.remoteConfig.isGoogleLoginAvailable()) {
-      return const [
-        // PhoneProviderConfiguration(),
-        // // EmailProviderConfiguration(),
-        // GoogleProviderConfiguration(clientId: GOOGLE_CLIENT_ID),
-        EmailAuthProvider(),
-        emailLinkProviderConfig,
+      return [
         PhoneAuthProvider(),
+        // EmailProviderConfiguration(),
         GoogleProvider(clientId: GOOGLE_CLIENT_ID),
       ];
     } else {
-      return const [
-        PhoneProviderConfiguration(),
+      return [
+        PhoneAuthProvider(),
         // EmailProviderConfiguration(),
         // GoogleProviderConfiguration(clientId: GOOGLE_CLIENT_ID),
       ];

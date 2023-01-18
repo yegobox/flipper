@@ -11,7 +11,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flipper_rw: ^1.0.1-dev.3
+
   stacked: ^3.0.0
   firebase_remote_config: ^3.0.2
   share_plus: ^4.0.3

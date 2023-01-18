@@ -65,8 +65,6 @@ class CronService {
 
       Map updatedBusiness = business!.toJson();
       updatedBusiness['deviceToken'] = token.toString();
-      ProxyService.firestore
-          .saveTokenToDatabase(token: token, business: updatedBusiness);
     }
 
     /// load new contacts i.e business every 5 minutes

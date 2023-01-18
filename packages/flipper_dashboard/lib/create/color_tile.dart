@@ -1,5 +1,5 @@
 import 'package:flipper_dashboard/customappbar.dart';
-import 'package:flipper_rw/helpers/utils.dart';
+import 'package:flipper_ui/helpers/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -244,7 +244,7 @@ class ColorTile extends StatelessWidget {
                 width: 120,
                 child: TextButton(
                   style: TextButton.styleFrom(
-                    primary: HexColor(colors[i].name!),
+                    foregroundColor: HexColor(colors[i].name!),
                     backgroundColor: HexColor(colors[i].name!),
                     shape: RoundedRectangleBorder(
                       side: BorderSide(

@@ -1,6 +1,6 @@
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_routing/routes.router.dart';
-import 'package:flipper_rw/helpers/utils.dart';
+import 'package:flipper_ui/helpers/utils.dart';
 import 'package:flutter/material.dart';
 import 'close_button.dart';
 import 'package:feather_icons/feather_icons.dart';

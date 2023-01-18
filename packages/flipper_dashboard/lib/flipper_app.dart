@@ -1,12 +1,11 @@
 import 'dart:async';
 import 'dart:developer';
 
-import 'package:flipper_chat/omni/update_profile.dart';
 import 'package:flipper_dashboard/bottom_sheet.dart';
 import 'package:flipper_models/isar_models.dart';
-import 'package:flipper_rw/bottom_sheets/activate_subscription.dart';
-import 'package:flipper_rw/bottom_sheets/bottom_sheet_builder.dart';
-import 'package:flipper_rw/bottom_sheets/subscription_widget.dart';
+import 'package:flipper_ui/bottom_sheets/activate_subscription.dart';
+import 'package:flipper_ui/bottom_sheets/bottom_sheet_builder.dart';
+import 'package:flipper_ui/bottom_sheets/subscription_widget.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -46,8 +45,6 @@ class _FlipperAppState extends State<FlipperApp>
     WidgetsBinding.instance.addObserver(this);
     _tabController = TabController(length: 3, vsync: this);
     ProxyService.event.connect();
-    ProxyService.firestore.configureEbm();
-    ProxyService.firestore.configureTokens();
 
     ProxyService.remoteConfig.config();
     ProxyService.remoteConfig.setDefault();
@@ -96,7 +93,8 @@ class _FlipperAppState extends State<FlipperApp>
           if (profile == null && today % 2 == 0 && !isWindows) {
             bottomSheetBuilderProfile(
               context: context,
-              body: <Widget>[const UpdateProfile()],
+              // body: <Widget>[const UpdateProfile()],
+              body: <Widget>[const SizedBox.shrink()],
               header: header(title: 'Update Profile', context: context),
             );
           }

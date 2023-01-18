@@ -37,7 +37,6 @@ import 'abstractions/upload.dart';
 import 'app_service.dart';
 import 'country_service.dart';
 import 'dynamic_link_service.dart';
-import 'firestore_api.dart';
 import 'keypad_service.dart';
 import 'local_notification_service.dart';
 import 'local_storage.dart';
@@ -117,19 +116,6 @@ abstract class ThirdPartyServicesModule {
       remote = RemoteConfigWindows();
     }
     return remote;
-  }
-
-  @lazySingleton
-  FlipperFirestore get firestore {
-    late FlipperFirestore firestore;
-    if (UniversalPlatform.isIOS ||
-        UniversalPlatform.isAndroid ||
-        UniversalPlatform.isMacOS) {
-      firestore = FirestoreApi();
-    } else {
-      firestore = UnSupportedFirestoreApi();
-    }
-    return firestore;
   }
 
   @lazySingleton

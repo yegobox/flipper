@@ -16,7 +16,7 @@ dependencies:
   get: ^4.6.1
   flipper_localize: ^0.0.2
   flipper_models: ^0.0.1-dev.7
-  flipper_rw: ^1.0.1-dev.3
+
   flipper_routing: ^0.0.1-dev.3
 
   timeago: ^3.2.1
