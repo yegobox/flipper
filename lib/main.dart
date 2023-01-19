@@ -33,7 +33,6 @@ import 'package:flipper_dashboard/user_add.dart';
 import 'package:flipper_login/pin_login.dart';
 import 'package:flipper_login/signup_form_view.dart';
 import 'package:flipper_models/view_models/gate.dart';
-import 'package:flipper_routing/finance_app.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:go_router/go_router.dart';
 import 'package:flipper_login/login.dart';
@@ -383,14 +382,6 @@ void main() async {
             child: Customers(
               orderId: int.parse(state.params['orderId']!),
             ),
-          ),
-        ),
-        GoRoute(
-          path: '/finance',
-          name: 'finance',
-          pageBuilder: (context, state) => MaterialPage(
-            key: state.pageKey,
-            child: const FinanceApp(),
           ),
         ),
         GoRoute(

@@ -1716,12 +1716,12 @@ packages:
     source: hosted
     version: "0.3.0"
   scrollable_positioned_list:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
-      path: "../../open-sources/flutter.widgets/packages/scrollable_positioned_list"
-      relative: true
-    source: path
-    version: "0.3.2-dev"
+      name: scrollable_positioned_list
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.2.3"
   share_plus:
     dependency: transitive
     description:

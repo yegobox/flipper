@@ -16,3 +16,6 @@ class AppSetup {
   /** Serves no purpose besides having an annotation attached to it */
 }
 //  flutter packages pub run build_runner build --delete-conflicting-outputs
+// While debugging if you lost communication, then you can not use the Hot-Reload or Hot-Restart feature. So, instead of re-building or installing new applications, you can attach existing installed applications.
+
+// flutter attach -d <DEVICE_ID>

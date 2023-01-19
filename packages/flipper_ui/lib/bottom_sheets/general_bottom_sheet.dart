@@ -1,15 +1,13 @@
-import 'dart:developer';
-import 'dart:io';
-
-import 'package:flipper_dashboard/flipper_dashboard.dart';
-import 'package:flipper_dashboard/loader.dart';
-import 'package:flipper_models/isar_models.dart';
-import 'package:flipper_services/drive_service.dart';
+// import 'package:flipper_dashboard/flipper_dashboard.dart';
+// import 'package:flipper_dashboard/loader.dart';
+// import 'package:flipper_models/isar_models.dart';
+// import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_ui/flipper_ui.dart';
+import 'package:flipper_ui/helpers/hex.dart';
 import 'package:flutter/material.dart';
-import 'package:overlay_support/overlay_support.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:flipper_localize/flipper_localize.dart';
+// import 'package:overlay_support/overlay_support.dart';
+// import 'package:path_provider/path_provider.dart';
+// import 'package:flipper_localize/flipper_localize.dart';
 
 bottomSheetBuilder({
   required BuildContext context,
@@ -24,47 +22,48 @@ bottomSheetBuilder({
     backgroundColor: Colors.white,
     isScrollControlled: true,
     builder: (BuildContext context) {
-      return StatefulBuilder(
-        builder: (context, setState) {
-          return Theme(
-            data: Theme.of(context).copyWith(
-              canvasColor: Colors.transparent,
-            ),
-            child: SizedBox(
-              height: MediaQuery.of(context).size.height - 120,
-              child: AnimatedContainer(
-                alignment: AlignmentDirectional.topCenter,
-                duration: const Duration(seconds: 2),
-                curve: Curves.elasticOut,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(18.0),
-                    topRight: Radius.circular(18.0),
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    header,
-                    Padding(
-                      padding: const EdgeInsets.only(left: 8.0),
-                      child: body,
-                    )
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      );
+      return SizedBox.shrink();
+      // return StatefulBuilder(
+      //   builder: (context, setState) {
+      //     return Theme(
+      //       data: Theme.of(context).copyWith(
+      //         canvasColor: Colors.transparent,
+      //       ),
+      //       child: SizedBox(
+      //         height: MediaQuery.of(context).size.height - 120,
+      //         child: AnimatedContainer(
+      //           alignment: AlignmentDirectional.topCenter,
+      //           duration: const Duration(seconds: 2),
+      //           curve: Curves.elasticOut,
+      //           decoration: const BoxDecoration(
+      //             color: Colors.white,
+      //             borderRadius: BorderRadius.only(
+      //               topLeft: Radius.circular(18.0),
+      //               topRight: Radius.circular(18.0),
+      //             ),
+      //           ),
+      //           child: Column(
+      //             crossAxisAlignment: CrossAxisAlignment.start,
+      //             children: <Widget>[
+      //               header,
+      //               Padding(
+      //                 padding: const EdgeInsets.only(left: 8.0),
+      //                 child: body,
+      //               )
+      //             ],
+      //           ),
+      //         ),
+      //       ),
+      //     );
+      //   },
+      // );
     },
   );
 }
 
 class FlipperBottomSheet {
   static showABackUpBottomSheet(
-      {required SettingViewModel model, required BuildContext context}) async {
+      {required dynamic model, required BuildContext context}) async {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -84,18 +83,18 @@ class FlipperBottomSheet {
                   title: 'Add Backup',
                   onTap: () async {
                     //if the payment method is not enabled, enable it first!.
-                    final drive = GoogleDrive();
-                    await drive.silentLogin();
+                    // final drive = GoogleDrive();
+                    // await drive.silentLogin();
                     model.isAutoBackupEnabled = !model.isAutoBackupEnabled;
                     // TODOupdate the business local and online about the backup
                     // now since the backup is true backup every time using the saved credentials of google drive
                     // I need to know when switching to another phone how I will decide what happen.
-                    Directory test = await getApplicationDocumentsDirectory();
+                    // Directory test = await getApplicationDocumentsDirectory();
 
-                    await for (var entity
-                        in test.list(recursive: true, followLinks: false)) {
-                      log(entity.path);
-                    }
+                    // await for (var entity
+                    //     in test.list(recursive: true, followLinks: false)) {
+                    //   log(entity.path);
+                    // }
                   },
                 ),
               ),
@@ -113,8 +112,7 @@ class FlipperBottomSheet {
   }
 
   static showTicketsToSaleBottomSheet(
-      {required BusinessHomeViewModel model,
-      required BuildContext context}) async {
+      {required dynamic model, required BuildContext context}) async {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -149,9 +147,9 @@ class FlipperBottomSheet {
                                   onPressed: () async {
                                     await model.resumeOrder(
                                         ticketId: ticket.id);
-                                    showSimpleNotification(
-                                        const Text('Order Restored!'),
-                                        background: Colors.green);
+                                    // showSimpleNotification(
+                                    //     const Text('Order Restored!'),
+                                    //     background: Colors.green);
                                     // ignore: use_build_context_synchronously
                                     Navigator.maybePop(context);
                                   },
@@ -171,8 +169,7 @@ class FlipperBottomSheet {
   }
 
   static showAddNoteToSaleBottomSheet(
-      {required BusinessHomeViewModel model,
-      required BuildContext context}) async {
+      {required dynamic model, required BuildContext context}) async {
     GlobalKey<FormState> formKey = GlobalKey<FormState>();
     TextEditingController controller = TextEditingController();
     showModalBottomSheet(
@@ -223,17 +220,17 @@ class FlipperBottomSheet {
               Padding(
                 padding: const EdgeInsets.all(2.0),
                 child: BoxButton(
-                  title: FLocalization.of(context).save,
+                  title: "Save",
                   onTap: () {
                     if (formKey.currentState!.validate()) {
                       model.addNoteToSale(
                         note: controller.text,
                         callback: (callback) {
                           if (callback == 1) {
-                            showSimpleNotification(
-                              const Text('Note added!'),
-                              background: Colors.green,
-                            );
+                            // showSimpleNotification(
+                            //   const Text('Note added!'),
+                            //   background: Colors.green,
+                            // );
                             Navigator.maybePop(context);
                           }
                         },

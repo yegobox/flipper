@@ -1,5 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flipper_dashboard/loader.dart';
+import 'package:flipper_ui/helpers/hex.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
 

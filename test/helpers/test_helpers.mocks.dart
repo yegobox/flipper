@@ -11,7 +11,7 @@ import 'package:firebase_messaging/firebase_messaging.dart' as _i11;
 import 'package:firebase_messaging_platform_interface/firebase_messaging_platform_interface.dart'
     as _i4;
 import 'package:flipper_models/isar_models.dart' as _i8;
-import 'package:flipper_ui/stack.dart' as _i6;
+import 'package:flipper_ui/helpers/stack.dart' as _i6;
 import 'package:flipper_services/abstractions/location.dart' as _i19;
 import 'package:flipper_services/abstractions/remote.dart' as _i10;
 import 'package:flipper_services/abstractions/storage.dart' as _i17;

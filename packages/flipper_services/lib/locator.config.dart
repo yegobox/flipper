@@ -6,8 +6,8 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:flipper_models/isar_models.dart' as _i13;
-import 'package:flipper_models/tax_api.dart' as _i26;
-import 'package:flipper_models/whatsapp.dart' as _i28;
+import 'package:flipper_models/tax_api.dart' as _i25;
+import 'package:flipper_models/whatsapp.dart' as _i27;
 import 'package:get_it/get_it.dart' as _i1;
 import 'package:injectable/injectable.dart' as _i2;
 
@@ -18,9 +18,8 @@ import 'abstractions/printer.dart' as _i18;
 import 'abstractions/remote.dart' as _i20;
 import 'abstractions/share.dart' as _i23;
 import 'abstractions/storage.dart' as _i17;
-import 'abstractions/sync.dart' as _i24;
-import 'abstractions/system_time.dart' as _i25;
-import 'abstractions/upload.dart' as _i27;
+import 'abstractions/system_time.dart' as _i24;
+import 'abstractions/upload.dart' as _i26;
 import 'app_service.dart' as _i4;
 import 'billing_service.dart' as _i5;
 import 'country_service.dart' as _i6;
@@ -35,7 +34,7 @@ import 'local_notification_service.dart' as _i15;
 import 'product_service.dart' as _i19;
 import 'setting_service.dart' as _i22;
 import 'third_party_services_module.dart'
-    as _i29; // ignore_for_file: unnecessary_lambdas
+    as _i28; // ignore_for_file: unnecessary_lambdas
 
 // ignore_for_file: lines_longer_than_80_chars
 /// initializes the registration of provided dependencies inside of [GetIt]
@@ -82,16 +81,14 @@ Future<_i1.GetIt> $initGetIt(
   gh.lazySingleton<_i22.SettingsService>(
       () => thirdPartyServicesModule.settings);
   gh.lazySingleton<_i23.Shareble>(() => thirdPartyServicesModule.share);
-  gh.lazySingleton<_i24.SyncApiInterface>(
-      () => thirdPartyServicesModule.syncApi);
-  gh.lazySingleton<_i25.SystemTime>(() => thirdPartyServicesModule.systemTime);
-  gh.lazySingleton<_i26.TaxApi>(() => thirdPartyServicesModule.taxApiService);
-  gh.lazySingleton<_i27.UploadT>(() => thirdPartyServicesModule.upload);
-  gh.lazySingleton<_i28.WhatsApp>(() => thirdPartyServicesModule.whatsApp);
+  gh.lazySingleton<_i24.SystemTime>(() => thirdPartyServicesModule.systemTime);
+  gh.lazySingleton<_i25.TaxApi>(() => thirdPartyServicesModule.taxApiService);
+  gh.lazySingleton<_i26.UploadT>(() => thirdPartyServicesModule.upload);
+  gh.lazySingleton<_i27.WhatsApp>(() => thirdPartyServicesModule.whatsApp);
   return get;
 }
 
-class _$ThirdPartyServicesModule extends _i29.ThirdPartyServicesModule {
+class _$ThirdPartyServicesModule extends _i28.ThirdPartyServicesModule {
   @override
   _i4.AppService get appService => _i4.AppService();
   @override

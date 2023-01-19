@@ -7,7 +7,6 @@ import 'package:flipper_models/whatsapp.dart';
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
 import 'package:flipper_services/abstractions/analytic.dart';
 import 'package:flipper_services/abstractions/printer.dart';
-import 'package:flipper_services/abstractions/sync.dart';
 import 'package:flipper_services/abstractions/system_time.dart';
 import 'package:flipper_services/billing_service.dart';
 import 'package:flipper_services/blue_thooth_service.dart';
@@ -24,7 +23,6 @@ import 'package:flipper_services/remote_config_service.dart';
 import 'package:flipper_services/cron_service.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_services/share_implementation.dart';
-import 'package:flipper_services/sync_api.dart';
 import 'package:flipper_services/system_time_service.dart';
 import 'package:injectable/injectable.dart';
 import 'package:flipper_models/isar_models.dart';
@@ -264,19 +262,6 @@ abstract class ThirdPartyServicesModule {
         location = LocationService();
     }
     return location;
-  }
-
-  @lazySingleton
-  SyncApiInterface get syncApi {
-    SyncApiInterface syncApi;
-    switch (platform) {
-      case "windows":
-        syncApi = SyncApi();
-        break;
-      default:
-        syncApi = SyncApi();
-    }
-    return syncApi;
   }
 
   // @lazySingleton

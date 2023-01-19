@@ -11,7 +11,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flipper_ui: ^1.0.3
+
   flipper_nfc: ^1.0.1
   get: ^4.6.1
   flipper_localize: ^0.0.2
@@ -73,7 +73,7 @@ dependencies:
   permission_handler: ^10.1.0
   flutter_svg: ^1.1.6
   modal_bottom_sheet: ^2.1.0
-
+  # flipper_ui: ^1.0.3
 flutter:
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
