@@ -786,7 +786,7 @@ packages:
     source: path
     version: "0.0.1-dev.6"
   flipper_ui:
-    dependency: "direct main"
+    dependency: "direct overridden"
     description:
       path: "packages/flipper_ui"
       relative: true

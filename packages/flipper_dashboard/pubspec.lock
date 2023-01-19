@@ -737,7 +737,7 @@ packages:
     source: path
     version: "0.0.1-dev.6"
   flipper_ui:
-    dependency: "direct main"
+    dependency: "direct overridden"
     description:
       path: "../flipper_ui"
       relative: true
@@ -1716,12 +1716,12 @@ packages:
     source: hosted
     version: "0.3.0"
   scrollable_positioned_list:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: scrollable_positioned_list
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.2.3"
+      path: "../../open-sources/flutter.widgets/packages/scrollable_positioned_list"
+      relative: true
+    source: path
+    version: "0.3.2-dev"
   share_plus:
     dependency: transitive
     description:
