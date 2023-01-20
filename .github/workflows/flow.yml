@@ -4,18 +4,28 @@ on:
   issues:
     types:
       - opened
+  pull_request:
+    types:
+      - labeled
 
 jobs:
-  add-to-project:
+  bugs:
     name: Add issue to project
     runs-on: ubuntu-latest
     steps:
       - uses: actions/add-to-project@v0.4.0
         with:
-          # You can target a repository in a different organization
-          # to the issue
-          #
           project-url: https://github.com/orgs/yegobox/projects/7
           github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}
           labeled: bug, needs-triage
           label-operator: OR
+  pullRequest:
+    name: Add issue to project
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/add-to-project@v0.4.0
+        with:
+          project-url: https://github.com/orgs/yegobox/projects/7
+          github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}
+          labeled: needs-review, size/XL
+          label-operator: AND
