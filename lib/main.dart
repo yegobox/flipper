@@ -33,7 +33,6 @@ import 'package:flipper_dashboard/user_add.dart';
 import 'package:flipper_login/pin_login.dart';
 import 'package:flipper_login/signup_form_view.dart';
 import 'package:flipper_models/view_models/gate.dart';
-import 'package:flipper_models/view_models/history.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:go_router/go_router.dart';
 import 'package:flipper_login/login.dart';
@@ -88,7 +87,6 @@ void main() async {
   // done init in mobile.//done separation.
   await setupLocator();
   await initDb();
-  final navigationHistory = NavigationHistory();
 
   (!isWindows) ? FirebaseMessaging.onBackgroundMessage(backgroundHandler) : '';
   runZonedGuarded<Future<void>>(() async {
@@ -132,9 +130,7 @@ void main() async {
 
         if (loggedIn &&
             !onHome &&
-            routeWithRedirectRules.contains(state.subloc) &&
-            !navigationHistory.hasRecentlyVisited(Routes.home)) {
-          navigationHistory.add(Routes.home);
+            routeWithRedirectRules.contains(state.subloc)) {
           return Routes.home;
         }
 
@@ -142,9 +138,7 @@ void main() async {
             !onLogin &&
             !needSignUp &&
             !loginChoices &&
-            routeWithRedirectRules.contains(state.subloc) &&
-            !navigationHistory.hasRecentlyVisited(Routes.login)) {
-          navigationHistory.add(Routes.login);
+            routeWithRedirectRules.contains(state.subloc)) {
           return Routes.login;
         }
 
@@ -157,9 +151,8 @@ void main() async {
 
         if (loginChoices &&
             !onTenants &&
-            routeWithRedirectRules.contains(state.subloc) &&
-            !navigationHistory.hasRecentlyVisited(Routes.tenants)) {
-          navigationHistory.add(Routes.tenants);
+            !loggedIn &&
+            routeWithRedirectRules.contains(state.subloc)) {
           return Routes.tenants;
         }
 

@@ -30,7 +30,7 @@ dependencies:
   firebase_storage: ^11.0.2
   file_picker: ^4.6.1-dev
   go_router: ^3.1.0
-  stacked: ^3.0.0
+  stacked: ^3.1.0+2
   azlistview: ^2.0.0
   qr_code_scanner: ^0.7.1
   cached_network_image: ^3.2.1

@@ -24,7 +24,7 @@ class _LoginChoicesState extends State<LoginChoices> {
   Widget build(BuildContext context) {
     return ViewModelBuilder<BusinessHomeViewModel>.reactive(
         viewModelBuilder: () => BusinessHomeViewModel(),
-        onModelReady: (model) async {
+        onViewModelReady: (model) async {
           String? userId = ProxyService.box.getUserId();
           List<Business> _b =
               await ProxyService.isarApi.businesses(userId: userId!);
