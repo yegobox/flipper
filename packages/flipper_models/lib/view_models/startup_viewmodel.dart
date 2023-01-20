@@ -46,6 +46,7 @@ class StartUpViewModel extends BaseViewModel {
     } catch (e) {
       if (e is LoginChoicesException) {
         loginInfo.isLoggedIn = false;
+        loginInfo.loginChoices = true;
         navigationCallback("login_choices");
       } else if (e is NoDrawerOpenException) {
         navigationCallback("drawer");

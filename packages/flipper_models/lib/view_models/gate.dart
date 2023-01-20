@@ -8,6 +8,13 @@ class LoginInfo extends ChangeNotifier {
     notifyListeners();
   }
 
+  var _loginChoices = false;
+  bool get loginChoices => _loginChoices;
+  set loginChoices(bool value) {
+    _loginChoices = value;
+    notifyListeners();
+  }
+
   var _needSignUp = false;
   bool get needSignUp => _needSignUp;
   set needSignUp(bool value) {

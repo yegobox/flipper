@@ -33,6 +33,7 @@ import 'package:flipper_dashboard/user_add.dart';
 import 'package:flipper_login/pin_login.dart';
 import 'package:flipper_login/signup_form_view.dart';
 import 'package:flipper_models/view_models/gate.dart';
+import 'package:flipper_models/view_models/history.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:go_router/go_router.dart';
 import 'package:flipper_login/login.dart';
@@ -87,6 +88,7 @@ void main() async {
   // done init in mobile.//done separation.
   await setupLocator();
   await initDb();
+  final navigationHistory = NavigationHistory();
 
   (!isWindows) ? FirebaseMessaging.onBackgroundMessage(backgroundHandler) : '';
   runZonedGuarded<Future<void>>(() async {
@@ -112,35 +114,55 @@ void main() async {
         final String country = loginInfo.country.replaceAll(" ", "");
         final onSignUp = state.subloc == "${Routes.signup}/$country";
         final bool noNet = loginInfo.noNet;
-
+        final bool loginChoices = loginInfo.loginChoices;
+        final onTenants = state.subloc == Routes.tenants;
         final routeWithRedirectRules = [
           "${Routes.signup}/$country",
           Routes.login,
           Routes.noNet,
           Routes.home,
+          Routes.tenants,
         ];
+
         if (needSignUp &&
             !onSignUp &&
             routeWithRedirectRules.contains(state.subloc)) {
           return "${Routes.signup}/$country";
         }
+
         if (loggedIn &&
             !onHome &&
-            routeWithRedirectRules.contains(state.subloc)) {
+            routeWithRedirectRules.contains(state.subloc) &&
+            !navigationHistory.hasRecentlyVisited(Routes.home)) {
+          navigationHistory.add(Routes.home);
           return Routes.home;
         }
+
         if (!loggedIn &&
             !onLogin &&
             !needSignUp &&
-            routeWithRedirectRules.contains(state.subloc)) {
+            !loginChoices &&
+            routeWithRedirectRules.contains(state.subloc) &&
+            !navigationHistory.hasRecentlyVisited(Routes.login)) {
+          navigationHistory.add(Routes.login);
           return Routes.login;
         }
+
         if (noNet &&
             !onNoNet &&
             !onLogin &&
             routeWithRedirectRules.contains(state.subloc)) {
           return Routes.noNet;
         }
+
+        if (loginChoices &&
+            !onTenants &&
+            routeWithRedirectRules.contains(state.subloc) &&
+            !navigationHistory.hasRecentlyVisited(Routes.tenants)) {
+          navigationHistory.add(Routes.tenants);
+          return Routes.tenants;
+        }
+
         return null;
       },
       routes: [

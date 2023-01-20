@@ -6,6 +6,7 @@ class Routes {
   static const String sign = '/login';
   static const String signup = '/signup';
   static const String home = '/home';
+  static const String tenants = '/tenants';
   static const String login = '/login';
   static const String create = '/create';
   static const String addProductModal = '/addProductModal';

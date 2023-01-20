@@ -38,9 +38,6 @@ class StartUpView extends StatelessWidget {
               if (nav == "home") {
                 GoRouter.of(context).push(Routes.home);
               }
-              if (nav == "login_choices") {
-                GoRouter.of(context).push("/tenants");
-              }
               if (nav == "signup") {
                 String? countryName =
                     await ProxyService.country.getCountryName();
