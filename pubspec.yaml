@@ -61,6 +61,8 @@ dependencies:
   flipper_data_table: 1.0.0-dev.2
   flutter_native_splash: ^2.2.2
   firebase_ui_localizations: ^1.1.0
+  flutter_localizations:
+    sdk: flutter
 dev_dependencies:
   flutter_test:
     sdk: flutter

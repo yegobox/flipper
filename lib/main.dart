@@ -33,6 +33,7 @@ import 'package:flipper_dashboard/user_add.dart';
 import 'package:flipper_login/pin_login.dart';
 import 'package:flipper_login/signup_form_view.dart';
 import 'package:flipper_models/view_models/gate.dart';
+import 'package:flipper_rw/flipper_localize/lib/flipper_localize.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:go_router/go_router.dart';
 import 'package:flipper_login/login.dart';
@@ -52,6 +53,8 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'init.dart'
     if (dart.library.html) 'web_init.dart'
     if (dart.library.io) 'io_init.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:firebase_ui_localizations/firebase_ui_localizations.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 final isMacOs = UniversalPlatform.isMacOS;
@@ -491,14 +494,14 @@ void main() async {
             //TODOimplement my own as this is killing design
             // theme: GThemeGenerator.generate(),
             // darkTheme: GThemeGenerator.generateDark(),
-            // localizationsDelegates: const [
-            // FlutterFireUILocalizations.withDefaultOverrides(
-            //   const LabelOverrides(),
-            // ),
-            // FlipperLocalizationsDelegate(),
-            // GlobalMaterialLocalizations.delegate,
-            // GlobalWidgetsLocalizations.delegate,
-            // ],
+            localizationsDelegates: [
+              FirebaseUILocalizations.withDefaultOverrides(
+                const LabelOverrides(),
+              ),
+              const FlipperLocalizationsDelegate(),
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+            ],
             supportedLocales: const [
               Locale('en', 'US'), // English
               Locale('es', 'ES'), // Spanish
