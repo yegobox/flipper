@@ -128,7 +128,7 @@ class SettingPage extends StatelessWidget {
                                 color: Theme.of(context).primaryColor,
                               ),
                               onPressed: (BuildContext context) async {
-                                GoRouter.of(context).push("/user_add");
+                                GoRouter.of(context).push("/tenant_add");
                               },
                             ),
                             SettingsTile(

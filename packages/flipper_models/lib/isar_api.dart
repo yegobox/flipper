@@ -1050,6 +1050,7 @@ class IsarAPI implements IsarApiInterface {
           name: jTenant.name,
           businessId: jTenant.businessId,
           email: jTenant.email,
+          nfcEnabled: jTenant.nfcEnabled,
           phoneNumber: jTenant.phoneNumber);
 
       isar.writeTxn(() async {
@@ -1081,6 +1082,7 @@ class IsarAPI implements IsarApiInterface {
             id: jTenant.id,
             name: jTenant.name,
             businessId: jTenant.businessId,
+            nfcEnabled: jTenant.nfcEnabled,
             email: jTenant.email,
             phoneNumber: jTenant.phoneNumber);
 
@@ -1331,7 +1333,7 @@ class IsarAPI implements IsarApiInterface {
 
   /// @Deprecated [endpoint] don't give the endpoint params
   @override
-  Future<int> update<T>({required T data, String? endPoint}) async {
+  Future<T?> update<T>({required T data, String? endPoint}) async {
     if (data is Product) {
       final product = data;
       await isar.writeTxn(() async {
@@ -1481,7 +1483,20 @@ class IsarAPI implements IsarApiInterface {
         return await isar.drawers.put(drawer);
       });
     }
-    return 1;
+    if (data is ITenant) {
+      final response = await client.patch(
+          Uri.parse("$apihub/v2/api/tenant/${data.id}"),
+          body: jsonEncode(data.toJson()),
+          headers: {'Content-Type': 'application/json'});
+      if (response.statusCode == 200) {
+        return await isar.writeTxn(() async {
+          final result = await isar.iTenants.get(await isar.iTenants.put(data));
+          return result as T?;
+        });
+      }
+      return null;
+    }
+    return null;
   }
 
   @override
@@ -1694,6 +1709,7 @@ class IsarAPI implements IsarApiInterface {
             id: jTenant.id,
             name: jTenant.name,
             businessId: jTenant.businessId,
+            nfcEnabled: jTenant.nfcEnabled,
             email: jTenant.email,
             phoneNumber: jTenant.phoneNumber);
 

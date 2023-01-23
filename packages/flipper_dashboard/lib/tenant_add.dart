@@ -1,20 +1,21 @@
 import 'dart:developer';
 
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_nfc/flipper_nfc.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:stacked/stacked.dart';
 import 'customappbar.dart';
 
-class UserAdd extends StatefulWidget {
-  const UserAdd({Key? key}) : super(key: key);
+class TenantAdd extends StatefulWidget {
+  const TenantAdd({Key? key}) : super(key: key);
 
   @override
-  State<UserAdd> createState() => _UserAddState();
+  State<TenantAdd> createState() => _TenantAddState();
 }
 
-class _UserAddState extends State<UserAdd> {
+class _TenantAddState extends State<TenantAdd> {
   List<ITenant> _tenants = [];
   final GlobalKey<FormState> _sub = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
@@ -23,11 +24,11 @@ class _UserAddState extends State<UserAdd> {
 
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<AddUserViewModel>.reactive(
+    return ViewModelBuilder<AddTenantViewModel>.reactive(
         onViewModelReady: (model) async {
-          await loadTenants();
+          await model.loadTenants();
         },
-        viewModelBuilder: () => AddUserViewModel(),
+        viewModelBuilder: () => AddTenantViewModel(),
         builder: (context, model, widget) {
           return Scaffold(
             appBar: CustomAppBar(
@@ -152,7 +153,7 @@ class _UserAddState extends State<UserAdd> {
                                                       branch: branch!,
                                                       business: business!);
 
-                                              await loadTenants();
+                                              await model.loadTenants();
                                               ScaffoldMessenger.of(context)
                                                   .showSnackBar(
                                                 const SnackBar(
@@ -185,10 +186,32 @@ class _UserAddState extends State<UserAdd> {
                   // then
                   ListView(
                       shrinkWrap: true,
-                      children: _tenants
+                      children: model.tenants
                           .map((e) => ListTile(
+                                onTap: () async {
+                                  e.nfcEnabled = !e.nfcEnabled;
+
+                                  final nfc = NFCManager();
+                                  nfc.startNFC(
+                                    callback: (nfcData) async {
+                                      String cleanedData = nfcData
+                                          .split(
+                                              RegExp(r"(NFC_DATA:|en|\\x02)"))
+                                          .last;
+                                      await ProxyService.isarApi
+                                          .update<ITenant>(data: e);
+                                      model.loadTenants();
+                                    },
+                                    textData:
+                                        "${ProxyService.box.getBusinessId()}:${ProxyService.box.getBranchId()}:${e.phoneNumber}",
+                                    write: true,
+                                  );
+                                },
                                 leading: Text(e.name),
-                                trailing: Icon(Icons.nfc, color: Colors.blue),
+                                trailing: Icon(Icons.nfc,
+                                    color: e.nfcEnabled == true
+                                        ? Colors.blue
+                                        : Colors.red),
                               ))
                           .toList()),
                 ],
@@ -196,14 +219,5 @@ class _UserAddState extends State<UserAdd> {
             ),
           );
         });
-  }
-
-  Future<List<ITenant>> loadTenants() async {
-    List<ITenant> users = await ProxyService.isarApi
-        .tenants(businessId: ProxyService.box.getBusinessId()!);
-    setState(() {
-      _tenants = [..._tenants, ...users];
-    });
-    return _tenants;
   }
 }

@@ -1,11 +1,15 @@
 import 'package:flipper_models/isar/tenant.dart';
-import 'package:flipper_services/setting_service.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 
-import 'package:flipper_routing/routes.locator.dart';
+class AddTenantViewModel extends BaseViewModel {
+  List<ITenant> _tenants = [];
+  List<ITenant> get tenants => _tenants;
 
-class AddUserViewModel extends ReactiveViewModel {
-  final settingService = locator<SettingsService>();
-  @override
-  List<ReactiveServiceMixin> get reactiveServices => [settingService];
+  Future<void> loadTenants() async {
+    List<ITenant> users = await ProxyService.isarApi
+        .tenants(businessId: ProxyService.box.getBusinessId()!);
+    _tenants = [...users];
+    rebuildUi();
+  }
 }

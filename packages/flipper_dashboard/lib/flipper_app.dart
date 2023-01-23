@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 
 import 'package:flipper_dashboard/bottom_sheet.dart';
 import 'package:flipper_models/isar_models.dart';
@@ -14,7 +13,6 @@ import 'package:stacked/stacked.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:permission_handler/permission_handler.dart' as perm;
-import 'package:flipper_nfc/flipper_nfc.dart';
 import 'badge_icon.dart';
 import 'page_switcher.dart';
 
@@ -128,16 +126,16 @@ class _FlipperAppState extends State<FlipperApp>
           _whileLoop = Timer.periodic(Duration(seconds: 1), (timer) {
             // Your code here
             // This code will run every 1 second while the app is in the foreground
-            final nfc = NFCManager();
-            nfc.startNFC(
-              callback: (nfcData) {
-                String cleanedData =
-                    nfcData.split(RegExp(r"(NFC_DATA:|en|\\x02)")).last;
-                log(cleanedData);
-              },
-              textData: "123444444:22334:+250783054874",
-              write: false,
-            );
+            // final nfc = NFCManager();
+            // nfc.startNFC(
+            //   callback: (nfcData) {
+            //     String cleanedData =
+            //         nfcData.split(RegExp(r"(NFC_DATA:|en|\\x02)")).last;
+            //     log(cleanedData);
+            //   },
+            //   textData: "123444444:22334:+250783054874",
+            //   write: false,
+            // );
           });
         }
 

@@ -32,8 +32,13 @@ const ITenantSchema = CollectionSchema(
       name: r'name',
       type: IsarType.string,
     ),
-    r'phoneNumber': PropertySchema(
+    r'nfcEnabled': PropertySchema(
       id: 3,
+      name: r'nfcEnabled',
+      type: IsarType.bool,
+    ),
+    r'phoneNumber': PropertySchema(
+      id: 4,
       name: r'phoneNumber',
       type: IsarType.string,
     )
@@ -73,7 +78,8 @@ void _iTenantSerialize(
   writer.writeLong(offsets[0], object.businessId);
   writer.writeString(offsets[1], object.email);
   writer.writeString(offsets[2], object.name);
-  writer.writeString(offsets[3], object.phoneNumber);
+  writer.writeBool(offsets[3], object.nfcEnabled);
+  writer.writeString(offsets[4], object.phoneNumber);
 }
 
 ITenant _iTenantDeserialize(
@@ -87,7 +93,8 @@ ITenant _iTenantDeserialize(
     email: reader.readString(offsets[1]),
     id: id,
     name: reader.readString(offsets[2]),
-    phoneNumber: reader.readString(offsets[3]),
+    nfcEnabled: reader.readBool(offsets[3]),
+    phoneNumber: reader.readString(offsets[4]),
   );
   return object;
 }
@@ -106,6 +113,8 @@ P _iTenantDeserializeProp<P>(
     case 2:
       return (reader.readString(offset)) as P;
     case 3:
+      return (reader.readBool(offset)) as P;
+    case 4:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -582,6 +591,16 @@ extension ITenantQueryFilter
     });
   }
 
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> nfcEnabledEqualTo(
+      bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'nfcEnabled',
+        value: value,
+      ));
+    });
+  }
+
   QueryBuilder<ITenant, ITenant, QAfterFilterCondition> phoneNumberEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -757,6 +776,18 @@ extension ITenantQuerySortBy on QueryBuilder<ITenant, ITenant, QSortBy> {
     });
   }
 
+  QueryBuilder<ITenant, ITenant, QAfterSortBy> sortByNfcEnabled() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'nfcEnabled', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterSortBy> sortByNfcEnabledDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'nfcEnabled', Sort.desc);
+    });
+  }
+
   QueryBuilder<ITenant, ITenant, QAfterSortBy> sortByPhoneNumber() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'phoneNumber', Sort.asc);
@@ -820,6 +851,18 @@ extension ITenantQuerySortThenBy
     });
   }
 
+  QueryBuilder<ITenant, ITenant, QAfterSortBy> thenByNfcEnabled() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'nfcEnabled', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterSortBy> thenByNfcEnabledDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'nfcEnabled', Sort.desc);
+    });
+  }
+
   QueryBuilder<ITenant, ITenant, QAfterSortBy> thenByPhoneNumber() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'phoneNumber', Sort.asc);
@@ -855,6 +898,12 @@ extension ITenantQueryWhereDistinct
     });
   }
 
+  QueryBuilder<ITenant, ITenant, QDistinct> distinctByNfcEnabled() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'nfcEnabled');
+    });
+  }
+
   QueryBuilder<ITenant, ITenant, QDistinct> distinctByPhoneNumber(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -886,6 +935,12 @@ extension ITenantQueryProperty
   QueryBuilder<ITenant, String, QQueryOperations> nameProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'name');
+    });
+  }
+
+  QueryBuilder<ITenant, bool, QQueryOperations> nfcEnabledProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'nfcEnabled');
     });
   }
 
