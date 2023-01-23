@@ -20,7 +20,9 @@ class FLocalization {
   final Locale locale;
 
   static FLocalization of(BuildContext context) {
-    return Localizations.of<FLocalization>(context, FLocalization)!;
+    final myLocalizations =
+        Localizations.of<FLocalization>(context, FLocalization);
+    return myLocalizations ?? FLocalization(Locale("en"));
   }
 
   static const _productName = <String, Map<String, String>>{
@@ -218,9 +220,11 @@ class FlipperLocalizationsDelegate
     extends LocalizationsDelegate<FLocalization> {
   const FlipperLocalizationsDelegate();
 
+  // @override
+  // bool isSupported(Locale locale) =>
+  //     FLocalization.languages().contains(locale.languageCode);
   @override
-  bool isSupported(Locale locale) =>
-      FLocalization.languages().contains(locale.languageCode);
+  bool isSupported(Locale locale) => ['en', 'es'].contains(locale.languageCode);
 
   @override
   Future<FLocalization> load(Locale locale) {

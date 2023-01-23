@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_ui_localizations/firebase_ui_localizations.dart';
 import 'package:flipper_dashboard/login_choices.dart';
 import 'package:flipper_dashboard/printing.dart';
 import 'package:flipper_dashboard/backup.dart';
@@ -54,7 +55,6 @@ import 'init.dart'
     if (dart.library.html) 'web_init.dart'
     if (dart.library.io) 'io_init.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:firebase_ui_localizations/firebase_ui_localizations.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 final isMacOs = UniversalPlatform.isMacOS;
@@ -503,8 +503,8 @@ void main() async {
               GlobalWidgetsLocalizations.delegate,
             ],
             supportedLocales: const [
-              Locale('en', 'US'), // English
-              Locale('es', 'ES'), // Spanish
+              Locale('en'), // English
+              Locale('es'), // Spanish
             ],
             locale: const Locale('en'),
             // locale: model

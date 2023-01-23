@@ -34,7 +34,7 @@ Widget PaymentTicketManager(
           GoRouter.of(context).push(Routes.pay, extra: model.kOrder);
         } else {
           showSimpleNotification(
-            Text(FLocalization.of(context).noPayable),
+            Text(FLocalization.of(context)?.noPayable ?? "Payii"),
             background: Colors.green,
             position: NotificationPosition.bottom,
           );
