@@ -18,7 +18,7 @@ class _BackUpState extends State<BackUp> {
   Widget build(BuildContext context) {
     return ViewModelBuilder<SettingViewModel>.reactive(
       viewModelBuilder: () => SettingViewModel(),
-      onModelReady: (model) async {
+      onViewModelReady: (model) async {
         if (model.isAutoBackupEnabled) {
           setState(() {
             isAutoBackup = true;

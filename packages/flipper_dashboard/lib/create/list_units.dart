@@ -71,7 +71,7 @@ class ListUnits extends StatelessWidget {
           ),
         );
       },
-      onModelReady: (ProductViewModel model) {
+      onViewModelReady: (ProductViewModel model) {
         model.loadUnits();
       },
       viewModelBuilder: () => ProductViewModel(),

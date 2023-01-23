@@ -33,7 +33,7 @@
 //       ),
 //       body: ViewModelBuilder<AnalyticViewModel>.reactive(
 //         viewModelBuilder: () => AnalyticViewModel(),
-//         onModelReady: (model) {
+//         onViewModelReady: (model) {
 //           model.analytic.countLifeTimeCustomers();
 //           model.analytic.countOrdersByThisWeek();
 //         },

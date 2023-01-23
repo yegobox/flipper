@@ -156,7 +156,7 @@ class _FlipperAppState extends State<FlipperApp>
   Widget build(BuildContext context) {
     return ViewModelBuilder<BusinessHomeViewModel>.reactive(
         viewModelBuilder: () => BusinessHomeViewModel(),
-        onModelReady: (model) async {
+        onViewModelReady: (model) async {
           model.currentOrder();
           ProxyService.notification.initialize(context);
           ProxyService.notification.listen(context);

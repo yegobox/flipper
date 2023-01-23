@@ -16,8 +16,9 @@ class StartUpView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<StartUpViewModel>.reactive(
-      fireOnModelReadyOnce: true,
-      onModelReady: (model) => SchedulerBinding.instance.addPostFrameCallback(
+      fireOnViewModelReadyOnce: true,
+      onViewModelReady: (model) =>
+          SchedulerBinding.instance.addPostFrameCallback(
         (timeStamp) {
           model.runStartupLogic(
             invokeLogin: invokeLogin ?? false,

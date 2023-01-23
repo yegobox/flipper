@@ -21,7 +21,7 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
   Widget build(BuildContext context) {
     return ViewModelBuilder<SettingViewModel>.reactive(
         viewModelBuilder: () => SettingViewModel(),
-        onModelReady: (model) {
+        onViewModelReady: (model) {
           model.getSetting();
           log.i(model.getSetting());
         },

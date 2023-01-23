@@ -21,7 +21,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<SettingViewModel>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.kSetting.toggleDailyReportSetting();
       },
       builder: (context, model, child) {

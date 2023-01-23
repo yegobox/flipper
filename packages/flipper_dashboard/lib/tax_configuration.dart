@@ -32,7 +32,7 @@ class _TaxConfigurationState extends State<TaxConfiguration> {
   Widget build(BuildContext context) {
     return ViewModelBuilder<SettingViewModel>.reactive(
       viewModelBuilder: () => SettingViewModel(),
-      onModelReady: (model) async {
+      onViewModelReady: (model) async {
         if (await ProxyService.isarApi.isTaxEnabled()) {
           setState(() {
             isTaxEnabled = true;

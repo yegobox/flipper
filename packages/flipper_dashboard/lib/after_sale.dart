@@ -285,7 +285,7 @@ class _AfterSaleState extends State<AfterSale> {
             ),
           );
         },
-        onModelReady: (model) async {
+        onViewModelReady: (model) async {
           model.getOrderById();
           // generate rra receipt
           if (await ProxyService.isarApi.isTaxEnabled()) {

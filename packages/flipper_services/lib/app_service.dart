@@ -105,7 +105,10 @@ class AppService with ReactiveServiceMixin {
     String? userId = ProxyService.box.getUserId();
     List<isar.Business> businesses =
         await ProxyService.isarApi.businesses(userId: userId!);
-
+    if (businesses.isEmpty) {
+      businesses
+          .add(await ProxyService.isarApi.getOnlineBusiness(userId: userId));
+    }
     if (businesses.length == 1) {
       await setActiveBusiness(businesses);
       await loadTenants(businesses);

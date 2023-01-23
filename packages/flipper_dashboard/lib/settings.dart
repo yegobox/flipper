@@ -13,7 +13,7 @@ class SettingPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return ViewModelBuilder<SettingViewModel>.reactive(
       viewModelBuilder: () => SettingViewModel(),
-      onModelReady: (model) async => await model.createPin(),
+      onViewModelReady: (model) async => await model.createPin(),
       builder: (context, model, child) {
         return Scaffold(
           backgroundColor: Theme.of(context).canvasColor,

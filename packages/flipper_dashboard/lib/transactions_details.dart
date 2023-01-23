@@ -79,7 +79,7 @@ class _TransactionDetailState extends State<TransactionDetail> {
   Widget build(BuildContext context) {
     return ViewModelBuilder<BusinessHomeViewModel>.reactive(
         viewModelBuilder: () => BusinessHomeViewModel(),
-        onModelReady: (model) async {
+        onViewModelReady: (model) async {
           List<OrderItem> items =
               await ProxyService.isarApi.orderItems(orderId: widget.order.id);
 

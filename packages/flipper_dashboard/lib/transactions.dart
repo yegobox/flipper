@@ -184,7 +184,7 @@ class _TransactionsState extends State<Transactions> {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<BusinessHomeViewModel>.reactive(
-        onModelReady: (model) async {
+        onViewModelReady: (model) async {
           List<Order> completedOrders = await ProxyService.isarApi
               .completedOrders(branchId: ProxyService.box.getBranchId()!);
           Drawers? drawer = await ProxyService.isarApi

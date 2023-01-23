@@ -18,7 +18,7 @@ class _PrintingState extends State<Printing> {
   Widget build(BuildContext context) {
     return ViewModelBuilder<SettingViewModel>.reactive(
       viewModelBuilder: () => SettingViewModel(),
-      onModelReady: (model) async {
+      onViewModelReady: (model) async {
         if (SchedulerBinding.instance.schedulerPhase ==
             SchedulerPhase.persistentCallbacks) {
           SchedulerBinding.instance.addPostFrameCallback((_) async {

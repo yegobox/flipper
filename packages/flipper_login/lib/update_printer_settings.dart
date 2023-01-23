@@ -24,7 +24,7 @@ class _UpdatePrinterSettingState extends State<UpdatePrinterSetting> {
   Widget build(BuildContext context) {
     return ViewModelBuilder<SettingViewModel>.reactive(
       viewModelBuilder: () => SettingViewModel(),
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         model.loadUserSettings();
       },
       builder: (context, model, child) {

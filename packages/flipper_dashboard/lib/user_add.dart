@@ -24,7 +24,7 @@ class _UserAddState extends State<UserAdd> {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<AddUserViewModel>.reactive(
-        onModelReady: (model) async {
+        onViewModelReady: (model) async {
           await loadTenants();
         },
         viewModelBuilder: () => AddUserViewModel(),

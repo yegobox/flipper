@@ -32,7 +32,7 @@ class _ProductViewState extends State<ProductView> {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<ProductViewModel>.reactive(
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         int branchId = ProxyService.box.getBranchId()!;
         model.productService
             .loadProducts(branchId: branchId)

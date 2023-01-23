@@ -49,7 +49,7 @@ class _AddProductViewState extends State<AddProductView> {
     }
 
     return ViewModelBuilder<ProductViewModel>.reactive(
-      onModelReady: (model) async {
+      onViewModelReady: (model) async {
         // start by reseting bar code.
         if (SchedulerBinding.instance.schedulerPhase ==
             SchedulerPhase.persistentCallbacks) {

@@ -46,7 +46,7 @@ class _DesktopLoginViewState extends State<DesktopLoginView> {
   Widget build(BuildContext context) {
     return ViewModelBuilder<LoginViewModel>.reactive(
       viewModelBuilder: () => LoginViewModel(),
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         if (loginCode != null) {
           ProxyService.event.connect();
           try {

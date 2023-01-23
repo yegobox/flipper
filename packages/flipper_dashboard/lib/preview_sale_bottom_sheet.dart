@@ -42,7 +42,7 @@ class _PreviewSaleBottomSheetState extends State<PreviewSaleBottomSheet> {
             ])),
         child: ViewModelBuilder<BusinessHomeViewModel>.reactive(
             viewModelBuilder: () => BusinessHomeViewModel(),
-            onModelReady: (model) async {
+            onViewModelReady: (model) async {
               if (model.kOrder != null) {
                 await model.setOrderItems();
               }

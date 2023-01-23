@@ -103,7 +103,7 @@ void preferences(
             header: header(title: 'Language', context: context),
             body: ViewModelBuilder<SettingViewModel>.reactive(
               viewModelBuilder: () => SettingViewModel(),
-              onModelReady: (model) {
+              onViewModelReady: (model) {
                 model.getSetting();
               },
               builder: (context, model, child) {
@@ -150,7 +150,7 @@ void preferences(
             context: context,
             body: ViewModelBuilder<SettingViewModel>.reactive(
               viewModelBuilder: () => SettingViewModel(),
-              onModelReady: (model) {
+              onViewModelReady: (model) {
                 model.getSetting();
                 //start with status of the setting.
                 model.kSetting.getEnableReportToggleState();
@@ -264,7 +264,7 @@ void preferences(
               context: context,
               body: ViewModelBuilder<SettingViewModel>.reactive(
                 viewModelBuilder: () => SettingViewModel(),
-                onModelReady: (model) {},
+                onViewModelReady: (model) {},
                 builder: (context, model, child) {
                   return Column(
                     children: [
@@ -292,7 +292,7 @@ void preferences(
             context: context,
             body: ViewModelBuilder<SettingViewModel>.reactive(
               viewModelBuilder: () => SettingViewModel(),
-              onModelReady: (model) {
+              onViewModelReady: (model) {
                 model.getBusiness();
                 model.kSetting.getEnableAttendanceToggleState();
               },
