@@ -108,7 +108,7 @@ const ReceiptSchema = CollectionSchema(
   getId: _receiptGetId,
   getLinks: _receiptGetLinks,
   attach: _receiptAttach,
-  version: '3.0.4',
+  version: '3.0.5',
 );
 
 int _receiptEstimateSize(

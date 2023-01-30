@@ -69,7 +69,7 @@ const ConversationSchema = CollectionSchema(
   getId: _conversationGetId,
   getLinks: _conversationGetLinks,
   attach: _conversationAttach,
-  version: '3.0.4',
+  version: '3.0.5',
 );
 
 int _conversationEstimateSize(

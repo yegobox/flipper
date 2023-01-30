@@ -16,7 +16,6 @@ class TenantAdd extends StatefulWidget {
 }
 
 class _TenantAddState extends State<TenantAdd> {
-  List<ITenant> _tenants = [];
   final GlobalKey<FormState> _sub = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
@@ -194,7 +193,7 @@ class _TenantAddState extends State<TenantAdd> {
                                   final nfc = NFCManager();
                                   nfc.startNFC(
                                     callback: (nfcData) async {
-                                      String cleanedData = nfcData
+                                      nfcData
                                           .split(
                                               RegExp(r"(NFC_DATA:|en|\\x02)"))
                                           .last;

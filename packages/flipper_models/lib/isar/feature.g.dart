@@ -34,7 +34,7 @@ const FeatureSchema = CollectionSchema(
   getId: _featureGetId,
   getLinks: _featureGetLinks,
   attach: _featureAttach,
-  version: '3.0.4',
+  version: '3.0.5',
 );
 
 int _featureEstimateSize(

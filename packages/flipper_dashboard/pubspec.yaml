@@ -72,7 +72,7 @@ dependencies:
   lecle_downloads_path_provider: ^0.0.2+7
   permission_handler: ^10.1.0
   flutter_svg: ^1.1.6
-  modal_bottom_sheet: ^2.1.0
+  modal_bottom_sheet: ^3.0.0-pre
   # flipper_ui: ^1.0.3
 flutter:
   # The following line ensures that the Material Icons font is
