@@ -18,18 +18,18 @@ import '../view_models/common.dart';
 import 'test_helpers.mocks.dart';
 import 'package:flipper_services/locator.dart';
 
-@GenerateMocks([], customMocks: [
-  MockSpec<Language>(returnNullOnMissingStub: true),
-  MockSpec<LanguageService>(returnNullOnMissingStub: true),
-  MockSpec<Remote>(returnNullOnMissingStub: true),
-  MockSpec<FirebaseMessaging>(returnNullOnMissingStub: true),
-  MockSpec<ProductService>(returnNullOnMissingStub: true),
-  MockSpec<KeyPadService>(returnNullOnMissingStub: true),
-  MockSpec<SettingsService>(returnNullOnMissingStub: true),
-  MockSpec<LocalStorage>(returnNullOnMissingStub: true),
-  MockSpec<AppService>(returnNullOnMissingStub: true),
-  MockSpec<FlipperLocation>(returnNullOnMissingStub: true),
-  MockSpec<BillingService>(returnNullOnMissingStub: true),
+@GenerateNiceMocks([
+  MockSpec<Language>(),
+  MockSpec<LanguageService>(),
+  MockSpec<Remote>(),
+  MockSpec<FirebaseMessaging>(),
+  MockSpec<ProductService>(),
+  MockSpec<KeyPadService>(),
+  MockSpec<SettingsService>(),
+  MockSpec<LocalStorage>(),
+  MockSpec<AppService>(),
+  MockSpec<FlipperLocation>(),
+  MockSpec<BillingService>(),
 ])
 BillingService getAndRegisterBillingService() {
   _removeRegistrationIfExists<BillingService>();

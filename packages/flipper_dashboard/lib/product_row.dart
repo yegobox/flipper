@@ -19,6 +19,7 @@ class ProductRow extends StatelessWidget {
     required this.addToMenu,
     required this.product,
     required this.edit,
+    required this.enableNfc,
     required this.model,
     required this.delete,
   }) : super(key: key);
@@ -30,6 +31,7 @@ class ProductRow extends StatelessWidget {
   final Function delete;
   final Function addToMenu;
   final Function edit;
+  final Function enableNfc;
   final ProductViewModel model;
   final List<Stock?> stocks;
 
@@ -130,6 +132,17 @@ class ProductRow extends StatelessWidget {
             foregroundColor: Colors.white,
             icon: Icons.edit,
             label: 'Edit',
+          ),
+          SlidableAction(
+            onPressed: (_) {
+              enableNfc(product.id);
+            },
+            backgroundColor: product.nfcEnabled != null && product.nfcEnabled!
+                ? Colors.blue
+                : Colors.red,
+            foregroundColor: Colors.white,
+            icon: Icons.nfc,
+            label: 'NFC',
           )
         ],
       ),

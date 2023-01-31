@@ -5,7 +5,7 @@ abstract class Language {
   void setLocale({required String lang});
 }
 
-class UnImplementedLanguage with ReactiveServiceMixin implements Language {
+class UnImplementedLanguage with ListenableServiceMixin implements Language {
   final _locale = ReactiveValue<Locale>(Locale('en'));
 
   Locale get locale => _locale.value;
@@ -22,7 +22,7 @@ class UnImplementedLanguage with ReactiveServiceMixin implements Language {
   }
 }
 
-class LanguageService with ReactiveServiceMixin implements Language {
+class LanguageService with ListenableServiceMixin implements Language {
   final _locale = ReactiveValue<Locale>(Locale('en'));
 
   Locale get locale => _locale.value;

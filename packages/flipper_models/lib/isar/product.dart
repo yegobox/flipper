@@ -33,5 +33,9 @@ class Product {
   @Index()
   String? barCode;
   bool? synced;
+  bool? nfcEnabled;
+  // This is a localID not necessary coming from remote
+  int? bindedToTenantId;
+
   final variants = IsarLinks<Variant>();
 }

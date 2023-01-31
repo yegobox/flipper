@@ -6,7 +6,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flipper_routing/routes.logger.dart';
 
-import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/app_service.dart';
@@ -15,7 +14,7 @@ import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/constants.dart';
 
 // class ProductViewModel extends BusinessHomeViewModel {
-class ProductViewModel extends ReactiveViewModel {
+class ProductViewModel extends AddTenantViewModel {
   // extends ReactiveViewModel
   final AppService _appService = locator<AppService>();
   // ignore: annotate_overrides, overridden_fields
@@ -57,7 +56,7 @@ class ProductViewModel extends ReactiveViewModel {
       productService.setCurrentProduct(product: product!);
       kProductName = product.name;
       productService.variantsProduct(productId: product.id);
-      notifyListeners();
+      rebuildUi();
       return product.id;
     }
     int branchId = ProxyService.box.getBranchId()!;
@@ -76,20 +75,19 @@ class ProductViewModel extends ReactiveViewModel {
       productService.setCurrentProduct(product: product);
       kProductName = product.name;
       log.i(product.id);
-      notifyListeners();
+      rebuildUi();
       return product.id;
     }
     productService.setCurrentProduct(product: isTemp);
     await productService.variantsProduct(productId: isTemp.id);
-    notifyListeners();
-    log.i(isTemp.id);
+    rebuildUi();
     return isTemp.id;
   }
 
   void isPriceSet(bool price) {
     _price = price;
     _lock = !price || _productName == null;
-    notifyListeners();
+    rebuildUi();
   }
 
   bool _price = false;
@@ -98,7 +96,7 @@ class ProductViewModel extends ReactiveViewModel {
     _productName = productName;
     final cleaned = productName?.trim();
     _lock = cleaned?.length == null || !_price;
-    notifyListeners();
+    rebuildUi();
   }
 
   bool _lock = false;
@@ -210,7 +208,7 @@ class ProductViewModel extends ReactiveViewModel {
   double? get stockValue => _stockValue;
   void setStockValue({required double value}) {
     _stockValue = value;
-    notifyListeners();
+    rebuildUi();
   }
 
   void deleteVariant({required int id}) async {
@@ -382,7 +380,7 @@ class ProductViewModel extends ReactiveViewModel {
     Product? cProduct =
         await ProxyService.isarApi.getProduct(id: kProduct['id']);
     productService.setCurrentProduct(product: cProduct!);
-    notifyListeners();
+    rebuildUi();
   }
 
   void filterProduct({required String searchKey}) {
@@ -428,8 +426,4 @@ class ProductViewModel extends ReactiveViewModel {
     }
     return false;
   }
-
-  @override
-  List<ReactiveServiceMixin> get reactiveServices =>
-      [_appService, productService];
 }

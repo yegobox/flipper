@@ -133,6 +133,29 @@ class _FakeSubscription_8 extends _i1.SmartFake implements _i8.Subscription {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockLanguage extends _i1.Mock implements _i9.Language {
+  MockLanguage() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  void setLocale({required String? lang}) => super.noSuchMethod(
+        Invocation.method(
+          #setLocale,
+          [],
+          {#lang: lang},
+        ),
+        returnValueForMissingStub: null,
+      );
+}
+
+/// A class which mocks [Language].
+///
+/// See the documentation for Mockito's code generation for more information.
+class Language extends _i1.Mock implements _i9.Language {
+  Language() {
+    _i1.throwOnMissingStub(this);
+  }
+
   @override
   void setLocale({required String? lang}) => super.noSuchMethod(
         Invocation.method(
@@ -148,6 +171,10 @@ class MockLanguage extends _i1.Mock implements _i9.Language {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockLanguageService extends _i1.Mock implements _i9.LanguageService {
+  MockLanguageService() {
+    _i1.throwOnMissingStub(this);
+  }
+
   @override
   _i2.Locale get locale => (super.noSuchMethod(
         Invocation.getter(#locale),
@@ -156,6 +183,11 @@ class MockLanguageService extends _i1.Mock implements _i9.LanguageService {
           Invocation.getter(#locale),
         ),
       ) as _i2.Locale);
+  @override
+  int get listenersCount => (super.noSuchMethod(
+        Invocation.getter(#listenersCount),
+        returnValue: 0,
+      ) as int);
   @override
   void setLocale({required String? lang}) => super.noSuchMethod(
         Invocation.method(
@@ -204,6 +236,10 @@ class MockLanguageService extends _i1.Mock implements _i9.LanguageService {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockRemote extends _i1.Mock implements _i10.Remote {
+  MockRemote() {
+    _i1.throwOnMissingStub(this);
+  }
+
   @override
   void setDefault() => super.noSuchMethod(
         Invocation.method(
@@ -434,6 +470,10 @@ class MockRemote extends _i1.Mock implements _i10.Remote {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockFirebaseMessaging extends _i1.Mock implements _i11.FirebaseMessaging {
+  MockFirebaseMessaging() {
+    _i1.throwOnMissingStub(this);
+  }
+
   @override
   _i3.FirebaseApp get app => (super.noSuchMethod(
         Invocation.getter(#app),
@@ -652,6 +692,10 @@ class MockFirebaseMessaging extends _i1.Mock implements _i11.FirebaseMessaging {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockProductService extends _i1.Mock implements _i13.ProductService {
+  MockProductService() {
+    _i1.throwOnMissingStub(this);
+  }
+
   @override
   _i5.Logger get log => (super.noSuchMethod(
         Invocation.getter(#log),
@@ -688,6 +732,11 @@ class MockProductService extends _i1.Mock implements _i13.ProductService {
         Invocation.getter(#stocks),
         returnValue: <_i8.Stock?>[],
       ) as List<_i8.Stock?>);
+  @override
+  int get listenersCount => (super.noSuchMethod(
+        Invocation.getter(#listenersCount),
+        returnValue: 0,
+      ) as int);
   @override
   void setBarcode(String? value) => super.noSuchMethod(
         Invocation.method(
@@ -808,6 +857,10 @@ class MockProductService extends _i1.Mock implements _i13.ProductService {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockKeyPadService extends _i1.Mock implements _i14.KeyPadService {
+  MockKeyPadService() {
+    _i1.throwOnMissingStub(this);
+  }
+
   @override
   _i5.Logger get log => (super.noSuchMethod(
         Invocation.getter(#log),
@@ -867,6 +920,11 @@ class MockKeyPadService extends _i1.Mock implements _i14.KeyPadService {
         Invocation.getter(#totalDiscount),
         returnValue: 0.0,
       ) as double);
+  @override
+  int get listenersCount => (super.noSuchMethod(
+        Invocation.getter(#listenersCount),
+        returnValue: 0,
+      ) as int);
   @override
   dynamic setItemsOnSale({required int? count}) =>
       super.noSuchMethod(Invocation.method(
@@ -1038,6 +1096,10 @@ class MockKeyPadService extends _i1.Mock implements _i14.KeyPadService {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockSettingsService extends _i1.Mock implements _i15.SettingsService {
+  MockSettingsService() {
+    _i1.throwOnMissingStub(this);
+  }
+
   @override
   _i5.Logger get log => (super.noSuchMethod(
         Invocation.getter(#log),
@@ -1069,6 +1131,11 @@ class MockSettingsService extends _i1.Mock implements _i15.SettingsService {
         Invocation.getter(#isAttendanceEnabled),
         returnValue: false,
       ) as bool);
+  @override
+  int get listenersCount => (super.noSuchMethod(
+        Invocation.getter(#listenersCount),
+        returnValue: 0,
+      ) as int);
   @override
   void setThemeMode(_i16.ThemeMode? mode) => super.noSuchMethod(
         Invocation.method(
@@ -1207,6 +1274,10 @@ class MockSettingsService extends _i1.Mock implements _i15.SettingsService {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockLocalStorage extends _i1.Mock implements _i17.LocalStorage {
+  MockLocalStorage() {
+    _i1.throwOnMissingStub(this);
+  }
+
   @override
   dynamic read({required String? key}) => super.noSuchMethod(Invocation.method(
         #read,
@@ -1298,6 +1369,10 @@ class MockLocalStorage extends _i1.Mock implements _i17.LocalStorage {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockAppService extends _i1.Mock implements _i18.AppService {
+  MockAppService() {
+    _i1.throwOnMissingStub(this);
+  }
+
   @override
   _i5.Logger get log => (super.noSuchMethod(
         Invocation.getter(#log),
@@ -1344,6 +1419,11 @@ class MockAppService extends _i1.Mock implements _i18.AppService {
         Invocation.getter(#contacts),
         returnValue: <_i8.Business>[],
       ) as List<_i8.Business>);
+  @override
+  int get listenersCount => (super.noSuchMethod(
+        Invocation.getter(#listenersCount),
+        returnValue: 0,
+      ) as int);
   @override
   void setCustomer(_i8.Customer? customer) => super.noSuchMethod(
         Invocation.method(
@@ -1505,6 +1585,10 @@ class MockAppService extends _i1.Mock implements _i18.AppService {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockFlipperLocation extends _i1.Mock implements _i19.FlipperLocation {
+  MockFlipperLocation() {
+    _i1.throwOnMissingStub(this);
+  }
+
   @override
   _i12.Future<Map<String, String>> getLocation() => (super.noSuchMethod(
         Invocation.method(
@@ -1527,6 +1611,10 @@ class MockFlipperLocation extends _i1.Mock implements _i19.FlipperLocation {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockBillingService extends _i1.Mock implements _i20.BillingService {
+  MockBillingService() {
+    _i1.throwOnMissingStub(this);
+  }
+
   @override
   _i5.Logger get log => (super.noSuchMethod(
         Invocation.getter(#log),

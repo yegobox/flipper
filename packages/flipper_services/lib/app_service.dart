@@ -8,7 +8,7 @@ import 'proxy.dart';
 
 // Testing
 // import 'package:flutter_gen/gen_l10n/flipper_localizations.dart';
-class AppService with ReactiveServiceMixin {
+class AppService with ListenableServiceMixin {
   // required constants
   String? get userid => ProxyService.box.read(key: 'userId');
   int? get businessId => ProxyService.box.read(key: 'businessId');

@@ -3,7 +3,7 @@ import 'package:stacked/stacked.dart';
 import 'abstractions/system_time.dart';
 
 class UnSupportedSystemTime
-    with ReactiveServiceMixin
+    with ListenableServiceMixin
     implements SystemTimeService {
   @override
   Future<bool> isSystemTime() async {
@@ -11,7 +11,7 @@ class UnSupportedSystemTime
   }
 }
 
-class SystemTimeService with ReactiveServiceMixin implements SystemTime {
+class SystemTimeService with ListenableServiceMixin implements SystemTime {
   @override
   Future<bool> isSystemTime() async {
     // bool isSystemTime;

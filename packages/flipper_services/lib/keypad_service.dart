@@ -4,7 +4,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/isar_models.dart';
 
-class KeyPadService with ReactiveServiceMixin {
+class KeyPadService with ListenableServiceMixin {
   final _key = ReactiveValue<String>("0.00");
   final log = getLogger('KeyPadService');
   Stack stack = Stack<String>();

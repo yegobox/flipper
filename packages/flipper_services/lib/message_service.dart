@@ -2,7 +2,7 @@ import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 
-class MessageService with ReactiveServiceMixin {
+class MessageService with ListenableServiceMixin {
   //a client will initiate an order by scanning a QR code.
   //the client will then send a message to the server to initiate the order.
   //the server will then send a message to the client to confirm the order.

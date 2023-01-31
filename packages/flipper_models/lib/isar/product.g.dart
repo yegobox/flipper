@@ -27,98 +27,108 @@ const ProductSchema = CollectionSchema(
       name: r'barCode',
       type: IsarType.string,
     ),
-    r'branchId': PropertySchema(
+    r'bindedToTenantId': PropertySchema(
       id: 2,
+      name: r'bindedToTenantId',
+      type: IsarType.long,
+    ),
+    r'branchId': PropertySchema(
+      id: 3,
       name: r'branchId',
       type: IsarType.long,
     ),
     r'businessId': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'businessId',
       type: IsarType.long,
     ),
     r'categoryId': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'categoryId',
       type: IsarType.string,
     ),
     r'color': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'color',
       type: IsarType.string,
     ),
     r'createdAt': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'createdAt',
       type: IsarType.string,
     ),
     r'currentUpdate': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'currentUpdate',
       type: IsarType.bool,
     ),
     r'description': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'description',
       type: IsarType.string,
     ),
     r'draft': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'draft',
       type: IsarType.bool,
     ),
     r'expiryDate': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'expiryDate',
       type: IsarType.string,
     ),
     r'hasPicture': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'hasPicture',
       type: IsarType.bool,
     ),
     r'imageLocal': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'imageLocal',
       type: IsarType.bool,
     ),
     r'imageUrl': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'imageUrl',
       type: IsarType.string,
     ),
     r'name': PropertySchema(
-      id: 14,
+      id: 15,
       name: r'name',
       type: IsarType.string,
     ),
+    r'nfcEnabled': PropertySchema(
+      id: 16,
+      name: r'nfcEnabled',
+      type: IsarType.bool,
+    ),
     r'picture': PropertySchema(
-      id: 15,
+      id: 17,
       name: r'picture',
       type: IsarType.string,
     ),
     r'supplierId': PropertySchema(
-      id: 16,
+      id: 18,
       name: r'supplierId',
       type: IsarType.string,
     ),
     r'synced': PropertySchema(
-      id: 17,
+      id: 19,
       name: r'synced',
       type: IsarType.bool,
     ),
     r'table': PropertySchema(
-      id: 18,
+      id: 20,
       name: r'table',
       type: IsarType.string,
     ),
     r'taxId': PropertySchema(
-      id: 19,
+      id: 21,
       name: r'taxId',
       type: IsarType.string,
     ),
     r'unit': PropertySchema(
-      id: 20,
+      id: 22,
       name: r'unit',
       type: IsarType.string,
     )
@@ -287,25 +297,27 @@ void _productSerialize(
 ) {
   writer.writeBool(offsets[0], object.active);
   writer.writeString(offsets[1], object.barCode);
-  writer.writeLong(offsets[2], object.branchId);
-  writer.writeLong(offsets[3], object.businessId);
-  writer.writeString(offsets[4], object.categoryId);
-  writer.writeString(offsets[5], object.color);
-  writer.writeString(offsets[6], object.createdAt);
-  writer.writeBool(offsets[7], object.currentUpdate);
-  writer.writeString(offsets[8], object.description);
-  writer.writeBool(offsets[9], object.draft);
-  writer.writeString(offsets[10], object.expiryDate);
-  writer.writeBool(offsets[11], object.hasPicture);
-  writer.writeBool(offsets[12], object.imageLocal);
-  writer.writeString(offsets[13], object.imageUrl);
-  writer.writeString(offsets[14], object.name);
-  writer.writeString(offsets[15], object.picture);
-  writer.writeString(offsets[16], object.supplierId);
-  writer.writeBool(offsets[17], object.synced);
-  writer.writeString(offsets[18], object.table);
-  writer.writeString(offsets[19], object.taxId);
-  writer.writeString(offsets[20], object.unit);
+  writer.writeLong(offsets[2], object.bindedToTenantId);
+  writer.writeLong(offsets[3], object.branchId);
+  writer.writeLong(offsets[4], object.businessId);
+  writer.writeString(offsets[5], object.categoryId);
+  writer.writeString(offsets[6], object.color);
+  writer.writeString(offsets[7], object.createdAt);
+  writer.writeBool(offsets[8], object.currentUpdate);
+  writer.writeString(offsets[9], object.description);
+  writer.writeBool(offsets[10], object.draft);
+  writer.writeString(offsets[11], object.expiryDate);
+  writer.writeBool(offsets[12], object.hasPicture);
+  writer.writeBool(offsets[13], object.imageLocal);
+  writer.writeString(offsets[14], object.imageUrl);
+  writer.writeString(offsets[15], object.name);
+  writer.writeBool(offsets[16], object.nfcEnabled);
+  writer.writeString(offsets[17], object.picture);
+  writer.writeString(offsets[18], object.supplierId);
+  writer.writeBool(offsets[19], object.synced);
+  writer.writeString(offsets[20], object.table);
+  writer.writeString(offsets[21], object.taxId);
+  writer.writeString(offsets[22], object.unit);
 }
 
 Product _productDeserialize(
@@ -317,26 +329,28 @@ Product _productDeserialize(
   final object = Product();
   object.active = reader.readBool(offsets[0]);
   object.barCode = reader.readStringOrNull(offsets[1]);
-  object.branchId = reader.readLong(offsets[2]);
-  object.businessId = reader.readLong(offsets[3]);
-  object.categoryId = reader.readStringOrNull(offsets[4]);
-  object.color = reader.readString(offsets[5]);
-  object.createdAt = reader.readStringOrNull(offsets[6]);
-  object.currentUpdate = reader.readBoolOrNull(offsets[7]);
-  object.description = reader.readStringOrNull(offsets[8]);
-  object.draft = reader.readBoolOrNull(offsets[9]);
-  object.expiryDate = reader.readStringOrNull(offsets[10]);
-  object.hasPicture = reader.readBool(offsets[11]);
+  object.bindedToTenantId = reader.readLongOrNull(offsets[2]);
+  object.branchId = reader.readLong(offsets[3]);
+  object.businessId = reader.readLong(offsets[4]);
+  object.categoryId = reader.readStringOrNull(offsets[5]);
+  object.color = reader.readString(offsets[6]);
+  object.createdAt = reader.readStringOrNull(offsets[7]);
+  object.currentUpdate = reader.readBoolOrNull(offsets[8]);
+  object.description = reader.readStringOrNull(offsets[9]);
+  object.draft = reader.readBoolOrNull(offsets[10]);
+  object.expiryDate = reader.readStringOrNull(offsets[11]);
+  object.hasPicture = reader.readBool(offsets[12]);
   object.id = id;
-  object.imageLocal = reader.readBoolOrNull(offsets[12]);
-  object.imageUrl = reader.readStringOrNull(offsets[13]);
-  object.name = reader.readString(offsets[14]);
-  object.picture = reader.readStringOrNull(offsets[15]);
-  object.supplierId = reader.readStringOrNull(offsets[16]);
-  object.synced = reader.readBoolOrNull(offsets[17]);
-  object.table = reader.readStringOrNull(offsets[18]);
-  object.taxId = reader.readStringOrNull(offsets[19]);
-  object.unit = reader.readStringOrNull(offsets[20]);
+  object.imageLocal = reader.readBoolOrNull(offsets[13]);
+  object.imageUrl = reader.readStringOrNull(offsets[14]);
+  object.name = reader.readString(offsets[15]);
+  object.nfcEnabled = reader.readBoolOrNull(offsets[16]);
+  object.picture = reader.readStringOrNull(offsets[17]);
+  object.supplierId = reader.readStringOrNull(offsets[18]);
+  object.synced = reader.readBoolOrNull(offsets[19]);
+  object.table = reader.readStringOrNull(offsets[20]);
+  object.taxId = reader.readStringOrNull(offsets[21]);
+  object.unit = reader.readStringOrNull(offsets[22]);
   return object;
 }
 
@@ -352,42 +366,46 @@ P _productDeserializeProp<P>(
     case 1:
       return (reader.readStringOrNull(offset)) as P;
     case 2:
-      return (reader.readLong(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 3:
       return (reader.readLong(offset)) as P;
     case 4:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 5:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 6:
-      return (reader.readStringOrNull(offset)) as P;
-    case 7:
-      return (reader.readBoolOrNull(offset)) as P;
-    case 8:
-      return (reader.readStringOrNull(offset)) as P;
-    case 9:
-      return (reader.readBoolOrNull(offset)) as P;
-    case 10:
-      return (reader.readStringOrNull(offset)) as P;
-    case 11:
-      return (reader.readBool(offset)) as P;
-    case 12:
-      return (reader.readBoolOrNull(offset)) as P;
-    case 13:
-      return (reader.readStringOrNull(offset)) as P;
-    case 14:
       return (reader.readString(offset)) as P;
-    case 15:
+    case 7:
       return (reader.readStringOrNull(offset)) as P;
-    case 16:
-      return (reader.readStringOrNull(offset)) as P;
-    case 17:
+    case 8:
       return (reader.readBoolOrNull(offset)) as P;
+    case 9:
+      return (reader.readStringOrNull(offset)) as P;
+    case 10:
+      return (reader.readBoolOrNull(offset)) as P;
+    case 11:
+      return (reader.readStringOrNull(offset)) as P;
+    case 12:
+      return (reader.readBool(offset)) as P;
+    case 13:
+      return (reader.readBoolOrNull(offset)) as P;
+    case 14:
+      return (reader.readStringOrNull(offset)) as P;
+    case 15:
+      return (reader.readString(offset)) as P;
+    case 16:
+      return (reader.readBoolOrNull(offset)) as P;
+    case 17:
+      return (reader.readStringOrNull(offset)) as P;
     case 18:
       return (reader.readStringOrNull(offset)) as P;
     case 19:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readBoolOrNull(offset)) as P;
     case 20:
+      return (reader.readStringOrNull(offset)) as P;
+    case 21:
+      return (reader.readStringOrNull(offset)) as P;
+    case 22:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1012,6 +1030,79 @@ extension ProductQueryFilter
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'barCode',
         value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition>
+      bindedToTenantIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'bindedToTenantId',
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition>
+      bindedToTenantIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'bindedToTenantId',
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> bindedToTenantIdEqualTo(
+      int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'bindedToTenantId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition>
+      bindedToTenantIdGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'bindedToTenantId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition>
+      bindedToTenantIdLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'bindedToTenantId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> bindedToTenantIdBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'bindedToTenantId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
       ));
     });
   }
@@ -2254,6 +2345,32 @@ extension ProductQueryFilter
     });
   }
 
+  QueryBuilder<Product, Product, QAfterFilterCondition> nfcEnabledIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'nfcEnabled',
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> nfcEnabledIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'nfcEnabled',
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> nfcEnabledEqualTo(
+      bool? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'nfcEnabled',
+        value: value,
+      ));
+    });
+  }
+
   QueryBuilder<Product, Product, QAfterFilterCondition> pictureIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -3099,6 +3216,18 @@ extension ProductQuerySortBy on QueryBuilder<Product, Product, QSortBy> {
     });
   }
 
+  QueryBuilder<Product, Product, QAfterSortBy> sortByBindedToTenantId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'bindedToTenantId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> sortByBindedToTenantIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'bindedToTenantId', Sort.desc);
+    });
+  }
+
   QueryBuilder<Product, Product, QAfterSortBy> sortByBranchId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'branchId', Sort.asc);
@@ -3255,6 +3384,18 @@ extension ProductQuerySortBy on QueryBuilder<Product, Product, QSortBy> {
     });
   }
 
+  QueryBuilder<Product, Product, QAfterSortBy> sortByNfcEnabled() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'nfcEnabled', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> sortByNfcEnabledDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'nfcEnabled', Sort.desc);
+    });
+  }
+
   QueryBuilder<Product, Product, QAfterSortBy> sortByPicture() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'picture', Sort.asc);
@@ -3351,6 +3492,18 @@ extension ProductQuerySortThenBy
   QueryBuilder<Product, Product, QAfterSortBy> thenByBarCodeDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'barCode', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> thenByBindedToTenantId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'bindedToTenantId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> thenByBindedToTenantIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'bindedToTenantId', Sort.desc);
     });
   }
 
@@ -3522,6 +3675,18 @@ extension ProductQuerySortThenBy
     });
   }
 
+  QueryBuilder<Product, Product, QAfterSortBy> thenByNfcEnabled() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'nfcEnabled', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> thenByNfcEnabledDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'nfcEnabled', Sort.desc);
+    });
+  }
+
   QueryBuilder<Product, Product, QAfterSortBy> thenByPicture() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'picture', Sort.asc);
@@ -3610,6 +3775,12 @@ extension ProductQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Product, Product, QDistinct> distinctByBindedToTenantId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'bindedToTenantId');
+    });
+  }
+
   QueryBuilder<Product, Product, QDistinct> distinctByBranchId() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'branchId');
@@ -3695,6 +3866,12 @@ extension ProductQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Product, Product, QDistinct> distinctByNfcEnabled() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'nfcEnabled');
+    });
+  }
+
   QueryBuilder<Product, Product, QDistinct> distinctByPicture(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -3754,6 +3931,12 @@ extension ProductQueryProperty
   QueryBuilder<Product, String?, QQueryOperations> barCodeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'barCode');
+    });
+  }
+
+  QueryBuilder<Product, int?, QQueryOperations> bindedToTenantIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'bindedToTenantId');
     });
   }
 
@@ -3832,6 +4015,12 @@ extension ProductQueryProperty
   QueryBuilder<Product, String, QQueryOperations> nameProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'name');
+    });
+  }
+
+  QueryBuilder<Product, bool?, QQueryOperations> nfcEnabledProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'nfcEnabled');
     });
   }
 

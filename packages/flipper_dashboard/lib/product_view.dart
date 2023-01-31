@@ -1,9 +1,11 @@
 import 'package:flipper_dashboard/discount_row.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
+import 'package:flipper_dashboard/tenants_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:stacked/stacked.dart';
 import 'add_product_buttons.dart';
 import 'product_row.dart';
@@ -27,7 +29,6 @@ class ProductView extends StatefulWidget {
 
 class _ProductViewState extends State<ProductView> {
   final log = getLogger('_onCreate');
-  String _currentItems = '';
 
   @override
   Widget build(BuildContext context) {
@@ -39,6 +40,7 @@ class _ProductViewState extends State<ProductView> {
             .listen((products) {
           model.productService.products = products;
         });
+        model.loadTenants();
       },
       viewModelBuilder: () => ProductViewModel(),
       builder: (context, model, child) {
@@ -158,6 +160,20 @@ class _ProductViewState extends State<ProductView> {
                           },
                           delete: (productId) {
                             model.deleteProduct(productId: productId);
+                          },
+                          enableNfc: (productId) {
+                            // show a model with tenants to bind product to.
+                            showMaterialModalBottomSheet(
+                              expand: false,
+                              context: context,
+                              backgroundColor: Colors.white,
+                              builder: (context) => LayoutBuilder(
+                                builder: (context, constraints) => SizedBox(
+                                  height: constraints.maxHeight * 0.4,
+                                  child: ListTenants(tenants: model.tenants),
+                                ),
+                              ),
+                            );
                           },
                         );
                       });
