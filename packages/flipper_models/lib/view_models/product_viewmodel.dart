@@ -426,4 +426,15 @@ class ProductViewModel extends AddTenantViewModel {
     }
     return false;
   }
+
+  Future<void> bindTenant(
+      {required int tenantId, required int productId}) async {
+    try {
+      await ProxyService.isarApi
+          .bindProduct(productId: productId, tenantId: tenantId);
+      rebuildUi();
+    } catch (e) {
+      // handle the exception
+    }
+  }
 }

@@ -34,9 +34,8 @@ class _ProductViewState extends State<ProductView> {
   Widget build(BuildContext context) {
     return ViewModelBuilder<ProductViewModel>.reactive(
       onViewModelReady: (model) {
-        int branchId = ProxyService.box.getBranchId()!;
         model.productService
-            .loadProducts(branchId: branchId)
+            .loadProducts(branchId: ProxyService.box.getBranchId()!)
             .listen((products) {
           model.productService.products = products;
         });
@@ -161,7 +160,7 @@ class _ProductViewState extends State<ProductView> {
                           delete: (productId) {
                             model.deleteProduct(productId: productId);
                           },
-                          enableNfc: (productId) {
+                          enableNfc: (product) {
                             // show a model with tenants to bind product to.
                             showMaterialModalBottomSheet(
                               expand: false,
@@ -170,7 +169,10 @@ class _ProductViewState extends State<ProductView> {
                               builder: (context) => LayoutBuilder(
                                 builder: (context, constraints) => SizedBox(
                                   height: constraints.maxHeight * 0.4,
-                                  child: ListTenants(tenants: model.tenants),
+                                  child: ListTenants(
+                                      tenants: model.tenants,
+                                      model: model,
+                                      product: product as Product),
                                 ),
                               ),
                             );

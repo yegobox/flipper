@@ -1,9 +1,15 @@
+import 'dart:developer';
+
+import 'package:flipper_ui/toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
 
 class ListTenants extends StatelessWidget {
-  ListTenants({required this.tenants});
+  ListTenants(
+      {required this.tenants, required this.product, required this.model});
   final List<ITenant> tenants;
+  final Product product;
+  final ProductViewModel model;
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -40,8 +46,13 @@ class ListTenants extends StatelessWidget {
                               return null; // Defer to the widget's default.
                             }),
                           ),
-                          onPressed: () {
-                            // Add button press logic here
+                          onPressed: () async {
+                            log(tenants[index].id.toString());
+                            await model.bindTenant(
+                                tenantId: tenants[index].id!,
+                                productId: product.id);
+                            showToast(
+                                context, 'Binded to ${tenants[index].name}');
                           },
                           child: Text('Bind'),
                         ),

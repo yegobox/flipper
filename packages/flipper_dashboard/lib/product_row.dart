@@ -135,7 +135,7 @@ class ProductRow extends StatelessWidget {
           ),
           SlidableAction(
             onPressed: (_) {
-              enableNfc(product.id);
+              enableNfc(product);
             },
             backgroundColor: product.nfcEnabled != null && product.nfcEnabled!
                 ? Colors.blue

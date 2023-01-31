@@ -1834,4 +1834,16 @@ class IsarAPI implements IsarApiInterface {
   Future<Token?> whatsAppToken() {
     return isar.tokens.filter().typeEqualTo('whatsapp').findFirst();
   }
+
+  @override
+  Future<bool> bindProduct(
+      {required int productId, required int tenantId}) async {
+    return await isar.writeTxn(() async {
+      final product = await isar.products.get(productId);
+      product!.nfcEnabled = true;
+      product.bindedToTenantId = tenantId;
+      await isar.products.put(product);
+      return true;
+    });
+  }
 }

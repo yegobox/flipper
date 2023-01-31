@@ -202,4 +202,5 @@ abstract class IsarApiInterface {
   String dbPath();
   Future<Customer?> nGetCustomerByOrderId({required int id});
   Future<Token?> whatsAppToken();
+  Future<bool> bindProduct({required int productId, required int tenantId});
 }
