@@ -2,7 +2,7 @@ import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_settings_ui/flutter_settings_ui.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_dashboard/setting_view_model.dart';
+import 'package:flipper_models/view_models/setting_view_model.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:go_router/go_router.dart';
 

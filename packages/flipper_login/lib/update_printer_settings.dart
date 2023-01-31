@@ -3,7 +3,8 @@ library flipper_login;
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:universal_platform/universal_platform.dart';
-import 'package:flipper_dashboard/setting_view_model.dart';
+
+import 'package:flipper_models/isar_models.dart';
 import 'package:flutter_settings_ui/flutter_settings_ui.dart';
 
 final isWindows = UniversalPlatform.isWindows;

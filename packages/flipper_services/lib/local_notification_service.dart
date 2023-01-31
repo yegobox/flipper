@@ -1,8 +1,5 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flipper_ui/bottom_sheets/activate_subscription.dart';
-import 'package:flipper_ui/bottom_sheets/subscription_widget.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flipper_dashboard/bottom_sheet.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flipper_routing/routes.logger.dart';
@@ -161,11 +158,7 @@ class LocalNotificationService implements LNotification {
 
         break;
       case 'payment':
-        activateSubscription(
-          context: context,
-          body: <Widget>[const SubscriptionWidget()],
-          header: header(title: 'Renew flipper subscription', context: context),
-        );
+        //navigate to payment logic
         break;
       default:
     }

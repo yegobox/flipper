@@ -1,4 +1,4 @@
-import 'package:flipper_dashboard/setting_view_model.dart';
+import 'package:flipper_models/view_models/setting_view_model.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_settings_ui/flutter_settings_ui.dart';

@@ -2,11 +2,9 @@ library flipper_login;
 
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:universal_platform/universal_platform.dart';
-import 'package:flipper_dashboard/setting_view_model.dart';
-import 'package:overlay_support/overlay_support.dart';
+import 'package:flipper_models/view_models/setting_view_model.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 

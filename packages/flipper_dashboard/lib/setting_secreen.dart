@@ -7,7 +7,8 @@ import 'languages_screen.dart';
 import 'package:go_router/go_router.dart';
 import 'package:stacked/stacked.dart';
 import 'package:overlay_support/overlay_support.dart';
-import 'setting_view_model.dart';
+
+import 'package:flipper_models/isar_models.dart';
 
 class SettingsScreen extends StatefulWidget {
   @override

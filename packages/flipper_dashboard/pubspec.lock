@@ -823,7 +823,7 @@ packages:
     source: path
     version: "0.0.1-dev.6"
   flipper_ui:
-    dependency: "direct overridden"
+    dependency: "direct main"
     description:
       path: "../flipper_ui"
       relative: true

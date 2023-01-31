@@ -2,19 +2,19 @@ import 'dart:async';
 
 import 'package:flipper_dashboard/bottom_sheet.dart';
 import 'package:flipper_models/isar_models.dart';
-import 'package:flipper_ui/bottom_sheets/activate_subscription.dart';
 import 'package:flipper_ui/bottom_sheets/bottom_sheet_builder.dart';
-import 'package:flipper_ui/bottom_sheets/subscription_widget.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:stacked/stacked.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:permission_handler/permission_handler.dart' as perm;
 import 'badge_icon.dart';
 import 'page_switcher.dart';
+import 'subscription_widget.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 final isMacOs = UniversalPlatform.isMacOS;
@@ -100,10 +100,16 @@ class _FlipperAppState extends State<FlipperApp>
           if (today % 2 == 1 &&
               !await ProxyService.billing.activeSubscription() &&
               !isWindows) {
-            activateSubscription(
+            showMaterialModalBottomSheet(
+              expand: false,
               context: context,
-              body: <Widget>[const SubscriptionWidget()],
-              header: header(title: 'Activate flipper pro', context: context),
+              backgroundColor: Colors.white,
+              builder: (context) => LayoutBuilder(
+                builder: (context, constraints) => SizedBox(
+                  height: constraints.maxHeight * 0.2,
+                  child: SubscriptionWidget(),
+                ),
+              ),
             );
           }
         });
