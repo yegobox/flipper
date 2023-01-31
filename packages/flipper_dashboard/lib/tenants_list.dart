@@ -19,8 +19,33 @@ class ListTenants extends StatelessWidget {
                 child: ListView.builder(
                   itemCount: tenants.length,
                   itemBuilder: (context, index) {
-                    return ListTile(
-                      title: Text(tenants[index].name),
+                    return Row(
+                      children: [
+                        Expanded(
+                          child: ListTile(
+                            title: Text(tenants[index].name),
+                          ),
+                        ),
+                        TextButton(
+                          style: ButtonStyle(
+                            overlayColor:
+                                MaterialStateProperty.resolveWith<Color?>(
+                                    (Set<MaterialState> states) {
+                              if (states.contains(MaterialState.focused))
+                                return Colors.red;
+                              if (states.contains(MaterialState.hovered))
+                                return Colors.green;
+                              if (states.contains(MaterialState.pressed))
+                                return Colors.blue;
+                              return null; // Defer to the widget's default.
+                            }),
+                          ),
+                          onPressed: () {
+                            // Add button press logic here
+                          },
+                          child: Text('Bind'),
+                        ),
+                      ],
                     );
                   },
                 ),
