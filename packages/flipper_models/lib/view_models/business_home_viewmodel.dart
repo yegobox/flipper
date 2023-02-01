@@ -170,6 +170,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         keypad.setItemsOnSale(count: items.length);
       }
       keypad.setTotalPayable(amount: order.subTotal);
+      rebuildUi();
     } else {
       keypad.setOrder(null);
       keypad.setItemsOnSale(count: 0);
@@ -181,6 +182,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         await ProxyService.isarApi.orderItems(orderId: order.id);
 
     keypad.setItemsOnSale(count: items.length);
+    rebuildUi();
   }
 
   /// the function is useful on completing a sale since we need to look for this past order

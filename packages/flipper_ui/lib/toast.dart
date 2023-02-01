@@ -1,6 +1,17 @@
 import 'package:flutter/material.dart';
 
-void showToast(BuildContext context, String message) {
+void showToast(BuildContext context, String message, {Object? color}) {
+  Color? _color;
+  if (color == null) {
+    _color = Colors.grey[800];
+  } else if (color is Color) {
+    _color = color;
+  } else if (color is String) {
+    _color = Color(int.parse(color.substring(1), radix: 16) + 0xFF000000);
+  } else {
+    _color = Colors.grey[800];
+  }
+
   final overlayState = Overlay.of(context);
   final overlayEntry = OverlayEntry(
     builder: (context) => Positioned(
@@ -11,7 +22,7 @@ void showToast(BuildContext context, String message) {
         height: 60,
         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         decoration: BoxDecoration(
-          color: Colors.grey[800],
+          color: _color,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Center(

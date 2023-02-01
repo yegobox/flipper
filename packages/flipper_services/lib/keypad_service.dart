@@ -94,7 +94,6 @@ class KeyPadService with ListenableServiceMixin {
     } else {
       _order.value = null;
     }
-    notifyListeners();
   }
 
   /// order can not be more than 1 lenght i.e at one instance

@@ -117,14 +117,6 @@ class _FlipperAppState extends State<FlipperApp>
         });
       }
     }
-    AppService().nfc.startNFC(
-          callback: (nfcData) {
-            AppService.cleanedDataController
-                .add(nfcData.split(RegExp(r"(NFC_DATA:|en|\\x02)")).last);
-          },
-          textData: "",
-          write: false,
-        );
   }
 
   @override
@@ -174,14 +166,22 @@ class _FlipperAppState extends State<FlipperApp>
           ProxyService.notification.listen(context);
           ProxyService.dynamicLink.handleDynamicLink(context);
 
+          AppService().nfc.startNFC(
+                callback: (nfcData) {
+                  AppService.cleanedDataController
+                      .add(nfcData.split(RegExp(r"(NFC_DATA:|en|\\x02)")).last);
+                },
+                textData: "",
+                write: false,
+              );
           AppService.cleanedData.listen((data) async {
             log("listened to data");
             log(data);
             List<String> parts = data.split(':');
             String firstPart = parts[0];
-            
+
             await model.sellWithCard(tenantId: int.parse(firstPart));
-            showToast(context, 'Sold Item');
+            showToast(context, 'Sale recorded successfully.');
           });
           model.loadReport();
           if (!isWindows) {
