@@ -11,7 +11,7 @@ class UnSupportedAnalyticPlatform implements Analytic {
   }
 }
 
-class FirebaseAnalyticsService with ListenableServiceMixin implements Analytic {
+class FirebaseAnalyticsService with ReactiveServiceMixin implements Analytic {
   @override
   void recordUser() {
     FirebaseAnalytics analytics = FirebaseAnalytics.instance;

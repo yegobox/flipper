@@ -4,7 +4,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/isar_models.dart';
 
-class KeyPadService with ListenableServiceMixin {
+class KeyPadService with ReactiveServiceMixin {
   final _key = ReactiveValue<String>("0.00");
   final log = getLogger('KeyPadService');
   Stack stack = Stack<String>();
@@ -54,6 +54,7 @@ class KeyPadService with ListenableServiceMixin {
 
   void toggleCheckbox({required int variantId}) {
     _check.value = variantId;
+    notifyListeners();
   }
 
   final _tickets = ReactiveValue<List<Order>>([]);

@@ -1,14 +1,15 @@
+import 'dart:async';
+
 import 'package:flipper_models/isar_models.dart' as isar;
 import 'package:stacked/stacked.dart';
 
-// import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'proxy.dart';
 
-// Testing
-// import 'package:flutter_gen/gen_l10n/flipper_localizations.dart';
-class AppService with ListenableServiceMixin {
+import 'package:flipper_nfc/flipper_nfc.dart';
+
+class AppService with ReactiveServiceMixin {
   // required constants
   String? get userid => ProxyService.box.read(key: 'userId');
   int? get businessId => ProxyService.box.read(key: 'businessId');
@@ -187,6 +188,11 @@ class AppService with ListenableServiceMixin {
           .loadCounterFromOnline(businessId: business.id!);
     }
   }
+
+  static NFCManager nfc = NFCManager();
+  static final StreamController<String> cleanedDataController =
+      StreamController<String>.broadcast();
+  static Stream<String> get cleanedData => cleanedDataController.stream;
 
   AppService() {
     listenToReactiveValues(

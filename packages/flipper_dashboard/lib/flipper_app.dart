@@ -1,9 +1,12 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:flipper_dashboard/bottom_sheet.dart';
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_services/app_service.dart';
 import 'package:flipper_ui/bottom_sheets/bottom_sheet_builder.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_ui/toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -115,39 +118,57 @@ class _FlipperAppState extends State<FlipperApp>
         });
       }
     }
+    try {
+      AppService.nfc.stopNfc();
+    } catch (e) {}
+    // This code will run every 1 second while the app is in the foreground
+    AppService.nfc.startNFC(
+      callback: (nfcData) {
+        String cleanedData =
+            nfcData.split(RegExp(r"(NFC_DATA:|en|\\x02)")).last;
+        AppService.cleanedDataController.add(cleanedData);
+      },
+      textData: "",
+      write: false,
+    );
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+    AppService.cleanedDataController.close();
     _tabController.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
+      // AppLifecycleState.
       case AppLifecycleState.resumed:
         if (isAndroid || isIos) {
           _whileLoop = Timer.periodic(Duration(seconds: 1), (timer) {
             // Your code here
+            try {
+              AppService.nfc.stopNfc();
+            } catch (e) {}
             // This code will run every 1 second while the app is in the foreground
-            // final nfc = NFCManager();
-            // nfc.startNFC(
-            //   callback: (nfcData) {
-            //     String cleanedData =
-            //         nfcData.split(RegExp(r"(NFC_DATA:|en|\\x02)")).last;
-            //     log(cleanedData);
-            //   },
-            //   textData: "123444444:22334:+250783054874",
-            //   write: false,
-            // );
+            AppService.nfc.startNFC(
+              callback: (nfcData) {
+                String cleanedData =
+                    nfcData.split(RegExp(r"(NFC_DATA:|en|\\x02)")).last;
+                AppService.cleanedDataController.add(cleanedData);
+              },
+              textData: "",
+              write: false,
+            );
           });
         }
 
         break;
       case AppLifecycleState.paused:
         if (_whileLoop != null) {
+          AppService.cleanedDataController.close();
           _whileLoop?.cancel();
         }
         break;
@@ -165,6 +186,15 @@ class _FlipperAppState extends State<FlipperApp>
           ProxyService.notification.initialize(context);
           ProxyService.notification.listen(context);
           ProxyService.dynamicLink.handleDynamicLink(context);
+
+          AppService.cleanedData.listen((data) {
+            log("listened to data");
+            log(data);
+            List<String> parts = data.split(':');
+            String firstPart = parts[0];
+            showToast(context, 'NFC data here ${firstPart}');
+            model.sellWithCard(tenantId: int.parse(firstPart));
+          });
           model.loadReport();
           if (!isWindows) {
             await [

@@ -203,4 +203,5 @@ abstract class IsarApiInterface {
   Future<Customer?> nGetCustomerByOrderId({required int id});
   Future<Token?> whatsAppToken();
   Future<bool> bindProduct({required int productId, required int tenantId});
+  Future<Product?> findProductByTenantId({required int tenantId});
 }

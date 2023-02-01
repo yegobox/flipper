@@ -195,6 +195,19 @@ const ProductSchema = CollectionSchema(
           caseSensitive: true,
         )
       ],
+    ),
+    r'bindedToTenantId': IndexSchema(
+      id: 5346648829333150212,
+      name: r'bindedToTenantId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'bindedToTenantId',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
     )
   },
   links: {
@@ -444,6 +457,14 @@ extension ProductQueryWhereSort on QueryBuilder<Product, Product, QWhere> {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         const IndexWhereClause.any(indexName: r'draft_branchId'),
+      );
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterWhere> anyBindedToTenantId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'bindedToTenantId'),
       );
     });
   }
@@ -872,6 +893,117 @@ extension ProductQueryWhere on QueryBuilder<Product, Product, QWhereClause> {
               includeUpper: false,
             ));
       }
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterWhereClause> bindedToTenantIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'bindedToTenantId',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterWhereClause>
+      bindedToTenantIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'bindedToTenantId',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterWhereClause> bindedToTenantIdEqualTo(
+      int? bindedToTenantId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'bindedToTenantId',
+        value: [bindedToTenantId],
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterWhereClause> bindedToTenantIdNotEqualTo(
+      int? bindedToTenantId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'bindedToTenantId',
+              lower: [],
+              upper: [bindedToTenantId],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'bindedToTenantId',
+              lower: [bindedToTenantId],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'bindedToTenantId',
+              lower: [bindedToTenantId],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'bindedToTenantId',
+              lower: [],
+              upper: [bindedToTenantId],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterWhereClause> bindedToTenantIdGreaterThan(
+    int? bindedToTenantId, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'bindedToTenantId',
+        lower: [bindedToTenantId],
+        includeLower: include,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterWhereClause> bindedToTenantIdLessThan(
+    int? bindedToTenantId, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'bindedToTenantId',
+        lower: [],
+        upper: [bindedToTenantId],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterWhereClause> bindedToTenantIdBetween(
+    int? lowerBindedToTenantId,
+    int? upperBindedToTenantId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'bindedToTenantId',
+        lower: [lowerBindedToTenantId],
+        includeLower: includeLower,
+        upper: [upperBindedToTenantId],
+        includeUpper: includeUpper,
+      ));
     });
   }
 }

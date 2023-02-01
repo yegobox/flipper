@@ -857,10 +857,10 @@ packages:
     dependency: transitive
     description:
       name: flipper_nfc
-      sha256: e6d532eaf7c75cf69ef42e52625f485c194ffe652523c2852deda08ffc4a1a8f
+      sha256: d10de05422169f572efb0d9250574bce951542109e4f665aad9202897ddf942d
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.1"
+    version: "1.2.0"
   flipper_routing:
     dependency: "direct main"
     description:

@@ -1846,4 +1846,12 @@ class IsarAPI implements IsarApiInterface {
       return true;
     });
   }
+
+  @override
+  Future<Product?> findProductByTenantId({required int tenantId}) async {
+    return await isar.products
+        .where()
+        .bindedToTenantIdEqualTo(tenantId)
+        .findFirst();
+  }
 }

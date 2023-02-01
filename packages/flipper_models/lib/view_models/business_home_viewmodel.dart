@@ -4,7 +4,6 @@ import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_routing/routes.locator.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_routing/routes.router.dart';
-// import 'package:flipper_models/isar_models.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
@@ -813,6 +812,28 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     ProxyService.box.write(key: 'branchId', value: branch.id);
   }
 
+  Future<void> sellWithCard({required int tenantId}) async {
+    // we have the tenantId
+    // on a product we have tenantId
+    // now search productByTenantId
+    Product? product =
+        await ProxyService.isarApi.findProductByTenantId(tenantId: tenantId);
+    log.i(product!.id);
+    clearPreviousSaleCounts();
+    List<Variant> variants = await getVariants(productId: product.id);
+    loadVariantStock(variantId: variants.first.id);
+
+    handleCustomQtySetBeforeSelectingVariation();
+
+    keypad.setAmount(amount: variants.first.retailPrice * quantity);
+    toggleCheckbox(variantId: variants.first.id);
+    increaseQty((quantity) {});
+    await saveOrder(
+      variationId: checked,
+      amountTotal: amountTotal,
+      customItem: false,
+    );
+  }
   // steps to add a product in sale order(prepare the product)
   // 1. get variant of given product
   // 2. call loadVariantStock with variantId passed in
@@ -826,7 +847,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   //   customItem: false,
   // )
 
-  // @override
-  // List<ReactiveServiceMixin> get reactiveServices =>
-  //     [keypad, app, productService, settingService];
+  @override
+  List<ReactiveServiceMixin> get reactiveServices =>
+      [keypad, app, productService, settingService];
 }

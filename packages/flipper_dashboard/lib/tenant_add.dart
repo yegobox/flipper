@@ -1,8 +1,9 @@
 import 'dart:developer';
 
 import 'package:flipper_models/isar_models.dart';
-import 'package:flipper_nfc/flipper_nfc.dart';
+import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_ui/toast.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:stacked/stacked.dart';
@@ -186,29 +187,34 @@ class _TenantAddState extends State<TenantAdd> {
                   ListView(
                       shrinkWrap: true,
                       children: model.tenants
-                          .map((e) => ListTile(
+                          .map((tenant) => ListTile(
                                 onTap: () async {
-                                  e.nfcEnabled = !e.nfcEnabled;
-
-                                  final nfc = NFCManager();
-                                  nfc.startNFC(
+                                  tenant.nfcEnabled = !tenant.nfcEnabled;
+                                  // stop the nfc session first as it might be running
+                                  try {
+                                    await AppService.nfc.stopNfc();
+                                  } catch (e) {}
+                                  AppService.nfc.startNFC(
                                     callback: (nfcData) async {
                                       nfcData
                                           .split(
                                               RegExp(r"(NFC_DATA:|en|\\x02)"))
                                           .last;
+
+                                      showToast(context,
+                                          'You have added NFC card to ${tenant.name}');
                                       await ProxyService.isarApi
-                                          .update<ITenant>(data: e);
+                                          .update<ITenant>(data: tenant);
                                       model.loadTenants();
                                     },
                                     textData:
-                                        "${ProxyService.box.getBusinessId()}:${ProxyService.box.getBranchId()}:${e.phoneNumber}",
+                                        "${tenant.id}:${ProxyService.box.getBusinessId()}:${ProxyService.box.getBranchId()}:${tenant.phoneNumber}",
                                     write: true,
                                   );
                                 },
-                                leading: Text(e.name),
+                                leading: Text(tenant.name),
                                 trailing: Icon(Icons.nfc,
-                                    color: e.nfcEnabled == true
+                                    color: tenant.nfcEnabled == true
                                         ? Colors.blue
                                         : Colors.red),
                               ))
