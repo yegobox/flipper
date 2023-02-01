@@ -267,6 +267,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   void toggleCheckbox({required int variantId}) {
     keypad.toggleCheckbox(variantId: variantId);
+    rebuildUi();
   }
 
   Future<bool> saveOrder({
@@ -812,10 +813,11 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     ProxyService.box.write(key: 'branchId', value: branch.id);
   }
 
+  /// a method that listen on given tenantId and perform a sale to a POS
+  /// this work with nfc card tapped on supported devices to perfom sales
+  /// []
+
   Future<void> sellWithCard({required int tenantId}) async {
-    // we have the tenantId
-    // on a product we have tenantId
-    // now search productByTenantId
     Product? product =
         await ProxyService.isarApi.findProductByTenantId(tenantId: tenantId);
     log.i(product!.id);
@@ -834,20 +836,8 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       customItem: false,
     );
   }
-  // steps to add a product in sale order(prepare the product)
-  // 1. get variant of given product
-  // 2. call loadVariantStock with variantId passed in
-  // 3. call handleCustomQtySetBeforeSelectingVariation
-  // 4. model.keypad.setAmount(amount: variant.retailPrice * model.quantity)
-  // increment
-  // 5. call decreaseQty with custom false to increment
-  // 6. finally call saveOrder(
-  //   variationId: model.checked,
-  //   amountTotal: model.amountTotal,
-  //   customItem: false,
-  // )
 
   @override
-  List<ReactiveServiceMixin> get reactiveServices =>
+  List<ListenableServiceMixin> get listenableServices =>
       [keypad, app, productService, settingService];
 }

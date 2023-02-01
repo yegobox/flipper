@@ -9,7 +9,7 @@ import 'proxy.dart';
 
 import 'package:flipper_nfc/flipper_nfc.dart';
 
-class AppService with ReactiveServiceMixin {
+class AppService with ListenableServiceMixin {
   // required constants
   String? get userid => ProxyService.box.read(key: 'userId');
   int? get businessId => ProxyService.box.read(key: 'businessId');

@@ -3,7 +3,7 @@ import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 
-class ProductService with ReactiveServiceMixin {
+class ProductService with ListenableServiceMixin {
   String? _currentUnit = 'Kg'; //set default to kg
   String? get currentUnit => _currentUnit;
   final log = getLogger('ProductService');
