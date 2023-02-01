@@ -19,7 +19,7 @@ import 'test_helpers.mocks.dart';
 import 'package:flipper_services/locator.dart';
 
 @GenerateNiceMocks([
-  MockSpec<Language>(),
+  // MockSpec<Language>(),
   MockSpec<LanguageService>(),
   MockSpec<Remote>(),
   MockSpec<FirebaseMessaging>(),
@@ -130,13 +130,6 @@ MockFlipperLocation getAndRegisterLocationService() {
   return service;
 }
 
-MockLanguage getAndRegisterLanguage() {
-  _removeRegistrationIfExists<Language>();
-  final service = MockLanguage();
-  locator.registerSingleton<Language>(service);
-  return service;
-}
-
 LanguageService getAndRegisterLanguageService() {
   _removeRegistrationIfExists<LanguageService>();
   final service = LanguageService();
@@ -200,14 +193,12 @@ void registerServices() {
   getAndRegisterKeyPadService();
   getFirebaseMessaging();
   getAndRegisterRemoteConfig();
-  getAndRegisterLanguage();
   getAndRegisterLanguageService();
   getAndRegisterBillingService();
   getAndRegisterApiService();
 }
 
 void unregisterServices() {
-  locator.unregister<Language>();
   locator.unregister<SettingsService>();
   locator.unregister<LocalStorage>();
   locator.unregister<LanguageService>();

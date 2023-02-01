@@ -134,7 +134,7 @@ class KeyPadService with ReactiveServiceMixin {
   void increaseQty({required bool custom, int? qty}) {
     if (custom) {
       _quantity.value = 0;
-      _quantity.value = qty!;
+      _quantity.value = qty ?? 1;
     } else {
       _quantity.value++;
       notifyListeners();

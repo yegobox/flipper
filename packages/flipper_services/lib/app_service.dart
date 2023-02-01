@@ -189,7 +189,7 @@ class AppService with ReactiveServiceMixin {
     }
   }
 
-  static NFCManager nfc = NFCManager();
+  NFCManager nfc = NFCManager();
   static final StreamController<String> cleanedDataController =
       StreamController<String>.broadcast();
   static Stream<String> get cleanedData => cleanedDataController.stream;

@@ -39,7 +39,6 @@ class _FlipperAppState extends State<FlipperApp>
   late TabController _tabController;
   final TextEditingController controller = TextEditingController();
   int tabselected = 0;
-  Timer? _whileLoop;
 
   @override
   void initState() {
@@ -118,26 +117,19 @@ class _FlipperAppState extends State<FlipperApp>
         });
       }
     }
-    try {
-      AppService.nfc.stopNfc();
-    } catch (e) {}
+
+    // AppService.cleanedDataController.add("199");
+    // try {
+    //   AppService.nfc.stopNfc();
+    // } catch (e) {}
     // This code will run every 1 second while the app is in the foreground
-    AppService.nfc.startNFC(
-      callback: (nfcData) {
-        String cleanedData =
-            nfcData.split(RegExp(r"(NFC_DATA:|en|\\x02)")).last;
-        AppService.cleanedDataController.add(cleanedData);
-      },
-      textData: "",
-      write: false,
-    );
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
-    AppService.cleanedDataController.close();
+    // AppService.cleanedDataController.close();
     _tabController.dispose();
   }
 
@@ -147,32 +139,24 @@ class _FlipperAppState extends State<FlipperApp>
       // AppLifecycleState.
       case AppLifecycleState.resumed:
         if (isAndroid || isIos) {
-          _whileLoop = Timer.periodic(Duration(seconds: 1), (timer) {
-            // Your code here
-            try {
-              AppService.nfc.stopNfc();
-            } catch (e) {}
-            // This code will run every 1 second while the app is in the foreground
-            AppService.nfc.startNFC(
-              callback: (nfcData) {
-                String cleanedData =
-                    nfcData.split(RegExp(r"(NFC_DATA:|en|\\x02)")).last;
-                AppService.cleanedDataController.add(cleanedData);
-              },
-              textData: "",
-              write: false,
-            );
-          });
+          // This code will run every 1 second while the app is in the foreground
+          AppService().nfc.startNFC(
+                callback: (nfcData) {
+                  AppService.cleanedDataController
+                      .add(nfcData.split(RegExp(r"(NFC_DATA:|en|\\x02)")).last);
+                },
+                textData: "",
+                write: false,
+              );
         }
 
         break;
       case AppLifecycleState.paused:
-        if (_whileLoop != null) {
-          AppService.cleanedDataController.close();
-          _whileLoop?.cancel();
-        }
+        // AppService.cleanedDataController.close();
+
         break;
       default:
+        log("default");
         break;
     }
   }

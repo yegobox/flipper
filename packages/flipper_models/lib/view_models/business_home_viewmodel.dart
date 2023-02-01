@@ -234,8 +234,8 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   /// setAmount is the amount shown on top of product when increasing the quantity
 
-  void increaseQty(Function callback) {
-    ProxyService.keypad.increaseQty(custom: false);
+  void increaseQty({required Function callback, required bool custom}) {
+    ProxyService.keypad.increaseQty(custom: custom);
     if (_currentItemStock != null) {
       keypad.setAmount(amount: _currentItemStock!.retailPrice! * quantity);
     }
@@ -827,7 +827,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
     keypad.setAmount(amount: variants.first.retailPrice * quantity);
     toggleCheckbox(variantId: variants.first.id);
-    increaseQty((quantity) {});
+    increaseQty(callback: (quantity) {}, custom: true);
     await saveOrder(
       variationId: checked,
       amountTotal: amountTotal,

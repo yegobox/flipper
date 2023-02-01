@@ -158,10 +158,12 @@ class Sell extends StatelessWidget {
                           size: 25,
                         ),
                         onPressed: () {
-                          model.increaseQty((quantity) {
-                            quantityController.text =
-                                model.quantity!.toInt().toString();
-                          });
+                          model.increaseQty(
+                              callback: (quantity) {
+                                quantityController.text =
+                                    model.quantity!.toInt().toString();
+                              },
+                              custom: false);
                         },
                       ),
                     ),
