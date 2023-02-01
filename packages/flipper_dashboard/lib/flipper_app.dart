@@ -117,19 +117,21 @@ class _FlipperAppState extends State<FlipperApp>
         });
       }
     }
-
-    // AppService.cleanedDataController.add("199");
-    // try {
-    //   AppService.nfc.stopNfc();
-    // } catch (e) {}
-    // This code will run every 1 second while the app is in the foreground
+    AppService().nfc.startNFC(
+          callback: (nfcData) {
+            AppService.cleanedDataController
+                .add(nfcData.split(RegExp(r"(NFC_DATA:|en|\\x02)")).last);
+          },
+          textData: "",
+          write: false,
+        );
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
-    // AppService.cleanedDataController.close();
+    AppService.cleanedDataController.close();
     _tabController.dispose();
   }
 
@@ -140,6 +142,7 @@ class _FlipperAppState extends State<FlipperApp>
       case AppLifecycleState.resumed:
         if (isAndroid || isIos) {
           // This code will run every 1 second while the app is in the foreground
+          AppService().nfc.stopNfc();
           AppService().nfc.startNFC(
                 callback: (nfcData) {
                   AppService.cleanedDataController
