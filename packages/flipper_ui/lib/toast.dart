@@ -28,7 +28,7 @@ void showToast(BuildContext context, String message) {
   );
 
   overlayState.insert(overlayEntry);
-  Future.delayed(Duration(seconds: 3), () {
+  Future.delayed(Duration(seconds: 5), () {
     overlayEntry.remove();
   });
 }

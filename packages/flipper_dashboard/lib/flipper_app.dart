@@ -174,13 +174,14 @@ class _FlipperAppState extends State<FlipperApp>
           ProxyService.notification.listen(context);
           ProxyService.dynamicLink.handleDynamicLink(context);
 
-          AppService.cleanedData.listen((data) {
+          AppService.cleanedData.listen((data) async {
             log("listened to data");
             log(data);
             List<String> parts = data.split(':');
             String firstPart = parts[0];
-            showToast(context, 'NFC data here ${firstPart}');
-            model.sellWithCard(tenantId: int.parse(firstPart));
+            
+            await model.sellWithCard(tenantId: int.parse(firstPart));
+            showToast(context, 'Sold Item');
           });
           model.loadReport();
           if (!isWindows) {
