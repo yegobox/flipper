@@ -121,7 +121,7 @@ class Customers extends StatelessWidget {
                                         backgroundColor:
                                             const Color(0xFFFE4A49),
                                         foregroundColor: Colors.white,
-                                        icon: Icon(Icons.delete),
+                                        icon: Icons.delete,
                                         label: 'Delete',
                                       ),
                                     ],
@@ -146,7 +146,7 @@ class Customers extends StatelessWidget {
                                         backgroundColor:
                                             const Color(0xFFFE4A49),
                                         foregroundColor: Colors.white,
-                                        icon: Icon(Icons.delete),
+                                        icon: Icons.delete,
                                         label: 'Delete',
                                       ),
                                     ],
