@@ -494,6 +494,7 @@ void main() async {
             //TODOimplement my own as this is killing design
             // theme: GThemeGenerator.generate(),
             // darkTheme: GThemeGenerator.generateDark(),
+            theme: ThemeData(useMaterial3: true),
             localizationsDelegates: [
               FirebaseUILocalizations.withDefaultOverrides(
                 const LabelOverrides(),

@@ -32,43 +32,48 @@ class CheckOut extends StatelessWidget {
             ),
             child: Padding(
               padding: const EdgeInsets.fromLTRB(2.0, 2.5, 2.5, 2.5),
-              child: TabBar(
-                controller: tabController,
-                // give the indicator a decoration (color and border radius)
-                indicator: BoxDecoration(
-                  borderRadius: BorderRadius.circular(
-                    7.0,
-                  ),
-                  color: const Color(0xffFFFFFF),
-                ),
-                labelColor: Colors.black,
-                // labelStyle: tabLabelStyle,
-                // unselectedLabelColor: Colors.black,
-                // indicatorColor: Colors.black,
-                tabs: const [
-                  // first tab [you can add an icon using the icon property]
-                  SizedBox(
-                    height: 41,
-                    child: Tab(
-                      text: 'Keypad',
+              child: LayoutBuilder(builder: (context, constraints) {
+                return TabBar(
+                  controller: tabController,
+                  // give the indicator a decoration (color and border radius)
+                  indicator: BoxDecoration(
+                    borderRadius: BorderRadius.circular(
+                      7.0,
                     ),
+                    color: const Color(0xffFFFFFF),
                   ),
+                  labelColor: Colors.black,
+                  // labelStyle: tabLabelStyle,
+                  // unselectedLabelColor: Colors.black,
+                  // indicatorColor: Colors.black,
+                  tabs: const [
+                    // first tab [you can add an icon using the icon property]
+                    SizedBox(
+                      height: 41,
+                      width: 120,
+                      child: Tab(
+                        text: 'Keypad',
+                      ),
+                    ),
 
-                  // second tab [you can add an icon using the icon property]
-                  SizedBox(
-                    height: 41,
-                    child: Tab(
-                      text: 'Library',
+                    // second tab [you can add an icon using the icon property]
+                    SizedBox(
+                      height: 41,
+                      width: 120,
+                      child: Tab(
+                        text: 'Library',
+                      ),
                     ),
-                  ),
-                  SizedBox(
-                    height: 41,
-                    child: Tab(
-                      text: 'Favourites',
+                    SizedBox(
+                      height: 41,
+                      width: 120,
+                      child: Tab(
+                        text: 'Favourites',
+                      ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                );
+              }),
             ),
           ),
         ),
