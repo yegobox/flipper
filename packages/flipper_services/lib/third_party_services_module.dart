@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:flipper_models/marketing.dart';
+import 'package:flipper_models/remote_service.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_models/whatsapp.dart';
@@ -173,6 +174,12 @@ abstract class ThirdPartyServicesModule {
 
   @lazySingleton
   KeyPadService get keypadService;
+
+  @preResolve
+  Future<RemoteInterface> get remoteApi async {
+    return await RemoteService().getInstance();
+  }
+
   @preResolve
   Future<IsarApiInterface> get isarApi async {
     //first check if we are in testing mode.

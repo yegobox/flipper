@@ -1,3 +1,4 @@
+import 'package:flipper_models/remote_service.dart';
 import 'package:flipper_models/whatsapp.dart';
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
 import 'package:flipper_services/abstractions/analytic.dart';
@@ -61,6 +62,7 @@ final SystemTime _systemTime = locator<SystemTime>();
 final EventService _event = locator<EventService>();
 final BillingService _billingService = locator<BillingService>();
 final IsarApiInterface _isarApi = locator<IsarApiInterface>();
+final RemoteInterface _remoteApi = locator<RemoteInterface>();
 final TaxApi _taxApi = locator<TaxApi>();
 final WhatsApp _whatsApp = locator<WhatsApp>();
 
@@ -68,6 +70,7 @@ abstract class ProxyService {
   static Api get api => _apiService;
   static TaxApi get tax => _taxApi;
   static IsarApiInterface get isarApi => _isarApi;
+  static RemoteInterface get remoteApi => _remoteApi;
   static EventService get event => _event;
   static Crash get crash => _crash;
   static Shareble get share => _share;

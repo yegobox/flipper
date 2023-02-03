@@ -29,6 +29,8 @@ dependencies:
   connectivity_plus: ^2.2.0
   isar: ^3.0.4
   isar_flutter_libs: ^3.0.4
+  pocketbase: ^0.7.1+1
+  stock: ^1.0.1
 
 dev_dependencies:
   build_runner: ^2.0.0

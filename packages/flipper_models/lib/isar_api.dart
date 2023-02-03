@@ -1854,4 +1854,14 @@ class IsarAPI implements IsarApiInterface {
         .bindedToTenantIdEqualTo(tenantId)
         .findFirst();
   }
+
+  @override
+  Stream<List<Order>> completedOrdersStreams(
+      {required String status, required int branchId}) {
+    return isar.orders
+        .where()
+        .statusBranchIdEqualTo(status, branchId)
+        .build()
+        .watch(fireImmediately: true);
+  }
 }
