@@ -3,8 +3,11 @@ default_platform(:android)
 platform :android do
 
   desc "Submit a new internal build to Google Play"
-  lane :internal do
-    sh "flutter build appbundle URL=$DB_URL DB_PASSWORD=$DB_PASSWORD"
+  lane :internal do |options|
+    env_url = options[:url]
+    env_password = options[:password]
+
+    sh "flutter build appbundle URL=#{env_url} PASSWORD=#{env_password}"
     upload_to_play_store(
       track: 'internal',
       aab: '../build/app/outputs/bundle/release/app-release.aab',
