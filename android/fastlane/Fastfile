@@ -6,7 +6,7 @@ platform :android do
   lane :internal do |options|
     env_url = options[:url]
     env_password = options[:password]
-
+    puts "URL: #{env_url}" # print the value of env_url
     sh "flutter build appbundle"
     upload_to_play_store(
       track: 'internal',

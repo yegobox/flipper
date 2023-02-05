@@ -88,6 +88,10 @@ jobs:
       - name: "Run Melos bootstrap"
         run: melos bootstrap
       # Setup Ruby, Bundler, and Gemfile dependencies
+      - name: PRINT PASS
+        run: |
+          echo "The URL is: ${URL}"
+          echo "The PASSWORD is: ${PASSWORD}"
       - name: Setup Fastlane
         uses: ruby/setup-ruby@v1
         with:
@@ -112,11 +116,11 @@ jobs:
 
       # Build and deploy with Fastlane (by default, to beta track) 🚀.
       # Naturally, promote_to_production only deploys.
-      - run: bundle exec fastlane ${{ github.event.inputs.lane || 'internal' }} url:${{ env.DB_URL }} password:${{ env.DB_PASSWORD }}
+      - run: bundle exec fastlane ${{ github.event.inputs.lane || 'internal' }} url:${{ secrets.DB_URL }} password:${{ secrets.DB_PASSWORD }}
         env:
           PLAY_STORE_CONFIG_JSON: ${{ secrets.PLAYSTORE_ACCOUNT_KEY }}
-          DB_URL: ${{ env.DB_URL }}
-          DB_PASSWORD: ${{ env.DB_PASSWORD }}
+          DB_URL: ${{ secrets.DB_URL }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         working-directory: android
   slackNotification:
     name: Slack Notification
