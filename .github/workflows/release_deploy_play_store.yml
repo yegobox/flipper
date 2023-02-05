@@ -115,6 +115,8 @@ jobs:
       - run: bundle exec fastlane ${{ github.event.inputs.lane || 'internal' }}
         env:
           PLAY_STORE_CONFIG_JSON: ${{ secrets.PLAYSTORE_ACCOUNT_KEY }}
+          DB_URL: ${{ env.DB_URL }}
+          DB_PASSWORD: ${{ env.DB_PASSWORD }}
         working-directory: android
   slackNotification:
     name: Slack Notification
