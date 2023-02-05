@@ -7,7 +7,7 @@ platform :android do
     env_url = options[:url]
     env_password = options[:password]
 
-    sh "flutter build appbundle URL=#{env_url} PASSWORD=#{env_password}"
+    sh "flutter build appbundle URL=$env_url PASSWORD=$env_password"
     upload_to_play_store(
       track: 'internal',
       aab: '../build/app/outputs/bundle/release/app-release.aab',

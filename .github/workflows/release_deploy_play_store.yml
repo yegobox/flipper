@@ -14,7 +14,7 @@ on:
     # - 'v*'
 env:
   URL: ${{ secrets.DB_URL }}
-  PASSWORD: ${{ secrets.DB_PASSWORLD }}
+  PASSWORD: ${{ secrets.DB_PASSWORD }}
 jobs:
   # integration-test:
   #   runs-on: windows-latest
