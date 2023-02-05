@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:flipper_dashboard/bottom_sheet.dart';
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/platform.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_ui/bottom_sheets/bottom_sheet_builder.dart';
 import 'package:flipper_services/proxy.dart';
@@ -164,7 +165,7 @@ class _FlipperAppState extends State<FlipperApp>
           ProxyService.notification.initialize(context);
           ProxyService.notification.listen(context);
           ProxyService.dynamicLink.handleDynamicLink(context);
-
+          showToast(context, 'URL ${url}');
           if (isAndroid || isIos) {
             AppService().nfc.startNFC(
                   callback: (nfcData) {

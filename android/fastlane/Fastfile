@@ -5,11 +5,7 @@ platform :android do
   desc "Submit a new internal build to Google Play"
   lane :internal do 
   
-    # print("DB_URL: ${Platform.environment['DB_URL']}");
-    # print("DB_PASSWORD: ${Platform.environment['DB_PASSWORD']}");
-
-    sh "flutter build appbundle --dart-define='DB_URL=\\"\$DB_URL\\"' --dart-define='DB_PASSWORD=\\"\$DB_PASSWORD\\"'"
-
+    sh "flutter build appbundle --dart-define='DB_URL=$DB_URL' --dart-define='DB_PASSWORD=$DB_PASSWORD'"
 
     upload_to_play_store(
       track: 'internal',
