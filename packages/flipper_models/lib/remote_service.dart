@@ -1,18 +1,23 @@
+import 'dart:developer';
+
+import 'package:flipper_models/platform.dart';
 import 'package:pocketbase/pocketbase.dart';
 
 abstract class RemoteInterface<T> {
   Future<List<RecordModel>> getCollection({required String collectionName});
-  Future<void> create(Map<String, dynamic> newMemo,
-      {required String collectionName});
-  Future<void> update(Map<String, dynamic> updatedMemo,
-      {required String collectionName});
+  Future<void> create(
+      {required Map<String, dynamic> collection,
+      required String collectionName});
+  Future<void> update(
+      {required Map<String, dynamic> updateCollection,
+      required String collectionName});
 }
 
 class RemoteService<T> implements RemoteInterface {
   late PocketBase pb;
   Future<RemoteInterface> getInstance() async {
-    pb = PocketBase('https://db.yegobox.com');
-    await pb.admins.authWithPassword('info@yegobox.com', '5nUeS5TjpArcSGd');
+    pb = PocketBase(url!);
+    await pb.admins.authWithPassword('info@yegobox.com', password!);
     return this;
   }
 
@@ -20,7 +25,10 @@ class RemoteService<T> implements RemoteInterface {
     pb
         .collection('orders')
         .subscribe("*", (e) {})
-        .catchError((error, stackTrace) {});
+        .catchError((error, stackTrace) {
+      log(error);
+      log(stackTrace);
+    });
   }
 
   @override
@@ -29,20 +37,25 @@ class RemoteService<T> implements RemoteInterface {
   }
 
   @override
-  Future<void> create(Map<String, dynamic> create,
-      {required String collectionName}) async {
-    pb
-        .collection(collectionName)
-        .create(body: create)
-        .catchError((error, stackTrace) {});
+  Future<void> create(
+      {required Map<String, dynamic> collection,
+      required String collectionName}) async {
+    pb.collection(collectionName).create(body: collection).then((record) {
+      print(record.id);
+      print(record.getStringValue('id'));
+    });
   }
 
   @override
-  Future<void> update(Map<String, dynamic> update,
-      {required String collectionName}) {
+  Future<void> update(
+      {required Map<String, dynamic> updateCollection,
+      required String collectionName}) {
     return pb
         .collection(collectionName)
-        .update(update["id"], body: update)
-        .catchError((error, stackTrace) {});
+        .update(updateCollection["id"], body: updateCollection)
+        .then((record) {
+      print(record.id);
+      print(record.getStringValue('id'));
+    });
   }
 }

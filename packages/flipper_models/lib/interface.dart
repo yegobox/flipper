@@ -23,12 +23,9 @@ abstract class IsarApiInterface {
   Stream<Order?> pendingOrderStream();
   Future<List<IUnit>> units({required int branchId});
   Future<int> create<T>({required T data, required String endPoint});
-  Future<T?> update<T>(
-      {required T data,
-      @Deprecated(
-        'Dont pass this param',
-      )
-          String? endPoint});
+  Future<T?> update<T>({required T data});
+  Future<T?> sync<T>({required T data});
+
   Future<bool> delete({required dynamic id, String? endPoint});
   Future<PColor?> getColor({required int id, String? endPoint});
   Future<Stock?> getStock({required int branchId, required int variantId});

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flipper_models/isar_models.dart';
 
 part 'order.g.dart';
@@ -29,8 +31,10 @@ class Order {
   final orderItems = IsarLinks<OrderItem>();
   final discounts = IsarLinks<Discount>();
   // toJson helper
-  Map<String, dynamic> toJson() => {
-        'id': id,
+  Map<String, dynamic> toJson({bool convertIdToString = false}) => {
+        'id': convertIdToString
+            ? "${id}_${DateTime.now().millisecondsSinceEpoch.toString().substring(0, min(15 - id.toString().length, DateTime.now().millisecondsSinceEpoch.toString().length))}"
+            : id,
         'reference': reference,
         'orderNumber': orderNumber,
         'branchId': branchId,

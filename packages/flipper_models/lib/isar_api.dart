@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_models/data.loads/jcounter.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
+import 'package:flipper_models/platform.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_services/constants.dart';
@@ -35,6 +36,7 @@ class IsarAPI implements IsarApiInterface {
   late String apihub;
   late Isar isar;
   Future<IsarApiInterface> getInstance({Isar? iisar}) async {
+    getEnvVariables();
     if (foundation.kDebugMode && !isAndroid) {
       // apihub = "http://localhost:8082";
       apihub = "https://apihub.yegobox.com";
@@ -709,8 +711,7 @@ class IsarAPI implements IsarApiInterface {
       String userId = ProxyService.box.read(key: 'userId');
       Setting? setting = await getSetting(userId: int.parse(userId));
       setting!.attendnaceDocCreated = true;
-      int id = setting.id;
-      update(data: setting.toJson(), endPoint: "settings/$id");
+      update(data: setting);
       return true;
     }
 
@@ -1232,7 +1233,7 @@ class IsarAPI implements IsarApiInterface {
   @override
   Future<int> sendReport({required List<OrderItem> orderItems}) {
     // TODO: implement sendReport
-    throw UnimplementedError();
+    return Future.value(200);
   }
 
   @override
@@ -1333,7 +1334,7 @@ class IsarAPI implements IsarApiInterface {
 
   /// @Deprecated [endpoint] don't give the endpoint params
   @override
-  Future<T?> update<T>({required T data, String? endPoint}) async {
+  Future<T?> update<T>({required T data}) async {
     if (data is Product) {
       final product = data;
       await isar.writeTxn(() async {
@@ -1863,5 +1864,15 @@ class IsarAPI implements IsarApiInterface {
         .statusBranchIdEqualTo(status, branchId)
         .build()
         .watch(fireImmediately: true);
+  }
+
+  @override
+  Future<T?> sync<T>({required T data}) async {
+    if (data is Order) {
+      ProxyService.remoteApi.create(
+          collection: data.toJson(convertIdToString: true),
+          collectionName: 'orders');
+    }
+    return null;
   }
 }
