@@ -57,14 +57,14 @@ class SignupViewModel extends FormViewModel {
     final permission = await ProxyService.location.doWeHaveLocationPermission();
     if (permission) {
       final Map<String, String> location =
-          await ProxyService.location.getLocation();
+          await ProxyService.location.getLocations();
       longitude = location['longitude'];
       latitude = location['latitude'];
 
       notifyListeners();
     } else {
       final Map<String, String> location =
-          await ProxyService.location.getLocation();
+          await ProxyService.location.getLocations();
       longitude = location['longitude'];
       latitude = location['latitude'];
       notifyListeners();

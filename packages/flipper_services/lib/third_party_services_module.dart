@@ -339,7 +339,7 @@ class WindowsBlueToothPrinterService implements Printer {
 
 class WindowsLocationService implements FlipperLocation {
   @override
-  Future<Map<String, String>> getLocation() async {
+  Future<Map<String, String>> getLocations() async {
     return {
       "longitude": "11",
       "latitude": "11"
