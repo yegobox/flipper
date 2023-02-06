@@ -34,7 +34,7 @@ dependencies:
   firebase_crashlytics: ^3.0.2
   # FIXME: check if this is not causing the issue when deploying to
   # google play
-  location: ^4.4.0
+  location: 5.0.0-dev.8
   flutter_luban: ^0.1.13
   flutter_uploader: ^3.0.0-beta.4
   injectable: ^1.5.3
