@@ -1,10 +1,11 @@
-String? url;
-String? password;
+class getEnvVariables {
+  static String url() {
+    return String.fromEnvironment('DB_URL');
+  }
 
-void getEnvVariables() {
-  url = String.fromEnvironment('DB_URL');
-
-  password = String.fromEnvironment('DB_PASSWORD');
+  static String password() {
+    return String.fromEnvironment('DB_PASSWORD');
+  }
 }
 
 // For testing purpose@NOTE: please add this in your operating system environment variable for testing.

@@ -4,7 +4,6 @@ import 'dart:developer';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/platform.dart';
 import 'package:flipper_services/app_service.dart';
-import 'package:flipper_ui/bottom_sheets/bottom_sheet_builder.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/toast.dart';
 import 'package:flutter/foundation.dart';
@@ -84,21 +83,8 @@ class _FlipperAppState extends State<FlipperApp>
       if (SchedulerBinding.instance.schedulerPhase ==
           SchedulerPhase.persistentCallbacks) {
         SchedulerBinding.instance.addPostFrameCallback((_) async {
-          int businessId = ProxyService.box.read(key: 'businessId');
-          Profile? profile =
-              await ProxyService.isarApi.profile(businessId: businessId);
-
           int today = DateTime.now().day;
           // if today is tuesday for example and other even days
-          if (profile == null && today % 2 == 0 && !isWindows) {
-            bottomSheetBuilderProfile(
-              context: context,
-              // body: <Widget>[const UpdateProfile()],
-              body: <Widget>[const SizedBox.shrink()],
-              header: SizedBox.shrink(),
-              // header: header(title: 'Update Profile', context: context),
-            );
-          }
           // if to day is monday or wednesday and other odd days
           if (today % 2 == 1 &&
               !await ProxyService.billing.activeSubscription() &&
@@ -165,7 +151,7 @@ class _FlipperAppState extends State<FlipperApp>
           ProxyService.notification.initialize(context);
           ProxyService.notification.listen(context);
           ProxyService.dynamicLink.handleDynamicLink(context);
-          showToast(context, 'URL ${url}');
+          showToast(context, 'URL ${getEnvVariables.url()}');
           if (isAndroid || isIos) {
             AppService().nfc.startNFC(
                   callback: (nfcData) {
