@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
 
-import 'package:flipper_dashboard/bottom_sheet.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/platform.dart';
 import 'package:flipper_services/app_service.dart';
@@ -96,7 +95,8 @@ class _FlipperAppState extends State<FlipperApp>
               context: context,
               // body: <Widget>[const UpdateProfile()],
               body: <Widget>[const SizedBox.shrink()],
-              header: header(title: 'Update Profile', context: context),
+              header: SizedBox.shrink(),
+              // header: header(title: 'Update Profile', context: context),
             );
           }
           // if to day is monday or wednesday and other odd days
