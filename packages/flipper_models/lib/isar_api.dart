@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_models/data.loads/jcounter.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
-import 'package:flipper_models/platform.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_services/constants.dart';
@@ -36,7 +35,7 @@ class IsarAPI implements IsarApiInterface {
   late String apihub;
   late Isar isar;
   Future<IsarApiInterface> getInstance({Isar? iisar}) async {
-    getEnvVariables();
+    // getEnvVariables();
     if (foundation.kDebugMode && !isAndroid) {
       // apihub = "http://localhost:8082";
       apihub = "https://apihub.yegobox.com";

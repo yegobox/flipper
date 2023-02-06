@@ -72,7 +72,7 @@ jobs:
           distribution: "zulu"
           java-version: "11" #defines the java version
       - name: Update version in YAML
-        run: sed -i 's/1.0.1-dev.3/1.170.1+1111010171/g' pubspec.yaml
+        run: sed -i 's/1.0.1-dev.3/1.170.2+1111010172/g' pubspec.yaml
       - name: submodule init
         run: git submodule update --init
       - name: Configure Missing files
@@ -113,8 +113,6 @@ jobs:
       # Build and deploy with Fastlane (by default, to beta track) 🚀.
       # Naturally, promote_to_production only deploys.
       - run: |
-          export DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-          export DB_URL=${{ secrets.DB_URL }}
           bundle exec fastlane ${{ github.event.inputs.lane || 'internal' }}
         env:
           PLAY_STORE_CONFIG_JSON: ${{ secrets.PLAYSTORE_ACCOUNT_KEY }}
