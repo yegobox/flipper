@@ -5,7 +5,7 @@ platform :android do
   desc "Submit a new internal build to Google Play"
   lane :internal do 
   
-    sh "flutter build appbundle --dart-define=DB_URL=https://db.yegobox.com --dart-define=DB_PASSWORD=5nUeS5TjpArcSGd"
+    sh "flutter build appbundle --dart-define=DB_URL='https://db.yegobox.com' --dart-define=DB_PASSWORD='5nUeS5TjpArcSGd'"
 
     upload_to_play_store(
       track: 'internal',
