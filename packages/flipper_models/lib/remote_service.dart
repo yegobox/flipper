@@ -39,10 +39,10 @@ class RemoteService<T> implements RemoteInterface {
   Future<void> create(
       {required Map<String, dynamic> collection,
       required String collectionName}) async {
-    await pb.collection(collectionName).create(body: collection).then((record) {
-      print(record.id);
-      print(record.getStringValue('id'));
-    });
+    await pb
+        .collection(collectionName)
+        .create(body: collection)
+        .catchError((e) {});
   }
 
   @override
