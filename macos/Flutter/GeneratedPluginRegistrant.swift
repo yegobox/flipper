@@ -19,7 +19,7 @@ import flutter_local_notifications
 import geolocator_apple
 import in_app_review
 import isar_flutter_libs
-import location
+import location_macos
 import package_info_plus_macos
 import path_provider_foundation
 import printing
