@@ -1868,7 +1868,7 @@ class IsarAPI implements IsarApiInterface {
   @override
   Future<T?> sync<T>({required T data}) async {
     if (data is Order) {
-      ProxyService.remoteApi.create(
+      await ProxyService.remoteApi.create(
           collection: data.toJson(convertIdToString: true),
           collectionName: 'orders');
     }

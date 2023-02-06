@@ -27,3 +27,6 @@ class AppSetup {
 // FIXME: windows is not building 
 // https://github.com/flutter/flutter/issues/102451#issuecomment-1124651845
 // https://github.com/mogol/flutter_secure_storage/issues/379
+
+// FIXME: use dart-define for secrets
+// https://thiele.dev/blog/part-1-configure-a-flutter-app-with-dart-define-environment-variable/

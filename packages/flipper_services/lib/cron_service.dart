@@ -122,17 +122,19 @@ class CronService {
         for (Order completedOrder in completedOrders) {
           log.i('syncing and reporting');
           if (!completedOrder.reported!) {
-            ProxyService.isarApi.sync(data: completedOrder);
+            await ProxyService.isarApi.sync(data: completedOrder);
+            completedOrder.reported = true;
+            await ProxyService.isarApi.update(data: completedOrder);
           }
 
-          List<OrderItem> items =
-              await ProxyService.isarApi.orderItems(orderId: completedOrder.id);
-          final response =
-              await ProxyService.isarApi.sendReport(orderItems: items);
-          if (response == 200) {
-            completedOrder.reported = true;
-            ProxyService.isarApi.update(data: completedOrder);
-          }
+          // List<OrderItem> items =
+          //     await ProxyService.isarApi.orderItems(orderId: completedOrder.id);
+          // final response =
+          //     await ProxyService.isarApi.sendReport(orderItems: items);
+          // if (response == 200) {
+          //   completedOrder.reported = true;
+          //   ProxyService.isarApi.update(data: completedOrder);
+          // }
         }
       }
     });

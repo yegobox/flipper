@@ -39,7 +39,7 @@ class RemoteService<T> implements RemoteInterface {
   Future<void> create(
       {required Map<String, dynamic> collection,
       required String collectionName}) async {
-    pb.collection(collectionName).create(body: collection).then((record) {
+    await pb.collection(collectionName).create(body: collection).then((record) {
       print(record.id);
       print(record.getStringValue('id'));
     });
