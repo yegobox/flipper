@@ -1864,14 +1864,4 @@ class IsarAPI implements IsarApiInterface {
         .build()
         .watch(fireImmediately: true);
   }
-
-  @override
-  Future<T?> sync<T>({required T data}) async {
-    if (data is Order) {
-      await ProxyService.remoteApi.create(
-          collection: data.toJson(convertIdToString: true),
-          collectionName: 'orders');
-    }
-    return null;
-  }
 }
