@@ -19,6 +19,10 @@ abstract class RemoteInterface<T> {
 }
 
 class RemoteService<T> implements RemoteInterface {
+  Future<RemoteInterface> getInstance() async {
+    return this;
+  }
+
   @override
   Future<void> create(
       {required Map<String, dynamic> collection,
