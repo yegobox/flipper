@@ -107,6 +107,7 @@ class CronService {
     // we need to think when the devices change or app is uninstalled
     // for the case like that the token needs to be updated, but not covered now
     // this sill make more sence once we implement the sync that is when we will implement such solution
+    Set<int> processedOrders = Set();
 
     cron.schedule(Schedule.parse('*/1 * * * *'), () async {
       /// removing checkIn flag will allow the user to check in again
@@ -120,14 +121,17 @@ class CronService {
             .completedOrders(branchId: ProxyService.box.getBranchId()!);
 
         for (Order completedOrder in completedOrders) {
-          log.i('syncing and reporting');
+          if (processedOrders.contains(completedOrder.id)) {
+            return;
+          }
           try {
-            if (!completedOrder.reported!) {
+            if ((completedOrder.reported!) == false) {
+              await ProxyService.remoteApi.create(
+                  collection: completedOrder.toJson(convertIdToString: true),
+                  collectionName: 'orders');
               completedOrder.reported = true;
               await ProxyService.isarApi.update(data: completedOrder);
-              await ProxyService.remoteApi.create(
-                  collection: completedOrder.toJson(),
-                  collectionName: 'orders');
+              processedOrders.add(completedOrder.id);
             }
           } catch (e) {
             rethrow;

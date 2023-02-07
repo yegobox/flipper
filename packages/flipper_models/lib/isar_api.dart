@@ -363,6 +363,7 @@ class IsarAPI implements IsarApiInterface {
       {required double cashReceived, required Order order}) async {
     order.status = completeStatus;
     order.reported = false;
+    order.customerChangeDue = cashReceived - order.subTotal;
     order.cashReceived = cashReceived;
     List<OrderItem> items = await orderItems(orderId: order.id);
 

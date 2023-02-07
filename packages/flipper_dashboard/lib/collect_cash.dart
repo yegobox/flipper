@@ -68,7 +68,7 @@ class _CollectCashViewState extends State<CollectCashView> {
                                         keyboardType: TextInputType.number,
                                         style: Theme.of(context)
                                             .textTheme
-                                            .bodyText1!
+                                            .bodyLarge!
                                             .copyWith(color: Colors.black),
                                         controller: _phone,
                                         decoration: InputDecoration(
@@ -99,7 +99,7 @@ class _CollectCashViewState extends State<CollectCashView> {
                                   keyboardType: TextInputType.number,
                                   style: Theme.of(context)
                                       .textTheme
-                                      .bodyText1!
+                                      .bodyLarge!
                                       .copyWith(color: Colors.black),
                                   validator: (value) {
                                     if (value == null || value.isEmpty) {

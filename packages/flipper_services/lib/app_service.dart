@@ -196,14 +196,23 @@ class AppService with ListenableServiceMixin {
   static Stream<String> get cleanedData => cleanedDataController.stream;
 
   void automaticBackup() {
+    Set<int> processedOrders = Set();
+
     ProxyService.isarApi
         .completedOrdersStream(
             branchId: ProxyService.box.getBranchId()!, status: completeStatus)
         .listen((order) async {
-      await ProxyService.remoteApi
-          .create(collection: order.toJson(), collectionName: 'orders');
+      if (processedOrders.contains(order.id)) {
+        return;
+      }
+
+      await ProxyService.remoteApi.create(
+          collection: order.toJson(convertIdToString: true),
+          collectionName: 'orders');
       order.reported = true;
+
       await ProxyService.isarApi.update(data: order);
+      processedOrders.add(order.id);
     });
   }
 
