@@ -42,8 +42,6 @@ dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - ../../assets/logo.png
     - ../../assets/
     - ../../assets/icons/
     - ../../google_fonts/
-generate: true

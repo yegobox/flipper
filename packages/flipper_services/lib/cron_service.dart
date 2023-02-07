@@ -130,8 +130,7 @@ class CronService {
                   collectionName: 'orders');
             }
           } catch (e) {
-            completedOrder.reported = false;
-            await ProxyService.isarApi.update(data: completedOrder);
+            rethrow;
           }
         }
       }
