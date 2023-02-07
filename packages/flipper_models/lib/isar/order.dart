@@ -53,6 +53,7 @@ class Order {
         'reported': reported,
         'customerId': customerId,
         'note': note,
-        'businessPhoneNumber': ProxyService.box.getUserPhone()!
+        'businessPhoneNumber': ProxyService.box.getUserPhone()!,
+        'businessId': ProxyService.box.getBusinessId()!
       };
 }
