@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_services/proxy.dart';
 
 part 'order.g.dart';
 
@@ -51,6 +52,7 @@ class Order {
         'updatedAt': updatedAt,
         'reported': reported,
         'customerId': customerId,
-        'note': note
+        'note': note,
+        'businessPhoneNumber': ProxyService.box.getUserPhone()!
       };
 }
