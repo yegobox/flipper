@@ -139,6 +139,19 @@ const OrderSchema = CollectionSchema(
           caseSensitive: false,
         )
       ],
+    ),
+    r'reported': IndexSchema(
+      id: -3616965814624702900,
+      name: r'reported',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'reported',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
     )
   },
   links: {
@@ -321,6 +334,14 @@ extension OrderQueryWhereSort on QueryBuilder<Order, Order, QWhere> {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         const IndexWhereClause.any(indexName: r'branchId'),
+      );
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterWhere> anyReported() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'reported'),
       );
     });
   }
@@ -617,6 +638,71 @@ extension OrderQueryWhere on QueryBuilder<Order, Order, QWhereClause> {
         upper: [status, upperBranchId],
         includeUpper: includeUpper,
       ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterWhereClause> reportedIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'reported',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterWhereClause> reportedIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'reported',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterWhereClause> reportedEqualTo(
+      bool? reported) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'reported',
+        value: [reported],
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterWhereClause> reportedNotEqualTo(
+      bool? reported) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'reported',
+              lower: [],
+              upper: [reported],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'reported',
+              lower: [reported],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'reported',
+              lower: [reported],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'reported',
+              lower: [],
+              upper: [reported],
+              includeUpper: false,
+            ));
+      }
     });
   }
 }

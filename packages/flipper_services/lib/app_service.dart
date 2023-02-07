@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_models/isar_models.dart' as isar;
+import 'package:flipper_services/constants.dart';
 import 'package:stacked/stacked.dart';
 
 import 'package:flipper_models/isar_models.dart';
@@ -193,6 +194,18 @@ class AppService with ListenableServiceMixin {
   static final StreamController<String> cleanedDataController =
       StreamController<String>.broadcast();
   static Stream<String> get cleanedData => cleanedDataController.stream;
+
+  void automaticBackup() {
+    ProxyService.isarApi
+        .completedOrdersStream(
+            branchId: ProxyService.box.getBranchId()!, status: completeStatus)
+        .listen((order) async {
+      await ProxyService.remoteApi
+          .create(collection: order.toJson(), collectionName: 'orders');
+      order.reported = true;
+      await ProxyService.isarApi.update(data: order);
+    });
+  }
 
   AppService() {
     listenToReactiveValues(

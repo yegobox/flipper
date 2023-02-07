@@ -1856,12 +1856,14 @@ class IsarAPI implements IsarApiInterface {
   }
 
   @override
-  Stream<List<Order>> completedOrdersStreams(
+  Stream<Order> completedOrdersStream(
       {required String status, required int branchId}) {
     return isar.orders
-        .where()
-        .statusBranchIdEqualTo(status, branchId)
-        .build()
-        .watch(fireImmediately: true);
+        .filter()
+        .statusEqualTo(status)
+        .and()
+        .reportedEqualTo(false)
+        .watch(fireImmediately: true)
+        .asyncMap((event) => event.first);
   }
 }

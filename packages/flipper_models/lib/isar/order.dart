@@ -25,6 +25,7 @@ class Order {
   /// a comma separated of the receipt type offered on this order eg. NR, NS etc...
   String? receiptType;
   String? updatedAt;
+  @Index()
   bool? reported;
   int? customerId;
   String? note;
