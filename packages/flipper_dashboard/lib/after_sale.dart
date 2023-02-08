@@ -149,6 +149,8 @@ class _AfterSaleState extends State<AfterSale> {
                                               ),
                                             ),
                                             onPressed: () async {
+                                              model.addKey(
+                                                  'C'); // to clear the keyboard
                                               if (await ProxyService.isarApi
                                                   .isTaxEnabled()) {
                                                 if (model.receiptReady) {
@@ -207,6 +209,8 @@ class _AfterSaleState extends State<AfterSale> {
                                                     color: Color(0xff006AFE))),
                                             onPressed: () {
                                               // refresh orders
+                                              model.addKey(
+                                                  'C'); // to clear the keyboard
                                               model.currentOrder();
                                               GoRouter.of(context)
                                                   .push(Routes.home);
@@ -234,7 +238,10 @@ class _AfterSaleState extends State<AfterSale> {
                                                   title: 'Email(' +
                                                       snapshot.data!.email +
                                                       ')',
-                                                  onTap: () {},
+                                                  onTap: () {
+                                                    model.addKey(
+                                                        'C'); // to clear the keyboard
+                                                  },
                                                 ),
                                               ),
                                             )
@@ -250,6 +257,8 @@ class _AfterSaleState extends State<AfterSale> {
                                             onTap: () {
                                               // refresh orders
                                               model.currentOrder();
+                                              model.addKey(
+                                                  'C'); // to clear the keyboard
                                               GoRouter.of(context)
                                                   .pushNamed(Routes.home);
                                             },

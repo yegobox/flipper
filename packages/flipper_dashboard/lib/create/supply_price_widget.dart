@@ -15,9 +15,8 @@ class SupplyPrice extends StatelessWidget {
         width: double.infinity,
         child: TextFormField(
           controller: controller,
-          onChanged: (value) {
-            onModelUpdate(value);
-          },
+          onChanged: (value) => onModelUpdate(value),
+          onFieldSubmitted: (value) => onModelUpdate(value),
           decoration: InputDecoration(
               enabled: true,
               border: const OutlineInputBorder(),

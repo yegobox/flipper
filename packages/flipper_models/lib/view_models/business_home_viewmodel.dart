@@ -93,15 +93,24 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   void addKey(String key) async {
     if (key == 'C') {
-      //remove last orderItem added
-      Order? pendingOrder = await ProxyService.isarApi.manageOrder();
-      log.i(pendingOrder.id);
+      Order pendingOrder = await ProxyService.isarApi.manageOrder();
+
       List<OrderItem> items =
           await ProxyService.isarApi.orderItems(orderId: pendingOrder.id);
-      ProxyService.isarApi.delete(id: items.last.id, endPoint: 'orderItem');
-      List<OrderItem> dItems =
+
+      if (items.isEmpty) {
+        log.e('No order items found');
+        ProxyService.keypad.reset();
+        return;
+      }
+
+      OrderItem itemToDelete = items.last;
+      await ProxyService.isarApi
+          .delete(id: itemToDelete.id, endPoint: 'orderItem');
+
+      List<OrderItem> updatedItems =
           await ProxyService.isarApi.orderItems(orderId: pendingOrder.id);
-      pendingOrder.subTotal = dItems.fold(0, (a, b) => a + b.price);
+      pendingOrder.subTotal = updatedItems.fold(0, (a, b) => a + b.price);
       await ProxyService.isarApi.update(data: pendingOrder);
       ProxyService.keypad.reset();
       Order? updatedOrder = await ProxyService.isarApi.manageOrder();

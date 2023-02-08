@@ -96,6 +96,7 @@ class _LoginViewState extends State<LoginView>
           return isWindows
               ? const Scaffold(body: DesktopLoginView())
               : Scaffold(
+                  key: Key("login-page"),
                   body: Theme(
                     data: ThemeData(
                       inputDecorationTheme: InputDecorationTheme(
