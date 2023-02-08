@@ -54,9 +54,6 @@ class Order {
         'customerId': customerId,
         'note': note,
         'businessPhoneNumber': ProxyService.box.getUserPhone()!,
-        // 'businessId': ProxyService.box.getBusinessId()!
-        // TODOremove harded coded value use the line above as soon as we support businesses to opt-in
-        //on socials, this will enable all clients to send messages using our default account
-        'businessId': '1642639'
+        'businessId': ProxyService.box.getBusinessId()!
       };
 }

@@ -124,21 +124,18 @@ class CronService {
           if (processedOrders.contains(completedOrder.id)) {
             return;
           }
-          try {
-            if ((completedOrder.reported!) == false) {
-              List<OrderItem> updatedItems = await ProxyService.isarApi
-                  .orderItems(orderId: completedOrder.id);
-              completedOrder.subTotal =
-                  updatedItems.fold(0, (a, b) => a + b.price);
-              await ProxyService.remoteApi.create(
-                  collection: completedOrder.toJson(convertIdToString: true),
-                  collectionName: 'orders');
-              completedOrder.reported = true;
-              await ProxyService.isarApi.update(data: completedOrder);
-              processedOrders.add(completedOrder.id);
-            }
-          } catch (e) {
-            rethrow;
+
+          if ((completedOrder.reported!) == false) {
+            List<OrderItem> updatedItems = await ProxyService.isarApi
+                .orderItems(orderId: completedOrder.id);
+            completedOrder.subTotal =
+                updatedItems.fold(0, (a, b) => a + b.price);
+            await ProxyService.remoteApi.create(
+                collection: completedOrder.toJson(convertIdToString: true),
+                collectionName: 'orders');
+            completedOrder.reported = true;
+            await ProxyService.isarApi.update(data: completedOrder);
+            processedOrders.add(completedOrder.id);
           }
         }
       }

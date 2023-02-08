@@ -131,9 +131,11 @@ class IsarAPI implements IsarApiInterface {
   Future<Order> manageOrder({
     String orderType = 'custom',
   }) async {
-    final ref = const Uuid().v1().substring(0, 8);
+    final ref =
+        '${DateTime.now().millisecondsSinceEpoch}-${const Uuid().v1().substring(0, 10)}';
 
-    final String orderNumber = const Uuid().v1().substring(0, 8);
+    final String orderNumber =
+        '${DateTime.now().millisecondsSinceEpoch}-${const Uuid().v1().substring(0, 8)}';
 
     int branchId = ProxyService.box.getBranchId()!;
 
