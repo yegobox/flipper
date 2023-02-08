@@ -126,6 +126,10 @@ class CronService {
           }
           try {
             if ((completedOrder.reported!) == false) {
+              List<OrderItem> updatedItems = await ProxyService.isarApi
+                  .orderItems(orderId: completedOrder.id);
+              completedOrder.subTotal =
+                  updatedItems.fold(0, (a, b) => a + b.price);
               await ProxyService.remoteApi.create(
                   collection: completedOrder.toJson(convertIdToString: true),
                   collectionName: 'orders');
