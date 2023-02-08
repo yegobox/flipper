@@ -3,7 +3,7 @@ import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:test/test.dart';
 import 'common.dart';
-import 'package:get_storage/get_storage.dart';
+import '../helpers/test_helpers.dart';
 
 void main() {
   group('Isar API', () {
@@ -11,7 +11,7 @@ void main() {
     late Order order;
 
     setUpAll(() async {
-      await GetStorage.init();
+      registerServices();
       await setupLocator();
       ProxyService.box.write(key: 'userId', value: "1");
       ProxyService.box.write(key: 'businessId', value: 1);
@@ -19,6 +19,7 @@ void main() {
     });
 
     tearDownAll(() {
+      unregisterServices();
       ProxyService.box.remove(key: "userId");
       ProxyService.box.remove(key: "businessId");
       ProxyService.box.remove(key: "branchId");
