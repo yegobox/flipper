@@ -15,6 +15,12 @@ class Transactions extends StatefulWidget {
 }
 
 class _TransactionsState extends State<Transactions> {
+  @override
+  void initState() {
+    widget.model.rebuildUi();
+    super.initState();
+  }
+
   String lastSeen = "";
   bool defaultTransactions = true;
   List<Widget> list = [];

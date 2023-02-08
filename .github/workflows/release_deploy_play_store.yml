@@ -72,7 +72,7 @@ jobs:
           distribution: "zulu"
           java-version: "11" #defines the java version
       - name: Update version in YAML
-        run: sed -i 's/1.0.1-dev.3/1.170.22+1111010192/g' pubspec.yaml
+        run: sed -i 's/1.0.1-dev.3/1.170.23+1111010193/g' pubspec.yaml
       - name: submodule init
         run: git submodule update --init
       - name: Configure Missing files
