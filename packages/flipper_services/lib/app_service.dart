@@ -205,6 +205,10 @@ class AppService with ListenableServiceMixin {
       if (processedOrders.contains(order.id)) {
         return;
       }
+      // in case subTotal is not properly updated
+      List<OrderItem> updatedItems =
+          await ProxyService.isarApi.orderItems(orderId: order.id);
+      order.subTotal = updatedItems.fold(0, (a, b) => a + b.price);
 
       await ProxyService.remoteApi.create(
           collection: order.toJson(convertIdToString: true),

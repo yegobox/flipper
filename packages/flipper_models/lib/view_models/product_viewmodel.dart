@@ -258,6 +258,8 @@ class ProductViewModel extends AddTenantViewModel {
 
     _appService.setCurrentColor(color: color.name!);
 
+    rebuildUi();
+
     loadColors();
   }
 
