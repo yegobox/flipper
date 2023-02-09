@@ -4,6 +4,7 @@ import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
 
 class LoginChoices extends StatefulWidget {
@@ -40,17 +41,28 @@ class _LoginChoicesState extends State<LoginChoices> {
         builder: (context, model, child) {
           return Scaffold(
             body: SafeArea(
-              child: Center(
+              child: Padding(
+                  padding: EdgeInsets.only(
+                      top: MediaQuery.of(context).size.height * 0.1),
                   child: !_isNext
                       ? Column(
                           children: [
-                            Text(_isNext
-                                ? "Choose a Branch"
-                                : "Choose a business"),
+                            Text(
+                              _isNext ? "Choose a Branch" : "Choose a business",
+                              style: GoogleFonts.poppins(
+                                fontSize: 16.0,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black,
+                              ),
+                            ),
                             ListView(
                               shrinkWrap: true,
                               children: _businesses
                                   .map((e) => Card(
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(0.0),
+                                        ),
                                         margin: const EdgeInsets.fromLTRB(
                                             8.0, 20, 8, 0),
                                         child: Column(
@@ -64,8 +76,11 @@ class _LoginChoicesState extends State<LoginChoices> {
                                               children: <Widget>[
                                                 Text(
                                                   e.name!,
-                                                  style: const TextStyle(
-                                                      fontSize: 17.0),
+                                                  style: GoogleFonts.poppins(
+                                                    fontSize: 16.0,
+                                                    fontWeight: FontWeight.w500,
+                                                    color: Colors.black,
+                                                  ),
                                                 ), //Text
 
                                                 Checkbox(

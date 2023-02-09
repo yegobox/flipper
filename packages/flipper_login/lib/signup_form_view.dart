@@ -1,5 +1,6 @@
 import 'package:flipper_models/isar_models.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'signup_form_view.form.dart';
@@ -118,7 +119,12 @@ class SignUpFormView extends StatelessWidget with $SignUpFormView {
                     ),
                     child: Column(
                       children: [
-                        const Text('Welcome to flipper, please signup.'),
+                        Text('Welcome to flipper, please signup.',
+                            style: GoogleFonts.poppins(
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black,
+                            )),
                         Padding(
                           padding: const EdgeInsets.only(
                               left: 0.0, right: 0.0, top: 20.0),
@@ -171,7 +177,12 @@ class SignUpFormView extends StatelessWidget with $SignUpFormView {
                             ),
                           ),
                         ),
-                        const Text('How do you want to use flipper?'),
+                        Text('How do you want to use flipper?',
+                            style: GoogleFonts.poppins(
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black,
+                            )),
                         !model.registerStart
                             ? Padding(
                                 padding: const EdgeInsets.only(
@@ -180,7 +191,12 @@ class SignUpFormView extends StatelessWidget with $SignUpFormView {
                                   width: double.infinity,
                                   height: 50,
                                   child: OutlinedButton(
-                                    child: Text('Register'),
+                                    child: Text('Register',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 16.0,
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.white,
+                                        )),
                                     style: ButtonStyle(
                                       backgroundColor:
                                           MaterialStateProperty.all<Color>(

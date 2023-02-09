@@ -80,8 +80,6 @@ class SignupViewModel extends FormViewModel {
       ProxyService.box.write(key: pageKey, value: businessType);
     }
     String? referralCode = ProxyService.box.read(key: 'referralCode');
-    //if name containts space replace them with _
-    // final String? name = kName?.replaceAll(' ', '_');
     log.i(tin);
 
     List<JTenant> jTenants = await ProxyService.isarApi.signup(business: {
@@ -107,6 +105,7 @@ class SignupViewModel extends FormViewModel {
 
       List<Branch> branches =
           await ProxyService.isarApi.branches(businessId: business!.id!);
+      ProxyService.box.write(key: 'branchId', value: branches[0].id!);
 
       appService.appInit();
       final Category category = Category()
