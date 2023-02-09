@@ -149,6 +149,7 @@ class _FlipperAppState extends State<FlipperApp>
           model.currentOrder();
           ProxyService.dynamicLink.handleDynamicLink(context);
           // showToast(context, 'URL ${getEnvVariables.url()}');
+          ProxyService.messaging.init();
           model.app.automaticBackup();
 
           if (isAndroid || isIos) {

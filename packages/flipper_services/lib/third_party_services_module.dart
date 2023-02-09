@@ -36,6 +36,7 @@ import 'abstractions/upload.dart';
 import 'app_service.dart';
 import 'country_service.dart';
 import 'dynamic_link_service.dart';
+import 'firebase_messaging.dart';
 import 'keypad_service.dart';
 import 'local_notification_service.dart';
 import 'local_storage.dart';
@@ -80,6 +81,19 @@ abstract class ThirdPartyServicesModule {
       crash = UnSupportedReview();
     }
     return crash;
+  }
+
+  @lazySingleton
+  Messaging get messaging {
+    Messaging messaging;
+    if (UniversalPlatform.isAndroid ||
+        UniversalPlatform.isIOS ||
+        UniversalPlatform.isMacOS) {
+      messaging = FirebaseMessagingService();
+    } else {
+      messaging = FirebaseMessagingDesktop();
+    }
+    return messaging;
   }
 
   @lazySingleton

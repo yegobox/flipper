@@ -35,6 +35,7 @@ import 'package:flipper_login/pin_login.dart';
 import 'package:flipper_login/signup_form_view.dart';
 import 'package:flipper_models/view_models/gate.dart';
 import 'package:flipper_rw/flipper_localize/lib/flipper_localize.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:go_router/go_router.dart';
 import 'package:flipper_login/login.dart';
@@ -64,7 +65,12 @@ final isMacOs = UniversalPlatform.isMacOS;
 final isAndroid = UniversalPlatform.isAndroid;
 final isWeb = UniversalPlatform.isWeb;
 Future<void> backgroundHandler(RemoteMessage message) async {
-  // ProxyService.notification.display(message);
+  int id = message.messageId.hashCode;
+  var title = message.data['title'];
+  var body = message.data['body'];
+  var date = DateTime.now();
+
+  ProxyService.notification.localNotification(id, title, body, date);
 }
 
 class FlipperHttpOverrides extends HttpOverrides {

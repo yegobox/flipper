@@ -24,6 +24,7 @@ import 'abstractions/share.dart';
 import 'abstractions/storage.dart';
 import 'abstractions/upload.dart';
 import 'country_service.dart';
+import 'firebase_messaging.dart';
 import 'locator.dart';
 import 'product_service.dart';
 import 'package:flipper_models/interface.dart';
@@ -65,6 +66,7 @@ final IsarApiInterface _isarApi = locator<IsarApiInterface>();
 final RemoteInterface _remoteApi = locator<RemoteInterface>();
 final TaxApi _taxApi = locator<TaxApi>();
 final WhatsApp _whatsApp = locator<WhatsApp>();
+final Messaging _messaging = locator<Messaging>();
 
 abstract class ProxyService {
   static Api get api => _apiService;
@@ -95,4 +97,5 @@ abstract class ProxyService {
   static SystemTime get systemTime => _systemTime;
   static BillingService get billing => _billingService;
   static WhatsApp get whatsApp => _whatsApp;
+  static Messaging get messaging => _messaging;
 }
