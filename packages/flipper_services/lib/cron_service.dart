@@ -120,6 +120,8 @@ class CronService {
         List<Order> completedOrders = await ProxyService.isarApi
             .completedOrders(branchId: ProxyService.box.getBranchId()!);
 
+        ProxyService.notification.localNotification(
+            1, "Backup data", "we are backing up your data", DateTime.now());
         for (Order completedOrder in completedOrders) {
           if (processedOrders.contains(completedOrder.id)) {
             return;

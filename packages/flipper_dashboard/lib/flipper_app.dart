@@ -147,8 +147,6 @@ class _FlipperAppState extends State<FlipperApp>
         viewModelBuilder: () => BusinessHomeViewModel(),
         onViewModelReady: (model) async {
           model.currentOrder();
-          ProxyService.notification.initialize(context);
-          ProxyService.notification.listen(context);
           ProxyService.dynamicLink.handleDynamicLink(context);
           // showToast(context, 'URL ${getEnvVariables.url()}');
           model.app.automaticBackup();

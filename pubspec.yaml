@@ -61,6 +61,8 @@ dependencies:
   flipper_data_table: 1.0.0-dev.2
   flutter_native_splash: ^2.2.2
   firebase_ui_localizations: ^1.1.0
+  timezone: ^0.9.1
+  flutter_native_timezone: ^2.0.0
   flutter_localizations:
     sdk: flutter
 dev_dependencies:

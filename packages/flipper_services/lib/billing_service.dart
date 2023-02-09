@@ -81,12 +81,7 @@ class BillingService {
             features: [],
           );
         } else {
-          ProxyService.notification.onDidReceiveLocalNotification(
-              1,
-              'Renew flipper subscription',
-              'To continue using flipper,you need to renew your subscription', {
-            'route': 'payment',
-          });
+          //
         }
       }
     }
