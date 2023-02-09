@@ -202,7 +202,8 @@ class AppService with ListenableServiceMixin {
         .completedOrdersStream(
             branchId: ProxyService.box.getBranchId()!, status: completeStatus)
         .listen((order) async {
-      if (processedOrders.contains(order.id)) {
+      if (order != null) return;
+      if (processedOrders.contains(order!.id)) {
         return;
       }
       // in case subTotal is not properly updated

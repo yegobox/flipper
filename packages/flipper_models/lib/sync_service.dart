@@ -9,10 +9,12 @@ import 'package:stock/stock.dart' as remote;
 class IsarSourceOfTruth implements remote.SourceOfTruth<String, List<Order>> {
   @override
   Stream<List<Order>> reader(String key) async* {
-    Stream<Order> completedOrders = ProxyService.isarApi.completedOrdersStream(
+    Stream<Order?> completedOrders = ProxyService.isarApi.completedOrdersStream(
         branchId: ProxyService.box.getBranchId()!, status: completeStatus);
 
-    yield* completedOrders.map((order) => [order]);
+    yield* completedOrders
+        .where((order) => order != null)
+        .map((order) => [order!]);
   }
 
   @override

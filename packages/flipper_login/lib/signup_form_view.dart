@@ -1,11 +1,11 @@
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'signup_form_view.form.dart';
 import 'package:overlay_support/overlay_support.dart';
-import 'package:flipper_ui/flipper_ui.dart';
 
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:flipper_services/proxy.dart';
@@ -111,132 +111,134 @@ class SignUpFormView extends StatelessWidget with $SignUpFormView {
             return Scaffold(
               body: Padding(
                 padding: const EdgeInsets.all(0.0).copyWith(top: 80, bottom: 0),
-                child: Form(
-                  key: _formKey,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                    ),
-                    child: Column(
-                      children: [
-                        Text('Welcome to flipper, please signup.',
-                            style: GoogleFonts.poppins(
-                              fontSize: 16.0,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.black,
-                            )),
-                        Padding(
-                          padding: const EdgeInsets.only(
-                              left: 0.0, right: 0.0, top: 20.0),
-                          child: TextFieldBlocBuilder(
-                            textFieldBloc: formBloc.username,
-                            suffixButton: SuffixButton.asyncValidating,
-                            keyboardType: TextInputType.text,
-                            decoration: const InputDecoration(
-                              labelText: 'Username',
-                              prefixIcon: Icon(Icons.person),
+                child: SingleChildScrollView(
+                  child: Form(
+                    key: _formKey,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                      ),
+                      child: Column(
+                        children: [
+                          Text('Welcome to flipper, please signup.',
+                              style: GoogleFonts.poppins(
+                                fontSize: 16.0,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black,
+                              )),
+                          Padding(
+                            padding: const EdgeInsets.only(
+                                left: 0.0, right: 0.0, top: 20.0),
+                            child: TextFieldBlocBuilder(
+                              textFieldBloc: formBloc.username,
+                              suffixButton: SuffixButton.asyncValidating,
+                              keyboardType: TextInputType.text,
+                              decoration: const InputDecoration(
+                                labelText: 'Username',
+                                prefixIcon: Icon(Icons.person),
+                              ),
                             ),
                           ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(
-                              left: 0.0, right: 0.0, top: 0.0),
-                          child: TextFieldBlocBuilder(
-                            textFieldBloc: formBloc.fullName,
-                            suffixButton: SuffixButton.asyncValidating,
-                            keyboardType: TextInputType.text,
-                            decoration: const InputDecoration(
-                              labelText: 'First name, Last name',
-                              prefixIcon: Icon(Icons.person),
+                          Padding(
+                            padding: const EdgeInsets.only(
+                                left: 0.0, right: 0.0, top: 0.0),
+                            child: TextFieldBlocBuilder(
+                              textFieldBloc: formBloc.fullName,
+                              suffixButton: SuffixButton.asyncValidating,
+                              keyboardType: TextInputType.text,
+                              decoration: const InputDecoration(
+                                labelText: 'First name, Last name',
+                                prefixIcon: Icon(Icons.person),
+                              ),
                             ),
                           ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(
-                              left: 0.0, right: 0.0, top: 0.0),
-                          child: TextFieldBlocBuilder(
-                            textFieldBloc: formBloc.tinNumber,
-                            suffixButton: SuffixButton.asyncValidating,
-                            keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(
-                              labelText: 'Tin number',
-                              prefixIcon: Icon(Icons.person),
+                          Padding(
+                            padding: const EdgeInsets.only(
+                                left: 0.0, right: 0.0, top: 0.0),
+                            child: TextFieldBlocBuilder(
+                              textFieldBloc: formBloc.tinNumber,
+                              suffixButton: SuffixButton.asyncValidating,
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(
+                                labelText: 'Tin number',
+                                prefixIcon: Icon(Icons.person),
+                              ),
                             ),
                           ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(
-                              left: 0.0, right: 0.0, top: 0.0),
-                          child: TextFieldBlocBuilder(
-                            readOnly: true,
-                            textFieldBloc: formBloc.countryName,
-                            keyboardType: TextInputType.text,
-                            decoration: const InputDecoration(
-                              labelText: 'country',
-                              border: OutlineInputBorder(),
+                          Padding(
+                            padding: const EdgeInsets.only(
+                                left: 0.0, right: 0.0, top: 0.0),
+                            child: TextFieldBlocBuilder(
+                              readOnly: true,
+                              textFieldBloc: formBloc.countryName,
+                              keyboardType: TextInputType.text,
+                              decoration: const InputDecoration(
+                                labelText: 'country',
+                                border: OutlineInputBorder(),
+                              ),
                             ),
                           ),
-                        ),
-                        Text('How do you want to use flipper?',
-                            style: GoogleFonts.poppins(
-                              fontSize: 16.0,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.black,
-                            )),
-                        !model.registerStart
-                            ? Padding(
-                                padding: const EdgeInsets.only(
-                                    left: 0, right: 0, top: 20),
-                                child: SizedBox(
-                                  width: double.infinity,
-                                  height: 50,
-                                  child: OutlinedButton(
-                                    child: Text('Register',
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 16.0,
-                                          fontWeight: FontWeight.w500,
-                                          color: Colors.white,
-                                        )),
-                                    style: ButtonStyle(
-                                      backgroundColor:
-                                          MaterialStateProperty.all<Color>(
-                                              const Color(0xff006AFE)),
-                                      overlayColor: MaterialStateProperty
-                                          .resolveWith<Color?>(
-                                        (Set<MaterialState> states) {
-                                          if (states.contains(
-                                              MaterialState.hovered)) {
-                                            return Colors.blue
-                                                .withOpacity(0.04);
-                                          }
-                                          if (states.contains(
-                                                  MaterialState.focused) ||
-                                              states.contains(
-                                                  MaterialState.pressed)) {
-                                            return Colors.blue
-                                                .withOpacity(0.12);
-                                          }
-                                          return null; // Defer to the widget's default.
-                                        },
+                          Text('How do you want to use flipper?',
+                              style: GoogleFonts.poppins(
+                                fontSize: 16.0,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black,
+                              )),
+                          !model.registerStart
+                              ? Padding(
+                                  padding: const EdgeInsets.only(
+                                      left: 0, right: 0, top: 20),
+                                  child: SizedBox(
+                                    width: double.infinity,
+                                    height: 50,
+                                    child: OutlinedButton(
+                                      child: Text('Register',
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 16.0,
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.white,
+                                          )),
+                                      style: ButtonStyle(
+                                        backgroundColor:
+                                            MaterialStateProperty.all<Color>(
+                                                const Color(0xff006AFE)),
+                                        overlayColor: MaterialStateProperty
+                                            .resolveWith<Color?>(
+                                          (Set<MaterialState> states) {
+                                            if (states.contains(
+                                                MaterialState.hovered)) {
+                                              return Colors.blue
+                                                  .withOpacity(0.04);
+                                            }
+                                            if (states.contains(
+                                                    MaterialState.focused) ||
+                                                states.contains(
+                                                    MaterialState.pressed)) {
+                                              return Colors.blue
+                                                  .withOpacity(0.12);
+                                            }
+                                            return null; // Defer to the widget's default.
+                                          },
+                                        ),
                                       ),
+                                      onPressed: formBloc.submit,
                                     ),
-                                    onPressed: formBloc.submit,
                                   ),
-                                ),
-                              )
-                            : const Padding(
-                                key: Key('busyButon'),
-                                padding: EdgeInsets.only(left: 0, right: 0),
-                                child: SizedBox(
-                                  width: double.infinity,
-                                  height: 50,
-                                  child: BoxButton(
-                                    title: 'SIGN IN',
-                                    busy: true,
+                                )
+                              : const Padding(
+                                  key: Key('busyButon'),
+                                  padding: EdgeInsets.only(left: 0, right: 0),
+                                  child: SizedBox(
+                                    width: double.infinity,
+                                    height: 50,
+                                    child: BoxButton(
+                                      title: 'SIGN IN',
+                                      busy: true,
+                                    ),
                                   ),
-                                ),
-                              )
-                      ],
+                                )
+                        ],
+                      ),
                     ),
                   ),
                 ),

@@ -69,7 +69,6 @@ Future<void> backgroundHandler(RemoteMessage message) async {
   var title = message.data['title'];
   var body = message.data['body'];
   var date = DateTime.now();
-
   ProxyService.notification.localNotification(id, title, body, date);
 }
 

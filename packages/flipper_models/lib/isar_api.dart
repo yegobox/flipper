@@ -1860,7 +1860,7 @@ class IsarAPI implements IsarApiInterface {
   }
 
   @override
-  Stream<Order> completedOrdersStream(
+  Stream<Order?> completedOrdersStream(
       {required String status, required int branchId}) {
     return isar.orders
         .filter()
@@ -1868,6 +1868,12 @@ class IsarAPI implements IsarApiInterface {
         .and()
         .reportedEqualTo(false)
         .watch(fireImmediately: true)
-        .asyncMap((event) => event.first);
+        .asyncMap((event) {
+      if (event.length > 0) {
+        return event.first;
+      } else {
+        return null;
+      }
+    });
   }
 }

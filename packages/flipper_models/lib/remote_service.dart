@@ -42,7 +42,7 @@ class RemoteService<T> implements RemoteInterface {
     try {
       await pb.collection(collectionName).create(body: collection);
     } catch (e) {
-      throw e;
+      // throw e;
     }
   }
 

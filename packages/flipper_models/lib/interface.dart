@@ -13,7 +13,7 @@ abstract class IsarApiInterface {
   Future<List<Branch>> branches({required int businessId});
   Future<List<Stock?>> stocks({required int productId});
   Stream<Stock> stockByVariantIdStream({required int variantId});
-  Stream<Order> completedOrdersStream(
+  Stream<Order?> completedOrdersStream(
       {required String status, required int branchId});
   Stream<List<Product>> productStreams({required int branchId});
   Future<Stock?> stockByVariantId({required int variantId});

@@ -121,7 +121,11 @@ class CronService {
             .completedOrders(branchId: ProxyService.box.getBranchId()!);
 
         ProxyService.notification.localNotification(
-            1, "Backup data", "we are backing up your data", DateTime.now());
+            1,
+            "Backup data",
+            "we are backing up your data",
+            DateTime.now().add(Duration(seconds: 10)));
+
         for (Order completedOrder in completedOrders) {
           if (processedOrders.contains(completedOrder.id)) {
             return;
