@@ -1012,7 +1012,7 @@ packages:
     source: hosted
     version: "2.0.1"
   flutter_local_notifications:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: flutter_local_notifications
       sha256: f222919a34545931e47b06000836b5101baeffb0e6eb5a4691d2d42851740dd9
