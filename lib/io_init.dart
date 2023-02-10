@@ -3,10 +3,8 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flutter/foundation.dart';
-import 'package:universal_platform/universal_platform.dart';
 import 'firebase_options.dart';
 
-final isAndroid = UniversalPlatform.isAndroid;
 Future<void> initDb() async {
   // await ObjectBoxApi.getDir(dbName: 'db');
   if (Platform.isIOS || Platform.isMacOS || Platform.isAndroid) {

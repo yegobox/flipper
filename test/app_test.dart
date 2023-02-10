@@ -41,8 +41,49 @@ import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/foundation.dart' as foundation;
+import 'package:google_fonts/google_fonts.dart';
+import 'package:flipper_services/locator.dart';
+import 'package:flutter/services.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:timezone/data/latest_all.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
+import 'package:flutter_native_timezone/flutter_native_timezone.dart';
+import 'package:flipper_rw/init.dart'
+    if (dart.library.html) 'package:flipper_rw/web_init.dart'
+    if (dart.library.io) 'package:flipper_rw/io_init.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-void main() {
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+    FlutterLocalNotificationsPlugin();
+void main() async {
+  GoogleFonts.config.allowRuntimeFetching = false;
+  foundation.LicenseRegistry.addLicense(() async* {
+    final license = await rootBundle.loadString('google_fonts/OFL.txt');
+    yield foundation.LicenseEntryWithLineBreaks(['google_fonts'], license);
+  });
+  WidgetsFlutterBinding.ensureInitialized();
+  // HttpOverrides.global = FlipperHttpOverrides();
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+  if (isAndroid || isIos) {
+    final String timeZoneName = await FlutterNativeTimezone.getLocalTimezone();
+    tz.initializeTimeZones();
+    tz.setLocalLocation(tz.getLocation(timeZoneName));
+  }
+  const AndroidInitializationSettings initializationSettingsAndroid =
+      AndroidInitializationSettings('@mipmap/launcher_icon');
+
+  const InitializationSettings initializationSettings =
+      InitializationSettings(android: initializationSettingsAndroid);
+  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+
+  await GetStorage.init();
+  // done init in mobile.//done separation.
+  await setupLocator();
+  await initDb();
   testWidgets('Test the app works', (WidgetTester tester) async {
     final router = GoRouter(
       initialLocation: Routes.home,

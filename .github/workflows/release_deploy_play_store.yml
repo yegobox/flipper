@@ -25,33 +25,31 @@ jobs:
   #         channel: "stable"
   #     - run: |
   #         flutter test -d windows integration_test/smoke_test.dart
-  # testing:
-  #   name: Unit Testing
-  #   runs-on: windows-latest
-  #   steps:
-  #     - uses: actions/checkout@v1
-  #     - uses: actions/setup-java@v1
-  #       with:
-  #         java-version: "8.x"
-  #     - uses: subosito/flutter-action@master
-  #       with:
-  #         # flutter-version: '1.22.3'
-  #         channel: "stable"
-  #     # pause test on server for now
-  #     - run: git submodule update --init
-  #     - name: Configure Missing files
-  #       run: |
-  #         echo "$INDEX" >> web/index.html
-  #         echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
-  #         echo "$FIREBASEOPTIONS" >> lib/firebase_options.dart
-  #       env:
-  #         INDEX: ${{ secrets.INDEX }}
-  #         CONFIGDART: ${{ secrets.CONFIGDART }}
-  #         FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
-  #     - run: dart pub global activate melos
-  #     - name: "Run Melos bootstrap"
-  #       run: melos bootstrap
-  #     - run: flutter test --dart-define=Test=true
+  testing:
+    name: Integration Testing
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-java@v1
+        with:
+          java-version: "8.x"
+      - uses: subosito/flutter-action@master
+        with:
+          channel: "stable"
+      - run: git submodule update --init
+      - name: Configure Missing files
+        run: |
+          echo "$INDEX" >> web/index.html
+          echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
+          echo "$FIREBASEOPTIONS" >> lib/firebase_options.dart
+        env:
+          INDEX: ${{ secrets.INDEX }}
+          CONFIGDART: ${{ secrets.CONFIGDART }}
+          FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+      - run: dart pub global activate melos
+      - name: "Run Melos bootstrap"
+        run: melos bootstrap
+      - run: flutter test --dart-define=Test=true
   fastlane-deploy:
     name: "Google Deploy"
     # needs: [testing]
