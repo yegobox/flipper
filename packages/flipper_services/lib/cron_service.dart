@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:cron/cron.dart';
@@ -11,6 +12,7 @@ import 'package:flipper_routing/routes.logger.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flipper_routing/routes.locator.dart';
 import 'package:flipper_services/setting_service.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 class CronService {
   final cron = Cron();
@@ -109,22 +111,30 @@ class CronService {
     // this sill make more sence once we implement the sync that is when we will implement such solution
     Set<int> processedOrders = Set();
 
-    cron.schedule(Schedule.parse('*/1 * * * *'), () async {
+    Timer.periodic(Duration(seconds: 5), (Timer t) async {
       /// removing checkIn flag will allow the user to check in again
       String userId = ProxyService.box.getUserId()!;
       ProxyService.billing.monitorSubscription(userId: int.parse(userId));
       ProxyService.box.remove(key: 'checkIn');
+
+      /// get unsynced counter and send them online for houseKeping.
+      List<Counter> counters = await ProxyService.isarApi
+          .unSyncedCounters(branchId: ProxyService.box.getBranchId()!);
+      for (Counter counter in counters) {
+        ProxyService.isarApi.update(data: counter..backed = true);
+      }
       // ignore: todo
       //TODO:fix this to get this from settings await settingService.isDailyReportEnabled()
       if (true) {
         List<Order> completedOrders = await ProxyService.isarApi
             .completedOrders(branchId: ProxyService.box.getBranchId()!);
+        print('how many time cron runs');
 
         ProxyService.notification.localNotification(
             1,
             "Backup data",
             "we are backing up your data",
-            DateTime.now().add(Duration(seconds: 10)));
+            tz.TZDateTime.now(tz.local).add(const Duration(seconds: 5)));
 
         for (Order completedOrder in completedOrders) {
           if (processedOrders.contains(completedOrder.id)) {
@@ -144,14 +154,6 @@ class CronService {
             processedOrders.add(completedOrder.id);
           }
         }
-      }
-    });
-    cron.schedule(Schedule.parse('*/1 * * * *'), () async {
-      /// get unsynced counter and send them online for houseKeping.
-      List<Counter> counters = await ProxyService.isarApi
-          .unSyncedCounters(branchId: ProxyService.box.getBranchId()!);
-      for (Counter counter in counters) {
-        ProxyService.isarApi.update(data: counter..backed = true);
       }
     });
   }

@@ -1,25 +1,29 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/timezone.dart';
 import 'package:universal_platform/universal_platform.dart';
-import 'package:timezone/timezone.dart' as tz;
 
 final isWindows = UniversalPlatform.isWindows;
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
 
 abstract class LNotification {
-  void localNotification(int id, String title, String body, DateTime? date);
+  void localNotification(int id, String title, String body, TZDateTime? date);
 }
 
 class UnSupportedLocalNotification implements LNotification {
   @override
-  void localNotification(int id, String title, String body, DateTime? date) {
+  void localNotification(int id, String title, String body, TZDateTime? date) {
     // TODO: implement localNotification
   }
 }
 
 class LocalNotificationService implements LNotification {
   @override
-  void localNotification(int id, String title, String body, DateTime? date) {
+  void localNotification(int id, String title, String body, TZDateTime? date) {
+    if (date == null) {
+      // return or throw an error, depending on your needs
+      return;
+    }
     AndroidNotificationDetails androidNotificationDetails =
         const AndroidNotificationDetails(
       'flipper.rw',
@@ -29,12 +33,12 @@ class LocalNotificationService implements LNotification {
     );
     NotificationDetails notificationDetails =
         NotificationDetails(android: androidNotificationDetails);
-    var scheduledTime = tz.TZDateTime.from(date!, tz.local);
+    // var scheduledTime = tz.TZDateTime.from(date, tz.local);
     flutterLocalNotificationsPlugin.zonedSchedule(
       id,
       title,
       body,
-      scheduledTime,
+      date,
       notificationDetails,
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,

@@ -202,11 +202,11 @@ class AppService with ListenableServiceMixin {
         .completedOrdersStream(
             branchId: ProxyService.box.getBranchId()!, status: completeStatus)
         .listen((order) async {
-      if (order != null) return;
-      if (processedOrders.contains(order!.id)) {
+      if (order == null) return;
+      if (processedOrders.contains(order.id)) {
         return;
       }
-      // in case subTotal is not properly updated
+
       List<OrderItem> updatedItems =
           await ProxyService.isarApi.orderItems(orderId: order.id);
       order.subTotal = updatedItems.fold(0, (a, b) => a + b.price);

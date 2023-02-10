@@ -5,17 +5,14 @@ import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/toast.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
-import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:stacked/stacked.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:permission_handler/permission_handler.dart' as perm;
 import 'badge_icon.dart';
+import 'init_app.dart';
 import 'page_switcher.dart';
-import 'subscription_widget.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 final isMacOs = UniversalPlatform.isMacOS;
@@ -40,68 +37,11 @@ class _FlipperAppState extends State<FlipperApp>
 
   @override
   void initState() {
-    WidgetsBinding.instance.addObserver(this);
-    _tabController = TabController(length: 3, vsync: this);
-    ProxyService.event.connect();
-
-    ProxyService.remoteConfig.config();
-    ProxyService.remoteConfig.setDefault();
-    ProxyService.remoteConfig.fetch();
-    //connect to anyy available printer
-    // ProxyService.printer.blueTooths();
-    ProxyService.analytics.recordUser();
-    ProxyService.forceDateEntry.caller();
-    // init the crashlytics
-    // ProxyService.crash.initializeFlutterFire();
-    // implement review system.
-    ProxyService.review.review();
-    // schedule the report
-    ProxyService.cron.schedule();
-    ProxyService.cron.connectBlueToothPrinter();
-    ProxyService.cron.deleteReceivedMessageFromServer();
-
-    /// This is one solution to have data synced across devices. and connected clients
-    /// once the objectbox sync is available the option will be evaluated and added. to package and maybe also
-    /// the two solution will be sold differently with different price.
-    if (ProxyService.remoteConfig.isSyncAvailable()) {
-      // ProxyService.syncApi.pull();
-      // ProxyService.syncApi.push();
-    }
-
-    // scrollController =
-    // ScrollController(keepScrollOffset: true, initialScrollOffset: 0);
-    ProxyService.cron.schedule();
-
-    /// to avoid receiving the message of the contact you don't have in your book
-    /// we need to load contacts when the app starts.
-    // ProxyService.isarApi.contacts().asBroadcastStream();
-    // ProxyService.isarApi.createPin();
-
     super.initState();
-    if (!kDebugMode) {
-      if (SchedulerBinding.instance.schedulerPhase ==
-          SchedulerPhase.persistentCallbacks) {
-        SchedulerBinding.instance.addPostFrameCallback((_) async {
-          int today = DateTime.now().day;
-          // if today is tuesday for example and other even days
-          // if to day is monday or wednesday and other odd days
-          if (today % 2 == 1 &&
-              !await ProxyService.billing.activeSubscription() &&
-              !isWindows) {
-            showMaterialModalBottomSheet(
-              expand: false,
-              context: context,
-              backgroundColor: Colors.white,
-              builder: (context) => LayoutBuilder(
-                builder: (context, constraints) => SizedBox(
-                  height: constraints.maxHeight * 0.2,
-                  child: SubscriptionWidget(),
-                ),
-              ),
-            );
-          }
-        });
-      }
+    if (mounted) {
+      WidgetsBinding.instance.addObserver(this);
+      _tabController = TabController(length: 3, vsync: this);
+      // run the code in here only once.
     }
   }
 
@@ -141,11 +81,18 @@ class _FlipperAppState extends State<FlipperApp>
     }
   }
 
+  bool _initAppCalled = false;
+
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<BusinessHomeViewModel>.reactive(
+        fireOnViewModelReadyOnce: true,
         viewModelBuilder: () => BusinessHomeViewModel(),
         onViewModelReady: (model) async {
+          if (!_initAppCalled) {
+            _initAppCalled = true;
+            InitApp.init();
+          }
           model.currentOrder();
           ProxyService.dynamicLink.handleDynamicLink(context);
           // showToast(context, 'URL ${getEnvVariables.url()}');

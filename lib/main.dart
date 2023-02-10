@@ -58,18 +58,22 @@ import 'init.dart'
     if (dart.library.html) 'web_init.dart'
     if (dart.library.io) 'io_init.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 final isIos = UniversalPlatform.isIOS;
 final isWindows = UniversalPlatform.isWindows;
 final isMacOs = UniversalPlatform.isMacOS;
 final isAndroid = UniversalPlatform.isAndroid;
 final isWeb = UniversalPlatform.isWeb;
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+    FlutterLocalNotificationsPlugin();
 Future<void> backgroundHandler(RemoteMessage message) async {
   int id = message.messageId.hashCode;
   var title = message.data['title'];
   var body = message.data['body'];
-  var date = DateTime.now();
-  ProxyService.notification.localNotification(id, title, body, date);
+  // var date = DateTime.now();
+  ProxyService.notification.localNotification(id, title, body,
+      tz.TZDateTime.now(tz.local).add(const Duration(seconds: 5)));
 }
 
 class FlipperHttpOverrides extends HttpOverrides {
@@ -98,6 +102,11 @@ void main() async {
     tz.initializeTimeZones();
     tz.setLocalLocation(tz.getLocation(timeZoneName));
   }
+  const AndroidInitializationSettings initializationSettingsAndroid =
+      AndroidInitializationSettings('@mipmap/ic_launcher');
+  const InitializationSettings initializationSettings =
+      InitializationSettings(android: initializationSettingsAndroid);
+  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
 
   await GetStorage.init();
   // done init in mobile.//done separation.
@@ -507,7 +516,10 @@ void main() async {
             //TODOimplement my own as this is killing design
             // theme: GThemeGenerator.generate(),
             // darkTheme: GThemeGenerator.generateDark(),
-            theme: ThemeData(useMaterial3: true),
+            theme: ThemeData(
+              useMaterial3: true,
+              // colorSchemeSeed: Colors.red
+            ),
             localizationsDelegates: [
               FirebaseUILocalizations.withDefaultOverrides(
                 const LabelOverrides(),
