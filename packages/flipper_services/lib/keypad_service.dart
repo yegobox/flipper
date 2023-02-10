@@ -15,6 +15,7 @@ class KeyPadService with ListenableServiceMixin {
 
   setItemsOnSale({required int count}) {
     _itemsOnSale.value = count;
+    notifyListeners();
   }
 
   final _quantity = ReactiveValue<int>(1);

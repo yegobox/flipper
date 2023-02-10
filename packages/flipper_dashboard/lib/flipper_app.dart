@@ -159,6 +159,10 @@ class _FlipperAppState extends State<FlipperApp>
                     onDestinationSelected: (index) {
                       setState(() {
                         tabselected = index;
+                        // this will rebuild ui and always help us keep the data fresh
+                        // ignore: todo
+                        // TODO: check if there is no side effect
+                        model.rebuildUi();
                       });
                     },
                     destinations: [

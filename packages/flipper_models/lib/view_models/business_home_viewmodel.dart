@@ -588,7 +588,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     List<OrderItem> _items =
         await ProxyService.isarApi.orderItems(orderId: pendingOrder.id);
     items = _items;
-    notifyListeners();
+    rebuildUi();
   }
 
   /// this method is used to restore database from backup
