@@ -16,15 +16,6 @@ env:
   URL: ${{ secrets.DB_URL }}
   PASSWORD: ${{ secrets.DB_PASSWORD }}
 jobs:
-  # integration-test:
-  #   runs-on: windows-latest
-  #   steps:
-  #     - uses: actions/checkout@v1
-  #     - uses: subosito/flutter-action@master
-  #       with:
-  #         channel: "stable"
-  #     - run: |
-  #         flutter test -d windows integration_test/smoke_test.dart
   testing:
     name: Integration Testing
     runs-on: windows-latest

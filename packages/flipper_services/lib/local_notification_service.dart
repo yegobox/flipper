@@ -21,7 +21,6 @@ class LocalNotificationService implements LNotification {
   @override
   void localNotification(int id, String title, String body, TZDateTime? date) {
     if (date == null) {
-      // return or throw an error, depending on your needs
       return;
     }
     AndroidNotificationDetails androidNotificationDetails =
@@ -33,7 +32,6 @@ class LocalNotificationService implements LNotification {
     );
     NotificationDetails notificationDetails =
         NotificationDetails(android: androidNotificationDetails);
-    // var scheduledTime = tz.TZDateTime.from(date, tz.local);
     flutterLocalNotificationsPlugin.zonedSchedule(
       id,
       title,
