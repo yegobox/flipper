@@ -40,7 +40,7 @@ class KeyPadView extends StatelessWidget {
                 Expanded(
                   child: InkWell(
                     onTap: () {
-                      model.addKey('1');
+                      model.keyboardKeyPressed('1');
                     },
                     child: Container(
                         height: MediaQuery.of(context).size.height,
@@ -64,7 +64,7 @@ class KeyPadView extends StatelessWidget {
                 Expanded(
                   child: InkWell(
                     onTap: () {
-                      model.addKey('2');
+                      model.keyboardKeyPressed('2');
                     },
                     child: Container(
                       decoration: BoxDecoration(
@@ -87,7 +87,7 @@ class KeyPadView extends StatelessWidget {
                 Expanded(
                   child: InkWell(
                     onTap: () {
-                      model.addKey('3');
+                      model.keyboardKeyPressed('3');
                     },
                     child: Container(
                       height: MediaQuery.of(context).size.height,
@@ -118,7 +118,7 @@ class KeyPadView extends StatelessWidget {
                 Expanded(
                   child: InkWell(
                     onTap: () {
-                      model.addKey('4');
+                      model.keyboardKeyPressed('4');
                     },
                     child: Container(
                         height: MediaQuery.of(context).size.height,
@@ -142,7 +142,7 @@ class KeyPadView extends StatelessWidget {
                 Expanded(
                   child: InkWell(
                     onTap: () {
-                      model.addKey('5');
+                      model.keyboardKeyPressed('5');
                     },
                     child: Container(
                         height: MediaQuery.of(context).size.height,
@@ -166,7 +166,7 @@ class KeyPadView extends StatelessWidget {
                 Expanded(
                   child: InkWell(
                     onTap: () {
-                      model.addKey('6');
+                      model.keyboardKeyPressed('6');
                     },
                     child: Container(
                       height: MediaQuery.of(context).size.height,
@@ -197,7 +197,7 @@ class KeyPadView extends StatelessWidget {
                 Expanded(
                   child: InkWell(
                     onTap: () {
-                      model.addKey('7');
+                      model.keyboardKeyPressed('7');
                     },
                     child: Container(
                       height: MediaQuery.of(context).size.height,
@@ -222,7 +222,7 @@ class KeyPadView extends StatelessWidget {
                 Expanded(
                   child: InkWell(
                     onTap: () {
-                      model.addKey('8');
+                      model.keyboardKeyPressed('8');
                     },
                     child: Container(
                         height: MediaQuery.of(context).size.height,
@@ -246,7 +246,7 @@ class KeyPadView extends StatelessWidget {
                 Expanded(
                   child: InkWell(
                     onTap: () {
-                      model.addKey('9');
+                      model.keyboardKeyPressed('9');
                     },
                     child: Container(
                       height: MediaQuery.of(context).size.height,
@@ -277,7 +277,7 @@ class KeyPadView extends StatelessWidget {
                 Expanded(
                   child: InkWell(
                     onTap: () {
-                      model.addKey('C');
+                      model.keyboardKeyPressed('C');
                     },
                     child: Container(
                         height: MediaQuery.of(context).size.height,
@@ -301,7 +301,7 @@ class KeyPadView extends StatelessWidget {
                 Expanded(
                   child: InkWell(
                     onTap: () {
-                      model.addKey('0');
+                      model.keyboardKeyPressed('0');
                     },
                     child: Container(
                         height: MediaQuery.of(context).size.height,
@@ -325,7 +325,7 @@ class KeyPadView extends StatelessWidget {
                 Expanded(
                   child: InkWell(
                     onTap: () {
-                      model.addKey('+');
+                      model.keyboardKeyPressed('+');
                     },
                     child: Container(
                       height: MediaQuery.of(context).size.height,
@@ -371,7 +371,7 @@ class KeyboardKey extends StatelessWidget {
       width: 100,
       height: MediaQuery.of(context).size.height,
       child: InkWell(
-        onTap: () => {model.addKey(value)},
+        onTap: () => {model.keyboardKeyPressed(value)},
         child: Container(
           decoration: BoxDecoration(
             border: Border.all(

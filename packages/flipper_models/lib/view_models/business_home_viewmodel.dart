@@ -91,7 +91,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     _tab = tab;
   }
 
-  void addKey(String key) async {
+  void keyboardKeyPressed(String key) async {
     if (key == 'C') {
       Order pendingOrder = await ProxyService.isarApi.manageOrder();
 
@@ -116,12 +116,15 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       Order? updatedOrder = await ProxyService.isarApi.manageOrder();
       keypad.setOrder(updatedOrder);
       currentOrder();
+      rebuildUi();
     } else if (key == '+') {
       ProxyService.keypad.reset();
+      rebuildUi();
     } else {
       ProxyService.keypad.addKey(key);
-      // if ProxyService.keypad.key.length==1 then that is the new record wait
-      // don't keep adding item to the order
+
+      /// if ProxyService.keypad.key.length==1 then that is the new record wait
+      /// don't keep adding item to the order
       if (double.parse(ProxyService.keypad.key) != 0.0 &&
           ProxyService.keypad.key.length == 1) {
         Variant? variation = await ProxyService.isarApi.getCustomVariant();

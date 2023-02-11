@@ -210,12 +210,15 @@ class AppService with ListenableServiceMixin {
       List<OrderItem> updatedItems =
           await ProxyService.isarApi.orderItems(orderId: order.id);
       order.subTotal = updatedItems.fold(0, (a, b) => a + b.price);
+      order.reported = true;
+
+      /// fix@issue where the createdAt synced on server is older compared to when a transaction was completed.
+      order.updatedAt = DateTime.now().toIso8601String();
+      order.createdAt = DateTime.now().toIso8601String();
 
       await ProxyService.remoteApi.create(
           collection: order.toJson(convertIdToString: true),
           collectionName: 'orders');
-      order.reported = true;
-
       await ProxyService.isarApi.update(data: order);
       processedOrders.add(order.id);
     });

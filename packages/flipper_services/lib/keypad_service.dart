@@ -128,6 +128,7 @@ class KeyPadService with ListenableServiceMixin {
     while (stack.isNotEmpty) {
       stack.pop();
     }
+    notifyListeners();
   }
 
   void increaseQty({required bool custom, int? qty}) {

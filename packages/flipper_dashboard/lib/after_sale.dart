@@ -149,7 +149,7 @@ class _AfterSaleState extends State<AfterSale> {
                                               ),
                                             ),
                                             onPressed: () async {
-                                              model.addKey(
+                                              model.keyboardKeyPressed(
                                                   'C'); // to clear the keyboard
                                               if (await ProxyService.isarApi
                                                   .isTaxEnabled()) {
@@ -209,7 +209,7 @@ class _AfterSaleState extends State<AfterSale> {
                                                     color: Color(0xff006AFE))),
                                             onPressed: () {
                                               // refresh orders
-                                              model.addKey(
+                                              model.keyboardKeyPressed(
                                                   'C'); // to clear the keyboard
                                               model.currentOrder();
                                               GoRouter.of(context)
@@ -239,7 +239,7 @@ class _AfterSaleState extends State<AfterSale> {
                                                       snapshot.data!.email +
                                                       ')',
                                                   onTap: () {
-                                                    model.addKey(
+                                                    model.keyboardKeyPressed(
                                                         'C'); // to clear the keyboard
                                                   },
                                                 ),
@@ -257,7 +257,7 @@ class _AfterSaleState extends State<AfterSale> {
                                             onTap: () {
                                               // refresh orders
                                               model.currentOrder();
-                                              model.addKey(
+                                              model.keyboardKeyPressed(
                                                   'C'); // to clear the keyboard
                                               GoRouter.of(context)
                                                   .pushNamed(Routes.home);
