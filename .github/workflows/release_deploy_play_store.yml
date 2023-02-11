@@ -44,9 +44,7 @@ jobs:
   fastlane-deploy:
     name: "Google Deploy"
     # needs: [testing]
-    runs-on:
-      group: ubuntu-runners
-      labels: ubuntu-20.04-16core
+    runs-on: ubuntu-18.04
     steps:
       # Set up Flutter.
       - name: Clone Flutter repository with stable channel

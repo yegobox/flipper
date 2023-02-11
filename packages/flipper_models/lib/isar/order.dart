@@ -33,7 +33,9 @@ class Order {
   final orderItems = IsarLinks<OrderItem>();
   final discounts = IsarLinks<Discount>();
   // toJson helper
-  Map<String, dynamic> toJson({bool convertIdToString = false}) => {
+  Map<String, dynamic> toJson(
+          {required String itemName, bool convertIdToString = false}) =>
+      {
         'id': convertIdToString
             ? "${id}_${DateTime.now().millisecondsSinceEpoch.toString().substring(0, min(15 - id.toString().length, DateTime.now().millisecondsSinceEpoch.toString().length))}"
             : id,
@@ -54,6 +56,7 @@ class Order {
         'customerId': customerId,
         'note': note,
         'businessPhoneNumber': ProxyService.box.getUserPhone()!,
-        'businessId': ProxyService.box.getBusinessId()!
+        'businessId': ProxyService.box.getBusinessId()!,
+        'itemName': itemName
       };
 }

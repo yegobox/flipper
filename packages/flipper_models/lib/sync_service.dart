@@ -28,8 +28,8 @@ class IsarSourceOfTruth implements remote.SourceOfTruth<String, List<Order>> {
       if (difference.isNotEmpty) {
         difference.forEach((Order order) async {
           if (localMemosSet.contains(order)) {
-            await ProxyService.remoteApi
-                .create(collection: order.toJson(), collectionName: 'orders');
+            // await ProxyService.remoteApi
+            //     .create(collection: order.toJson(convertIdToString: true,), collectionName: 'orders');
           }
         });
       }
@@ -39,9 +39,9 @@ class IsarSourceOfTruth implements remote.SourceOfTruth<String, List<Order>> {
         if (existingOrder.id != 0) {
           if (DateTime.parse(existingOrder.createdAt).millisecondsSinceEpoch >
               DateTime.parse(existingOrder.createdAt).millisecondsSinceEpoch) {
-            ProxyService.remoteApi.update(
-                updateCollection: existingOrder.toJson(),
-                collectionName: 'orders');
+            // ProxyService.remoteApi.update(
+            //     updateCollection: existingOrder.toJson(),
+            //     collectionName: 'orders');
             return existingOrder;
           }
         }
