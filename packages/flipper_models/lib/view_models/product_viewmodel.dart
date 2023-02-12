@@ -14,7 +14,7 @@ import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/constants.dart';
 
 // class ProductViewModel extends BusinessHomeViewModel {
-class ProductViewModel extends BusinessHomeViewModel {
+class ProductViewModel extends AddTenantViewModel {
   // extends ReactiveViewModel
   final AppService _appService = locator<AppService>();
   // ignore: annotate_overrides, overridden_fields
