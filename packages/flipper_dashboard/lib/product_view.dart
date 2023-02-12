@@ -155,7 +155,9 @@ class _ProductViewState extends State<ProductView> {
                                 .push("/edit/product/$productId");
                           },
                           addToMenu: (productId) {
-                            model.addToMenu(productId: productId);
+                            // ignore: todo
+                            //TODO: work on this add to menu
+                            // model.addToMenu(productId: productId);
                           },
                           delete: (productId) {
                             model.deleteProduct(productId: productId);
