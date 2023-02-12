@@ -252,6 +252,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     ProxyService.keypad.increaseQty(custom: custom);
     if (_currentItemStock != null) {
       keypad.setAmount(amount: _currentItemStock!.retailPrice! * quantity);
+      rebuildUi();
     }
     callback(keypad.quantity);
   }

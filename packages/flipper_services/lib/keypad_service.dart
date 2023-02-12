@@ -47,6 +47,7 @@ class KeyPadService with ListenableServiceMixin {
 
   setAmount({required double amount}) {
     _amountTotal.value = amount;
+    notifyListeners();
   }
 
   setCashReceived({required double amount}) {

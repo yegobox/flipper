@@ -14,7 +14,7 @@ import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/constants.dart';
 
 // class ProductViewModel extends BusinessHomeViewModel {
-class ProductViewModel extends AddTenantViewModel {
+class ProductViewModel extends BusinessHomeViewModel {
   // extends ReactiveViewModel
   final AppService _appService = locator<AppService>();
   // ignore: annotate_overrides, overridden_fields
@@ -186,6 +186,7 @@ class ProductViewModel extends AddTenantViewModel {
       // data['unit'] = unit.name;
       // ProxyService.isarApi.update(data: data, endPoint: 'variant');
     }
+    notifyListeners();
     _appService.loadUnits();
   }
 
@@ -265,6 +266,7 @@ class ProductViewModel extends AddTenantViewModel {
 
   setUnit({required String unit}) {
     productService.setProductUnit(unit: unit);
+    notifyListeners();
   }
 
   /// add variation to a product [variations],[retailPrice],[supplyPrice]
@@ -377,11 +379,9 @@ class ProductViewModel extends AddTenantViewModel {
   }
 
   void updateExpiryDate(DateTime date) async {
-    Map kProduct = product.toJson();
-    kProduct['expiryDate'] = date.toIso8601String();
-    ProxyService.isarApi.update(data: kProduct);
-    Product? cProduct =
-        await ProxyService.isarApi.getProduct(id: kProduct['id']);
+    product.expiryDate = date.toIso8601String();
+    ProxyService.isarApi.update(data: product);
+    Product? cProduct = await ProxyService.isarApi.getProduct(id: product.id);
     productService.setCurrentProduct(product: cProduct!);
     rebuildUi();
   }
@@ -389,10 +389,6 @@ class ProductViewModel extends AddTenantViewModel {
   void filterProduct({required String searchKey}) {
     int branchId = ProxyService.box.read(key: 'branchId');
     productService.filtterProduct(searchKey: searchKey, branchId: branchId);
-  }
-
-  void addToMenu({required int productId}) {
-    log.i('can add to menu');
   }
 
   Stream<String> getProductName() async* {

@@ -49,7 +49,7 @@ class BoxInputField extends StatelessWidget {
       },
       style: Theme.of(context)
           .textTheme
-          .bodyText2!
+          .bodyLarge!
           .copyWith(color: Colors.black, height: 1),
       keyboardType: textInputType,
       obscureText: password,

@@ -1,5 +1,4 @@
 import 'package:flipper_models/isar_models.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flipper_routing/routes.router.dart';
@@ -21,7 +20,7 @@ class CategorySelector extends StatelessWidget {
           category.name,
           style: Theme.of(context)
               .textTheme
-              .bodyText1!
+              .bodyLarge!
               .copyWith(color: Colors.black),
         );
         return text;
@@ -65,47 +64,5 @@ class CategorySelector extends StatelessWidget {
         ),
       ),
     );
-
-    /// stream version was working but also causing another issue.
-    // return StreamBuilder<List<Category>>(
-    //     stream: ProxyService.isarApi
-    //         .categoriesStream(branchId: ProxyService.box.getBranchId()!),
-    //     builder: (context, snapshot) {
-    //       if (snapshot.connectionState == ConnectionState.waiting) {
-    //         return const Text('Loading...');
-    //       }
-    //       return Padding(
-    //         padding: const EdgeInsets.only(left: 18, right: 18),
-    //         child: SingleChildScrollView(
-    //           child: SizedBox(
-    //             width: double.infinity,
-    //             child: GestureDetector(
-    //               onTap: () {
-    //                 GoRouter.of(context)
-    //                     .push(Routes.categories, extra: categories);
-    //               },
-    //               child: ListTile(
-    //                 contentPadding: const EdgeInsets.symmetric(horizontal: 0.3),
-    //                 leading: const Text('Category'),
-    //                 trailing: Wrap(
-    //                   children: <Widget>[
-    //                     categorySelector(
-    //                         categories: snapshot.data!, context: context),
-    //                     Theme(
-    //                       data: ThemeData(
-    //                         iconTheme: const IconThemeData(
-    //                           color: Colors.black,
-    //                         ),
-    //                       ),
-    //                       child: const Icon(Icons.arrow_forward_ios),
-    //                     )
-    //                   ],
-    //                 ),
-    //               ),
-    //             ),
-    //           ),
-    //         ),
-    //       );
-    //     });
   }
 }

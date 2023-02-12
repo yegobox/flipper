@@ -2,6 +2,7 @@ import 'package:flipper_routing/routes.logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
 import 'create/build_image_holder.dart';
@@ -95,6 +96,7 @@ class _AddProductViewState extends State<AddProductView> {
             appBar: CustomAppBar(
               onPop: () async {
                 await model.loadProducts();
+                model.rebuildUi();
                 GoRouter.of(context).pop();
               },
               title: 'Create Product',
@@ -201,13 +203,19 @@ class _AddProductViewState extends State<AddProductView> {
                     child: SizedBox(
                       width: double.infinity,
                       child: OutlinedButton(
-                        child: Text((model.product == null ||
-                                (model.product != null &&
-                                    model.product.expiryDate == null))
-                            ? 'Expiry Date'
-                            : 'Expires at ' +
-                                formatter.format(
-                                    DateTime.parse(model.product.expiryDate))),
+                        child: Text(
+                            (model.product == null ||
+                                    (model.product != null &&
+                                        model.product.expiryDate == null))
+                                ? 'Expiry Date'
+                                : 'Expires at ' +
+                                    formatter.format(DateTime.parse(
+                                        model.product.expiryDate)),
+                            style: GoogleFonts.poppins(
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            )),
                         style: ButtonStyle(
                           backgroundColor: MaterialStateProperty.all<Color>(
                               const Color(0xff006AFE)),
@@ -257,7 +265,11 @@ class _AddProductViewState extends State<AddProductView> {
                       height: 50,
                       width: double.infinity,
                       child: TextButton(
-                        child: const Text('Add Variation'),
+                        child: Text('Add Variation',
+                            style: GoogleFonts.poppins(
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.w500,
+                            )),
                         onPressed: () {
                           model.navigateAddVariation(
                               context: context, productId: model.product.id!);
