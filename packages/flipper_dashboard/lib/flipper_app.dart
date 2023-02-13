@@ -6,6 +6,8 @@ import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/toast.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:flutter_svg/svg.dart';
@@ -132,7 +134,11 @@ class _FlipperAppState extends State<FlipperApp>
         },
         builder: (context, model, child) {
           return WillPopScope(
-            onWillPop: _onWillPop,
+            onWillPop: () async {
+              return _onWillPop(
+                model,
+              );
+            },
             child: Scaffold(
               bottomNavigationBar: NavigationBarTheme(
                 data: NavigationBarThemeData(
@@ -162,10 +168,6 @@ class _FlipperAppState extends State<FlipperApp>
                     onDestinationSelected: (index) {
                       setState(() {
                         tabselected = index;
-                        // this will rebuild ui and always help us keep the data fresh
-                        // ignore: todo
-                        // TODO: check if there is no side effect
-                        model.rebuildUi();
                       });
                     },
                     destinations: [
@@ -239,7 +241,81 @@ class _FlipperAppState extends State<FlipperApp>
         });
   }
 
-  Future<bool> _onWillPop() async {
-    return false;
+  Future<bool> _onWillPop(BusinessHomeViewModel model) async {
+    final shouldPop = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Confirm'),
+          content: Text('Do you want to leave this app?'),
+          actions: <Widget>[
+            OutlinedButton(
+              child: Text('No',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white,
+                  )),
+              style: ButtonStyle(
+                backgroundColor:
+                    MaterialStateProperty.all<Color>(const Color(0xff006AFE)),
+                overlayColor: MaterialStateProperty.resolveWith<Color?>(
+                  (Set<MaterialState> states) {
+                    if (states.contains(MaterialState.hovered)) {
+                      return Colors.blue.withOpacity(0.04);
+                    }
+                    if (states.contains(MaterialState.focused) ||
+                        states.contains(MaterialState.pressed)) {
+                      return Colors.blue.withOpacity(0.12);
+                    }
+                    return null; // Defer to the widget's default.
+                  },
+                ),
+              ),
+              onPressed: () => Navigator.of(context).pop(false),
+            ),
+            OutlinedButton(
+              child: Text('Yes',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white,
+                  )),
+              style: ButtonStyle(
+                backgroundColor:
+                    MaterialStateProperty.all<Color>(const Color(0xff006AFE)),
+                overlayColor: MaterialStateProperty.resolveWith<Color?>(
+                  (Set<MaterialState> states) {
+                    if (states.contains(MaterialState.hovered)) {
+                      return Colors.blue.withOpacity(0.04);
+                    }
+                    if (states.contains(MaterialState.focused) ||
+                        states.contains(MaterialState.pressed)) {
+                      return Colors.blue.withOpacity(0.12);
+                    }
+                    return null; // Defer to the widget's default.
+                  },
+                ),
+              ),
+              onPressed: () => Navigator.of(context).pop(true),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldPop == true) {
+      // Handle leaving  the app
+      // ...
+      Drawers? drawer = await ProxyService.isarApi
+          .isDrawerOpen(cashierId: ProxyService.box.getBusinessId()!);
+      GoRouter.of(context).push("/drawer/close", extra: drawer);
+      //we return again false to be able to go to close a day page
+      return false;
+    } else {
+      // Handle staying on the current page
+      // ...
+      return false;
+    }
   }
 }
