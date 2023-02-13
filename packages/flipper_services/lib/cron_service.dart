@@ -147,7 +147,7 @@ class CronService {
             String namesString =
                 updatedItems.map((item) => item.name).join(',');
             completedOrder.subTotal =
-                updatedItems.fold(0, (a, b) => a + b.price);
+                updatedItems.fold(0, (a, b) => a! + (b.price * b.qty));
             await ProxyService.remoteApi.create(
                 collection: completedOrder.toJson(
                     convertIdToString: true, itemName: namesString),

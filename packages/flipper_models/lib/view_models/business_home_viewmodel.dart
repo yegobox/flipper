@@ -109,7 +109,8 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
       List<OrderItem> updatedItems =
           await ProxyService.isarApi.orderItems(orderId: pendingOrder.id);
-      pendingOrder.subTotal = updatedItems.fold(0, (a, b) => a + b.price);
+      pendingOrder.subTotal =
+          updatedItems.fold(0, (a, b) => a + (b.price * b.qty));
       await ProxyService.isarApi.update(data: pendingOrder);
       ProxyService.keypad.reset();
       Order? updatedOrder = await ProxyService.isarApi.manageOrder();
@@ -154,7 +155,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
                 .toStringAsFixed(2));
         await ProxyService.isarApi.update(data: item);
 
-        pendingOrder.subTotal = items.fold(0, (a, b) => a + b.price);
+        pendingOrder.subTotal = items.fold(0, (a, b) => a + (b.price * b.qty));
         await ProxyService.isarApi.update(data: pendingOrder);
         Order? updatedOrder = await ProxyService.isarApi.manageOrder();
         keypad.setOrder(updatedOrder);
@@ -289,6 +290,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     required double amountTotal,
     required bool customItem,
   }) async {
+    log.i(amountTotal);
     Variant? variation =
         await ProxyService.isarApi.variant(variantId: variationId);
     Stock? stock =
@@ -346,7 +348,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
       List<OrderItem> items =
           await ProxyService.isarApi.orderItems(orderId: pendingOrder!.id);
-      pendingOrder.subTotal = items.fold(0, (a, b) => a + b.price);
+      pendingOrder.subTotal = items.fold(0, (a, b) => a + (b.price * b.qty));
 
       ProxyService.isarApi.update(data: pendingOrder);
       ProxyService.isarApi.update(data: item);
@@ -403,7 +405,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
       List<OrderItem> items =
           await ProxyService.isarApi.orderItems(orderId: pendingOrder.id);
-      pendingOrder.subTotal = items.fold(0, (a, b) => a + b.price);
+      pendingOrder.subTotal = items.fold(0, (a, b) => a + (b.price * b.qty));
 
       ProxyService.isarApi.update(data: pendingOrder);
 
