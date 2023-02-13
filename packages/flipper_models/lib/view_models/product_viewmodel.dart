@@ -44,7 +44,7 @@ class ProductViewModel extends AddTenantViewModel {
   Future<void> loadProducts() async {
     int branchId = ProxyService.box.read(key: 'branchId');
     productService.loadProducts(branchId: branchId);
-    rebuildUi();
+    notifyListeners();
   }
 
   /// Create a temporal product to use during this session of product creation

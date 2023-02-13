@@ -168,6 +168,8 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     await ProxyService.keypad.getTickets();
   }
 
+  /// [CAUTION] do not add notify lister on this method as it is called
+  /// when the build is still active
   Future<void> currentOrder() async {
     keypad.setItemsOnSale(count: 0);
     keypad.setTotalPayable(amount: 0.0);
@@ -182,7 +184,6 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         keypad.setItemsOnSale(count: items.length);
       }
       keypad.setTotalPayable(amount: order.subTotal);
-      rebuildUi();
     } else {
       keypad.setOrder(null);
       keypad.setItemsOnSale(count: 0);

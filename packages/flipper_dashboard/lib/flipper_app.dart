@@ -93,7 +93,10 @@ class _FlipperAppState extends State<FlipperApp>
             _initAppCalled = true;
             InitApp.init();
           }
+
+          /// if there is current order ongoing show them when the app starts
           model.currentOrder();
+
           ProxyService.dynamicLink.handleDynamicLink(context);
           // showToast(context, 'URL ${getEnvVariables.url()}');
           ProxyService.messaging.init();

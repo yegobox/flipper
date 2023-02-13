@@ -96,7 +96,6 @@ class _AddProductViewState extends State<AddProductView> {
             appBar: CustomAppBar(
               onPop: () async {
                 await model.loadProducts();
-                model.rebuildUi();
                 GoRouter.of(context).pop();
               },
               title: 'Create Product',
@@ -113,6 +112,7 @@ class _AddProductViewState extends State<AddProductView> {
                     supplyPrice: double.parse(supplyPriceController.text),
                     productId: model.product.id);
                 await model.loadProducts();
+
                 GoRouter.of(context).pop();
               },
               rightActionButtonName: 'Save',
