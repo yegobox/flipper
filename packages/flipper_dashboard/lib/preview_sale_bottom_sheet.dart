@@ -1,4 +1,5 @@
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -63,7 +64,16 @@ class _PreviewSaleBottomSheetState extends State<PreviewSaleBottomSheet> {
                           children: [
                             ...buildItems(
                                 context: context,
-                                model: widget.model,
+                                callback: (item) async {
+                                  model.kOrder!.subTotal =
+                                      model.kOrder!.subTotal -
+                                          (item.price * item.qty);
+                                  await ProxyService.isarApi
+                                      .update(data: model.kOrder);
+                                  model.deleteOrderItem(
+                                      id: item.id, context: context);
+                                  model.currentOrder();
+                                },
                                 items: model.items),
                             if (widget.model.totalDiscount > 0)
                               ListTile(

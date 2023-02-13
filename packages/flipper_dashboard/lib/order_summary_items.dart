@@ -1,4 +1,3 @@
-import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:number_display/number_display.dart';
@@ -11,7 +10,7 @@ final display = createDisplay(
 );
 
 List<Widget> buildItems(
-    {required BusinessHomeViewModel model,
+    {required Function callback,
     required BuildContext context,
     required List<OrderItem> items}) {
   final List<Widget> list = [];
@@ -29,13 +28,7 @@ List<Widget> buildItems(
           motion: const ScrollMotion(),
           children: [
             SlidableAction(
-              onPressed: (_) async {
-                model.kOrder!.subTotal =
-                    model.kOrder!.subTotal - (item.price * item.qty);
-                await ProxyService.isarApi.update(data: model.kOrder);
-                model.deleteOrderItem(id: item.id, context: context);
-                model.currentOrder();
-              },
+              onPressed: (_) => callback(item),
               backgroundColor: const Color(0xFFFE4A49),
               foregroundColor: Colors.white,
               icon: Icons.delete,
@@ -47,13 +40,7 @@ List<Widget> buildItems(
           motion: const ScrollMotion(),
           children: [
             SlidableAction(
-              onPressed: (_) async {
-                model.kOrder!.subTotal =
-                    model.kOrder!.subTotal - (item.price * item.qty);
-                await ProxyService.isarApi.update(data: model.kOrder);
-                model.deleteOrderItem(id: item.id, context: context);
-                model.currentOrder();
-              },
+              onPressed: (_) => callback(item),
               backgroundColor: const Color(0xFFFE4A49),
               foregroundColor: Colors.white,
               icon: Icons.delete,

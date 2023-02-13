@@ -15,7 +15,6 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_services/language_service.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:receipt/print.dart';
 
@@ -581,7 +580,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     await setOrderItems();
 
     if (items.isEmpty) {
-      GoRouter.of(context).pop();
+      Navigator.of(context).pop();
     }
     return true;
   }
@@ -592,7 +591,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     List<OrderItem> _items =
         await ProxyService.isarApi.orderItems(orderId: pendingOrder.id);
     items = _items;
-    rebuildUi();
+    notifyListeners();
   }
 
   /// this method is used to restore database from backup
