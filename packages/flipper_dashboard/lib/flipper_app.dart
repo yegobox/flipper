@@ -15,6 +15,7 @@ import 'package:permission_handler/permission_handler.dart' as perm;
 import 'badge_icon.dart';
 import 'init_app.dart';
 import 'page_switcher.dart';
+import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 final isMacOs = UniversalPlatform.isMacOS;
@@ -36,10 +37,14 @@ class _FlipperAppState extends State<FlipperApp>
   late TabController _tabController;
   final TextEditingController controller = TextEditingController();
   int tabselected = 0;
+  Future<void> _disableScreenshots() async {
+    await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
+  }
 
   @override
   void initState() {
     super.initState();
+    _disableScreenshots();
     if (mounted) {
       WidgetsBinding.instance.addObserver(this);
       _tabController = TabController(length: 3, vsync: this);
