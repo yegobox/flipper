@@ -147,13 +147,18 @@ class CronService {
             String namesString =
                 updatedItems.map((item) => item.name).join(',');
             completedOrder.subTotal =
-                updatedItems.fold(0, (a, b) => a! + (b.price * b.qty));
+                updatedItems.fold(0, (a, b) => a + (b.price * b.qty));
+
+            /// fix@issue where the createdAt synced on server is older compared to when a transaction was completed.
+            completedOrder.updatedAt = DateTime.now().toIso8601String();
+            completedOrder.createdAt = DateTime.now().toIso8601String();
+            completedOrder.reported = true;
+            await ProxyService.isarApi.update(data: completedOrder);
             await ProxyService.remoteApi.create(
                 collection: completedOrder.toJson(
                     convertIdToString: true, itemName: namesString),
                 collectionName: 'orders');
-            completedOrder.reported = true;
-            await ProxyService.isarApi.update(data: completedOrder);
+
             processedOrders.add(completedOrder.id);
           }
         }
