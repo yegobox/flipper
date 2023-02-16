@@ -44,7 +44,10 @@ class _FlipperAppState extends State<FlipperApp>
   @override
   void initState() {
     super.initState();
-    _disableScreenshots();
+    if (isAndroid) {
+      _disableScreenshots();
+    }
+
     if (mounted) {
       WidgetsBinding.instance.addObserver(this);
       _tabController = TabController(length: 3, vsync: this);

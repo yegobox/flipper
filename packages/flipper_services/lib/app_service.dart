@@ -209,7 +209,7 @@ class AppService with ListenableServiceMixin {
 
       List<OrderItem> updatedItems =
           await ProxyService.isarApi.orderItems(orderId: order.id);
-      order.subTotal = updatedItems.fold(0, (a, b) => a! + (b.price * b.qty));
+      order.subTotal = updatedItems.fold(0, (a, b) => a + (b.price * b.qty));
       order.reported = true;
       String namesString = updatedItems.map((item) => item.name).join(',');
 
