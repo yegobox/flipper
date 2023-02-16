@@ -216,12 +216,12 @@ class AppService with ListenableServiceMixin {
       /// fix@issue where the createdAt synced on server is older compared to when a transaction was completed.
       order.updatedAt = DateTime.now().toIso8601String();
       order.createdAt = DateTime.now().toIso8601String();
-
+      await ProxyService.isarApi.update(data: order);
       await ProxyService.remoteApi.create(
           collection:
               order.toJson(convertIdToString: true, itemName: namesString),
           collectionName: 'orders');
-      await ProxyService.isarApi.update(data: order);
+
       processedOrders.add(order.id);
     });
   }
