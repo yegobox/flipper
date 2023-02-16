@@ -11,6 +11,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:universal_platform/universal_platform.dart';
 import 'view_models/gate.dart';
+import 'package:async/async.dart'; // import StreamZip
 
 final isAndroid = UniversalPlatform.isAndroid;
 
@@ -1862,18 +1863,22 @@ class IsarAPI implements IsarApiInterface {
   @override
   Stream<Order?> completedOrdersStream(
       {required String status, required int branchId}) {
-    return isar.orders
+    final filter1 =
+        isar.orders.filter().statusEqualTo(status).and().reportedEqualTo(false);
+    final filter2 = isar.orders
         .filter()
-        .statusEqualTo(status)
-        .and()
-        .reportedEqualTo(false)
-        .watch(fireImmediately: true)
-        .asyncMap((event) {
-      if (event.length > 0) {
-        return event.first;
-      } else {
-        return null;
-      }
+        .statusEqualTo(postPonedStatus)
+        .reportedEqualTo(false);
+
+    final zip = StreamZip([
+      filter1.watch(fireImmediately: true),
+      filter2.watch(fireImmediately: true)
+    ]);
+
+    return zip.map((events) {
+      final mergedList = [...events[0], ...events[1]];
+      mergedList.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return mergedList.isNotEmpty ? mergedList[0] : null;
     });
   }
 }

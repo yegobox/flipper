@@ -6,6 +6,7 @@ import 'package:cron/cron.dart';
 import 'package:flipper_models/isar_models.dart';
 // import 'package:flipper_models/order_item.dart';
 import 'package:flipper_services/abstractions/printer.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/routes.logger.dart';
@@ -153,13 +154,22 @@ class CronService {
             completedOrder.updatedAt = DateTime.now().toIso8601String();
             completedOrder.createdAt = DateTime.now().toIso8601String();
             completedOrder.reported = true;
-            await ProxyService.isarApi.update(data: completedOrder);
-            await ProxyService.remoteApi.create(
-                collection: completedOrder.toJson(
-                    convertIdToString: true, itemName: namesString),
-                collectionName: 'orders');
 
-            processedOrders.add(completedOrder.id);
+            if (await ProxyService.appService.checkInternetConnectivity()) {
+              try {
+                await ProxyService.isarApi.update(data: completedOrder);
+                await ProxyService.remoteApi.create(
+                    collection: completedOrder.toJson(
+                        convertIdToString: true, itemName: namesString),
+                    collectionName: 'orders');
+
+                processedOrders.add(completedOrder.id);
+              } catch (e) {
+                completedOrder.reported = false;
+                completedOrder.status = postPonedStatus;
+                await ProxyService.isarApi.update(data: completedOrder);
+              }
+            }
           }
         }
       }

@@ -36,13 +36,15 @@ class RemoteService<T> implements RemoteInterface {
   }
 
   @override
-  Future<void> create(
-      {required Map<String, dynamic> collection,
-      required String collectionName}) async {
+  Future<void> create({
+    required Map<String, dynamic> collection,
+    required String collectionName,
+  }) async {
     try {
       await pb.collection(collectionName).create(body: collection);
     } catch (e) {
-      // throw e;
+      // You can add custom handling here if you want to do something with the error
+      rethrow;
     }
   }
 

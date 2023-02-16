@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flipper_models/isar_models.dart' as isar;
 import 'package:flipper_services/constants.dart';
 import 'package:stacked/stacked.dart';
-
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'proxy.dart';
@@ -213,17 +213,35 @@ class AppService with ListenableServiceMixin {
       order.reported = true;
       String namesString = updatedItems.map((item) => item.name).join(',');
 
-      /// fix@issue where the createdAt synced on server is older compared to when a transaction was completed.
-      order.updatedAt = DateTime.now().toIso8601String();
-      order.createdAt = DateTime.now().toIso8601String();
-      await ProxyService.isarApi.update(data: order);
-      await ProxyService.remoteApi.create(
-          collection:
-              order.toJson(convertIdToString: true, itemName: namesString),
-          collectionName: 'orders');
+      if (await checkInternetConnectivity()) {
+        try {
+          /// fix@issue where the createdAt synced on server is older compared to when a transaction was completed.
+          order.updatedAt = DateTime.now().toIso8601String();
+          order.createdAt = DateTime.now().toIso8601String();
+          await ProxyService.isarApi.update(data: order);
+          await ProxyService.remoteApi.create(
+              collection:
+                  order.toJson(convertIdToString: true, itemName: namesString),
+              collectionName: 'orders');
 
-      processedOrders.add(order.id);
+          processedOrders.add(order.id);
+        } catch (e) {
+          order.reported = false;
+          order.status = postPonedStatus;
+          await ProxyService.isarApi.update(data: order);
+        }
+      }
     });
+  }
+
+  Future<bool> checkInternetConnectivity() async {
+    var connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult == ConnectivityResult.mobile ||
+        connectivityResult == ConnectivityResult.wifi) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   AppService() {

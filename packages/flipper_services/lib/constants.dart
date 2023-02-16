@@ -4,6 +4,7 @@ String appFont = 'HelveticaNeuea';
 String dbName = 'main';
 String parkedStatus = 'parked';
 const String pendingStatus = 'pending';
+const String postPonedStatus = 'postponed';
 String addBarCode = 'addBarCode';
 String attendance = 'attendance';
 String login = 'login';
