@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_ui_localizations/firebase_ui_localizations.dart';
 import 'package:flipper_dashboard/login_choices.dart';
@@ -113,7 +114,15 @@ void main() async {
   // done init in mobile.//done separation.
   await setupLocator();
   await initDb();
+  if (!isWindows && !isWeb) {
+    FlutterError.onError = (FlutterErrorDetails details) {
+      // Log the error to the console.
+      FlutterError.dumpErrorToConsole(details);
 
+      // Send the error to Firebase Crashlytics.
+      FirebaseCrashlytics.instance.recordFlutterError(details);
+    };
+  }
   (!isWindows) ? FirebaseMessaging.onBackgroundMessage(backgroundHandler) : '';
   runZonedGuarded<Future<void>>(() async {
     await SentryFlutter.init(
