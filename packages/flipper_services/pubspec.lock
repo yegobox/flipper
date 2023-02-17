@@ -1427,18 +1427,18 @@ packages:
     dependency: transitive
     description:
       name: isar
-      sha256: "5be35dbc489880fccc535da3d1c4b3f5fdeee6ebfcacd4b149e39e803c4029cd"
+      sha256: "814695aa17cd1e725f7b751264cc45f0780b9070be6138c556d8b02c19117e48"
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.5"
+    version: "3.0.6-dev.0"
   isar_flutter_libs:
     dependency: transitive
     description:
       name: isar_flutter_libs
-      sha256: "9794524734856a8a3629652f9f359b66e3fea3cebeec4dbdeb3e3a8fb253073e"
+      sha256: "05d287b128b470bb1adfac515e098702b5957bf6b06a7d84b3bf82708b5b49ea"
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.5"
+    version: "3.0.6-dev.0"
   js:
     dependency: transitive
     description:
@@ -1852,10 +1852,10 @@ packages:
     dependency: transitive
     description:
       name: pocketbase
-      sha256: "125e32fe39393cc54436ce518ccfd5649419f15879a1278599f2f58564e5231c"
+      sha256: "2630b7ce30f36a4a89afa6b4040be524ecf73e64add849f366601516ed1161f4"
       url: "https://pub.dev"
     source: hosted
-    version: "0.7.1+1"
+    version: "0.7.2"
   pointycastle:
     dependency: transitive
     description:

@@ -27,8 +27,8 @@ dependencies:
   flipper_services: ^0.0.1-dev.6
   flipper_routing: ^0.0.1-dev.3
   connectivity_plus: ^2.2.0
-  isar: ^3.0.4
-  isar_flutter_libs: ^3.0.4
+  isar: ^3.0.6-dev.0
+  isar_flutter_libs: ^3.0.6-dev.0
   pocketbase: ^0.7.2
   stock: ^1.0.1
 

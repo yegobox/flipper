@@ -222,7 +222,7 @@ const ProductSchema = CollectionSchema(
   getId: _productGetId,
   getLinks: _productGetLinks,
   attach: _productAttach,
-  version: '3.0.5',
+  version: '3.0.6-dev.0',
 );
 
 int _productEstimateSize(

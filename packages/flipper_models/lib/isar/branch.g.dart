@@ -69,7 +69,7 @@ const BranchSchema = CollectionSchema(
   getId: _branchGetId,
   getLinks: _branchGetLinks,
   attach: _branchAttach,
-  version: '3.0.5',
+  version: '3.0.6-dev.0',
 );
 
 int _branchEstimateSize(

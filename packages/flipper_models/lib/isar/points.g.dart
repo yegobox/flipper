@@ -53,7 +53,7 @@ const IPointSchema = CollectionSchema(
   getId: _iPointGetId,
   getLinks: _iPointGetLinks,
   attach: _iPointAttach,
-  version: '3.0.5',
+  version: '3.0.6-dev.0',
 );
 
 int _iPointEstimateSize(

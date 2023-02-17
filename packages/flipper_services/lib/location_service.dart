@@ -4,8 +4,6 @@ library flipper_services;
 import 'abstractions/location.dart';
 import 'package:location/location.dart';
 
-final defaultlocation = {"longitude": "11", "latitude": "11"};
-
 class LocationService implements FlipperLocation {
   Future<Map<String, String>> getLocations() async {
     try {

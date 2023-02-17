@@ -58,7 +58,7 @@ const TokenSchema = CollectionSchema(
   getId: _tokenGetId,
   getLinks: _tokenGetLinks,
   attach: _tokenAttach,
-  version: '3.0.5',
+  version: '3.0.6-dev.0',
 );
 
 int _tokenEstimateSize(

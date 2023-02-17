@@ -23,8 +23,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  isar: ^3.0.4
-  isar_flutter_libs: ^3.0.4
+  isar: ^3.0.6-dev.0
+  isar_flutter_libs: ^3.0.6-dev.0
   loading: ^1.0.2
   universal_platform: ^1.0.0+1
   animations: ^2.0.0
