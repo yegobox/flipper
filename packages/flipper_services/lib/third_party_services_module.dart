@@ -72,15 +72,15 @@ abstract class ThirdPartyServicesModule {
 
   @lazySingleton
   Review get review {
-    Review crash;
+    Review review;
     if (UniversalPlatform.isAndroid ||
         UniversalPlatform.isIOS ||
         UniversalPlatform.isMacOS) {
-      crash = InAppReviewService();
+      review = InAppReviewService();
     } else {
-      crash = UnSupportedReview();
+      review = UnSupportedReview();
     }
-    return crash;
+    return review;
   }
 
   @lazySingleton

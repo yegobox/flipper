@@ -5,6 +5,7 @@ abstract class Crash {
   Future<void> initializeFlutterFire();
   Future<void> testAsyncErrorOnInit();
   Future<void> log(dynamic data);
+  void reportError(dynamic error, dynamic stackTrace);
 }
 
 // Toggle this for testing Crashlytics in your app locally.
@@ -22,6 +23,9 @@ class FirebaseCrashlyticServiceUnsupportedDevice implements Crash {
 
   @override
   Future<void> log(data) async {}
+
+  @override
+  void reportError(error, stackTrace) {}
 }
 
 class FirebaseCrashlyticService implements Crash {
@@ -63,5 +67,10 @@ class FirebaseCrashlyticService implements Crash {
   @override
   Future<void> log(data) async {
     FirebaseCrashlytics.instance.log(data.toString());
+  }
+
+  @override
+  void reportError(dynamic error, dynamic stackTrace) {
+    FirebaseCrashlytics.instance.recordError(error, stackTrace);
   }
 }

@@ -225,10 +225,11 @@ class AppService with ListenableServiceMixin {
               collectionName: 'orders');
 
           processedOrders.add(order.id);
-        } catch (e) {
+        } catch (e, stackTrace) {
           order.reported = false;
           order.status = postPonedStatus;
           await ProxyService.isarApi.update(data: order);
+          ProxyService.crash.reportError(e, stackTrace);
         }
       }
     });

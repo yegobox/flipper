@@ -164,10 +164,11 @@ class CronService {
                     collectionName: 'orders');
 
                 processedOrders.add(completedOrder.id);
-              } catch (e) {
+              } catch (e, stackTrace) {
                 completedOrder.reported = false;
                 completedOrder.status = postPonedStatus;
                 await ProxyService.isarApi.update(data: completedOrder);
+                ProxyService.crash.reportError(e, stackTrace);
               }
             }
           }
