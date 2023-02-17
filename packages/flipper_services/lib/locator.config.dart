@@ -17,7 +17,7 @@ import 'abstractions/dynamic_link.dart' as _i9;
 import 'abstractions/location.dart' as _i11;
 import 'abstractions/printer.dart' as _i19;
 import 'abstractions/remote.dart' as _i21;
-import 'abstractions/share.dart' as _i25;
+import 'abstractions/shareable.dart' as _i25;
 import 'abstractions/storage.dart' as _i17;
 import 'abstractions/system_time.dart' as _i26;
 import 'abstractions/upload.dart' as _i28;
@@ -87,7 +87,7 @@ Future<_i1.GetIt> $initGetIt(
   gh.lazySingleton<_i23.Review>(() => thirdPartyServicesModule.review);
   gh.lazySingleton<_i24.SettingsService>(
       () => thirdPartyServicesModule.settings);
-  gh.lazySingleton<_i25.Shareble>(() => thirdPartyServicesModule.share);
+  gh.lazySingleton<_i25.Shareable>(() => thirdPartyServicesModule.share);
   gh.lazySingleton<_i26.SystemTime>(() => thirdPartyServicesModule.systemTime);
   gh.lazySingleton<_i27.TaxApi>(() => thirdPartyServicesModule.taxApiService);
   gh.lazySingleton<_i28.UploadT>(() => thirdPartyServicesModule.upload);

@@ -61,7 +61,7 @@ class DynamicLinkService implements DynamicLink {
     final userId = ProxyService.box.read(key: 'userId');
     final DynamicLinkParameters parameters = DynamicLinkParameters(
       uriPrefix: 'https://flipper.page.link',
-      link: Uri.parse("https://flipper.yegobox.com/refer?code=$userId"),
+      link: Uri.parse("https://flipper.rw/refer?code=$userId"),
       androidParameters: const AndroidParameters(
         packageName: 'rw.flipper',
         minimumVersion: 1,
@@ -74,8 +74,8 @@ class DynamicLinkService implements DynamicLink {
       socialMetaTagParameters: SocialMetaTagParameters(
           title: 'flipper',
           description: 'flipper referral system',
-          imageUrl:
-              Uri.parse('https://flipper.yegobox.com/referral-system.png')),
+          imageUrl: Uri.parse(
+              'https://yegobox-flipper.s3.eu-west-2.amazonaws.com/logo.jpg')),
     );
     try {
       ShortDynamicLink shortLink =

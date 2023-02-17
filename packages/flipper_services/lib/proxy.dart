@@ -20,7 +20,7 @@ import 'package:universal_platform/universal_platform.dart';
 import 'abstractions/api.dart';
 import 'abstractions/dynamic_link.dart';
 import 'abstractions/location.dart';
-import 'abstractions/share.dart';
+import 'abstractions/shareable.dart';
 import 'abstractions/storage.dart';
 import 'abstractions/upload.dart';
 import 'country_service.dart';
@@ -34,7 +34,7 @@ final isWindows = UniversalPlatform.isWindows;
 
 final Api _apiService = locator<Api>();
 final DynamicLink _dynamicLink = locator<DynamicLink>();
-final Shareble _share = locator<Shareble>();
+final Shareable _share = locator<Shareable>();
 // final LoginStandard _auth = locator<LoginStandard>();
 final FlipperLocation _location = locator<FlipperLocation>();
 // final DB<Business> _db = locator<DB<Business>>();
@@ -75,7 +75,7 @@ abstract class ProxyService {
   static RemoteInterface get remoteApi => _remoteApi;
   static EventService get event => _event;
   static Crash get crash => _crash;
-  static Shareble get share => _share;
+  static Shareable get share => _share;
   static DynamicLink get dynamicLink => _dynamicLink;
   static FlipperLocation get location => _location;
   static LocalStorage get box => _box;

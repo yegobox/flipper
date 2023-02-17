@@ -23,7 +23,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/remote_config_service.dart';
 import 'package:flipper_services/cron_service.dart';
 import 'package:flipper_services/setting_service.dart';
-import 'package:flipper_services/share_implementation.dart';
+import 'package:flipper_services/sharing_service.dart';
 import 'package:flipper_services/system_time_service.dart';
 import 'package:injectable/injectable.dart';
 import 'package:flipper_models/isar_models.dart';
@@ -62,10 +62,10 @@ abstract class ThirdPartyServicesModule {
   }
 
   @lazySingleton
-  Shareble get share {
-    Shareble share;
+  Shareable get share {
+    Shareable share;
 
-    share = ShareImplementation();
+    share = SharingService();
 
     return share;
   }
