@@ -2,82 +2,35 @@ import 'package:flipper_services/abstractions/analytic.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_models/isar_models.dart';
 
 class UnSupportedAnalyticPlatform implements Analytic {
   @override
-  void recordUser() {
-    // TODO: implement recordUser
+  void addContext() {
+    // TODO: implement addContext
+  }
+
+  @override
+  void trackEvent(String eventName, Map<String, dynamic> parameters) {
+    // TODO: implement trackEvent
   }
 }
 
-class FirebaseAnalyticsService with ReactiveServiceMixin implements Analytic {
+class FirebaseAnalyticsService with ListenableServiceMixin implements Analytic {
   @override
-  void recordUser() {
-    FirebaseAnalytics analytics = FirebaseAnalytics.instance;
-    String? userId = ProxyService.box.read(key: 'userId');
-    analytics.setUserId(id: userId);
-    analytics.setUserProperty(name: "user", value: userId);
-    analytics.logEvent(
-      name: 'user',
-      parameters: <String, dynamic>{
-        'UserUsingApp': userId,
-      },
-    );
+  void trackEvent(String eventName, Map<String, dynamic> parameters) {
+    addContext();
+    FirebaseAnalytics.instance
+        .logEvent(name: eventName, parameters: parameters);
   }
 
-  final _customers = ReactiveValue<int>(0);
-  int? get customers => _customers.value;
+  @override
+  void addContext() {
+    // Set the user ID
+    FirebaseAnalytics.instance
+        .setUserId(id: ProxyService.box.read(key: 'userId'));
 
-  final _groupedData = ReactiveValue<List<List<int>>>([]);
-  List<List<int>> get groupedData => _groupedData.value;
-
-  final _revenue = ReactiveValue<int>(0);
-  int? get revenue => _revenue.value;
-
-  final _orders = ReactiveValue<List<Order>>([]);
-  List<Order> get orders => _orders.value;
-
-  countLifeTimeCustomers() {
-    int branchId = ProxyService.box.read(key: 'branchId');
-    int customersCount =
-        ProxyService.isarApi.lifeTimeCustomersForbranch(branchId: branchId);
-    _customers.value = customersCount;
-  }
-
-  DateTime getDate(DateTime d) => DateTime(d.year, d.month, d.day);
-
-  /// If we are today, then go back one week
-  /// then show the report of that previous week.
-  countOrdersByThisWeek() async {
-    _revenue.value = 0;
-    //get today date using DateTime
-    DateTime today = new DateTime.now();
-    //get the date of start of the week
-    DateTime startWeekDate =
-        getDate(today.subtract(Duration(days: today.weekday - 1)));
-    // DateTime endWeekDate = getDate(
-    //     today.add(Duration(days: DateTime.daysPerWeek - today.weekday)));
-    int branchId = ProxyService.box.read(key: 'branchId');
-    _orders.value = await ProxyService.isarApi.weeklyOrdersReport(
-        weekStartDate: startWeekDate.subtract(Duration(days: 7)),
-        //this will help to go back in a week
-        weekEndDate: today,
-        branchId: branchId);
-    List<int> revenues = [];
-    for (Order order in orders) {
-      revenues.add(order.cashReceived.toInt());
-    }
-    // given data list to be [1,2,3,4,5]
-    // transform data list to be [[0,1], [1,2], [2,3], [3,4], [4,5]]
-    _groupedData.value = [];
-    for (int i = 0; i < revenues.length; i++) {
-      //apply modulo to have a graph of the week that is not exceeding the viewpoint
-      _groupedData.value.add([revenues[i] % 10, i % 10]);
-    }
-    if (orders.isNotEmpty) {
-      _revenue.value += orders.fold(0,
-          (a, b) => a + (b.cashReceived.toInt() - b.customerChangeDue.toInt()));
-    }
+    // Set the "user" user property to the user ID
+    FirebaseAnalytics.instance.setUserProperty(
+        name: "user", value: ProxyService.box.read(key: 'userId'));
   }
 }

@@ -1,3 +1,4 @@
 abstract class Analytic {
-  void recordUser();
+  void trackEvent(String eventName, Map<String, dynamic> parameters);
+  void addContext();
 }

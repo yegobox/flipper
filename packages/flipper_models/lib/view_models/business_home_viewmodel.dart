@@ -91,6 +91,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   }
 
   void keyboardKeyPressed(String key) async {
+    ProxyService.analytics.trackEvent("keypad", {'feature_name': 'keypad_tab'});
     if (key == 'C') {
       Order pendingOrder = await ProxyService.isarApi.manageOrder();
 

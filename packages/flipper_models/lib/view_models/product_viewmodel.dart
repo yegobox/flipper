@@ -335,6 +335,8 @@ class ProductViewModel extends AddTenantViewModel {
 
   /// Add a product into the system
   Future<bool> addProduct({required Product mproduct}) async {
+    ProxyService.analytics
+        .trackEvent("product_creation", {'feature_name': 'product_creation'});
     // String mproductName =
     mproduct.name = productName;
     mproduct.barCode = productService.barCode.toString();

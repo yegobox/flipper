@@ -109,6 +109,8 @@ class _AddProductViewState extends State<AddProductView> {
       if (shouldPop == true) {
         // Handle leaving  the app
         // ...
+        ProxyService.analytics.trackEvent(
+            "create_product", {'feature_name': 'create_product_discarded'});
         //we return again false to be able to go to close a day page
         return true;
       } else {
