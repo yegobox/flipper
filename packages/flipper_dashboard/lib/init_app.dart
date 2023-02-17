@@ -9,7 +9,6 @@ class InitApp {
     ProxyService.remoteConfig.fetch();
     //connect to anyy available printer
     // ProxyService.printer.blueTooths();
-    ProxyService.analytics.trackEvent();
     ProxyService.forceDateEntry.caller();
     // init the crashlytics
     // ProxyService.crash.initializeFlutterFire();
