@@ -16,6 +16,7 @@ import 'badge_icon.dart';
 import 'init_app.dart';
 import 'page_switcher.dart';
 import 'package:flutter_windowmanager/flutter_windowmanager.dart';
+import 'package:nfc_manager/nfc_manager.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 final isMacOs = UniversalPlatform.isMacOS;
@@ -63,23 +64,27 @@ class _FlipperAppState extends State<FlipperApp>
     _tabController.dispose();
   }
 
+  Future<void> nfc() async {
+    if ((isAndroid || isIos) && await NfcManager.instance.isAvailable()) {
+      // This code will run every 1 second while the app is in the foreground
+      AppService().nfc.stopNfc();
+      AppService().nfc.startNFC(
+            callback: (nfcData) {
+              AppService.cleanedDataController
+                  .add(nfcData.split(RegExp(r"(NFC_DATA:|en|\\x02)")).last);
+            },
+            textData: "",
+            write: false,
+          );
+    }
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
       // AppLifecycleState.
       case AppLifecycleState.resumed:
-        if (isAndroid || isIos) {
-          // This code will run every 1 second while the app is in the foreground
-          AppService().nfc.stopNfc();
-          AppService().nfc.startNFC(
-                callback: (nfcData) {
-                  AppService.cleanedDataController
-                      .add(nfcData.split(RegExp(r"(NFC_DATA:|en|\\x02)")).last);
-                },
-                textData: "",
-                write: false,
-              );
-        }
+        nfc();
         break;
       case AppLifecycleState.paused:
         // AppService.cleanedDataController.close();
