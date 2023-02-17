@@ -30,7 +30,7 @@ import 'package:flipper_models/isar_models.dart';
 import 'abstractions/dynamic_link.dart';
 import 'abstractions/location.dart';
 import 'abstractions/remote.dart';
-import 'abstractions/share.dart';
+import 'abstractions/shareable.dart';
 import 'abstractions/storage.dart';
 import 'abstractions/upload.dart';
 import 'app_service.dart';
