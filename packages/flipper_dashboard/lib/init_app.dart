@@ -30,6 +30,8 @@ class InitApp {
     // ScrollController(keepScrollOffset: true, initialScrollOffset: 0);
     ProxyService.cron.schedule();
 
+    ProxyService.appService.updateStatusColor();
+
     /// to avoid receiving the message of the contact you don't have in your book
     /// we need to load contacts when the app starts.
     // ProxyService.isarApi.contacts().asBroadcastStream();

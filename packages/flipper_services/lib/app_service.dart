@@ -1,13 +1,14 @@
 import 'dart:async';
 
 import 'package:flipper_models/isar_models.dart' as isar;
+import 'package:flutter/material.dart' as m;
 import 'package:flipper_services/constants.dart';
 import 'package:stacked/stacked.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'proxy.dart';
-
+import 'package:flutter_statusbarcolor_ns/flutter_statusbarcolor_ns.dart';
 import 'package:flipper_nfc/flipper_nfc.dart';
 
 class AppService with ListenableServiceMixin {
@@ -243,6 +244,40 @@ class AppService with ListenableServiceMixin {
     } else {
       return false;
     }
+  }
+
+  m.Color _statusColor = m.Colors.red;
+
+  m.Color get statusColor => _statusColor;
+
+  String _statusText = "";
+
+  String get statusText => _statusText;
+
+  void updateStatusColor() async {
+    Timer.periodic(Duration(seconds: 1), (Timer t) async {
+      if (!await ProxyService.appService.checkInternetConnectivity()) {
+        _statusColor = m.Colors.red;
+        _statusText = "Connectivity issues";
+        await FlutterStatusbarcolor.setStatusBarColor(m.Color(0xFF8B0000));
+        if (useWhiteForeground(m.Colors.green[400]!)) {
+          FlutterStatusbarcolor.setStatusBarWhiteForeground(true);
+        } else {
+          FlutterStatusbarcolor.setStatusBarWhiteForeground(false);
+        }
+      } else {
+        _statusText = "";
+        _statusColor = m.Colors.transparent;
+        await FlutterStatusbarcolor.setStatusBarColor(m.Colors.transparent);
+        // await FlutterStatusbarcolor.setStatusBarColor(m.Color(0xFF8B0000));
+        if (useWhiteForeground(m.Colors.green[400]!)) {
+          FlutterStatusbarcolor.setStatusBarWhiteForeground(true);
+        } else {
+          FlutterStatusbarcolor.setStatusBarWhiteForeground(false);
+        }
+      }
+      notifyListeners();
+    });
   }
 
   AppService() {

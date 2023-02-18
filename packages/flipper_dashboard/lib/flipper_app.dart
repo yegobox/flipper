@@ -153,6 +153,12 @@ class _FlipperAppState extends State<FlipperApp>
               );
             },
             child: Scaffold(
+              appBar: AppBar(
+                title: Center(child: Text(model.app.statusText)),
+                backgroundColor: model.app.statusColor,
+                automaticallyImplyLeading: false,
+                toolbarHeight: model.app.statusText.isNotEmpty ? 25 : 0,
+              ),
               bottomNavigationBar: NavigationBarTheme(
                 data: NavigationBarThemeData(
                   backgroundColor: Colors.white,

@@ -74,6 +74,7 @@ dependencies:
   modal_bottom_sheet: ^3.0.0-pre
   flipper_ui: ^1.0.3
   flutter_windowmanager: ^0.2.0
+  fluentui_system_icons: ^1.1.190
 flutter:
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

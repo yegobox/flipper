@@ -27,7 +27,7 @@ dependencies:
   nfc_manager: ^3.2.0
   geolocator: ^9.0.2
   geocode: ^1.0.1
-  cron: ^0.4.0
+
   firebase_analytics: ^10.0.2
   firebase_crashlytics: ^3.0.2
   location: 5.0.0-dev.8
@@ -36,7 +36,7 @@ dependencies:
   injectable: ^1.5.3
   google_sign_in: ^5.0.0
   firebase_dynamic_links: ^5.0.2
-  http: ^0.13.4
+  http: ^0.13.5
   intl: ^0.17.0
   image_picker: ^0.8.4+6
   path_provider: ^2.0.8
@@ -55,6 +55,7 @@ dependencies:
   timezone: ^0.9.1
   flutter_native_timezone: ^2.0.0
   connectivity_plus: ^2.3.9
+  flutter_statusbarcolor_ns: ^0.5.0
 
 dev_dependencies:
   build_runner: ^2.0.0

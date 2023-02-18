@@ -1,5 +1,7 @@
 library flipper_models;
 
+import 'dart:async';
+
 import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_routing/routes.locator.dart';
 import 'package:flipper_routing/routes.logger.dart';
