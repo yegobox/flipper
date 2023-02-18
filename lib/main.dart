@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_ui_localizations/firebase_ui_localizations.dart';
@@ -77,14 +76,15 @@ Future<void> backgroundHandler(RemoteMessage message) async {
       tz.TZDateTime.now(tz.local).add(const Duration(seconds: 5)));
 }
 
-class FlipperHttpOverrides extends HttpOverrides {
-  @override
-  HttpClient createHttpClient(SecurityContext? context) {
-    return super.createHttpClient(context)
-      ..badCertificateCallback =
-          (X509Certificate cert, String host, int port) => true;
-  }
-}
+/// no need to override the certificate as we trust cert on yegobox domains
+// class FlipperHttpOverrides extends HttpOverrides {
+//   @override
+//   HttpClient createHttpClient(SecurityContext? context) {
+//     return super.createHttpClient(context)
+//       ..badCertificateCallback =
+//           (X509Certificate cert, String host, int port) => true;
+//   }
+// }
 
 void main() async {
   GoogleFonts.config.allowRuntimeFetching = false;
@@ -93,7 +93,7 @@ void main() async {
     yield foundation.LicenseEntryWithLineBreaks(['google_fonts'], license);
   });
   WidgetsFlutterBinding.ensureInitialized();
-  HttpOverrides.global = FlipperHttpOverrides();
+  // HttpOverrides.global = FlipperHttpOverrides();
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
