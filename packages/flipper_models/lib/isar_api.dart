@@ -384,12 +384,15 @@ class IsarAPI implements IsarApiInterface {
   Future<void> collectCashPayment(
       {required double cashReceived, required Order order}) async {
     order.status = completeStatus;
+
     order.reported = false;
-    order.customerChangeDue = cashReceived - order.subTotal;
+
+    order.customerChangeDue = (cashReceived - order.subTotal);
+
     order.cashReceived = cashReceived;
-    isar.writeTxn(() async {
-      await isar.orders.put(order);
-    });
+
+    update(data: order);
+
     List<OrderItem> items = await orderItems(orderId: order.id);
 
     for (OrderItem item in items) {

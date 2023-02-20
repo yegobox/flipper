@@ -432,12 +432,10 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   void collectCashPayment({required double cashReceived}) {
     if (kOrder == null && amountTotal != 0.0) {
-      //should show a global snack bar
       return;
     }
     ProxyService.isarApi
         .collectCashPayment(cashReceived: cashReceived, order: kOrder!);
-    //reset current order back to 0
 
     keypad.setItemsOnSale(count: 0);
   }

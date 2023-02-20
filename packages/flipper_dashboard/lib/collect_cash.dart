@@ -114,6 +114,9 @@ class _CollectCashViewState extends State<CollectCashView> {
                                     return null;
                                   },
                                   controller: _cash,
+                                  onFieldSubmitted: (value) {
+                                    _cash.text = value;
+                                  },
                                   onChanged: (String cash) {},
                                   decoration: InputDecoration(
                                     hintText: 'Cash Received',
@@ -135,22 +138,19 @@ class _CollectCashViewState extends State<CollectCashView> {
                             RoundedLoadingButton(
                               borderRadius: 4.0,
                               controller: _btnController,
-                              color: Theme.of(context).primaryColor,
                               onPressed: () async {
                                 double totalOrderAmount = model.totalPayable;
-
+                                model.keypad.setCashReceived(
+                                    amount: double.parse(_cash.text));
                                 if (_formKey.currentState!.validate()) {
-                                  model.keypad.setCashReceived(
-                                    amount: double.parse(_cash.text),
-                                  );
                                   if (widget.paymentType == 'spenn') {
                                     await model.collectSPENNPayment(
                                       phoneNumber: _phone.text,
-                                      cashReceived: model.keypad.cashReceived,
+                                      cashReceived: double.parse(_cash.text),
                                     );
                                   } else {
                                     model.collectCashPayment(
-                                      cashReceived: model.keypad.cashReceived,
+                                      cashReceived: double.parse(_cash.text),
                                     );
                                     String receiptType = ReceiptType.ns;
                                     if (ProxyService.box.isPoroformaMode()) {
