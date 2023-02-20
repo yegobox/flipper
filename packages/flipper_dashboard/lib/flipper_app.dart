@@ -5,12 +5,12 @@ import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/toast.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
 import 'package:universal_platform/universal_platform.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:permission_handler/permission_handler.dart' as perm;
 import 'badge_icon.dart';
 import 'init_app.dart';
@@ -191,29 +191,23 @@ class _FlipperAppState extends State<FlipperApp>
                     },
                     destinations: [
                       NavigationDestination(
-                        icon: SvgPicture.asset("assets/checkout.svg",
-                            semanticsLabel: 'Checkout',
-                            color: Color.fromARGB(255, 0, 6, 10)),
+                        icon: Icon(FluentIcons.app_folder_48_regular),
                         label: 'Checkout',
-                        selectedIcon: SvgPicture.asset("assets/checkout.svg",
-                            semanticsLabel: 'Checkout',
-                            color: const Color(0xff006AFE)),
+                        selectedIcon: Icon(
+                          FluentIcons.app_folder_48_regular,
+                          color: const Color(0xff006AFE),
+                        ),
                       ),
                       NavigationDestination(
-                        icon: SvgPicture.asset("assets/transactions.svg",
-                            semanticsLabel: 'Transactions',
-                            color: Color.fromARGB(255, 0, 6, 10)),
+                        icon: Icon(FluentIcons.apps_list_detail_24_regular),
                         label: 'Transactions',
-                        selectedIcon: SvgPicture.asset(
-                            "assets/transactions.svg",
-                            semanticsLabel: 'Transactions',
+                        selectedIcon: Icon(
+                            FluentIcons.apps_list_detail_24_regular,
                             color: const Color(0xff006AFE)),
                       ),
                       NavigationDestination(
                         icon: BadgeIcon(
-                          icon: SvgPicture.asset("assets/notifications.svg",
-                              semanticsLabel: 'Notifications',
-                              color: Color.fromARGB(255, 0, 6, 10)),
+                          icon: Icon(FluentIcons.mail_all_unread_20_regular),
                           badgeCount: 0,
                           badgeColor: Color(0xff006AFE),
                           badgeTextStyle: TextStyle(
@@ -223,9 +217,7 @@ class _FlipperAppState extends State<FlipperApp>
                         ),
                         label: 'Notifications',
                         selectedIcon: BadgeIcon(
-                          icon: SvgPicture.asset("assets/notifications.svg",
-                              semanticsLabel: 'Notifications',
-                              color: const Color(0xff006AFE)),
+                          icon: Icon(FluentIcons.mail_all_unread_20_regular),
                           badgeCount: 0,
                           badgeColor: Color(0xff006AFE),
                           badgeTextStyle: TextStyle(
@@ -235,13 +227,10 @@ class _FlipperAppState extends State<FlipperApp>
                         ),
                       ),
                       NavigationDestination(
-                        icon: SvgPicture.asset("assets/more.svg",
-                            semanticsLabel: 'More',
-                            color: Color.fromARGB(255, 0, 6, 10)),
+                        icon: Icon(FluentIcons.navigation_20_regular),
                         label: 'More',
-                        selectedIcon: SvgPicture.asset("assets/more.svg",
-                            semanticsLabel: 'More',
-                            color: const Color(0xff006AFE)),
+                        selectedIcon: Icon(FluentIcons.navigation_20_regular,
+                            color: Color(0xff006AFE)),
                       ),
                     ],
                   ),
