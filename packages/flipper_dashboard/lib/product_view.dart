@@ -48,7 +48,6 @@ class _ProductViewState extends State<ProductView> {
         return Padding(
           padding: const EdgeInsets.only(top: 18.0),
           child: ListView(
-            shrinkWrap: true,
             children: [
               StreamBuilder<List<Product>>(
                 initialData: model.productService.products,
@@ -56,8 +55,9 @@ class _ProductViewState extends State<ProductView> {
                     .productStream(branchId: ProxyService.box.getBranchId()!),
                 builder: (context, snapshot) {
                   final products = snapshot.data ?? [];
-                  return Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  return Wrap(
+                    spacing: 10.0, // set spacing between items
+                    runSpacing: 10.0, // set spacing between lines
                     children: [
                       Expanded(
                         child: Container(

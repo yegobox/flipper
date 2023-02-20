@@ -1,11 +1,11 @@
-import 'package:flipper_ui/helpers/utils.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flipper_login/colors.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:flutter_text_drawable/flutter_text_drawable.dart';
 import 'package:flipper_models/isar_models.dart';
+import 'package:flutter_text_drawable/flutter_text_drawable.dart';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
 
 class ProductRow extends StatelessWidget {
@@ -46,9 +46,11 @@ class ProductRow extends StatelessWidget {
         onLongPress: () {
           GoRouter.of(context).push(Routes.sell, extra: product);
         },
-        child: Wrap(children: <Widget>[
-          ListTile(
-            contentPadding: const EdgeInsets.fromLTRB(0, 0, 15, 0),
+        child: Container(
+          padding: EdgeInsets.zero,
+          width: MediaQuery.of(context).size.width,
+          child: ListTile(
+            contentPadding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
             leading: SizedBox(
               height: MediaQuery.of(context).size.height,
               width: 58,
@@ -86,26 +88,25 @@ class ProductRow extends StatelessWidget {
                   : 'In stock 0.0',
               style: const TextStyle(color: Colors.black),
             ),
-            trailing: stocks.isEmpty
-                ? const Text(
-                    ' Prices',
-                    style: TextStyle(color: Colors.black),
-                  )
-                : product.variants.isNotEmpty && product.variants.length > 1
-                    ? const Text(
-                        ' Prices',
-                        style: TextStyle(color: Colors.black),
-                      )
-                    : Text(
-                        'RWF ' + stocks.first!.retailPrice.toString(),
-                        style: const TextStyle(color: Colors.black),
-                      ),
+            trailing: Container(
+              width: 80,
+              child: stocks.isEmpty
+                  ? const Text(
+                      ' Prices',
+                      style: TextStyle(color: Colors.black),
+                    )
+                  : product.variants.isNotEmpty && product.variants.length > 1
+                      ? const Text(
+                          ' Prices',
+                          style: TextStyle(color: Colors.black),
+                        )
+                      : Text(
+                          'RWF ' + stocks.first!.retailPrice.toString(),
+                          style: const TextStyle(color: Colors.black),
+                        ),
+            ),
           ),
-          Container(
-            height: 0.5,
-            color: Colors.black26,
-          ),
-        ]),
+        ),
       ),
       startActionPane: ActionPane(
         // A motion is a widget used to control how the pane animates.
