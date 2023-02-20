@@ -19,14 +19,32 @@ class ExtendedClient extends http.BaseClient {
   final http.Client _inner;
   // ignore: sort_constructors_first
   ExtendedClient(this._inner);
+
   @override
-  Future<http.StreamedResponse> send(http.BaseRequest request) {
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
     String? token = ProxyService.box.read(key: 'bearerToken');
     String? userId = ProxyService.box.read(key: 'userId');
     request.headers['Authorization'] = token ?? '';
     request.headers['userId'] = userId ?? '';
     request.headers['Content-Type'] = 'application/json';
-    return _inner.send(request);
+
+    try {
+      return await _inner.send(request);
+    } catch (error, stackTrace) {
+      if (error is http.ClientException) {
+        // Handle network errors
+        ProxyService.crash.reportError(error, stackTrace);
+        throw Exception('Network error: ${error.message}');
+      } else if (error is http.Response) {
+        // Handle server errors
+        ProxyService.crash.reportError(error, stackTrace);
+        throw Exception('Server error: ${error.statusCode}');
+      } else {
+        // Handle any other errors
+        ProxyService.crash.reportError(error, stackTrace);
+        throw Exception('Unknown error: ${error.toString()}');
+      }
+    }
   }
 }
 
@@ -366,20 +384,22 @@ class IsarAPI implements IsarApiInterface {
   Future<void> collectCashPayment(
       {required double cashReceived, required Order order}) async {
     order.status = completeStatus;
-    order.reported = false;
-    order.customerChangeDue = cashReceived - order.subTotal;
-    order.cashReceived = cashReceived;
+
     List<OrderItem> items = await orderItems(orderId: order.id);
+
+    double? totalPayable = items.fold(0, (a, b) => a! + (b.price * b.qty));
+
+    order.customerChangeDue = (cashReceived - totalPayable!);
+
+    order.cashReceived = cashReceived;
+
+    update(data: order);
 
     for (OrderItem item in items) {
       Stock? stock = await stockByVariantId(variantId: item.variantId);
       stock?.currentStock = stock.currentStock - item.qty;
       update(data: stock);
     }
-    await isar.writeTxn(() async {
-      int id = await isar.orders.put(order);
-      return isar.orders.get(id);
-    });
     // remove currentOrderId from local storage to leave a room
     // for listening to new order that will be created
     ProxyService.box.remove(key: 'currentOrderId');

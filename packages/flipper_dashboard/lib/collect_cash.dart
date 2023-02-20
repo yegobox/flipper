@@ -4,6 +4,7 @@ import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_ui/helpers/utils.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
 import 'package:pubnub/pubnub.dart' as nub;
 import 'package:flipper_routing/routes.router.dart';
@@ -52,7 +53,11 @@ class _CollectCashViewState extends State<CollectCashView> {
                 width: double.infinity,
                 child: Stack(
                   children: [
-                    Center(
+                    Positioned(
+                      left: 0,
+                      top: 0,
+                      right: 0,
+                      bottom: 0,
                       child: Form(
                         key: _formKey,
                         child: Column(
@@ -114,6 +119,9 @@ class _CollectCashViewState extends State<CollectCashView> {
                                     return null;
                                   },
                                   controller: _cash,
+                                  onFieldSubmitted: (value) {
+                                    _cash.text = value;
+                                  },
                                   onChanged: (String cash) {},
                                   decoration: InputDecoration(
                                     hintText: 'Cash Received',
@@ -132,47 +140,79 @@ class _CollectCashViewState extends State<CollectCashView> {
                               ),
                             ),
                             const SizedBox(height: 10),
-                            RoundedLoadingButton(
-                              borderRadius: 4.0,
-                              controller: _btnController,
-                              color: Theme.of(context).primaryColor,
-                              onPressed: () async {
-                                double totalOrderAmount = model.totalPayable;
-
-                                if (_formKey.currentState!.validate()) {
-                                  model.keypad.setCashReceived(
-                                    amount: double.parse(_cash.text),
-                                  );
-                                  if (widget.paymentType == 'spenn') {
-                                    await model.collectSPENNPayment(
-                                      phoneNumber: _phone.text,
-                                      cashReceived: model.keypad.cashReceived,
-                                    );
-                                  } else {
-                                    model.collectCashPayment(
-                                      cashReceived: model.keypad.cashReceived,
-                                    );
-                                    String receiptType = ReceiptType.ns;
-                                    if (ProxyService.box.isPoroformaMode()) {
-                                      receiptType = ReceiptType.ps;
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(
+                                  16.0, 8.0, 16.0, 8.0),
+                              child: SizedBox(
+                                width: double.infinity,
+                                height: 50,
+                                child: OutlinedButton(
+                                  child: Text('Tender',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 16.0,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.white,
+                                      )),
+                                  style: ButtonStyle(
+                                    shape: MaterialStateProperty.resolveWith<
+                                        OutlinedBorder>(
+                                      (states) => RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(10.0),
+                                      ),
+                                    ),
+                                    backgroundColor:
+                                        MaterialStateProperty.all<Color>(
+                                            const Color(0xff006AFE)),
+                                    overlayColor: MaterialStateProperty
+                                        .resolveWith<Color?>(
+                                      (Set<MaterialState> states) {
+                                        if (states
+                                            .contains(MaterialState.hovered)) {
+                                          return Colors.blue.withOpacity(0.04);
+                                        }
+                                        if (states.contains(
+                                                MaterialState.focused) ||
+                                            states.contains(
+                                                MaterialState.pressed)) {
+                                          return Colors.blue.withOpacity(0.12);
+                                        }
+                                        return null; // Defer to the widget's default.
+                                      },
+                                    ),
+                                  ),
+                                  onPressed: () async {
+                                    double totalOrderAmount =
+                                        model.totalPayable;
+                                    model.keypad.setCashReceived(
+                                        amount: double.parse(_cash.text));
+                                    if (_formKey.currentState!.validate()) {
+                                      if (widget.paymentType == 'spenn') {
+                                        await model.collectSPENNPayment(
+                                          phoneNumber: _phone.text,
+                                          cashReceived:
+                                              double.parse(_cash.text),
+                                        );
+                                      } else {
+                                        String receiptType = ReceiptType.ns;
+                                        if (ProxyService.box
+                                            .isPoroformaMode()) {
+                                          receiptType = ReceiptType.ps;
+                                        }
+                                        if (ProxyService.box.isTrainingMode()) {
+                                          receiptType = ReceiptType.ts;
+                                        }
+                                        await model.collectCashPayment();
+                                        _btnController.success();
+                                        GoRouter.of(context).push(
+                                            Routes.afterSale +
+                                                "/$totalOrderAmount/$receiptType",
+                                            extra: widget.order);
+                                      }
+                                    } else {
+                                      _btnController.stop();
                                     }
-                                    if (ProxyService.box.isTrainingMode()) {
-                                      receiptType = ReceiptType.ts;
-                                    }
-                                    _btnController.success();
-                                    GoRouter.of(context).push(
-                                        Routes.afterSale +
-                                            "/$totalOrderAmount/$receiptType",
-                                        extra: widget.order);
-                                  }
-                                } else {
-                                  _btnController.stop();
-                                }
-                              },
-                              child: const Text(
-                                'Tender',
-                                style: TextStyle(
-                                  color: Colors.white,
+                                  },
                                 ),
                               ),
                             )

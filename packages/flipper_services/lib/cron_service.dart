@@ -54,9 +54,9 @@ class CronService {
 
     Timer.periodic(Duration(minutes: 30), (Timer t) async {
       /// removing checkIn flag will allow the user to check in again
-      String userId = ProxyService.box.getUserId()!;
-      ProxyService.billing.monitorSubscription(userId: int.parse(userId));
-      ProxyService.box.remove(key: 'checkIn');
+      //String userId = ProxyService.box.getUserId()!;
+      //ProxyService.billing.monitorSubscription(userId: int.parse(userId));
+      //ProxyService.box.remove(key: 'checkIn');
 
       /// get unsynced counter and send them online for houseKeping.
       List<Counter> counters = await ProxyService.isarApi

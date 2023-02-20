@@ -430,14 +430,12 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         .collectCashPayment(cashReceived: cashReceived, order: kOrder!);
   }
 
-  void collectCashPayment({required double cashReceived}) {
+  Future<void> collectCashPayment() async {
     if (kOrder == null && amountTotal != 0.0) {
-      //should show a global snack bar
       return;
     }
-    ProxyService.isarApi
-        .collectCashPayment(cashReceived: cashReceived, order: kOrder!);
-    //reset current order back to 0
+    await ProxyService.isarApi
+        .collectCashPayment(cashReceived: keypad.cashReceived, order: kOrder!);
 
     keypad.setItemsOnSale(count: 0);
   }

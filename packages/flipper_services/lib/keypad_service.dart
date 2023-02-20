@@ -51,6 +51,7 @@ class KeyPadService with ListenableServiceMixin {
 
   setCashReceived({required double amount}) {
     _cashReceived.value = amount;
+    notifyListeners();
   }
 
   void toggleCheckbox({required int variantId}) {

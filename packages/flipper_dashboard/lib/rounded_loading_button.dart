@@ -92,7 +92,7 @@ class RoundedLoadingButton extends StatefulWidget {
     required this.child,
     this.color = Colors.lightBlue,
     this.height = 50,
-    this.width = 300,
+    this.width = double.infinity,
     this.loaderSize = 24.0,
     this.loaderStrokeWidth = 2.0,
     this.animateOnTap = true,
@@ -192,12 +192,12 @@ class RoundedLoadingButtonState extends State<RoundedLoadingButton>
       padding: const EdgeInsets.all(0),
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          onSurface: widget.disabledColor,
+          disabledBackgroundColor: widget.disabledColor,
           minimumSize: Size(_squeezeAnimation.value, widget.height),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(widget.borderRadius),
           ),
-          primary: widget.color,
+          backgroundColor: widget.color,
           elevation: widget.elevation,
           padding: const EdgeInsets.all(0),
         ),
