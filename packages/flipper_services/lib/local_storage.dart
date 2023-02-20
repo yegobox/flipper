@@ -93,4 +93,9 @@ class LocalStorageImpl implements LocalStorage {
   String? getBearerToken() {
     return box.read('bearerToken');
   }
+
+  @override
+  bool? getIsTokenRegistered() {
+    return box.read('getIsTokenRegistered');
+  }
 }

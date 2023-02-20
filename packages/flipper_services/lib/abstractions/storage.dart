@@ -4,6 +4,7 @@ abstract class LocalStorage {
   bool write({required String key, required dynamic value});
   int? getBusinessId();
   int? getBranchId();
+  bool? getIsTokenRegistered();
   String? getUserPhone();
   String? getUserId();
   bool getNeedAccountLinkWithPhone();

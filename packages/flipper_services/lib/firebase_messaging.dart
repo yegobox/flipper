@@ -27,11 +27,15 @@ class FirebaseMessagingService implements Messaging {
   Future<void> init() async {
     await FirebaseMessaging.instance
         .subscribeToTopic(ProxyService.box.getBranchId()!.toString());
-    String? _token = await token();
-    ProxyService.remoteApi.create(collection: {
-      "deviceToken": _token,
-      "businessId": ProxyService.box.getBusinessId()!
-    }, collectionName: 'messagings');
+    if (ProxyService.box.getIsTokenRegistered() == null) {
+      String? _token = await token();
+      ProxyService.remoteApi.create(collection: {
+        "deviceToken": _token,
+        "businessId": ProxyService.box.getBusinessId()!
+      }, collectionName: 'messagings');
+
+      ProxyService.box.write(key: 'getIsTokenRegistered', value: true);
+    }
   }
 
   @override
