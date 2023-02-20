@@ -21,11 +21,14 @@ class KeyPadView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = 600;
+    final paddingHeight = screenHeight * 0.1; // 10% of screen height
     return Expanded(
       child: Column(
+        mainAxisSize: MainAxisSize.min, // set main axis size to min
         children: [
           Padding(
-            padding: const EdgeInsets.only(top: 38.0),
+            padding: EdgeInsets.symmetric(vertical: paddingHeight),
             child: Text(
               "RWF${model.keypad.key}",
               style: GoogleFonts.poppins(
@@ -36,6 +39,7 @@ class KeyPadView extends StatelessWidget {
           ),
           Expanded(
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Expanded(
                   child: InkWell(
@@ -43,7 +47,8 @@ class KeyPadView extends StatelessWidget {
                       model.keyboardKeyPressed('1');
                     },
                     child: Container(
-                        height: MediaQuery.of(context).size.height,
+                        height: MediaQuery.of(context).size.height *
+                            0.2, // 20% of screen height
                         width: MediaQuery.of(context).size.width,
                         decoration: BoxDecoration(
                           border: Border.all(
@@ -67,6 +72,9 @@ class KeyPadView extends StatelessWidget {
                       model.keyboardKeyPressed('2');
                     },
                     child: Container(
+                      height: MediaQuery.of(context).size.height *
+                          0.2, // 20% of screen height
+                      width: MediaQuery.of(context).size.width,
                       decoration: BoxDecoration(
                         border: Border.all(
                           color: Colors.black.withOpacity(0.25),
@@ -90,7 +98,8 @@ class KeyPadView extends StatelessWidget {
                       model.keyboardKeyPressed('3');
                     },
                     child: Container(
-                      height: MediaQuery.of(context).size.height,
+                      height: MediaQuery.of(context).size.height *
+                          0.2, // 20% of screen height
                       width: MediaQuery.of(context).size.width,
                       decoration: BoxDecoration(
                         border: Border.all(
@@ -121,7 +130,8 @@ class KeyPadView extends StatelessWidget {
                       model.keyboardKeyPressed('4');
                     },
                     child: Container(
-                        height: MediaQuery.of(context).size.height,
+                        height: MediaQuery.of(context).size.height *
+                            0.2, // 20% of screen height
                         width: MediaQuery.of(context).size.width,
                         decoration: BoxDecoration(
                           border: Border.all(
@@ -145,7 +155,8 @@ class KeyPadView extends StatelessWidget {
                       model.keyboardKeyPressed('5');
                     },
                     child: Container(
-                        height: MediaQuery.of(context).size.height,
+                        height: MediaQuery.of(context).size.height *
+                            0.2, // 20% of screen height
                         width: MediaQuery.of(context).size.width,
                         decoration: BoxDecoration(
                           border: Border.all(
@@ -169,7 +180,8 @@ class KeyPadView extends StatelessWidget {
                       model.keyboardKeyPressed('6');
                     },
                     child: Container(
-                      height: MediaQuery.of(context).size.height,
+                      height: MediaQuery.of(context).size.height *
+                          0.2, // 20% of screen height
                       width: MediaQuery.of(context).size.width,
                       decoration: BoxDecoration(
                         border: Border.all(
@@ -200,7 +212,8 @@ class KeyPadView extends StatelessWidget {
                       model.keyboardKeyPressed('7');
                     },
                     child: Container(
-                      height: MediaQuery.of(context).size.height,
+                      height: MediaQuery.of(context).size.height *
+                          0.2, // 20% of screen height
                       width: MediaQuery.of(context).size.width,
                       decoration: BoxDecoration(
                         border: Border.all(
@@ -225,7 +238,8 @@ class KeyPadView extends StatelessWidget {
                       model.keyboardKeyPressed('8');
                     },
                     child: Container(
-                        height: MediaQuery.of(context).size.height,
+                        height: MediaQuery.of(context).size.height *
+                            0.2, // 20% of screen height
                         width: MediaQuery.of(context).size.width,
                         decoration: BoxDecoration(
                           border: Border.all(
@@ -249,7 +263,8 @@ class KeyPadView extends StatelessWidget {
                       model.keyboardKeyPressed('9');
                     },
                     child: Container(
-                      height: MediaQuery.of(context).size.height,
+                      height: MediaQuery.of(context).size.height *
+                          0.2, // 20% of screen height
                       width: MediaQuery.of(context).size.width,
                       decoration: BoxDecoration(
                         border: Border.all(
@@ -280,7 +295,8 @@ class KeyPadView extends StatelessWidget {
                       model.keyboardKeyPressed('C');
                     },
                     child: Container(
-                        height: MediaQuery.of(context).size.height,
+                        height: MediaQuery.of(context).size.height *
+                            0.2, // 20% of screen height
                         width: MediaQuery.of(context).size.width,
                         decoration: BoxDecoration(
                           border: Border.all(
@@ -304,7 +320,8 @@ class KeyPadView extends StatelessWidget {
                       model.keyboardKeyPressed('0');
                     },
                     child: Container(
-                        height: MediaQuery.of(context).size.height,
+                        height: MediaQuery.of(context).size.height *
+                            0.2, // 20% of screen height
                         width: MediaQuery.of(context).size.width,
                         decoration: BoxDecoration(
                           border: Border.all(
@@ -328,7 +345,8 @@ class KeyPadView extends StatelessWidget {
                       model.keyboardKeyPressed('+');
                     },
                     child: Container(
-                      height: MediaQuery.of(context).size.height,
+                      height: MediaQuery.of(context).size.height *
+                          0.2, // 20% of screen height
                       width: MediaQuery.of(context).size.width,
                       decoration: BoxDecoration(
                         border: Border.all(
@@ -369,7 +387,7 @@ class KeyboardKey extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: 100,
-      height: MediaQuery.of(context).size.height,
+      height: MediaQuery.of(context).size.height * 0.2, // 20% of screen height
       child: InkWell(
         onTap: () => {model.keyboardKeyPressed(value)},
         child: Container(
