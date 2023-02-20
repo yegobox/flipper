@@ -384,7 +384,7 @@ class KeyboardKey extends StatelessWidget {
               value,
               style: Theme.of(context)
                   .textTheme
-                  .bodyText1!
+                  .bodyLarge!
                   .copyWith(fontSize: 30, fontWeight: FontWeight.normal),
             ),
           ),

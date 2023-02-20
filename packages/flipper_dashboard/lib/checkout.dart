@@ -5,8 +5,8 @@ import 'body.dart';
 import 'keypad_view.dart';
 import 'product_view.dart';
 
-class CheckOut extends StatelessWidget {
-  const CheckOut(
+class CheckOut extends StatefulWidget {
+  CheckOut(
       {Key? key,
       required this.model,
       required this.controller,
@@ -15,11 +15,19 @@ class CheckOut extends StatelessWidget {
   final BusinessHomeViewModel model;
   final TextEditingController controller;
   final TabController tabController;
+
+  @override
+  State<CheckOut> createState() => _CheckOutState();
+}
+
+class _CheckOutState extends State<CheckOut> {
+  final FocusNode keyPadFocusNode = FocusNode();
+
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // give the tab bar a height [can change hheight to preferred height]
+        // give the tab bar a height [can change height to preferred height]
         Padding(
           padding: const EdgeInsets.fromLTRB(19.0, 15.5, 19.0, 0),
           child: Container(
@@ -34,7 +42,10 @@ class CheckOut extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(2.0, 2.5, 2.5, 2.5),
               child: LayoutBuilder(builder: (context, constraints) {
                 return TabBar(
-                  controller: tabController,
+                  onTap: (v) {
+                    FocusScope.of(context).unfocus();
+                  },
+                  controller: widget.tabController,
                   // give the indicator a decoration (color and border radius)
                   indicator: BoxDecoration(
                     borderRadius: BorderRadius.circular(
@@ -50,7 +61,7 @@ class CheckOut extends StatelessWidget {
                     // first tab [you can add an icon using the icon property]
                     SizedBox(
                       height: 41,
-                      width: 120,
+                      width: double.infinity,
                       child: Tab(
                         text: 'Keypad',
                       ),
@@ -59,14 +70,14 @@ class CheckOut extends StatelessWidget {
                     // second tab [you can add an icon using the icon property]
                     SizedBox(
                       height: 41,
-                      width: 120,
+                      width: double.infinity,
                       child: Tab(
                         text: 'Library',
                       ),
                     ),
                     SizedBox(
                       height: 41,
-                      width: 120,
+                      width: double.infinity,
                       child: Tab(
                         text: 'Favourites',
                       ),
@@ -80,17 +91,17 @@ class CheckOut extends StatelessWidget {
         // tab bar view here
         Expanded(
           child: TabBarView(
-            controller: tabController,
+            controller: widget.tabController,
             children: [
               Column(
                 children: [
-                  KeyPadView(model: model),
+                  KeyPadView(model: widget.model),
                   Padding(
                     padding: EdgeInsets.fromLTRB(0.0, 24.5, 0, 0),
                     child: PaymentTicketManager(
                         context: context,
-                        model: model,
-                        controller: controller,
+                        model: widget.model,
+                        controller: widget.controller,
                         nodeDisabled: true),
                   )
                 ],
