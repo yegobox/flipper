@@ -16,6 +16,7 @@ abstract class IsarApiInterface {
   Stream<Order?> completedOrdersStream(
       {required String status, required int branchId});
   Stream<List<Product>> productStreams({required int branchId});
+  Stream<List<Discount>> discountStreams({required int branchId});
   Future<Stock?> stockByVariantId({required int variantId});
   Future<List<PColor>> colors({required int branchId});
   Future<List<Category>> categories({required int branchId});

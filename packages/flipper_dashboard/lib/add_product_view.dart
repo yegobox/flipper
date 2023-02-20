@@ -166,7 +166,6 @@ class _AddProductViewState extends State<AddProductView> {
           child: Scaffold(
             appBar: CustomAppBar(
               onPop: () async {
-                await model.loadProducts();
                 GoRouter.of(context).pop();
               },
               title: 'Create Product',
@@ -182,7 +181,6 @@ class _AddProductViewState extends State<AddProductView> {
                 await model.updateRegularVariant(
                     supplyPrice: double.parse(supplyPriceController.text),
                     productId: model.product.id);
-                await model.loadProducts();
 
                 GoRouter.of(context).pop();
               },

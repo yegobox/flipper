@@ -8,14 +8,11 @@ class DiscountViewModel extends ProductViewModel {
     int branchId = ProxyService.box.read(key: 'branchId');
     await ProxyService.isarApi
         .saveDiscount(branchId: branchId, name: name, amount: amount);
-
-    loadProducts();
   }
 
   update({required String name, required double amount, required int id}) {
     ProxyService.isarApi.update(
       data: {'name': name, "amount": amount, "id": id},
     );
-    loadProducts();
   }
 }

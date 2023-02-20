@@ -46,7 +46,7 @@ class ProductRow extends StatelessWidget {
         onLongPress: () {
           GoRouter.of(context).push(Routes.sell, extra: product);
         },
-        child: Column(children: <Widget>[
+        child: Wrap(children: <Widget>[
           ListTile(
             contentPadding: const EdgeInsets.fromLTRB(0, 0, 15, 0),
             leading: SizedBox(

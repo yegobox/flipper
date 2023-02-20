@@ -22,9 +22,6 @@ class ProductService with ListenableServiceMixin {
   final _product = ReactiveValue<dynamic>(null);
   Product? get product => _product.value;
 
-  final _discounts = ReactiveValue<List<Discount>>([]);
-  List<Discount> get discounts => _discounts.value;
-
   final _products = ReactiveValue<List<Product>>([]);
 
   List<Product> get products => _products.value
@@ -57,14 +54,14 @@ class ProductService with ListenableServiceMixin {
     notifyListeners();
   }
 
-  /// load discounts  in a list merge them with products make discount be at the top.
-  Stream<List<Product>> loadProducts({required int branchId}) async* {
-    final List<Discount> _discountss =
-        await ProxyService.isarApi.getDiscounts(branchId: branchId);
-    final Stream<List<Product>> _productss =
-        ProxyService.isarApi.productStreams(branchId: branchId);
-    _discounts.value = _discountss;
-    yield* _productss;
+  /// discount streams
+  Stream<List<Discount>> discountStream({required int branchId}) async* {
+    yield* ProxyService.isarApi.discountStreams(branchId: branchId);
+  }
+
+  /// products streams
+  Stream<List<Product>> productStream({required int branchId}) async* {
+    yield* ProxyService.isarApi.productStreams(branchId: branchId);
   }
 
   Future<void> filtterProduct(
@@ -78,7 +75,6 @@ class ProductService with ListenableServiceMixin {
                 .allMatches(searchKey)
                 .any((element) => true))
         .toList();
-    if (searchKey.isEmpty) loadProducts(branchId: branchId);
   }
 
   Future<Product?> getProductByBarCode({required String? code}) async {
@@ -90,7 +86,6 @@ class ProductService with ListenableServiceMixin {
   List<Stock?> get stocks => _stocks;
   Future<List<Stock?>> loadStockByProductId({required int productId}) async {
     _stocks = await ProxyService.isarApi.stocks(productId: productId);
-    // log.i("stock::${_stocks[0]!.retailPrice}");
     return stocks;
   }
 

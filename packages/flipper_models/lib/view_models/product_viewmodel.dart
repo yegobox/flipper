@@ -41,12 +41,6 @@ class ProductViewModel extends AddTenantViewModel {
     yield productService.barCode;
   }
 
-  Future<void> loadProducts() async {
-    int branchId = ProxyService.box.read(key: 'branchId');
-    productService.loadProducts(branchId: branchId);
-    notifyListeners();
-  }
-
   /// Create a temporal product to use during this session of product creation
   /// the same product will be use if it is still temp product
   ///
@@ -377,7 +371,6 @@ class ProductViewModel extends AddTenantViewModel {
     }
     //then delete the product
     ProxyService.isarApi.delete(id: productId, endPoint: 'product');
-    loadProducts(); //refresh list of products
   }
 
   void updateExpiryDate(DateTime date) async {
@@ -399,7 +392,6 @@ class ProductViewModel extends AddTenantViewModel {
 
   void deleteDiscount({id}) {
     ProxyService.isarApi.delete(id: id, endPoint: 'discount');
-    loadProducts();
   }
 
   /// loop through order's items and update item with discount in consideration

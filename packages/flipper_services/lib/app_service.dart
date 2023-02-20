@@ -255,7 +255,7 @@ class AppService with ListenableServiceMixin {
   String get statusText => _statusText;
 
   void updateStatusColor() async {
-    Timer.periodic(Duration(seconds: 1), (Timer t) async {
+    Timer.periodic(Duration(seconds: 5), (Timer t) async {
       if (!await ProxyService.appService.checkInternetConnectivity()) {
         _statusColor = m.Colors.red;
         _statusText = "Connectivity issues";

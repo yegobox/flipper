@@ -1200,17 +1200,45 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Stream<List<Product>> productStreams({required int branchId}) {
-    return isar.products
+    final productsStream = isar.products
         .where()
         .draftBranchIdEqualTo(false, branchId)
+        .watch(fireImmediately: true);
+
+    final excludedProductsStream = isar.products
+        .where()
+        .nameEqualTo('temp')
+        .or()
+        .nameEqualTo('Custom Amount')
+        .watch(fireImmediately: true);
+
+    return StreamZip([productsStream, excludedProductsStream]).map((event) {
+      final List<Product> products = event[0];
+      final List<Product> excludedProducts = event[1];
+
+      // Filter out the excluded products
+      final List<Product> filteredProducts =
+          products.where((p) => !excludedProducts.contains(p)).toList();
+
+      return filteredProducts;
+    });
+  }
+
+  @override
+  Stream<List<Discount>> discountStreams({required int branchId}) {
+    return isar.discounts
+        .where()
+        .branchIdEqualTo(branchId)
         .build()
         .watch(fireImmediately: true);
   }
 
   @override
-  Future<List<Product>> products({required int branchId}) {
-    // TODO: implement products
-    throw UnimplementedError();
+  Future<List<Product>> products({required int branchId}) async {
+    final products =
+        await isar.products.where().branchIdEqualTo(branchId).findAll();
+
+    return products;
   }
 
   @override
