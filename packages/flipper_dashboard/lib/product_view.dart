@@ -30,6 +30,27 @@ class ProductView extends StatefulWidget {
 class _ProductViewState extends State<ProductView> {
   final log = getLogger('_onCreate');
   final searchController = TextEditingController();
+  bool _isFocused = false;
+  final FocusNode _searchFocusNode = FocusNode();
+  @override
+  void initState() {
+    super.initState();
+    _searchFocusNode.addListener(_onSearchFocusChanged);
+  }
+
+  @override
+  void dispose() {
+    _searchFocusNode.removeListener(_onSearchFocusChanged);
+    _searchFocusNode.dispose();
+    super.dispose();
+  }
+
+  void _onSearchFocusChanged() {
+    setState(() {
+      _isFocused = _searchFocusNode.hasFocus;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<ProductViewModel>.reactive(
@@ -71,38 +92,53 @@ class _ProductViewState extends State<ProductView> {
                           ),
                           child: ListTile(
                             dense: true,
-                            trailing: IconButton(
-                                onPressed: () {
-                                  showDialog(
-                                    context: context,
-                                    builder: (context) => const OptionModal(
-                                      child: AddProductButtons(),
+                            trailing: _isFocused
+                                ? IconButton(
+                                    onPressed: () {
+                                      // Perform some action when the user taps the focused icon
+                                    },
+                                    // ignore: todo
+                                    /// TODO: okay for mvp but need to use cancel button
+                                    /// decided to wait for flutter team to support animated custom svg
+                                    /// or support more animated icons
+                                    /// See: https://github.com/flutter/flutter/issues/1831 for details regarding
+                                    /// generic vector graphics support in Flutter.
+
+                                    /// Shows an animated icon at a given animation [progress].
+                                    ///
+                                    /// The available icons are specified in [AnimatedIcons].
+                                    ///
+                                    /// {@youtube 560 315 https://www.youtube.com/watch?v=pJcbh8pbvJs}
+                                    icon: AnimatedIcon(
+                                      icon: AnimatedIcons.close_menu,
+                                      progress: _searchFocusNode.hasFocus
+                                          ? AlwaysStoppedAnimation(0)
+                                          : AlwaysStoppedAnimation(1),
                                     ),
-                                  );
-                                },
-                                icon: SvgPicture.asset("assets/plus.svg",
-                                    semanticsLabel: 'plus')),
+                                  )
+                                : IconButton(
+                                    onPressed: () {
+                                      showDialog(
+                                        context: context,
+                                        builder: (context) => const OptionModal(
+                                          child: AddProductButtons(),
+                                        ),
+                                      );
+                                    },
+                                    icon: SvgPicture.asset("assets/plus.svg",
+                                        semanticsLabel: 'plus'),
+                                  ),
                             leading: IconButton(
-                                onPressed: null,
-                                icon: SvgPicture.asset("assets/search.svg",
-                                    semanticsLabel: 'search')),
+                              onPressed: null,
+                              icon: SvgPicture.asset("assets/search.svg",
+                                  semanticsLabel: 'search'),
+                            ),
                             title: IconButton(
                               onPressed: null,
                               icon: TextFormField(
                                 controller: searchController,
-                                onChanged: (value) {
-                                  setState(() {
-                                    // Call setState to trigger the stream to re-filter the products
-                                    searchController.value = TextEditingValue(
-                                      text: value,
-                                      selection: TextSelection.fromPosition(
-                                        TextPosition(
-                                            offset: searchController
-                                                .selection.extentOffset),
-                                      ),
-                                    );
-                                  });
-                                },
+                                focusNode: _searchFocusNode,
+                                onChanged: (value) {},
                                 decoration: InputDecoration.collapsed(
                                     hintText: 'Search items here'),
                                 keyboardType: TextInputType.text,
@@ -111,25 +147,6 @@ class _ProductViewState extends State<ProductView> {
                           ),
                         ),
                       ),
-                      // ignore: todo
-                      //TODO: re-add scann selling
-                      // if (ProxyService.remoteConfig.scannSelling() &&
-                      //     !isWindows &&
-                      //     !isMacOs)
-                      //   GestureDetector(
-                      //     onTap: () {
-                      //       // pass fake intent the intent will come from what we scann!
-                      //       GoRouter.of(context).push(Routes.scann + "/se");
-                      //     },
-                      //     child: const CircleAvatar(
-                      //       backgroundColor: Colors.transparent,
-                      //       child: Icon(
-                      //         Icons.center_focus_weak,
-                      //         color: primary,
-                      //       ),
-                      //     ),
-                      //   )
-
                       ...products.map(
                         (product) {
                           return FutureBuilder<List<Stock?>>(
