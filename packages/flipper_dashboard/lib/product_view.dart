@@ -29,7 +29,7 @@ class ProductView extends StatefulWidget {
 
 class _ProductViewState extends State<ProductView> {
   final log = getLogger('_onCreate');
-
+  final searchController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<ProductViewModel>.reactive(
@@ -52,7 +52,9 @@ class _ProductViewState extends State<ProductView> {
               StreamBuilder<List<Product>>(
                 initialData: model.productService.products,
                 stream: model.productService
-                    .productStream(branchId: ProxyService.box.getBranchId()!),
+                    .productStream(branchId: ProxyService.box.getBranchId()!)
+                    .transform(model.productService
+                        .searchTransformer(searchController.text)),
                 builder: (context, snapshot) {
                   final products = snapshot.data ?? [];
                   return Wrap(
@@ -85,13 +87,27 @@ class _ProductViewState extends State<ProductView> {
                                 icon: SvgPicture.asset("assets/search.svg",
                                     semanticsLabel: 'search')),
                             title: IconButton(
-                                onPressed: null,
-                                icon: TextFormField(
-                                  onChanged: null,
-                                  decoration: InputDecoration.collapsed(
-                                      hintText: 'Search items here'),
-                                  keyboardType: TextInputType.number,
-                                )),
+                              onPressed: null,
+                              icon: TextFormField(
+                                controller: searchController,
+                                onChanged: (value) {
+                                  setState(() {
+                                    // Call setState to trigger the stream to re-filter the products
+                                    searchController.value = TextEditingValue(
+                                      text: value,
+                                      selection: TextSelection.fromPosition(
+                                        TextPosition(
+                                            offset: searchController
+                                                .selection.extentOffset),
+                                      ),
+                                    );
+                                  });
+                                },
+                                decoration: InputDecoration.collapsed(
+                                    hintText: 'Search items here'),
+                                keyboardType: TextInputType.text,
+                              ),
+                            ),
                           ),
                         ),
                       ),

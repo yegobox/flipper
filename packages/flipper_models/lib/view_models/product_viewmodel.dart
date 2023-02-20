@@ -381,11 +381,6 @@ class ProductViewModel extends AddTenantViewModel {
     rebuildUi();
   }
 
-  void filterProduct({required String searchKey}) {
-    int branchId = ProxyService.box.read(key: 'branchId');
-    productService.filtterProduct(searchKey: searchKey, branchId: branchId);
-  }
-
   Stream<String> getProductName() async* {
     yield productService.product != null ? productService.product!.name : '';
   }

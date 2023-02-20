@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
@@ -64,17 +66,19 @@ class ProductService with ListenableServiceMixin {
     yield* ProxyService.isarApi.productStreams(branchId: branchId);
   }
 
-  Future<void> filtterProduct(
-      {required String searchKey, required int branchId}) async {
-    _products.value = _products.value
-        .where((element) =>
-            element.name.toLowerCase().contains(searchKey) ||
-            element.name.toLowerCase() == searchKey ||
-            element.name
-                .toLowerCase()
-                .allMatches(searchKey)
-                .any((element) => true))
-        .toList();
+  StreamTransformer<List<Product>, List<Product>> searchTransformer(
+      String query) {
+    return StreamTransformer<List<Product>, List<Product>>.fromHandlers(
+      handleData: (products, sink) {
+        if (query.isEmpty) {
+          sink.add(products); // Pass through all products if query is empty
+        } else {
+          final filteredProducts = products.where((product) =>
+              product.name.toLowerCase().contains(query.toLowerCase()));
+          sink.add(filteredProducts.toList()); // Add filtered products to sink
+        }
+      },
+    );
   }
 
   Future<Product?> getProductByBarCode({required String? code}) async {
