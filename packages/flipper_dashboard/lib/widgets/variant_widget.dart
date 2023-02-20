@@ -49,7 +49,7 @@ List<Widget> variantsWidget({required BusinessHomeViewModel model}) {
                       }),
                   Row(children: [
                     Text(
-                      'Frw${variant.retailPrice.toInt()}',
+                      'Frw${variant.retailPrice.toStringAsFixed(2)}',
                       style: GoogleFonts.poppins(
                         textStyle: TextStyle(
                             fontWeight: FontWeight.bold,
