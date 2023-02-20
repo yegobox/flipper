@@ -76,7 +76,8 @@ class CronService {
             return;
           }
 
-          if ((completedOrder.reported!) == false) {
+          if ((completedOrder.reported == null ||
+              (completedOrder.reported!) == false)) {
             List<OrderItem> updatedItems = await ProxyService.isarApi
                 .orderItems(orderId: completedOrder.id);
             String namesString =

@@ -18,6 +18,7 @@ class RetailPrice extends StatelessWidget {
           keyboardType: TextInputType.number,
           onChanged: (value) => onModelUpdate(value),
           onFieldSubmitted: (value) => onModelUpdate(value),
+          onEditingComplete: () => onModelUpdate(controller.text),
           decoration: InputDecoration(
               enabled: true,
               border: const OutlineInputBorder(),
