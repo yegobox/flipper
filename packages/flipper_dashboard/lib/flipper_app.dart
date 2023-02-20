@@ -189,12 +189,13 @@ class _FlipperAppState extends State<FlipperApp>
                         tabselected = index;
                       });
                     },
+                    // fluent icons: https://github.com/microsoft/fluentui-system-icons/blob/main/icons_regular.md
                     destinations: [
                       NavigationDestination(
-                        icon: Icon(FluentIcons.app_folder_48_regular),
+                        icon: Icon(FluentIcons.dialpad_24_regular),
                         label: 'Checkout',
                         selectedIcon: Icon(
-                          FluentIcons.app_folder_48_regular,
+                          FluentIcons.dialpad_24_regular,
                           color: const Color(0xff006AFE),
                         ),
                       ),
