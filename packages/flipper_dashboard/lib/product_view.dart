@@ -69,6 +69,7 @@ class _ProductViewState extends State<ProductView> {
         return Padding(
           padding: const EdgeInsets.only(top: 18.0),
           child: ListView(
+            padding: EdgeInsets.only(top: 2),
             children: [
               StreamBuilder<List<Product>>(
                 initialData: model.productService.products,
@@ -82,67 +83,73 @@ class _ProductViewState extends State<ProductView> {
                     spacing: 10.0, // set spacing between items
                     runSpacing: 10.0, // set spacing between lines
                     children: [
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.only(left: 12),
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: Colors.black.withOpacity(0.25),
-                            ),
+                      Container(
+                        padding: const EdgeInsets.only(left: 12),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Colors.black.withOpacity(0.25),
                           ),
-                          child: ListTile(
-                            dense: true,
-                            trailing: _isFocused
-                                ? IconButton(
-                                    onPressed: () {
-                                      // Perform some action when the user taps the focused icon
-                                    },
-                                    // ignore: todo
-                                    /// TODO: okay for mvp but need to use cancel button
-                                    /// decided to wait for flutter team to support animated custom svg
-                                    /// or support more animated icons
-                                    /// See: https://github.com/flutter/flutter/issues/1831 for details regarding
-                                    /// generic vector graphics support in Flutter.
+                        ),
+                        child: ListTile(
+                          dense: true,
+                          trailing: _isFocused
+                              ? IconButton(
+                                  onPressed: () {
+                                    // Perform some action when the user taps the focused icon
+                                  },
+                                  // ignore: todo
+                                  /// TODO: okay for mvp but need to use cancel button
+                                  /// decided to wait for flutter team to support animated custom svg
+                                  /// or support more animated icons
+                                  /// See: https://github.com/flutter/flutter/issues/1831 for details regarding
+                                  /// generic vector graphics support in Flutter.
 
-                                    /// Shows an animated icon at a given animation [progress].
-                                    ///
-                                    /// The available icons are specified in [AnimatedIcons].
-                                    ///
-                                    /// {@youtube 560 315 https://www.youtube.com/watch?v=pJcbh8pbvJs}
-                                    icon: AnimatedIcon(
-                                      icon: AnimatedIcons.close_menu,
-                                      progress: _searchFocusNode.hasFocus
-                                          ? AlwaysStoppedAnimation(0)
-                                          : AlwaysStoppedAnimation(1),
-                                    ),
-                                  )
-                                : IconButton(
-                                    onPressed: () {
-                                      showDialog(
-                                        context: context,
-                                        builder: (context) => const OptionModal(
-                                          child: AddProductButtons(),
-                                        ),
-                                      );
-                                    },
-                                    icon: SvgPicture.asset("assets/plus.svg",
-                                        semanticsLabel: 'plus'),
+                                  /// Shows an animated icon at a given animation [progress].
+                                  ///
+                                  /// The available icons are specified in [AnimatedIcons].
+                                  ///
+                                  /// {@youtube 560 315 https://www.youtube.com/watch?v=pJcbh8pbvJs}
+                                  icon: AnimatedIcon(
+                                    icon: AnimatedIcons.close_menu,
+                                    progress: _searchFocusNode.hasFocus
+                                        ? AlwaysStoppedAnimation(0)
+                                        : AlwaysStoppedAnimation(1),
                                   ),
-                            leading: IconButton(
-                              onPressed: null,
-                              icon: SvgPicture.asset("assets/search.svg",
-                                  semanticsLabel: 'search'),
-                            ),
-                            title: IconButton(
-                              onPressed: null,
-                              icon: TextFormField(
-                                controller: searchController,
-                                focusNode: _searchFocusNode,
-                                onChanged: (value) {},
-                                decoration: InputDecoration.collapsed(
-                                    hintText: 'Search items here'),
-                                keyboardType: TextInputType.text,
-                              ),
+                                )
+                              : IconButton(
+                                  onPressed: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) => const OptionModal(
+                                        child: AddProductButtons(),
+                                      ),
+                                    );
+                                  },
+                                  icon: SvgPicture.asset("assets/plus.svg",
+                                      semanticsLabel: 'plus'),
+                                ),
+                          leading: IconButton(
+                            onPressed: null,
+                            icon: SvgPicture.asset("assets/search.svg",
+                                semanticsLabel: 'search'),
+                          ),
+                          title: IconButton(
+                            onPressed: () {
+                              setState(() {
+                                _isFocused = true;
+                              });
+                            },
+                            icon: TextFormField(
+                              controller: searchController,
+                              focusNode: _searchFocusNode,
+                              onChanged: (value) {
+                                setState(() {
+                                  _isFocused = true;
+                                });
+                              },
+                              decoration: InputDecoration.collapsed(
+                                  hintText: 'Search items here'),
+                              keyboardType: TextInputType.text,
                             ),
                           ),
                         ),
