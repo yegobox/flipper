@@ -1447,6 +1447,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.8.0"
+  keyboard_visibility_pro:
+    dependency: "direct main"
+    description:
+      name: keyboard_visibility_pro
+      sha256: "337f7bf7d77aa41291d9cf922f388c61af545507afd2249f74f478419251f7b4"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.1"
   lecle_downloads_path_provider:
     dependency: "direct main"
     description:
