@@ -387,6 +387,9 @@ class IsarAPI implements IsarApiInterface {
     order.reported = false;
     order.customerChangeDue = cashReceived - order.subTotal;
     order.cashReceived = cashReceived;
+    isar.writeTxn(() async {
+      await isar.orders.put(order);
+    });
     List<OrderItem> items = await orderItems(orderId: order.id);
 
     for (OrderItem item in items) {
@@ -394,10 +397,6 @@ class IsarAPI implements IsarApiInterface {
       stock?.currentStock = stock.currentStock - item.qty;
       update(data: stock);
     }
-    await isar.writeTxn(() async {
-      int id = await isar.orders.put(order);
-      return isar.orders.get(id);
-    });
     // remove currentOrderId from local storage to leave a room
     // for listening to new order that will be created
     ProxyService.box.remove(key: 'currentOrderId');
