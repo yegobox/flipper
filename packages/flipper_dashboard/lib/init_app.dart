@@ -1,4 +1,5 @@
 import 'package:flipper_services/proxy.dart';
+import 'package:flutter/material.dart';
 
 class InitApp {
   static void init() {
@@ -31,6 +32,8 @@ class InitApp {
     ProxyService.cron.schedule();
 
     ProxyService.appService.updateStatusColor();
+
+    ProxyService.appService.appBarColor(Colors.black);
 
     /// to avoid receiving the message of the contact you don't have in your book
     /// we need to load contacts when the app starts.

@@ -10,6 +10,7 @@ import 'package:flipper_routing/routes.logger.dart';
 import 'proxy.dart';
 import 'package:flutter_statusbarcolor_ns/flutter_statusbarcolor_ns.dart';
 import 'package:flipper_nfc/flipper_nfc.dart';
+import 'package:flutter/services.dart';
 
 class AppService with ListenableServiceMixin {
   // required constants
@@ -246,7 +247,7 @@ class AppService with ListenableServiceMixin {
     }
   }
 
-  m.Color _statusColor = m.Colors.red;
+  m.Color _statusColor = m.Color(0xFF8B0000);
 
   m.Color get statusColor => _statusColor;
 
@@ -254,29 +255,45 @@ class AppService with ListenableServiceMixin {
 
   String get statusText => _statusText;
 
+  Future<void> appBarColor(m.Color color) async {
+    await FlutterStatusbarcolor.setStatusBarColor(color);
+    _statusColor = color;
+    if (useWhiteForeground(color)) {
+      SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark.copyWith(
+        statusBarBrightness: Brightness.dark,
+      ));
+    } else {
+      SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light.copyWith(
+        statusBarBrightness: Brightness.light,
+      ));
+    }
+  }
+
   void updateStatusColor() async {
+    _statusText = "";
+    appBarColor(m.Colors.black);
+    bool previousInternetStatus =
+        true; // Assume internet connectivity is available initially
+
     Timer.periodic(Duration(seconds: 5), (Timer t) async {
-      if (!await ProxyService.appService.checkInternetConnectivity()) {
+      bool currentInternetStatus =
+          await ProxyService.appService.checkInternetConnectivity();
+      if (!currentInternetStatus) {
         _statusColor = m.Colors.red;
         _statusText = "Connectivity issues";
-        await FlutterStatusbarcolor.setStatusBarColor(m.Color(0xFF8B0000));
-        if (useWhiteForeground(m.Colors.green[400]!)) {
-          FlutterStatusbarcolor.setStatusBarWhiteForeground(true);
-        } else {
-          FlutterStatusbarcolor.setStatusBarWhiteForeground(false);
+        if (previousInternetStatus) {
+          appBarColor(m.Color(0xFF8B0000));
         }
+        previousInternetStatus = false;
+        notifyListeners();
       } else {
         _statusText = "";
-        _statusColor = m.Colors.transparent;
-        await FlutterStatusbarcolor.setStatusBarColor(m.Colors.transparent);
-        // await FlutterStatusbarcolor.setStatusBarColor(m.Color(0xFF8B0000));
-        if (useWhiteForeground(m.Colors.green[400]!)) {
-          FlutterStatusbarcolor.setStatusBarWhiteForeground(true);
-        } else {
-          FlutterStatusbarcolor.setStatusBarWhiteForeground(false);
+        if (!previousInternetStatus) {
+          appBarColor(m.Colors.black);
         }
+        previousInternetStatus = true;
+        notifyListeners();
       }
-      notifyListeners();
     });
   }
 
