@@ -60,30 +60,32 @@ class BillingService {
     /// monitor the subscription of the user
     /// the logic to check if it is a time to take a payment
     /// use points when the subscription is expired
-    Subscription? sub =
-        await ProxyService.isarApi.getSubscription(userId: userId);
-    if (sub != null) {
-      String date = sub.nextBillingDate;
-      DateTime nextBillingDate = DateTime.parse(date);
-      DateTime today = DateTime.now();
+    // ignore: todo
+    // TODO: getSubscription api seem to return 404
+    // Subscription? sub =
+    //     await ProxyService.isarApi.getSubscription(userId: userId);
+    // if (sub != null) {
+    //   String date = sub.nextBillingDate;
+    //   DateTime nextBillingDate = DateTime.parse(date);
+    //   DateTime today = DateTime.now();
 
-      if (nextBillingDate.isBefore(today)) {
-        // if the user still have some point consume them and update the subscription
-        IPoint? points = await ProxyService.isarApi.getPoints(userId: userId);
-        if (points?.value != null && points!.value > 0) {
-          ProxyService.isarApi
-              .consumePoints(userId: userId, points: points.value);
-          ProxyService.isarApi.addUpdateSubscription(
-            userId: userId,
-            interval: sub.interval,
-            recurringAmount: sub.recurring,
-            descriptor: sub.descriptor,
-            features: [],
-          );
-        } else {
-          //
-        }
-      }
-    }
+    //   if (nextBillingDate.isBefore(today)) {
+    //     // if the user still have some point consume them and update the subscription
+    //     IPoint? points = await ProxyService.isarApi.getPoints(userId: userId);
+    //     if (points?.value != null && points!.value > 0) {
+    //       ProxyService.isarApi
+    //           .consumePoints(userId: userId, points: points.value);
+    //       ProxyService.isarApi.addUpdateSubscription(
+    //         userId: userId,
+    //         interval: sub.interval,
+    //         recurringAmount: sub.recurring,
+    //         descriptor: sub.descriptor,
+    //         features: [],
+    //       );
+    //     } else {
+    //       //
+    //     }
+    //   }
+    // }
   }
 }
