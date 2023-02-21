@@ -3,7 +3,7 @@ library pos;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:universal_platform/universal_platform.dart';
-
+import 'package:flutter/services.dart';
 import 'package:flipper_models/isar_models.dart';
 
 final isWindows = UniversalPlatform.isWindows;
@@ -16,7 +16,7 @@ class AlwaysDisabledFocusNode extends FocusNode {
 
 // ignore: must_be_immutable
 class KeyPadView extends StatelessWidget {
-  const KeyPadView({Key? key, required this.model}) : super(key: key);
+  KeyPadView({Key? key, required this.model}) : super(key: key);
   final BusinessHomeViewModel model;
 
   @override
@@ -46,6 +46,7 @@ class KeyPadView extends StatelessWidget {
                 Expanded(
                   child: InkWell(
                     onTap: () {
+                      HapticFeedback.lightImpact();
                       model.keyboardKeyPressed('1');
                     },
                     child: Container(
@@ -71,6 +72,7 @@ class KeyPadView extends StatelessWidget {
                 Expanded(
                   child: InkWell(
                     onTap: () {
+                      HapticFeedback.lightImpact();
                       model.keyboardKeyPressed('2');
                     },
                     child: Container(
@@ -97,6 +99,7 @@ class KeyPadView extends StatelessWidget {
                 Expanded(
                   child: InkWell(
                     onTap: () {
+                      HapticFeedback.lightImpact();
                       model.keyboardKeyPressed('3');
                     },
                     child: Container(
@@ -129,6 +132,7 @@ class KeyPadView extends StatelessWidget {
                 Expanded(
                   child: InkWell(
                     onTap: () {
+                      HapticFeedback.lightImpact();
                       model.keyboardKeyPressed('4');
                     },
                     child: Container(
@@ -154,6 +158,7 @@ class KeyPadView extends StatelessWidget {
                 Expanded(
                   child: InkWell(
                     onTap: () {
+                      HapticFeedback.lightImpact();
                       model.keyboardKeyPressed('5');
                     },
                     child: Container(
@@ -179,6 +184,7 @@ class KeyPadView extends StatelessWidget {
                 Expanded(
                   child: InkWell(
                     onTap: () {
+                      HapticFeedback.lightImpact();
                       model.keyboardKeyPressed('6');
                     },
                     child: Container(
@@ -211,6 +217,7 @@ class KeyPadView extends StatelessWidget {
                 Expanded(
                   child: InkWell(
                     onTap: () {
+                      HapticFeedback.lightImpact();
                       model.keyboardKeyPressed('7');
                     },
                     child: Container(
@@ -237,6 +244,7 @@ class KeyPadView extends StatelessWidget {
                 Expanded(
                   child: InkWell(
                     onTap: () {
+                      HapticFeedback.lightImpact();
                       model.keyboardKeyPressed('8');
                     },
                     child: Container(
@@ -262,6 +270,7 @@ class KeyPadView extends StatelessWidget {
                 Expanded(
                   child: InkWell(
                     onTap: () {
+                      HapticFeedback.lightImpact();
                       model.keyboardKeyPressed('9');
                     },
                     child: Container(
@@ -294,6 +303,7 @@ class KeyPadView extends StatelessWidget {
                 Expanded(
                   child: InkWell(
                     onTap: () {
+                      HapticFeedback.lightImpact();
                       model.keyboardKeyPressed('C');
                     },
                     child: Container(
@@ -319,6 +329,7 @@ class KeyPadView extends StatelessWidget {
                 Expanded(
                   child: InkWell(
                     onTap: () {
+                      HapticFeedback.lightImpact();
                       model.keyboardKeyPressed('0');
                     },
                     child: Container(
@@ -344,6 +355,7 @@ class KeyPadView extends StatelessWidget {
                 Expanded(
                   child: InkWell(
                     onTap: () {
+                      HapticFeedback.lightImpact();
                       model.keyboardKeyPressed('+');
                     },
                     child: Container(
