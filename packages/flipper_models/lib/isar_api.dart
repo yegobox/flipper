@@ -168,6 +168,7 @@ class IsarAPI implements IsarApiInterface {
         ..orderType = orderType
         ..active = true
         ..draft = true
+        ..reported = false
         ..subTotal = 0
         ..cashReceived = 0
         ..updatedAt = DateTime.now().toIso8601String()

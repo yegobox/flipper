@@ -219,6 +219,7 @@ class AppService with ListenableServiceMixin {
             collection:
                 order.toJson(convertIdToString: true, itemName: namesString),
             collectionName: 'orders');
+        log.i("we are backing up the data");
       } catch (e, stackTrace) {
         order.reported = false;
         order.status = postPonedStatus;
