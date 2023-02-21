@@ -52,7 +52,7 @@ class CronService {
     // this sill make more sence once we implement the sync that is when we will implement such solution
     Set<int> processedOrders = Set();
 
-    Timer.periodic(Duration(minutes: 30), (Timer t) async {
+    Timer.periodic(Duration(minutes: 10), (Timer t) async {
       /// removing checkIn flag will allow the user to check in again
       //String userId = ProxyService.box.getUserId()!;
       //ProxyService.billing.monitorSubscription(userId: int.parse(userId));
