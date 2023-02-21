@@ -199,6 +199,13 @@ class SignUpFormView extends StatelessWidget with $SignUpFormView {
                                             color: Colors.white,
                                           )),
                                       style: ButtonStyle(
+                                        shape: MaterialStateProperty
+                                            .resolveWith<OutlinedBorder>(
+                                          (states) => RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(10.0),
+                                          ),
+                                        ),
                                         backgroundColor:
                                             MaterialStateProperty.all<Color>(
                                                 const Color(0xff006AFE)),

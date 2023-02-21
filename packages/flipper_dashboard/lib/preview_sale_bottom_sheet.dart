@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/charge_button.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/cupertino.dart';
@@ -7,7 +8,6 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:stacked/stacked.dart';
 
 import 'add_customer_button.dart';
-import 'charge_button.dart';
 import 'order_summary_items.dart';
 
 class PreviewSaleBottomSheet extends StatefulWidget {
@@ -51,59 +51,63 @@ class _PreviewSaleBottomSheetState extends State<PreviewSaleBottomSheet> {
             builder: (a, model, c) {
               return SafeArea(
                 bottom: false,
-                child: SizedBox(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      AddCustomerButton(orderId: model.kOrder!.id),
-                      ListView(
-                          reverse: widget.reverse,
-                          shrinkWrap: true,
-                          controller: ModalScrollController.of(context),
-                          physics: const ClampingScrollPhysics(),
-                          children: [
-                            ...buildItems(
-                                context: context,
-                                callback: (item) async {
-                                  model.kOrder!.subTotal =
-                                      model.kOrder!.subTotal -
-                                          (item.price * item.qty);
-                                  await ProxyService.isarApi
-                                      .update(data: model.kOrder);
-                                  model.deleteOrderItem(
-                                      id: item.id, context: context);
-                                  model.currentOrder();
-                                },
-                                items: model.items),
-                            if (widget.model.totalDiscount > 0)
-                              ListTile(
-                                contentPadding: const EdgeInsets.only(
-                                    left: 40.0, right: 40.0),
-                                trailing: Text(
-                                  '- RWF ' +
-                                      display(widget.model.totalDiscount)
-                                          .toString(),
-                                  style: GoogleFonts.poppins(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 15,
-                                      color: Colors.black),
-                                ),
-                                leading: Text(
-                                  'Discounts',
-                                  style: GoogleFonts.poppins(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 15,
-                                      color: Colors.black),
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: ListView(
+                        reverse: widget.reverse,
+                        shrinkWrap: true,
+                        controller: ModalScrollController.of(context),
+                        physics: const ClampingScrollPhysics(),
+                        children: [
+                          AddCustomerButton(orderId: model.kOrder!.id),
+                          ...buildItems(
+                            context: context,
+                            callback: (item) async {
+                              model.kOrder!.subTotal = model.kOrder!.subTotal -
+                                  (item.price * item.qty);
+                              await ProxyService.isarApi
+                                  .update(data: model.kOrder);
+                              model.deleteOrderItem(
+                                  id: item.id, context: context);
+                              model.currentOrder();
+                            },
+                            items: model.items,
+                          ),
+                          if (widget.model.totalDiscount > 0)
+                            ListTile(
+                              contentPadding: const EdgeInsets.only(
+                                  left: 40.0, right: 40.0),
+                              trailing: Text(
+                                '- RWF ' +
+                                    display(widget.model.totalDiscount)
+                                        .toString(),
+                                style: GoogleFonts.poppins(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 15,
+                                  color: Colors.black,
                                 ),
                               ),
-                          ]),
-                      ChargeButton(
+                              leading: Text(
+                                'Discounts',
+                                style: GoogleFonts.poppins(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 15,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      child: ChargeButton(
                         duePay: model.items
                             .fold(0, (a, b) => a! + (b.price * b.qty)),
                         model: model,
-                      )
-                    ],
-                  ),
+                      ),
+                    )
+                  ],
                 ),
               );
             }),
