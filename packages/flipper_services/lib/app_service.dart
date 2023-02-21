@@ -198,16 +198,11 @@ class AppService with ListenableServiceMixin {
   static Stream<String> get cleanedData => cleanedDataController.stream;
 
   void automaticBackup() {
-    Set<int> processedOrders = Set();
-
     ProxyService.isarApi
         .completedOrdersStream(
             branchId: ProxyService.box.getBranchId()!, status: completeStatus)
         .listen((order) async {
       if (order == null) return;
-      if (processedOrders.contains(order.id)) {
-        return;
-      }
 
       List<OrderItem> updatedItems =
           await ProxyService.isarApi.orderItems(orderId: order.id);
@@ -224,8 +219,6 @@ class AppService with ListenableServiceMixin {
             collection:
                 order.toJson(convertIdToString: true, itemName: namesString),
             collectionName: 'orders');
-
-        processedOrders.add(order.id);
       } catch (e, stackTrace) {
         order.reported = false;
         order.status = postPonedStatus;
