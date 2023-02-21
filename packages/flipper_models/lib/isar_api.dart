@@ -1294,6 +1294,8 @@ class IsarAPI implements IsarApiInterface {
     String userId = ProxyService.box.read(key: 'userId');
     var headers = {'Content-Type': 'application/x-www-form-urlencoded'};
     Business? bu = await getBusiness();
+    // ignore: fixme
+    // FIXME: this endpoint is no longer working
     String businessName = bu!.name!;
     var request =
         http.Request('POST', Uri.parse('https://flipper.yegobox.com/pay'));

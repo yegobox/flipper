@@ -89,27 +89,24 @@ class CronService {
             completedOrder.updatedAt = DateTime.now().toIso8601String();
             completedOrder.createdAt = DateTime.now().toIso8601String();
             completedOrder.reported = true;
+            try {
+              await ProxyService.isarApi.update(data: completedOrder);
+              await ProxyService.remoteApi.create(
+                  collection: completedOrder.toJson(
+                      convertIdToString: true, itemName: namesString),
+                  collectionName: 'orders');
 
-            if (await ProxyService.appService.checkInternetConnectivity()) {
+              processedOrders.add(completedOrder.id);
               ProxyService.notification.localNotification(
                   1,
                   "Backup data",
                   "we are backing up your data",
                   tz.TZDateTime.now(tz.local).add(const Duration(seconds: 5)));
-              try {
-                await ProxyService.isarApi.update(data: completedOrder);
-                await ProxyService.remoteApi.create(
-                    collection: completedOrder.toJson(
-                        convertIdToString: true, itemName: namesString),
-                    collectionName: 'orders');
-
-                processedOrders.add(completedOrder.id);
-              } catch (e, stackTrace) {
-                completedOrder.reported = false;
-                completedOrder.status = postPonedStatus;
-                await ProxyService.isarApi.update(data: completedOrder);
-                ProxyService.crash.reportError(e, stackTrace);
-              }
+            } catch (e, stackTrace) {
+              completedOrder.reported = false;
+              completedOrder.status = postPonedStatus;
+              await ProxyService.isarApi.update(data: completedOrder);
+              ProxyService.crash.reportError(e, stackTrace);
             }
           }
         }

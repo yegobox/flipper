@@ -215,24 +215,22 @@ class AppService with ListenableServiceMixin {
       order.reported = true;
       String namesString = updatedItems.map((item) => item.name).join(',');
 
-      if (await checkInternetConnectivity()) {
-        try {
-          /// fix@issue where the createdAt synced on server is older compared to when a transaction was completed.
-          order.updatedAt = DateTime.now().toIso8601String();
-          order.createdAt = DateTime.now().toIso8601String();
-          await ProxyService.isarApi.update(data: order);
-          await ProxyService.remoteApi.create(
-              collection:
-                  order.toJson(convertIdToString: true, itemName: namesString),
-              collectionName: 'orders');
+      try {
+        /// fix@issue where the createdAt synced on server is older compared to when a transaction was completed.
+        order.updatedAt = DateTime.now().toIso8601String();
+        order.createdAt = DateTime.now().toIso8601String();
+        await ProxyService.isarApi.update(data: order);
+        await ProxyService.remoteApi.create(
+            collection:
+                order.toJson(convertIdToString: true, itemName: namesString),
+            collectionName: 'orders');
 
-          processedOrders.add(order.id);
-        } catch (e, stackTrace) {
-          order.reported = false;
-          order.status = postPonedStatus;
-          await ProxyService.isarApi.update(data: order);
-          ProxyService.crash.reportError(e, stackTrace);
-        }
+        processedOrders.add(order.id);
+      } catch (e, stackTrace) {
+        order.reported = false;
+        order.status = postPonedStatus;
+        await ProxyService.isarApi.update(data: order);
+        ProxyService.crash.reportError(e, stackTrace);
       }
     });
   }
