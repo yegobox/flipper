@@ -50,9 +50,8 @@ class CronService {
     // we need to think when the devices change or app is uninstalled
     // for the case like that the token needs to be updated, but not covered now
     // this sill make more sence once we implement the sync that is when we will implement such solution
-    Set<int> processedOrders = Set();
 
-    Timer.periodic(Duration(minutes: 10), (Timer t) async {
+    Timer.periodic(Duration(seconds: 15), (Timer t) async {
       /// removing checkIn flag will allow the user to check in again
       //String userId = ProxyService.box.getUserId()!;
       //ProxyService.billing.monitorSubscription(userId: int.parse(userId));
@@ -72,12 +71,7 @@ class CronService {
         print('how many time cron runs');
 
         for (Order completedOrder in completedOrders) {
-          if (processedOrders.contains(completedOrder.id)) {
-            return;
-          }
-
-          if ((completedOrder.reported == null ||
-              (completedOrder.reported!) == false)) {
+          if (completedOrder.reported! == false) {
             List<OrderItem> updatedItems = await ProxyService.isarApi
                 .orderItems(orderId: completedOrder.id);
             String namesString =
@@ -96,7 +90,6 @@ class CronService {
                       convertIdToString: true, itemName: namesString),
                   collectionName: 'orders');
 
-              processedOrders.add(completedOrder.id);
               ProxyService.notification.localNotification(
                   1,
                   "Backup data",
