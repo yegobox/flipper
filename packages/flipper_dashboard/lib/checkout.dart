@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/favorites.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flutter/material.dart';
 
@@ -25,21 +26,34 @@ class _CheckOutState extends State<CheckOut> {
 
   @override
   Widget build(BuildContext context) {
+    // Get the height of the screen
+    final screenHeight = MediaQuery.of(context).size.height;
+    // Calculate the top padding based on the screen height
+    final topPadding = screenHeight * 0.06;
+    // Get the width of the screen
+    final screenWidth = MediaQuery.of(context).size.width;
+    // Calculate the left padding based on the screen width
+    final leftPadding = screenWidth * 0.005;
+    // Calculate the top and bottom padding based on the left padding
+    final topBottomPadding = leftPadding * 2.8;
+
+    // Get the screen size
+
     return Column(
       children: [
         // give the tab bar a height [can change height to preferred height]
         Padding(
-          padding: const EdgeInsets.fromLTRB(19.0, 15.5, 19.0, 0),
+          padding: EdgeInsets.fromLTRB(leftPadding, topBottomPadding,
+              topBottomPadding, topBottomPadding),
           child: Container(
             height: 46,
             decoration: BoxDecoration(
               color: const Color(0xffE5E5E5),
-              borderRadius: BorderRadius.circular(
-                7.0,
-              ),
+              borderRadius: BorderRadius.circular(4.0),
             ),
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(2.0, 2.5, 2.5, 2.5),
+              padding: EdgeInsets.fromLTRB(leftPadding, topBottomPadding,
+                  topBottomPadding, topBottomPadding),
               child: LayoutBuilder(builder: (context, constraints) {
                 return TabBar(
                   onTap: (v) {
@@ -48,9 +62,7 @@ class _CheckOutState extends State<CheckOut> {
                   controller: widget.tabController,
                   // give the indicator a decoration (color and border radius)
                   indicator: BoxDecoration(
-                    borderRadius: BorderRadius.circular(
-                      7.0,
-                    ),
+                    borderRadius: BorderRadius.circular(4.0),
                     color: const Color(0xffFFFFFF),
                   ),
                   labelColor: Colors.black,
@@ -97,7 +109,7 @@ class _CheckOutState extends State<CheckOut> {
                 children: [
                   KeyPadView(model: widget.model),
                   Padding(
-                    padding: EdgeInsets.fromLTRB(0.0, 24.5, 0, 0),
+                    padding: EdgeInsets.fromLTRB(0.0, topPadding, 0, 0),
                     child: PaymentTicketManager(
                         context: context,
                         model: widget.model,
@@ -107,11 +119,7 @@ class _CheckOutState extends State<CheckOut> {
                 ],
               ),
               const ProductView(),
-              const Center(
-                child: Text(
-                  'Comming soon',
-                ),
-              ),
+              const Favorites()
             ],
           ),
         ),
