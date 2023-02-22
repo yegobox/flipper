@@ -85,13 +85,14 @@ class _FlipperAppState extends State<FlipperApp>
       // AppLifecycleState.
       case AppLifecycleState.resumed:
         nfc();
+        ProxyService.appService.backup();
         break;
       case AppLifecycleState.paused:
         // AppService.cleanedDataController.close();
-
+        ProxyService.appService.backup();
         break;
       default:
-        log("default");
+        ProxyService.appService.backup();
         break;
     }
   }
