@@ -52,17 +52,21 @@ class IsarAPI implements IsarApiInterface {
   final log = getLogger('IsarAPI');
   ExtendedClient client = ExtendedClient(http.Client());
   late String apihub;
+  late String commApi;
   late Isar isar;
   Future<IsarApiInterface> getInstance({Isar? iisar}) async {
     // getEnvVariables();
     if (foundation.kDebugMode && !isAndroid) {
       // apihub = "http://localhost:8082";
       apihub = "https://apihub.yegobox.com";
+      commApi = "https://ers84w6ehl.execute-api.us-east-1.amazonaws.com/api";
     } else if (foundation.kDebugMode && isAndroid) {
       // apihub = "http://10.0.2.2:8082";
       apihub = "https://apihub.yegobox.com";
+      commApi = "https://ers84w6ehl.execute-api.us-east-1.amazonaws.com/api";
     } else {
       apihub = "https://apihub.yegobox.com";
+      commApi = "https://ers84w6ehl.execute-api.us-east-1.amazonaws.com/api";
     }
     if (iisar == null) {
       isar = await Isar.open(
@@ -1887,8 +1891,20 @@ class IsarAPI implements IsarApiInterface {
   // }
 
   @override
-  Future<Token?> whatsAppToken() {
-    return isar.tokens.filter().typeEqualTo('whatsapp').findFirst();
+  Future<String> whatsAppToken() async {
+    final http.Response response = await client.post(
+        Uri.parse("$commApi/api/login"),
+        body: json.encode(
+            {"email": "murag.richard@gmail.com", "password": "love@123"}),
+        headers: {'Content-Type': 'application/json'});
+
+    if (response.statusCode == 200) {
+      Map<String, dynamic> responseBody = json.decode(response.body);
+      String token = responseBody["body"]["token"];
+      return token;
+    } else {
+      throw Exception("Failed to get token");
+    }
   }
 
   @override

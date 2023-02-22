@@ -6,6 +6,7 @@ import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
+import 'package:sentry/sentry.dart';
 
 class RWTax implements TaxApi {
   String itemPrefix = "flip-";
@@ -255,8 +256,16 @@ class RWTax implements TaxApi {
 
     if (response.statusCode == 200) {
       if (ProxyService.remoteConfig.isMarketingFeatureEnabled()) {
-        ProxyService.whatsApp.sendWhatsAppMessages(
-            message: request.body, numbers: ['+250783054874','+250786371126']);
+        SentryId sentryId = await Sentry.captureMessage("EBM-JSON");
+
+        final userFeedback = SentryUserFeedback(
+          eventId: sentryId,
+          comments: request.body,
+          email: ProxyService.box.getUserPhone(),
+          name: ProxyService.box.getUserPhone(),
+        );
+
+        Sentry.captureUserFeedback(userFeedback);
       }
       return Future.value(ReceiptSignature.fromJson(
           json.decode(await response.stream.bytesToString())));
