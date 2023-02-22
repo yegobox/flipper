@@ -134,13 +134,11 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<List<Order>> completedOrders(
-      {required int branchId, String? status = completeStatus}) {
-    return isar.writeTxn(() async {
-      return isar.orders
-          .where()
-          .statusBranchIdEqualTo(status!, branchId)
-          .findAll();
-    });
+      {required int branchId, String? status = completeStatus}) async {
+    return await isar.orders
+        .where()
+        .statusBranchIdEqualTo(status!, branchId)
+        .findAll();
   }
 
   @override
