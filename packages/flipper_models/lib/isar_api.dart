@@ -1666,9 +1666,7 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<List<OrderItem>> orderItems({required int orderId}) async {
-    return isar.writeTxn(() async {
-      return await isar.orderItems.where().orderIdEqualTo(orderId).findAll();
-    });
+    return await isar.orderItems.where().orderIdEqualTo(orderId).findAll();
   }
 
   @override

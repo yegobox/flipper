@@ -49,7 +49,7 @@ class CronService {
     // for the case like that the token needs to be updated, but not covered now
     // this sill make more sence once we implement the sync that is when we will implement such solution
 
-    Timer.periodic(Duration(minutes: 20), (Timer t) async {
+    Timer.periodic(Duration(seconds: 20), (Timer t) async {
       /// removing checkIn flag will allow the user to check in again
       //String userId = ProxyService.box.getUserId()!;
       //ProxyService.billing.monitorSubscription(userId: int.parse(userId));
