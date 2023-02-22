@@ -35,6 +35,9 @@ class InitApp {
 
     ProxyService.appService.appBarColor(Colors.black);
 
+    ProxyService.messaging.init();
+    ProxyService.appService.automaticBackup();
+
     /// to avoid receiving the message of the contact you don't have in your book
     /// we need to load contacts when the app starts.
     // ProxyService.isarApi.contacts().asBroadcastStream();

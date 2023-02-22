@@ -111,12 +111,7 @@ class _FlipperAppState extends State<FlipperApp>
 
           /// if there is current order ongoing show them when the app starts
           model.currentOrder();
-
           ProxyService.dynamicLink.handleDynamicLink(context);
-          // showToast(context, 'URL ${getEnvVariables.url()}');
-          ProxyService.messaging.init();
-          model.app.automaticBackup();
-
           if (isAndroid || isIos) {
             AppService().nfc.startNFC(
                   callback: (nfcData) {
@@ -154,7 +149,15 @@ class _FlipperAppState extends State<FlipperApp>
             },
             child: Scaffold(
               appBar: AppBar(
-                title: Center(child: Text(model.app.statusText)),
+                title: Center(
+                    child: Text(
+                  model.app.statusText,
+                  style: GoogleFonts.poppins(
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.w300,
+                    color: Colors.white,
+                  ),
+                )),
                 backgroundColor: model.app.statusColor,
                 automaticallyImplyLeading: false,
                 toolbarHeight: model.app.statusText.isNotEmpty ? 25 : 0,

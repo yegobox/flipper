@@ -15,6 +15,11 @@ class AddCustomerButton extends StatelessWidget {
         width: double.infinity,
         child: OutlinedButton(
             style: ButtonStyle(
+              shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
+                (states) => RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+              ),
               backgroundColor:
                   MaterialStateProperty.all<Color>(const Color(0xffF2F2F2)),
               overlayColor: MaterialStateProperty.resolveWith<Color?>(

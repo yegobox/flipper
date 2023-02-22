@@ -2,14 +2,12 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/abstractions/printer.dart';
-import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flipper_routing/routes.locator.dart';
 import 'package:flipper_services/setting_service.dart';
-import 'package:timezone/timezone.dart' as tz;
 
 class CronService {
   final settingService = locator<SettingsService>();
@@ -41,7 +39,7 @@ class CronService {
       Map updatedBusiness = business!.toJson();
       updatedBusiness['deviceToken'] = token.toString();
     }
-    Timer.periodic(Duration(minutes: 30), (Timer t) async {
+    Timer.periodic(Duration(hours: 5), (Timer t) async {
       if (ProxyService.box.hasSignedInForAutoBackup()) {
         drive.upload();
       }
@@ -50,9 +48,8 @@ class CronService {
     // we need to think when the devices change or app is uninstalled
     // for the case like that the token needs to be updated, but not covered now
     // this sill make more sence once we implement the sync that is when we will implement such solution
-    Set<int> processedOrders = Set();
 
-    Timer.periodic(Duration(minutes: 30), (Timer t) async {
+    Timer.periodic(Duration(minutes: 20), (Timer t) async {
       /// removing checkIn flag will allow the user to check in again
       //String userId = ProxyService.box.getUserId()!;
       //ProxyService.billing.monitorSubscription(userId: int.parse(userId));
@@ -64,56 +61,7 @@ class CronService {
       for (Counter counter in counters) {
         ProxyService.isarApi.update(data: counter..backed = true);
       }
-      // ignore: todo
-      //TODO:fix this to get this from settings await settingService.isDailyReportEnabled()
-      if (true) {
-        List<Order> completedOrders = await ProxyService.isarApi
-            .completedOrders(branchId: ProxyService.box.getBranchId()!);
-        print('how many time cron runs');
-
-        for (Order completedOrder in completedOrders) {
-          if (processedOrders.contains(completedOrder.id)) {
-            return;
-          }
-
-          if ((completedOrder.reported == null ||
-              (completedOrder.reported!) == false)) {
-            List<OrderItem> updatedItems = await ProxyService.isarApi
-                .orderItems(orderId: completedOrder.id);
-            String namesString =
-                updatedItems.map((item) => item.name).join(',');
-            completedOrder.subTotal =
-                updatedItems.fold(0, (a, b) => a + (b.price * b.qty));
-
-            /// fix@issue where the createdAt synced on server is older compared to when a transaction was completed.
-            completedOrder.updatedAt = DateTime.now().toIso8601String();
-            completedOrder.createdAt = DateTime.now().toIso8601String();
-            completedOrder.reported = true;
-
-            if (await ProxyService.appService.checkInternetConnectivity()) {
-              ProxyService.notification.localNotification(
-                  1,
-                  "Backup data",
-                  "we are backing up your data",
-                  tz.TZDateTime.now(tz.local).add(const Duration(seconds: 5)));
-              try {
-                await ProxyService.isarApi.update(data: completedOrder);
-                await ProxyService.remoteApi.create(
-                    collection: completedOrder.toJson(
-                        convertIdToString: true, itemName: namesString),
-                    collectionName: 'orders');
-
-                processedOrders.add(completedOrder.id);
-              } catch (e, stackTrace) {
-                completedOrder.reported = false;
-                completedOrder.status = postPonedStatus;
-                await ProxyService.isarApi.update(data: completedOrder);
-                ProxyService.crash.reportError(e, stackTrace);
-              }
-            }
-          }
-        }
-      }
+      ProxyService.appService.backup();
     });
   }
 }

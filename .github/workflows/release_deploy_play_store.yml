@@ -44,7 +44,7 @@ jobs:
   fastlane-deploy:
     name: "Google Deploy"
     # needs: [testing]
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
       # Set up Flutter.
       - name: Clone Flutter repository with stable channel
@@ -62,7 +62,7 @@ jobs:
           java-version: "11" #defines the java version
       - name: Update version in YAML
         # run: sed -i 's/1.0.1-dev.3/1.170.28+1111010198/g' pubspec.yaml
-        run: sed -i 's/1.0.1-dev.3/1.170.62+1111010232/g' pubspec.yaml
+        run: sed -i 's/1.0.1-dev.3/1.170.68+1111010238/g' pubspec.yaml
       - name: submodule init
         run: git submodule update --init
       - name: Configure Missing files
