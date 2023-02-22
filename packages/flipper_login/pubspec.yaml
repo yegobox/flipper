@@ -13,7 +13,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  firebase_ui_auth: ^1.1.8
+  firebase_ui_auth: ^1.1.14
   # FIXME: make sure this flutter_form_bloc is updted to remote warning.
   flutter_form_bloc: ^0.29.3
   firebase_auth_desktop: ^1.0.2
@@ -33,7 +33,7 @@ dependencies:
   connectivity_plus: ^2.2.0
   firebase_ui_localizations: ^1.1.0
   firebase_ui_oauth: ^1.1.8
-  firebase_ui_oauth_google: ^1.0.15
+  firebase_ui_oauth_google: ^1.0.21
   flutter_svg: ^1.1.6
   gap: ^2.0.0
   qr_flutter: ^4.0.1
