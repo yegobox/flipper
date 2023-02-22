@@ -37,6 +37,6 @@ class Product {
   // This is a localID not necessary coming from remote
   @Index()
   int? bindedToTenantId;
-
+  bool? isFavorite;
   final variants = IsarLinks<Variant>();
 }

@@ -29,7 +29,6 @@ export 'isar/profile.dart';
 export 'isar/receipt.dart';
 export 'isar/product.dart';
 export 'package:uuid/uuid.dart';
-export 'isar/business.dart';
 export 'isar/drawer.dart';
 export 'exceptions.dart';
 
@@ -43,6 +42,7 @@ export 'package:flipper_models/view_models/startup_viewmodel.dart';
 export 'package:flipper_models/view_models/discount_viewmodel.dart';
 export 'package:flipper_models/view_models/drawer_viewmodel.dart';
 export 'package:flipper_models/view_models/setting_view_model.dart';
+export 'package:flipper_models/view_models/favorite_viewmodel.dart';
 
 export 'package:flipper_services/objectbox_api.dart'
     if (dart.library.html) 'package:flipper_services/objectbox_api_web.dart';
