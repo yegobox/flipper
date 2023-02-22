@@ -180,6 +180,7 @@ void main() async {
         if (noNet &&
             !onNoNet &&
             !onLogin &&
+            !onHome && // because if we are on home we don't need this condition
             routeWithRedirectRules.contains(state.subloc)) {
           return Routes.noNet;
         }

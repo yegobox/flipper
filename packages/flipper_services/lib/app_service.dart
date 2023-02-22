@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_models/isar_models.dart' as isar;
-import 'package:flutter/material.dart' as m;
+import 'package:flutter/material.dart' as material;
 import 'package:flipper_services/constants.dart';
 import 'package:stacked/stacked.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -197,57 +197,86 @@ class AppService with ListenableServiceMixin {
       StreamController<String>.broadcast();
   static Stream<String> get cleanedData => cleanedDataController.stream;
 
-  void automaticBackup() {
-    ProxyService.isarApi
-        .completedOrdersStream(
-            branchId: ProxyService.box.getBranchId()!, status: completeStatus)
-        .listen((order) async {
-      if (order == null) return;
+  // The extracted function for updating and reporting orders
+  Future<void> updateAndReportOrder(Order order, String namesString) async {
+    List<OrderItem> updatedItems =
+        await ProxyService.isarApi.orderItems(orderId: order.id);
+    order.subTotal = updatedItems.fold(0, (a, b) => a + (b.price * b.qty));
+    order.reported = true;
 
-      List<OrderItem> updatedItems =
-          await ProxyService.isarApi.orderItems(orderId: order.id);
-      order.subTotal = updatedItems.fold(0, (a, b) => a + (b.price * b.qty));
-      order.reported = true;
-      String namesString = updatedItems.map((item) => item.name).join(',');
-
-      try {
-        /// fix@issue where the createdAt synced on server is older compared to when a transaction was completed.
-        order.updatedAt = DateTime.now().toIso8601String();
-        order.createdAt = DateTime.now().toIso8601String();
-        await ProxyService.isarApi.update(data: order);
-        await ProxyService.remoteApi.create(
-            collection:
-                order.toJson(convertIdToString: true, itemName: namesString),
-            collectionName: 'orders');
-        log.i("we are backing up the data");
-      } catch (e, stackTrace) {
-        order.reported = false;
-        order.status = postPonedStatus;
-        await ProxyService.isarApi.update(data: order);
-        ProxyService.crash.reportError(e, stackTrace);
-      }
-    });
-  }
-
-  Future<bool> checkInternetConnectivity() async {
-    var connectivityResult = await Connectivity().checkConnectivity();
-    if (connectivityResult == ConnectivityResult.mobile ||
-        connectivityResult == ConnectivityResult.wifi) {
-      return true;
-    } else {
-      return false;
+    try {
+      /// fix@issue where the createdAt synced on server is older compared to when a transaction was completed.
+      order.updatedAt = DateTime.now().toIso8601String();
+      order.createdAt = DateTime.now().toIso8601String();
+      await ProxyService.isarApi.update(data: order);
+      await ProxyService.remoteApi.create(
+          collection:
+              order.toJson(convertIdToString: true, itemName: namesString),
+          collectionName: 'orders');
+    } catch (e, stackTrace) {
+      order.reported = false;
+      await ProxyService.isarApi.update(data: order);
+      ProxyService.crash.reportError(e, stackTrace);
     }
   }
 
-  m.Color _statusColor = m.Color(0xFF8B0000);
+// The updated automaticBackup() method
+  void automaticBackup() {
+    ProxyService.isarApi
+        .completedOrdersStream(
+      branchId: ProxyService.box.getBranchId()!,
+      status: completeStatus,
+    )
+        .listen((order) async {
+      if (order == null) return;
 
-  m.Color get statusColor => _statusColor;
+      String namesString =
+          (await ProxyService.isarApi.orderItems(orderId: order.id))
+              .map((item) => item.name)
+              .join(',');
+
+      await updateAndReportOrder(order, namesString);
+    });
+  }
+
+// The updated backup() method
+  Future<void> backup() async {
+    List<Order> completedOrders = await ProxyService.isarApi.completedOrders(
+      branchId: ProxyService.box.getBranchId()!,
+    );
+
+    for (Order completedOrder in completedOrders) {
+      if (completedOrder.reported! == false) {
+        String namesString = (await ProxyService.isarApi.orderItems(
+          orderId: completedOrder.id,
+        ))
+            .map((item) => item.name)
+            .join(',');
+
+        await updateAndReportOrder(completedOrder, namesString);
+      }
+    }
+  }
+
+  Stream<bool> checkInternetConnectivity() async* {
+    final Connectivity connectivity = Connectivity();
+    yield await connectivity.checkConnectivity() != ConnectivityResult.none;
+
+    await for (ConnectivityResult result
+        in connectivity.onConnectivityChanged) {
+      yield result != ConnectivityResult.none;
+    }
+  }
+
+  material.Color _statusColor = material.Color(0xFF8B0000);
+
+  material.Color get statusColor => _statusColor;
 
   String _statusText = "";
 
   String get statusText => _statusText;
 
-  Future<void> appBarColor(m.Color color) async {
+  Future<void> appBarColor(material.Color color) async {
     await FlutterStatusbarcolor.setStatusBarColor(color);
     _statusColor = color;
     if (useWhiteForeground(color)) {
@@ -261,31 +290,23 @@ class AppService with ListenableServiceMixin {
     }
   }
 
-  void updateStatusColor() async {
+  void updateStatusColor() {
     _statusText = "";
-    appBarColor(m.Colors.black);
-    bool previousInternetStatus =
-        true; // Assume internet connectivity is available initially
+    appBarColor(material.Colors.black);
 
-    Timer.periodic(Duration(seconds: 5), (Timer t) async {
-      bool currentInternetStatus =
-          await ProxyService.appService.checkInternetConnectivity();
+    ProxyService.appService
+        .checkInternetConnectivity()
+        .listen((currentInternetStatus) {
       if (!currentInternetStatus) {
-        _statusColor = m.Colors.red;
+        _statusColor = material.Colors.red;
         _statusText = "Connectivity issues";
-        if (previousInternetStatus) {
-          appBarColor(m.Color(0xFF8B0000));
-        }
-        previousInternetStatus = false;
-        notifyListeners();
+        appBarColor(material.Color(0xFF8B0000));
       } else {
         _statusText = "";
-        if (!previousInternetStatus) {
-          appBarColor(m.Colors.black);
-        }
-        previousInternetStatus = true;
-        notifyListeners();
+        appBarColor(material.Colors.black);
+        backup();
       }
+      notifyListeners();
     });
   }
 
