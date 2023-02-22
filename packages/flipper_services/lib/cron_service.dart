@@ -49,7 +49,7 @@ class CronService {
     // for the case like that the token needs to be updated, but not covered now
     // this sill make more sence once we implement the sync that is when we will implement such solution
 
-    Timer.periodic(Duration(minutes: 1), (Timer t) async {
+    Timer.periodic(Duration(seconds: 5), (Timer t) async {
       ProxyService.appService.backup();
 
       /// get unsynced counter and send them online for houseKeping.

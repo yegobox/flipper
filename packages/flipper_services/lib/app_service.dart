@@ -246,7 +246,7 @@ class AppService with ListenableServiceMixin {
     );
 
     for (Order completedOrder in completedOrders) {
-      if (completedOrder.reported! == false) {
+      if (!completedOrder.reported!) {
         String namesString = (await ProxyService.isarApi.orderItems(
           orderId: completedOrder.id,
         ))

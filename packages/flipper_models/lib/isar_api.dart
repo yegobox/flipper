@@ -132,6 +132,7 @@ class IsarAPI implements IsarApiInterface {
     return kcustomer;
   }
 
+// https://pub.dev/packages/excel
   @override
   Future<List<Order>> completedOrders(
       {required int branchId, String? status = completeStatus}) async {
@@ -1926,12 +1927,17 @@ class IsarAPI implements IsarApiInterface {
   @override
   Stream<Order?> completedOrdersStream(
       {required String status, required int branchId}) {
-    final filter1 =
-        isar.orders.filter().statusEqualTo(status).and().reportedEqualTo(false);
+    final filter1 = isar.orders
+        .filter()
+        .statusEqualTo(status)
+        .and()
+        .reportedEqualTo(false)
+        .branchIdEqualTo(branchId);
     final filter2 = isar.orders
         .filter()
         .statusEqualTo(postPonedStatus)
-        .reportedEqualTo(false);
+        .reportedEqualTo(false)
+        .branchIdEqualTo(branchId);
 
     final zip = StreamZip([
       filter1.watch(fireImmediately: true),
