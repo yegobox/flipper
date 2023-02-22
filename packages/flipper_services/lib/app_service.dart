@@ -204,20 +204,20 @@ class AppService with ListenableServiceMixin {
     order.subTotal = updatedItems.fold(0, (a, b) => a + (b.price * b.qty));
     order.reported = true;
 
-    // try {
-    /// fix@issue where the createdAt synced on server is older compared to when a transaction was completed.
-    order.updatedAt = DateTime.now().toIso8601String();
-    order.createdAt = DateTime.now().toIso8601String();
-    await ProxyService.isarApi.update(data: order);
-    await ProxyService.remoteApi.create(
-        collection:
-            order.toJson(convertIdToString: true, itemName: namesString),
-        collectionName: 'orders');
-    // } catch (e, stackTrace) {
-    //   order.reported = false;
-    //   await ProxyService.isarApi.update(data: order);
-    //   ProxyService.crash.reportError(e, stackTrace);
-    // }
+    try {
+      /// fix@issue where the createdAt synced on server is older compared to when a transaction was completed.
+      order.updatedAt = DateTime.now().toIso8601String();
+      order.createdAt = DateTime.now().toIso8601String();
+      await ProxyService.isarApi.update(data: order);
+      await ProxyService.remoteApi.create(
+          collection:
+              order.toJson(convertIdToString: true, itemName: namesString),
+          collectionName: 'orders');
+    } catch (e, stackTrace) {
+      order.reported = false;
+      await ProxyService.isarApi.update(data: order);
+      ProxyService.crash.reportError(e, stackTrace);
+    }
   }
 
 // The updated automaticBackup() method
