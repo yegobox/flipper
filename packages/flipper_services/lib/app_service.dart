@@ -216,14 +216,20 @@ class AppService with ListenableServiceMixin {
 
 // The updated automaticBackup() method
   void automaticBackup() {
+    Order? lastProcessedOrder;
     ProxyService.isarApi
         .completedOrdersStream(
       branchId: ProxyService.box.getBranchId()!,
       status: completeStatus,
     )
         .listen((order) async {
-      if (order == null) return;
+      if (order == null || order == lastProcessedOrder) {
+        // Skip null events or duplicate events
+        return;
+      }
 
+      // Save the current order as the last processed order
+      lastProcessedOrder = order;
       String namesString =
           (await ProxyService.isarApi.orderItems(orderId: order.id))
               .map((item) => item.name)

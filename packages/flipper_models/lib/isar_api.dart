@@ -159,7 +159,7 @@ class IsarAPI implements IsarApiInterface {
 
     if (existOrder == null) {
       final order = Order()
-        ..reference = Uuid().v4()
+        ..reference = Uuid().v1()
         ..orderNumber = Uuid().v1()
         ..status = pendingStatus
         ..orderType = orderType
