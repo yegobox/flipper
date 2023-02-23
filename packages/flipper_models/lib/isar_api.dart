@@ -153,20 +153,14 @@ class IsarAPI implements IsarApiInterface {
   Future<Order> manageOrder({
     String orderType = 'custom',
   }) async {
-    final ref =
-        '${DateTime.now().millisecondsSinceEpoch}${const Uuid().v1().substring(0, 10)}';
-
-    final String orderNumber =
-        '${DateTime.now().millisecondsSinceEpoch}${const Uuid().v1().substring(0, 8)}';
-
     int branchId = ProxyService.box.getBranchId()!;
 
     Order? existOrder = await pendingOrder(branchId: branchId);
 
     if (existOrder == null) {
       final order = Order()
-        ..reference = ref
-        ..orderNumber = orderNumber
+        ..reference = Uuid().v4()
+        ..orderNumber = Uuid().v1()
         ..status = pendingStatus
         ..orderType = orderType
         ..active = true
@@ -397,12 +391,7 @@ class IsarAPI implements IsarApiInterface {
 
     order.cashReceived = cashReceived;
 
-    order.reference = order.reference +
-        '${DateTime.now().millisecondsSinceEpoch}'.substring(0, 5);
-    order.orderNumber = order.orderNumber +
-        '${DateTime.now().millisecondsSinceEpoch}'.substring(0, 5);
-
-    update(data: order);
+    await update(data: order);
 
     for (OrderItem item in items) {
       Stock? stock = await stockByVariantId(variantId: item.variantId);
