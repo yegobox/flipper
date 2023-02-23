@@ -10,6 +10,7 @@ class Marketing implements WhatsApp, SMS {
   @override
   Future<int> sendSMS(
       {required String message, required List<String> numbers}) {
+    // ignore: todo
     // TODO: implement sendSMS
     throw UnimplementedError();
   }

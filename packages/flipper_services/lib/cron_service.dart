@@ -49,11 +49,8 @@ class CronService {
     // for the case like that the token needs to be updated, but not covered now
     // this sill make more sence once we implement the sync that is when we will implement such solution
 
-    Timer.periodic(Duration(minutes: 20), (Timer t) async {
-      /// removing checkIn flag will allow the user to check in again
-      //String userId = ProxyService.box.getUserId()!;
-      //ProxyService.billing.monitorSubscription(userId: int.parse(userId));
-      //ProxyService.box.remove(key: 'checkIn');
+    Timer.periodic(Duration(minutes: 10), (Timer t) async {
+      ProxyService.appService.backup();
 
       /// get unsynced counter and send them online for houseKeping.
       List<Counter> counters = await ProxyService.isarApi
@@ -61,7 +58,6 @@ class CronService {
       for (Counter counter in counters) {
         ProxyService.isarApi.update(data: counter..backed = true);
       }
-      ProxyService.appService.backup();
     });
   }
 }

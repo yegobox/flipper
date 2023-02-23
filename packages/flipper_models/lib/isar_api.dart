@@ -132,15 +132,14 @@ class IsarAPI implements IsarApiInterface {
     return kcustomer;
   }
 
+// https://pub.dev/packages/excel
   @override
   Future<List<Order>> completedOrders(
-      {required int branchId, String? status = completeStatus}) {
-    return isar.writeTxn(() async {
-      return isar.orders
-          .where()
-          .statusBranchIdEqualTo(status!, branchId)
-          .findAll();
-    });
+      {required int branchId, String? status = completeStatus}) async {
+    return await isar.orders
+        .where()
+        .statusBranchIdEqualTo(status!, branchId)
+        .findAll();
   }
 
   @override
@@ -154,20 +153,14 @@ class IsarAPI implements IsarApiInterface {
   Future<Order> manageOrder({
     String orderType = 'custom',
   }) async {
-    final ref =
-        '${DateTime.now().millisecondsSinceEpoch}-${const Uuid().v1().substring(0, 10)}';
-
-    final String orderNumber =
-        '${DateTime.now().millisecondsSinceEpoch}-${const Uuid().v1().substring(0, 8)}';
-
     int branchId = ProxyService.box.getBranchId()!;
 
     Order? existOrder = await pendingOrder(branchId: branchId);
 
     if (existOrder == null) {
       final order = Order()
-        ..reference = ref
-        ..orderNumber = orderNumber
+        ..reference = Uuid().v1()
+        ..orderNumber = Uuid().v1()
         ..status = pendingStatus
         ..orderType = orderType
         ..active = true
@@ -184,7 +177,7 @@ class IsarAPI implements IsarApiInterface {
       Order? createdOrder = await isar.writeTxn(() async {
         int id = await isar.orders.put(order);
         ProxyService.box.write(key: 'currentOrderId', value: id);
-        return isar.orders.get(id);
+        return await isar.orders.get(id);
       });
       return createdOrder!;
     } else {
@@ -398,7 +391,7 @@ class IsarAPI implements IsarApiInterface {
 
     order.cashReceived = cashReceived;
 
-    update(data: order);
+    await update(data: order);
 
     for (OrderItem item in items) {
       Stock? stock = await stockByVariantId(variantId: item.variantId);
@@ -905,15 +898,13 @@ class IsarAPI implements IsarApiInterface {
   }
 
   @override
-  Future<Order?> getOrderById({required int id}) {
-    return isar.orders.get(id);
+  Future<Order?> getOrderById({required int id}) async {
+    return await isar.orders.get(id);
   }
 
   @override
-  Future<OrderItem?> getOrderItem({required int id}) {
-    return isar.writeTxn(() {
-      return isar.orderItems.get(id);
-    });
+  Future<OrderItem?> getOrderItem({required int id}) async {
+    return await isar.orderItems.get(id);
   }
 
   @override
@@ -944,9 +935,7 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<Product?> getProduct({required int id}) async {
-    return isar.writeTxn(() {
-      return isar.products.get(id);
-    });
+    return await isar.products.get(id);
   }
 
   @override
@@ -1089,8 +1078,7 @@ class IsarAPI implements IsarApiInterface {
         await isar.permissions.putAll(jTenant.permissions);
       });
       isar.writeTxn(() async {
-        int id = await isar.iTenants.put(iTenant);
-        return isar.iTenants.get(id);
+        await isar.iTenants.put(iTenant);
       });
 
       return jTenantFromJson(response.body);
@@ -1215,12 +1203,10 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<Order?> pendingOrder({required int branchId}) async {
-    return isar.writeTxn(() async {
-      return isar.orders
-          .where()
-          .statusBranchIdEqualTo(pendingStatus, branchId)
-          .findFirst();
-    });
+    return await isar.orders
+        .where()
+        .statusBranchIdEqualTo(pendingStatus, branchId)
+        .findFirst();
   }
 
   @override
@@ -1666,9 +1652,7 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<List<OrderItem>> orderItems({required int orderId}) async {
-    return isar.writeTxn(() async {
-      return await isar.orderItems.where().orderIdEqualTo(orderId).findAll();
-    });
+    return await isar.orderItems.where().orderIdEqualTo(orderId).findAll();
   }
 
   @override
@@ -1738,17 +1722,19 @@ class IsarAPI implements IsarApiInterface {
     // save drawer object in isar db
     return isar.writeTxn(() async {
       int id = await isar.drawers.put(drawer);
-      return isar.drawers.get(id);
+      return await isar.drawers.get(id);
     });
   }
 
   @override
   Future<int> size<T>({required T object}) async {
     if (object is Product) {
-      return isar.products.getSize(includeIndexes: true, includeLinks: true);
+      return await isar.products
+          .getSize(includeIndexes: true, includeLinks: true);
     }
     if (object is Counter) {
-      return isar.counters.getSize(includeIndexes: true, includeLinks: true);
+      return await isar.counters
+          .getSize(includeIndexes: true, includeLinks: true);
     }
     return 0;
   }
@@ -1930,12 +1916,17 @@ class IsarAPI implements IsarApiInterface {
   @override
   Stream<Order?> completedOrdersStream(
       {required String status, required int branchId}) {
-    final filter1 =
-        isar.orders.filter().statusEqualTo(status).and().reportedEqualTo(false);
+    final filter1 = isar.orders
+        .filter()
+        .statusEqualTo(status)
+        .and()
+        .reportedEqualTo(false)
+        .branchIdEqualTo(branchId);
     final filter2 = isar.orders
         .filter()
         .statusEqualTo(postPonedStatus)
-        .reportedEqualTo(false);
+        .reportedEqualTo(false)
+        .branchIdEqualTo(branchId);
 
     final zip = StreamZip([
       filter1.watch(fireImmediately: true),

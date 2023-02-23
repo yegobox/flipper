@@ -15,7 +15,7 @@ import 'package:stacked_services/stacked_services.dart';
 class AppSetup {
   /** Serves no purpose besides having an annotation attached to it */
 }
-
+// TODO: https://developer.android.com/studio/preview/features#device-mirroring-giraffe 
 // TODO: before adding a package see from the bellow list if we don't
 // modal_bottom_sheet: ^3.0.0-pre
 //  flutter packages pub run build_runner build --delete-conflicting-outputs

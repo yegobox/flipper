@@ -202,34 +202,34 @@ class AppService with ListenableServiceMixin {
     List<OrderItem> updatedItems =
         await ProxyService.isarApi.orderItems(orderId: order.id);
     order.subTotal = updatedItems.fold(0, (a, b) => a + (b.price * b.qty));
-    order.reported = true;
 
-    try {
-      /// fix@issue where the createdAt synced on server is older compared to when a transaction was completed.
-      order.updatedAt = DateTime.now().toIso8601String();
-      order.createdAt = DateTime.now().toIso8601String();
-      await ProxyService.isarApi.update(data: order);
-      await ProxyService.remoteApi.create(
-          collection:
-              order.toJson(convertIdToString: true, itemName: namesString),
-          collectionName: 'orders');
-    } catch (e, stackTrace) {
-      order.reported = false;
-      await ProxyService.isarApi.update(data: order);
-      ProxyService.crash.reportError(e, stackTrace);
-    }
+    /// fix@issue where the createdAt synced on server is older compared to when a transaction was completed.
+    order.updatedAt = DateTime.now().toIso8601String();
+    order.createdAt = DateTime.now().toIso8601String();
+    await ProxyService.remoteApi.create(
+        collection:
+            order.toJson(convertIdToString: true, itemName: namesString),
+        collectionName: 'orders');
+    order.reported = true;
+    await ProxyService.isarApi.update(data: order);
   }
 
 // The updated automaticBackup() method
   void automaticBackup() {
+    Order? lastProcessedOrder;
     ProxyService.isarApi
         .completedOrdersStream(
       branchId: ProxyService.box.getBranchId()!,
       status: completeStatus,
     )
         .listen((order) async {
-      if (order == null) return;
+      if (order == null || order == lastProcessedOrder) {
+        // Skip null events or duplicate events
+        return;
+      }
 
+      // Save the current order as the last processed order
+      lastProcessedOrder = order;
       String namesString =
           (await ProxyService.isarApi.orderItems(orderId: order.id))
               .map((item) => item.name)
@@ -246,7 +246,7 @@ class AppService with ListenableServiceMixin {
     );
 
     for (Order completedOrder in completedOrders) {
-      if (completedOrder.reported! == false) {
+      if (!completedOrder.reported!) {
         String namesString = (await ProxyService.isarApi.orderItems(
           orderId: completedOrder.id,
         ))
