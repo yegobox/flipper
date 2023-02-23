@@ -39,8 +39,10 @@ class Order {
         // 'id': convertIdToString
         //     ? "${id}_${DateTime.now().millisecondsSinceEpoch.toString().substring(0, min(15 - id.toString().length, DateTime.now().millisecondsSinceEpoch.toString().length))}"
         //     : id,
-        'reference': reference,
-        'orderNumber': orderNumber,
+        'reference': reference +
+            '${DateTime.now().millisecondsSinceEpoch}'.substring(0, 5),
+        'orderNumber': orderNumber +
+            '${DateTime.now().millisecondsSinceEpoch}'.substring(0, 5),
         'branchId': branchId,
         'status': status,
         'orderType': orderType,
