@@ -397,6 +397,11 @@ class IsarAPI implements IsarApiInterface {
 
     order.cashReceived = cashReceived;
 
+    order.reference = order.reference +
+        '${DateTime.now().millisecondsSinceEpoch}'.substring(0, 5);
+    order.orderNumber = order.orderNumber +
+        '${DateTime.now().millisecondsSinceEpoch}'.substring(0, 5);
+
     update(data: order);
 
     for (OrderItem item in items) {
