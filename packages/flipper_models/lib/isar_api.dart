@@ -183,7 +183,7 @@ class IsarAPI implements IsarApiInterface {
       Order? createdOrder = await isar.writeTxn(() async {
         int id = await isar.orders.put(order);
         ProxyService.box.write(key: 'currentOrderId', value: id);
-        return isar.orders.get(id);
+        return await isar.orders.get(id);
       });
       return createdOrder!;
     } else {
@@ -904,15 +904,13 @@ class IsarAPI implements IsarApiInterface {
   }
 
   @override
-  Future<Order?> getOrderById({required int id}) {
-    return isar.orders.get(id);
+  Future<Order?> getOrderById({required int id}) async {
+    return await isar.orders.get(id);
   }
 
   @override
-  Future<OrderItem?> getOrderItem({required int id}) {
-    return isar.writeTxn(() {
-      return isar.orderItems.get(id);
-    });
+  Future<OrderItem?> getOrderItem({required int id}) async {
+    return await isar.orderItems.get(id);
   }
 
   @override
@@ -943,9 +941,7 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<Product?> getProduct({required int id}) async {
-    return isar.writeTxn(() {
-      return isar.products.get(id);
-    });
+    return await isar.products.get(id);
   }
 
   @override
@@ -1088,8 +1084,7 @@ class IsarAPI implements IsarApiInterface {
         await isar.permissions.putAll(jTenant.permissions);
       });
       isar.writeTxn(() async {
-        int id = await isar.iTenants.put(iTenant);
-        return isar.iTenants.get(id);
+        await isar.iTenants.put(iTenant);
       });
 
       return jTenantFromJson(response.body);
@@ -1214,12 +1209,10 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Future<Order?> pendingOrder({required int branchId}) async {
-    return isar.writeTxn(() async {
-      return isar.orders
-          .where()
-          .statusBranchIdEqualTo(pendingStatus, branchId)
-          .findFirst();
-    });
+    return await isar.orders
+        .where()
+        .statusBranchIdEqualTo(pendingStatus, branchId)
+        .findFirst();
   }
 
   @override
@@ -1735,17 +1728,19 @@ class IsarAPI implements IsarApiInterface {
     // save drawer object in isar db
     return isar.writeTxn(() async {
       int id = await isar.drawers.put(drawer);
-      return isar.drawers.get(id);
+      return await isar.drawers.get(id);
     });
   }
 
   @override
   Future<int> size<T>({required T object}) async {
     if (object is Product) {
-      return isar.products.getSize(includeIndexes: true, includeLinks: true);
+      return await isar.products
+          .getSize(includeIndexes: true, includeLinks: true);
     }
     if (object is Counter) {
-      return isar.counters.getSize(includeIndexes: true, includeLinks: true);
+      return await isar.counters
+          .getSize(includeIndexes: true, includeLinks: true);
     }
     return 0;
   }

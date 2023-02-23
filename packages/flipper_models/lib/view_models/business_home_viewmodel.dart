@@ -116,7 +116,9 @@ class BusinessHomeViewModel extends ReactiveViewModel {
           updatedItems.fold(0, (a, b) => a + (b.price * b.qty));
       await ProxyService.isarApi.update(data: pendingOrder);
       ProxyService.keypad.reset();
-      Order? updatedOrder = await ProxyService.isarApi.manageOrder();
+
+      Order? updatedOrder =
+          await ProxyService.isarApi.getOrderById(id: pendingOrder.id);
       keypad.setOrder(updatedOrder);
       currentOrder();
       rebuildUi();
@@ -160,7 +162,8 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
         pendingOrder.subTotal = items.fold(0, (a, b) => a + (b.price * b.qty));
         await ProxyService.isarApi.update(data: pendingOrder);
-        Order? updatedOrder = await ProxyService.isarApi.manageOrder();
+        Order? updatedOrder =
+            await ProxyService.isarApi.getOrderById(id: pendingOrder.id);
         keypad.setOrder(updatedOrder);
         currentOrder();
       }
