@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
 
@@ -36,9 +34,11 @@ class Order {
   Map<String, dynamic> toJson(
           {required String itemName, bool convertIdToString = false}) =>
       {
-        'id': convertIdToString
-            ? "${id}_${DateTime.now().millisecondsSinceEpoch.toString().substring(0, min(15 - id.toString().length, DateTime.now().millisecondsSinceEpoch.toString().length))}"
-            : id,
+        /// remove id in sent object as it is hard to guarantee the lenght to always be 15. keep the logic
+        /// here as it will be useful when adopt full sync
+        // 'id': convertIdToString
+        //     ? "${id}_${DateTime.now().millisecondsSinceEpoch.toString().substring(0, min(15 - id.toString().length, DateTime.now().millisecondsSinceEpoch.toString().length))}"
+        //     : id,
         'reference': reference,
         'orderNumber': orderNumber,
         'branchId': branchId,
