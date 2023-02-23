@@ -206,9 +206,6 @@ class AppService with ListenableServiceMixin {
     /// fix@issue where the createdAt synced on server is older compared to when a transaction was completed.
     order.updatedAt = DateTime.now().toIso8601String();
     order.createdAt = DateTime.now().toIso8601String();
-    order.reference = Uuid().v4();
-    order.orderNumber = Uuid().v1();
-
     await ProxyService.remoteApi.create(
         collection:
             order.toJson(convertIdToString: true, itemName: namesString),
