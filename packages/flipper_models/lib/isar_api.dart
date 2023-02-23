@@ -154,10 +154,10 @@ class IsarAPI implements IsarApiInterface {
     String orderType = 'custom',
   }) async {
     final ref =
-        '${DateTime.now().millisecondsSinceEpoch}-${const Uuid().v1().substring(0, 10)}';
+        '${DateTime.now().millisecondsSinceEpoch}${const Uuid().v1().substring(0, 10)}';
 
     final String orderNumber =
-        '${DateTime.now().millisecondsSinceEpoch}-${const Uuid().v1().substring(0, 8)}';
+        '${DateTime.now().millisecondsSinceEpoch}${const Uuid().v1().substring(0, 8)}';
 
     int branchId = ProxyService.box.getBranchId()!;
 
