@@ -19,9 +19,6 @@ class _FavoritesState extends State<Favorites> {
 
   // Define a boolean to know if we have pressed.
   bool hasBeenPressed = false;
-  bool isFavorite = false;
-  bool isFirstRowBuilt = false;
-
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<FavoriteViewModel>.reactive(
@@ -30,95 +27,110 @@ class _FavoritesState extends State<Favorites> {
       onViewModelReady: (model) async {},
       builder: (context, model, child) {
         return Scaffold(
-          body: ListView.builder(
-            itemCount: items.length,
-            itemBuilder: (context, index) {
-              // Display two items on each row
-              if (index.isEven) {
-                // Add a container to the first row only
-                if (!isFirstRowBuilt) {
-                  isFirstRowBuilt = true;
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 10.0),
-                    child: Container(
-                      width: MediaQuery.of(context).size.width / 2,
-                      child: Column(
+          body: Stack(
+            children: [
+              ListView.builder(
+                itemCount: items.length,
+                itemBuilder: (context, index) {
+                  // Display two items on each row
+                  if (index.isEven) {
+                    // Add a container to the first row only
+                    if (index == 0 && !hasBeenPressed) {
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 10.0),
+                        child: Container(
+                          width: MediaQuery.of(context).size.width / 2,
+                          child: Column(
+                            children: [
+                              Center(
+                                child: SvgPicture.asset(
+                                  'assets/checkout.svg',
+                                  height: 80,
+                                  width: 80,
+                                ),
+                              ),
+                              SizedBox(width: 8),
+                              Text(
+                                "Arrange your favorites",
+                                style: TextStyle(fontSize: 16),
+                              ),
+                              Text(
+                                "Press and hold anywhere in the grid to begin adding items",
+                                style: TextStyle(fontSize: 16),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    } else {
+                      // Display two items on all other even rows
+                      return Row(
                         children: [
-                          Center(
-                            child: SvgPicture.asset(
-                              'assets/checkout.svg',
-                              height: 80,
-                              width: 80,
-                            ),
-                          ),
-                          SizedBox(width: 8),
-                          Text(
-                            "Arrange your favorites",
-                            style: TextStyle(fontSize: 16),
-                          ),
-                          Text(
-                            "Press and hold anywhere in the grid to begin adding items",
-                            style: TextStyle(fontSize: 16),
-                          ),
+                          Expanded(child: _buildItem(context)),
+                          Expanded(child: _buildItem(context)),
                         ],
-                      ),
-                    ),
-                  );
-                }
-                // Display two items on all other even rows
-                return Row(
-                  children: [
-                    Expanded(child: _buildItem(context)),
-                    Expanded(child: _buildItem(context)),
-                  ],
-                );
-              }
-              // Return an empty container for odd indices to keep the layout
-              return Container();
-            },
-          ),
-          floatingActionButton: hasBeenPressed
-              ? Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Container(
-                    width: double.infinity,
-                    child: OutlinedButton(
-                      child: Text('Done',
-                          style: GoogleFonts.poppins(
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.white,
-                          )),
-                      style: ButtonStyle(
-                        shape:
-                            MaterialStateProperty.resolveWith<OutlinedBorder>(
-                          (states) => RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(4.0),
+                      );
+                    }
+                  }
+                  // Return an empty container for odd indices to keep the layout
+                  return Container();
+                },
+              ),
+              hasBeenPressed
+                  ? Positioned.fill(
+                      child: Align(
+                        alignment: Alignment.bottomCenter,
+                        child: Container(
+                          padding: EdgeInsets.only(left: 20, right: 20),
+                          height: 60,
+                          width: double.infinity,
+                          child: OutlinedButton(
+                            child: MediaQuery(
+                              data: MediaQuery.of(context).copyWith(
+                                  textScaleFactor:
+                                      MediaQuery.of(context).textScaleFactor),
+                              child: Text('Done',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 16.0,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white,
+                                  )),
+                            ),
+                            style: ButtonStyle(
+                              shape: MaterialStateProperty.resolveWith<
+                                  OutlinedBorder>(
+                                (states) => RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                ),
+                              ),
+                              backgroundColor: MaterialStateProperty.all<Color>(
+                                  const Color(0xff006AFE)),
+                              overlayColor:
+                                  MaterialStateProperty.resolveWith<Color?>(
+                                (Set<MaterialState> states) {
+                                  if (states.contains(MaterialState.hovered)) {
+                                    return Colors.blue.withOpacity(0.04);
+                                  }
+                                  if (states.contains(MaterialState.focused) ||
+                                      states.contains(MaterialState.pressed)) {
+                                    return Colors.blue.withOpacity(0.12);
+                                  }
+                                  return null; // Defer to the widget's default.
+                                },
+                              ),
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                hasBeenPressed = false;
+                              });
+                            },
                           ),
                         ),
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            const Color(0xff006AFE)),
-                        overlayColor: MaterialStateProperty.resolveWith<Color?>(
-                          (Set<MaterialState> states) {
-                            if (states.contains(MaterialState.hovered)) {
-                              return Colors.blue.withOpacity(0.04);
-                            }
-                            if (states.contains(MaterialState.focused) ||
-                                states.contains(MaterialState.pressed)) {
-                              return Colors.blue.withOpacity(0.12);
-                            }
-                            return null; // Defer to the widget's default.
-                          },
-                        ),
                       ),
-                      onPressed: () async {},
-                    ),
-                  ),
-                )
-              : null,
-          floatingActionButtonAnimator: null,
-          floatingActionButtonLocation:
-              FloatingActionButtonLocation.centerDocked,
+                    )
+                  : SizedBox.shrink(),
+            ],
+          ),
         );
       },
     );
@@ -134,79 +146,25 @@ class _FavoritesState extends State<Favorites> {
           hasBeenPressed = true;
         });
       },
-      child: isFavorite
-          ? Container(
-              height: 100,
-              margin: EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Column(
-                children: [
-                  Container(
-                    height: 60,
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(8),
-                        topRight: Radius.circular(8),
-                      ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        'Sample Text',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.only(
-                          bottomLeft: Radius.circular(8),
-                          bottomRight: Radius.circular(8),
-                        ),
-                      ),
-                      child: Center(
-                        child: Text(
-                          'Sample Text',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 16,
-                            fontWeight: FontWeight.normal,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            )
-          : Container(
-              height: 100,
-              margin: EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  if (hasBeenPressed)
-                    Icon(
-                      FluentIcons.add_20_regular,
-                      color: Colors.blue[400],
-                    )
-                ],
-              ),
-            ),
+      child: Container(
+        height: 100,
+        margin: EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.grey[300],
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            if (hasBeenPressed)
+              Icon(
+                FluentIcons.add_20_regular,
+                color: Colors.blue[400],
+              )
+          ],
+        ),
+      ),
     );
   }
 }

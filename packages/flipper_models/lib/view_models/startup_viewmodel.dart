@@ -23,6 +23,7 @@ class StartUpViewModel extends BaseViewModel {
     required LoginInfo loginInfo,
     required Function navigationCallback,
   }) async {
+    ProxyService.isarApi.logOut();
     loginInfo.redirecting = true;
     try {
       /// an event should be trigered from mobile not desktop as desktop is anonmous and login() func might have been called.

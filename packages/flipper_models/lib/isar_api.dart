@@ -186,12 +186,11 @@ class IsarAPI implements IsarApiInterface {
   }
 
   @override
-  Future<void> addOrderItem({required Order order, OrderItem? item}) async {
-    if (item != null) {
-      return isar.writeTxn(() async {
-        isar.orderItems.put(item);
-      });
-    }
+  Future<void> addOrderItem(
+      {required Order order, required OrderItem item}) async {
+    return isar.writeTxn(() async {
+      await isar.orderItems.put(item);
+    });
   }
 
   // get point where userId = userId from db

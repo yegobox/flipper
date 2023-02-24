@@ -40,7 +40,6 @@ dependencies:
   flipper_ui: ^1.0.3
 
 flutter:
-  uses-material-design: true
   assets:
     - ../../assets/
     - ../../assets/icons/
