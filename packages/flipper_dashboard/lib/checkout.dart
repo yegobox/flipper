@@ -141,8 +141,8 @@ class NewWidget extends StatelessWidget {
       children: [
         // give the tab bar a height [can change height to preferred height]
         Padding(
-          padding: EdgeInsets.fromLTRB(leftPadding, topBottomPadding,
-              topBottomPadding, topBottomPadding),
+          padding:
+              EdgeInsets.fromLTRB(10, topBottomPadding, 10, topBottomPadding),
           child: Container(
             height: 46,
             decoration: BoxDecoration(
