@@ -8,15 +8,11 @@ abstract class Messaging {
 
 class FirebaseMessagingDesktop implements Messaging {
   @override
-  Future<void> init() {
-    // TODO: implement init
-    throw UnimplementedError();
-  }
+  Future<void> init() async {}
 
   @override
-  Future<String> token() {
-    // TODO: implement token
-    throw UnimplementedError();
+  Future<String> token() async {
+    return "fakeToken";
   }
 }
 

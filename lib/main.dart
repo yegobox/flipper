@@ -93,6 +93,7 @@ void main() async {
     yield foundation.LicenseEntryWithLineBreaks(['google_fonts'], license);
   });
   WidgetsFlutterBinding.ensureInitialized();
+  // imageCache.clear();
   // HttpOverrides.global = FlipperHttpOverrides();
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -123,7 +124,7 @@ void main() async {
       FirebaseCrashlytics.instance.recordFlutterError(details);
     };
   }
-  (!isWindows) ? FirebaseMessaging.onBackgroundMessage(backgroundHandler) : '';
+
   runZonedGuarded<Future<void>>(() async {
     await SentryFlutter.init(
       (options) {
@@ -513,7 +514,9 @@ void main() async {
         )
       ],
     );
-
+    if (!isWindows) {
+      FirebaseMessaging.onBackgroundMessage(backgroundHandler);
+    } else if (isWindows) {}
     WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
     FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
     runApp(

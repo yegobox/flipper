@@ -45,6 +45,7 @@ class _DesktopLoginViewState extends State<DesktopLoginView> {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<LoginViewModel>.reactive(
+      fireOnViewModelReadyOnce: true,
       viewModelBuilder: () => LoginViewModel(),
       onViewModelReady: (model) {
         if (loginCode != null) {

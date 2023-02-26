@@ -11,6 +11,9 @@ import 'proxy.dart';
 import 'package:flutter_statusbarcolor_ns/flutter_statusbarcolor_ns.dart';
 import 'package:flipper_nfc/flipper_nfc.dart';
 import 'package:flutter/services.dart';
+import 'package:universal_platform/universal_platform.dart';
+
+final isWindows = UniversalPlatform.isWindows;
 
 class AppService with ListenableServiceMixin {
   // required constants
@@ -277,16 +280,19 @@ class AppService with ListenableServiceMixin {
   String get statusText => _statusText;
 
   Future<void> appBarColor(material.Color color) async {
-    await FlutterStatusbarcolor.setStatusBarColor(color);
-    _statusColor = color;
-    if (useWhiteForeground(color)) {
-      SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark.copyWith(
-        statusBarBrightness: Brightness.dark,
-      ));
-    } else {
-      SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light.copyWith(
-        statusBarBrightness: Brightness.light,
-      ));
+    if (!isWindows) {
+      await FlutterStatusbarcolor.setStatusBarColor(color);
+      _statusColor = color;
+      if (useWhiteForeground(color)) {
+        SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark.copyWith(
+          statusBarBrightness: Brightness.dark,
+        ));
+      } else {
+        SystemChrome.setSystemUIOverlayStyle(
+            SystemUiOverlayStyle.light.copyWith(
+          statusBarBrightness: Brightness.light,
+        ));
+      }
     }
   }
 

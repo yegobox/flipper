@@ -92,43 +92,48 @@ const ProductSchema = CollectionSchema(
       name: r'imageUrl',
       type: IsarType.string,
     ),
-    r'name': PropertySchema(
+    r'isFavorite': PropertySchema(
       id: 15,
+      name: r'isFavorite',
+      type: IsarType.bool,
+    ),
+    r'name': PropertySchema(
+      id: 16,
       name: r'name',
       type: IsarType.string,
     ),
     r'nfcEnabled': PropertySchema(
-      id: 16,
+      id: 17,
       name: r'nfcEnabled',
       type: IsarType.bool,
     ),
     r'picture': PropertySchema(
-      id: 17,
+      id: 18,
       name: r'picture',
       type: IsarType.string,
     ),
     r'supplierId': PropertySchema(
-      id: 18,
+      id: 19,
       name: r'supplierId',
       type: IsarType.string,
     ),
     r'synced': PropertySchema(
-      id: 19,
+      id: 20,
       name: r'synced',
       type: IsarType.bool,
     ),
     r'table': PropertySchema(
-      id: 20,
+      id: 21,
       name: r'table',
       type: IsarType.string,
     ),
     r'taxId': PropertySchema(
-      id: 21,
+      id: 22,
       name: r'taxId',
       type: IsarType.string,
     ),
     r'unit': PropertySchema(
-      id: 22,
+      id: 23,
       name: r'unit',
       type: IsarType.string,
     )
@@ -323,14 +328,15 @@ void _productSerialize(
   writer.writeBool(offsets[12], object.hasPicture);
   writer.writeBool(offsets[13], object.imageLocal);
   writer.writeString(offsets[14], object.imageUrl);
-  writer.writeString(offsets[15], object.name);
-  writer.writeBool(offsets[16], object.nfcEnabled);
-  writer.writeString(offsets[17], object.picture);
-  writer.writeString(offsets[18], object.supplierId);
-  writer.writeBool(offsets[19], object.synced);
-  writer.writeString(offsets[20], object.table);
-  writer.writeString(offsets[21], object.taxId);
-  writer.writeString(offsets[22], object.unit);
+  writer.writeBool(offsets[15], object.isFavorite);
+  writer.writeString(offsets[16], object.name);
+  writer.writeBool(offsets[17], object.nfcEnabled);
+  writer.writeString(offsets[18], object.picture);
+  writer.writeString(offsets[19], object.supplierId);
+  writer.writeBool(offsets[20], object.synced);
+  writer.writeString(offsets[21], object.table);
+  writer.writeString(offsets[22], object.taxId);
+  writer.writeString(offsets[23], object.unit);
 }
 
 Product _productDeserialize(
@@ -356,14 +362,15 @@ Product _productDeserialize(
   object.id = id;
   object.imageLocal = reader.readBoolOrNull(offsets[13]);
   object.imageUrl = reader.readStringOrNull(offsets[14]);
-  object.name = reader.readString(offsets[15]);
-  object.nfcEnabled = reader.readBoolOrNull(offsets[16]);
-  object.picture = reader.readStringOrNull(offsets[17]);
-  object.supplierId = reader.readStringOrNull(offsets[18]);
-  object.synced = reader.readBoolOrNull(offsets[19]);
-  object.table = reader.readStringOrNull(offsets[20]);
-  object.taxId = reader.readStringOrNull(offsets[21]);
-  object.unit = reader.readStringOrNull(offsets[22]);
+  object.isFavorite = reader.readBoolOrNull(offsets[15]);
+  object.name = reader.readString(offsets[16]);
+  object.nfcEnabled = reader.readBoolOrNull(offsets[17]);
+  object.picture = reader.readStringOrNull(offsets[18]);
+  object.supplierId = reader.readStringOrNull(offsets[19]);
+  object.synced = reader.readBoolOrNull(offsets[20]);
+  object.table = reader.readStringOrNull(offsets[21]);
+  object.taxId = reader.readStringOrNull(offsets[22]);
+  object.unit = reader.readStringOrNull(offsets[23]);
   return object;
 }
 
@@ -405,20 +412,22 @@ P _productDeserializeProp<P>(
     case 14:
       return (reader.readStringOrNull(offset)) as P;
     case 15:
-      return (reader.readString(offset)) as P;
-    case 16:
       return (reader.readBoolOrNull(offset)) as P;
+    case 16:
+      return (reader.readString(offset)) as P;
     case 17:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readBoolOrNull(offset)) as P;
     case 18:
       return (reader.readStringOrNull(offset)) as P;
     case 19:
-      return (reader.readBoolOrNull(offset)) as P;
-    case 20:
       return (reader.readStringOrNull(offset)) as P;
+    case 20:
+      return (reader.readBoolOrNull(offset)) as P;
     case 21:
       return (reader.readStringOrNull(offset)) as P;
     case 22:
+      return (reader.readStringOrNull(offset)) as P;
+    case 23:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -2347,6 +2356,32 @@ extension ProductQueryFilter
     });
   }
 
+  QueryBuilder<Product, Product, QAfterFilterCondition> isFavoriteIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'isFavorite',
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> isFavoriteIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'isFavorite',
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> isFavoriteEqualTo(
+      bool? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isFavorite',
+        value: value,
+      ));
+    });
+  }
+
   QueryBuilder<Product, Product, QAfterFilterCondition> nameEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -3504,6 +3539,18 @@ extension ProductQuerySortBy on QueryBuilder<Product, Product, QSortBy> {
     });
   }
 
+  QueryBuilder<Product, Product, QAfterSortBy> sortByIsFavorite() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isFavorite', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> sortByIsFavoriteDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isFavorite', Sort.desc);
+    });
+  }
+
   QueryBuilder<Product, Product, QAfterSortBy> sortByName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.asc);
@@ -3795,6 +3842,18 @@ extension ProductQuerySortThenBy
     });
   }
 
+  QueryBuilder<Product, Product, QAfterSortBy> thenByIsFavorite() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isFavorite', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> thenByIsFavoriteDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isFavorite', Sort.desc);
+    });
+  }
+
   QueryBuilder<Product, Product, QAfterSortBy> thenByName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.asc);
@@ -3991,6 +4050,12 @@ extension ProductQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Product, Product, QDistinct> distinctByIsFavorite() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isFavorite');
+    });
+  }
+
   QueryBuilder<Product, Product, QDistinct> distinctByName(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -4141,6 +4206,12 @@ extension ProductQueryProperty
   QueryBuilder<Product, String?, QQueryOperations> imageUrlProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'imageUrl');
+    });
+  }
+
+  QueryBuilder<Product, bool?, QQueryOperations> isFavoriteProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isFavorite');
     });
   }
 

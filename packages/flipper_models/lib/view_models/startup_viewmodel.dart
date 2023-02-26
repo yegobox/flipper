@@ -43,7 +43,7 @@ class StartUpViewModel extends BaseViewModel {
       }
       loginInfo.isLoggedIn = true;
       navigationCallback("home");
-    } catch (e) {
+    } catch (e, stack) {
       if (e is LoginChoicesException) {
         loginInfo.isLoggedIn = false;
         loginInfo.loginChoices = true;
@@ -57,6 +57,7 @@ class StartUpViewModel extends BaseViewModel {
         navigationCallback("signup");
       } else {
         log.i(e.toString());
+        log.i(stack);
         ProxyService.isarApi.logOut();
         loginInfo.isLoggedIn = false;
         navigationCallback("login");

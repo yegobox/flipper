@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:developer';
 
+import 'package:easy_sidemenu/easy_sidemenu.dart';
+import 'package:flipper_dashboard/product_view.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/proxy.dart';
@@ -36,7 +38,9 @@ class FlipperApp extends StatefulWidget {
 class _FlipperAppState extends State<FlipperApp>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late TabController _tabController;
+  PageController page = PageController();
   final TextEditingController controller = TextEditingController();
+  SideMenuController sideMenu = SideMenuController();
   int tabselected = 0;
   Future<void> _disableScreenshots() async {
     await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
@@ -163,92 +167,166 @@ class _FlipperAppState extends State<FlipperApp>
                 automaticallyImplyLeading: false,
                 toolbarHeight: model.app.statusText.isNotEmpty ? 25 : 0,
               ),
-              bottomNavigationBar: NavigationBarTheme(
-                data: NavigationBarThemeData(
-                  backgroundColor: Colors.white,
-                  indicatorColor: Colors.white,
-                  labelTextStyle: MaterialStateProperty.all(
-                    const TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
-                  ),
-                ),
-                child: Container(
-                  decoration: const BoxDecoration(
-                    border: Border(
-                      top: BorderSide(
-                        color: Colors.black26,
-                        width: 1.0,
+              bottomNavigationBar: !isWindows
+                  ? NavigationBarTheme(
+                      data: NavigationBarThemeData(
+                        backgroundColor: Colors.white,
+                        indicatorColor: Colors.white,
+                        labelTextStyle: MaterialStateProperty.all(
+                          const TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.w400),
+                        ),
                       ),
+                      child: Container(
+                        decoration: const BoxDecoration(
+                          border: Border(
+                            top: BorderSide(
+                              color: Colors.black26,
+                              width: 1.0,
+                            ),
+                          ),
+                        ),
+                        child: NavigationBar(
+                          height: 90,
+                          selectedIndex: tabselected,
+                          labelBehavior:
+                              NavigationDestinationLabelBehavior.alwaysShow,
+                          backgroundColor: Colors.white,
+                          elevation: 0,
+                          animationDuration: const Duration(seconds: 2),
+                          onDestinationSelected: (index) {
+                            setState(() {
+                              tabselected = index;
+                            });
+                          },
+                          // fluent icons: https://github.com/microsoft/fluentui-system-icons/blob/main/icons_regular.md
+                          destinations: [
+                            NavigationDestination(
+                              icon: Icon(FluentIcons.dialpad_24_regular),
+                              label: 'Checkout',
+                              selectedIcon: Icon(
+                                FluentIcons.dialpad_24_regular,
+                                color: const Color(0xff006AFE),
+                              ),
+                            ),
+                            NavigationDestination(
+                              icon:
+                                  Icon(FluentIcons.apps_list_detail_24_regular),
+                              label: 'Transactions',
+                              selectedIcon: Icon(
+                                  FluentIcons.apps_list_detail_24_regular,
+                                  color: const Color(0xff006AFE)),
+                            ),
+                            NavigationDestination(
+                              icon: BadgeIcon(
+                                icon: Icon(
+                                    FluentIcons.mail_all_unread_20_regular),
+                                badgeCount: 0,
+                                badgeColor: Color(0xff006AFE),
+                                badgeTextStyle: TextStyle(
+                                  color: Color(0xff006AFE),
+                                  fontSize: 8,
+                                ),
+                              ),
+                              label: 'Notifications',
+                              selectedIcon: BadgeIcon(
+                                icon: Icon(
+                                    FluentIcons.mail_all_unread_20_regular),
+                                badgeCount: 0,
+                                badgeColor: Color(0xff006AFE),
+                                badgeTextStyle: TextStyle(
+                                  color: Color(0xff006AFE),
+                                  fontSize: 8,
+                                ),
+                              ),
+                            ),
+                            NavigationDestination(
+                              icon: Icon(FluentIcons.navigation_20_regular),
+                              label: 'More',
+                              selectedIcon: Icon(
+                                  FluentIcons.navigation_20_regular,
+                                  color: Color(0xff006AFE)),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : SizedBox.shrink(),
+              body: LayoutBuilder(
+                  builder: (BuildContext context, BoxConstraints constraints) {
+                if (constraints.maxWidth < 600) {
+                  // this is a phone
+                  return SafeArea(
+                    child: PageSwitcher(
+                      controller: controller,
+                      model: model,
+                      tabController: _tabController,
+                      currentPage: tabselected,
                     ),
-                  ),
-                  child: NavigationBar(
-                    height: 90,
-                    selectedIndex: tabselected,
-                    labelBehavior:
-                        NavigationDestinationLabelBehavior.alwaysShow,
-                    backgroundColor: Colors.white,
-                    elevation: 0,
-                    animationDuration: const Duration(seconds: 2),
-                    onDestinationSelected: (index) {
-                      setState(() {
-                        tabselected = index;
-                      });
-                    },
-                    // fluent icons: https://github.com/microsoft/fluentui-system-icons/blob/main/icons_regular.md
-                    destinations: [
-                      NavigationDestination(
-                        icon: Icon(FluentIcons.dialpad_24_regular),
-                        label: 'Checkout',
-                        selectedIcon: Icon(
-                          FluentIcons.dialpad_24_regular,
-                          color: const Color(0xff006AFE),
+                  );
+                } else {
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: 20,
+                        child: SizedBox.shrink(),
+                      ),
+                      // Left menu
+                      // ignore: todo
+                      // TODO: left menu will be essential when we add socials feature
+                      // by the time I implement it I will remove the above SizedBox as it is helping me
+                      // to keep the design consistent for now.
+                      // Container(
+                      //   width: 150,
+                      //   child: SideMenu(
+                      //     style: SideMenuStyle(
+                      //       showTooltip: false,
+                      //       displayMode: SideMenuDisplayMode.compact,
+                      //       compactSideMenuWidth: 60,
+                      //       openSideMenuWidth: 150,
+                      //     ),
+                      //     items: [
+                      //       SideMenuItem(
+                      //         // Priority of item to show on SideMenu, lower value is displayed at the top
+                      //         priority: 0,
+                      //         title: 'Dashboard',
+                      //         icon: Icon(Icons.home),
+                      //         badgeContent: Text(
+                      //           '3',
+                      //           style: TextStyle(color: Colors.white),
+                      //         ),
+                      //       )
+                      //     ],
+                      //     controller: sideMenu,
+                      //   ),
+                      // ),
+
+                      // Middle menu
+                      Expanded(
+                        flex: 2,
+                        child: Container(
+                          child: ProductView(),
                         ),
                       ),
-                      NavigationDestination(
-                        icon: Icon(FluentIcons.apps_list_detail_24_regular),
-                        label: 'Transactions',
-                        selectedIcon: Icon(
-                            FluentIcons.apps_list_detail_24_regular,
-                            color: const Color(0xff006AFE)),
-                      ),
-                      NavigationDestination(
-                        icon: BadgeIcon(
-                          icon: Icon(FluentIcons.mail_all_unread_20_regular),
-                          badgeCount: 0,
-                          badgeColor: Color(0xff006AFE),
-                          badgeTextStyle: TextStyle(
-                            color: Color(0xff006AFE),
-                            fontSize: 8,
+
+                      // Right menu
+                      Expanded(
+                        flex: 1,
+                        child: Container(
+                          child: PageSwitcher(
+                            isBigScreen: true,
+                            controller: controller,
+                            model: model,
+                            tabController: _tabController,
+                            currentPage: tabselected,
                           ),
                         ),
-                        label: 'Notifications',
-                        selectedIcon: BadgeIcon(
-                          icon: Icon(FluentIcons.mail_all_unread_20_regular),
-                          badgeCount: 0,
-                          badgeColor: Color(0xff006AFE),
-                          badgeTextStyle: TextStyle(
-                            color: Color(0xff006AFE),
-                            fontSize: 8,
-                          ),
-                        ),
-                      ),
-                      NavigationDestination(
-                        icon: Icon(FluentIcons.navigation_20_regular),
-                        label: 'More',
-                        selectedIcon: Icon(FluentIcons.navigation_20_regular,
-                            color: Color(0xff006AFE)),
                       ),
                     ],
-                  ),
-                ),
-              ),
-              body: SafeArea(
-                child: PageSwitcher(
-                  controller: controller,
-                  model: model,
-                  tabController: _tabController,
-                  currentPage: tabselected,
-                ),
-              ),
+                  );
+                }
+              }),
             ),
           );
         });

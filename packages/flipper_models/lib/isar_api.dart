@@ -22,10 +22,10 @@ class ExtendedClient extends http.BaseClient {
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
-    String? token = ProxyService.box.read(key: 'bearerToken');
-    String? userId = ProxyService.box.read(key: 'userId');
-    request.headers['Authorization'] = token ?? '';
-    request.headers['userId'] = userId ?? '';
+    String token = ProxyService.box.read(key: 'bearerToken');
+    String userId = ProxyService.box.read(key: 'userId');
+    request.headers['Authorization'] = token;
+    request.headers['userId'] = userId;
     request.headers['Content-Type'] = 'application/json';
 
     try {
@@ -186,12 +186,11 @@ class IsarAPI implements IsarApiInterface {
   }
 
   @override
-  Future<void> addOrderItem({required Order order, OrderItem? item}) async {
-    if (item != null) {
-      return isar.writeTxn(() async {
-        isar.orderItems.put(item);
-      });
-    }
+  Future<void> addOrderItem(
+      {required Order order, required OrderItem item}) async {
+    return isar.writeTxn(() async {
+      await isar.orderItems.put(item);
+    });
   }
 
   // get point where userId = userId from db
@@ -1135,15 +1134,15 @@ class IsarAPI implements IsarApiInterface {
       ),
     );
     if (response.statusCode == 200) {
-      ProxyService.box.write(
+      await ProxyService.box.write(
         key: 'bearerToken',
         value: syncFFromJson(response.body).token,
       );
-      ProxyService.box.write(
+      await ProxyService.box.write(
         key: 'userId',
         value: syncFFromJson(response.body).id.toString(),
       );
-      ProxyService.box.write(
+      await ProxyService.box.write(
         key: 'userPhone',
         value: userPhone,
       );

@@ -148,11 +148,13 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         Variant? variation = await ProxyService.isarApi.getCustomVariant();
         if (items.isEmpty) {
           await saveOrder(
-              amountTotal: amount,
-              variationId: variation!.id,
-              customItem: true);
+            amountTotal: amount,
+            variationId: variation!.id,
+            customItem: true,
+          );
         }
         items = await ProxyService.isarApi.orderItems(orderId: pendingOrder.id);
+
         OrderItem item = items.last;
         item.price = double.parse(ProxyService.keypad.key);
         item.taxAmt = double.parse(
@@ -303,14 +305,9 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     Stock? stock =
         await ProxyService.isarApi.stockByVariantId(variantId: variation!.id);
 
-    String name = '';
-    log.i(variation.productName);
-    log.i(variation.name);
-    if (variation.productName != 'Custom Amount') {
-      name = variation.productName + '(${variation.name})';
-    } else {
-      name = variation.productName;
-    }
+    String name = variation.productName != 'Custom Amount'
+        ? '${variation.productName}(${variation.name})'
+        : variation.productName;
 
     /// if variation  given it exist in the orderItems of currentPending order then we update the order with new count
     Order? pendingOrder = await ProxyService.isarApi.manageOrder();

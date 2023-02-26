@@ -1,7 +1,7 @@
 abstract class LocalStorage {
   dynamic read({required String key});
   dynamic remove({required String key});
-  bool write({required String key, required dynamic value});
+  Future<bool> write({required String key, required dynamic value});
   int? getBusinessId();
   int? getBranchId();
   bool? getIsTokenRegistered();

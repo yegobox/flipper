@@ -32,13 +32,18 @@ class _AddProductButtonsState extends State<AddProductButtons> {
                   color: Colors.white70,
                   width: double.infinity,
                   height: 64,
-                  child: OutlinedButton(
+                  child: TextButton(
                     child: Text('Add Product',
                         style: GoogleFonts.poppins(
                             fontWeight: FontWeight.w500,
                             fontSize: 19,
                             color: Color(0xff006AFE))),
                     style: ButtonStyle(
+                      shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
+                        (states) => RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
+                      ),
                       backgroundColor: MaterialStateProperty.all<Color>(
                           const Color(0xffF2F2F2)),
                       overlayColor: MaterialStateProperty.resolveWith<Color?>(
@@ -69,13 +74,19 @@ class _AddProductButtonsState extends State<AddProductButtons> {
                     color: Colors.white70,
                     width: double.infinity,
                     height: 64,
-                    child: OutlinedButton(
+                    child: TextButton(
                       child: Text('Add Discount',
                           style: GoogleFonts.poppins(
                               fontWeight: FontWeight.w500,
                               fontSize: 19,
                               color: Color(0xff006AFE))),
                       style: ButtonStyle(
+                        shape:
+                            MaterialStateProperty.resolveWith<OutlinedBorder>(
+                          (states) => RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                        ),
                         backgroundColor: MaterialStateProperty.all<Color>(
                             const Color(0xffF2F2F2)),
                         overlayColor: MaterialStateProperty.resolveWith<Color?>(

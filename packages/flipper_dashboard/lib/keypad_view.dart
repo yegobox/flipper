@@ -16,12 +16,14 @@ class AlwaysDisabledFocusNode extends FocusNode {
 
 // ignore: must_be_immutable
 class KeyPadView extends StatelessWidget {
-  KeyPadView({Key? key, required this.model}) : super(key: key);
+  KeyPadView({Key? key, required this.model, this.isBigScreen = false})
+      : super(key: key);
   final BusinessHomeViewModel model;
+  final bool isBigScreen;
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = 600;
+    final screenHeight = isBigScreen ? 200 : 600;
     final paddingHeight = screenHeight * 0.1; // 10% of screen height
     return Expanded(
       child: Column(
@@ -30,7 +32,7 @@ class KeyPadView extends StatelessWidget {
           Padding(
             padding: EdgeInsets.symmetric(vertical: paddingHeight),
             child: Text(
-              "RWF ${model.keypad.key}",
+              "${model.keypad.key} RWF",
               style: GoogleFonts.poppins(
                 fontSize: 35,
                 fontWeight: FontWeight.w500,

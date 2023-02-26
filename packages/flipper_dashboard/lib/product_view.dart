@@ -3,6 +3,7 @@ import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_dashboard/product_row.dart';
 import 'package:flipper_dashboard/tenants_list.dart';
 import 'package:flipper_routing/routes.router.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -91,6 +92,7 @@ class _ProductViewState extends State<ProductView> {
                               .searchTransformer(searchController.text)),
                       builder: (context, snapshot) {
                         final products = snapshot.data ?? [];
+
                         return Wrap(
                           spacing: 10.0, // set spacing between items
                           runSpacing: 10.0, // set spacing between lines
@@ -163,6 +165,21 @@ class _ProductViewState extends State<ProductView> {
                                 ),
                               ),
                             ),
+                            products.isEmpty
+                                ? Center(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          FluentIcons.calendar_cancel_20_filled,
+                                          size: 48,
+                                        ),
+                                        Text('No items found'),
+                                      ],
+                                    ),
+                                  )
+                                : SizedBox.shrink(),
                             ...products.map(
                               (product) {
                                 return FutureBuilder<List<Stock?>>(
