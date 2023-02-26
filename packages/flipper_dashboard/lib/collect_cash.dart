@@ -146,12 +146,12 @@ class _CollectCashViewState extends State<CollectCashView> {
                               child: SizedBox(
                                 width: double.infinity,
                                 height: 50,
-                                child: OutlinedButton(
+                                child: TextButton(
                                   child: Text('Tender',
                                       style: GoogleFonts.poppins(
                                         fontSize: 16.0,
-                                        fontWeight: FontWeight.w500,
-                                        color: Colors.white,
+                                        fontWeight: FontWeight.w400,
+                                        color: Colors.black,
                                       )),
                                   style: ButtonStyle(
                                     shape: MaterialStateProperty.resolveWith<
@@ -163,7 +163,7 @@ class _CollectCashViewState extends State<CollectCashView> {
                                     ),
                                     backgroundColor:
                                         MaterialStateProperty.all<Color>(
-                                            const Color(0xff006AFE)),
+                                            const Color(0xffF2F2F2)),
                                     overlayColor: MaterialStateProperty
                                         .resolveWith<Color?>(
                                       (Set<MaterialState> states) {
