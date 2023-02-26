@@ -115,6 +115,22 @@ class _AddProductButtonsState extends State<AddProductButtons> {
                   width: double.infinity,
                   height: 64,
                   child: TextButton(
+                    style: ButtonStyle(
+                      shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
+                        (states) => RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
+                      ),
+                      overlayColor: MaterialStateProperty.resolveWith<Color?>(
+                        (Set<MaterialState> states) {
+                          if (states.contains(MaterialState.hovered)) {
+                            return Colors.blue.withOpacity(0.04);
+                          }
+
+                          return null; // Defer to the widget's default.
+                        },
+                      ),
+                    ),
                     child: Text('Dismiss',
                         style: GoogleFonts.poppins(
                             fontWeight: FontWeight.w500,
