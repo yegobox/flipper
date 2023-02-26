@@ -50,17 +50,17 @@ class _CheckOutState extends State<CheckOut>
 
     if (widget.isBigScreen) {
       return Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.only(top: 3.0),
         child: Column(
           children: [
             Padding(
               padding: EdgeInsets.fromLTRB(leftPadding, topBottomPadding,
                   topBottomPadding, topBottomPadding),
               child: Container(
-                height: 46,
+                height: 40,
                 decoration: BoxDecoration(
                   color: const Color(0xffE5E5E5),
-                  borderRadius: BorderRadius.circular(4.0),
+                  borderRadius: BorderRadius.circular(0.0),
                 ),
                 child: TabBar(
                   onTap: (v) {

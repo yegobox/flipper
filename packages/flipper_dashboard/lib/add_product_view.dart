@@ -271,7 +271,7 @@ class _AddProductViewState extends State<AddProductView> {
                     padding: const EdgeInsets.only(left: 18, right: 18),
                     child: SizedBox(
                       width: double.infinity,
-                      child: OutlinedButton(
+                      child: TextButton(
                         child: Text(
                             (model.product == null ||
                                     (model.product != null &&
@@ -286,6 +286,12 @@ class _AddProductViewState extends State<AddProductView> {
                               color: Colors.white,
                             )),
                         style: ButtonStyle(
+                          shape:
+                              MaterialStateProperty.resolveWith<OutlinedBorder>(
+                            (states) => RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(4.0),
+                            ),
+                          ),
                           backgroundColor: MaterialStateProperty.all<Color>(
                               const Color(0xff006AFE)),
                           overlayColor:

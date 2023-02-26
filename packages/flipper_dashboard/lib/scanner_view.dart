@@ -1,9 +1,11 @@
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_ui/toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:stacked/stacked.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flipper_services/proxy.dart';
@@ -131,6 +133,9 @@ class _ScannViewState extends State<ScannView> {
 
   void scanToLogin({required String? result}) {
     if (result != null && result.contains('-')) {
+      // haptic feedback for a user to know we have got the scan result
+      HapticFeedback.lightImpact();
+      showToast(context, 'Login success');
       final split = result.split('-');
       if (split.length > 1 && split[0] == 'login') {
         /// send the login detail to pubnub
@@ -161,7 +166,7 @@ class _ScannViewState extends State<ScannView> {
       navigate('11232532', model);
     }
 
-    controller.scannedDataStream.listen((scanData) {
+    controller.scannedDataStream.first.then((scanData) {
       if (result == null) {
         setState(() async {
           result = scanData;
@@ -188,6 +193,8 @@ class _ScannViewState extends State<ScannView> {
           navigate(scanData.code, model);
         });
       }
+    }).catchError((error) {
+      // Handle the error here
     });
   }
 

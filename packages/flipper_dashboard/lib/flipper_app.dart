@@ -273,6 +273,10 @@ class _FlipperAppState extends State<FlipperApp>
                         child: SizedBox.shrink(),
                       ),
                       // Left menu
+                      // ignore: todo
+                      // TODO: left menu will be essential when we add socials feature
+                      // by the time I implement it I will remove the above SizedBox as it is helping me
+                      // to keep the design consistent for now.
                       // Container(
                       //   width: 150,
                       //   child: SideMenu(
