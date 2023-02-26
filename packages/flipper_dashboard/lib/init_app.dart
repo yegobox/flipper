@@ -1,5 +1,8 @@
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
+import 'package:universal_platform/universal_platform.dart';
+
+final isWindows = UniversalPlatform.isWindows;
 
 class InitApp {
   static void init() {
@@ -31,7 +34,9 @@ class InitApp {
     // ScrollController(keepScrollOffset: true, initialScrollOffset: 0);
     ProxyService.cron.schedule();
 
-    ProxyService.appService.updateStatusColor();
+    if (isWindows) {
+      ProxyService.appService.updateStatusColor();
+    }
 
     ProxyService.appService.appBarColor(Colors.black);
 

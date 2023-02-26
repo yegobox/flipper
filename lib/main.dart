@@ -59,7 +59,6 @@ import 'init.dart'
     if (dart.library.io) 'io_init.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:desktop_window/desktop_window.dart';
 
 final isIos = UniversalPlatform.isIOS;
 final isWindows = UniversalPlatform.isWindows;
@@ -517,14 +516,7 @@ void main() async {
     );
     if (!isWindows) {
       FirebaseMessaging.onBackgroundMessage(backgroundHandler);
-    } else if (isWindows) {
-      await DesktopWindow.setWindowSize(const Size(700, 1000));
-
-      await DesktopWindow.setMinWindowSize(const Size(700, 1000));
-      await DesktopWindow.setMaxWindowSize(const Size(700, 1000));
-
-      await DesktopWindow.resetMaxWindowSize();
-    }
+    } else if (isWindows) {}
     WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
     FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
     runApp(

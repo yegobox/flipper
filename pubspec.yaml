@@ -86,7 +86,6 @@ dev_dependencies:
   matcher: ^0.12.10
   msix: ^3.6.2-dev
   flutter_lints: ^2.0.0
-  desktop_window: ^0.4.0
 
 flutter_icons:
   android: "launcher_icon"

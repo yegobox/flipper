@@ -58,6 +58,11 @@ class _DrawerScreenState extends State<DrawerScreen> {
                         widget.open == "open" ? "Open Drawer" : "Close Drawer",
                         style: const TextStyle(color: Colors.white)),
                     style: ButtonStyle(
+                      shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
+                        (states) => RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
+                      ),
                       backgroundColor: MaterialStateProperty.all<Color>(
                           const Color(0xff006AFE)),
                       overlayColor: MaterialStateProperty.resolveWith<Color?>(

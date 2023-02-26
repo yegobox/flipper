@@ -23,7 +23,6 @@ class StartUpViewModel extends BaseViewModel {
     required LoginInfo loginInfo,
     required Function navigationCallback,
   }) async {
-    ProxyService.isarApi.logOut();
     loginInfo.redirecting = true;
     try {
       /// an event should be trigered from mobile not desktop as desktop is anonmous and login() func might have been called.
@@ -44,7 +43,7 @@ class StartUpViewModel extends BaseViewModel {
       }
       loginInfo.isLoggedIn = true;
       navigationCallback("home");
-    } catch (e) {
+    } catch (e, stack) {
       if (e is LoginChoicesException) {
         loginInfo.isLoggedIn = false;
         loginInfo.loginChoices = true;
@@ -58,6 +57,7 @@ class StartUpViewModel extends BaseViewModel {
         navigationCallback("signup");
       } else {
         log.i(e.toString());
+        log.i(stack);
         ProxyService.isarApi.logOut();
         loginInfo.isLoggedIn = false;
         navigationCallback("login");

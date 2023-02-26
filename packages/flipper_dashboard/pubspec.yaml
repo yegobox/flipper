@@ -77,6 +77,10 @@ dependencies:
   fluentui_system_icons: ^1.1.190
   keyboard_visibility_pro: ^0.0.1
   battery_plus: ^3.0.3
+  easy_sidemenu:
+    git:
+      url: https://github.com/Jamalianpour/easy_sidemenu.git
+      ref: master
 flutter:
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

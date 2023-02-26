@@ -11,9 +11,11 @@ class CheckOut extends StatefulWidget {
       {Key? key,
       required this.model,
       required this.controller,
-      required this.tabController})
+      required this.tabController,
+      required this.isBigScreen})
       : super(key: key);
   final BusinessHomeViewModel model;
+  final bool isBigScreen;
   final TextEditingController controller;
   final TabController tabController;
 
@@ -21,8 +23,15 @@ class CheckOut extends StatefulWidget {
   State<CheckOut> createState() => _CheckOutState();
 }
 
-class _CheckOutState extends State<CheckOut> {
+class _CheckOutState extends State<CheckOut>
+    with SingleTickerProviderStateMixin {
   final FocusNode keyPadFocusNode = FocusNode();
+  late TabController _tabController;
+  @override
+  void initState() {
+    _tabController = TabController(length: 1, vsync: this);
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,6 +48,95 @@ class _CheckOutState extends State<CheckOut> {
 
     // Get the screen size
 
+    if (widget.isBigScreen) {
+      return Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          children: [
+            Padding(
+              padding: EdgeInsets.fromLTRB(leftPadding, topBottomPadding,
+                  topBottomPadding, topBottomPadding),
+              child: Container(
+                height: 46,
+                decoration: BoxDecoration(
+                  color: const Color(0xffE5E5E5),
+                  borderRadius: BorderRadius.circular(4.0),
+                ),
+                child: TabBar(
+                  onTap: (v) {
+                    FocusScope.of(context).unfocus();
+                  },
+                  controller: _tabController,
+                  // give the indicator a decoration (color and border radius)
+                  indicator: BoxDecoration(
+                    borderRadius: BorderRadius.circular(4.0),
+                    color: const Color(0xffFFFFFF),
+                  ),
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  indicatorPadding: EdgeInsets.only(
+                    left: 120,
+                    right: 120,
+                    top: 6,
+                    bottom: 6,
+                  ),
+                  labelColor: Colors.black,
+                  // labelStyle: tabLabelStyle,
+                  // unselectedLabelColor: Colors.black,
+                  // indicatorColor: Colors.black,
+                  tabs: const [
+                    // first tab [you can add an icon using the icon property]
+                    Tab(
+                      text: 'Keypad',
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            KeyPadView(
+              model: widget.model,
+              isBigScreen: widget.isBigScreen,
+            ),
+            Padding(
+              padding: EdgeInsets.fromLTRB(0.0, topPadding, 0, 0),
+              child: PaymentTicketManager(
+                context: context,
+                model: widget.model,
+                controller: widget.controller,
+                nodeDisabled: true,
+              ),
+            ),
+            SizedBox(
+              height: 30,
+            )
+          ],
+        ),
+      );
+    } else {
+      return NewWidget(
+          leftPadding: leftPadding,
+          topBottomPadding: topBottomPadding,
+          widget: widget,
+          topPadding: topPadding);
+    }
+  }
+}
+
+class NewWidget extends StatelessWidget {
+  const NewWidget({
+    super.key,
+    required this.leftPadding,
+    required this.topBottomPadding,
+    required this.widget,
+    required this.topPadding,
+  });
+
+  final double leftPadding;
+  final double topBottomPadding;
+  final CheckOut widget;
+  final double topPadding;
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       children: [
         // give the tab bar a height [can change height to preferred height]

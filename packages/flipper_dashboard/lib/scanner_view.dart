@@ -60,8 +60,6 @@ class _ScannViewState extends State<ScannView> {
                   icon: const CircleAvatar(
                     child: Icon(
                       Icons.close,
-                      // size: 40,
-                      color: Colors.white,
                     ),
                   ),
                 ),

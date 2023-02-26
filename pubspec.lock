@@ -113,6 +113,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0"
+  badges:
+    dependency: transitive
+    description:
+      name: badges
+      sha256: "727580d938b7a1ff47ea42df730d581415606b4224cfa708671c10287f8d3fe6"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.3"
   barcode:
     dependency: transitive
     description:
@@ -431,14 +439,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.0.11"
-  desktop_window:
-    dependency: "direct dev"
-    description:
-      name: desktop_window
-      sha256: "6256fb6feb7b5ec1311c76a3503f89202825bfe92c0458ec5fe7a728ffa216d5"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.4.0"
   device_info_plus:
     dependency: "direct overridden"
     description:
@@ -481,6 +481,15 @@ packages:
       relative: true
     source: path
     version: "3.0.0-dev"
+  easy_sidemenu:
+    dependency: transitive
+    description:
+      path: "."
+      ref: master
+      resolved-ref: "441ec8fa0125eb37d7beb6eb90598d07b0de053f"
+      url: "https://github.com/Jamalianpour/easy_sidemenu.git"
+    source: git
+    version: "0.4.1"
   email_validator:
     dependency: transitive
     description:

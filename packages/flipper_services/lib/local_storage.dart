@@ -9,8 +9,8 @@ class LocalStorageImpl implements LocalStorage {
   }
 
   @override
-  bool write({required dynamic key, required dynamic value}) {
-    box.write(key, value);
+  Future<bool> write({required dynamic key, required dynamic value}) async {
+    await box.write(key, value);
     return true;
   }
 

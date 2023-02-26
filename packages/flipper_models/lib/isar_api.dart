@@ -22,10 +22,10 @@ class ExtendedClient extends http.BaseClient {
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
-    String? token = ProxyService.box.read(key: 'bearerToken');
-    String? userId = ProxyService.box.read(key: 'userId');
-    request.headers['Authorization'] = token ?? '';
-    request.headers['userId'] = userId ?? '';
+    String token = ProxyService.box.read(key: 'bearerToken');
+    String userId = ProxyService.box.read(key: 'userId');
+    request.headers['Authorization'] = token;
+    request.headers['userId'] = userId;
     request.headers['Content-Type'] = 'application/json';
 
     try {
@@ -1134,15 +1134,15 @@ class IsarAPI implements IsarApiInterface {
       ),
     );
     if (response.statusCode == 200) {
-      ProxyService.box.write(
+      await ProxyService.box.write(
         key: 'bearerToken',
         value: syncFFromJson(response.body).token,
       );
-      ProxyService.box.write(
+      await ProxyService.box.write(
         key: 'userId',
         value: syncFFromJson(response.body).id.toString(),
       );
-      ProxyService.box.write(
+      await ProxyService.box.write(
         key: 'userPhone',
         value: userPhone,
       );
