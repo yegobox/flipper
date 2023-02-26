@@ -9,11 +9,11 @@ class AddCustomerButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(19.0, 10, 19.0, 0),
+      padding: const EdgeInsets.fromLTRB(19.0, 30, 19.0, 0),
       child: SizedBox(
         height: 64,
         width: double.infinity,
-        child: OutlinedButton(
+        child: TextButton(
             style: ButtonStyle(
               shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
                 (states) => RoundedRectangleBorder(

@@ -22,7 +22,7 @@ class ChargeButton extends StatelessWidget {
       child: SizedBox(
         height: 64,
         width: double.infinity,
-        child: OutlinedButton(
+        child: TextButton(
             style: ButtonStyle(
               shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
                 (states) => RoundedRectangleBorder(
@@ -30,15 +30,15 @@ class ChargeButton extends StatelessWidget {
                 ),
               ),
               backgroundColor:
-                  MaterialStateProperty.all<Color>(const Color(0xff006AFE)),
+                  MaterialStateProperty.all<Color>(const Color(0xffF2F2F2)),
               overlayColor: MaterialStateProperty.resolveWith<Color?>(
                 (Set<MaterialState> states) {
                   if (states.contains(MaterialState.hovered)) {
-                    return Colors.blue.withOpacity(0.04);
+                    return const Color(0xffF2F2F2);
                   }
                   if (states.contains(MaterialState.focused) ||
                       states.contains(MaterialState.pressed)) {
-                    return Colors.blue.withOpacity(0.12);
+                    return const Color(0xffF2F2F2);
                   }
                   return null;
                 },
@@ -49,13 +49,14 @@ class ChargeButton extends StatelessWidget {
             },
             child: Text(
               FLocalization.of(context).charge +
-                  ' FRw ' +
-                  display(duePay ?? 0.00).toString(),
+                  ' ' +
+                  display(duePay ?? 0.00).toString() +
+                  ' FRw ',
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
                 fontSize: 19,
-                fontWeight: FontWeight.w500,
-                color: Colors.white,
+                fontWeight: FontWeight.w400,
+                color: Colors.black,
               ),
             )),
       ),

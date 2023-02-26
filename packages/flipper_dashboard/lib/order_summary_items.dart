@@ -16,7 +16,23 @@ List<Widget> buildItems(
   final List<Widget> list = [];
 
   if (items.isEmpty) {
-    list.add(const Center(child: Text('Current order has no items')));
+    list.add(
+      Column(
+        children: [
+          SizedBox(
+            height: 120,
+          ),
+          Text(
+            'Current order has no items',
+            style: GoogleFonts.poppins(
+              fontSize: 19,
+              fontWeight: FontWeight.w400,
+              color: Colors.black,
+            ),
+          ),
+        ],
+      ),
+    );
     return list;
   }
 
