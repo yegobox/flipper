@@ -32,7 +32,10 @@ SideBuilder sideImage(String assetName) {
     return Center(
       child: Padding(
         padding: EdgeInsets.all(constraints.maxWidth / 4),
-        child: Image.asset(assetName),
+        child: Image.asset(
+          assetName,
+          package: "flipper_login",
+        ),
       ),
     );
   };
