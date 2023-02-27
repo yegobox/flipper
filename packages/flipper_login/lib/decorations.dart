@@ -6,7 +6,10 @@ HeaderBuilder headerImage(String assetName) {
   return (context, constraints, _) {
     return Padding(
       padding: const EdgeInsets.all(20),
-      child: Image.asset(assetName),
+      child: Image.asset(
+        assetName,
+        package: "flipper_login",
+      ),
     );
   };
 }

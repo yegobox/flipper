@@ -41,6 +41,6 @@ dependencies:
 
 flutter:
   assets:
-    - ../../assets/
-    - ../../assets/icons/
-    - ../../google_fonts/
+    - assets/
+    # - ../../assets/icons/
+    # - ../../google_fonts/
