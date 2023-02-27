@@ -84,7 +84,7 @@ dev_dependencies:
   flutter_launcher_icons: ^0.11.0
   # objectbox_generator: ^1.4.0
   matcher: ^0.12.10
-  msix: ^3.6.2-dev
+  msix: ^3.8.2
   flutter_lints: ^2.0.0
 
 flutter_icons:
@@ -107,9 +107,16 @@ flutter_icons:
     image_path: "assets/icon/icon.png"
 msix_config:
   display_name: flipperApp
+  app_installer: #<-- app installer configuration
+    publish_folder_path: ./build
+    hours_between_update_checks: 0
+    automatic_background_task: true
+    update_blocks_activation: true
+    show_prompt: true
+    force_update_from_any_version: true
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
-  msix_version: 1.37.0.0
+  msix_version: 1.170.87.0
   publisher: CN=B0F98A1E-8AE8-4B2B-BD1B-F494D4F791AE
   logo_path: "./assets/icon/icon.png"
   start_menu_icon_path: "/assets/icon/icon.png"
@@ -118,6 +125,8 @@ msix_config:
   architecture: x64
   store: true
   enable_at_startup: true
+  app_uri_handler_hosts: flipper.rw
+  capabilities: internetClient
 
 flutter:
   # deferred-components:
