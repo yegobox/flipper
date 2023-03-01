@@ -2,12 +2,13 @@ library flipper_models;
 
 import 'package:flipper_models/isar/variant.dart';
 import 'package:isar/isar.dart';
+import 'package:isar_crdt/isar_crdt.dart';
 import 'package:pocketbase/pocketbase.dart';
 
 part 'product.g.dart';
 
 @Collection()
-class Product {
+class Product extends CrdtBaseObject {
   Id id = Isar.autoIncrement;
   @Index(caseSensitive: true)
   late String name;
@@ -97,5 +98,36 @@ class Product {
       bindedToTenantId: json['bindedToTenantId'],
       isFavorite: json['isFavorite'],
     );
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      "sid": sid,
+      "name": name,
+      "active": active,
+      "color": color,
+      "businessId": businessId,
+      "branchId": branchId,
+      "picture": picture,
+      "description": description,
+      "taxId": taxId,
+      "hasPicture": hasPicture,
+      "table": table,
+      "supplierId": supplierId,
+      "categoryId": categoryId,
+      "createdAt": createdAt,
+      "unit": unit,
+      "draft": draft,
+      "imageLocal": imageLocal,
+      "currentUpdate": currentUpdate,
+      "imageUrl": imageUrl,
+      "expiryDate": expiryDate,
+      "barCode": barCode,
+      "synced": synced,
+      "nfcEnabled": nfcEnabled,
+      "bindedToTenantId": bindedToTenantId,
+      "isFavorite": isFavorite,
+    };
   }
 }
