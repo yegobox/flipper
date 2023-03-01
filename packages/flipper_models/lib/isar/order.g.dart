@@ -254,7 +254,7 @@ Order _orderDeserialize(
   object.paymentType = reader.readString(offsets[10]);
   object.receiptType = reader.readStringOrNull(offsets[11]);
   object.reference = reader.readString(offsets[12]);
-  object.reported = reader.readBoolOrNull(offsets[13]);
+  object.reported = reader.readBool(offsets[13]);
   object.status = reader.readString(offsets[14]);
   object.subTotal = reader.readDouble(offsets[15]);
   object.updatedAt = reader.readStringOrNull(offsets[16]);
@@ -295,7 +295,7 @@ P _orderDeserializeProp<P>(
     case 12:
       return (reader.readString(offset)) as P;
     case 13:
-      return (reader.readBoolOrNull(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 14:
       return (reader.readString(offset)) as P;
     case 15:
@@ -641,28 +641,7 @@ extension OrderQueryWhere on QueryBuilder<Order, Order, QWhereClause> {
     });
   }
 
-  QueryBuilder<Order, Order, QAfterWhereClause> reportedIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'reported',
-        value: [null],
-      ));
-    });
-  }
-
-  QueryBuilder<Order, Order, QAfterWhereClause> reportedIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'reported',
-        lower: [null],
-        includeLower: false,
-        upper: [],
-      ));
-    });
-  }
-
-  QueryBuilder<Order, Order, QAfterWhereClause> reportedEqualTo(
-      bool? reported) {
+  QueryBuilder<Order, Order, QAfterWhereClause> reportedEqualTo(bool reported) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
         indexName: r'reported',
@@ -672,7 +651,7 @@ extension OrderQueryWhere on QueryBuilder<Order, Order, QWhereClause> {
   }
 
   QueryBuilder<Order, Order, QAfterWhereClause> reportedNotEqualTo(
-      bool? reported) {
+      bool reported) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -1964,24 +1943,8 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Order, Order, QAfterFilterCondition> reportedIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'reported',
-      ));
-    });
-  }
-
-  QueryBuilder<Order, Order, QAfterFilterCondition> reportedIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'reported',
-      ));
-    });
-  }
-
   QueryBuilder<Order, Order, QAfterFilterCondition> reportedEqualTo(
-      bool? value) {
+      bool value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'reported',
@@ -3066,7 +3029,7 @@ extension OrderQueryProperty on QueryBuilder<Order, Order, QQueryProperty> {
     });
   }
 
-  QueryBuilder<Order, bool?, QQueryOperations> reportedProperty() {
+  QueryBuilder<Order, bool, QQueryOperations> reportedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'reported');
     });

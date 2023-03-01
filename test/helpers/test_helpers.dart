@@ -123,8 +123,8 @@ MockFirebaseMessaging getFirebaseMessaging() {
 MockFlipperLocation getAndRegisterLocationService() {
   _removeRegistrationIfExists<FlipperLocation>();
   final service = MockFlipperLocation();
-  when(service.getLocation())
-      .thenAnswer((_) async => {'longitude': "1.1", 'latitude': "1.1"});
+  // when(service.getLocation())
+  //     .thenAnswer((_) async => {'longitude': "1.1", 'latitude': "1.1"});
   when(service.doWeHaveLocationPermission()).thenAnswer((_) async => false);
   locator.registerSingleton<FlipperLocation>(service);
   return service;
@@ -168,17 +168,18 @@ MockLocalStorage getAndRegisterLocalStorage() {
   when(service.read(key: 'referralCode')).thenAnswer((_) => "11");
   when(service.read(key: 'businessId')).thenAnswer((_) => 10);
   when(service.read(key: pageKey)).thenAnswer((_) => 'XXX');
-  when(service.write(key: pageKey, value: 'key')).thenAnswer((_) => true);
-  when(service.write(key: 'branchId', value: anyNamed("value")))
-      .thenAnswer((_) => true);
-  when(service.write(key: 'currentOrderId', value: anyNamed("value")))
-      .thenAnswer((_) => true);
-  when(service.write(key: 'businessId', value: anyNamed("value")))
-      .thenAnswer((_) => true);
-  when(service.write(key: 'businessUrl', value: anyNamed("value")))
-      .thenAnswer((_) => true);
-  when(service.write(key: 'userName', value: anyNamed("value")))
-      .thenAnswer((_) => true);
+
+  // when(service.write(key: pageKey, value: 'key')).thenAnswer((_) => true);
+  // when(service.write(key: 'branchId', value: anyNamed("value")))
+  //     .thenAnswer((_) => true);
+  // when(service.write(key: 'currentOrderId', value: anyNamed("value")))
+  //     .thenAnswer((_) => true);
+  // when(service.write(key: 'businessId', value: anyNamed("value")))
+  //     .thenAnswer((_) => true);
+  // when(service.write(key: 'businessUrl', value: anyNamed("value")))
+  //     .thenAnswer((_) => true);
+  // when(service.write(key: 'userName', value: anyNamed("value")))
+  //     .thenAnswer((_) => true);
 
   locator.registerSingleton<LocalStorage>(service);
   return service;

@@ -52,7 +52,6 @@ class ProductService with ListenableServiceMixin {
   Future<void> variantsProduct({required int productId}) async {
     _variants.value = await ProxyService.isarApi
         .variants(branchId: branchId!, productId: productId);
-    log.d(variants!.first.retailPrice);
     notifyListeners();
   }
 

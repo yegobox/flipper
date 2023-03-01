@@ -30,3 +30,4 @@ class AppSetup {
 
 // FIXME: use dart-define for secrets
 // https://thiele.dev/blog/part-1-configure-a-flutter-app-with-dart-define-environment-variable/
+// flutter pub run msix:create

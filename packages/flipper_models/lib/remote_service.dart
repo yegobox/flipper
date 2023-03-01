@@ -15,8 +15,10 @@ abstract class RemoteInterface<T> {
 class RemoteService<T> implements RemoteInterface {
   late PocketBase pb;
   Future<RemoteInterface> getInstance() async {
-    pb = PocketBase('https://db.yegobox.com');
-    await pb.admins.authWithPassword('info@yegobox.com', '5nUeS5TjpArcSGd');
+    try {
+      pb = PocketBase('https://db.yegobox.com');
+      await pb.admins.authWithPassword('info@yegobox.com', '5nUeS5TjpArcSGd');
+    } catch (e) {}
     return this;
   }
 

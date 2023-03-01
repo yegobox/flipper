@@ -55,7 +55,7 @@ Widget PaymentTicketManager(
           );
         }
         model.saveTicket((handle) {
-          if (handle == 'error') {
+          if (handle == 'noNote') {
             FlipperBottomSheet.showAddNoteToSaleBottomSheet(
               model: model,
               context: context,

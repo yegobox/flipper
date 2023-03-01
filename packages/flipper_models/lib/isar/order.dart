@@ -25,7 +25,7 @@ class Order {
   String? receiptType;
   String? updatedAt;
   @Index()
-  bool? reported;
+  late bool reported;
   int? customerId;
   String? note;
   final orderItems = IsarLinks<OrderItem>();

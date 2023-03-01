@@ -138,6 +138,9 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         await saveOrder(
             amountTotal: amount, variationId: variation!.id, customItem: true);
         Order? updatedOrder = await ProxyService.isarApi.manageOrder();
+        items = await ProxyService.isarApi.orderItems(orderId: updatedOrder.id);
+        updatedOrder.subTotal = items.fold(0, (a, b) => a + (b.price * b.qty));
+        await ProxyService.isarApi.update(data: updatedOrder);
         keypad.setOrder(updatedOrder);
         currentOrder();
       } else if (ProxyService.keypad.key.length > 1) {
@@ -508,7 +511,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     // Map map = _order.toJson();
     _order!.status = parkedStatus;
     if (_order.note == null || _order.note == '') {
-      callBack('error');
+      callBack('noNote');
     } else {
       ProxyService.isarApi.update(data: _order);
       //refresh order afterwards

@@ -23,7 +23,7 @@ void showToast(BuildContext context, String message, {Object? color}) {
         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         decoration: BoxDecoration(
           color: _color,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(10),
         ),
         child: Center(
           child: FittedBox(

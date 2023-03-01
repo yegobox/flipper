@@ -90,7 +90,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                       _title ?? '',
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
-                          fontSize: 19, fontWeight: FontWeight.w600),
+                          fontSize: 16, fontWeight: FontWeight.w400),
                     ),
               trailing: _showActionButton == null || !_showActionButton!
                   ? const SizedBox.shrink()

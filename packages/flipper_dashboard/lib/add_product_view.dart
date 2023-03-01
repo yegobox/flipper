@@ -122,6 +122,11 @@ class _AddProductViewState extends State<AddProductView> {
 
     return ViewModelBuilder<ProductViewModel>.reactive(
       onViewModelReady: (model) async {
+        // productName.addListener(() {
+        //   if (productName.text == " ") {
+        //     model.lockButton(true);
+        //   }
+        // });
         // start by reseting bar code.
         if (SchedulerBinding.instance.schedulerPhase ==
             SchedulerPhase.persistentCallbacks) {
@@ -129,13 +134,12 @@ class _AddProductViewState extends State<AddProductView> {
             model.productService.setBarcode('');
           });
         }
-
         await model.getTempOrCreateProduct(productId: widget.productId);
         model.loadCategories();
         model.loadColors();
         model.loadUnits();
         //start locking the save button
-        model.setName(productName: ' ');
+        model.setName(name: ' ');
 
         /// get the regular variant then get it's price to fill in the form when we are in edit mode!
         /// normal this is a List of variants where match the productId and take where we have the regular variant
@@ -152,7 +156,7 @@ class _AddProductViewState extends State<AddProductView> {
           if (regularVariant.retailPrice.toString() != '0.0') {
             retailPriceController.text = regularVariant.retailPrice.toString();
 
-            model.isPriceSet(true);
+            model.lockButton(false);
           }
           if (regularVariant.supplyPrice.toString() != '0.0') {
             supplyPriceController.text = regularVariant.supplyPrice.toString();
@@ -172,6 +176,12 @@ class _AddProductViewState extends State<AddProductView> {
               disableButton: model.lock,
               showActionButton: true,
               onPressedCallback: () async {
+                log.e(model.productName);
+                if (model.productName == " ") {
+                  showToast(context, 'Provide name for the product');
+                  return;
+                }
+
                 await model.addProduct(mproduct: model.product);
                 // then re-update the product default variant with retail price
                 // retailPriceController this is to present missing out key stroke.
@@ -179,7 +189,8 @@ class _AddProductViewState extends State<AddProductView> {
                     retailPrice: double.parse(retailPriceController.text),
                     productId: model.product.id);
                 await model.updateRegularVariant(
-                    supplyPrice: double.parse(supplyPriceController.text),
+                    supplyPrice:
+                        double.tryParse(supplyPriceController.text) ?? 0.0,
                     productId: model.product.id);
 
                 GoRouter.of(context).pop();
@@ -187,7 +198,7 @@ class _AddProductViewState extends State<AddProductView> {
               rightActionButtonName: 'Save',
               icon: Icons.close,
               multi: 3,
-              bottomSpacer: 50,
+              bottomSpacer: 41,
             ),
             body: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
@@ -197,7 +208,7 @@ class _AddProductViewState extends State<AddProductView> {
                   model.product == null
                       ? const SizedBox.shrink()
                       : ColorAndImagePlaceHolder(
-                          currentColor: model.currentColor,
+                          currentColor: model.app.currentColor,
                           product: model.product,
                         ),
                   const Text('Product'),
@@ -212,21 +223,20 @@ class _AddProductViewState extends State<AddProductView> {
                             hintText: "Product Name"),
                         controller: productName,
                         onChanged: (value) {
-                          /// for locking on unlocking the save button
-                          model.setName(productName: value);
+                          model.setName(name: value);
                         },
                       ),
                     ),
                   ),
                   CategorySelector(categories: model.categories),
                   verticalSpaceSmall,
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.only(left: 18, right: 18),
                     child: SizedBox(
                       width: double.infinity,
-                      child: Text(
-                        'PRICE AND INVENTORY',
-                      ),
+                      child: Text('PRICE AND INVENTORY',
+                          style: GoogleFonts.poppins(
+                              fontSize: 20, color: Colors.black)),
                     ),
                   ),
                   const CenterDivider(
@@ -245,12 +255,19 @@ class _AddProductViewState extends State<AddProductView> {
                     onModelUpdate: (value) async {
                       String trimed = value.trim();
                       if (trimed.isNotEmpty) {
-                        model.isPriceSet(true);
-                        await model.updateRegularVariant(
-                            retailPrice: double.parse(value),
-                            productId: model.product.id);
+                        double? parsedValue = double.tryParse(value);
+                        if (parsedValue != null) {
+                          model.lockButton(false);
+                          log.i(parsedValue);
+                          await model.updateRegularVariant(
+                              retailPrice: parsedValue,
+                              productId: model.product.id);
+                        } else {
+                          model.lockButton(true);
+                          return '.';
+                        }
                       } else {
-                        model.isPriceSet(false);
+                        model.lockButton(true);
                       }
                     },
                   ),
@@ -260,9 +277,14 @@ class _AddProductViewState extends State<AddProductView> {
                     onModelUpdate: (value) async {
                       String trimed = value.trim();
                       if (trimed.isNotEmpty) {
-                        await model.updateRegularVariant(
-                            supplyPrice: double.parse(value),
-                            productId: model.product.id);
+                        double? parsedValue = double.tryParse(value);
+                        if (parsedValue != null) {
+                          await model.updateRegularVariant(
+                              supplyPrice: parsedValue,
+                              productId: model.product.id);
+                        } else {
+                          return '.';
+                        }
                       }
                     },
                   ),
@@ -282,18 +304,18 @@ class _AddProductViewState extends State<AddProductView> {
                                         model.product.expiryDate)),
                             style: GoogleFonts.poppins(
                               fontSize: 16.0,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.white,
+                              fontWeight: FontWeight.w400,
+                              color: Colors.black,
                             )),
                         style: ButtonStyle(
                           shape:
                               MaterialStateProperty.resolveWith<OutlinedBorder>(
                             (states) => RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(4.0),
+                              borderRadius: BorderRadius.circular(10.0),
                             ),
                           ),
                           backgroundColor: MaterialStateProperty.all<Color>(
-                              const Color(0xff006AFE)),
+                              const Color(0xffF2F2F2)),
                           overlayColor:
                               MaterialStateProperty.resolveWith<Color?>(
                             (Set<MaterialState> states) {

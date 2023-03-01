@@ -12,28 +12,26 @@ import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/product_service.dart';
 
 import 'package:flipper_services/constants.dart';
+import 'package:stacked/stacked.dart';
 
 // class ProductViewModel extends BusinessHomeViewModel {
 class ProductViewModel extends AddTenantViewModel {
   // extends ReactiveViewModel
-  final AppService _appService = locator<AppService>();
+  final AppService app = locator<AppService>();
   // ignore: annotate_overrides, overridden_fields
   final log = getLogger('ProductViewModel');
   final ProductService productService = locator<ProductService>();
 
-  List<PColor> get colors => _appService.colors;
+  List<PColor> get colors => app.colors;
 
-  List<IUnit> get units => _appService.units;
+  List<IUnit> get units => app.units;
 
-  get categories => _appService.categories;
+  get categories => app.categories;
 
   get product => productService.product;
 
   String? _productName;
-
   get productName => _productName;
-
-  get currentColor => _appService.currentColor;
 
   List<Variant>? get variants => productService.variants;
 
@@ -43,7 +41,6 @@ class ProductViewModel extends AddTenantViewModel {
 
   /// Create a temporal product to use during this session of product creation
   /// the same product will be use if it is still temp product
-  ///
   String kProductName = 'null';
   Future<int> getTempOrCreateProduct({int? productId}) async {
     if (productId != null) {
@@ -79,34 +76,28 @@ class ProductViewModel extends AddTenantViewModel {
     return isTemp.id;
   }
 
-  void isPriceSet(bool price) {
-    _price = price;
-    _lock = !price || _productName == null;
-    rebuildUi();
-  }
-
-  bool _price = false;
-
-  void setName({String? productName}) {
-    _productName = productName;
-    final cleaned = productName?.trim();
-    _lock = cleaned?.length == null || !_price;
-    rebuildUi();
+  void setName({String? name}) {
+    _productName = name;
+    notifyListeners();
   }
 
   bool _lock = false;
   bool get lock => _lock;
+  void lockButton(bool value) {
+    _lock = value;
+    rebuildUi();
+  }
 
   void loadCategories() {
-    _appService.loadCategories();
+    app.loadCategories();
   }
 
   void loadUnits() {
-    _appService.loadUnits();
+    app.loadUnits();
   }
 
   void loadColors() {
-    _appService.loadColors();
+    app.loadColors();
   }
 
   ///create a new category and refresh list of categories
@@ -119,10 +110,10 @@ class ProductViewModel extends AddTenantViewModel {
       ..active = true
       ..table = AppTables.category
       ..focused = false
-      ..name = productName
+      ..name = productName!
       ..branchId = branchId!;
     await ProxyService.isarApi.create(endPoint: 'category', data: category);
-    _appService.loadCategories();
+    app.loadCategories();
   }
 
   void updateCategory({required Category category}) async {
@@ -146,7 +137,7 @@ class ProductViewModel extends AddTenantViewModel {
     await ProxyService.isarApi.update(
       data: cat,
     );
-    _appService.loadCategories();
+    app.loadCategories();
   }
 
   /// Should save a focused unit given the id to persist to
@@ -181,7 +172,7 @@ class ProductViewModel extends AddTenantViewModel {
       // ProxyService.isarApi.update(data: data, endPoint: 'variant');
     }
     notifyListeners();
-    _appService.loadUnits();
+    app.loadUnits();
   }
 
   void updateStock({required int variantId}) async {
@@ -241,7 +232,7 @@ class ProductViewModel extends AddTenantViewModel {
         final PColor? _color = await ProxyService.isarApi.getColor(id: c.id);
         _color!.active = false;
         _color.branchId = branchId;
-        ProxyService.isarApi.update(data: _color);
+        await ProxyService.isarApi.update(data: _color);
       }
     }
 
@@ -249,9 +240,9 @@ class ProductViewModel extends AddTenantViewModel {
 
     _color!.active = true;
     _color.branchId = branchId;
-    ProxyService.isarApi.update(data: _color);
+    await ProxyService.isarApi.update(data: _color);
 
-    _appService.setCurrentColor(color: color.name!);
+    app.setCurrentColor(color: color.name!);
 
     rebuildUi();
 
@@ -319,7 +310,7 @@ class ProductViewModel extends AddTenantViewModel {
           if (stock != null) {
             stock.retailPrice = retailPrice;
 
-            ProxyService.isarApi.update(data: stock);
+            await ProxyService.isarApi.update(data: stock);
           }
         }
       }
@@ -334,8 +325,8 @@ class ProductViewModel extends AddTenantViewModel {
     // String mproductName =
     mproduct.name = productName;
     mproduct.barCode = productService.barCode.toString();
-    mproduct.color = currentColor;
-    mproduct.color = currentColor;
+    mproduct.color = app.currentColor;
+    mproduct.color = app.currentColor;
     mproduct.draft = false;
     final response = await ProxyService.isarApi.update(data: mproduct);
     List<Variant> variants = await ProxyService.isarApi
@@ -408,8 +399,6 @@ class ProductViewModel extends AddTenantViewModel {
           await ProxyService.isarApi.update(data: item);
         }
       }
-      // TODOD: update the order commented this may cause issue. as I no longer extends businessHomeViewmodel
-      // updatePayable();
       return true;
     }
     return false;
@@ -425,4 +414,7 @@ class ProductViewModel extends AddTenantViewModel {
       // handle the exception
     }
   }
+
+  @override
+  List<ListenableServiceMixin> get listenableServices => [app, productService];
 }

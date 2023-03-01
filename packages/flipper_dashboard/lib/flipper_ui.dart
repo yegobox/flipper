@@ -38,7 +38,7 @@ class FLipperButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       height: 52,
-      child: OutlinedButton(
+      child: TextButton(
         onPressed: _disableButton ? null : onPressedCallback,
         child: Text(
           _buttonName,

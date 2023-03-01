@@ -36,7 +36,7 @@ class AppService with ListenableServiceMixin {
   final _colors = ReactiveValue<List<PColor>>([]);
   List<PColor> get colors => _colors.value;
 
-  final _currentColor = ReactiveValue<String>('#ee5253');
+  final _currentColor = ReactiveValue<String>('#0984e3');
   String get currentColor => _currentColor.value;
 
   final _customer = ReactiveValue<Customer?>(null);
@@ -249,7 +249,7 @@ class AppService with ListenableServiceMixin {
     );
 
     for (Order completedOrder in completedOrders) {
-      if (!completedOrder.reported!) {
+      if (!completedOrder.reported) {
         String namesString = (await ProxyService.isarApi.orderItems(
           orderId: completedOrder.id,
         ))

@@ -20,7 +20,7 @@ class ColorTile extends StatelessWidget {
             onPop: () {
               GoRouter.of(context).pop();
             },
-            title: 'Edit product Tile',
+            title: 'Edit product Tiles',
             icon: Icons.keyboard_backspace,
             multi: 3,
             bottomSpacer: 52,
@@ -54,8 +54,8 @@ class ColorTile extends StatelessWidget {
                                           color: Color(0xFFbdc6cf)),
                                       decoration: InputDecoration(
                                         filled: true,
-                                        fillColor: HexColor(
-                                            model.currentColor ?? '#0984e3'),
+                                        fillColor:
+                                            HexColor(model.app.currentColor),
                                         focusedBorder: const OutlineInputBorder(
                                           borderSide:
                                               BorderSide(color: Colors.white),
