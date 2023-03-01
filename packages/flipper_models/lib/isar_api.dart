@@ -791,7 +791,12 @@ class IsarAPI implements IsarApiInterface {
         await isar.products.where().nameEqualTo('Custom Amount').findFirst();
     if (product == null) {
       Product newProduct = await createProduct(
-          product: Product()
+          product: Product(
+              name: "Custom Amount",
+              active: true,
+              branchId: branchId,
+              businessId: businessId,
+              color: "#e74c3c")
             ..branchId = branchId
             ..draft = true
             ..currentUpdate = true

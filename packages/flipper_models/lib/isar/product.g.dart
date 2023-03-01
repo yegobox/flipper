@@ -345,32 +345,33 @@ Product _productDeserialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = Product();
-  object.active = reader.readBool(offsets[0]);
-  object.barCode = reader.readStringOrNull(offsets[1]);
-  object.bindedToTenantId = reader.readLongOrNull(offsets[2]);
-  object.branchId = reader.readLong(offsets[3]);
-  object.businessId = reader.readLong(offsets[4]);
-  object.categoryId = reader.readStringOrNull(offsets[5]);
-  object.color = reader.readString(offsets[6]);
-  object.createdAt = reader.readStringOrNull(offsets[7]);
-  object.currentUpdate = reader.readBoolOrNull(offsets[8]);
-  object.description = reader.readStringOrNull(offsets[9]);
-  object.draft = reader.readBoolOrNull(offsets[10]);
-  object.expiryDate = reader.readStringOrNull(offsets[11]);
-  object.hasPicture = reader.readBool(offsets[12]);
+  final object = Product(
+    active: reader.readBool(offsets[0]),
+    barCode: reader.readStringOrNull(offsets[1]),
+    bindedToTenantId: reader.readLongOrNull(offsets[2]),
+    branchId: reader.readLong(offsets[3]),
+    businessId: reader.readLong(offsets[4]),
+    categoryId: reader.readStringOrNull(offsets[5]),
+    color: reader.readString(offsets[6]),
+    createdAt: reader.readStringOrNull(offsets[7]),
+    currentUpdate: reader.readBoolOrNull(offsets[8]),
+    description: reader.readStringOrNull(offsets[9]),
+    draft: reader.readBoolOrNull(offsets[10]),
+    expiryDate: reader.readStringOrNull(offsets[11]),
+    hasPicture: reader.readBoolOrNull(offsets[12]) ?? false,
+    imageLocal: reader.readBoolOrNull(offsets[13]),
+    imageUrl: reader.readStringOrNull(offsets[14]),
+    isFavorite: reader.readBoolOrNull(offsets[15]),
+    name: reader.readString(offsets[16]),
+    nfcEnabled: reader.readBoolOrNull(offsets[17]),
+    picture: reader.readStringOrNull(offsets[18]),
+    supplierId: reader.readStringOrNull(offsets[19]),
+    synced: reader.readBoolOrNull(offsets[20]),
+    table: reader.readStringOrNull(offsets[21]),
+    taxId: reader.readStringOrNull(offsets[22]),
+    unit: reader.readStringOrNull(offsets[23]),
+  );
   object.id = id;
-  object.imageLocal = reader.readBoolOrNull(offsets[13]);
-  object.imageUrl = reader.readStringOrNull(offsets[14]);
-  object.isFavorite = reader.readBoolOrNull(offsets[15]);
-  object.name = reader.readString(offsets[16]);
-  object.nfcEnabled = reader.readBoolOrNull(offsets[17]);
-  object.picture = reader.readStringOrNull(offsets[18]);
-  object.supplierId = reader.readStringOrNull(offsets[19]);
-  object.synced = reader.readBoolOrNull(offsets[20]);
-  object.table = reader.readStringOrNull(offsets[21]);
-  object.taxId = reader.readStringOrNull(offsets[22]);
-  object.unit = reader.readStringOrNull(offsets[23]);
   return object;
 }
 
@@ -406,7 +407,7 @@ P _productDeserializeProp<P>(
     case 11:
       return (reader.readStringOrNull(offset)) as P;
     case 12:
-      return (reader.readBool(offset)) as P;
+      return (reader.readBoolOrNull(offset) ?? false) as P;
     case 13:
       return (reader.readBoolOrNull(offset)) as P;
     case 14:

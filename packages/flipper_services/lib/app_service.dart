@@ -177,10 +177,22 @@ class AppService with ListenableServiceMixin {
   }
 
   Future<void> bootstraper() async {
-    if (await ProxyService.isarApi.size(object: Product()) == 0 &&
+    if (await ProxyService.isarApi.size(
+                object: Product(
+                    name: "Custom Amount",
+                    active: true,
+                    branchId: ProxyService.box.getBranchId()!,
+                    businessId: ProxyService.box.getBusinessId()!,
+                    color: "#e74c3c")) ==
+            0 &&
         ProxyService.box.getBranchId() != null) {
       await ProxyService.isarApi.createProduct(
-          product: Product()
+          product: Product(
+              name: "Custom Amount",
+              active: true,
+              branchId: ProxyService.box.getBranchId()!,
+              businessId: ProxyService.box.getBusinessId()!,
+              color: "#e74c3c")
             ..name = "Custom Amount"
             ..color = "#5A2328"
             ..branchId = ProxyService.box.getBranchId()!

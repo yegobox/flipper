@@ -33,7 +33,7 @@ class PayableView extends StatelessWidget {
           Expanded(
               child: SizedBox(
             height: 64,
-            child: OutlinedButton(
+            child: TextButton(
                 style: ButtonStyle(
                   shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
                     (states) => RoundedRectangleBorder(

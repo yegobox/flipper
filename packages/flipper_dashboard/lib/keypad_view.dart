@@ -47,6 +47,7 @@ class KeyPadView extends StatelessWidget {
               children: [
                 Expanded(
                   child: InkWell(
+                    splashColor: Color(0xFFDFF0FF),
                     onTap: () {
                       HapticFeedback.lightImpact();
                       model.keyboardKeyPressed('1');
@@ -55,11 +56,6 @@ class KeyPadView extends StatelessWidget {
                         height: MediaQuery.of(context).size.height *
                             0.2, // 20% of screen height
                         width: MediaQuery.of(context).size.width,
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: Colors.black.withOpacity(0.25),
-                          ),
-                        ),
                         alignment: Alignment.center,
                         child: Text(
                           '1',
@@ -73,6 +69,7 @@ class KeyPadView extends StatelessWidget {
                 ),
                 Expanded(
                   child: InkWell(
+                    splashColor: Color(0xFFDFF0FF),
                     onTap: () {
                       HapticFeedback.lightImpact();
                       model.keyboardKeyPressed('2');
@@ -81,11 +78,7 @@ class KeyPadView extends StatelessWidget {
                       height: MediaQuery.of(context).size.height *
                           0.2, // 20% of screen height
                       width: MediaQuery.of(context).size.width,
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: Colors.black.withOpacity(0.25),
-                        ),
-                      ),
+
                       alignment: Alignment.center,
                       child: Text(
                         '2',
@@ -100,6 +93,7 @@ class KeyPadView extends StatelessWidget {
                 ),
                 Expanded(
                   child: InkWell(
+                    splashColor: Color(0xFFDFF0FF),
                     onTap: () {
                       HapticFeedback.lightImpact();
                       model.keyboardKeyPressed('3');
@@ -108,11 +102,7 @@ class KeyPadView extends StatelessWidget {
                       height: MediaQuery.of(context).size.height *
                           0.2, // 20% of screen height
                       width: MediaQuery.of(context).size.width,
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: Colors.black.withOpacity(0.25),
-                        ),
-                      ),
+
                       alignment: Alignment.center,
                       child: Text(
                         '3',
@@ -133,6 +123,7 @@ class KeyPadView extends StatelessWidget {
               children: [
                 Expanded(
                   child: InkWell(
+                    splashColor: Color(0xFFDFF0FF),
                     onTap: () {
                       HapticFeedback.lightImpact();
                       model.keyboardKeyPressed('4');
@@ -141,11 +132,6 @@ class KeyPadView extends StatelessWidget {
                         height: MediaQuery.of(context).size.height *
                             0.2, // 20% of screen height
                         width: MediaQuery.of(context).size.width,
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: Colors.black.withOpacity(0.25),
-                          ),
-                        ),
                         alignment: Alignment.center,
                         child: Text(
                           '4',
@@ -159,6 +145,7 @@ class KeyPadView extends StatelessWidget {
                 ),
                 Expanded(
                   child: InkWell(
+                    splashColor: Color(0xFFDFF0FF),
                     onTap: () {
                       HapticFeedback.lightImpact();
                       model.keyboardKeyPressed('5');
@@ -167,11 +154,6 @@ class KeyPadView extends StatelessWidget {
                         height: MediaQuery.of(context).size.height *
                             0.2, // 20% of screen height
                         width: MediaQuery.of(context).size.width,
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: Colors.black.withOpacity(0.25),
-                          ),
-                        ),
                         alignment: Alignment.center,
                         child: Text(
                           '5',
@@ -185,6 +167,7 @@ class KeyPadView extends StatelessWidget {
                 ),
                 Expanded(
                   child: InkWell(
+                    splashColor: Color(0xFFDFF0FF),
                     onTap: () {
                       HapticFeedback.lightImpact();
                       model.keyboardKeyPressed('6');
@@ -193,11 +176,7 @@ class KeyPadView extends StatelessWidget {
                       height: MediaQuery.of(context).size.height *
                           0.2, // 20% of screen height
                       width: MediaQuery.of(context).size.width,
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: Colors.black.withOpacity(0.25),
-                        ),
-                      ),
+
                       alignment: Alignment.center,
                       child: Text(
                         '6',
@@ -218,6 +197,7 @@ class KeyPadView extends StatelessWidget {
               children: [
                 Expanded(
                   child: InkWell(
+                    splashColor: Color(0xFFDFF0FF),
                     onTap: () {
                       HapticFeedback.lightImpact();
                       model.keyboardKeyPressed('7');
@@ -226,11 +206,7 @@ class KeyPadView extends StatelessWidget {
                       height: MediaQuery.of(context).size.height *
                           0.2, // 20% of screen height
                       width: MediaQuery.of(context).size.width,
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: Colors.black.withOpacity(0.25),
-                        ),
-                      ),
+
                       alignment: Alignment.center,
                       child: Text(
                         '7',
@@ -245,6 +221,7 @@ class KeyPadView extends StatelessWidget {
                 ),
                 Expanded(
                   child: InkWell(
+                    splashColor: Color(0xFFDFF0FF),
                     onTap: () {
                       HapticFeedback.lightImpact();
                       model.keyboardKeyPressed('8');
@@ -253,11 +230,6 @@ class KeyPadView extends StatelessWidget {
                         height: MediaQuery.of(context).size.height *
                             0.2, // 20% of screen height
                         width: MediaQuery.of(context).size.width,
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: Colors.black.withOpacity(0.25),
-                          ),
-                        ),
                         alignment: Alignment.center,
                         child: Text(
                           '8',
@@ -271,6 +243,7 @@ class KeyPadView extends StatelessWidget {
                 ),
                 Expanded(
                   child: InkWell(
+                    splashColor: Color(0xFFDFF0FF),
                     onTap: () {
                       HapticFeedback.lightImpact();
                       model.keyboardKeyPressed('9');
@@ -279,11 +252,7 @@ class KeyPadView extends StatelessWidget {
                       height: MediaQuery.of(context).size.height *
                           0.2, // 20% of screen height
                       width: MediaQuery.of(context).size.width,
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: Colors.black.withOpacity(0.25),
-                        ),
-                      ),
+
                       alignment: Alignment.center,
                       child: Text(
                         '9',
@@ -304,6 +273,7 @@ class KeyPadView extends StatelessWidget {
               children: [
                 Expanded(
                   child: InkWell(
+                    splashColor: Color(0xFFDFF0FF),
                     onTap: () {
                       HapticFeedback.lightImpact();
                       model.keyboardKeyPressed('C');
@@ -312,11 +282,6 @@ class KeyPadView extends StatelessWidget {
                         height: MediaQuery.of(context).size.height *
                             0.2, // 20% of screen height
                         width: MediaQuery.of(context).size.width,
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: Colors.black.withOpacity(0.25),
-                          ),
-                        ),
                         alignment: Alignment.center,
                         child: Text(
                           'C',
@@ -330,6 +295,7 @@ class KeyPadView extends StatelessWidget {
                 ),
                 Expanded(
                   child: InkWell(
+                    splashColor: Color(0xFFDFF0FF),
                     onTap: () {
                       HapticFeedback.lightImpact();
                       model.keyboardKeyPressed('0');
@@ -338,11 +304,6 @@ class KeyPadView extends StatelessWidget {
                         height: MediaQuery.of(context).size.height *
                             0.2, // 20% of screen height
                         width: MediaQuery.of(context).size.width,
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: Colors.black.withOpacity(0.25),
-                          ),
-                        ),
                         alignment: Alignment.center,
                         child: Text(
                           '0',
@@ -356,6 +317,7 @@ class KeyPadView extends StatelessWidget {
                 ),
                 Expanded(
                   child: InkWell(
+                    splashColor: Color(0xFFDFF0FF),
                     onTap: () {
                       HapticFeedback.lightImpact();
                       model.keyboardKeyPressed('+');
@@ -364,11 +326,7 @@ class KeyPadView extends StatelessWidget {
                       height: MediaQuery.of(context).size.height *
                           0.2, // 20% of screen height
                       width: MediaQuery.of(context).size.width,
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: Colors.black.withOpacity(0.25),
-                        ),
-                      ),
+
                       alignment: Alignment.center,
                       child: Text(
                         '+',

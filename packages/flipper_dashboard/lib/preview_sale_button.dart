@@ -20,7 +20,7 @@ class PreviewSaleButton extends StatelessWidget {
     return Expanded(
         child: SizedBox(
       height: 64,
-      child: OutlinedButton(
+      child: TextButton(
         style: ButtonStyle(
           shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
             (states) => RoundedRectangleBorder(

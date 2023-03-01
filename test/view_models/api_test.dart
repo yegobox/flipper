@@ -27,8 +27,14 @@ void main() {
 
     isarTest('Test we have a Testing product', () async {
       // expect(1, 1);
-      product = await ProxyService.isarApi
-          .createProduct(product: Product()..name = "Testing");
+      product = await ProxyService.isarApi.createProduct(
+          product: Product(
+              name: "Custom Amount",
+              active: true,
+              branchId: ProxyService.box.getBranchId()!,
+              businessId: ProxyService.box.getBusinessId()!,
+              color: "#e74c3c")
+            ..name = "Testing");
       expect(product, isA<Product>());
       expect("Testing", product.name);
     });
