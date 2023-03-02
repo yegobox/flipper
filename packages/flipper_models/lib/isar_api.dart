@@ -9,6 +9,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart' as foundation;
+import 'package:isar_crdt/isar_crdt.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'view_models/gate.dart';
 import 'package:async/async.dart'; // import StreamZip
@@ -103,6 +104,14 @@ class IsarAPI implements IsarApiInterface {
     } else {
       isar = iisar;
     }
+    final changesSync = IsarCrdt(
+      store: IsarMasterCrdtStore<Product>(
+        isar.products,
+        builder: () => Product(),
+        sidGenerator: () => Uuid().v4(),
+      ),
+    );
+    isar.setCrdt(changesSync);
     return this;
   }
 
@@ -791,12 +800,7 @@ class IsarAPI implements IsarApiInterface {
         await isar.products.where().nameEqualTo('Custom Amount').findFirst();
     if (product == null) {
       Product newProduct = await createProduct(
-          product: Product(
-              name: "Custom Amount",
-              active: true,
-              branchId: branchId,
-              businessId: businessId,
-              color: "#e74c3c")
+          product: Product()
             ..branchId = branchId
             ..draft = true
             ..currentUpdate = true
