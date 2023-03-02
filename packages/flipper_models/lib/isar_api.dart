@@ -400,6 +400,7 @@ class IsarAPI implements IsarApiInterface {
     // remove currentOrderId from local storage to leave a room
     // for listening to new order that will be created
     ProxyService.box.remove(key: 'currentOrderId');
+    ProxyService.appService.backup();
   }
 
   @override
