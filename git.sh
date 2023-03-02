@@ -21,5 +21,6 @@ cd .. && cd flutterfire_desktop &&  git checkout main  && git add .  && git comm
 cd .. && cd plus_plugins &&  git checkout main  && git add .  && git commit -am "clean-up" && git push origin main
 cd .. && cd flutter_slidable &&  git checkout dev  && git add .  && git commit -am "clean-up" && git push origin dev
 cd .. && cd money_formatter &&  git checkout dev  && git add .  && git commit -am "clean-up" && git push origin dev
+cd .. && cd isar_crdt &&  git checkout main  && git add .  && git commit -am "clean-up" && git push origin main
 
 #
