@@ -31,5 +31,7 @@ class SynchronizationService<M extends JsonSerializable> {
     }
   }
 
-  void receiveChanges() {}
+  void receiveChanges() {
+    // ProxyService.remoteApi.
+  }
 }
