@@ -358,16 +358,17 @@ class ProductViewModel extends AddTenantViewModel {
     List<Variant> variations = await ProxyService.isarApi
         .variants(branchId: branchId, productId: productId);
     for (Variant variation in variations) {
-      ProxyService.isarApi.delete(id: variation.id, endPoint: 'variation');
+      await ProxyService.isarApi
+          .delete(id: variation.id, endPoint: 'variation');
       //get stock->delete
       Stock? stock =
           await ProxyService.isarApi.stockByVariantId(variantId: variation.id);
       if (stock != null) {
-        ProxyService.isarApi.delete(id: stock.id, endPoint: 'stock');
+        await ProxyService.isarApi.delete(id: stock.id, endPoint: 'stock');
       }
     }
     //then delete the product
-    ProxyService.isarApi.delete(id: productId, endPoint: 'product');
+    await ProxyService.isarApi.delete(id: productId, endPoint: 'product');
   }
 
   void updateExpiryDate(DateTime date) async {
