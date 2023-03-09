@@ -63,7 +63,8 @@ class SettingViewModel extends ReactiveViewModel {
 
   loadUserSettings() async {
     String userId = ProxyService.box.read(key: 'userId');
-    _setting = await ProxyService.isarApi.getSetting(userId: int.parse(userId));
+    _setting =
+        await ProxyService.isarApi.getSetting(businessId: int.parse(userId));
     notifyListeners();
   }
 

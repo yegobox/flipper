@@ -29,9 +29,9 @@ class SettingsService with ListenableServiceMixin {
   Future<bool> updateSettings({required Map map}) async {
     //todo: when no setting for this user create one with given detail
     //if the setting exist then update the given detail.
-    String userId = ProxyService.box.read(key: 'userId');
+    int businessId = ProxyService.box.getBusinessId()!;
     Setting? setting =
-        await ProxyService.isarApi.getSetting(userId: int.parse(userId));
+        await ProxyService.isarApi.getSetting(businessId: businessId);
     if (setting != null) {
       Map<String, dynamic> settingsMap = setting.toJson();
       //replace a key in settings_map if the key match with the key from map
@@ -49,8 +49,9 @@ class SettingsService with ListenableServiceMixin {
         kMap[key] = value;
       });
       Setting setting = Setting(
+        isASupplier: false,
         email: kMap['email'] ?? '',
-        userId: int.parse(userId),
+        businessId: businessId,
         hasPin: kMap['hasPin'] ?? '',
         googleSheetDocCreated: kMap['googleSheetDocCreated'] ?? false,
         attendnaceDocCreated: kMap['attendnaceDocCreated'] ?? false,
@@ -67,7 +68,7 @@ class SettingsService with ListenableServiceMixin {
 
   Future<Setting?> settings() async {
     return ProxyService.isarApi.getSetting(
-        userId: int.parse(ProxyService.box.read(key: 'userId') ?? '0'));
+        businessId: int.parse(ProxyService.box.read(key: 'userId') ?? '0'));
   }
 
   Future<bool> isDailyReportEnabled() async {
@@ -120,8 +121,9 @@ class SettingsService with ListenableServiceMixin {
 
       Setting(
         id: setting.id,
+        isASupplier: false,
         email: setting.email,
-        userId: setting.userId,
+        businessId: setting.businessId,
         hasPin: setting.hasPin,
         googleSheetDocCreated: setting.googleSheetDocCreated,
         attendnaceDocCreated: setting.attendnaceDocCreated,
@@ -145,8 +147,9 @@ class SettingsService with ListenableServiceMixin {
       }
       Setting(
         id: setting.id,
+        isASupplier: false,
         email: setting.email,
-        userId: setting.userId,
+        businessId: setting.businessId,
         hasPin: setting.hasPin,
         googleSheetDocCreated: setting.googleSheetDocCreated,
         attendnaceDocCreated: setting.attendnaceDocCreated,

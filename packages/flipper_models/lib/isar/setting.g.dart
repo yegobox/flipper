@@ -27,45 +27,50 @@ const SettingSchema = CollectionSchema(
       name: r'autoPrint',
       type: IsarType.bool,
     ),
-    r'defaultLanguage': PropertySchema(
+    r'businessId': PropertySchema(
       id: 2,
+      name: r'businessId',
+      type: IsarType.long,
+    ),
+    r'defaultLanguage': PropertySchema(
+      id: 3,
       name: r'defaultLanguage',
       type: IsarType.string,
     ),
     r'email': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'email',
       type: IsarType.string,
     ),
     r'googleSheetDocCreated': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'googleSheetDocCreated',
       type: IsarType.bool,
     ),
     r'hasPin': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'hasPin',
       type: IsarType.string,
     ),
+    r'isASupplier': PropertySchema(
+      id: 7,
+      name: r'isASupplier',
+      type: IsarType.bool,
+    ),
     r'isAttendanceEnabled': PropertySchema(
-      id: 6,
+      id: 8,
       name: r'isAttendanceEnabled',
       type: IsarType.bool,
     ),
     r'openReceiptFileOSaleComplete': PropertySchema(
-      id: 7,
+      id: 9,
       name: r'openReceiptFileOSaleComplete',
       type: IsarType.bool,
     ),
     r'sendDailyReport': PropertySchema(
-      id: 8,
+      id: 10,
       name: r'sendDailyReport',
       type: IsarType.bool,
-    ),
-    r'userId': PropertySchema(
-      id: 9,
-      name: r'userId',
-      type: IsarType.long,
     )
   },
   estimateSize: _settingEstimateSize,
@@ -74,14 +79,14 @@ const SettingSchema = CollectionSchema(
   deserializeProp: _settingDeserializeProp,
   idName: r'id',
   indexes: {
-    r'userId': IndexSchema(
-      id: -2005826577402374815,
-      name: r'userId',
+    r'businessId': IndexSchema(
+      id: 2228048290814354584,
+      name: r'businessId',
       unique: false,
       replace: false,
       properties: [
         IndexPropertySchema(
-          name: r'userId',
+          name: r'businessId',
           type: IndexType.value,
           caseSensitive: false,
         )
@@ -121,14 +126,15 @@ void _settingSerialize(
 ) {
   writer.writeBool(offsets[0], object.attendnaceDocCreated);
   writer.writeBool(offsets[1], object.autoPrint);
-  writer.writeString(offsets[2], object.defaultLanguage);
-  writer.writeString(offsets[3], object.email);
-  writer.writeBool(offsets[4], object.googleSheetDocCreated);
-  writer.writeString(offsets[5], object.hasPin);
-  writer.writeBool(offsets[6], object.isAttendanceEnabled);
-  writer.writeBool(offsets[7], object.openReceiptFileOSaleComplete);
-  writer.writeBool(offsets[8], object.sendDailyReport);
-  writer.writeLong(offsets[9], object.userId);
+  writer.writeLong(offsets[2], object.businessId);
+  writer.writeString(offsets[3], object.defaultLanguage);
+  writer.writeString(offsets[4], object.email);
+  writer.writeBool(offsets[5], object.googleSheetDocCreated);
+  writer.writeString(offsets[6], object.hasPin);
+  writer.writeBool(offsets[7], object.isASupplier);
+  writer.writeBool(offsets[8], object.isAttendanceEnabled);
+  writer.writeBool(offsets[9], object.openReceiptFileOSaleComplete);
+  writer.writeBool(offsets[10], object.sendDailyReport);
 }
 
 Setting _settingDeserialize(
@@ -140,15 +146,16 @@ Setting _settingDeserialize(
   final object = Setting(
     attendnaceDocCreated: reader.readBoolOrNull(offsets[0]),
     autoPrint: reader.readBoolOrNull(offsets[1]),
-    defaultLanguage: reader.readStringOrNull(offsets[2]),
-    email: reader.readString(offsets[3]),
-    googleSheetDocCreated: reader.readBoolOrNull(offsets[4]),
-    hasPin: reader.readString(offsets[5]),
+    businessId: reader.readLong(offsets[2]),
+    defaultLanguage: reader.readStringOrNull(offsets[3]),
+    email: reader.readString(offsets[4]),
+    googleSheetDocCreated: reader.readBoolOrNull(offsets[5]),
+    hasPin: reader.readString(offsets[6]),
     id: id,
-    isAttendanceEnabled: reader.readBoolOrNull(offsets[6]),
-    openReceiptFileOSaleComplete: reader.readBoolOrNull(offsets[7]),
-    sendDailyReport: reader.readBoolOrNull(offsets[8]),
-    userId: reader.readLong(offsets[9]),
+    isASupplier: reader.readBool(offsets[7]),
+    isAttendanceEnabled: reader.readBoolOrNull(offsets[8]),
+    openReceiptFileOSaleComplete: reader.readBoolOrNull(offsets[9]),
+    sendDailyReport: reader.readBoolOrNull(offsets[10]),
   );
   return object;
 }
@@ -165,21 +172,23 @@ P _settingDeserializeProp<P>(
     case 1:
       return (reader.readBoolOrNull(offset)) as P;
     case 2:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 3:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 4:
-      return (reader.readBoolOrNull(offset)) as P;
-    case 5:
       return (reader.readString(offset)) as P;
+    case 5:
+      return (reader.readBoolOrNull(offset)) as P;
     case 6:
-      return (reader.readBoolOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 7:
-      return (reader.readBoolOrNull(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 8:
       return (reader.readBoolOrNull(offset)) as P;
     case 9:
-      return (reader.readLong(offset)) as P;
+      return (reader.readBoolOrNull(offset)) as P;
+    case 10:
+      return (reader.readBoolOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -204,10 +213,10 @@ extension SettingQueryWhereSort on QueryBuilder<Setting, Setting, QWhere> {
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterWhere> anyUserId() {
+  QueryBuilder<Setting, Setting, QAfterWhere> anyBusinessId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
-        const IndexWhereClause.any(indexName: r'userId'),
+        const IndexWhereClause.any(indexName: r'businessId'),
       );
     });
   }
@@ -279,90 +288,91 @@ extension SettingQueryWhere on QueryBuilder<Setting, Setting, QWhereClause> {
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterWhereClause> userIdEqualTo(int userId) {
+  QueryBuilder<Setting, Setting, QAfterWhereClause> businessIdEqualTo(
+      int businessId) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'userId',
-        value: [userId],
+        indexName: r'businessId',
+        value: [businessId],
       ));
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterWhereClause> userIdNotEqualTo(
-      int userId) {
+  QueryBuilder<Setting, Setting, QAfterWhereClause> businessIdNotEqualTo(
+      int businessId) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'userId',
+              indexName: r'businessId',
               lower: [],
-              upper: [userId],
+              upper: [businessId],
               includeUpper: false,
             ))
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'userId',
-              lower: [userId],
+              indexName: r'businessId',
+              lower: [businessId],
               includeLower: false,
               upper: [],
             ));
       } else {
         return query
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'userId',
-              lower: [userId],
+              indexName: r'businessId',
+              lower: [businessId],
               includeLower: false,
               upper: [],
             ))
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'userId',
+              indexName: r'businessId',
               lower: [],
-              upper: [userId],
+              upper: [businessId],
               includeUpper: false,
             ));
       }
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterWhereClause> userIdGreaterThan(
-    int userId, {
+  QueryBuilder<Setting, Setting, QAfterWhereClause> businessIdGreaterThan(
+    int businessId, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'userId',
-        lower: [userId],
+        indexName: r'businessId',
+        lower: [businessId],
         includeLower: include,
         upper: [],
       ));
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterWhereClause> userIdLessThan(
-    int userId, {
+  QueryBuilder<Setting, Setting, QAfterWhereClause> businessIdLessThan(
+    int businessId, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'userId',
+        indexName: r'businessId',
         lower: [],
-        upper: [userId],
+        upper: [businessId],
         includeUpper: include,
       ));
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterWhereClause> userIdBetween(
-    int lowerUserId,
-    int upperUserId, {
+  QueryBuilder<Setting, Setting, QAfterWhereClause> businessIdBetween(
+    int lowerBusinessId,
+    int upperBusinessId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'userId',
-        lower: [lowerUserId],
+        indexName: r'businessId',
+        lower: [lowerBusinessId],
         includeLower: includeLower,
-        upper: [upperUserId],
+        upper: [upperBusinessId],
         includeUpper: includeUpper,
       ));
     });
@@ -421,6 +431,59 @@ extension SettingQueryFilter
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'autoPrint',
         value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> businessIdEqualTo(
+      int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'businessId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> businessIdGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'businessId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> businessIdLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'businessId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> businessIdBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'businessId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
       ));
     });
   }
@@ -917,6 +980,16 @@ extension SettingQueryFilter
     });
   }
 
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> isASupplierEqualTo(
+      bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isASupplier',
+        value: value,
+      ));
+    });
+  }
+
   QueryBuilder<Setting, Setting, QAfterFilterCondition>
       isAttendanceEnabledIsNull() {
     return QueryBuilder.apply(this, (query) {
@@ -1000,59 +1073,6 @@ extension SettingQueryFilter
       ));
     });
   }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> userIdEqualTo(
-      int value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'userId',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> userIdGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'userId',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> userIdLessThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'userId',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> userIdBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'userId',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
 }
 
 extension SettingQueryObject
@@ -1084,6 +1104,18 @@ extension SettingQuerySortBy on QueryBuilder<Setting, Setting, QSortBy> {
   QueryBuilder<Setting, Setting, QAfterSortBy> sortByAutoPrintDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'autoPrint', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByBusinessId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'businessId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByBusinessIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'businessId', Sort.desc);
     });
   }
 
@@ -1136,6 +1168,18 @@ extension SettingQuerySortBy on QueryBuilder<Setting, Setting, QSortBy> {
     });
   }
 
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByIsASupplier() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isASupplier', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByIsASupplierDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isASupplier', Sort.desc);
+    });
+  }
+
   QueryBuilder<Setting, Setting, QAfterSortBy> sortByIsAttendanceEnabled() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isAttendanceEnabled', Sort.asc);
@@ -1173,18 +1217,6 @@ extension SettingQuerySortBy on QueryBuilder<Setting, Setting, QSortBy> {
       return query.addSortBy(r'sendDailyReport', Sort.desc);
     });
   }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> sortByUserId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'userId', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> sortByUserIdDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'userId', Sort.desc);
-    });
-  }
 }
 
 extension SettingQuerySortThenBy
@@ -1211,6 +1243,18 @@ extension SettingQuerySortThenBy
   QueryBuilder<Setting, Setting, QAfterSortBy> thenByAutoPrintDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'autoPrint', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByBusinessId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'businessId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByBusinessIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'businessId', Sort.desc);
     });
   }
 
@@ -1275,6 +1319,18 @@ extension SettingQuerySortThenBy
     });
   }
 
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByIsASupplier() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isASupplier', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByIsASupplierDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isASupplier', Sort.desc);
+    });
+  }
+
   QueryBuilder<Setting, Setting, QAfterSortBy> thenByIsAttendanceEnabled() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isAttendanceEnabled', Sort.asc);
@@ -1312,18 +1368,6 @@ extension SettingQuerySortThenBy
       return query.addSortBy(r'sendDailyReport', Sort.desc);
     });
   }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> thenByUserId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'userId', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> thenByUserIdDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'userId', Sort.desc);
-    });
-  }
 }
 
 extension SettingQueryWhereDistinct
@@ -1337,6 +1381,12 @@ extension SettingQueryWhereDistinct
   QueryBuilder<Setting, Setting, QDistinct> distinctByAutoPrint() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'autoPrint');
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QDistinct> distinctByBusinessId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'businessId');
     });
   }
 
@@ -1368,6 +1418,12 @@ extension SettingQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Setting, Setting, QDistinct> distinctByIsASupplier() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isASupplier');
+    });
+  }
+
   QueryBuilder<Setting, Setting, QDistinct> distinctByIsAttendanceEnabled() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'isAttendanceEnabled');
@@ -1384,12 +1440,6 @@ extension SettingQueryWhereDistinct
   QueryBuilder<Setting, Setting, QDistinct> distinctBySendDailyReport() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'sendDailyReport');
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QDistinct> distinctByUserId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'userId');
     });
   }
 }
@@ -1412,6 +1462,12 @@ extension SettingQueryProperty
   QueryBuilder<Setting, bool?, QQueryOperations> autoPrintProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'autoPrint');
+    });
+  }
+
+  QueryBuilder<Setting, int, QQueryOperations> businessIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'businessId');
     });
   }
 
@@ -1440,6 +1496,12 @@ extension SettingQueryProperty
     });
   }
 
+  QueryBuilder<Setting, bool, QQueryOperations> isASupplierProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isASupplier');
+    });
+  }
+
   QueryBuilder<Setting, bool?, QQueryOperations> isAttendanceEnabledProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isAttendanceEnabled');
@@ -1456,12 +1518,6 @@ extension SettingQueryProperty
   QueryBuilder<Setting, bool?, QQueryOperations> sendDailyReportProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'sendDailyReport');
-    });
-  }
-
-  QueryBuilder<Setting, int, QQueryOperations> userIdProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'userId');
     });
   }
 }

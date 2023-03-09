@@ -68,7 +68,7 @@ abstract class IsarApiInterface {
       {required double cashReceived, required Order order});
 
 // app settings and users settings
-  Future<Setting?> getSetting({required int userId});
+  Future<Setting?> getSetting({required int businessId});
 
   Future<Setting?> createSetting({required Setting setting});
   // Stream<List<Conversation>> conversationStreamList({int? receiverId});

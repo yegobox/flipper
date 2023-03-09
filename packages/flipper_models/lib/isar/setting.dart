@@ -7,12 +7,13 @@ class Setting {
     this.id = 0,
     required this.email,
     required this.hasPin,
+    required this.isASupplier,
     this.autoPrint,
     this.openReceiptFileOSaleComplete,
     this.sendDailyReport,
     this.defaultLanguage,
     this.googleSheetDocCreated,
-    required this.userId,
+    required this.businessId,
     this.attendnaceDocCreated,
     this.isAttendanceEnabled,
   });
@@ -20,7 +21,7 @@ class Setting {
   late String email;
   late String hasPin;
   @Index()
-  late int userId;
+  late int businessId;
   late bool? openReceiptFileOSaleComplete;
   late bool? autoPrint;
   late bool? sendDailyReport;
@@ -28,6 +29,7 @@ class Setting {
   late bool? googleSheetDocCreated;
   late bool? attendnaceDocCreated;
   late bool? isAttendanceEnabled;
+  late bool isASupplier;
 
   factory Setting.fromJson(Map<String, dynamic> json) => Setting(
         id: json["id"],
@@ -38,9 +40,10 @@ class Setting {
         googleSheetDocCreated: json["googleSheetDocCreated"],
         hasPin: json["hasPin"],
         sendDailyReport: json["sendDailyReport"],
-        userId: json["userId"],
+        businessId: json["businessId"],
         attendnaceDocCreated: json["attendnaceDocCreated"],
         isAttendanceEnabled: json["isAttendanceEnabled"],
+        isASupplier: json["isASupplier"],
       );
   Map<String, dynamic> toJson() => {
         "id": id,
@@ -51,8 +54,9 @@ class Setting {
         "googleSheetDocCreated": googleSheetDocCreated,
         "sendDailyReport": sendDailyReport,
         "hasPin": hasPin,
-        "userId": userId,
+        "businessId": businessId,
         "attendnaceDocCreated": attendnaceDocCreated,
         "isAttendanceEnabled": isAttendanceEnabled,
+        "isASupplier": isASupplier
       };
 }

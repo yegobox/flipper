@@ -731,7 +731,7 @@ class IsarAPI implements IsarApiInterface {
       log.d('created attendance document');
       // update settings with enableAttendance = true
       String userId = ProxyService.box.read(key: 'userId');
-      Setting? setting = await getSetting(userId: int.parse(userId));
+      Setting? setting = await getSetting(businessId: int.parse(userId));
       setting!.attendnaceDocCreated = true;
       update(data: setting);
       return true;
@@ -951,9 +951,9 @@ class IsarAPI implements IsarApiInterface {
   }
 
   @override
-  Future<Setting?> getSetting({required int userId}) async {
+  Future<Setting?> getSetting({required int businessId}) async {
     return isar.writeTxn(() {
-      return isar.settings.where().userIdEqualTo(userId).findFirst();
+      return isar.settings.where().businessIdEqualTo(businessId).findFirst();
     });
   }
 
