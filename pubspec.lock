@@ -1572,6 +1572,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.6-dev.0"
+  isar_crdt:
+    dependency: "direct overridden"
+    description:
+      path: "open-sources/isar_crdt"
+      relative: true
+    source: path
+    version: "0.0.2-dev"
   isar_flutter_libs:
     dependency: "direct main"
     description:

@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:pocketbase/pocketbase.dart';
 
 abstract class RemoteInterface<T> {
@@ -10,6 +8,7 @@ abstract class RemoteInterface<T> {
   Future<void> update(
       {required Map<String, dynamic> updateCollection,
       required String collectionName});
+  void listenToChanges();
 }
 
 class RemoteService<T> implements RemoteInterface {
@@ -22,15 +21,15 @@ class RemoteService<T> implements RemoteInterface {
     return this;
   }
 
-  void putInSync() {
-    pb
-        .collection('orders')
-        .subscribe("*", (e) {})
-        .catchError((error, stackTrace) {
-      log(error);
-      log(stackTrace);
-    });
-  }
+  // void putInSync() {
+  //   pb
+  //       .collection('orders')
+  //       .subscribe("*", (e) {})
+  //       .catchError((error, stackTrace) {
+  //     log(error);
+  //     log(stackTrace);
+  //   });
+  // }
 
   @override
   Future<List<RecordModel>> getCollection({required String collectionName}) {
@@ -60,6 +59,15 @@ class RemoteService<T> implements RemoteInterface {
         .then((record) {
       print(record.id);
       print(record.getStringValue('id'));
+    });
+  }
+
+  @override
+  void listenToChanges() {
+    pb.collection('products').subscribe("*", (e) {
+      if (e.action == "create") {
+        /// create a product
+      }
     });
   }
 }
