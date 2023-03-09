@@ -9,7 +9,6 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart' as foundation;
-import 'package:isar_crdt/isar_crdt.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'view_models/gate.dart';
 import 'package:async/async.dart'; // import StreamZip
@@ -49,7 +48,7 @@ class ExtendedClient extends http.BaseClient {
   }
 }
 
-class IsarAPI implements IsarApiInterface {
+class IsarAPI<M> implements IsarApiInterface {
   final log = getLogger('IsarAPI');
   ExtendedClient client = ExtendedClient(http.Client());
   late String apihub;
@@ -104,14 +103,16 @@ class IsarAPI implements IsarApiInterface {
     } else {
       isar = iisar;
     }
-    final changesSync = IsarCrdt(
-      store: IsarMasterCrdtStore<Product>(
-        isar.products,
-        builder: () => Product(),
-        sidGenerator: () => Uuid().v4(),
-      ),
-    );
-    isar.setCrdt(changesSync);
+
+    /// pausing on crdt for now work on in-house solution
+    // final changesSync = IsarCrdt(
+    //   store: IsarMasterCrdtStore<Product>(
+    //     isar.products,
+    //     builder: () => Product(),
+    //     sidGenerator: () => Uuid().v4(),
+    //   ),
+    // );
+    // isar.setCrdt(changesSync);
     return this;
   }
 
@@ -800,7 +801,12 @@ class IsarAPI implements IsarApiInterface {
         await isar.products.where().nameEqualTo('Custom Amount').findFirst();
     if (product == null) {
       Product newProduct = await createProduct(
-          product: Product()
+          product: Product(
+              name: "Custom Amount",
+              active: true,
+              businessId: businessId,
+              color: "#e74c3c",
+              branchId: businessId)
             ..branchId = branchId
             ..draft = true
             ..currentUpdate = true
@@ -1946,5 +1952,13 @@ class IsarAPI implements IsarApiInterface {
       mergedList.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       return mergedList.isNotEmpty ? mergedList[0] : null;
     });
+  }
+
+  /// this method is one way i.e we get to know local unsynched changes
+  /// then we send them but we are not working on the changes after this push.
+  /// those change will stay on local, so I need to work on them as well.
+  @override
+  Future<List<Product>> getLocalProducts() async {
+    return await isar.products.where().lastTouchedIsNull().findAll();
   }
 }

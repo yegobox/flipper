@@ -203,4 +203,5 @@ abstract class IsarApiInterface {
   Future<String> whatsAppToken();
   Future<bool> bindProduct({required int productId, required int tenantId});
   Future<Product?> findProductByTenantId({required int tenantId});
+  Future<List<Product>> getLocalProducts();
 }

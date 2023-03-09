@@ -58,11 +58,16 @@ class ProductViewModel extends AddTenantViewModel {
 
     if (isTemp == null) {
       Product product = await ProxyService.isarApi.createProduct(
-          product: Product()
+          product: Product(
+              name: "temp",
+              active: true,
+              businessId: businessId,
+              color: "#e74c3c",
+              branchId: branchId)
             ..name = "temp"
             ..color = "#5A2328"
-            ..branchId = ProxyService.box.getBranchId()!
-            ..businessId = ProxyService.box.getBusinessId()!);
+            ..branchId = branchId
+            ..businessId = businessId);
       await productService.variantsProduct(productId: product.id);
 
       productService.setCurrentProduct(product: product);

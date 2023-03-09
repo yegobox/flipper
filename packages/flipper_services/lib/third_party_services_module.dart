@@ -8,6 +8,7 @@ import 'package:flipper_models/whatsapp.dart';
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
 import 'package:flipper_services/abstractions/analytic.dart';
 import 'package:flipper_services/abstractions/printer.dart';
+import 'package:flipper_models/sync.dart';
 import 'package:flipper_services/abstractions/system_time.dart';
 import 'package:flipper_services/billing_service.dart';
 import 'package:flipper_services/blue_thooth_service.dart';
@@ -314,6 +315,9 @@ abstract class ThirdPartyServicesModule {
 
   @lazySingleton
   CronService get cron;
+
+  @lazySingleton
+  SyncApiInterface get sync => SyncApiInterface.create();
 
   // @lazySingleton
   // PdfInvoiceApi get pdfInvoice;

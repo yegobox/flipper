@@ -1,17 +1,13 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flipper_models/isar_models.dart';
-import 'package:flipper_services/abstractions/printer.dart';
 import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flipper_routing/routes.locator.dart';
-import 'package:flipper_services/setting_service.dart';
+import 'package:pocketbase/pocketbase.dart';
 
 class CronService {
-  final settingService = locator<SettingsService>();
-  final printer = locator<Printer>();
   final log = getLogger('CronService');
   final drive = GoogleDrive();
 
@@ -57,6 +53,21 @@ class CronService {
           .unSyncedCounters(branchId: ProxyService.box.getBranchId()!);
       for (Counter counter in counters) {
         ProxyService.isarApi.update(data: counter..backed = true);
+      }
+    });
+
+    Timer.periodic(Duration(seconds: 5), (Timer t) async {
+      /// get a list of local copy of product to sync
+      List<Product> products = await ProxyService.isarApi.getLocalProducts();
+      List<RecordModel?> results = await ProxyService.sync.push(products);
+      for (RecordModel? record in results) {
+        // Do something with each model (checking for null as necessary)
+        if (record != null) {
+          Product product = Product.fromRecord(record);
+          product.remoteID = record.id;
+          product.lastTouched = DateTime.now();
+          await ProxyService.isarApi.update(data: product);
+        }
       }
     });
   }

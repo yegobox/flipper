@@ -4,7 +4,7 @@ import 'package:flipper_services/FirebaseCrashlyticService.dart';
 import 'package:flipper_services/abstractions/analytic.dart';
 import 'package:flipper_services/abstractions/printer.dart';
 import 'package:flipper_services/abstractions/remote.dart';
-import 'package:flipper_services/abstractions/sync.dart';
+import 'package:flipper_models/sync.dart';
 import 'package:flipper_services/abstractions/system_time.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/billing_service.dart';
@@ -93,7 +93,7 @@ abstract class ProxyService {
   static ForceDataEntryService get forceDateEntry => _forceDataEntry;
   static LNotification get notification => _notification;
   static Review get review => _review;
-  static SyncApiInterface get syncApi => _syncApi;
+  static SyncApiInterface get sync => _syncApi;
   static SystemTime get systemTime => _systemTime;
   static BillingService get billing => _billingService;
   static WhatsApp get whatsApp => _whatsApp;

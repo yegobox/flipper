@@ -93,13 +93,18 @@ Order? OrderFMock = Order()
 
 final AppService _appService = locator<AppService>();
 
-final customProductMock = Product()
+final customProductMock = Product(
+    name: "Custom Amount",
+    active: true,
+    businessId: _appService.businessId!,
+    color: "#e74c3c",
+    branchId: _appService.branchId!)
   ..draft = true
   ..currentUpdate = true
   ..taxId = "XX"
   ..imageLocal = false
   ..businessId = _appService.businessId!
-  ..name = "Custom Amount"
+  ..name = "temp"
   ..branchId = _appService.branchId!
   ..description = "L"
   ..active = true
@@ -111,7 +116,12 @@ final customProductMock = Product()
   ..unit = "kg"
   ..createdAt = DateTime.now().toIso8601String();
 
-final productMock = Product()
+final productMock = Product(
+    name: "temp",
+    active: true,
+    businessId: _appService.businessId!,
+    color: "#e74c3c",
+    branchId: _appService.branchId!)
   ..draft = true
   ..currentUpdate = true
   ..taxId = "XX"

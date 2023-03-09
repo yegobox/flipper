@@ -2,10 +2,10 @@ import 'package:pocketbase/pocketbase.dart';
 
 abstract class RemoteInterface<T> {
   Future<List<RecordModel>> getCollection({required String collectionName});
-  Future<void> create(
+  Future<RecordModel> create(
       {required Map<String, dynamic> collection,
       required String collectionName});
-  Future<void> update(
+  Future<T> update(
       {required Map<String, dynamic> updateCollection,
       required String collectionName});
   void listenToChanges();
@@ -37,12 +37,12 @@ class RemoteService<T> implements RemoteInterface {
   }
 
   @override
-  Future<void> create({
+  Future<RecordModel> create({
     required Map<String, dynamic> collection,
     required String collectionName,
   }) async {
     try {
-      await pb.collection(collectionName).create(body: collection);
+      return await pb.collection(collectionName).create(body: collection);
     } catch (e) {
       // You can add custom handling here if you want to do something with the error
       rethrow;

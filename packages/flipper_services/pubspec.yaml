@@ -56,6 +56,7 @@ dependencies:
   flutter_native_timezone: ^2.0.0
   connectivity_plus: ^2.3.9
   flutter_statusbarcolor_ns: ^0.5.0
+  pocketbase: ^0.7.2
 
 dev_dependencies:
   build_runner: ^2.0.0
