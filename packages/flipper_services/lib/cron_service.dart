@@ -5,7 +5,6 @@ import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:pocketbase/pocketbase.dart';
 
 class CronService {
   final log = getLogger('CronService');
@@ -56,22 +55,9 @@ class CronService {
       }
     });
 
-    Timer.periodic(Duration(seconds: 10), (Timer t) async {
+    Timer.periodic(Duration(minutes: 2), (Timer t) async {
       /// get a list of local copy of product to sync
-      List<Product> products = await ProxyService.isarApi.getLocalProducts();
-      if (products.isEmpty) return;
-      RecordModel? record = await ProxyService.sync.push(products.first);
-      int oldId = products.first.id;
-      if (record != null) {
-        Product product = Product.fromRecord(record);
-        product.remoteID = record.id;
-
-        /// keep the local ID unchanged to avoid complication
-        product.id = oldId;
-
-        product.lastTouched = DateTime.now();
-        await ProxyService.isarApi.update(data: product);
-      }
+      ProxyService.appService.pushDataToServer();
     });
   }
 }

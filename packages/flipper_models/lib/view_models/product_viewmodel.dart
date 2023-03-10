@@ -348,7 +348,7 @@ class ProductViewModel extends AddTenantViewModel {
         ProxyService.tax.saveItem(variation: variant);
       }
     }
-
+    ProxyService.appService.pushDataToServer();
     return response == 200;
   }
 

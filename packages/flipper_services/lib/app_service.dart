@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flipper_models/isar_models.dart' as isar;
 import 'package:flutter/material.dart' as material;
-import 'package:flipper_services/constants.dart';
+import 'package:pocketbase/pocketbase.dart';
 import 'package:stacked/stacked.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flipper_models/isar_models.dart';
@@ -203,6 +203,23 @@ class AppService with ListenableServiceMixin {
         collectionName: 'orders');
     order.reported = true;
     await ProxyService.isarApi.update(data: order);
+  }
+
+  Future<void> pushDataToServer() async {
+    List<Product> products = await ProxyService.isarApi.getLocalProducts();
+    if (products.isEmpty) return;
+    RecordModel? record = await ProxyService.sync.push(products.first);
+    int oldId = products.first.id;
+    if (record != null) {
+      Product product = Product.fromRecord(record);
+      product.remoteID = record.id;
+
+      /// keep the local ID unchanged to avoid complication
+      product.id = oldId;
+
+      product.lastTouched = DateTime.now();
+      await ProxyService.isarApi.update(data: product);
+    }
   }
 
 // The updated backup() method
