@@ -206,6 +206,43 @@ class AppService with ListenableServiceMixin {
   }
 
   Future<void> pushDataToServer() async {
+    /// push stock
+    List<Stock> stocks = await ProxyService.isarApi.getLocalStocks();
+    if (stocks.isEmpty) return;
+    int stockId = stocks.first.id;
+    for (Stock stock in stocks) {
+      RecordModel? stockRecord = await ProxyService.sync.push(stock);
+      if (stockRecord != null) {
+        Stock s = Stock.fromRecord(stockRecord);
+        s.remoteID = stockRecord.id;
+
+        // /// keep the local ID unchanged to avoid complication
+        s.id = stockId;
+
+        s.lastTouched = DateTime.now();
+        await ProxyService.isarApi.update(data: s);
+      }
+    }
+
+    //push variant
+    /// get variants
+    List<Variant> variants = await ProxyService.isarApi.getLocalVariants();
+    if (variants.isEmpty) return;
+    int variantId = variants.first.id;
+    for (Variant variant in variants) {
+      RecordModel? variantRecord = await ProxyService.sync.push(variant);
+      if (variantRecord != null) {
+        Variant va = Variant.fromRecord(variantRecord);
+        va.remoteID = variantRecord.id;
+
+        // /// keep the local ID unchanged to avoid complication
+        va.id = variantId;
+
+        va.lastTouched = DateTime.now();
+        await ProxyService.isarApi.update(data: va);
+      }
+    }
+
     /// pushing products data
     List<Product> products = await ProxyService.isarApi.getLocalProducts();
     if (products.isEmpty) return;
@@ -220,41 +257,6 @@ class AppService with ListenableServiceMixin {
 
       product.lastTouched = DateTime.now();
       await ProxyService.isarApi.update(data: product);
-    }
-
-    //push variant
-    /// get variants
-    List<Variant> variants = await ProxyService.isarApi.getLocalVariants();
-    if (variants.isEmpty) return;
-    for (Variant variant in variants) {
-      RecordModel? variantRecord = await ProxyService.sync.push(variant);
-      if (variantRecord != null) {
-        Variant va = Variant.fromRecord(variantRecord);
-        va.remoteID = variantRecord.id;
-
-        // /// keep the local ID unchanged to avoid complication
-        va.id = oldId;
-
-        va.lastTouched = DateTime.now();
-        await ProxyService.isarApi.update(data: va);
-      }
-    }
-
-    /// push stock
-    List<Stock> stocks = await ProxyService.isarApi.getLocalStocks();
-    if (stocks.isEmpty) return;
-    for (Stock stock in stocks) {
-      RecordModel? stockRecord = await ProxyService.sync.push(stock);
-      if (stockRecord != null) {
-        Stock s = Stock.fromRecord(stockRecord);
-        s.remoteID = stockRecord.id;
-
-        // /// keep the local ID unchanged to avoid complication
-        s.id = oldId;
-
-        s.lastTouched = DateTime.now();
-        await ProxyService.isarApi.update(data: s);
-      }
     }
   }
 
