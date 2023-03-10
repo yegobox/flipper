@@ -3,6 +3,8 @@ library flipper_models;
 import 'package:flipper_models/sync_service.dart';
 import 'package:isar/isar.dart';
 import 'package:pocketbase/pocketbase.dart';
+import 'package:isar_crdt/isar_crdt.dart';
+import 'package:flipper_services/proxy.dart';
 part 'stock.g.dart';
 
 @Collection()
@@ -62,7 +64,8 @@ class Stock extends JsonSerializable {
         'active': active,
         'value': value,
         'rsdQty': rsdQty,
-        'lastTouched': DateTime.now(),
+        'lastTouched': Hlc.fromDate(
+            DateTime.now(), ProxyService.box.getBranchId()!.toString()),
         'remoteID': remoteID
       };
   factory Stock.fromRecord(RecordModel record) =>

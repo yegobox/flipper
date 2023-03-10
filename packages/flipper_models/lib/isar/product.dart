@@ -2,9 +2,10 @@ library flipper_models;
 
 import 'package:flipper_models/isar/variant.dart';
 import 'package:flipper_models/sync_service.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:isar/isar.dart';
 import 'package:pocketbase/pocketbase.dart';
-
+import 'package:isar_crdt/isar_crdt.dart';
 part 'product.g.dart';
 
 @Collection()
@@ -133,7 +134,8 @@ class Product extends JsonSerializable {
       "expiryDate": expiryDate,
       "barCode": barCode ?? null,
       "synced": synced,
-      'lastTouched': DateTime.now(),
+      'lastTouched': Hlc.fromDate(
+          DateTime.now(), ProxyService.box.getBranchId()!.toString()),
       "nfcEnabled": nfcEnabled,
       "bindedToTenantId": bindedToTenantId,
       "isFavorite": isFavorite,
