@@ -210,18 +210,16 @@ class AppService with ListenableServiceMixin {
     List<Stock> stocks = await ProxyService.isarApi.getLocalStocks();
     if (stocks.isEmpty) return;
     int stockId = stocks.first.id;
-    for (Stock stock in stocks) {
-      RecordModel? stockRecord = await ProxyService.sync.push(stock);
-      if (stockRecord != null) {
-        Stock s = Stock.fromRecord(stockRecord);
-        s.remoteID = stockRecord.id;
 
-        // /// keep the local ID unchanged to avoid complication
-        s.id = stockId;
+    RecordModel? stockRecord = await ProxyService.sync.push(stocks.first);
+    if (stockRecord != null) {
+      Stock s = Stock.fromRecord(stockRecord);
+      s.remoteID = stockRecord.id;
 
-        s.lastTouched = DateTime.now();
-        await ProxyService.isarApi.update(data: s);
-      }
+      // /// keep the local ID unchanged to avoid complication
+      s.id = stockId;
+
+      await ProxyService.isarApi.update(data: s);
     }
 
     //push variant
@@ -229,18 +227,16 @@ class AppService with ListenableServiceMixin {
     List<Variant> variants = await ProxyService.isarApi.getLocalVariants();
     if (variants.isEmpty) return;
     int variantId = variants.first.id;
-    for (Variant variant in variants) {
-      RecordModel? variantRecord = await ProxyService.sync.push(variant);
-      if (variantRecord != null) {
-        Variant va = Variant.fromRecord(variantRecord);
-        va.remoteID = variantRecord.id;
 
-        // /// keep the local ID unchanged to avoid complication
-        va.id = variantId;
+    RecordModel? variantRecord = await ProxyService.sync.push(variants.first);
+    if (variantRecord != null) {
+      Variant va = Variant.fromRecord(variantRecord);
+      va.remoteID = variantRecord.id;
 
-        va.lastTouched = DateTime.now();
-        await ProxyService.isarApi.update(data: va);
-      }
+      // /// keep the local ID unchanged to avoid complication
+      va.id = variantId;
+
+      await ProxyService.isarApi.update(data: va);
     }
 
     /// pushing products data
@@ -254,8 +250,6 @@ class AppService with ListenableServiceMixin {
 
       /// keep the local ID unchanged to avoid complication
       product.id = oldId;
-
-      product.lastTouched = DateTime.now();
       await ProxyService.isarApi.update(data: product);
     }
   }

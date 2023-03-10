@@ -55,7 +55,7 @@ class RWTax implements TaxApi {
     var request = http.Request(
         'POST', Uri.parse(apihub + '/stockMaster/saveStockMaster'));
     variant?.rsdQty = stock.rsdQty;
-    request.body = json.encode(variant?.toJson(remoteId: "fake"));
+    request.body = json.encode(variant?.toJson());
     request.headers.addAll(headers);
     // log(variant!.toJson().toString());
     http.StreamedResponse response = await request.send();
@@ -82,7 +82,7 @@ class RWTax implements TaxApi {
     var headers = {'Content-Type': 'application/json'};
     var request = http.Request('POST', Uri.parse(apihub + '/items/saveItems'));
     // log(variation.toJson().toString());
-    request.body = json.encode(variation.toJson(remoteId: "fake"));
+    request.body = json.encode(variation.toJson());
 
     request.headers.addAll(headers);
 

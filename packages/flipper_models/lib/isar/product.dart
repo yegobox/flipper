@@ -2,10 +2,8 @@ library flipper_models;
 
 import 'package:flipper_models/isar/variant.dart';
 import 'package:flipper_models/sync_service.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:isar/isar.dart';
 import 'package:pocketbase/pocketbase.dart';
-import 'package:isar_crdt/isar_crdt.dart';
 part 'product.g.dart';
 
 @Collection()
@@ -46,7 +44,7 @@ class Product extends JsonSerializable {
   /// the onlne generated ID will be the ID other device need to use in updating so
   /// the ID of the product in all devices should be similar and other IDs.
   @Index()
-  DateTime? lastTouched;
+  String? lastTouched;
   @Index()
   String? remoteID;
   final variants = IsarLinks<Variant>();
@@ -75,44 +73,46 @@ class Product extends JsonSerializable {
       this.synced,
       this.nfcEnabled,
       this.bindedToTenantId,
-      this.isFavorite});
+      this.isFavorite,
+      this.lastTouched,
+      this.remoteID});
 
   factory Product.fromRecord(RecordModel record) =>
       Product.fromJson(record.toJson());
 
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
-      name: json['name'],
-      active: json['active'],
-      color: json['color'],
-      businessId: json['businessId'],
-      branchId: json['branchId'],
-      picture: json['picture'],
-      description: json['description'],
-      taxId: json['taxId'],
-      hasPicture: json['hasPicture'],
-      table: json['table'],
-      supplierId: json['supplierId'],
-      categoryId: json['categoryId'],
-      createdAt: json['createdAt'],
-      unit: json['unit'],
-      draft: json['draft'],
-      imageLocal: json['imageLocal'],
-      currentUpdate: json['currentUpdate'],
-      imageUrl: json['imageUrl'],
-      expiryDate: json['expiryDate'],
-      barCode: json['barCode'],
-      synced: json['synced'],
-      nfcEnabled: json['nfcEnabled'],
-      bindedToTenantId: json['bindedToTenantId'],
-      isFavorite: json['isFavorite'],
-    );
+        name: json['name'],
+        active: json['active'],
+        color: json['color'],
+        businessId: json['businessId'],
+        branchId: json['branchId'],
+        picture: json['picture'],
+        description: json['description'],
+        taxId: json['taxId'],
+        hasPicture: json['hasPicture'],
+        table: json['table'],
+        supplierId: json['supplierId'],
+        categoryId: json['categoryId'],
+        createdAt: json['createdAt'],
+        unit: json['unit'],
+        draft: json['draft'],
+        imageLocal: json['imageLocal'],
+        currentUpdate: json['currentUpdate'],
+        imageUrl: json['imageUrl'],
+        expiryDate: json['expiryDate'],
+        barCode: json['barCode'],
+        synced: json['synced'],
+        nfcEnabled: json['nfcEnabled'],
+        bindedToTenantId: json['bindedToTenantId'],
+        isFavorite: json['isFavorite'],
+        lastTouched: json['lastTouched'],
+        remoteID: json['remoteID']);
   }
 
   @override
-  Map<String, dynamic> toJson({required String remoteId}) {
+  Map<String, dynamic> toJson() {
     return {
-      "id": remoteId,
       "name": name,
       "active": active,
       "color": color,
@@ -134,8 +134,6 @@ class Product extends JsonSerializable {
       "expiryDate": expiryDate,
       "barCode": barCode ?? null,
       "synced": synced,
-      'lastTouched': Hlc.fromDate(
-          DateTime.now(), ProxyService.box.getBranchId()!.toString()),
       "nfcEnabled": nfcEnabled,
       "bindedToTenantId": bindedToTenantId,
       "isFavorite": isFavorite,

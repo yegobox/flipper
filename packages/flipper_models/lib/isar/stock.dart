@@ -3,8 +3,6 @@ library flipper_models;
 import 'package:flipper_models/sync_service.dart';
 import 'package:isar/isar.dart';
 import 'package:pocketbase/pocketbase.dart';
-import 'package:isar_crdt/isar_crdt.dart';
-import 'package:flipper_services/proxy.dart';
 part 'stock.g.dart';
 
 @Collection()
@@ -28,7 +26,7 @@ class Stock extends JsonSerializable {
   // RRA fields
   double? rsdQty;
   @Index()
-  DateTime? lastTouched;
+  String? lastTouched;
   @Index()
   String? remoteID;
 
@@ -50,8 +48,7 @@ class Stock extends JsonSerializable {
   });
 
   @override
-  Map<String, dynamic> toJson({required String remoteId}) => {
-        'id': remoteID,
+  Map<String, dynamic> toJson() => {
         'branchId': branchId,
         'variantId': variantId,
         'lowStock': lowStock,
@@ -64,9 +61,6 @@ class Stock extends JsonSerializable {
         'active': active,
         'value': value,
         'rsdQty': rsdQty,
-        'lastTouched': Hlc.fromDate(
-            DateTime.now(), ProxyService.box.getBranchId()!.toString()),
-        'remoteID': remoteID
       };
   factory Stock.fromRecord(RecordModel record) =>
       Stock.fromJson(record.toJson());
@@ -74,16 +68,16 @@ class Stock extends JsonSerializable {
     return Stock(
         branchId: json['branchId'],
         variantId: json['variantId'],
-        lowStock: json['lowStock'],
-        currentStock: json['currentStock'],
-        supplyPrice: json['supplyPrice'],
-        retailPrice: json['retailPrice'],
+        lowStock: json['lowStock']?.toDouble() ?? 0.0,
+        currentStock: json['currentStock']?.toDouble() ?? 0.0,
+        supplyPrice: json['supplyPrice']?.toDouble() ?? 0.0,
+        retailPrice: json['retailPrice']?.toDouble() ?? 0.0,
         canTrackingStock: json['canTrackingStock'],
         showLowStockAlert: json['showLowStockAlert'],
         productId: json['productId'],
         active: json['active'],
-        value: json['value'],
-        rsdQty: json['rsdQty'],
+        value: json['value']?.toDouble() ?? 0.0,
+        rsdQty: json['rsdQty']?.toDouble() ?? 0.0,
         lastTouched: json['lastTouched'],
         remoteID: json['remoteID']);
   }

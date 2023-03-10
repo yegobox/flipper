@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_models/data.loads/jcounter.dart';
@@ -1222,6 +1223,8 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Stream<List<Product>> productStreams({required int branchId}) {
+    final _controller = StreamController<List<Product>>.broadcast();
+
     final productsStream = isar.products
         .where()
         .draftBranchIdEqualTo(false, branchId)
@@ -1234,22 +1237,38 @@ class IsarAPI<M> implements IsarApiInterface {
         .nameEqualTo('Custom Amount')
         .watch(fireImmediately: true);
 
-    return StreamZip([productsStream, excludedProductsStream]).map((event) {
-      final List<Product> products = event[0];
-      final List<Product> excludedProducts = event[1];
-
-      // Filter out the excluded products
-      final List<Product> filteredProducts = products.where((p) {
-        // Exclude products with the name 'Custom Amount'
+    // Emit initial data manually
+    productsStream.first.then((products) async {
+      final excludedProducts = await excludedProductsStream.first;
+      final filteredProducts = products.where((p) {
         if (p.name == 'Custom Amount' || p.name == 'temp') {
           return false;
         }
-
-        return !excludedProducts.contains(p);
+        return !excludedProducts.any((e) => e.id == p.id);
       }).toList();
-
-      return filteredProducts;
+      _controller.add(filteredProducts);
     });
+
+    // Listen to changes in the Isar database and update the stream
+    late StreamSubscription _subscription;
+    _subscription = isar.products.watchLazy().listen((event) async {
+      final products = await productsStream.first;
+      final excludedProducts = await excludedProductsStream.first;
+      final filteredProducts = products.where((p) {
+        if (p.name == 'Custom Amount' || p.name == 'temp') {
+          return false;
+        }
+        return !excludedProducts.any((e) => e.id == p.id);
+      }).toList();
+      _controller.add(filteredProducts);
+    });
+
+    // Cancel the subscription and close the controller when the stream is closed
+    _controller.onCancel = () {
+      _subscription.cancel();
+    };
+
+    return _controller.stream;
   }
 
   @override

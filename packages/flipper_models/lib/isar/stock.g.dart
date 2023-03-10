@@ -40,7 +40,7 @@ const StockSchema = CollectionSchema(
     r'lastTouched': PropertySchema(
       id: 4,
       name: r'lastTouched',
-      type: IsarType.dateTime,
+      type: IsarType.string,
     ),
     r'lowStock': PropertySchema(
       id: 5,
@@ -146,8 +146,8 @@ const StockSchema = CollectionSchema(
       properties: [
         IndexPropertySchema(
           name: r'lastTouched',
-          type: IndexType.value,
-          caseSensitive: false,
+          type: IndexType.hash,
+          caseSensitive: true,
         )
       ],
     ),
@@ -180,6 +180,12 @@ int _stockEstimateSize(
 ) {
   var bytesCount = offsets.last;
   {
+    final value = object.lastTouched;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
     final value = object.remoteID;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
@@ -198,7 +204,7 @@ void _stockSerialize(
   writer.writeLong(offsets[1], object.branchId);
   writer.writeBool(offsets[2], object.canTrackingStock);
   writer.writeDouble(offsets[3], object.currentStock);
-  writer.writeDateTime(offsets[4], object.lastTouched);
+  writer.writeString(offsets[4], object.lastTouched);
   writer.writeDouble(offsets[5], object.lowStock);
   writer.writeLong(offsets[6], object.productId);
   writer.writeString(offsets[7], object.remoteID);
@@ -221,7 +227,7 @@ Stock _stockDeserialize(
     branchId: reader.readLong(offsets[1]),
     canTrackingStock: reader.readBoolOrNull(offsets[2]),
     currentStock: reader.readDouble(offsets[3]),
-    lastTouched: reader.readDateTimeOrNull(offsets[4]),
+    lastTouched: reader.readStringOrNull(offsets[4]),
     lowStock: reader.readDoubleOrNull(offsets[5]),
     productId: reader.readLong(offsets[6]),
     remoteID: reader.readStringOrNull(offsets[7]),
@@ -252,7 +258,7 @@ P _stockDeserializeProp<P>(
     case 3:
       return (reader.readDouble(offset)) as P;
     case 4:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 5:
       return (reader.readDoubleOrNull(offset)) as P;
     case 6:
@@ -315,14 +321,6 @@ extension StockQueryWhereSort on QueryBuilder<Stock, Stock, QWhere> {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         const IndexWhereClause.any(indexName: r'productId'),
-      );
-    });
-  }
-
-  QueryBuilder<Stock, Stock, QAfterWhere> anyLastTouched() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        const IndexWhereClause.any(indexName: r'lastTouched'),
       );
     });
   }
@@ -779,7 +777,7 @@ extension StockQueryWhere on QueryBuilder<Stock, Stock, QWhereClause> {
   }
 
   QueryBuilder<Stock, Stock, QAfterWhereClause> lastTouchedEqualTo(
-      DateTime? lastTouched) {
+      String? lastTouched) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
         indexName: r'lastTouched',
@@ -789,7 +787,7 @@ extension StockQueryWhere on QueryBuilder<Stock, Stock, QWhereClause> {
   }
 
   QueryBuilder<Stock, Stock, QAfterWhereClause> lastTouchedNotEqualTo(
-      DateTime? lastTouched) {
+      String? lastTouched) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -820,51 +818,6 @@ extension StockQueryWhere on QueryBuilder<Stock, Stock, QWhereClause> {
               includeUpper: false,
             ));
       }
-    });
-  }
-
-  QueryBuilder<Stock, Stock, QAfterWhereClause> lastTouchedGreaterThan(
-    DateTime? lastTouched, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'lastTouched',
-        lower: [lastTouched],
-        includeLower: include,
-        upper: [],
-      ));
-    });
-  }
-
-  QueryBuilder<Stock, Stock, QAfterWhereClause> lastTouchedLessThan(
-    DateTime? lastTouched, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'lastTouched',
-        lower: [],
-        upper: [lastTouched],
-        includeUpper: include,
-      ));
-    });
-  }
-
-  QueryBuilder<Stock, Stock, QAfterWhereClause> lastTouchedBetween(
-    DateTime? lowerLastTouched,
-    DateTime? upperLastTouched, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'lastTouched',
-        lower: [lowerLastTouched],
-        includeLower: includeLower,
-        upper: [upperLastTouched],
-        includeUpper: includeUpper,
-      ));
     });
   }
 
@@ -1170,46 +1123,54 @@ extension StockQueryFilter on QueryBuilder<Stock, Stock, QFilterCondition> {
   }
 
   QueryBuilder<Stock, Stock, QAfterFilterCondition> lastTouchedEqualTo(
-      DateTime? value) {
+    String? value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'lastTouched',
         value: value,
+        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<Stock, Stock, QAfterFilterCondition> lastTouchedGreaterThan(
-    DateTime? value, {
+    String? value, {
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
         property: r'lastTouched',
         value: value,
+        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<Stock, Stock, QAfterFilterCondition> lastTouchedLessThan(
-    DateTime? value, {
+    String? value, {
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
         property: r'lastTouched',
         value: value,
+        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<Stock, Stock, QAfterFilterCondition> lastTouchedBetween(
-    DateTime? lower,
-    DateTime? upper, {
+    String? lower,
+    String? upper, {
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1218,6 +1179,75 @@ extension StockQueryFilter on QueryBuilder<Stock, Stock, QFilterCondition> {
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> lastTouchedStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'lastTouched',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> lastTouchedEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'lastTouched',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> lastTouchedContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'lastTouched',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> lastTouchedMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'lastTouched',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> lastTouchedIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lastTouched',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> lastTouchedIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'lastTouched',
+        value: '',
       ));
     });
   }
@@ -2273,9 +2303,10 @@ extension StockQueryWhereDistinct on QueryBuilder<Stock, Stock, QDistinct> {
     });
   }
 
-  QueryBuilder<Stock, Stock, QDistinct> distinctByLastTouched() {
+  QueryBuilder<Stock, Stock, QDistinct> distinctByLastTouched(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'lastTouched');
+      return query.addDistinctBy(r'lastTouched', caseSensitive: caseSensitive);
     });
   }
 
@@ -2366,7 +2397,7 @@ extension StockQueryProperty on QueryBuilder<Stock, Stock, QQueryProperty> {
     });
   }
 
-  QueryBuilder<Stock, DateTime?, QQueryOperations> lastTouchedProperty() {
+  QueryBuilder<Stock, String?, QQueryOperations> lastTouchedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'lastTouched');
     });

@@ -105,7 +105,7 @@ const VariantSchema = CollectionSchema(
     r'lastTouched': PropertySchema(
       id: 17,
       name: r'lastTouched',
-      type: IsarType.dateTime,
+      type: IsarType.string,
     ),
     r'modrId': PropertySchema(
       id: 18,
@@ -278,8 +278,8 @@ const VariantSchema = CollectionSchema(
       properties: [
         IndexPropertySchema(
           name: r'lastTouched',
-          type: IndexType.value,
-          caseSensitive: false,
+          type: IndexType.hash,
+          caseSensitive: true,
         )
       ],
     ),
@@ -396,6 +396,12 @@ int _variantEstimateSize(
     }
   }
   {
+    final value = object.lastTouched;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
     final value = object.modrId;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
@@ -498,7 +504,7 @@ void _variantSerialize(
   writer.writeString(offsets[14], object.itemSeq);
   writer.writeString(offsets[15], object.itemStdNm);
   writer.writeString(offsets[16], object.itemTyCd);
-  writer.writeDateTime(offsets[17], object.lastTouched);
+  writer.writeString(offsets[17], object.lastTouched);
   writer.writeString(offsets[18], object.modrId);
   writer.writeString(offsets[19], object.modrNm);
   writer.writeString(offsets[20], object.name);
@@ -551,7 +557,7 @@ Variant _variantDeserialize(
     itemSeq: reader.readStringOrNull(offsets[14]),
     itemStdNm: reader.readStringOrNull(offsets[15]),
     itemTyCd: reader.readStringOrNull(offsets[16]),
-    lastTouched: reader.readDateTimeOrNull(offsets[17]),
+    lastTouched: reader.readStringOrNull(offsets[17]),
     modrId: reader.readStringOrNull(offsets[18]),
     modrNm: reader.readStringOrNull(offsets[19]),
     name: reader.readString(offsets[20]),
@@ -625,7 +631,7 @@ P _variantDeserializeProp<P>(
     case 16:
       return (reader.readStringOrNull(offset)) as P;
     case 17:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 18:
       return (reader.readStringOrNull(offset)) as P;
     case 19:
@@ -706,14 +712,6 @@ extension VariantQueryWhereSort on QueryBuilder<Variant, Variant, QWhere> {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         const IndexWhereClause.any(indexName: r'productId'),
-      );
-    });
-  }
-
-  QueryBuilder<Variant, Variant, QAfterWhere> anyLastTouched() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        const IndexWhereClause.any(indexName: r'lastTouched'),
       );
     });
   }
@@ -940,7 +938,7 @@ extension VariantQueryWhere on QueryBuilder<Variant, Variant, QWhereClause> {
   }
 
   QueryBuilder<Variant, Variant, QAfterWhereClause> lastTouchedEqualTo(
-      DateTime? lastTouched) {
+      String? lastTouched) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
         indexName: r'lastTouched',
@@ -950,7 +948,7 @@ extension VariantQueryWhere on QueryBuilder<Variant, Variant, QWhereClause> {
   }
 
   QueryBuilder<Variant, Variant, QAfterWhereClause> lastTouchedNotEqualTo(
-      DateTime? lastTouched) {
+      String? lastTouched) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -981,51 +979,6 @@ extension VariantQueryWhere on QueryBuilder<Variant, Variant, QWhereClause> {
               includeUpper: false,
             ));
       }
-    });
-  }
-
-  QueryBuilder<Variant, Variant, QAfterWhereClause> lastTouchedGreaterThan(
-    DateTime? lastTouched, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'lastTouched',
-        lower: [lastTouched],
-        includeLower: include,
-        upper: [],
-      ));
-    });
-  }
-
-  QueryBuilder<Variant, Variant, QAfterWhereClause> lastTouchedLessThan(
-    DateTime? lastTouched, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'lastTouched',
-        lower: [],
-        upper: [lastTouched],
-        includeUpper: include,
-      ));
-    });
-  }
-
-  QueryBuilder<Variant, Variant, QAfterWhereClause> lastTouchedBetween(
-    DateTime? lowerLastTouched,
-    DateTime? upperLastTouched, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'lastTouched',
-        lower: [lowerLastTouched],
-        includeLower: includeLower,
-        upper: [upperLastTouched],
-        includeUpper: includeUpper,
-      ));
     });
   }
 
@@ -3352,46 +3305,54 @@ extension VariantQueryFilter
   }
 
   QueryBuilder<Variant, Variant, QAfterFilterCondition> lastTouchedEqualTo(
-      DateTime? value) {
+    String? value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'lastTouched',
         value: value,
+        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<Variant, Variant, QAfterFilterCondition> lastTouchedGreaterThan(
-    DateTime? value, {
+    String? value, {
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
         property: r'lastTouched',
         value: value,
+        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<Variant, Variant, QAfterFilterCondition> lastTouchedLessThan(
-    DateTime? value, {
+    String? value, {
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
         property: r'lastTouched',
         value: value,
+        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<Variant, Variant, QAfterFilterCondition> lastTouchedBetween(
-    DateTime? lower,
-    DateTime? upper, {
+    String? lower,
+    String? upper, {
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -3400,6 +3361,76 @@ extension VariantQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> lastTouchedStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'lastTouched',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> lastTouchedEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'lastTouched',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> lastTouchedContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'lastTouched',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> lastTouchedMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'lastTouched',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> lastTouchedIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lastTouched',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition>
+      lastTouchedIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'lastTouched',
+        value: '',
       ));
     });
   }
@@ -7642,9 +7673,10 @@ extension VariantQueryWhereDistinct
     });
   }
 
-  QueryBuilder<Variant, Variant, QDistinct> distinctByLastTouched() {
+  QueryBuilder<Variant, Variant, QDistinct> distinctByLastTouched(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'lastTouched');
+      return query.addDistinctBy(r'lastTouched', caseSensitive: caseSensitive);
     });
   }
 
@@ -7932,7 +7964,7 @@ extension VariantQueryProperty
     });
   }
 
-  QueryBuilder<Variant, DateTime?, QQueryOperations> lastTouchedProperty() {
+  QueryBuilder<Variant, String?, QQueryOperations> lastTouchedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'lastTouched');
     });

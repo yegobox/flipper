@@ -100,7 +100,7 @@ const ProductSchema = CollectionSchema(
     r'lastTouched': PropertySchema(
       id: 16,
       name: r'lastTouched',
-      type: IsarType.dateTime,
+      type: IsarType.string,
     ),
     r'name': PropertySchema(
       id: 17,
@@ -232,8 +232,8 @@ const ProductSchema = CollectionSchema(
       properties: [
         IndexPropertySchema(
           name: r'lastTouched',
-          type: IndexType.value,
-          caseSensitive: false,
+          type: IndexType.hash,
+          caseSensitive: true,
         )
       ],
     ),
@@ -309,6 +309,12 @@ int _productEstimateSize(
       bytesCount += 3 + value.length * 3;
     }
   }
+  {
+    final value = object.lastTouched;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.name.length * 3;
   {
     final value = object.picture;
@@ -371,7 +377,7 @@ void _productSerialize(
   writer.writeBool(offsets[13], object.imageLocal);
   writer.writeString(offsets[14], object.imageUrl);
   writer.writeBool(offsets[15], object.isFavorite);
-  writer.writeDateTime(offsets[16], object.lastTouched);
+  writer.writeString(offsets[16], object.lastTouched);
   writer.writeString(offsets[17], object.name);
   writer.writeBool(offsets[18], object.nfcEnabled);
   writer.writeString(offsets[19], object.picture);
@@ -406,9 +412,11 @@ Product _productDeserialize(
     imageLocal: reader.readBoolOrNull(offsets[13]),
     imageUrl: reader.readStringOrNull(offsets[14]),
     isFavorite: reader.readBoolOrNull(offsets[15]),
+    lastTouched: reader.readStringOrNull(offsets[16]),
     name: reader.readString(offsets[17]),
     nfcEnabled: reader.readBoolOrNull(offsets[18]),
     picture: reader.readStringOrNull(offsets[19]),
+    remoteID: reader.readStringOrNull(offsets[20]),
     supplierId: reader.readStringOrNull(offsets[21]),
     synced: reader.readBoolOrNull(offsets[22]),
     table: reader.readStringOrNull(offsets[23]),
@@ -416,8 +424,6 @@ Product _productDeserialize(
     unit: reader.readStringOrNull(offsets[25]),
   );
   object.id = id;
-  object.lastTouched = reader.readDateTimeOrNull(offsets[16]);
-  object.remoteID = reader.readStringOrNull(offsets[20]);
   return object;
 }
 
@@ -461,7 +467,7 @@ P _productDeserializeProp<P>(
     case 15:
       return (reader.readBoolOrNull(offset)) as P;
     case 16:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 17:
       return (reader.readString(offset)) as P;
     case 18:
@@ -525,14 +531,6 @@ extension ProductQueryWhereSort on QueryBuilder<Product, Product, QWhere> {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         const IndexWhereClause.any(indexName: r'bindedToTenantId'),
-      );
-    });
-  }
-
-  QueryBuilder<Product, Product, QAfterWhere> anyLastTouched() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        const IndexWhereClause.any(indexName: r'lastTouched'),
       );
     });
   }
@@ -1096,7 +1094,7 @@ extension ProductQueryWhere on QueryBuilder<Product, Product, QWhereClause> {
   }
 
   QueryBuilder<Product, Product, QAfterWhereClause> lastTouchedEqualTo(
-      DateTime? lastTouched) {
+      String? lastTouched) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
         indexName: r'lastTouched',
@@ -1106,7 +1104,7 @@ extension ProductQueryWhere on QueryBuilder<Product, Product, QWhereClause> {
   }
 
   QueryBuilder<Product, Product, QAfterWhereClause> lastTouchedNotEqualTo(
-      DateTime? lastTouched) {
+      String? lastTouched) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -1137,51 +1135,6 @@ extension ProductQueryWhere on QueryBuilder<Product, Product, QWhereClause> {
               includeUpper: false,
             ));
       }
-    });
-  }
-
-  QueryBuilder<Product, Product, QAfterWhereClause> lastTouchedGreaterThan(
-    DateTime? lastTouched, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'lastTouched',
-        lower: [lastTouched],
-        includeLower: include,
-        upper: [],
-      ));
-    });
-  }
-
-  QueryBuilder<Product, Product, QAfterWhereClause> lastTouchedLessThan(
-    DateTime? lastTouched, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'lastTouched',
-        lower: [],
-        upper: [lastTouched],
-        includeUpper: include,
-      ));
-    });
-  }
-
-  QueryBuilder<Product, Product, QAfterWhereClause> lastTouchedBetween(
-    DateTime? lowerLastTouched,
-    DateTime? upperLastTouched, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'lastTouched',
-        lower: [lowerLastTouched],
-        includeLower: includeLower,
-        upper: [upperLastTouched],
-        includeUpper: includeUpper,
-      ));
     });
   }
 
@@ -2633,46 +2586,54 @@ extension ProductQueryFilter
   }
 
   QueryBuilder<Product, Product, QAfterFilterCondition> lastTouchedEqualTo(
-      DateTime? value) {
+    String? value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'lastTouched',
         value: value,
+        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<Product, Product, QAfterFilterCondition> lastTouchedGreaterThan(
-    DateTime? value, {
+    String? value, {
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
         property: r'lastTouched',
         value: value,
+        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<Product, Product, QAfterFilterCondition> lastTouchedLessThan(
-    DateTime? value, {
+    String? value, {
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
         property: r'lastTouched',
         value: value,
+        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<Product, Product, QAfterFilterCondition> lastTouchedBetween(
-    DateTime? lower,
-    DateTime? upper, {
+    String? lower,
+    String? upper, {
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -2681,6 +2642,76 @@ extension ProductQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> lastTouchedStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'lastTouched',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> lastTouchedEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'lastTouched',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> lastTouchedContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'lastTouched',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> lastTouchedMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'lastTouched',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> lastTouchedIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lastTouched',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition>
+      lastTouchedIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'lastTouched',
+        value: '',
       ));
     });
   }
@@ -4553,9 +4584,10 @@ extension ProductQueryWhereDistinct
     });
   }
 
-  QueryBuilder<Product, Product, QDistinct> distinctByLastTouched() {
+  QueryBuilder<Product, Product, QDistinct> distinctByLastTouched(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'lastTouched');
+      return query.addDistinctBy(r'lastTouched', caseSensitive: caseSensitive);
     });
   }
 
@@ -4725,7 +4757,7 @@ extension ProductQueryProperty
     });
   }
 
-  QueryBuilder<Product, DateTime?, QQueryOperations> lastTouchedProperty() {
+  QueryBuilder<Product, String?, QQueryOperations> lastTouchedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'lastTouched');
     });

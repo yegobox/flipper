@@ -76,16 +76,6 @@ Future<void> backgroundHandler(RemoteMessage message) async {
       tz.TZDateTime.now(tz.local).add(const Duration(seconds: 5)));
 }
 
-/// no need to override the certificate as we trust cert on yegobox domains
-// class FlipperHttpOverrides extends HttpOverrides {
-//   @override
-//   HttpClient createHttpClient(SecurityContext? context) {
-//     return super.createHttpClient(context)
-//       ..badCertificateCallback =
-//           (X509Certificate cert, String host, int port) => true;
-//   }
-// }
-
 void main() async {
   GoogleFonts.config.allowRuntimeFetching = false;
   foundation.LicenseRegistry.addLicense(() async* {

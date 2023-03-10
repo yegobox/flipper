@@ -7,9 +7,6 @@ import 'package:flipper_models/sync_service.dart';
 import 'package:isar/isar.dart';
 import 'package:pocketbase/pocketbase.dart';
 
-import 'package:isar_crdt/isar_crdt.dart';
-import 'package:flipper_services/proxy.dart';
-
 part 'variant.g.dart';
 
 @Collection()
@@ -81,7 +78,7 @@ class Variant extends JsonSerializable {
   /// property for stock but presented here for easy
   double? rsdQty;
   @Index()
-  DateTime? lastTouched;
+  String? lastTouched;
   @Index()
   String? remoteID;
 
@@ -134,8 +131,7 @@ class Variant extends JsonSerializable {
 
   // toJson helper
   @override
-  Map<String, dynamic> toJson({required String remoteId}) => {
-        'id': remoteId,
+  Map<String, dynamic> toJson() => {
         'name': name,
         'sku': sku,
         'productId': productId,
@@ -175,8 +171,6 @@ class Variant extends JsonSerializable {
         'regrId': regrId,
         'regrNm': regrNm,
         'modrId': modrId,
-        'lastTouched': Hlc.fromDate(
-            DateTime.now(), ProxyService.box.getBranchId()!.toString()),
         'modrNm': modrNm,
         "rsdQty": rsdQty,
       };
@@ -192,9 +186,9 @@ class Variant extends JsonSerializable {
       productName: json['productName'],
       branchId: json['branchId'],
       taxName: json['taxName'],
-      taxPercentage: json['taxPercentage'],
-      supplyPrice: json['supplyPrice'],
-      retailPrice: json['retailPrice'],
+      taxPercentage: json['taxPercentage']?.toDouble() ?? 0.0,
+      supplyPrice: json['supplyPrice']?.toDouble() ?? 0.0,
+      retailPrice: json['retailPrice']?.toDouble() ?? 0.0,
       isTaxExempted: json['isTaxExempted'],
       itemSeq: json['itemSeq'],
       isrccCd: json['isrccCd'],
@@ -212,12 +206,12 @@ class Variant extends JsonSerializable {
       pkgUnitCd: json['pkgUnitCd'],
       qtyUnitCd: json['qtyUnitCd'],
       itemNm: json['itemNm'],
-      qty: json['qty'],
-      prc: json['prc'],
-      splyAmt: json['splyAmt'],
+      qty: json['qty']?.toDouble() ?? 0.0,
+      prc: json['prc']?.toDouble() ?? 0.0,
+      splyAmt: json['splyAmt']?.toDouble() ?? 0.0,
       tin: json['tin'],
       bhfId: json['bhfId'],
-      dftPrc: json['dftPrc'],
+      dftPrc: json['dftPrc']?.toDouble() ?? 0.0,
       addInfo: json['addInfo'],
       isrcAplcbYn: json['isrcAplcbYn'],
       useYn: json['useYn'],
@@ -225,10 +219,8 @@ class Variant extends JsonSerializable {
       regrNm: json['regrNm'],
       modrId: json['modrId'],
       modrNm: json['modrNm'],
-      rsdQty: json['rsdQty'],
-      lastTouched: json['lastTouched'] != null
-          ? DateTime.parse(json['lastTouched'])
-          : null,
+      rsdQty: json['rsdQty']?.toDouble() ?? 0.0,
+      lastTouched: json['lastTouched'],
       remoteID: json['remoteID'],
     );
   }
