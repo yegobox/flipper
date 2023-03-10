@@ -133,6 +133,7 @@ class Product extends JsonSerializable {
       "expiryDate": expiryDate,
       "barCode": barCode ?? null,
       "synced": synced,
+      'lastTouched': DateTime.now(),
       "nfcEnabled": nfcEnabled,
       "bindedToTenantId": bindedToTenantId,
       "isFavorite": isFavorite,

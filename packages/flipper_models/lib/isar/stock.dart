@@ -62,7 +62,7 @@ class Stock extends JsonSerializable {
         'active': active,
         'value': value,
         'rsdQty': rsdQty,
-        'lastTouched': lastTouched,
+        'lastTouched': DateTime.now(),
         'remoteID': remoteID
       };
   factory Stock.fromRecord(RecordModel record) =>

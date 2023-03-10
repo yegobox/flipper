@@ -118,7 +118,7 @@ class ProductViewModel extends AddTenantViewModel {
       ..focused = false
       ..name = productName!
       ..branchId = branchId!;
-    await ProxyService.isarApi.create(endPoint: 'category', data: category);
+    await ProxyService.isarApi.create(data: category);
     app.loadCategories();
   }
 

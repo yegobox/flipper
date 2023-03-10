@@ -23,7 +23,7 @@ abstract class IsarApiInterface {
   Stream<List<Category>> categoriesStream({required int branchId});
   Stream<Order?> pendingOrderStream();
   Future<List<IUnit>> units({required int branchId});
-  Future<int> create<T>({required T data, required String endPoint});
+  Future<T?> create<T>({required T data});
   Future<T?> update<T>({required T data});
 
   Future<bool> delete({required dynamic id, String? endPoint});

@@ -462,28 +462,6 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<int> create<T>({required T data, required String endPoint}) {
-    if (endPoint == 'color') {
-      PColor color = data as PColor;
-      isar.writeTxn(() async {
-        for (String colorName in data.colors!) {
-          await isar.pColors.put(PColor()
-            ..name = colorName
-            ..active = color.active
-            ..branchId = color.branchId);
-        }
-      });
-    }
-    if (endPoint == 'category') {
-      Category category = data as Category;
-      isar.writeTxn(() {
-        return isar.categorys.put(category);
-      });
-    }
-    return Future.value(200);
-  }
-
-  @override
   Future<void> createGoogleSheetDoc({required String email}) async {
     // TODOre-work on this until it work 100%;
     Business? business = await getBusiness();
@@ -1406,6 +1384,43 @@ class IsarAPI<M> implements IsarApiInterface {
     return isar.writeTxn(() {
       return isar.iUnits.where().branchIdEqualTo(branchId).findAll();
     });
+  }
+
+  @override
+  Future<T?> create<T>({required T data}) {
+    if (data is PColor) {
+      PColor color = data;
+      isar.writeTxn(() async {
+        for (String colorName in data.colors!) {
+          await isar.pColors.put(PColor()
+            ..name = colorName
+            ..active = color.active
+            ..branchId = color.branchId);
+        }
+      });
+    }
+    if (data is Category) {
+      Category category = data;
+      isar.writeTxn(() {
+        return isar.categorys.put(category);
+      });
+    }
+    if (data is Product) {
+      isar.writeTxn(() {
+        return isar.products.put(data);
+      });
+    }
+    if (data is Variant) {
+      isar.writeTxn(() {
+        return isar.variants.put(data);
+      });
+    }
+    if (data is Stock) {
+      isar.writeTxn(() {
+        return isar.stocks.put(data);
+      });
+    }
+    return Future.value(null);
   }
 
   /// @Deprecated [endpoint] don't give the endpoint params

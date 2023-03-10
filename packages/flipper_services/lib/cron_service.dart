@@ -58,6 +58,7 @@ class CronService {
     Timer.periodic(Duration(minutes: 2), (Timer t) async {
       /// get a list of local copy of product to sync
       ProxyService.appService.pushDataToServer();
+      ProxyService.sync.pull();
     });
   }
 }

@@ -12,17 +12,6 @@ abstract class JsonSerializable {
 
 class SynchronizationService<M extends JsonSerializable>
     implements SyncApiInterface<M> {
-  /// read the entire isar models
-  /// see changes in them
-  /// if there is change send them to appropriate endpoint on
-  /// our sync server
-  // ignore: todo
-  /// TODO: how will I know the model type if I make it generic like bellow?
-  /// this method is
-  /// how do we know changes to send?
-  /// We can have strategy 1:
-  /// fetch data from remote first
-  /// if there conflict on local replace data and move on
   @override
   Future<RecordModel?> push(M model) async {
     Type modelType = model.runtimeType;
@@ -30,9 +19,6 @@ class SynchronizationService<M extends JsonSerializable>
     String? endpoint = serverDefinitions[modelType];
     if (endpoint != null) {
       // Convert the model to JSON using the `toJson()` method
-      /// when we push the model to the server we also updat the model remoteID
-      /// once we receive confirmation that the item is created on server we update the
-      /// local copy with remoteID of the remote.
       Map<String, dynamic> json = model.toJson(remoteId: syncId());
       if (json["name"] != "temp") {
         return await ProxyService.remoteApi
@@ -43,8 +29,7 @@ class SynchronizationService<M extends JsonSerializable>
   }
 
   @override
-  Future<RecordModel> pull() {
-    // TODO: implement pull
-    throw UnimplementedError();
+  void pull() async {
+    ProxyService.remoteApi.listenToChanges();
   }
 }

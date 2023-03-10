@@ -1,4 +1,7 @@
+import 'package:flipper_services/proxy.dart';
 import 'package:pocketbase/pocketbase.dart';
+
+import 'isar_models.dart';
 
 abstract class RemoteInterface<T> {
   Future<List<RecordModel>> getCollection({required String collectionName});
@@ -64,9 +67,22 @@ class RemoteService<T> implements RemoteInterface {
 
   @override
   void listenToChanges() {
+    pb.collection('stocks').subscribe("*", (e) {
+      if (e.action == "create") {
+        Stock stock = Stock.fromRecord(e.record!);
+        ProxyService.isarApi.create(data: stock);
+      }
+    });
     pb.collection('products').subscribe("*", (e) {
       if (e.action == "create") {
-        /// create a product
+        Product product = Product.fromRecord(e.record!);
+        ProxyService.isarApi.create(data: product);
+      }
+    });
+    pb.collection('variants').subscribe("*", (e) {
+      if (e.action == "create") {
+        Variant variant = Variant.fromRecord(e.record!);
+        ProxyService.isarApi.create(data: variant);
       }
     });
   }

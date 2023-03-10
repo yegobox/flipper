@@ -171,6 +171,7 @@ class Variant extends JsonSerializable {
         'regrId': regrId,
         'regrNm': regrNm,
         'modrId': modrId,
+        'lastTouched': DateTime.now(),
         'modrNm': modrNm,
         "rsdQty": rsdQty,
       };

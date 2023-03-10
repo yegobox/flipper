@@ -64,7 +64,7 @@ class ForceDataEntryService {
     List<PColor> kColors =
         await ProxyService.isarApi.colors(branchId: branchid);
     if (kColors.isEmpty) {
-      await ProxyService.isarApi.create<PColor>(data: color, endPoint: 'color');
+      await ProxyService.isarApi.create<PColor>(data: color);
     }
     List<IUnit> kUnits = await ProxyService.isarApi.units(branchId: branchid);
 
