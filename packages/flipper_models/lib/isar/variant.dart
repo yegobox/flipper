@@ -3,11 +3,13 @@
 //     final variation = variationFromJson(jsonString);
 library flipper_models;
 
+import 'package:flipper_models/sync_service.dart';
 import 'package:isar/isar.dart';
+import 'package:pocketbase/pocketbase.dart';
 part 'variant.g.dart';
 
 @Collection()
-class Variant {
+class Variant extends JsonSerializable {
   Id id = Isar.autoIncrement;
   @Index(caseSensitive: true)
   late String name;
@@ -74,9 +76,62 @@ class Variant {
 
   /// property for stock but presented here for easy
   double? rsdQty;
+  @Index()
+  DateTime? lastTouched;
+  @Index()
+  String? remoteID;
+
+  Variant({
+    required this.name,
+    required this.sku,
+    required this.productId,
+    required this.unit,
+    required this.table,
+    required this.productName,
+    required this.branchId,
+    required this.supplyPrice,
+    required this.retailPrice,
+    required this.isTaxExempted,
+    this.taxName,
+    this.taxPercentage,
+    this.itemSeq,
+    this.isrccCd,
+    this.isrccNm,
+    this.isrcRt,
+    this.isrcAmt,
+    this.taxTyCd,
+    this.bcd,
+    this.itemClsCd,
+    this.itemTyCd,
+    this.itemStdNm,
+    this.orgnNatCd,
+    this.pkg,
+    this.itemCd,
+    this.pkgUnitCd,
+    this.qtyUnitCd,
+    this.itemNm,
+    this.qty,
+    this.prc,
+    this.splyAmt,
+    this.tin,
+    this.bhfId,
+    this.dftPrc,
+    this.addInfo,
+    this.isrcAplcbYn,
+    this.useYn,
+    this.regrId,
+    this.regrNm,
+    this.modrId,
+    this.modrNm,
+    this.rsdQty,
+    this.lastTouched,
+    this.remoteID,
+  });
+
   // toJson helper
-  Map<String, dynamic> toJson() => {
-        'id': id,
+  @override
+  Map<String, dynamic> toJson({required String remoteId}) => {
+        'id': remoteId,
         'name': name,
         'sku': sku,
         'productId': productId,
@@ -119,4 +174,56 @@ class Variant {
         'modrNm': modrNm,
         "rsdQty": rsdQty,
       };
+  factory Variant.fromRecord(RecordModel record) =>
+      Variant.fromJson(record.toJson());
+  factory Variant.fromJson(Map<String, dynamic> json) {
+    return Variant(
+      name: json['name'],
+      sku: json['sku'],
+      productId: json['productId'],
+      unit: json['unit'],
+      table: json['table'],
+      productName: json['productName'],
+      branchId: json['branchId'],
+      taxName: json['taxName'],
+      taxPercentage: json['taxPercentage'],
+      supplyPrice: json['supplyPrice'],
+      retailPrice: json['retailPrice'],
+      isTaxExempted: json['isTaxExempted'],
+      itemSeq: json['itemSeq'],
+      isrccCd: json['isrccCd'],
+      isrccNm: json['isrccNm'],
+      isrcRt: json['isrcRt'],
+      isrcAmt: json['isrcAmt'],
+      taxTyCd: json['taxTyCd'],
+      bcd: json['bcd'],
+      itemClsCd: json['itemClsCd'],
+      itemTyCd: json['itemTyCd'],
+      itemStdNm: json['itemStdNm'],
+      orgnNatCd: json['orgnNatCd'],
+      pkg: json['pkg'],
+      itemCd: json['itemCd'],
+      pkgUnitCd: json['pkgUnitCd'],
+      qtyUnitCd: json['qtyUnitCd'],
+      itemNm: json['itemNm'],
+      qty: json['qty'],
+      prc: json['prc'],
+      splyAmt: json['splyAmt'],
+      tin: json['tin'],
+      bhfId: json['bhfId'],
+      dftPrc: json['dftPrc'],
+      addInfo: json['addInfo'],
+      isrcAplcbYn: json['isrcAplcbYn'],
+      useYn: json['useYn'],
+      regrId: json['regrId'],
+      regrNm: json['regrNm'],
+      modrId: json['modrId'],
+      modrNm: json['modrNm'],
+      rsdQty: json['rsdQty'],
+      lastTouched: json['lastTouched'] != null
+          ? DateTime.parse(json['lastTouched'])
+          : null,
+      remoteID: json['remoteID'],
+    );
+  }
 }

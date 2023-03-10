@@ -1,10 +1,12 @@
 library flipper_models;
 
+import 'package:flipper_models/sync_service.dart';
 import 'package:isar/isar.dart';
+import 'package:pocketbase/pocketbase.dart';
 part 'stock.g.dart';
 
 @Collection()
-class Stock {
+class Stock extends JsonSerializable {
   Id id = Isar.autoIncrement;
   @Index()
   late int branchId;
@@ -23,4 +25,63 @@ class Stock {
   double? value;
   // RRA fields
   double? rsdQty;
+  @Index()
+  DateTime? lastTouched;
+  @Index()
+  String? remoteID;
+
+  Stock({
+    required this.branchId,
+    required this.variantId,
+    required this.currentStock,
+    required this.productId,
+    this.lowStock,
+    this.supplyPrice,
+    this.retailPrice,
+    this.canTrackingStock,
+    this.showLowStockAlert,
+    this.active,
+    this.value,
+    this.rsdQty,
+    this.lastTouched,
+    this.remoteID,
+  });
+
+  @override
+  Map<String, dynamic> toJson({required String remoteId}) => {
+        'id': remoteID,
+        'branchId': branchId,
+        'variantId': variantId,
+        'lowStock': lowStock,
+        'currentStock': currentStock,
+        'supplyPrice': supplyPrice,
+        'retailPrice': retailPrice,
+        'canTrackingStock': canTrackingStock,
+        'showLowStockAlert': showLowStockAlert,
+        'productId': productId,
+        'active': active,
+        'value': value,
+        'rsdQty': rsdQty,
+        'lastTouched': lastTouched,
+        'remoteID': remoteID
+      };
+  factory Stock.fromRecord(RecordModel record) =>
+      Stock.fromJson(record.toJson());
+  factory Stock.fromJson(Map<String, dynamic> json) {
+    return Stock(
+        branchId: json['branchId'],
+        variantId: json['variantId'],
+        lowStock: json['lowStock'],
+        currentStock: json['currentStock'],
+        supplyPrice: json['supplyPrice'],
+        retailPrice: json['retailPrice'],
+        canTrackingStock: json['canTrackingStock'],
+        showLowStockAlert: json['showLowStockAlert'],
+        productId: json['productId'],
+        active: json['active'],
+        value: json['value'],
+        rsdQty: json['rsdQty'],
+        lastTouched: json['lastTouched'],
+        remoteID: json['remoteID']);
+  }
 }

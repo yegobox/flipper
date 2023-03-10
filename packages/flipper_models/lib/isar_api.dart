@@ -291,7 +291,11 @@ class IsarAPI<M> implements IsarApiInterface {
         variation.pkg = "1";
         int variantId = await isar.variants.put(variation);
         final stockId = DateTime.now().millisecondsSinceEpoch;
-        final stock = Stock()
+        final stock = Stock(
+            branchId: ProxyService.box.getBranchId()!,
+            variantId: variantId,
+            currentStock: 0.0,
+            productId: variation.productId)
           ..id = stockId
           ..variantId = variantId
           ..lowStock = 0.0
@@ -548,9 +552,19 @@ class IsarAPI<M> implements IsarApiInterface {
     // save variants in isar Db with the above productId
     await isar.writeTxn(() async {
       return isar.variants.put(
-        Variant()
+        Variant(
+            name: 'Regular',
+            sku: 'sku',
+            productId: kProduct!.id,
+            unit: 'Per Item',
+            table: AppTables.variation,
+            productName: product.name,
+            branchId: ProxyService.box.getBranchId()!,
+            supplyPrice: 0.0,
+            retailPrice: 0.0,
+            isTaxExempted: false)
           ..name = 'Regular'
-          ..productId = kProduct!.id
+          ..productId = kProduct.id
           ..unit = 'Per Item'
           ..table = 'variants'
           ..productName = product.name
@@ -593,12 +607,16 @@ class IsarAPI<M> implements IsarApiInterface {
     Variant? variant =
         await isar.variants.where().productIdEqualTo(kProduct!.id).findFirst();
 
-    Stock stock = Stock()
+    Stock stock = Stock(
+        branchId: branchId,
+        variantId: variant!.id,
+        currentStock: 0.0,
+        productId: kProduct.id)
       ..canTrackingStock = false
       ..showLowStockAlert = false
       ..currentStock = 0.0
       ..branchId = branchId
-      ..variantId = variant!.id
+      ..variantId = variant.id
       ..supplyPrice = 0.0
       ..retailPrice = 0.0
       ..lowStock = 10.0 // default static
@@ -1965,8 +1983,17 @@ class IsarAPI<M> implements IsarApiInterface {
   /// those change will stay on local, so I need to work on them as well.
   @override
   Future<List<Product>> getLocalProducts() async {
-    return isar.writeTxn(() async {
-      return await isar.products.where().lastTouchedIsNull().findAll();
-    });
+    return await isar.products.where().lastTouchedIsNull().findAll();
   }
+
+  @override
+  Future<List<Variant>> getLocalVariants() async {
+    return await isar.variants.where().lastTouchedIsNull().findAll();
+  }
+
+  @override
+  Future<List<Stock>> getLocalStocks() async {
+    return await isar.stocks.where().lastTouchedIsNull().findAll();
+  }
+  // getLocalVariants
 }

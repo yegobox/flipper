@@ -33,3 +33,6 @@ class AppSetup {
 // flutter pub run msix:create
 // TODO: implement SNS notification as well
 // https://medium.com/iiitians-network/flutter-push-notifications-using-aws-sns-dac464c1edf0
+// TODO: implement quick action on mobile
+// https://www.youtube.com/watch?v=sqw-taR2_Ww
+// TODO: implement shortcut https://www.youtube.com/watch?v=WMVoNA5cY9A 

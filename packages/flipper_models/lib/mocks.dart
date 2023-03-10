@@ -46,7 +46,17 @@ final List<Map<String, dynamic>> mockUnits = [
 ];
 
 // variation mock
-final variationMock = Variant()
+final variationMock = Variant(
+    name: 'Regular',
+    sku: 'sku',
+    productId: 2,
+    unit: 'Per Item',
+    table: 'variants',
+    productName: 'Custom Amount',
+    branchId: 11,
+    supplyPrice: 0.0,
+    retailPrice: 0.0,
+    isTaxExempted: false)
   ..id = DateTime.now().millisecondsSinceEpoch
   ..name = 'Regular'
   ..sku = 'sku'
@@ -61,19 +71,20 @@ final variationMock = Variant()
   ..supplyPrice = 0.0;
 
 // stock
-final stockMock = Stock()
-  ..id = DateTime.now().millisecondsSinceEpoch
-  ..branchId = 11
-  ..variantId = 1
-  ..lowStock = 0.0
-  ..currentStock = 0.0
-  ..supplyPrice = 0.0
-  ..retailPrice = 0.0
-  ..canTrackingStock = false
-  ..value = 0
-  ..showLowStockAlert = false
-  ..productId = 2
-  ..active = false;
+final stockMock =
+    Stock(branchId: 11, variantId: 1, currentStock: 0.0, productId: 2)
+      ..id = DateTime.now().millisecondsSinceEpoch
+      ..branchId = 11
+      ..variantId = 1
+      ..lowStock = 0.0
+      ..currentStock = 0.0
+      ..supplyPrice = 0.0
+      ..retailPrice = 0.0
+      ..canTrackingStock = false
+      ..value = 0
+      ..showLowStockAlert = false
+      ..productId = 2
+      ..active = false;
 
 // order mock
 Order? OrderFMock = Order()
