@@ -589,6 +589,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     if (items.isEmpty) {
       Navigator.of(context).pop();
     }
+
     return true;
   }
 
