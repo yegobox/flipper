@@ -94,7 +94,7 @@ Order? OrderFMock = Order()
 final AppService _appService = locator<AppService>();
 
 final customProductMock = Product(
-    name: "Custom Amount",
+    name: "temp",
     active: true,
     businessId: _appService.businessId!,
     color: "#e74c3c",

@@ -148,7 +148,7 @@ class SignupViewModel extends FormViewModel {
       await ProxyService.isarApi.addUnits(data: units);
 
       //now create a default custom product
-      appService.bootstraper();
+      ProxyService.forceDateEntry.caller();
       ProxyService.whatsApp.optIn();
 
       loginInfo.isLoggedIn = true;

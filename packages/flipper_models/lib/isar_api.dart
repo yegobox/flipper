@@ -1242,8 +1242,14 @@ class IsarAPI<M> implements IsarApiInterface {
       final List<Product> excludedProducts = event[1];
 
       // Filter out the excluded products
-      final List<Product> filteredProducts =
-          products.where((p) => !excludedProducts.contains(p)).toList();
+      final List<Product> filteredProducts = products.where((p) {
+        // Exclude products with the name 'Custom Amount'
+        if (p.name == 'Custom Amount' || p.name == 'temp') {
+          return false;
+        }
+
+        return !excludedProducts.contains(p);
+      }).toList();
 
       return filteredProducts;
     });
@@ -1256,14 +1262,6 @@ class IsarAPI<M> implements IsarApiInterface {
         .branchIdEqualTo(branchId)
         .build()
         .watch(fireImmediately: true);
-  }
-
-  @override
-  Future<List<Product>> products({required int branchId}) async {
-    final products =
-        await isar.products.where().branchIdEqualTo(branchId).findAll();
-
-    return products;
   }
 
   @override
@@ -1954,11 +1952,20 @@ class IsarAPI<M> implements IsarApiInterface {
     });
   }
 
+  @override
+  Future<List<Product>> products({required int branchId}) async {
+    return isar.writeTxn(() async {
+      return await isar.products.where().branchIdEqualTo(branchId).findAll();
+    });
+  }
+
   /// this method is one way i.e we get to know local unsynched changes
   /// then we send them but we are not working on the changes after this push.
   /// those change will stay on local, so I need to work on them as well.
   @override
   Future<List<Product>> getLocalProducts() async {
-    return await isar.products.where().lastTouchedIsNull().findAll();
+    return isar.writeTxn(() async {
+      return await isar.products.where().lastTouchedIsNull().findAll();
+    });
   }
 }

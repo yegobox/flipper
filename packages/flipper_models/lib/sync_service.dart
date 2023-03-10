@@ -24,26 +24,22 @@ class SynchronizationService<M extends JsonSerializable>
   /// fetch data from remote first
   /// if there conflict on local replace data and move on
   @override
-  Future<List<RecordModel?>> push(List models) async {
-    List<RecordModel> results = [];
-    for (M model in models) {
-      Type modelType = model.runtimeType;
-      // Use the model type to get the corresponding endpoint from the map
-      String? endpoint = serverDefinitions[modelType];
-      if (endpoint != null) {
-        // Convert the model to JSON using the `toJson()` method
-        /// when we push the model to the server we also updat the model remoteID
-        /// once we receive confirmation that the item is created on server we update the
-        /// local copy with remoteID of the remote.
-        Map<String, dynamic> json = model.toJson(remoteId: syncId());
-        if (json["name"] != "temp") {
-          final result = await ProxyService.remoteApi
-              .create(collection: json, collectionName: endpoint);
-          results.add(result);
-        }
+  Future<RecordModel?> push(M model) async {
+    Type modelType = model.runtimeType;
+    // Use the model type to get the corresponding endpoint from the map
+    String? endpoint = serverDefinitions[modelType];
+    if (endpoint != null) {
+      // Convert the model to JSON using the `toJson()` method
+      /// when we push the model to the server we also updat the model remoteID
+      /// once we receive confirmation that the item is created on server we update the
+      /// local copy with remoteID of the remote.
+      Map<String, dynamic> json = model.toJson(remoteId: syncId());
+      if (json["name"] != "temp") {
+        return await ProxyService.remoteApi
+            .create(collection: json, collectionName: endpoint);
       }
     }
-    return results;
+    return Future.value(null);
   }
 
   @override

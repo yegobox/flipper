@@ -176,32 +176,6 @@ class AppService with ListenableServiceMixin {
     ProxyService.box.write(key: 'businessId', value: businesses.first.id);
   }
 
-  Future<void> bootstraper() async {
-    int branchId = ProxyService.box.getBranchId()!;
-    int businessId = ProxyService.box.getBusinessId()!;
-    if (await ProxyService.isarApi.size(
-                object: Product(
-                    name: "temp",
-                    active: true,
-                    businessId: businessId,
-                    color: "#e74c3c",
-                    branchId: branchId)) ==
-            0 &&
-        ProxyService.box.getBranchId() != null) {
-      await ProxyService.isarApi.createProduct(
-          product: Product(
-              name: "Custom Amount",
-              active: true,
-              businessId: businessId,
-              color: "#e74c3c",
-              branchId: branchId)
-            ..name = "Custom Amount"
-            ..color = "#e74c3c"
-            ..branchId = branchId
-            ..businessId = businessId);
-    }
-  }
-
   Future<void> loadCounters(isar.Business business) async {
     if (await ProxyService.isarApi.size(object: Counter()) == 0) {
       await ProxyService.isarApi

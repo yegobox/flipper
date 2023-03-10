@@ -19,11 +19,26 @@ class ForceDataEntryService {
 
   Future<void> addData() async {
     int? branchId = ProxyService.box.read(key: 'branchId');
-    appService.bootstraper();
+
     if (branchId == null) {
       return;
     }
+    int businessId = ProxyService.box.getBusinessId()!;
 
+    List<Product> products =
+        await ProxyService.isarApi.products(branchId: branchId);
+    if (products.isEmpty) {
+      await ProxyService.isarApi.createProduct(
+          product: Product(
+              name: "Custom Amount",
+              active: true,
+              businessId: businessId,
+              color: "#e74c3c",
+              branchId: branchId)
+            ..color = "#e74c3c"
+            ..branchId = branchId
+            ..businessId = businessId);
+    }
     final String? userId = ProxyService.box.getUserId();
     final List<String> colors = [
       '#d63031',

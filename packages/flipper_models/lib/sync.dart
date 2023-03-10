@@ -3,6 +3,6 @@ import 'package:pocketbase/pocketbase.dart';
 
 abstract class SyncApiInterface<M extends JsonSerializable> {
   Future<RecordModel?> pull();
-  Future<List<RecordModel?>> push(List<M> models);
+  Future<RecordModel?> push(M model);
   factory SyncApiInterface.create() => SynchronizationService<M>();
 }

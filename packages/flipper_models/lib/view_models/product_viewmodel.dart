@@ -65,7 +65,7 @@ class ProductViewModel extends AddTenantViewModel {
               color: "#e74c3c",
               branchId: branchId)
             ..name = "temp"
-            ..color = "#5A2328"
+            ..color = "#e74c3c"
             ..branchId = branchId
             ..businessId = businessId);
       await productService.variantsProduct(productId: product.id);

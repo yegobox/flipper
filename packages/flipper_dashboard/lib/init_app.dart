@@ -13,7 +13,7 @@ class InitApp {
     ProxyService.remoteConfig.fetch();
     //connect to anyy available printer
     // ProxyService.printer.blueTooths();
-    ProxyService.forceDateEntry.caller();
+
     // init the crashlytics
     // ProxyService.crash.initializeFlutterFire();
     // implement review system.
@@ -73,5 +73,6 @@ class InitApp {
     //     });
     //   }
     // }
+    ProxyService.forceDateEntry.caller();
   }
 }

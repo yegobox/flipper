@@ -31,3 +31,5 @@ class AppSetup {
 // FIXME: use dart-define for secrets
 // https://thiele.dev/blog/part-1-configure-a-flutter-app-with-dart-define-environment-variable/
 // flutter pub run msix:create
+// TODO: implement SNS notification as well
+// https://medium.com/iiitians-network/flutter-push-notifications-using-aws-sns-dac464c1edf0

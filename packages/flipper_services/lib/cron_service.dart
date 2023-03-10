@@ -56,18 +56,21 @@ class CronService {
       }
     });
 
-    Timer.periodic(Duration(seconds: 5), (Timer t) async {
+    Timer.periodic(Duration(seconds: 10), (Timer t) async {
       /// get a list of local copy of product to sync
       List<Product> products = await ProxyService.isarApi.getLocalProducts();
-      List<RecordModel?> results = await ProxyService.sync.push(products);
-      for (RecordModel? record in results) {
-        // Do something with each model (checking for null as necessary)
-        if (record != null) {
-          Product product = Product.fromRecord(record);
-          product.remoteID = record.id;
-          product.lastTouched = DateTime.now();
-          await ProxyService.isarApi.update(data: product);
-        }
+      if (products.isEmpty) return;
+      RecordModel? record = await ProxyService.sync.push(products.first);
+      int oldId = products.first.id;
+      if (record != null) {
+        Product product = Product.fromRecord(record);
+        product.remoteID = record.id;
+
+        /// keep the local ID unchanged to avoid complication
+        product.id = oldId;
+
+        product.lastTouched = DateTime.now();
+        await ProxyService.isarApi.update(data: product);
       }
     });
   }
