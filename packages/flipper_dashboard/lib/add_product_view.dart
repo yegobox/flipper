@@ -198,7 +198,7 @@ class _AddProductViewState extends State<AddProductView> {
               rightActionButtonName: 'Save',
               icon: Icons.close,
               multi: 3,
-              bottomSpacer: 41,
+              bottomSpacer: 50,
             ),
             body: ListView(
               physics: const AlwaysScrollableScrollPhysics(),

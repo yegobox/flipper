@@ -29,24 +29,24 @@ class Stock extends JsonSerializable {
   String? lastTouched;
   @Index()
   String? remoteID;
-
-  Stock({
-    required this.branchId,
-    required this.variantId,
-    required this.currentStock,
-    required this.productId,
-    this.id,
-    this.lowStock,
-    this.supplyPrice,
-    this.retailPrice,
-    this.canTrackingStock,
-    this.showLowStockAlert,
-    this.active,
-    this.value,
-    this.rsdQty,
-    this.lastTouched,
-    this.remoteID,
-  });
+  int? localId;
+  Stock(
+      {required this.branchId,
+      required this.variantId,
+      required this.currentStock,
+      required this.productId,
+      this.id,
+      this.lowStock,
+      this.supplyPrice,
+      this.retailPrice,
+      this.canTrackingStock,
+      this.showLowStockAlert,
+      this.active,
+      this.value,
+      this.rsdQty,
+      this.lastTouched,
+      this.remoteID,
+      this.localId});
 
   @override
   Map<String, dynamic> toJson() => {
@@ -69,6 +69,7 @@ class Stock extends JsonSerializable {
   factory Stock.fromJson(Map<String, dynamic> json) {
     return Stock(
         branchId: json['branchId'],
+        localId: json['localId'],
         variantId: json['variantId'],
         lowStock: json['lowStock']?.toDouble() ?? 0.0,
         currentStock: json['currentStock']?.toDouble() ?? 0.0,

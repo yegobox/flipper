@@ -1,3 +1,5 @@
+import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:pocketbase/pocketbase.dart';
 
 abstract class RemoteInterface<T> {
@@ -20,16 +22,6 @@ class RemoteService<T> implements RemoteInterface {
     } catch (e) {}
     return this;
   }
-
-  // void putInSync() {
-  //   pb
-  //       .collection('orders')
-  //       .subscribe("*", (e) {})
-  //       .catchError((error, stackTrace) {
-  //     log(error);
-  //     log(stackTrace);
-  //   });
-  // }
 
   @override
   Future<List<RecordModel>> getCollection({required String collectionName}) {
@@ -64,22 +56,34 @@ class RemoteService<T> implements RemoteInterface {
 
   @override
   void listenToChanges() {
-    pb.collection('stocks').subscribe("*", (e) {
+    pb.collection('stocks').subscribe("*", (e) async {
       if (e.action == "create") {
-        // Stock stock = Stock.fromRecord(e.record!);
-        // ProxyService.isarApi.create(data: stock);
+        Stock stock = Stock.fromRecord(e.record!);
+        Stock? localProduct = await ProxyService.isarApi
+            .getStock(branchId: stock.branchId, variantId: stock.localId!);
+        if (localProduct == null) {
+          ProxyService.isarApi.create(data: stock);
+        }
       }
     });
-    pb.collection('products').subscribe("*", (e) {
+    pb.collection('products').subscribe("*", (e) async {
       if (e.action == "create") {
-        // Product product = Product.fromRecord(e.record!);
-        // ProxyService.isarApi.create(data: product);
+        Product product = Product.fromRecord(e.record!);
+        Product? localProduct =
+            await ProxyService.isarApi.getProduct(id: product.localId!);
+        if (localProduct == null) {
+          ProxyService.isarApi.create(data: product);
+        }
       }
     });
-    pb.collection('variants').subscribe("*", (e) {
+    pb.collection('variants').subscribe("*", (e) async {
       if (e.action == "create") {
-        // Variant variant = Variant.fromRecord(e.record!);
-        // ProxyService.isarApi.create(data: variant);
+        Variant variant = Variant.fromRecord(e.record!);
+        Variant? localProduct =
+            await ProxyService.isarApi.getVariantById(id: variant.localId!);
+        if (localProduct == null) {
+          ProxyService.isarApi.create(data: variant);
+        }
       }
     });
   }

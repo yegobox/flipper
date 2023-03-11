@@ -52,6 +52,7 @@ class Product extends JsonSerializable {
   String? lastTouched;
   @Index()
   String? remoteID;
+  int? localId;
   final variants = IsarLinks<Variant>();
 
   Product(
@@ -81,6 +82,7 @@ class Product extends JsonSerializable {
       this.bindedToTenantId,
       this.isFavorite,
       this.lastTouched,
+      this.localId,
       this.remoteID});
 
   factory Product.fromRecord(RecordModel record) =>
@@ -91,6 +93,7 @@ class Product extends JsonSerializable {
         name: json['name'],
         active: json['active'],
         color: json['color'],
+        localId: json['localId'],
         businessId: json['businessId'],
         branchId: json['branchId'],
         picture: json['picture'],
