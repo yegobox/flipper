@@ -534,7 +534,7 @@ class IsarAPI<M> implements IsarApiInterface {
         Variant(
             name: 'Regular',
             sku: 'sku',
-            productId: kProduct!.id,
+            productId: kProduct!.id!,
             unit: 'Per Item',
             table: AppTables.variation,
             productName: product.name,
@@ -543,7 +543,7 @@ class IsarAPI<M> implements IsarApiInterface {
             retailPrice: 0.0,
             isTaxExempted: false)
           ..name = 'Regular'
-          ..productId = kProduct.id
+          ..productId = kProduct.id!
           ..unit = 'Per Item'
           ..table = 'variants'
           ..productName = product.name
@@ -584,13 +584,13 @@ class IsarAPI<M> implements IsarApiInterface {
     });
 
     Variant? variant =
-        await isar.variants.where().productIdEqualTo(kProduct!.id).findFirst();
+        await isar.variants.where().productIdEqualTo(kProduct!.id!).findFirst();
 
     Stock stock = Stock(
         branchId: branchId,
         variantId: variant!.id,
         currentStock: 0.0,
-        productId: kProduct.id)
+        productId: kProduct.id!)
       ..canTrackingStock = false
       ..showLowStockAlert = false
       ..currentStock = 0.0
@@ -604,7 +604,7 @@ class IsarAPI<M> implements IsarApiInterface {
       // normaly this should be currentStock * retailPrice
       ..value = variant.retailPrice * 0.0
       ..active = false
-      ..productId = kProduct.id
+      ..productId = kProduct.id!
       ..rsdQty = 0.0;
 
     await isar.writeTxn(() async {
@@ -825,7 +825,7 @@ class IsarAPI<M> implements IsarApiInterface {
       // add this newProduct's variant to the RRA DB
       Variant? variant = await isar.variants
           .where()
-          .productIdEqualTo(newProduct.id)
+          .productIdEqualTo(newProduct.id!)
           .findFirst();
       if (await ProxyService.isarApi.isTaxEnabled()) {
         ProxyService.tax.saveItem(variation: variant!);
@@ -834,7 +834,7 @@ class IsarAPI<M> implements IsarApiInterface {
     } else {
       return await isar.variants
           .where()
-          .productIdEqualTo(product.id)
+          .productIdEqualTo(product.id!)
           .findFirst();
     }
   }

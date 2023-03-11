@@ -1,6 +1,7 @@
 library flipper_models;
 
 // import 'package:flipper_models/isar_models.dart';
+
 import 'package:flipper_models/isar_models.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
@@ -47,9 +48,9 @@ class ProductViewModel extends AddTenantViewModel {
       Product? product = await ProxyService.isarApi.getProduct(id: productId);
       productService.setCurrentProduct(product: product!);
       kProductName = product.name;
-      productService.variantsProduct(productId: product.id);
+      productService.variantsProduct(productId: product.id!);
       rebuildUi();
-      return product.id;
+      return product.id!;
     }
     int branchId = ProxyService.box.getBranchId()!;
     int businessId = ProxyService.box.getBusinessId()!;
@@ -68,18 +69,18 @@ class ProductViewModel extends AddTenantViewModel {
             ..color = "#e74c3c"
             ..branchId = branchId
             ..businessId = businessId);
-      await productService.variantsProduct(productId: product.id);
+      await productService.variantsProduct(productId: product.id!);
 
       productService.setCurrentProduct(product: product);
       kProductName = product.name;
-      log.i(product.id);
+      log.i(product.id!);
       rebuildUi();
-      return product.id;
+      return product.id!;
     }
     productService.setCurrentProduct(product: isTemp);
-    await productService.variantsProduct(productId: isTemp.id);
+    await productService.variantsProduct(productId: isTemp.id!);
     rebuildUi();
-    return isTemp.id;
+    return isTemp.id!;
   }
 
   void setName({String? name}) {
@@ -169,7 +170,7 @@ class ProductViewModel extends AddTenantViewModel {
       product.unit = unit.name;
       ProxyService.isarApi.update(data: product);
       final Product? uProduct =
-          await ProxyService.isarApi.getProduct(id: product.id!);
+          await ProxyService.isarApi.getProduct(id: product.id!!);
       productService.setCurrentProduct(product: uProduct!);
     }
     if (type == 'variant') {
@@ -192,9 +193,9 @@ class ProductViewModel extends AddTenantViewModel {
       if (await ProxyService.isarApi.isTaxEnabled()) {
         ProxyService.tax.saveStock(stock: stock);
       }
-      productService.variantsProduct(productId: product.id!);
+      productService.variantsProduct(productId: product.id!!);
     }
-    productService.variantsProduct(productId: product.id!);
+    productService.variantsProduct(productId: product.id!!);
   }
 
   double? _stockValue;
@@ -321,7 +322,7 @@ class ProductViewModel extends AddTenantViewModel {
         }
       }
     }
-    productService.variantsProduct(productId: product!.id);
+    productService.variantsProduct(productId: product!.id!);
   }
 
   /// Add a product into the system
@@ -336,12 +337,12 @@ class ProductViewModel extends AddTenantViewModel {
     mproduct.draft = false;
     final response = await ProxyService.isarApi.update(data: mproduct);
     List<Variant> variants = await ProxyService.isarApi
-        .getVariantByProductId(productId: mproduct.id);
+        .getVariantByProductId(productId: mproduct.id!);
 
     for (Variant variant in variants) {
       variant.productName = productName;
       variant.prc = variant.retailPrice;
-      variant.productId = mproduct.id;
+      variant.productId = mproduct.id!;
       variant.pkgUnitCd = "NT";
       await ProxyService.isarApi.update(data: variant);
       if (await ProxyService.isarApi.isTaxEnabled()) {
@@ -374,7 +375,7 @@ class ProductViewModel extends AddTenantViewModel {
   void updateExpiryDate(DateTime date) async {
     product.expiryDate = date.toIso8601String();
     ProxyService.isarApi.update(data: product);
-    Product? cProduct = await ProxyService.isarApi.getProduct(id: product.id);
+    Product? cProduct = await ProxyService.isarApi.getProduct(id: product.id!);
     productService.setCurrentProduct(product: cProduct!);
     rebuildUi();
   }

@@ -590,7 +590,7 @@ class Sell extends StatelessWidget {
   Widget build(BuildContext context) {
     return ViewModelBuilder<BusinessHomeViewModel>.reactive(
         onViewModelReady: (model) async {
-          await model.getVariants(productId: product.id);
+          await model.getVariants(productId: product.id!);
         },
         viewModelBuilder: () => BusinessHomeViewModel(),
         builder: (context, model, child) {

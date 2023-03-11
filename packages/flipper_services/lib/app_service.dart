@@ -243,7 +243,7 @@ class AppService with ListenableServiceMixin {
     List<Product> products = await ProxyService.isarApi.getLocalProducts();
     if (products.isEmpty) return;
     RecordModel? record = await ProxyService.sync.push(products.first);
-    int oldId = products.first.id;
+    int oldId = products.first.id!;
     if (record != null) {
       Product product = Product.fromRecord(record);
       product.remoteID = record.id;

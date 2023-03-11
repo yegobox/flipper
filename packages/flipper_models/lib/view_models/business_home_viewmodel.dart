@@ -844,7 +844,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         await ProxyService.isarApi.findProductByTenantId(tenantId: tenantId);
     log.i(product!.id);
     clearPreviousSaleCounts();
-    List<Variant> variants = await getVariants(productId: product.id);
+    List<Variant> variants = await getVariants(productId: product.id!);
     loadVariantStock(variantId: variants.first.id);
 
     handleCustomQtySetBeforeSelectingVariation();

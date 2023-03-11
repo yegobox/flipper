@@ -185,7 +185,7 @@ class _ProductViewState extends State<ProductView> {
                                 return FutureBuilder<List<Stock?>>(
                                     future: model.productService
                                         .loadStockByProductId(
-                                            productId: product.id),
+                                            productId: product.id!),
                                     builder: (BuildContext context, stocks) {
                                       if (stocks.connectionState ==
                                           ConnectionState.waiting) {

@@ -24,3 +24,10 @@ String syncId() {
   return String.fromCharCodes(Iterable.generate(
       15, (_) => chars.codeUnitAt(random.nextInt(chars.length))));
 }
+
+int syncIdInt() {
+  final random = Random();
+  const chars = '0123456789';
+  return int.parse(String.fromCharCodes(Iterable.generate(
+      15, (_) => chars.codeUnitAt(random.nextInt(chars.length)))));
+}

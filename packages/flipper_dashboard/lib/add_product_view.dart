@@ -187,11 +187,11 @@ class _AddProductViewState extends State<AddProductView> {
                 // retailPriceController this is to present missing out key stroke.
                 await model.updateRegularVariant(
                     retailPrice: double.parse(retailPriceController.text),
-                    productId: model.product.id);
+                    productId: model.product.id!);
                 await model.updateRegularVariant(
                     supplyPrice:
                         double.tryParse(supplyPriceController.text) ?? 0.0,
-                    productId: model.product.id);
+                    productId: model.product.id!);
 
                 GoRouter.of(context).pop();
               },
@@ -261,7 +261,7 @@ class _AddProductViewState extends State<AddProductView> {
                           log.i(parsedValue);
                           await model.updateRegularVariant(
                               retailPrice: parsedValue,
-                              productId: model.product.id);
+                              productId: model.product.id!);
                         } else {
                           model.lockButton(true);
                           return '.';
@@ -281,7 +281,7 @@ class _AddProductViewState extends State<AddProductView> {
                         if (parsedValue != null) {
                           await model.updateRegularVariant(
                               supplyPrice: parsedValue,
-                              productId: model.product.id);
+                              productId: model.product.id!);
                         } else {
                           return '.';
                         }
@@ -369,7 +369,7 @@ class _AddProductViewState extends State<AddProductView> {
                             )),
                         onPressed: () {
                           model.navigateAddVariation(
-                              context: context, productId: model.product.id!);
+                              context: context, productId: model.product.id!!);
                         },
                       ),
                     ),
