@@ -91,7 +91,10 @@ class _ProductViewState extends State<ProductView> {
                           .transform(model.productService
                               .searchTransformer(searchController.text)),
                       builder: (context, snapshot) {
-                        final products = snapshot.data ?? [];
+                        final products = (snapshot.data ?? [])
+                            .where((p) =>
+                                p.name != 'Custom Amount' && p.name != 'temp')
+                            .toList();
 
                         return Wrap(
                           spacing: 10.0, // set spacing between items

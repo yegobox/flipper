@@ -1223,32 +1223,10 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Stream<List<Product>> productStreams({required int branchId}) {
-    final productsStream = isar.products
+    return isar.products
         .where()
         .draftBranchIdEqualTo(false, branchId)
         .watch(fireImmediately: true);
-
-    final excludedProductsStream = isar.products
-        .where()
-        .nameEqualTo('temp')
-        .or()
-        .nameEqualTo('Custom Amount')
-        .watch(fireImmediately: true);
-
-    return StreamZip([productsStream, excludedProductsStream]).map((event) {
-      final List<Product> products = event[0];
-      final List<Product> excludedProducts = event[1];
-
-      // Filter out the excluded products
-      final List<Product> filteredProducts = products.where((p) {
-        if (p.name == 'Custom Amount' || p.name == 'temp') {
-          return false;
-        }
-        return !excludedProducts.any((e) => e.id == p.id);
-      }).toList();
-
-      return filteredProducts;
-    });
   }
 
   @override
