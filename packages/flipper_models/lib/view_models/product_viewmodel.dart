@@ -369,6 +369,7 @@ class ProductViewModel extends AddTenantViewModel {
     }
     //then delete the product
     await ProxyService.isarApi.delete(id: productId, endPoint: 'product');
+    rebuildUi();
   }
 
   void updateExpiryDate(DateTime date) async {
