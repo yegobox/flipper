@@ -358,8 +358,7 @@ class ProductViewModel extends AddTenantViewModel {
     List<Variant> variations = await ProxyService.isarApi
         .variants(branchId: branchId, productId: productId);
     for (Variant variation in variations) {
-      await ProxyService.isarApi
-          .delete(id: variation.id, endPoint: 'variation');
+      await ProxyService.isarApi.delete(id: variation.id, endPoint: 'variant');
       //get stock->delete
       Stock? stock =
           await ProxyService.isarApi.stockByVariantId(variantId: variation.id);

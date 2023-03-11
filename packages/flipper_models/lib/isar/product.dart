@@ -8,7 +8,13 @@ part 'product.g.dart';
 
 @Collection()
 class Product extends JsonSerializable {
-  Id id = Isar.autoIncrement;
+  // Id id = Isar.autoIncrement;
+  Id? id = null;
+
+  /// because later on we need localId to have logic
+  /// to receive remote product, we need ability to either use auto-increment
+  /// or use custom ID, this will help when receiving data
+  /// as we will first check if they exist locally using localId
   @Index(caseSensitive: true)
   late String name;
   String? picture;
@@ -55,6 +61,7 @@ class Product extends JsonSerializable {
       required this.color,
       required this.businessId,
       required this.branchId,
+      this.id,
       this.picture,
       this.description,
       this.taxId,

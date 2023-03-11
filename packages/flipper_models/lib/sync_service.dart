@@ -1,7 +1,5 @@
 // import 'package:pocketbase/pocketbase.dart';
 
-import 'dart:developer';
-
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/server_definitions.dart';
 import 'package:flipper_models/sync.dart';
@@ -28,7 +26,8 @@ class SynchronizationService<M extends JsonSerializable>
             DateTime.now(), ProxyService.box.getBranchId()!.toString());
 
         json["remoteID"] = json["id"] = syncId();
-        log(json.toString());
+
+        ///log(json.toString());
         return await ProxyService.remoteApi
             .create(collection: json, collectionName: endpoint);
       }

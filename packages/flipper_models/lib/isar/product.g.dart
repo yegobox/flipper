@@ -409,6 +409,7 @@ Product _productDeserialize(
     draft: reader.readBoolOrNull(offsets[10]),
     expiryDate: reader.readStringOrNull(offsets[11]),
     hasPicture: reader.readBoolOrNull(offsets[12]) ?? false,
+    id: id,
     imageLocal: reader.readBoolOrNull(offsets[13]),
     imageUrl: reader.readStringOrNull(offsets[14]),
     isFavorite: reader.readBoolOrNull(offsets[15]),
@@ -423,7 +424,6 @@ Product _productDeserialize(
     taxId: reader.readStringOrNull(offsets[24]),
     unit: reader.readStringOrNull(offsets[25]),
   );
-  object.id = id;
   return object;
 }
 
@@ -492,7 +492,7 @@ P _productDeserializeProp<P>(
 }
 
 Id _productGetId(Product object) {
-  return object.id;
+  return object.id ?? Isar.autoIncrement;
 }
 
 List<IsarLinkBase<dynamic>> _productGetLinks(Product object) {
@@ -2319,7 +2319,23 @@ extension ProductQueryFilter
     });
   }
 
-  QueryBuilder<Product, Product, QAfterFilterCondition> idEqualTo(Id value) {
+  QueryBuilder<Product, Product, QAfterFilterCondition> idIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'id',
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> idIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'id',
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> idEqualTo(Id? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -2329,7 +2345,7 @@ extension ProductQueryFilter
   }
 
   QueryBuilder<Product, Product, QAfterFilterCondition> idGreaterThan(
-    Id value, {
+    Id? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -2342,7 +2358,7 @@ extension ProductQueryFilter
   }
 
   QueryBuilder<Product, Product, QAfterFilterCondition> idLessThan(
-    Id value, {
+    Id? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -2355,8 +2371,8 @@ extension ProductQueryFilter
   }
 
   QueryBuilder<Product, Product, QAfterFilterCondition> idBetween(
-    Id lower,
-    Id upper, {
+    Id? lower,
+    Id? upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
