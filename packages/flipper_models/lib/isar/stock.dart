@@ -62,6 +62,7 @@ class Stock extends JsonSerializable {
         'active': active,
         'value': value,
         'rsdQty': rsdQty,
+        "localId": id
       };
   factory Stock.fromRecord(RecordModel record) =>
       Stock.fromJson(record.toJson());

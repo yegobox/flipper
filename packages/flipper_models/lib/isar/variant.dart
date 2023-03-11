@@ -174,6 +174,7 @@ class Variant extends JsonSerializable {
         'modrId': modrId,
         'modrNm': modrNm,
         "rsdQty": rsdQty,
+        "localId": id
       };
   factory Variant.fromRecord(RecordModel record) =>
       Variant.fromJson(record.toJson());

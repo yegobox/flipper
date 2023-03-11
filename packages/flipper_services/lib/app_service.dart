@@ -208,49 +208,52 @@ class AppService with ListenableServiceMixin {
   Future<void> pushDataToServer() async {
     /// push stock
     List<Stock> stocks = await ProxyService.isarApi.getLocalStocks();
-    if (stocks.isEmpty) return;
-    int stockId = stocks.first.id!;
+    for (Stock stock in stocks) {
+      int stockId = stocks.first.id!;
 
-    RecordModel? stockRecord = await ProxyService.sync.push(stocks.first);
-    if (stockRecord != null) {
-      Stock s = Stock.fromRecord(stockRecord);
-      s.remoteID = stockRecord.id;
+      RecordModel? stockRecord = await ProxyService.sync.push(stock);
+      if (stockRecord != null) {
+        Stock s = Stock.fromRecord(stockRecord);
+        s.remoteID = stockRecord.id;
 
-      // /// keep the local ID unchanged to avoid complication
-      s.id = stockId;
+        // /// keep the local ID unchanged to avoid complication
+        s.id = stockId;
 
-      await ProxyService.isarApi.update(data: s);
+        await ProxyService.isarApi.update(data: s);
+      }
     }
 
     //push variant
     /// get variants
     List<Variant> variants = await ProxyService.isarApi.getLocalVariants();
-    if (variants.isEmpty) return;
-    int variantId = variants.first.id!;
+    for (Variant variant in variants) {
+      int variantId = variants.first.id!;
 
-    RecordModel? variantRecord = await ProxyService.sync.push(variants.first);
-    if (variantRecord != null) {
-      Variant va = Variant.fromRecord(variantRecord);
-      va.remoteID = variantRecord.id;
+      RecordModel? variantRecord = await ProxyService.sync.push(variant);
+      if (variantRecord != null) {
+        Variant va = Variant.fromRecord(variantRecord);
+        va.remoteID = variantRecord.id;
 
-      // /// keep the local ID unchanged to avoid complication
-      va.id = variantId;
+        // /// keep the local ID unchanged to avoid complication
+        va.id = variantId;
 
-      await ProxyService.isarApi.update(data: va);
+        await ProxyService.isarApi.update(data: va);
+      }
     }
 
     /// pushing products data
     List<Product> products = await ProxyService.isarApi.getLocalProducts();
-    if (products.isEmpty) return;
-    RecordModel? record = await ProxyService.sync.push(products.first);
-    int oldId = products.first.id!;
-    if (record != null) {
-      Product product = Product.fromRecord(record);
-      product.remoteID = record.id;
+    for (Product product in products) {
+      RecordModel? record = await ProxyService.sync.push(product);
+      int oldId = products.first.id!;
+      if (record != null) {
+        Product product = Product.fromRecord(record);
+        product.remoteID = record.id;
 
-      /// keep the local ID unchanged to avoid complication
-      product.id = oldId;
-      await ProxyService.isarApi.update(data: product);
+        /// keep the local ID unchanged to avoid complication
+        product.id = oldId;
+        await ProxyService.isarApi.update(data: product);
+      }
     }
   }
 

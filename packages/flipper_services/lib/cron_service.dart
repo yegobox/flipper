@@ -28,6 +28,11 @@ class CronService {
     //save the device token to firestore if it is not already there
     Business? business = await ProxyService.isarApi.getBusiness();
     String? token;
+    Timer.periodic(Duration(minutes: 2), (Timer t) async {
+      /// get a list of local copy of product to sync
+      ProxyService.appService.pushDataToServer();
+      ProxyService.sync.pull();
+    });
     if (!Platform.isWindows) {
       token = await FirebaseMessaging.instance.getToken();
 
@@ -53,12 +58,6 @@ class CronService {
       for (Counter counter in counters) {
         ProxyService.isarApi.update(data: counter..backed = true);
       }
-    });
-
-    Timer.periodic(Duration(seconds: 30), (Timer t) async {
-      /// get a list of local copy of product to sync
-      ProxyService.appService.pushDataToServer();
-      ProxyService.sync.pull();
     });
   }
 }

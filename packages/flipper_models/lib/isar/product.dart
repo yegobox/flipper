@@ -143,6 +143,7 @@ class Product extends JsonSerializable {
       "nfcEnabled": nfcEnabled,
       "bindedToTenantId": bindedToTenantId,
       "isFavorite": isFavorite,
+      "localId": id
     };
   }
 }

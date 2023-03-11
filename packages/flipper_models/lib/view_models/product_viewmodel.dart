@@ -75,7 +75,6 @@ class ProductViewModel extends AddTenantViewModel {
 
       productService.setCurrentProduct(product: product);
       kProductName = product.name;
-      log.i(product.id!);
       rebuildUi();
       return product.id!;
     }

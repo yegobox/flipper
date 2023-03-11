@@ -1,5 +1,7 @@
 // import 'package:pocketbase/pocketbase.dart';
 
+import 'dart:developer';
+
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/server_definitions.dart';
 import 'package:flipper_models/sync.dart';
@@ -25,9 +27,8 @@ class SynchronizationService<M extends JsonSerializable>
         json["lastTouched"] = Hlc.fromDate(
             DateTime.now(), ProxyService.box.getBranchId()!.toString());
 
-        json["remoteID"] = json["id"] = syncId();
-
-        ///log(json.toString());
+        json["id"] = json["remoteID"] = syncId();
+        log(json.toString());
         return await ProxyService.remoteApi
             .create(collection: json, collectionName: endpoint);
       }

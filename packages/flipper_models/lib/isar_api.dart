@@ -520,6 +520,7 @@ class IsarAPI<M> implements IsarApiInterface {
     product.description = 'description';
     product.color = '#5A2328';
     product.hasPicture = false;
+    product.id = syncIdInt();
     product.businessId = ProxyService.box.getBusinessId()!;
     product.branchId = ProxyService.box.getBranchId()!;
 

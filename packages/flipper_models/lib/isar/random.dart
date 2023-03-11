@@ -25,9 +25,13 @@ String syncId() {
       15, (_) => chars.codeUnitAt(random.nextInt(chars.length))));
 }
 
+/// This method works but randomly it may generate 14 lenght insteand of 15
+/// Will fix this later.
 int syncIdInt() {
   final random = Random();
   const chars = '0123456789';
-  return int.parse(String.fromCharCodes(Iterable.generate(
-      15, (_) => chars.codeUnitAt(random.nextInt(chars.length)))));
+  final idString = String.fromCharCodes(Iterable.generate(
+      16, (_) => chars.codeUnitAt(random.nextInt(chars.length))));
+  print('Generated string: $idString');
+  return int.parse(idString.substring(0, 15));
 }
