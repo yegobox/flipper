@@ -136,7 +136,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
         double amount = double.parse(ProxyService.keypad.key);
         await saveOrder(
-            amountTotal: amount, variationId: variation!.id, customItem: true);
+            amountTotal: amount, variationId: variation!.id!, customItem: true);
         Order? updatedOrder = await ProxyService.isarApi.manageOrder();
         items = await ProxyService.isarApi.orderItems(orderId: updatedOrder.id);
         updatedOrder.subTotal = items.fold(0, (a, b) => a + (b.price * b.qty));
@@ -152,7 +152,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         if (items.isEmpty) {
           await saveOrder(
             amountTotal: amount,
-            variationId: variation!.id,
+            variationId: variation!.id!,
             customItem: true,
           );
         }
@@ -306,7 +306,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     Variant? variation =
         await ProxyService.isarApi.variant(variantId: variationId);
     Stock? stock =
-        await ProxyService.isarApi.stockByVariantId(variantId: variation!.id);
+        await ProxyService.isarApi.stockByVariantId(variantId: variation!.id!);
 
     String name = variation.productName != 'Custom Amount'
         ? '${variation.productName}(${variation.name})'
@@ -845,12 +845,12 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     log.i(product!.id);
     clearPreviousSaleCounts();
     List<Variant> variants = await getVariants(productId: product.id!);
-    loadVariantStock(variantId: variants.first.id);
+    loadVariantStock(variantId: variants.first.id!);
 
     handleCustomQtySetBeforeSelectingVariation();
 
     keypad.setAmount(amount: variants.first.retailPrice * quantity);
-    toggleCheckbox(variantId: variants.first.id);
+    toggleCheckbox(variantId: variants.first.id!);
     increaseQty(callback: (quantity) {}, custom: true);
     await saveOrder(
       variationId: checked,

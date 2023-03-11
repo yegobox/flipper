@@ -2,6 +2,7 @@ library flipper_models;
 
 // import 'package:flipper_models/isar_models.dart';
 
+import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
@@ -60,6 +61,7 @@ class ProductViewModel extends AddTenantViewModel {
     if (isTemp == null) {
       Product product = await ProxyService.isarApi.createProduct(
           product: Product(
+              id: syncIdInt(),
               name: "temp",
               active: true,
               businessId: businessId,
@@ -293,7 +295,7 @@ class ProductViewModel extends AddTenantViewModel {
           variation.productId = variation.productId;
           ProxyService.isarApi.update(data: variation);
           Stock? stock = await ProxyService.isarApi
-              .stockByVariantId(variantId: variation.id);
+              .stockByVariantId(variantId: variation.id!);
 
           if (stock != null) {
             stock.supplyPrice = supplyPrice;
@@ -312,7 +314,7 @@ class ProductViewModel extends AddTenantViewModel {
           variation.productName = product!.name;
           ProxyService.isarApi.update(data: variation);
           Stock? stock = await ProxyService.isarApi
-              .stockByVariantId(variantId: variation.id);
+              .stockByVariantId(variantId: variation.id!);
 
           if (stock != null) {
             stock.retailPrice = retailPrice;
@@ -359,10 +361,10 @@ class ProductViewModel extends AddTenantViewModel {
     List<Variant> variations = await ProxyService.isarApi
         .variants(branchId: branchId, productId: productId);
     for (Variant variation in variations) {
-      await ProxyService.isarApi.delete(id: variation.id, endPoint: 'variant');
+      await ProxyService.isarApi.delete(id: variation.id!, endPoint: 'variant');
       //get stock->delete
       Stock? stock =
-          await ProxyService.isarApi.stockByVariantId(variantId: variation.id);
+          await ProxyService.isarApi.stockByVariantId(variantId: variation.id!);
       if (stock != null) {
         await ProxyService.isarApi.delete(id: stock.id, endPoint: 'stock');
       }

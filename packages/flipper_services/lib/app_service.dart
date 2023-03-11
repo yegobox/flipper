@@ -209,7 +209,7 @@ class AppService with ListenableServiceMixin {
     /// push stock
     List<Stock> stocks = await ProxyService.isarApi.getLocalStocks();
     if (stocks.isEmpty) return;
-    int stockId = stocks.first.id;
+    int stockId = stocks.first.id!;
 
     RecordModel? stockRecord = await ProxyService.sync.push(stocks.first);
     if (stockRecord != null) {
@@ -226,7 +226,7 @@ class AppService with ListenableServiceMixin {
     /// get variants
     List<Variant> variants = await ProxyService.isarApi.getLocalVariants();
     if (variants.isEmpty) return;
-    int variantId = variants.first.id;
+    int variantId = variants.first.id!;
 
     RecordModel? variantRecord = await ProxyService.sync.push(variants.first);
     if (variantRecord != null) {

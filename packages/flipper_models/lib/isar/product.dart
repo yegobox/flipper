@@ -8,7 +8,6 @@ part 'product.g.dart';
 
 @Collection()
 class Product extends JsonSerializable {
-  // Id id = Isar.autoIncrement;
   Id? id = null;
 
   /// because later on we need localId to have logic

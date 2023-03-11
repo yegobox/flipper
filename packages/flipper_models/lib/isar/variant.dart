@@ -11,7 +11,7 @@ part 'variant.g.dart';
 
 @Collection()
 class Variant extends JsonSerializable {
-  Id id = Isar.autoIncrement;
+  Id? id = null;
   @Index(caseSensitive: true)
   late String name;
   late String sku;
@@ -93,6 +93,7 @@ class Variant extends JsonSerializable {
     required this.supplyPrice,
     required this.retailPrice,
     required this.isTaxExempted,
+    this.id,
     this.taxName,
     this.taxPercentage,
     this.itemSeq,

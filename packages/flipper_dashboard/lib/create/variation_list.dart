@@ -24,7 +24,7 @@ class VariationList extends StatelessWidget {
         list.add(
           StreamBuilder<Stock>(
             stream: ProxyService.isarApi.stockByVariantIdStream(
-              variantId: variations[i].id,
+              variantId: variations[i].id!,
             ),
             builder: (context, snapshot) {
               final Stock? stock = snapshot.data;

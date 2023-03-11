@@ -518,10 +518,10 @@ class Sell extends StatelessWidget {
         child: InkWell(
           onTap: () {
             //load stock of this variant
-            model.loadVariantStock(variantId: variant.id);
+            model.loadVariantStock(variantId: variant.id!!);
             model.keypad
                 .setAmount(amount: variant.retailPrice * model.quantity);
-            model.toggleCheckbox(variantId: variant.id);
+            model.toggleCheckbox(variantId: variant.id!!);
           },
           child: Container(
             child: Padding(
@@ -535,7 +535,7 @@ class Sell extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       FutureBuilder<Variant?>(
-                          future: model.getVariant(variantId: variant.id),
+                          future: model.getVariant(variantId: variant.id!!),
                           builder: (context, snapshot) {
                             return snapshot.hasData
                                 ? Expanded(
@@ -567,7 +567,7 @@ class Sell extends StatelessWidget {
                           Container(
                             child: Radio(
                               // toggleable: true,
-                              value: variant.id,
+                              value: variant.id!,
                               groupValue: model.checked,
                               onChanged: (value) {},
                             ),

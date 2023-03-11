@@ -7,7 +7,7 @@ part 'stock.g.dart';
 
 @Collection()
 class Stock extends JsonSerializable {
-  Id id = Isar.autoIncrement;
+  Id? id = null;
   @Index()
   late int branchId;
   @Index(composite: [CompositeIndex('branchId')])
@@ -35,6 +35,7 @@ class Stock extends JsonSerializable {
     required this.variantId,
     required this.currentStock,
     required this.productId,
+    this.id,
     this.lowStock,
     this.supplyPrice,
     this.retailPrice,

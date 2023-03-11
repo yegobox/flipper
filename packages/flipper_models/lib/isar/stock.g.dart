@@ -227,6 +227,7 @@ Stock _stockDeserialize(
     branchId: reader.readLong(offsets[1]),
     canTrackingStock: reader.readBoolOrNull(offsets[2]),
     currentStock: reader.readDouble(offsets[3]),
+    id: id,
     lastTouched: reader.readStringOrNull(offsets[4]),
     lowStock: reader.readDoubleOrNull(offsets[5]),
     productId: reader.readLong(offsets[6]),
@@ -238,7 +239,6 @@ Stock _stockDeserialize(
     value: reader.readDoubleOrNull(offsets[12]),
     variantId: reader.readLong(offsets[13]),
   );
-  object.id = id;
   return object;
 }
 
@@ -283,7 +283,7 @@ P _stockDeserializeProp<P>(
 }
 
 Id _stockGetId(Stock object) {
-  return object.id;
+  return object.id ?? Isar.autoIncrement;
 }
 
 List<IsarLinkBase<dynamic>> _stockGetLinks(Stock object) {
@@ -1054,7 +1054,23 @@ extension StockQueryFilter on QueryBuilder<Stock, Stock, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Stock, Stock, QAfterFilterCondition> idEqualTo(Id value) {
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> idIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'id',
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> idIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'id',
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> idEqualTo(Id? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -1064,7 +1080,7 @@ extension StockQueryFilter on QueryBuilder<Stock, Stock, QFilterCondition> {
   }
 
   QueryBuilder<Stock, Stock, QAfterFilterCondition> idGreaterThan(
-    Id value, {
+    Id? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1077,7 +1093,7 @@ extension StockQueryFilter on QueryBuilder<Stock, Stock, QFilterCondition> {
   }
 
   QueryBuilder<Stock, Stock, QAfterFilterCondition> idLessThan(
-    Id value, {
+    Id? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1090,8 +1106,8 @@ extension StockQueryFilter on QueryBuilder<Stock, Stock, QFilterCondition> {
   }
 
   QueryBuilder<Stock, Stock, QAfterFilterCondition> idBetween(
-    Id lower,
-    Id upper, {
+    Id? lower,
+    Id? upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {

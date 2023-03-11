@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_models/data.loads/jcounter.dart';
+import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_routing/routes.router.dart';
@@ -541,6 +542,7 @@ class IsarAPI<M> implements IsarApiInterface {
             branchId: ProxyService.box.getBranchId()!,
             supplyPrice: 0.0,
             retailPrice: 0.0,
+            id: syncIdInt(),
             isTaxExempted: false)
           ..name = 'Regular'
           ..productId = kProduct.id!
@@ -587,15 +589,16 @@ class IsarAPI<M> implements IsarApiInterface {
         await isar.variants.where().productIdEqualTo(kProduct!.id!).findFirst();
 
     Stock stock = Stock(
+        id: syncIdInt(),
         branchId: branchId,
-        variantId: variant!.id,
+        variantId: variant!.id!,
         currentStock: 0.0,
         productId: kProduct.id!)
       ..canTrackingStock = false
       ..showLowStockAlert = false
       ..currentStock = 0.0
       ..branchId = branchId
-      ..variantId = variant.id
+      ..variantId = variant.id!
       ..supplyPrice = 0.0
       ..retailPrice = 0.0
       ..lowStock = 10.0 // default static

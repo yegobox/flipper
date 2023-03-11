@@ -690,7 +690,7 @@ P _variantDeserializeProp<P>(
 }
 
 Id _variantGetId(Variant object) {
-  return object.id;
+  return object.id ?? Isar.autoIncrement;
 }
 
 List<IsarLinkBase<dynamic>> _variantGetLinks(Variant object) {
@@ -1619,7 +1619,23 @@ extension VariantQueryFilter
     });
   }
 
-  QueryBuilder<Variant, Variant, QAfterFilterCondition> idEqualTo(Id value) {
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> idIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'id',
+      ));
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> idIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'id',
+      ));
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> idEqualTo(Id? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -1629,7 +1645,7 @@ extension VariantQueryFilter
   }
 
   QueryBuilder<Variant, Variant, QAfterFilterCondition> idGreaterThan(
-    Id value, {
+    Id? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1642,7 +1658,7 @@ extension VariantQueryFilter
   }
 
   QueryBuilder<Variant, Variant, QAfterFilterCondition> idLessThan(
-    Id value, {
+    Id? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1655,8 +1671,8 @@ extension VariantQueryFilter
   }
 
   QueryBuilder<Variant, Variant, QAfterFilterCondition> idBetween(
-    Id lower,
-    Id upper, {
+    Id? lower,
+    Id? upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
