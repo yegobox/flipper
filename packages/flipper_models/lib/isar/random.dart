@@ -33,5 +33,12 @@ int syncIdInt() {
   final idString = String.fromCharCodes(Iterable.generate(
       16, (_) => chars.codeUnitAt(random.nextInt(chars.length))));
   print('Generated string: $idString');
-  return int.parse(idString.substring(0, 15));
+  String fullLength = "";
+  if (idString.substring(0, 15).length < 15) {
+    /// in case lenght is less than 15 add a number so the lenght is 15
+    fullLength = idString.substring(0, 15) + "1";
+  } else if (idString.substring(0, 15).length == 15) {
+    fullLength = idString.substring(0, 15);
+  }
+  return int.parse(fullLength);
 }
