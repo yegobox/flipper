@@ -23,8 +23,7 @@ class Variant extends JsonSerializable {
   late int branchId;
   late String? taxName;
   double? taxPercentage;
-  late double supplyPrice;
-  late double retailPrice;
+
   late bool isTaxExempted;
 
   // add RRA fields
@@ -79,6 +78,10 @@ class Variant extends JsonSerializable {
   double? rsdQty;
   @Index()
   String? lastTouched;
+  @Index()
+  late double supplyPrice;
+  @Index()
+  late double retailPrice;
   @Index()
   String? remoteID;
   int? localId;
@@ -225,7 +228,8 @@ class Variant extends JsonSerializable {
       modrNm: json['modrNm'],
       rsdQty: json['rsdQty']?.toDouble() ?? 0.0,
       lastTouched: json['lastTouched'],
-      remoteID: json['remoteID'],
+      id: json['localId'],
+      remoteID: json['id'],
     );
   }
 }

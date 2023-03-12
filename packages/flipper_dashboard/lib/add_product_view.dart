@@ -300,8 +300,9 @@ class _AddProductViewState extends State<AddProductView> {
                                         model.product.expiryDate == null))
                                 ? 'Expiry Date'
                                 : 'Expires at ' +
-                                    formatter.format(DateTime.parse(
-                                        model.product.expiryDate)),
+                                    formatter.format(DateTime.tryParse(
+                                            model.product.expiryDate) ??
+                                        DateTime.now()),
                             style: GoogleFonts.poppins(
                               fontSize: 16.0,
                               fontWeight: FontWeight.w400,

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:pocketbase/pocketbase.dart';
@@ -56,33 +58,33 @@ class RemoteService<T> implements RemoteInterface {
 
   @override
   void listenToChanges() {
-    pb.collection('stocks').subscribe("*", (e) async {
-      if (e.action == "create") {
-        Stock stock = Stock.fromRecord(e.record!);
-        Stock? localProduct = await ProxyService.isarApi
-            .getStock(branchId: stock.branchId, variantId: stock.localId!);
-        if (localProduct == null) {
-          ProxyService.isarApi.create(data: stock);
+    pb.collection('stocks').subscribe("*", (stockEvent) async {
+      if (stockEvent.action == "create") {
+        Stock stockFromRecord = Stock.fromRecord(stockEvent.record!);
+        Stock? localStock = await ProxyService.isarApi
+            .getStockById(id: stockFromRecord.localId!);
+        if (localStock == null) {
+          await ProxyService.isarApi.create(data: stockFromRecord);
         }
       }
     });
-    pb.collection('products').subscribe("*", (e) async {
-      if (e.action == "create") {
-        Product product = Product.fromRecord(e.record!);
-        Product? localProduct =
-            await ProxyService.isarApi.getProduct(id: product.localId!);
-        if (localProduct == null) {
-          ProxyService.isarApi.create(data: product);
-        }
+    pb.collection('variants').subscribe("*", (variantEvent) async {
+      Variant variant = Variant.fromRecord(variantEvent.record!);
+
+      Variant? localVariant =
+          await ProxyService.isarApi.getVariantById(id: variant.localId!);
+      if (localVariant == null) {
+        await ProxyService.isarApi.create(data: variant);
       }
     });
-    pb.collection('variants').subscribe("*", (e) async {
-      if (e.action == "create") {
-        Variant variant = Variant.fromRecord(e.record!);
-        Variant? localProduct =
-            await ProxyService.isarApi.getVariantById(id: variant.localId!);
+    pb.collection('products').subscribe("*", (productEvent) async {
+      if (productEvent.action == "create") {
+        Product productFromRecord = Product.fromRecord(productEvent.record!);
+        Product? localProduct = await ProxyService.isarApi
+            .getProduct(id: productFromRecord.localId!);
         if (localProduct == null) {
-          ProxyService.isarApi.create(data: variant);
+          log("created product from remote");
+          await ProxyService.isarApi.create(data: productFromRecord);
         }
       }
     });

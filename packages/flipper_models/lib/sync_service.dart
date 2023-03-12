@@ -23,11 +23,11 @@ class SynchronizationService<M extends JsonSerializable>
     if (endpoint != null) {
       // Convert the model to JSON using the `toJson()` method
       Map<String, dynamic> json = model.toJson();
-      if (json["name"] != "temp") {
+      if (json["name"] != "temp" || json["productName"] != "temp") {
         json["lastTouched"] = Hlc.fromDate(
             DateTime.now(), ProxyService.box.getBranchId()!.toString());
 
-        json["id"] = json["remoteID"] = syncId();
+        json["id"] = syncId();
         log(json.toString());
         return await ProxyService.remoteApi
             .create(collection: json, collectionName: endpoint);

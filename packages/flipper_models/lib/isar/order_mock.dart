@@ -9,7 +9,6 @@ Order? orderMock = Order()
   ..status = 'pending'
   ..orderType = 'local'
   ..active = true
-  ..draft = true
   ..subTotal = 300
   ..cashReceived = 300
   ..customerChangeDue = 0.0

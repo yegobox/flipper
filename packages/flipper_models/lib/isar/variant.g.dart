@@ -107,133 +107,138 @@ const VariantSchema = CollectionSchema(
       name: r'lastTouched',
       type: IsarType.string,
     ),
-    r'modrId': PropertySchema(
+    r'localId': PropertySchema(
       id: 18,
+      name: r'localId',
+      type: IsarType.long,
+    ),
+    r'modrId': PropertySchema(
+      id: 19,
       name: r'modrId',
       type: IsarType.string,
     ),
     r'modrNm': PropertySchema(
-      id: 19,
+      id: 20,
       name: r'modrNm',
       type: IsarType.string,
     ),
     r'name': PropertySchema(
-      id: 20,
+      id: 21,
       name: r'name',
       type: IsarType.string,
     ),
     r'orgnNatCd': PropertySchema(
-      id: 21,
+      id: 22,
       name: r'orgnNatCd',
       type: IsarType.string,
     ),
     r'pkg': PropertySchema(
-      id: 22,
+      id: 23,
       name: r'pkg',
       type: IsarType.string,
     ),
     r'pkgUnitCd': PropertySchema(
-      id: 23,
+      id: 24,
       name: r'pkgUnitCd',
       type: IsarType.string,
     ),
     r'prc': PropertySchema(
-      id: 24,
+      id: 25,
       name: r'prc',
       type: IsarType.double,
     ),
     r'productId': PropertySchema(
-      id: 25,
+      id: 26,
       name: r'productId',
       type: IsarType.long,
     ),
     r'productName': PropertySchema(
-      id: 26,
+      id: 27,
       name: r'productName',
       type: IsarType.string,
     ),
     r'qty': PropertySchema(
-      id: 27,
+      id: 28,
       name: r'qty',
       type: IsarType.double,
     ),
     r'qtyUnitCd': PropertySchema(
-      id: 28,
+      id: 29,
       name: r'qtyUnitCd',
       type: IsarType.string,
     ),
     r'regrId': PropertySchema(
-      id: 29,
+      id: 30,
       name: r'regrId',
       type: IsarType.string,
     ),
     r'regrNm': PropertySchema(
-      id: 30,
+      id: 31,
       name: r'regrNm',
       type: IsarType.string,
     ),
     r'remoteID': PropertySchema(
-      id: 31,
+      id: 32,
       name: r'remoteID',
       type: IsarType.string,
     ),
     r'retailPrice': PropertySchema(
-      id: 32,
+      id: 33,
       name: r'retailPrice',
       type: IsarType.double,
     ),
     r'rsdQty': PropertySchema(
-      id: 33,
+      id: 34,
       name: r'rsdQty',
       type: IsarType.double,
     ),
     r'sku': PropertySchema(
-      id: 34,
+      id: 35,
       name: r'sku',
       type: IsarType.string,
     ),
     r'splyAmt': PropertySchema(
-      id: 35,
+      id: 36,
       name: r'splyAmt',
       type: IsarType.double,
     ),
     r'supplyPrice': PropertySchema(
-      id: 36,
+      id: 37,
       name: r'supplyPrice',
       type: IsarType.double,
     ),
     r'table': PropertySchema(
-      id: 37,
+      id: 38,
       name: r'table',
       type: IsarType.string,
     ),
     r'taxName': PropertySchema(
-      id: 38,
+      id: 39,
       name: r'taxName',
       type: IsarType.string,
     ),
     r'taxPercentage': PropertySchema(
-      id: 39,
+      id: 40,
       name: r'taxPercentage',
       type: IsarType.double,
     ),
     r'taxTyCd': PropertySchema(
-      id: 40,
+      id: 41,
       name: r'taxTyCd',
       type: IsarType.string,
     ),
     r'tin': PropertySchema(
-      id: 41,
+      id: 42,
       name: r'tin',
       type: IsarType.long,
     ),
     r'unit': PropertySchema(
-      id: 42,
+      id: 43,
       name: r'unit',
       type: IsarType.string,
     ),
     r'useYn': PropertySchema(
-      id: 43,
+      id: 44,
       name: r'useYn',
       type: IsarType.string,
     )
@@ -280,6 +285,32 @@ const VariantSchema = CollectionSchema(
           name: r'lastTouched',
           type: IndexType.hash,
           caseSensitive: true,
+        )
+      ],
+    ),
+    r'supplyPrice': IndexSchema(
+      id: 8174864618802235989,
+      name: r'supplyPrice',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'supplyPrice',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
+    ),
+    r'retailPrice': IndexSchema(
+      id: -8613481562858074064,
+      name: r'retailPrice',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'retailPrice',
+          type: IndexType.value,
+          caseSensitive: false,
         )
       ],
     ),
@@ -505,32 +536,33 @@ void _variantSerialize(
   writer.writeString(offsets[15], object.itemStdNm);
   writer.writeString(offsets[16], object.itemTyCd);
   writer.writeString(offsets[17], object.lastTouched);
-  writer.writeString(offsets[18], object.modrId);
-  writer.writeString(offsets[19], object.modrNm);
-  writer.writeString(offsets[20], object.name);
-  writer.writeString(offsets[21], object.orgnNatCd);
-  writer.writeString(offsets[22], object.pkg);
-  writer.writeString(offsets[23], object.pkgUnitCd);
-  writer.writeDouble(offsets[24], object.prc);
-  writer.writeLong(offsets[25], object.productId);
-  writer.writeString(offsets[26], object.productName);
-  writer.writeDouble(offsets[27], object.qty);
-  writer.writeString(offsets[28], object.qtyUnitCd);
-  writer.writeString(offsets[29], object.regrId);
-  writer.writeString(offsets[30], object.regrNm);
-  writer.writeString(offsets[31], object.remoteID);
-  writer.writeDouble(offsets[32], object.retailPrice);
-  writer.writeDouble(offsets[33], object.rsdQty);
-  writer.writeString(offsets[34], object.sku);
-  writer.writeDouble(offsets[35], object.splyAmt);
-  writer.writeDouble(offsets[36], object.supplyPrice);
-  writer.writeString(offsets[37], object.table);
-  writer.writeString(offsets[38], object.taxName);
-  writer.writeDouble(offsets[39], object.taxPercentage);
-  writer.writeString(offsets[40], object.taxTyCd);
-  writer.writeLong(offsets[41], object.tin);
-  writer.writeString(offsets[42], object.unit);
-  writer.writeString(offsets[43], object.useYn);
+  writer.writeLong(offsets[18], object.localId);
+  writer.writeString(offsets[19], object.modrId);
+  writer.writeString(offsets[20], object.modrNm);
+  writer.writeString(offsets[21], object.name);
+  writer.writeString(offsets[22], object.orgnNatCd);
+  writer.writeString(offsets[23], object.pkg);
+  writer.writeString(offsets[24], object.pkgUnitCd);
+  writer.writeDouble(offsets[25], object.prc);
+  writer.writeLong(offsets[26], object.productId);
+  writer.writeString(offsets[27], object.productName);
+  writer.writeDouble(offsets[28], object.qty);
+  writer.writeString(offsets[29], object.qtyUnitCd);
+  writer.writeString(offsets[30], object.regrId);
+  writer.writeString(offsets[31], object.regrNm);
+  writer.writeString(offsets[32], object.remoteID);
+  writer.writeDouble(offsets[33], object.retailPrice);
+  writer.writeDouble(offsets[34], object.rsdQty);
+  writer.writeString(offsets[35], object.sku);
+  writer.writeDouble(offsets[36], object.splyAmt);
+  writer.writeDouble(offsets[37], object.supplyPrice);
+  writer.writeString(offsets[38], object.table);
+  writer.writeString(offsets[39], object.taxName);
+  writer.writeDouble(offsets[40], object.taxPercentage);
+  writer.writeString(offsets[41], object.taxTyCd);
+  writer.writeLong(offsets[42], object.tin);
+  writer.writeString(offsets[43], object.unit);
+  writer.writeString(offsets[44], object.useYn);
 }
 
 Variant _variantDeserialize(
@@ -545,6 +577,7 @@ Variant _variantDeserialize(
     bhfId: reader.readStringOrNull(offsets[2]),
     branchId: reader.readLong(offsets[3]),
     dftPrc: reader.readDoubleOrNull(offsets[4]),
+    id: id,
     isTaxExempted: reader.readBool(offsets[5]),
     isrcAmt: reader.readStringOrNull(offsets[6]),
     isrcAplcbYn: reader.readStringOrNull(offsets[7]),
@@ -558,34 +591,34 @@ Variant _variantDeserialize(
     itemStdNm: reader.readStringOrNull(offsets[15]),
     itemTyCd: reader.readStringOrNull(offsets[16]),
     lastTouched: reader.readStringOrNull(offsets[17]),
-    modrId: reader.readStringOrNull(offsets[18]),
-    modrNm: reader.readStringOrNull(offsets[19]),
-    name: reader.readString(offsets[20]),
-    orgnNatCd: reader.readStringOrNull(offsets[21]),
-    pkg: reader.readStringOrNull(offsets[22]),
-    pkgUnitCd: reader.readStringOrNull(offsets[23]),
-    prc: reader.readDoubleOrNull(offsets[24]),
-    productId: reader.readLong(offsets[25]),
-    productName: reader.readString(offsets[26]),
-    qty: reader.readDoubleOrNull(offsets[27]),
-    qtyUnitCd: reader.readStringOrNull(offsets[28]),
-    regrId: reader.readStringOrNull(offsets[29]),
-    regrNm: reader.readStringOrNull(offsets[30]),
-    remoteID: reader.readStringOrNull(offsets[31]),
-    retailPrice: reader.readDouble(offsets[32]),
-    rsdQty: reader.readDoubleOrNull(offsets[33]),
-    sku: reader.readString(offsets[34]),
-    splyAmt: reader.readDoubleOrNull(offsets[35]),
-    supplyPrice: reader.readDouble(offsets[36]),
-    table: reader.readString(offsets[37]),
-    taxName: reader.readStringOrNull(offsets[38]),
-    taxPercentage: reader.readDoubleOrNull(offsets[39]),
-    taxTyCd: reader.readStringOrNull(offsets[40]),
-    tin: reader.readLongOrNull(offsets[41]),
-    unit: reader.readString(offsets[42]),
-    useYn: reader.readStringOrNull(offsets[43]),
+    localId: reader.readLongOrNull(offsets[18]),
+    modrId: reader.readStringOrNull(offsets[19]),
+    modrNm: reader.readStringOrNull(offsets[20]),
+    name: reader.readString(offsets[21]),
+    orgnNatCd: reader.readStringOrNull(offsets[22]),
+    pkg: reader.readStringOrNull(offsets[23]),
+    pkgUnitCd: reader.readStringOrNull(offsets[24]),
+    prc: reader.readDoubleOrNull(offsets[25]),
+    productId: reader.readLong(offsets[26]),
+    productName: reader.readString(offsets[27]),
+    qty: reader.readDoubleOrNull(offsets[28]),
+    qtyUnitCd: reader.readStringOrNull(offsets[29]),
+    regrId: reader.readStringOrNull(offsets[30]),
+    regrNm: reader.readStringOrNull(offsets[31]),
+    remoteID: reader.readStringOrNull(offsets[32]),
+    retailPrice: reader.readDouble(offsets[33]),
+    rsdQty: reader.readDoubleOrNull(offsets[34]),
+    sku: reader.readString(offsets[35]),
+    splyAmt: reader.readDoubleOrNull(offsets[36]),
+    supplyPrice: reader.readDouble(offsets[37]),
+    table: reader.readString(offsets[38]),
+    taxName: reader.readStringOrNull(offsets[39]),
+    taxPercentage: reader.readDoubleOrNull(offsets[40]),
+    taxTyCd: reader.readStringOrNull(offsets[41]),
+    tin: reader.readLongOrNull(offsets[42]),
+    unit: reader.readString(offsets[43]),
+    useYn: reader.readStringOrNull(offsets[44]),
   );
-  object.id = id;
   return object;
 }
 
@@ -633,27 +666,27 @@ P _variantDeserializeProp<P>(
     case 17:
       return (reader.readStringOrNull(offset)) as P;
     case 18:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 19:
       return (reader.readStringOrNull(offset)) as P;
     case 20:
-      return (reader.readString(offset)) as P;
-    case 21:
       return (reader.readStringOrNull(offset)) as P;
+    case 21:
+      return (reader.readString(offset)) as P;
     case 22:
       return (reader.readStringOrNull(offset)) as P;
     case 23:
       return (reader.readStringOrNull(offset)) as P;
     case 24:
-      return (reader.readDoubleOrNull(offset)) as P;
-    case 25:
-      return (reader.readLong(offset)) as P;
-    case 26:
-      return (reader.readString(offset)) as P;
-    case 27:
-      return (reader.readDoubleOrNull(offset)) as P;
-    case 28:
       return (reader.readStringOrNull(offset)) as P;
+    case 25:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 26:
+      return (reader.readLong(offset)) as P;
+    case 27:
+      return (reader.readString(offset)) as P;
+    case 28:
+      return (reader.readDoubleOrNull(offset)) as P;
     case 29:
       return (reader.readStringOrNull(offset)) as P;
     case 30:
@@ -661,28 +694,30 @@ P _variantDeserializeProp<P>(
     case 31:
       return (reader.readStringOrNull(offset)) as P;
     case 32:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 33:
-      return (reader.readDoubleOrNull(offset)) as P;
-    case 34:
-      return (reader.readString(offset)) as P;
-    case 35:
-      return (reader.readDoubleOrNull(offset)) as P;
-    case 36:
       return (reader.readDouble(offset)) as P;
-    case 37:
-      return (reader.readString(offset)) as P;
-    case 38:
-      return (reader.readStringOrNull(offset)) as P;
-    case 39:
+    case 34:
       return (reader.readDoubleOrNull(offset)) as P;
-    case 40:
-      return (reader.readStringOrNull(offset)) as P;
-    case 41:
-      return (reader.readLongOrNull(offset)) as P;
-    case 42:
+    case 35:
       return (reader.readString(offset)) as P;
+    case 36:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 37:
+      return (reader.readDouble(offset)) as P;
+    case 38:
+      return (reader.readString(offset)) as P;
+    case 39:
+      return (reader.readStringOrNull(offset)) as P;
+    case 40:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 41:
+      return (reader.readStringOrNull(offset)) as P;
+    case 42:
+      return (reader.readLongOrNull(offset)) as P;
     case 43:
+      return (reader.readString(offset)) as P;
+    case 44:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -712,6 +747,22 @@ extension VariantQueryWhereSort on QueryBuilder<Variant, Variant, QWhere> {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         const IndexWhereClause.any(indexName: r'productId'),
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterWhere> anySupplyPrice() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'supplyPrice'),
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterWhere> anyRetailPrice() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'retailPrice'),
       );
     });
   }
@@ -979,6 +1030,186 @@ extension VariantQueryWhere on QueryBuilder<Variant, Variant, QWhereClause> {
               includeUpper: false,
             ));
       }
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterWhereClause> supplyPriceEqualTo(
+      double supplyPrice) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'supplyPrice',
+        value: [supplyPrice],
+      ));
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterWhereClause> supplyPriceNotEqualTo(
+      double supplyPrice) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'supplyPrice',
+              lower: [],
+              upper: [supplyPrice],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'supplyPrice',
+              lower: [supplyPrice],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'supplyPrice',
+              lower: [supplyPrice],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'supplyPrice',
+              lower: [],
+              upper: [supplyPrice],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterWhereClause> supplyPriceGreaterThan(
+    double supplyPrice, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'supplyPrice',
+        lower: [supplyPrice],
+        includeLower: include,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterWhereClause> supplyPriceLessThan(
+    double supplyPrice, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'supplyPrice',
+        lower: [],
+        upper: [supplyPrice],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterWhereClause> supplyPriceBetween(
+    double lowerSupplyPrice,
+    double upperSupplyPrice, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'supplyPrice',
+        lower: [lowerSupplyPrice],
+        includeLower: includeLower,
+        upper: [upperSupplyPrice],
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterWhereClause> retailPriceEqualTo(
+      double retailPrice) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'retailPrice',
+        value: [retailPrice],
+      ));
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterWhereClause> retailPriceNotEqualTo(
+      double retailPrice) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'retailPrice',
+              lower: [],
+              upper: [retailPrice],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'retailPrice',
+              lower: [retailPrice],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'retailPrice',
+              lower: [retailPrice],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'retailPrice',
+              lower: [],
+              upper: [retailPrice],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterWhereClause> retailPriceGreaterThan(
+    double retailPrice, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'retailPrice',
+        lower: [retailPrice],
+        includeLower: include,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterWhereClause> retailPriceLessThan(
+    double retailPrice, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'retailPrice',
+        lower: [],
+        upper: [retailPrice],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterWhereClause> retailPriceBetween(
+    double lowerRetailPrice,
+    double upperRetailPrice, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'retailPrice',
+        lower: [lowerRetailPrice],
+        includeLower: includeLower,
+        upper: [upperRetailPrice],
+        includeUpper: includeUpper,
+      ));
     });
   }
 
@@ -3447,6 +3678,75 @@ extension VariantQueryFilter
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'lastTouched',
         value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> localIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'localId',
+      ));
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> localIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'localId',
+      ));
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> localIdEqualTo(
+      int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'localId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> localIdGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'localId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> localIdLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'localId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> localIdBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'localId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
       ));
     });
   }
@@ -6715,6 +7015,18 @@ extension VariantQuerySortBy on QueryBuilder<Variant, Variant, QSortBy> {
     });
   }
 
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByLocalId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByLocalIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localId', Sort.desc);
+    });
+  }
+
   QueryBuilder<Variant, Variant, QAfterSortBy> sortByModrId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'modrId', Sort.asc);
@@ -7258,6 +7570,18 @@ extension VariantQuerySortThenBy
     });
   }
 
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByLocalId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByLocalIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localId', Sort.desc);
+    });
+  }
+
   QueryBuilder<Variant, Variant, QAfterSortBy> thenByModrId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'modrId', Sort.asc);
@@ -7696,6 +8020,12 @@ extension VariantQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Variant, Variant, QDistinct> distinctByLocalId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'localId');
+    });
+  }
+
   QueryBuilder<Variant, Variant, QDistinct> distinctByModrId(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -7983,6 +8313,12 @@ extension VariantQueryProperty
   QueryBuilder<Variant, String?, QQueryOperations> lastTouchedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'lastTouched');
+    });
+  }
+
+  QueryBuilder<Variant, int?, QQueryOperations> localIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'localId');
     });
   }
 

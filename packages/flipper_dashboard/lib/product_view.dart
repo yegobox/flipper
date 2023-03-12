@@ -198,7 +198,6 @@ class _ProductViewState extends State<ProductView> {
                                         color: product.color,
                                         stocks: stocks.data ?? [],
                                         model: model,
-                                        hasImage: product.hasPicture,
                                         product: product,
                                         name: product.name,
                                         imageUrl: product.imageUrl,

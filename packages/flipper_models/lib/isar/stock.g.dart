@@ -42,48 +42,53 @@ const StockSchema = CollectionSchema(
       name: r'lastTouched',
       type: IsarType.string,
     ),
-    r'lowStock': PropertySchema(
+    r'localId': PropertySchema(
       id: 5,
+      name: r'localId',
+      type: IsarType.long,
+    ),
+    r'lowStock': PropertySchema(
+      id: 6,
       name: r'lowStock',
       type: IsarType.double,
     ),
     r'productId': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'productId',
       type: IsarType.long,
     ),
     r'remoteID': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'remoteID',
       type: IsarType.string,
     ),
     r'retailPrice': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'retailPrice',
       type: IsarType.double,
     ),
     r'rsdQty': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'rsdQty',
       type: IsarType.double,
     ),
     r'showLowStockAlert': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'showLowStockAlert',
       type: IsarType.bool,
     ),
     r'supplyPrice': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'supplyPrice',
       type: IsarType.double,
     ),
     r'value': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'value',
       type: IsarType.double,
     ),
     r'variantId': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'variantId',
       type: IsarType.long,
     )
@@ -133,6 +138,32 @@ const StockSchema = CollectionSchema(
       properties: [
         IndexPropertySchema(
           name: r'productId',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
+    ),
+    r'supplyPrice': IndexSchema(
+      id: 8174864618802235989,
+      name: r'supplyPrice',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'supplyPrice',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
+    ),
+    r'retailPrice': IndexSchema(
+      id: -8613481562858074064,
+      name: r'retailPrice',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'retailPrice',
           type: IndexType.value,
           caseSensitive: false,
         )
@@ -205,15 +236,16 @@ void _stockSerialize(
   writer.writeBool(offsets[2], object.canTrackingStock);
   writer.writeDouble(offsets[3], object.currentStock);
   writer.writeString(offsets[4], object.lastTouched);
-  writer.writeDouble(offsets[5], object.lowStock);
-  writer.writeLong(offsets[6], object.productId);
-  writer.writeString(offsets[7], object.remoteID);
-  writer.writeDouble(offsets[8], object.retailPrice);
-  writer.writeDouble(offsets[9], object.rsdQty);
-  writer.writeBool(offsets[10], object.showLowStockAlert);
-  writer.writeDouble(offsets[11], object.supplyPrice);
-  writer.writeDouble(offsets[12], object.value);
-  writer.writeLong(offsets[13], object.variantId);
+  writer.writeLong(offsets[5], object.localId);
+  writer.writeDouble(offsets[6], object.lowStock);
+  writer.writeLong(offsets[7], object.productId);
+  writer.writeString(offsets[8], object.remoteID);
+  writer.writeDouble(offsets[9], object.retailPrice);
+  writer.writeDouble(offsets[10], object.rsdQty);
+  writer.writeBool(offsets[11], object.showLowStockAlert);
+  writer.writeDouble(offsets[12], object.supplyPrice);
+  writer.writeDouble(offsets[13], object.value);
+  writer.writeLong(offsets[14], object.variantId);
 }
 
 Stock _stockDeserialize(
@@ -229,15 +261,16 @@ Stock _stockDeserialize(
     currentStock: reader.readDouble(offsets[3]),
     id: id,
     lastTouched: reader.readStringOrNull(offsets[4]),
-    lowStock: reader.readDoubleOrNull(offsets[5]),
-    productId: reader.readLong(offsets[6]),
-    remoteID: reader.readStringOrNull(offsets[7]),
-    retailPrice: reader.readDoubleOrNull(offsets[8]),
-    rsdQty: reader.readDoubleOrNull(offsets[9]),
-    showLowStockAlert: reader.readBoolOrNull(offsets[10]),
-    supplyPrice: reader.readDoubleOrNull(offsets[11]),
-    value: reader.readDoubleOrNull(offsets[12]),
-    variantId: reader.readLong(offsets[13]),
+    localId: reader.readLongOrNull(offsets[5]),
+    lowStock: reader.readDoubleOrNull(offsets[6]),
+    productId: reader.readLong(offsets[7]),
+    remoteID: reader.readStringOrNull(offsets[8]),
+    retailPrice: reader.readDoubleOrNull(offsets[9]),
+    rsdQty: reader.readDoubleOrNull(offsets[10]),
+    showLowStockAlert: reader.readBoolOrNull(offsets[11]),
+    supplyPrice: reader.readDoubleOrNull(offsets[12]),
+    value: reader.readDoubleOrNull(offsets[13]),
+    variantId: reader.readLong(offsets[14]),
   );
   return object;
 }
@@ -260,22 +293,24 @@ P _stockDeserializeProp<P>(
     case 4:
       return (reader.readStringOrNull(offset)) as P;
     case 5:
-      return (reader.readDoubleOrNull(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 6:
-      return (reader.readLong(offset)) as P;
-    case 7:
-      return (reader.readStringOrNull(offset)) as P;
-    case 8:
       return (reader.readDoubleOrNull(offset)) as P;
+    case 7:
+      return (reader.readLong(offset)) as P;
+    case 8:
+      return (reader.readStringOrNull(offset)) as P;
     case 9:
       return (reader.readDoubleOrNull(offset)) as P;
     case 10:
-      return (reader.readBoolOrNull(offset)) as P;
-    case 11:
       return (reader.readDoubleOrNull(offset)) as P;
+    case 11:
+      return (reader.readBoolOrNull(offset)) as P;
     case 12:
       return (reader.readDoubleOrNull(offset)) as P;
     case 13:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 14:
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -321,6 +356,22 @@ extension StockQueryWhereSort on QueryBuilder<Stock, Stock, QWhere> {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         const IndexWhereClause.any(indexName: r'productId'),
+      );
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhere> anySupplyPrice() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'supplyPrice'),
+      );
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhere> anyRetailPrice() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'retailPrice'),
       );
     });
   }
@@ -751,6 +802,226 @@ extension StockQueryWhere on QueryBuilder<Stock, Stock, QWhereClause> {
         lower: [lowerProductId],
         includeLower: includeLower,
         upper: [upperProductId],
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhereClause> supplyPriceIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'supplyPrice',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhereClause> supplyPriceIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'supplyPrice',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhereClause> supplyPriceEqualTo(
+      double? supplyPrice) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'supplyPrice',
+        value: [supplyPrice],
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhereClause> supplyPriceNotEqualTo(
+      double? supplyPrice) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'supplyPrice',
+              lower: [],
+              upper: [supplyPrice],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'supplyPrice',
+              lower: [supplyPrice],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'supplyPrice',
+              lower: [supplyPrice],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'supplyPrice',
+              lower: [],
+              upper: [supplyPrice],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhereClause> supplyPriceGreaterThan(
+    double? supplyPrice, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'supplyPrice',
+        lower: [supplyPrice],
+        includeLower: include,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhereClause> supplyPriceLessThan(
+    double? supplyPrice, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'supplyPrice',
+        lower: [],
+        upper: [supplyPrice],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhereClause> supplyPriceBetween(
+    double? lowerSupplyPrice,
+    double? upperSupplyPrice, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'supplyPrice',
+        lower: [lowerSupplyPrice],
+        includeLower: includeLower,
+        upper: [upperSupplyPrice],
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhereClause> retailPriceIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'retailPrice',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhereClause> retailPriceIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'retailPrice',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhereClause> retailPriceEqualTo(
+      double? retailPrice) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'retailPrice',
+        value: [retailPrice],
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhereClause> retailPriceNotEqualTo(
+      double? retailPrice) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'retailPrice',
+              lower: [],
+              upper: [retailPrice],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'retailPrice',
+              lower: [retailPrice],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'retailPrice',
+              lower: [retailPrice],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'retailPrice',
+              lower: [],
+              upper: [retailPrice],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhereClause> retailPriceGreaterThan(
+    double? retailPrice, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'retailPrice',
+        lower: [retailPrice],
+        includeLower: include,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhereClause> retailPriceLessThan(
+    double? retailPrice, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'retailPrice',
+        lower: [],
+        upper: [retailPrice],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhereClause> retailPriceBetween(
+    double? lowerRetailPrice,
+    double? upperRetailPrice, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'retailPrice',
+        lower: [lowerRetailPrice],
+        includeLower: includeLower,
+        upper: [upperRetailPrice],
         includeUpper: includeUpper,
       ));
     });
@@ -1264,6 +1535,74 @@ extension StockQueryFilter on QueryBuilder<Stock, Stock, QFilterCondition> {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'lastTouched',
         value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> localIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'localId',
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> localIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'localId',
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> localIdEqualTo(int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'localId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> localIdGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'localId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> localIdLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'localId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> localIdBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'localId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
       ));
     });
   }
@@ -2003,6 +2342,18 @@ extension StockQuerySortBy on QueryBuilder<Stock, Stock, QSortBy> {
     });
   }
 
+  QueryBuilder<Stock, Stock, QAfterSortBy> sortByLocalId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterSortBy> sortByLocalIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localId', Sort.desc);
+    });
+  }
+
   QueryBuilder<Stock, Stock, QAfterSortBy> sortByLowStock() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lowStock', Sort.asc);
@@ -2185,6 +2536,18 @@ extension StockQuerySortThenBy on QueryBuilder<Stock, Stock, QSortThenBy> {
     });
   }
 
+  QueryBuilder<Stock, Stock, QAfterSortBy> thenByLocalId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterSortBy> thenByLocalIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localId', Sort.desc);
+    });
+  }
+
   QueryBuilder<Stock, Stock, QAfterSortBy> thenByLowStock() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lowStock', Sort.asc);
@@ -2326,6 +2689,12 @@ extension StockQueryWhereDistinct on QueryBuilder<Stock, Stock, QDistinct> {
     });
   }
 
+  QueryBuilder<Stock, Stock, QDistinct> distinctByLocalId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'localId');
+    });
+  }
+
   QueryBuilder<Stock, Stock, QDistinct> distinctByLowStock() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'lowStock');
@@ -2416,6 +2785,12 @@ extension StockQueryProperty on QueryBuilder<Stock, Stock, QQueryProperty> {
   QueryBuilder<Stock, String?, QQueryOperations> lastTouchedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'lastTouched');
+    });
+  }
+
+  QueryBuilder<Stock, int?, QQueryOperations> localIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'localId');
     });
   }
 

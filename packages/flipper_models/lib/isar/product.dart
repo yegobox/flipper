@@ -9,19 +9,10 @@ part 'product.g.dart';
 @Collection()
 class Product extends JsonSerializable {
   Id? id = null;
-
-  /// because later on we need localId to have logic
-  /// to receive remote product, we need ability to either use auto-increment
-  /// or use custom ID, this will help when receiving data
-  /// as we will first check if they exist locally using localId
   @Index(caseSensitive: true)
   late String name;
-  String? picture;
   String? description;
-  late bool active;
   String? taxId;
-  late bool hasPicture;
-  String? table;
   late String color;
   late int businessId;
   @Index()
@@ -30,15 +21,10 @@ class Product extends JsonSerializable {
   String? categoryId;
   String? createdAt;
   String? unit;
-  @Index(composite: [CompositeIndex('branchId')])
-  bool? draft;
-  bool? imageLocal;
-  bool? currentUpdate;
   String? imageUrl;
   String? expiryDate;
   @Index()
   String? barCode;
-  bool? synced;
   bool? nfcEnabled;
   // This is a localID not necessary coming from remote
   @Index()
@@ -57,27 +43,19 @@ class Product extends JsonSerializable {
 
   Product(
       {required this.name,
-      required this.active,
       required this.color,
       required this.businessId,
       required this.branchId,
       this.id,
-      this.picture,
       this.description,
       this.taxId,
-      this.hasPicture = false,
-      this.table,
       this.supplierId,
       this.categoryId,
       this.createdAt,
       this.unit,
-      this.draft,
-      this.imageLocal,
-      this.currentUpdate,
       this.imageUrl,
       this.expiryDate,
       this.barCode,
-      this.synced,
       this.nfcEnabled,
       this.bindedToTenantId,
       this.isFavorite,
@@ -91,58 +69,43 @@ class Product extends JsonSerializable {
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
         name: json['name'],
-        active: json['active'],
         color: json['color'],
         localId: json['localId'],
         businessId: json['businessId'],
         branchId: json['branchId'],
-        picture: json['picture'],
-        description: json['description'],
-        taxId: json['taxId'],
-        hasPicture: json['hasPicture'],
-        table: json['table'],
-        supplierId: json['supplierId'],
-        categoryId: json['categoryId'],
-        createdAt: json['createdAt'],
+        description: json['description'].isEmpty ? null : json['description'],
+        taxId: json['taxId'].isEmpty ? null : json['taxId'],
+        supplierId: json['supplierId'].isEmpty ? null : json['supplierId'],
+        categoryId: json['categoryId'].isEmpty ? null : json['categoryId'],
+        createdAt: json['createdAt'].isEmpty ? null : json['createdAt'],
         unit: json['unit'],
-        draft: json['draft'],
-        imageLocal: json['imageLocal'],
-        currentUpdate: json['currentUpdate'],
-        imageUrl: json['imageUrl'],
-        expiryDate: json['expiryDate'],
-        barCode: json['barCode'],
-        synced: json['synced'],
+        imageUrl: json['imageUrl'].isEmpty ? null : json['imageUrl'],
+        expiryDate: json['expiryDate'].isEmpty ? null : json['expiryDate'],
+        barCode: json['barCode'].isEmpty ? null : json['barCode'],
         nfcEnabled: json['nfcEnabled'],
         bindedToTenantId: json['bindedToTenantId'],
         isFavorite: json['isFavorite'],
         lastTouched: json['lastTouched'],
-        remoteID: json['remoteID']);
+        id: json['localId'],
+        remoteID: json['id']);
   }
 
   @override
   Map<String, dynamic> toJson() {
     return {
       "name": name,
-      "active": active,
       "color": color,
       "businessId": businessId,
       "branchId": branchId,
-      "picture": picture,
-      "description": description,
-      "taxId": taxId,
-      "hasPicture": hasPicture,
-      "table": table,
-      "supplierId": supplierId,
-      "categoryId": categoryId,
+      "description": description ?? null,
+      "taxId": taxId ?? null,
+      "supplierId": supplierId ?? null,
+      "categoryId": categoryId ?? null,
       "createdAt": createdAt,
       "unit": unit,
-      "draft": draft,
-      "imageLocal": imageLocal,
-      "currentUpdate": currentUpdate,
-      "imageUrl": imageUrl,
+      "imageUrl": imageUrl ?? null,
       "expiryDate": expiryDate,
       "barCode": barCode ?? null,
-      "synced": synced,
       "nfcEnabled": nfcEnabled,
       "bindedToTenantId": bindedToTenantId,
       "isFavorite": isFavorite,

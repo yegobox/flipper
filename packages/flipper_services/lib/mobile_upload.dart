@@ -132,9 +132,7 @@ class MobileUpload implements UploadT {
           Product? product =
               await ProxyService.isarApi.getProduct(id: productId);
           // Map map = product!.toJson();
-          product!.picture = uploadResponse.url;
-          product.imageUrl = uploadResponse.url;
-          product.hasPicture = true;
+          product!.imageUrl = uploadResponse.url;
           log.i(productId);
           ProxyService.isarApi.update(data: product);
           Product? kProduct =

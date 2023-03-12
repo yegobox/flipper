@@ -13,7 +13,6 @@ class ProductRow extends StatelessWidget {
     Key? key,
     required this.color,
     required this.name,
-    required this.hasImage,
     this.imageUrl,
     required this.stocks,
     required this.addToMenu,
@@ -25,7 +24,6 @@ class ProductRow extends StatelessWidget {
   }) : super(key: key);
   final String color;
   final String name;
-  final bool hasImage;
   final String? imageUrl;
   final Product product;
   final Function delete;
@@ -54,7 +52,7 @@ class ProductRow extends StatelessWidget {
             leading: SizedBox(
               height: MediaQuery.of(context).size.height,
               width: 58,
-              child: !hasImage
+              child: imageUrl == null
                   ? TextDrawable(
                       backgroundColor: HexColor(color),
                       text: name,
@@ -155,15 +153,6 @@ class ProductRow extends StatelessWidget {
         // All actions are defined in the children parameter.
         children: [
           // A SlidableAction can have an icon and/or a label.
-          SlidableAction(
-            onPressed: (_) {
-              delete(product.id!);
-            },
-            backgroundColor: const Color(0xFFFE4A49),
-            foregroundColor: Colors.white,
-            icon: Icons.delete,
-            label: 'Delete',
-          ),
           SlidableAction(
             onPressed: (_) {
               edit(product.id!);

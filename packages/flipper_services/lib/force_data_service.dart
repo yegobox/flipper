@@ -31,7 +31,6 @@ class ForceDataEntryService {
       await ProxyService.isarApi.createProduct(
           product: Product(
               name: "Custom Amount",
-              active: true,
               businessId: businessId,
               color: "#e74c3c",
               branchId: branchId)

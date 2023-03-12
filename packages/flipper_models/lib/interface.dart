@@ -206,5 +206,7 @@ abstract class IsarApiInterface {
   Future<List<Product>> getLocalProducts();
   Future<List<Variant>> getLocalVariants();
   Future<List<Stock>> getLocalStocks();
+  Future<void> deleteAllProducts();
+  Future<Stock?> getStockById({required int id});
   //
 }

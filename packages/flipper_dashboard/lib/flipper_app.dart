@@ -56,6 +56,7 @@ class _FlipperAppState extends State<FlipperApp>
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_initialized) {
+        // ProxyService.isarApi.deleteAllProducts();
         InitApp.init();
         _initialized = true;
       }

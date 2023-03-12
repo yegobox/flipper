@@ -176,7 +176,6 @@ class IsarAPI<M> implements IsarApiInterface {
         ..status = pendingStatus
         ..orderType = orderType
         ..active = true
-        ..draft = true
         ..reported = false
         ..subTotal = 0
         ..cashReceived = 0
@@ -516,10 +515,9 @@ class IsarAPI<M> implements IsarApiInterface {
     String itemPrefix = "flip-";
     String clip = itemPrefix +
         DateTime.now().microsecondsSinceEpoch.toString().substring(0, 5);
-    product.active = false;
+
     product.description = 'description';
     product.color = '#5A2328';
-    product.hasPicture = false;
     product.id = syncIdInt();
     product.businessId = ProxyService.box.getBusinessId()!;
     product.branchId = ProxyService.box.getBranchId()!;
@@ -805,26 +803,18 @@ class IsarAPI<M> implements IsarApiInterface {
       Product newProduct = await createProduct(
           product: Product(
               name: "Custom Amount",
-              active: true,
               businessId: businessId,
               color: "#e74c3c",
               branchId: businessId)
             ..branchId = branchId
-            ..draft = true
-            ..currentUpdate = true
             ..taxId = "XX"
-            ..imageLocal = false
             ..businessId = businessId
             ..name = "Custom Amount"
             ..description = "L"
-            ..active = true
-            ..hasPicture = false
-            ..table = "products"
             ..color = "#e74c3c"
             ..supplierId = "XXX"
             ..categoryId = "XXX"
             ..unit = "kg"
-            ..synced = false
             ..createdAt = DateTime.now().toIso8601String());
       // add this newProduct's variant to the RRA DB
       Variant? variant = await isar.variants
@@ -1229,7 +1219,7 @@ class IsarAPI<M> implements IsarApiInterface {
   Stream<List<Product>> productStreams({required int branchId}) {
     return isar.products
         .where()
-        .draftBranchIdEqualTo(false, branchId)
+        .branchIdEqualTo(branchId)
         .watch(fireImmediately: true);
   }
 
@@ -1368,7 +1358,7 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<T?> create<T>({required T data}) {
+  Future<T?> create<T>({required T data}) async {
     if (data is PColor) {
       PColor color = data;
       isar.writeTxn(() async {
@@ -1382,8 +1372,9 @@ class IsarAPI<M> implements IsarApiInterface {
     }
     if (data is Category) {
       Category category = data;
-      isar.writeTxn(() {
-        return isar.categorys.put(category);
+      return await isar.writeTxn(() async {
+        await isar.categorys.put(category);
+        return Future.value(null);
       });
     }
     if (data is Product) {
@@ -1392,13 +1383,15 @@ class IsarAPI<M> implements IsarApiInterface {
       });
     }
     if (data is Variant) {
-      isar.writeTxn(() {
-        return isar.variants.put(data);
+      await isar.writeTxn(() async {
+        await isar.variants.put(data);
+        return Future.value(null);
       });
     }
     if (data is Stock) {
-      isar.writeTxn(() {
-        return isar.stocks.put(data);
+      await isar.writeTxn(() async {
+        await isar.stocks.put(data);
+        return Future.value(null);
       });
     }
     return Future.value(null);
@@ -1984,12 +1977,39 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<List<Variant>> getLocalVariants() async {
-    return await isar.variants.where().lastTouchedIsNull().findAll();
+    return await isar.variants
+        .filter()
+        .retailPriceGreaterThan(0)
+        .and()
+        .lastTouchedIsNull()
+        .findAll();
   }
 
   @override
   Future<List<Stock>> getLocalStocks() async {
-    return await isar.stocks.where().lastTouchedIsNull().findAll();
+    return await isar.stocks
+        .filter()
+        .retailPriceGreaterThan(0)
+        .and()
+        .lastTouchedIsNull()
+        .findAll();
   }
-  // getLocalVariants
+
+  /// Do not call this function in production
+  @override
+  Future<void> deleteAllProducts() async {
+    List<Product> products =
+        await productsFuture(branchId: ProxyService.box.getBranchId()!);
+    List<int> productIds = products.map((product) => product.id ?? 0).toList();
+    isar.writeTxn(() async {
+      isar.products.deleteAll(productIds);
+    });
+  }
+
+  @override
+  Future<Stock?> getStockById({required int id}) async {
+    return isar.writeTxn(() async {
+      return await isar.stocks.get(id);
+    });
+  }
 }

@@ -14,8 +14,7 @@ class Stock extends JsonSerializable {
   late int variantId;
   double? lowStock;
   late double currentStock;
-  double? supplyPrice;
-  double? retailPrice;
+
   bool? canTrackingStock;
   bool? showLowStockAlert;
   @Index()
@@ -25,6 +24,10 @@ class Stock extends JsonSerializable {
   double? value;
   // RRA fields
   double? rsdQty;
+  @Index()
+  double? supplyPrice;
+  @Index()
+  double? retailPrice;
   @Index()
   String? lastTouched;
   @Index()
@@ -82,6 +85,7 @@ class Stock extends JsonSerializable {
         value: json['value']?.toDouble() ?? 0.0,
         rsdQty: json['rsdQty']?.toDouble() ?? 0.0,
         lastTouched: json['lastTouched'],
-        remoteID: json['remoteID']);
+        id: json['localId'],
+        remoteID: json['id']);
   }
 }

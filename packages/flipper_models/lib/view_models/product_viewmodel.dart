@@ -63,7 +63,6 @@ class ProductViewModel extends AddTenantViewModel {
           product: Product(
               id: syncIdInt(),
               name: "temp",
-              active: true,
               businessId: businessId,
               color: "#e74c3c",
               branchId: branchId)
@@ -335,7 +334,6 @@ class ProductViewModel extends AddTenantViewModel {
     mproduct.barCode = productService.barCode.toString();
     mproduct.color = app.currentColor;
     mproduct.color = app.currentColor;
-    mproduct.draft = false;
     final response = await ProxyService.isarApi.update(data: mproduct);
     List<Variant> variants = await ProxyService.isarApi
         .getVariantByProductId(productId: mproduct.id!);
@@ -370,7 +368,6 @@ class ProductViewModel extends AddTenantViewModel {
     }
     //then delete the product
     await ProxyService.isarApi.delete(id: productId, endPoint: 'product');
-    rebuildUi();
   }
 
   void updateExpiryDate(DateTime date) async {

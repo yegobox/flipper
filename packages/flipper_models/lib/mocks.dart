@@ -95,7 +95,6 @@ Order? OrderFMock = Order()
   ..status = 'pending'
   ..orderType = 'local'
   ..active = true
-  ..draft = true
   ..subTotal = 300
   ..cashReceived = 300
   ..customerChangeDue = 0.0
@@ -106,21 +105,14 @@ final AppService _appService = locator<AppService>();
 
 final customProductMock = Product(
     name: "temp",
-    active: true,
     businessId: _appService.businessId!,
     color: "#e74c3c",
     branchId: _appService.branchId!)
-  ..draft = true
-  ..currentUpdate = true
   ..taxId = "XX"
-  ..imageLocal = false
   ..businessId = _appService.businessId!
   ..name = "temp"
   ..branchId = _appService.branchId!
   ..description = "L"
-  ..active = true
-  ..hasPicture = false
-  ..table = "products"
   ..color = "#e74c3c"
   ..supplierId = "XXX"
   ..categoryId = "XXX"
@@ -129,21 +121,14 @@ final customProductMock = Product(
 
 final productMock = Product(
     name: "temp",
-    active: true,
     businessId: _appService.businessId!,
     color: "#e74c3c",
     branchId: _appService.branchId!)
-  ..draft = true
-  ..currentUpdate = true
   ..taxId = "XX"
-  ..imageLocal = false
   ..businessId = _appService.businessId!
   ..name = "temp"
   ..branchId = _appService.branchId!
   ..description = "L"
-  ..active = true
-  ..hasPicture = false
-  ..table = "products"
   ..color = "#e74c3c"
   ..supplierId = "XXX"
   ..categoryId = "XXX"
