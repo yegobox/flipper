@@ -38,7 +38,7 @@ jobs:
           CONFIGDART: ${{ secrets.CONFIGDART }}
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
       - run: |
-          dart pub global activate melos
+          dart pub global activate melos 2.9.0
           melos bootstrap
           flutter test --dart-define=Test=true
   fastlane-deploy:
@@ -74,7 +74,7 @@ jobs:
           INDEX: ${{ secrets.INDEX }}
           CONFIGDART: ${{ secrets.CONFIGDART }}
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
-      - run: dart pub global activate melos
+      - run: dart pub global activate melos 2.9.0
       - name: "Run Melos bootstrap"
         run: melos bootstrap
       # Setup Ruby, Bundler, and Gemfile dependencies

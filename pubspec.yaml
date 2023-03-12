@@ -34,11 +34,11 @@ dependencies:
   flutter_acrylic: ^0.1.0
   provider: ^6.0.1
   firebase_auth_desktop: ^1.0.2
-  firebase_core: ^2.4.1
+  firebase_core: ^2.7.1
   firebase_core_desktop: ^1.0.2-dev
-  firebase_ui_auth: ^1.1.14
+  firebase_ui_auth: ^1.1.16
   get_storage: ^2.0.3
-  firebase_auth: ^4.0.2
+  firebase_auth: ^4.2.10
   google_fonts: ^3.0.1
   stacked: ^3.1.0+2
   firebase_messaging: ^14.0.2
@@ -49,7 +49,7 @@ dependencies:
   firebase_crashlytics: ^3.0.2
   path: ^1.8.0
   flutter_riverpod: any
-  go_router: ^3.1.0
+  go_router: ^3.0.1
   meta: any
   flipper_dashboard: ^0.0.1-dev.5
   # flipper_ui: ^1.0.3
@@ -57,10 +57,10 @@ dependencies:
   flipper_login: ^0.0.1-dev.5
   flipper_services: ^0.0.1-dev.6
   flipper_routing: ^0.0.1-dev.3
-  flipper_localize: ^0.0.2
+  flipper_localize: ^0.0.4-dev
   flipper_data_table: 1.0.0-dev.2
   flutter_native_splash: ^2.2.2
-  firebase_ui_localizations: ^1.1.0
+  firebase_ui_localizations: ^1.2.0
   timezone: ^0.9.1
   flutter_native_timezone: ^2.0.0
   flutter_localizations:
