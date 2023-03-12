@@ -37,10 +37,10 @@ jobs:
           INDEX: ${{ secrets.INDEX }}
           CONFIGDART: ${{ secrets.CONFIGDART }}
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
-      - run: dart pub global activate melos
-      - name: "Run Melos bootstrap"
-        run: melos bootstrap
-      - run: flutter test --dart-define=Test=true
+      - run: |
+          dart pub global activate melos
+          melos bootstrap
+          flutter test --dart-define=Test=true
   fastlane-deploy:
     name: "Google Deploy"
     needs: [testing]
