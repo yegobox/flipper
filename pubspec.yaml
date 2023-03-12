@@ -66,6 +66,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   flutter_local_notifications: ^12.0.4
+  melos: ^3.0.0
 
 dev_dependencies:
   flutter_test:
