@@ -43,7 +43,7 @@ jobs:
       - run: flutter test --dart-define=Test=true
   fastlane-deploy:
     name: "Google Deploy"
-    # needs: [testing]
+    needs: [testing]
     runs-on: ubuntu-20.04
     steps:
       # Set up Flutter.
