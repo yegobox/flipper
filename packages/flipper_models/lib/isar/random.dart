@@ -25,8 +25,6 @@ String syncId() {
       15, (_) => chars.codeUnitAt(random.nextInt(chars.length))));
 }
 
-/// This method works but randomly it may generate 14 lenght insteand of 15
-/// Will fix this later.
 int syncIdInt() {
   final random = Random();
   const chars = '0123456789';

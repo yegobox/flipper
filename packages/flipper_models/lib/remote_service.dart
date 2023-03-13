@@ -64,13 +64,14 @@ class RemoteService implements RemoteInterface {
 
   // https://pocketbase.io/docs/api-collections
   Future<void> gettingDataAsync() async {
+    int branchId = ProxyService.box.getBranchId()!;
     // final response = await pb.collections.getFirstListItem(query: query, headers: {'Authorization': 'Bearer $YOUR_ACCESS_TOKEN'});
     await pb.collection("stocks").getFullList(
         sort: '-created', query: {"perPage": 1}).then((stockEvent) async {
       Stock stockFromRecord = Stock.fromJson(stockEvent.first.toJson());
       Stock? localStock =
           await ProxyService.isarApi.getStockById(id: stockFromRecord.localId!);
-      if (localStock == null) {
+      if (localStock == null && stockFromRecord.branchId == branchId) {
         await ProxyService.isarApi.create(data: stockFromRecord);
       }
     });
@@ -80,7 +81,7 @@ class RemoteService implements RemoteInterface {
 
       Variant? localVariant =
           await ProxyService.isarApi.getVariantById(id: variant.localId!);
-      if (localVariant == null) {
+      if (localVariant == null && variant.branchId == branchId) {
         await ProxyService.isarApi.create(data: variant);
       }
     });
@@ -89,7 +90,7 @@ class RemoteService implements RemoteInterface {
       Product productFromRecord = Product.fromJson(productEvent.first.toJson());
       Product? localProduct =
           await ProxyService.isarApi.getProduct(id: productFromRecord.localId!);
-      if (localProduct == null) {
+      if (localProduct == null && productFromRecord.branchId == branchId) {
         log("created product from remote");
         await ProxyService.isarApi.create(data: productFromRecord);
       }
@@ -97,23 +98,26 @@ class RemoteService implements RemoteInterface {
   }
 
   void gettingRealTimeData() {
+    int branchId = ProxyService.box.getBranchId()!;
     pb.collection('stocks').subscribe("*", (stockEvent) async {
       if (stockEvent.action == "create") {
         Stock stockFromRecord = Stock.fromRecord(stockEvent.record!);
         Stock? localStock = await ProxyService.isarApi
             .getStockById(id: stockFromRecord.localId!);
-        if (localStock == null) {
+        if (localStock == null && stockFromRecord.branchId == branchId) {
           await ProxyService.isarApi.create(data: stockFromRecord);
         }
       }
     });
     pb.collection('variants').subscribe("*", (variantEvent) async {
-      Variant variant = Variant.fromRecord(variantEvent.record!);
+      if (variantEvent.action == "create") {
+        Variant variant = Variant.fromRecord(variantEvent.record!);
 
-      Variant? localVariant =
-          await ProxyService.isarApi.getVariantById(id: variant.localId!);
-      if (localVariant == null) {
-        await ProxyService.isarApi.create(data: variant);
+        Variant? localVariant =
+            await ProxyService.isarApi.getVariantById(id: variant.localId!);
+        if (localVariant == null && variant.branchId == branchId) {
+          await ProxyService.isarApi.create(data: variant);
+        }
       }
     });
     pb.collection('products').subscribe("*", (productEvent) async {
@@ -121,7 +125,7 @@ class RemoteService implements RemoteInterface {
         Product productFromRecord = Product.fromRecord(productEvent.record!);
         Product? localProduct = await ProxyService.isarApi
             .getProduct(id: productFromRecord.localId!);
-        if (localProduct == null) {
+        if (localProduct == null && productFromRecord.branchId == branchId) {
           log("created product from remote");
           await ProxyService.isarApi.create(data: productFromRecord);
         }
