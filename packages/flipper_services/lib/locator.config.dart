@@ -82,7 +82,7 @@ Future<_i1.GetIt> $initGetIt(
   gh.lazySingleton<_i20.ProductService>(
       () => thirdPartyServicesModule.productService);
   gh.lazySingleton<_i21.Remote>(() => thirdPartyServicesModule.remote);
-  await gh.factoryAsync<_i22.RemoteInterface<dynamic>>(
+  await gh.factoryAsync<_i22.RemoteInterface>(
     () => thirdPartyServicesModule.remoteApi,
     preResolve: true,
   );
