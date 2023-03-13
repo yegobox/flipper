@@ -28,12 +28,19 @@ String syncId() {
 int syncIdInt() {
   final random = Random();
   const chars = '0123456789';
-  final idString = String.fromCharCodes(Iterable.generate(
-      14, (_) => chars.codeUnitAt(random.nextInt(chars.length))));
-  // Generate the last digit in such a way that the total length of idString is 15.
-  final lastDigit =
-      (10 - idString.split('').map(int.parse).reduce((a, b) => a + b) % 10)
-          .toString();
+  final idString = String.fromCharCodes(
+      List.generate(14, (_) => chars.codeUnitAt(random.nextInt(chars.length))));
+  final lastDigit = (10 -
+          (idString.codeUnits
+                  .map((unit) => unit - 48)
+                  .toList()
+                  .asMap()
+                  .entries
+                  .map((entry) => entry.value * (entry.key % 2 == 0 ? 1 : 2))
+                  .map((digit) => digit < 10 ? digit : digit - 9)
+                  .reduce((a, b) => a + b)) %
+              10) %
+      10;
   final fullLength = '$idString$lastDigit';
   print('Generated string: $fullLength');
   return int.parse(fullLength);
