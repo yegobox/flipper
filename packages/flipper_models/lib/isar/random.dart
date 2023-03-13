@@ -31,14 +31,12 @@ int syncIdInt() {
   final random = Random();
   const chars = '0123456789';
   final idString = String.fromCharCodes(Iterable.generate(
-      16, (_) => chars.codeUnitAt(random.nextInt(chars.length))));
-  print('Generated string: $idString');
-  String fullLength = "";
-  if (idString.substring(0, 15).length < 15) {
-    /// in case lenght is less than 15 add a number so the lenght is 15
-    fullLength = idString.substring(0, 15) + "1";
-  } else if (idString.substring(0, 15).length == 15) {
-    fullLength = idString.substring(0, 15);
-  }
+      14, (_) => chars.codeUnitAt(random.nextInt(chars.length))));
+  // Generate the last digit in such a way that the total length of idString is 15.
+  final lastDigit =
+      (10 - idString.split('').map(int.parse).reduce((a, b) => a + b) % 10)
+          .toString();
+  final fullLength = '$idString$lastDigit';
+  print('Generated string: $fullLength');
   return int.parse(fullLength);
 }
