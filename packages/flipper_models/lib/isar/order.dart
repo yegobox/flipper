@@ -71,10 +71,10 @@ class Order extends JsonSerializable {
         orderType: json['orderType'],
         active: json['active'],
         draft: json['draft'],
-        subTotal: json['subTotal'],
+        subTotal: json['subTotal'].toDouble(),
         paymentType: json['paymentType'],
-        cashReceived: json['cashReceived'],
-        customerChangeDue: json['customerChangeDue'],
+        cashReceived: json['cashReceived'].toDouble(),
+        customerChangeDue: json['customerChangeDue'].toDouble(),
         createdAt: json['createdAt'],
         receiptType: json['receiptType'],
         updatedAt: json['updatedAt'],
@@ -82,7 +82,7 @@ class Order extends JsonSerializable {
         customerId: json['customerId'],
         note: json['note'],
         lastTouched: json['lastTouched'],
-        id: json['localId'] ?? json["id"],
+        id: json['localId'],
         remoteID: json['id']);
   }
 

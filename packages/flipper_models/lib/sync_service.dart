@@ -27,7 +27,7 @@ class SynchronizationService<M extends JsonSerializable>
 
       if (endpoint == "orders") {
         String namesString = (await ProxyService.isarApi.orderItems(
-          orderId: json["id"],
+          orderId: json["localId"],
         ))
             .map((item) => item.name)
             .join(',');

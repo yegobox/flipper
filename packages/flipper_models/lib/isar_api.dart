@@ -162,8 +162,8 @@ class IsarAPI<M> implements IsarApiInterface {
     if (existOrder == null) {
       final order = Order(
         id: syncIdInt(),
-        reference: Uuid().v1(),
-        orderNumber: Uuid().v1(),
+        reference: syncId(),
+        orderNumber: syncId(),
         draft: true,
         status: pendingStatus,
         orderType: orderType,
