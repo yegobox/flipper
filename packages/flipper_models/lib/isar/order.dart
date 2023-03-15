@@ -82,7 +82,7 @@ class Order extends JsonSerializable {
         customerId: json['customerId'],
         note: json['note'],
         lastTouched: json['lastTouched'],
-        id: json['localId'],
+        id: json['localId'] ?? json["id"],
         remoteID: json['id']);
   }
 
