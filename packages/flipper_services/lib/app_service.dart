@@ -189,24 +189,34 @@ class AppService with ListenableServiceMixin {
   static Stream<String> get cleanedData => cleanedDataController.stream;
 
   // The extracted function for updating and reporting orders
-  Future<void> updateAndReportOrder(Order order, String namesString) async {
+  Future<void> pushOrders(Order order) async {
     List<OrderItem> updatedItems =
-        await ProxyService.isarApi.orderItems(orderId: order.id);
+        await ProxyService.isarApi.orderItems(orderId: order.id!);
     order.subTotal = updatedItems.fold(0, (a, b) => a + (b.price * b.qty));
 
     /// fix@issue where the createdAt synced on server is older compared to when a transaction was completed.
     order.updatedAt = DateTime.now().toIso8601String();
     order.createdAt = DateTime.now().toIso8601String();
-    await ProxyService.remoteApi.create(
-        collection:
-            order.toJson(convertIdToString: true, itemName: namesString),
-        collectionName: 'orders');
-    order.reported = true;
-    await ProxyService.isarApi.update(data: order);
+
+    RecordModel? variantRecord = await ProxyService.sync.push(order);
+    if (variantRecord != null) {
+      Order o = Order.fromRecord(variantRecord);
+      o.remoteID = variantRecord.id;
+
+      // /// keep the local ID unchanged to avoid complication
+      o.id = order.id;
+
+      await ProxyService.isarApi.update(data: o);
+    }
   }
 
   Future<void> pushDataToServer() async {
     /// push stock
+    List<Order> orders = await ProxyService.isarApi.getLocalOrders();
+    for (Order order in orders) {
+      await pushOrders(order);
+    }
+
     List<Stock> stocks = await ProxyService.isarApi.getLocalStocks();
     for (Stock stock in stocks) {
       int stockId = stock.id!;
@@ -253,25 +263,6 @@ class AppService with ListenableServiceMixin {
         /// keep the local ID unchanged to avoid complication
         product.id = oldId;
         await ProxyService.isarApi.update(data: product);
-      }
-    }
-  }
-
-// The updated backup() method
-  Future<void> backup() async {
-    List<Order> completedOrders = await ProxyService.isarApi.completedOrders(
-      branchId: ProxyService.box.getBranchId()!,
-    );
-
-    for (Order completedOrder in completedOrders) {
-      if (!completedOrder.reported) {
-        String namesString = (await ProxyService.isarApi.orderItems(
-          orderId: completedOrder.id,
-        ))
-            .map((item) => item.name)
-            .join(',');
-
-        await updateAndReportOrder(completedOrder, namesString);
       }
     }
   }
@@ -325,7 +316,6 @@ class AppService with ListenableServiceMixin {
       } else {
         _statusText = "";
         appBarColor(material.Colors.black);
-        backup();
       }
       notifyListeners();
     });

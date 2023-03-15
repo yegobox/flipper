@@ -50,8 +50,6 @@ class CronService {
     // this sill make more sence once we implement the sync that is when we will implement such solution
 
     Timer.periodic(Duration(minutes: 10), (Timer t) async {
-      ProxyService.appService.backup();
-
       /// get unsynced counter and send them online for houseKeping.
       List<Counter> counters = await ProxyService.isarApi
           .unSyncedCounters(branchId: ProxyService.box.getBranchId()!);

@@ -1,11 +1,12 @@
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
-
+import 'package:flipper_models/sync_service.dart';
+import 'package:pocketbase/pocketbase.dart';
 part 'order.g.dart';
 
 @Collection()
-class Order {
-  Id id = Isar.autoIncrement;
+class Order extends JsonSerializable {
+  Id? id = null;
   late String reference;
   late String orderNumber;
   @Index()
@@ -28,17 +29,65 @@ class Order {
   late bool reported;
   int? customerId;
   String? note;
+  @Index()
+  String? lastTouched;
+  @Index()
+  String? remoteID;
+  int? localId;
+
   final orderItems = IsarLinks<OrderItem>();
   final discounts = IsarLinks<Discount>();
-  // toJson helper
-  Map<String, dynamic> toJson(
-          {required String itemName, bool convertIdToString = false}) =>
-      {
-        /// remove id in sent object as it is hard to guarantee the lenght to always be 15. keep the logic
-        /// here as it will be useful when adopt full sync
-        // 'id': convertIdToString
-        //     ? "${id}_${DateTime.now().millisecondsSinceEpoch.toString().substring(0, min(15 - id.toString().length, DateTime.now().millisecondsSinceEpoch.toString().length))}"
-        //     : id,
+
+  Order(
+      {required this.reference,
+      required this.orderNumber,
+      required this.branchId,
+      required this.status,
+      required this.orderType,
+      required this.active,
+      required this.draft,
+      required this.subTotal,
+      required this.paymentType,
+      required this.cashReceived,
+      required this.customerChangeDue,
+      required this.createdAt,
+      this.receiptType,
+      this.updatedAt,
+      required this.reported,
+      this.customerId,
+      this.note,
+      this.id,
+      this.lastTouched,
+      this.localId,
+      this.remoteID});
+  factory Order.fromRecord(RecordModel record) =>
+      Order.fromJson(record.toJson());
+  factory Order.fromJson(Map<String, dynamic> json) {
+    return Order(
+        reference: json['reference'],
+        orderNumber: json['orderNumber'],
+        branchId: json['branchId'],
+        status: json['status'],
+        orderType: json['orderType'],
+        active: json['active'],
+        draft: json['draft'],
+        subTotal: json['subTotal'],
+        paymentType: json['paymentType'],
+        cashReceived: json['cashReceived'],
+        customerChangeDue: json['customerChangeDue'],
+        createdAt: json['createdAt'],
+        receiptType: json['receiptType'],
+        updatedAt: json['updatedAt'],
+        reported: json['reported'],
+        customerId: json['customerId'],
+        note: json['note'],
+        lastTouched: json['lastTouched'],
+        id: json['localId'],
+        remoteID: json['id']);
+  }
+
+  @override
+  Map<String, dynamic> toJson() => {
         'reference': reference,
         'orderNumber': orderNumber,
         'branchId': branchId,
@@ -57,6 +106,6 @@ class Order {
         'note': note,
         'businessPhoneNumber': ProxyService.box.getUserPhone()!,
         'businessId': ProxyService.box.getBusinessId()!,
-        'itemName': itemName
+        "localId": id
       };
 }

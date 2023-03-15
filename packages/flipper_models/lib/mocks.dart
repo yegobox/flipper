@@ -87,19 +87,22 @@ final stockMock =
       ..active = false;
 
 // order mock
-Order? OrderFMock = Order()
-  ..id = DateTime.now().millisecondsSinceEpoch
-  ..reference = 'caa5cbf1-b3c3-11'
-  ..orderNumber = 'caa5cbf1-b3c3-'
-  ..branchId = 11
-  ..status = 'pending'
-  ..orderType = 'local'
-  ..active = true
-  ..subTotal = 300
-  ..cashReceived = 300
-  ..customerChangeDue = 0.0
-  ..createdAt = DateTime.now().toIso8601String()
-  ..paymentType = 'Cash';
+Order? OrderFMock = Order(
+  reference: Uuid().v1(),
+  orderNumber: Uuid().v1(),
+  draft: true,
+  status: "pending",
+  orderType: 'local',
+  active: true,
+  reported: false,
+  subTotal: 0,
+  cashReceived: 0,
+  updatedAt: DateTime.now().toIso8601String(),
+  customerChangeDue: 0.0,
+  paymentType: 'Cash',
+  branchId: 11,
+  createdAt: DateTime.now().toIso8601String(),
+);
 
 final AppService _appService = locator<AppService>();
 
