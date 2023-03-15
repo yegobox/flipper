@@ -13,7 +13,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:universal_platform/universal_platform.dart';
 import 'view_models/gate.dart';
-import 'package:async/async.dart'; // import StreamZip
+// import StreamZip
 
 final isAndroid = UniversalPlatform.isAndroid;
 
@@ -144,16 +144,6 @@ class IsarAPI<M> implements IsarApiInterface {
     return kcustomer;
   }
 
-// https://pub.dev/packages/excel
-  @override
-  Future<List<Order>> completedOrders(
-      {required int branchId, String? status = completeStatus}) async {
-    return await isar.orders
-        .where()
-        .statusBranchIdEqualTo(status!, branchId)
-        .findAll();
-  }
-
   @override
   Stream<Order?> pendingOrderStream() {
     int? currentOrderId = ProxyService.box.currentOrderId();
@@ -170,20 +160,24 @@ class IsarAPI<M> implements IsarApiInterface {
     Order? existOrder = await pendingOrder(branchId: branchId);
 
     if (existOrder == null) {
-      final order = Order()
-        ..reference = Uuid().v1()
-        ..orderNumber = Uuid().v1()
-        ..status = pendingStatus
-        ..orderType = orderType
-        ..active = true
-        ..reported = false
-        ..subTotal = 0
-        ..cashReceived = 0
-        ..updatedAt = DateTime.now().toIso8601String()
-        ..customerChangeDue = 0.0
-        ..paymentType = 'Cash'
-        ..branchId = branchId
-        ..createdAt = DateTime.now().toIso8601String();
+      final order = Order(
+        id: syncIdInt(),
+        reference: Uuid().v1(),
+        orderNumber: Uuid().v1(),
+        draft: true,
+        status: pendingStatus,
+        orderType: orderType,
+        active: true,
+        reported: false,
+        subTotal: 0,
+        cashReceived: 0,
+        updatedAt: DateTime.now().toIso8601String(),
+        customerChangeDue: 0.0,
+        paymentType: 'Cash',
+        branchId: branchId,
+        createdAt: DateTime.now().toIso8601String(),
+      );
+
       // save order to db
       Order? createdOrder = await isar.writeTxn(() async {
         int id = await isar.orders.put(order);
@@ -397,7 +391,7 @@ class IsarAPI<M> implements IsarApiInterface {
       {required double cashReceived, required Order order}) async {
     order.status = completeStatus;
 
-    List<OrderItem> items = await orderItems(orderId: order.id);
+    List<OrderItem> items = await orderItems(orderId: order.id!);
 
     double? totalPayable = items.fold(0, (a, b) => a! + (b.price * b.qty));
 
@@ -415,7 +409,7 @@ class IsarAPI<M> implements IsarApiInterface {
     // remove currentOrderId from local storage to leave a room
     // for listening to new order that will be created
     ProxyService.box.remove(key: 'currentOrderId');
-    ProxyService.appService.backup();
+    ProxyService.appService.pushDataToServer();
   }
 
   @override
@@ -1702,7 +1696,7 @@ class IsarAPI<M> implements IsarApiInterface {
         ..sdcId = signature.data.sdcId
         ..totRcptNo = signature.data.totRcptNo
         ..mrcNo = signature.data.mrcNo
-        ..orderId = order.id
+        ..orderId = order.id!
         ..resultDt = signature.resultDt;
       int id = await isar.receipts.put(receipt);
       // get receipt from isar db
@@ -1934,33 +1928,6 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Stream<Order?> completedOrdersStream(
-      {required String status, required int branchId}) {
-    final filter1 = isar.orders
-        .filter()
-        .statusEqualTo(status)
-        .and()
-        .reportedEqualTo(false)
-        .branchIdEqualTo(branchId);
-    final filter2 = isar.orders
-        .filter()
-        .statusEqualTo(postPonedStatus)
-        .reportedEqualTo(false)
-        .branchIdEqualTo(branchId);
-
-    final zip = StreamZip([
-      filter1.watch(fireImmediately: true),
-      filter2.watch(fireImmediately: true)
-    ]);
-
-    return zip.map((events) {
-      final mergedList = [...events[0], ...events[1]];
-      mergedList.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      return mergedList.isNotEmpty ? mergedList[0] : null;
-    });
-  }
-
-  @override
   Future<List<Product>> products({required int branchId}) async {
     return isar.writeTxn(() async {
       return await isar.products.where().branchIdEqualTo(branchId).findAll();
@@ -1992,6 +1959,45 @@ class IsarAPI<M> implements IsarApiInterface {
         .retailPriceGreaterThan(0)
         .and()
         .lastTouchedIsNull()
+        .findAll();
+  }
+
+  @override
+  Future<List<Order>> getLocalOrders() async {
+    return await isar.orders
+        .filter()
+        .statusEqualTo(completeStatus)
+        .and()
+        .lastTouchedIsNull()
+        .and()
+        .branchIdEqualTo(ProxyService.box.getBranchId()!)
+        .findAll();
+  }
+
+  @override
+  Stream<Order?> completedOrdersStream(
+      {required String status, required int branchId}) {
+    return isar.orders
+        .filter()
+        .statusEqualTo(postPonedStatus)
+        .reportedEqualTo(false)
+        .or()
+        .statusEqualTo(status)
+        .branchIdEqualTo(branchId)
+        .and()
+        .lastTouchedIsNull()
+        .build()
+        .watch(fireImmediately: true)
+        .asyncMap((event) => event.first);
+  }
+
+// https://pub.dev/packages/excel
+  @override
+  Future<List<Order>> completedOrders(
+      {required int branchId, String? status = completeStatus}) async {
+    return await isar.orders
+        .where()
+        .statusBranchIdEqualTo(status!, branchId)
         .findAll();
   }
 

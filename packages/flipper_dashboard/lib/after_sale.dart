@@ -98,7 +98,9 @@ class _AfterSaleState extends State<AfterSale> {
                       left: 0,
                       child: StreamBuilder<Customer?>(
                           stream: ProxyService.isarApi.getCustomerByOrderId(
-                              id: model.kOrder == null ? 0 : model.kOrder!.id),
+                              id: model.kOrder == null
+                                  ? 0
+                                  : model.kOrder!.id!!),
                           builder: (context, snapshot) {
                             return snapshot.data == null
                                 ? Column(
@@ -160,7 +162,7 @@ class _AfterSaleState extends State<AfterSale> {
                                                   List<OrderItem> items =
                                                       await ProxyService.isarApi
                                                           .orderItems(
-                                                    orderId: widget.order.id,
+                                                    orderId: widget.order.id!!,
                                                   );
                                                   model.printReceipt(
                                                       items: items,
@@ -299,8 +301,8 @@ class _AfterSaleState extends State<AfterSale> {
           // generate rra receipt
           if (await ProxyService.isarApi.isTaxEnabled()) {
             Business? business = await ProxyService.isarApi.getBusiness();
-            List<OrderItem> items =
-                await ProxyService.isarApi.orderItems(orderId: widget.order.id);
+            List<OrderItem> items = await ProxyService.isarApi
+                .orderItems(orderId: widget.order.id!!);
 
             final bool isDone = await model.generateRRAReceipt(
                 items: items,

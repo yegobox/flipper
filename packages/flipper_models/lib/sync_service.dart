@@ -20,9 +20,19 @@ class SynchronizationService<M extends JsonSerializable>
     Type modelType = model.runtimeType;
     // Use the model type to get the corresponding endpoint from the map
     String? endpoint = serverDefinitions[modelType];
+
     if (endpoint != null) {
       // Convert the model to JSON using the `toJson()` method
       Map<String, dynamic> json = model.toJson();
+
+      if (endpoint == "orders") {
+        String namesString = (await ProxyService.isarApi.orderItems(
+          orderId: json["id"],
+        ))
+            .map((item) => item.name)
+            .join(',');
+        json["itemName"] = namesString;
+      }
       if (json["name"] != "temp" || json["productName"] != "temp") {
         json["lastTouched"] = Hlc.fromDate(
             DateTime.now(), ProxyService.box.getBranchId()!.toString());
