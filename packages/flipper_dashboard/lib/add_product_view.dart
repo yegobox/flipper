@@ -198,7 +198,7 @@ class _AddProductViewState extends State<AddProductView> {
               rightActionButtonName: 'Save',
               icon: Icons.close,
               multi: 3,
-              bottomSpacer: 50,
+              bottomSpacer: 48.99,
             ),
             body: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
@@ -211,7 +211,13 @@ class _AddProductViewState extends State<AddProductView> {
                           currentColor: model.app.currentColor,
                           product: model.product,
                         ),
-                  const Text('Product'),
+                  Text(
+                    'Product',
+                    style: GoogleFonts.poppins(
+                        color: Colors.black,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w400),
+                  ),
                   Padding(
                     padding: const EdgeInsets.only(left: 18, right: 18),
                     child: SizedBox(
@@ -236,7 +242,9 @@ class _AddProductViewState extends State<AddProductView> {
                       width: double.infinity,
                       child: Text('PRICE AND INVENTORY',
                           style: GoogleFonts.poppins(
-                              fontSize: 20, color: Colors.black)),
+                              color: Colors.black,
+                              fontSize: 17,
+                              fontWeight: FontWeight.w400)),
                     ),
                   ),
                   const CenterDivider(
@@ -258,7 +266,6 @@ class _AddProductViewState extends State<AddProductView> {
                         double? parsedValue = double.tryParse(value);
                         if (parsedValue != null) {
                           model.lockButton(false);
-                          log.i(parsedValue);
                           await model.updateRegularVariant(
                               retailPrice: parsedValue,
                               productId: model.product.id!);
@@ -365,9 +372,9 @@ class _AddProductViewState extends State<AddProductView> {
                       child: TextButton(
                         child: Text('Add Variation',
                             style: GoogleFonts.poppins(
-                              fontSize: 16.0,
-                              fontWeight: FontWeight.w500,
-                            )),
+                                color: Colors.black,
+                                fontSize: 17,
+                                fontWeight: FontWeight.w400)),
                         onPressed: () {
                           model.navigateAddVariation(
                               context: context, productId: model.product.id!!);

@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flipper_login/colors.dart';
 import 'package:flipper_routing/routes.router.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flipper_models/isar_models.dart';
@@ -120,7 +121,7 @@ class ProductRow extends StatelessWidget {
             },
             backgroundColor: const Color(0xFFFE4A49),
             foregroundColor: Colors.white,
-            icon: Icons.delete,
+            icon: FluentIcons.delete_20_regular,
             label: 'Delete',
           ),
           SlidableAction(
@@ -129,7 +130,7 @@ class ProductRow extends StatelessWidget {
             },
             backgroundColor: Colors.blue,
             foregroundColor: Colors.white,
-            icon: Icons.edit,
+            icon: FluentIcons.edit_24_regular,
             label: 'Edit',
           ),
           SlidableAction(
@@ -159,7 +160,7 @@ class ProductRow extends StatelessWidget {
             },
             backgroundColor: Colors.blue,
             foregroundColor: Colors.white,
-            icon: Icons.edit,
+            icon: FluentIcons.edit_24_regular,
             label: 'Edit',
           )
         ],

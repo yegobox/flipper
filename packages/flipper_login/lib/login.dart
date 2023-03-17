@@ -93,7 +93,7 @@ class _LoginViewState extends State<LoginView>
             invokeLogin: true,
           );
         } else {
-          return isWindows
+          return isWindows || isWeb
               ? const Scaffold(body: DesktopLoginView())
               : Scaffold(
                   key: Key("login-page"),

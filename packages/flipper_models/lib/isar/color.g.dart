@@ -7,43 +7,43 @@ part of flipper_models;
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
 
 extension GetPColorCollection on Isar {
   IsarCollection<PColor> get pColors => this.collection();
 }
 
-const PColorSchema = CollectionSchema(
+final PColorSchema = CollectionSchema(
   name: r'PColor',
-  id: -6070363420638790310,
+  id: BigInt.parse("-6070363420638790310").toInt(),
   properties: {
     r'active': PropertySchema(
-      id: 0,
+      id: BigInt.parse("0").toInt(),
       name: r'active',
       type: IsarType.bool,
     ),
     r'branchId': PropertySchema(
-      id: 1,
+      id: BigInt.parse("1").toInt(),
       name: r'branchId',
       type: IsarType.long,
     ),
     r'channels': PropertySchema(
-      id: 2,
+      id: BigInt.parse("2").toInt(),
       name: r'channels',
       type: IsarType.stringList,
     ),
     r'colors': PropertySchema(
-      id: 3,
+      id: BigInt.parse("3").toInt(),
       name: r'colors',
       type: IsarType.stringList,
     ),
     r'name': PropertySchema(
-      id: 4,
+      id: BigInt.parse("4").toInt(),
       name: r'name',
       type: IsarType.string,
     ),
     r'table': PropertySchema(
-      id: 5,
+      id: BigInt.parse("5").toInt(),
       name: r'table',
       type: IsarType.string,
     )

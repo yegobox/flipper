@@ -7,23 +7,23 @@ part of flipper_models;
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
 
 extension GetIPointCollection on Isar {
   IsarCollection<IPoint> get iPoints => this.collection();
 }
 
-const IPointSchema = CollectionSchema(
+final IPointSchema = CollectionSchema(
   name: r'IPoint',
-  id: 2434498374590124328,
+  id: BigInt.parse("2434498374590124328").toInt(),
   properties: {
     r'userId': PropertySchema(
-      id: 0,
+      id: BigInt.parse("0").toInt(),
       name: r'userId',
       type: IsarType.int,
     ),
     r'value': PropertySchema(
-      id: 1,
+      id: BigInt.parse("1").toInt(),
       name: r'value',
       type: IsarType.long,
     )
@@ -35,7 +35,7 @@ const IPointSchema = CollectionSchema(
   idName: r'id',
   indexes: {
     r'userId': IndexSchema(
-      id: -2005826577402374815,
+      id: BigInt.parse("-2005826577402374815").toInt(),
       name: r'userId',
       unique: false,
       replace: false,

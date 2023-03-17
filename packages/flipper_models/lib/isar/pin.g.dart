@@ -7,38 +7,38 @@ part of 'pin.dart';
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
 
 extension GetPinCollection on Isar {
   IsarCollection<Pin> get pins => this.collection();
 }
 
-const PinSchema = CollectionSchema(
+final PinSchema = CollectionSchema(
   name: r'Pin',
-  id: -7991167910665163133,
+  id: BigInt.parse("-7991167910665163133").toInt(),
   properties: {
     r'branchId': PropertySchema(
-      id: 0,
+      id: BigInt.parse("0").toInt(),
       name: r'branchId',
       type: IsarType.long,
     ),
     r'businessId': PropertySchema(
-      id: 1,
+      id: BigInt.parse("1").toInt(),
       name: r'businessId',
       type: IsarType.long,
     ),
     r'phoneNumber': PropertySchema(
-      id: 2,
+      id: BigInt.parse("2").toInt(),
       name: r'phoneNumber',
       type: IsarType.string,
     ),
     r'pin': PropertySchema(
-      id: 3,
+      id: BigInt.parse("3").toInt(),
       name: r'pin',
       type: IsarType.long,
     ),
     r'userId': PropertySchema(
-      id: 4,
+      id: BigInt.parse("4").toInt(),
       name: r'userId',
       type: IsarType.string,
     )

@@ -88,8 +88,8 @@ class ColorTile extends StatelessWidget {
                           Text('New Item',
                               style: GoogleFonts.poppins(
                                   color: Colors.black,
-                                  fontSize: 19,
-                                  fontWeight: FontWeight.w600))
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w400))
                         ],
                       ),
                     ),
@@ -104,8 +104,8 @@ class ColorTile extends StatelessWidget {
                 child: Text('CHOOSE LABEL COLOR',
                     style: GoogleFonts.poppins(
                         color: Colors.black,
-                        fontSize: 19,
-                        fontWeight: FontWeight.w600)),
+                        fontSize: 17,
+                        fontWeight: FontWeight.w400)),
               ),
               const ListDivider(
                 height: 10,
@@ -125,12 +125,9 @@ class ColorTile extends StatelessWidget {
                   'PHOTO LABEL',
                   style: GoogleFonts.poppins(
                       color: Colors.black,
-                      fontSize: 19,
-                      fontWeight: FontWeight.w600),
+                      fontSize: 17,
+                      fontWeight: FontWeight.w400),
                 ),
-              ),
-              const ListDivider(
-                height: 10,
               ),
               Align(
                 alignment: Alignment.center,
@@ -141,15 +138,13 @@ class ColorTile extends StatelessWidget {
                     SizedBox(
                       height: 64,
                       width: 180,
-                      child: OutlinedButton(
+                      child: TextButton(
                         child: Text('Choose Photo',
                             style: GoogleFonts.poppins(
                                 color: Color(0xff006AFE),
                                 fontSize: 19,
                                 fontWeight: FontWeight.w600)),
                         style: ButtonStyle(
-                          backgroundColor:
-                              MaterialStateProperty.all<Color>(Colors.grey),
                           overlayColor:
                               MaterialStateProperty.resolveWith<Color?>(
                             (Set<MaterialState> states) {
@@ -179,15 +174,13 @@ class ColorTile extends StatelessWidget {
                     SizedBox(
                       height: 64,
                       width: 180,
-                      child: OutlinedButton(
+                      child: TextButton(
                         child: Text('Take Photo',
                             style: GoogleFonts.poppins(
                                 color: Color(0xff006AFE),
                                 fontSize: 19,
                                 fontWeight: FontWeight.w600)),
                         style: ButtonStyle(
-                          backgroundColor:
-                              MaterialStateProperty.all<Color>(Colors.grey),
                           overlayColor:
                               MaterialStateProperty.resolveWith<Color?>(
                             (Set<MaterialState> states) {

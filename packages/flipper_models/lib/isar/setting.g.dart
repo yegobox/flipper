@@ -7,63 +7,63 @@ part of 'setting.dart';
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
 
 extension GetSettingCollection on Isar {
   IsarCollection<Setting> get settings => this.collection();
 }
 
-const SettingSchema = CollectionSchema(
+final SettingSchema = CollectionSchema(
   name: r'Setting',
-  id: 2542600759502230801,
+  id: BigInt.parse("2542600759502230801").toInt(),
   properties: {
     r'attendnaceDocCreated': PropertySchema(
-      id: 0,
+      id: BigInt.parse("0").toInt(),
       name: r'attendnaceDocCreated',
       type: IsarType.bool,
     ),
     r'autoPrint': PropertySchema(
-      id: 1,
+      id: BigInt.parse("1").toInt(),
       name: r'autoPrint',
       type: IsarType.bool,
     ),
     r'defaultLanguage': PropertySchema(
-      id: 2,
+      id: BigInt.parse("2").toInt(),
       name: r'defaultLanguage',
       type: IsarType.string,
     ),
     r'email': PropertySchema(
-      id: 3,
+      id: BigInt.parse("3").toInt(),
       name: r'email',
       type: IsarType.string,
     ),
     r'googleSheetDocCreated': PropertySchema(
-      id: 4,
+      id: BigInt.parse("4").toInt(),
       name: r'googleSheetDocCreated',
       type: IsarType.bool,
     ),
     r'hasPin': PropertySchema(
-      id: 5,
+      id: BigInt.parse("5").toInt(),
       name: r'hasPin',
       type: IsarType.string,
     ),
     r'isAttendanceEnabled': PropertySchema(
-      id: 6,
+      id: BigInt.parse("6").toInt(),
       name: r'isAttendanceEnabled',
       type: IsarType.bool,
     ),
     r'openReceiptFileOSaleComplete': PropertySchema(
-      id: 7,
+      id: BigInt.parse("7").toInt(),
       name: r'openReceiptFileOSaleComplete',
       type: IsarType.bool,
     ),
     r'sendDailyReport': PropertySchema(
-      id: 8,
+      id: BigInt.parse("8").toInt(),
       name: r'sendDailyReport',
       type: IsarType.bool,
     ),
     r'userId': PropertySchema(
-      id: 9,
+      id: BigInt.parse("9").toInt(),
       name: r'userId',
       type: IsarType.long,
     )
@@ -75,7 +75,7 @@ const SettingSchema = CollectionSchema(
   idName: r'id',
   indexes: {
     r'userId': IndexSchema(
-      id: -2005826577402374815,
+      id: BigInt.parse("-2005826577402374815").toInt(),
       name: r'userId',
       unique: false,
       replace: false,

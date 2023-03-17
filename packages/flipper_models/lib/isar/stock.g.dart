@@ -7,88 +7,88 @@ part of flipper_models;
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
 
 extension GetStockCollection on Isar {
   IsarCollection<Stock> get stocks => this.collection();
 }
 
-const StockSchema = CollectionSchema(
+final StockSchema = CollectionSchema(
   name: r'Stock',
-  id: 6740185341894042082,
+  id: BigInt.parse("6740185341894042082").toInt(),
   properties: {
     r'active': PropertySchema(
-      id: 0,
+      id: BigInt.parse("0").toInt(),
       name: r'active',
       type: IsarType.bool,
     ),
     r'branchId': PropertySchema(
-      id: 1,
+      id: BigInt.parse("1").toInt(),
       name: r'branchId',
       type: IsarType.long,
     ),
     r'canTrackingStock': PropertySchema(
-      id: 2,
+      id: BigInt.parse("2").toInt(),
       name: r'canTrackingStock',
       type: IsarType.bool,
     ),
     r'currentStock': PropertySchema(
-      id: 3,
+      id: BigInt.parse("3").toInt(),
       name: r'currentStock',
       type: IsarType.double,
     ),
     r'lastTouched': PropertySchema(
-      id: 4,
+      id: BigInt.parse("4").toInt(),
       name: r'lastTouched',
       type: IsarType.string,
     ),
     r'localId': PropertySchema(
-      id: 5,
+      id: BigInt.parse("5").toInt(),
       name: r'localId',
       type: IsarType.long,
     ),
     r'lowStock': PropertySchema(
-      id: 6,
+      id: BigInt.parse("6").toInt(),
       name: r'lowStock',
       type: IsarType.double,
     ),
     r'productId': PropertySchema(
-      id: 7,
+      id: BigInt.parse("7").toInt(),
       name: r'productId',
       type: IsarType.long,
     ),
     r'remoteID': PropertySchema(
-      id: 8,
+      id: BigInt.parse("8").toInt(),
       name: r'remoteID',
       type: IsarType.string,
     ),
     r'retailPrice': PropertySchema(
-      id: 9,
+      id: BigInt.parse("9").toInt(),
       name: r'retailPrice',
       type: IsarType.double,
     ),
     r'rsdQty': PropertySchema(
-      id: 10,
+      id: BigInt.parse("10").toInt(),
       name: r'rsdQty',
       type: IsarType.double,
     ),
     r'showLowStockAlert': PropertySchema(
-      id: 11,
+      id: BigInt.parse("11").toInt(),
       name: r'showLowStockAlert',
       type: IsarType.bool,
     ),
     r'supplyPrice': PropertySchema(
-      id: 12,
+      id: BigInt.parse("12").toInt(),
       name: r'supplyPrice',
       type: IsarType.double,
     ),
     r'value': PropertySchema(
-      id: 13,
+      id: BigInt.parse("13").toInt(),
       name: r'value',
       type: IsarType.double,
     ),
     r'variantId': PropertySchema(
-      id: 14,
+      id: BigInt.parse("14").toInt(),
       name: r'variantId',
       type: IsarType.long,
     )
@@ -100,7 +100,7 @@ const StockSchema = CollectionSchema(
   idName: r'id',
   indexes: {
     r'branchId': IndexSchema(
-      id: 2037049677925728410,
+      id: BigInt.parse("2037049677925728410").toInt(),
       name: r'branchId',
       unique: false,
       replace: false,
@@ -113,7 +113,7 @@ const StockSchema = CollectionSchema(
       ],
     ),
     r'variantId_branchId': IndexSchema(
-      id: 5862302395168623880,
+      id: BigInt.parse("5862302395168623880").toInt(),
       name: r'variantId_branchId',
       unique: false,
       replace: false,
@@ -131,7 +131,7 @@ const StockSchema = CollectionSchema(
       ],
     ),
     r'productId': IndexSchema(
-      id: 5580769080710688203,
+      id: BigInt.parse("5580769080710688203").toInt(),
       name: r'productId',
       unique: false,
       replace: false,
@@ -144,7 +144,7 @@ const StockSchema = CollectionSchema(
       ],
     ),
     r'supplyPrice': IndexSchema(
-      id: 8174864618802235989,
+      id: BigInt.parse("8174864618802235989").toInt(),
       name: r'supplyPrice',
       unique: false,
       replace: false,
@@ -157,7 +157,7 @@ const StockSchema = CollectionSchema(
       ],
     ),
     r'retailPrice': IndexSchema(
-      id: -8613481562858074064,
+      id: BigInt.parse("-8613481562858074064").toInt(),
       name: r'retailPrice',
       unique: false,
       replace: false,
@@ -170,7 +170,7 @@ const StockSchema = CollectionSchema(
       ],
     ),
     r'lastTouched': IndexSchema(
-      id: -1197289422054722944,
+      id: BigInt.parse("-1197289422054722944").toInt(),
       name: r'lastTouched',
       unique: false,
       replace: false,
@@ -183,7 +183,7 @@ const StockSchema = CollectionSchema(
       ],
     ),
     r'remoteID': IndexSchema(
-      id: 8280972950722306723,
+      id: BigInt.parse("8280972950722306723").toInt(),
       name: r'remoteID',
       unique: false,
       replace: false,

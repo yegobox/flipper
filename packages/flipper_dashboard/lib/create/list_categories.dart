@@ -2,8 +2,10 @@ import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_ui/helpers/utils.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
 import 'divider.dart';
 import 'package:go_router/go_router.dart';
@@ -80,7 +82,13 @@ class ListCategories extends StatelessWidget {
                   .categoriesStream(branchId: ProxyService.box.getBranchId()!),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Text('Loading...');
+                  return Text(
+                    'Loading...',
+                    style: GoogleFonts.poppins(
+                        color: Colors.black,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w400),
+                  );
                 }
                 return ListView(
                   children: <Widget>[
@@ -94,11 +102,14 @@ class ListCategories extends StatelessWidget {
                         GoRouter.of(context).push(Routes.category);
                       },
                       child: ListTile(
-                        title: const Text('Create Category ',
-                            style: TextStyle(color: Colors.black)),
+                        title: Text('Create Category ',
+                            style: GoogleFonts.poppins(
+                                color: Colors.black,
+                                fontSize: 17,
+                                fontWeight: FontWeight.w400)),
                         trailing: Wrap(
                           children: const <Widget>[
-                            Icon(Icons.arrow_forward_ios),
+                            Icon(FluentIcons.arrow_forward_20_regular),
                           ],
                         ),
                       ),

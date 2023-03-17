@@ -7,18 +7,18 @@ part of flipper_models;
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
 
 extension GetFavoriteCollection on Isar {
   IsarCollection<Favorite> get favorites => this.collection();
 }
 
-const FavoriteSchema = CollectionSchema(
+final FavoriteSchema = CollectionSchema(
   name: r'Favorite',
-  id: 5577971995748139032,
+  id: BigInt.parse("5577971995748139032").toInt(),
   properties: {
     r'name': PropertySchema(
-      id: 0,
+      id: BigInt.parse("0").toInt(),
       name: r'name',
       type: IsarType.string,
     )
@@ -31,7 +31,7 @@ const FavoriteSchema = CollectionSchema(
   indexes: {},
   links: {
     r'product': LinkSchema(
-      id: -7956638849048948629,
+      id: BigInt.parse("-7956638849048948629").toInt(),
       name: r'product',
       target: r'Product',
       single: true,

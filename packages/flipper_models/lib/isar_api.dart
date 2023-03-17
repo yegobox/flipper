@@ -1214,6 +1214,7 @@ class IsarAPI<M> implements IsarApiInterface {
     return isar.products
         .where()
         .branchIdEqualTo(branchId)
+        .sortByCreatedAt()
         .watch(fireImmediately: true);
   }
 

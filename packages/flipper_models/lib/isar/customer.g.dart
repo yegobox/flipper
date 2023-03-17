@@ -7,53 +7,53 @@ part of 'customer.dart';
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
 
 extension GetCustomerCollection on Isar {
   IsarCollection<Customer> get customers => this.collection();
 }
 
-const CustomerSchema = CollectionSchema(
+final CustomerSchema = CollectionSchema(
   name: r'Customer',
-  id: -7623823084711604343,
+  id: BigInt.parse("-7623823084711604343").toInt(),
   properties: {
     r'address': PropertySchema(
-      id: 0,
+      id: BigInt.parse("0").toInt(),
       name: r'address',
       type: IsarType.string,
     ),
     r'branchId': PropertySchema(
-      id: 1,
+      id: BigInt.parse("1").toInt(),
       name: r'branchId',
       type: IsarType.long,
     ),
     r'email': PropertySchema(
-      id: 2,
+      id: BigInt.parse("2").toInt(),
       name: r'email',
       type: IsarType.string,
     ),
     r'name': PropertySchema(
-      id: 3,
+      id: BigInt.parse("3").toInt(),
       name: r'name',
       type: IsarType.string,
     ),
     r'orderId': PropertySchema(
-      id: 4,
+      id: BigInt.parse("4").toInt(),
       name: r'orderId',
       type: IsarType.long,
     ),
     r'phone': PropertySchema(
-      id: 5,
+      id: BigInt.parse("5").toInt(),
       name: r'phone',
       type: IsarType.string,
     ),
     r'tinNumber': PropertySchema(
-      id: 6,
+      id: BigInt.parse("6").toInt(),
       name: r'tinNumber',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 7,
+      id: BigInt.parse("7").toInt(),
       name: r'updatedAt',
       type: IsarType.string,
     )

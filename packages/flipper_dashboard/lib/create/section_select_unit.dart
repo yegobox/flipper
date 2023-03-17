@@ -1,7 +1,9 @@
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_routing/routes.router.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class SectionSelectUnit extends StatelessWidget {
   const SectionSelectUnit({Key? key, required this.product, required this.type})
@@ -9,10 +11,18 @@ class SectionSelectUnit extends StatelessWidget {
   final Product product;
   final String type;
   Text unitSelector(Product units) {
-    late Text text = const Text('Select Unit');
+    late Text text = Text(
+      'Select Unit',
+      style: GoogleFonts.poppins(
+          color: Colors.black, fontSize: 17, fontWeight: FontWeight.w400),
+    );
 
     if (product.unit != '') {
-      text = Text(product.unit ?? 'Select Unit');
+      text = Text(
+        product.unit ?? 'Select Unit',
+        style: GoogleFonts.poppins(
+            color: Colors.black, fontSize: 17, fontWeight: FontWeight.w400),
+      );
     }
 
     return text;
@@ -31,7 +41,13 @@ class SectionSelectUnit extends StatelessWidget {
           child: ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: 0.4),
             dense: true,
-            leading: const Text('Unit Type'),
+            leading: Text(
+              'Unit Type',
+              style: GoogleFonts.poppins(
+                  color: Colors.black,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w400),
+            ),
             trailing: Wrap(
               children: [
                 unitSelector(product),
@@ -41,9 +57,7 @@ class SectionSelectUnit extends StatelessWidget {
                       color: Colors.black,
                     ),
                   ),
-                  child: const Icon(
-                    Icons.arrow_forward_ios,
-                  ),
+                  child: const Icon(FluentIcons.arrow_forward_20_regular),
                 )
               ],
             ),

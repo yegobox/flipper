@@ -1482,10 +1482,11 @@ packages:
   isar_generator:
     dependency: "direct dev"
     description:
-      name: isar_generator
-      sha256: a28989bff520f9eee49564104a35b5bac1503adfadea3af613e92563e36267d8
-      url: "https://pub.dev"
-    source: hosted
+      path: "packages/isar_generator"
+      ref: "fix/web_build"
+      resolved-ref: "45aa19bc4cbb0aaa91d0556d63e98e3bdbe6f195"
+      url: "https://github.com/Kiruel/isar"
+    source: git
     version: "3.0.6-dev.0"
   js:
     dependency: transitive

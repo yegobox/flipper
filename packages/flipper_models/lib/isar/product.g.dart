@@ -7,108 +7,108 @@ part of flipper_models;
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
 
 extension GetProductCollection on Isar {
   IsarCollection<Product> get products => this.collection();
 }
 
-const ProductSchema = CollectionSchema(
+final ProductSchema = CollectionSchema(
   name: r'Product',
-  id: -6222113721139403729,
+  id: BigInt.parse("-6222113721139403729").toInt(),
   properties: {
     r'barCode': PropertySchema(
-      id: 0,
+      id: BigInt.parse("0").toInt(),
       name: r'barCode',
       type: IsarType.string,
     ),
     r'bindedToTenantId': PropertySchema(
-      id: 1,
+      id: BigInt.parse("1").toInt(),
       name: r'bindedToTenantId',
       type: IsarType.long,
     ),
     r'branchId': PropertySchema(
-      id: 2,
+      id: BigInt.parse("2").toInt(),
       name: r'branchId',
       type: IsarType.long,
     ),
     r'businessId': PropertySchema(
-      id: 3,
+      id: BigInt.parse("3").toInt(),
       name: r'businessId',
       type: IsarType.long,
     ),
     r'categoryId': PropertySchema(
-      id: 4,
+      id: BigInt.parse("4").toInt(),
       name: r'categoryId',
       type: IsarType.string,
     ),
     r'color': PropertySchema(
-      id: 5,
+      id: BigInt.parse("5").toInt(),
       name: r'color',
       type: IsarType.string,
     ),
     r'createdAt': PropertySchema(
-      id: 6,
+      id: BigInt.parse("6").toInt(),
       name: r'createdAt',
       type: IsarType.string,
     ),
     r'description': PropertySchema(
-      id: 7,
+      id: BigInt.parse("7").toInt(),
       name: r'description',
       type: IsarType.string,
     ),
     r'expiryDate': PropertySchema(
-      id: 8,
+      id: BigInt.parse("8").toInt(),
       name: r'expiryDate',
       type: IsarType.string,
     ),
     r'imageUrl': PropertySchema(
-      id: 9,
+      id: BigInt.parse("9").toInt(),
       name: r'imageUrl',
       type: IsarType.string,
     ),
     r'isFavorite': PropertySchema(
-      id: 10,
+      id: BigInt.parse("10").toInt(),
       name: r'isFavorite',
       type: IsarType.bool,
     ),
     r'lastTouched': PropertySchema(
-      id: 11,
+      id: BigInt.parse("11").toInt(),
       name: r'lastTouched',
       type: IsarType.string,
     ),
     r'localId': PropertySchema(
-      id: 12,
+      id: BigInt.parse("12").toInt(),
       name: r'localId',
       type: IsarType.long,
     ),
     r'name': PropertySchema(
-      id: 13,
+      id: BigInt.parse("13").toInt(),
       name: r'name',
       type: IsarType.string,
     ),
     r'nfcEnabled': PropertySchema(
-      id: 14,
+      id: BigInt.parse("14").toInt(),
       name: r'nfcEnabled',
       type: IsarType.bool,
     ),
     r'remoteID': PropertySchema(
-      id: 15,
+      id: BigInt.parse("15").toInt(),
       name: r'remoteID',
       type: IsarType.string,
     ),
     r'supplierId': PropertySchema(
-      id: 16,
+      id: BigInt.parse("16").toInt(),
       name: r'supplierId',
       type: IsarType.string,
     ),
     r'taxId': PropertySchema(
-      id: 17,
+      id: BigInt.parse("17").toInt(),
       name: r'taxId',
       type: IsarType.string,
     ),
     r'unit': PropertySchema(
-      id: 18,
+      id: BigInt.parse("18").toInt(),
       name: r'unit',
       type: IsarType.string,
     )
@@ -120,7 +120,7 @@ const ProductSchema = CollectionSchema(
   idName: r'id',
   indexes: {
     r'name': IndexSchema(
-      id: 879695947855722453,
+      id: BigInt.parse("879695947855722453").toInt(),
       name: r'name',
       unique: false,
       replace: false,
@@ -133,7 +133,7 @@ const ProductSchema = CollectionSchema(
       ],
     ),
     r'branchId': IndexSchema(
-      id: 2037049677925728410,
+      id: BigInt.parse("2037049677925728410").toInt(),
       name: r'branchId',
       unique: false,
       replace: false,
@@ -146,7 +146,7 @@ const ProductSchema = CollectionSchema(
       ],
     ),
     r'barCode': IndexSchema(
-      id: 5426034840582382881,
+      id: BigInt.parse("5426034840582382881").toInt(),
       name: r'barCode',
       unique: false,
       replace: false,
@@ -159,7 +159,7 @@ const ProductSchema = CollectionSchema(
       ],
     ),
     r'bindedToTenantId': IndexSchema(
-      id: 5346648829333150212,
+      id: BigInt.parse("5346648829333150212").toInt(),
       name: r'bindedToTenantId',
       unique: false,
       replace: false,
@@ -172,7 +172,7 @@ const ProductSchema = CollectionSchema(
       ],
     ),
     r'lastTouched': IndexSchema(
-      id: -1197289422054722944,
+      id: BigInt.parse("-1197289422054722944").toInt(),
       name: r'lastTouched',
       unique: false,
       replace: false,
@@ -185,7 +185,7 @@ const ProductSchema = CollectionSchema(
       ],
     ),
     r'remoteID': IndexSchema(
-      id: 8280972950722306723,
+      id: BigInt.parse("8280972950722306723").toInt(),
       name: r'remoteID',
       unique: false,
       replace: false,
@@ -200,7 +200,7 @@ const ProductSchema = CollectionSchema(
   },
   links: {
     r'variants': LinkSchema(
-      id: -6238971154009720285,
+      id: BigInt.parse("-6238971154009720285").toInt(),
       name: r'variants',
       target: r'Variant',
       single: false,

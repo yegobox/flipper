@@ -7,28 +7,28 @@ part of 'discount.dart';
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
 
 extension GetDiscountCollection on Isar {
   IsarCollection<Discount> get discounts => this.collection();
 }
 
-const DiscountSchema = CollectionSchema(
+final DiscountSchema = CollectionSchema(
   name: r'Discount',
-  id: -5682473105823550468,
+  id: BigInt.parse("-5682473105823550468").toInt(),
   properties: {
     r'amount': PropertySchema(
-      id: 0,
+      id: BigInt.parse("0").toInt(),
       name: r'amount',
       type: IsarType.double,
     ),
     r'branchId': PropertySchema(
-      id: 1,
+      id: BigInt.parse("1").toInt(),
       name: r'branchId',
       type: IsarType.long,
     ),
     r'name': PropertySchema(
-      id: 2,
+      id: BigInt.parse("2").toInt(),
       name: r'name',
       type: IsarType.string,
     )
@@ -40,7 +40,7 @@ const DiscountSchema = CollectionSchema(
   idName: r'id',
   indexes: {
     r'branchId': IndexSchema(
-      id: 2037049677925728410,
+      id: BigInt.parse("2037049677925728410").toInt(),
       name: r'branchId',
       unique: false,
       replace: false,

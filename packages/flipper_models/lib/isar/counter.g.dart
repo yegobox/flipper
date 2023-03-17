@@ -7,43 +7,43 @@ part of flipper_models;
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
 
 extension GetCounterCollection on Isar {
   IsarCollection<Counter> get counters => this.collection();
 }
 
-const CounterSchema = CollectionSchema(
+final CounterSchema = CollectionSchema(
   name: r'Counter',
-  id: -8560901831524329398,
+  id: BigInt.parse("-8560901831524329398").toInt(),
   properties: {
     r'backed': PropertySchema(
-      id: 0,
+      id: BigInt.parse("0").toInt(),
       name: r'backed',
       type: IsarType.bool,
     ),
     r'branchId': PropertySchema(
-      id: 1,
+      id: BigInt.parse("1").toInt(),
       name: r'branchId',
       type: IsarType.long,
     ),
     r'businessId': PropertySchema(
-      id: 2,
+      id: BigInt.parse("2").toInt(),
       name: r'businessId',
       type: IsarType.long,
     ),
     r'curRcptNo': PropertySchema(
-      id: 3,
+      id: BigInt.parse("3").toInt(),
       name: r'curRcptNo',
       type: IsarType.long,
     ),
     r'receiptType': PropertySchema(
-      id: 4,
+      id: BigInt.parse("4").toInt(),
       name: r'receiptType',
       type: IsarType.string,
     ),
     r'totRcptNo': PropertySchema(
-      id: 5,
+      id: BigInt.parse("5").toInt(),
       name: r'totRcptNo',
       type: IsarType.long,
     )
