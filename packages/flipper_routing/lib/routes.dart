@@ -37,3 +37,4 @@ class AppSetup {
 // https://www.youtube.com/watch?v=sqw-taR2_Ww
 // TODO: implement shortcut https://www.youtube.com/watch?v=WMVoNA5cY9A 
 //TODO: can I sync data acrross connect bluethooth?? https://github.com/boskokg/flutter_blue_plus
+// FIXME: https://github.com/isar/isar/issues/686
