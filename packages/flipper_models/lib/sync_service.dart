@@ -49,7 +49,7 @@ class SynchronizationService<M extends JsonSerializable>
 
         /// save lastTouched in global clock
         await ProxyService.remoteApi.create(collection: {
-          "model": "clocks",
+          "model": endpoint,
           "branchId": ProxyService.box.getBranchId()!,
           "lastTouched": desiredDate
         }, collectionName: 'clocks');
