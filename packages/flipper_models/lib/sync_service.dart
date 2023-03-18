@@ -9,6 +9,8 @@ import 'package:flipper_services/proxy.dart';
 import 'package:isar_crdt/isar_crdt.dart';
 import 'package:pocketbase/pocketbase.dart';
 
+import 'isar/clean.dart';
+
 abstract class JsonSerializable {
   Map<String, dynamic> toJson();
 }
@@ -34,13 +36,24 @@ class SynchronizationService<M extends JsonSerializable>
         json["itemName"] = namesString;
       }
       if (json["name"] != "temp" || json["productName"] != "temp") {
-        json["lastTouched"] = Hlc.fromDate(
-            DateTime.now(), ProxyService.box.getBranchId()!.toString());
+        String desiredDate = removeNegativeNumber(Hlc.fromDate(
+                DateTime.now(), ProxyService.box.getBranchId()!.toString())
+            .toString());
+        json["lastTouched"] = desiredDate;
 
         json["id"] = syncId();
-        log(json.toString());
-        return await ProxyService.remoteApi
+
+        RecordModel result = await ProxyService.remoteApi
             .create(collection: json, collectionName: endpoint);
+        log("pushedModel ${endpoint}");
+
+        /// save lastTouched in global clock
+        await ProxyService.remoteApi.create(collection: {
+          "model": "clocks",
+          "branchId": ProxyService.box.getBranchId()!,
+          "lastTouched": desiredDate
+        }, collectionName: 'clocks');
+        return result;
       }
     }
     return Future.value(null);
