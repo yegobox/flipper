@@ -25,7 +25,8 @@ class IChange implements IJsonSerializable {
       this.id,
       this.lastReportQuery});
 
-  factory IChange.fromJson(Map<String, dynamic> json) => _$ChangeFromJson(json);
+  factory IChange.fromJson(Map<String, dynamic> json) =>
+      _$IChangeFromJson(json);
   @override
-  Map<String, dynamic> toJson() => _$ChangeToJson(this);
+  Map<String, dynamic> toJson() => _$IChangeToJson(this);
 }
