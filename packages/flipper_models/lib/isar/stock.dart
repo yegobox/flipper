@@ -6,7 +6,7 @@ import 'package:pocketbase/pocketbase.dart';
 part 'stock.g.dart';
 
 @Collection()
-class Stock extends JsonSerializable {
+class Stock extends IJsonSerializable {
   Id? id = null;
   @Index()
   late int branchId;

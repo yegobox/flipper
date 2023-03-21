@@ -7,38 +7,38 @@ part of flipper_models;
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
 
 extension GetCategoryCollection on Isar {
   IsarCollection<Category> get categorys => this.collection();
 }
 
-final CategorySchema = CollectionSchema(
+const CategorySchema = CollectionSchema(
   name: r'Category',
-  id: BigInt.parse("5751694338128944171").toInt(),
+  id: 5751694338128944171,
   properties: {
     r'active': PropertySchema(
-      id: BigInt.parse("0").toInt(),
+      id: 0,
       name: r'active',
       type: IsarType.bool,
     ),
     r'branchId': PropertySchema(
-      id: BigInt.parse("1").toInt(),
+      id: 1,
       name: r'branchId',
       type: IsarType.long,
     ),
     r'focused': PropertySchema(
-      id: BigInt.parse("2").toInt(),
+      id: 2,
       name: r'focused',
       type: IsarType.bool,
     ),
     r'name': PropertySchema(
-      id: BigInt.parse("3").toInt(),
+      id: 3,
       name: r'name',
       type: IsarType.string,
     ),
     r'table': PropertySchema(
-      id: BigInt.parse("4").toInt(),
+      id: 4,
       name: r'table',
       type: IsarType.string,
     )
@@ -50,7 +50,7 @@ final CategorySchema = CollectionSchema(
   idName: r'id',
   indexes: {
     r'branchId': IndexSchema(
-      id: BigInt.parse("2037049677925728410").toInt(),
+      id: 2037049677925728410,
       name: r'branchId',
       unique: false,
       replace: false,

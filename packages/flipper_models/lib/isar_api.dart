@@ -99,7 +99,8 @@ class IsarAPI<M> implements IsarApiInterface {
           ITenantSchema,
           PermissionSchema,
           CounterSchema,
-          TokenSchema
+          TokenSchema,
+          IChangeSchema
         ],
       );
     } else {
@@ -1389,6 +1390,12 @@ class IsarAPI<M> implements IsarApiInterface {
         return Future.value(null);
       });
     }
+    if (data is IChange) {
+      await isar.writeTxn(() async {
+        await isar.iChanges.put(data);
+        return Future.value(null);
+      });
+    }
     return Future.value(null);
   }
 
@@ -1399,6 +1406,12 @@ class IsarAPI<M> implements IsarApiInterface {
       final product = data;
       await isar.writeTxn(() async {
         return await isar.products.put(product);
+      });
+    }
+    if (data is IChange) {
+      final product = data;
+      await isar.writeTxn(() async {
+        return await isar.iChanges.put(product);
       });
     }
     if (data is Variant) {
@@ -2018,5 +2031,16 @@ class IsarAPI<M> implements IsarApiInterface {
     return isar.writeTxn(() async {
       return await isar.stocks.get(id);
     });
+  }
+
+  @override
+  Future<IChange?> latestChange(
+      {required int branchId, required String model}) async {
+    return await isar.iChanges
+        .filter()
+        .branchIdEqualTo(branchId)
+        .and()
+        .modelEqualTo(model)
+        .findFirst();
   }
 }

@@ -7,33 +7,33 @@ part of 'unit.dart';
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
 
 extension GetIUnitCollection on Isar {
   IsarCollection<IUnit> get iUnits => this.collection();
 }
 
-final IUnitSchema = CollectionSchema(
+const IUnitSchema = CollectionSchema(
   name: r'IUnit',
-  id: BigInt.parse("8808868791555578677").toInt(),
+  id: 8808868791555578677,
   properties: {
     r'active': PropertySchema(
-      id: BigInt.parse("0").toInt(),
+      id: 0,
       name: r'active',
       type: IsarType.bool,
     ),
     r'branchId': PropertySchema(
-      id: BigInt.parse("1").toInt(),
+      id: 1,
       name: r'branchId',
       type: IsarType.long,
     ),
     r'name': PropertySchema(
-      id: BigInt.parse("2").toInt(),
+      id: 2,
       name: r'name',
       type: IsarType.string,
     ),
     r'value': PropertySchema(
-      id: BigInt.parse("3").toInt(),
+      id: 3,
       name: r'value',
       type: IsarType.string,
     )
@@ -45,7 +45,7 @@ final IUnitSchema = CollectionSchema(
   idName: r'id',
   indexes: {
     r'branchId': IndexSchema(
-      id: BigInt.parse("2037049677925728410").toInt(),
+      id: 2037049677925728410,
       name: r'branchId',
       unique: false,
       replace: false,

@@ -90,7 +90,7 @@ Future<_i1.GetIt> $initGetIt(
   gh.lazySingleton<_i24.SettingsService>(
       () => thirdPartyServicesModule.settings);
   gh.lazySingleton<_i25.Shareable>(() => thirdPartyServicesModule.share);
-  gh.lazySingleton<_i26.SyncApiInterface<_i27.JsonSerializable>>(
+  gh.lazySingleton<_i26.SyncApiInterface<_i27.IJsonSerializable>>(
       () => thirdPartyServicesModule.sync);
   gh.lazySingleton<_i28.SystemTime>(() => thirdPartyServicesModule.systemTime);
   gh.lazySingleton<_i29.TaxApi>(() => thirdPartyServicesModule.taxApiService);

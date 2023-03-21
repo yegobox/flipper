@@ -65,36 +65,79 @@ class RemoteService implements RemoteInterface {
   // https://pocketbase.io/docs/api-collections
   Future<void> gettingDataAsync() async {
     int branchId = ProxyService.box.getBranchId()!;
-    // final response = await pb.collections.getFirstListItem(query: query, headers: {'Authorization': 'Bearer $YOUR_ACCESS_TOKEN'});
-    await pb.collection("stocks").getFullList(
-        sort: '-created', query: {"perPage": 1}).then((stockEvent) async {
-      Stock stockFromRecord = Stock.fromJson(stockEvent.first.toJson());
-      Stock? localStock =
-          await ProxyService.isarApi.getStockById(id: stockFromRecord.localId!);
-      if (localStock == null && stockFromRecord.branchId == branchId) {
-        await ProxyService.isarApi.create(data: stockFromRecord);
-      }
-    });
-    await pb.collection("variants").getFullList(
-        sort: '-created', query: {"perPage": 1}).then((variantEvent) async {
-      Variant variant = Variant.fromJson(variantEvent.first.toJson());
 
-      Variant? localVariant =
-          await ProxyService.isarApi.getVariantById(id: variant.localId!);
-      if (localVariant == null && variant.branchId == branchId) {
-        await ProxyService.isarApi.create(data: variant);
-      }
+    // Define a helper function to generate the filter string
+    String generateFilterString(String? filterValue) {
+      return filterValue != null && filterValue.isNotEmpty
+          ? 'lastTouched >= "$filterValue"'
+          : 'lastTouched >= ""';
+    }
+
+    // Get the latest change for each model and sync the remote data with the local database
+    await Future.forEach(['stocks', 'variants', 'products'],
+        (String model) async {
+      IChange? filter = await ProxyService.isarApi
+          .latestChange(branchId: branchId, model: model);
+
+      String filterValue = filter?.lastReportQuery ?? '';
+      String filterString = generateFilterString(filterValue);
+
+      List<RecordModel> items = await pb
+          .collection(model)
+          .getList(page: 1, perPage: 100, filter: filterString)
+          .then((event) => event.items);
+
+      String? lastQuery;
+      await Future.forEach(items, (RecordModel item) async {
+        switch (model) {
+          case 'stocks':
+            Stock remoteStock = Stock.fromJson(item.toJson());
+            Stock? localStock = await ProxyService.isarApi
+                .getStockById(id: remoteStock.localId!);
+            if (localStock == null && remoteStock.branchId == branchId) {
+              await ProxyService.isarApi.create(data: remoteStock);
+              lastQuery = remoteStock.lastTouched;
+              await savePointer(branchId, lastQuery, model, filter);
+            }
+            break;
+          case 'variants':
+            Variant remoteVariant = Variant.fromJson(item.toJson());
+            Variant? localVariant = await ProxyService.isarApi
+                .getVariantById(id: remoteVariant.localId!);
+            if (localVariant == null && remoteVariant.branchId == branchId) {
+              await ProxyService.isarApi.create(data: remoteVariant);
+              lastQuery = remoteVariant.lastTouched;
+              await savePointer(branchId, lastQuery, model, filter);
+            }
+            break;
+          case 'products':
+            Product remoteProduct = Product.fromJson(item.toJson());
+            Product? localProduct = await ProxyService.isarApi
+                .getProduct(id: remoteProduct.localId!);
+            if (localProduct == null && remoteProduct.branchId == branchId) {
+              await ProxyService.isarApi.create(data: remoteProduct);
+              lastQuery = remoteProduct.lastTouched;
+              await savePointer(branchId, lastQuery, model, filter);
+            }
+            break;
+        }
+      });
     });
-    await pb.collection("products").getFullList(
-        sort: '-created', query: {"perPage": 1}).then((productEvent) async {
-      Product productFromRecord = Product.fromJson(productEvent.first.toJson());
-      Product? localProduct =
-          await ProxyService.isarApi.getProduct(id: productFromRecord.localId!);
-      if (localProduct == null && productFromRecord.branchId == branchId) {
-        log("created product from remote");
-        await ProxyService.isarApi.create(data: productFromRecord);
-      }
-    });
+  }
+
+  Future<void> savePointer(
+      int branchId, String? lastQuery, String model, IChange? filter) async {
+    IChange change = IChange(
+        branchId: branchId,
+        businessId: ProxyService.box.getBusinessId()!,
+        lastReportQuery: lastQuery,
+        model: model);
+    if (filter == null) {
+      await ProxyService.isarApi.create(data: change);
+    } else {
+      change.id = filter.id;
+      await ProxyService.isarApi.update(data: change);
+    }
   }
 
   void gettingRealTimeData() {

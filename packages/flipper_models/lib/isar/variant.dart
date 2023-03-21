@@ -10,7 +10,7 @@ import 'package:pocketbase/pocketbase.dart';
 part 'variant.g.dart';
 
 @Collection()
-class Variant extends JsonSerializable {
+class Variant extends IJsonSerializable {
   Id? id = null;
   @Index(caseSensitive: true)
   late String name;

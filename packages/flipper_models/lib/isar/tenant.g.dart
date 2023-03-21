@@ -7,38 +7,38 @@ part of flipper_models;
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
 
 extension GetITenantCollection on Isar {
   IsarCollection<ITenant> get iTenants => this.collection();
 }
 
-final ITenantSchema = CollectionSchema(
+const ITenantSchema = CollectionSchema(
   name: r'ITenant',
-  id: BigInt.parse("2089856774983466838").toInt(),
+  id: 2089856774983466838,
   properties: {
     r'businessId': PropertySchema(
-      id: BigInt.parse("0").toInt(),
+      id: 0,
       name: r'businessId',
       type: IsarType.long,
     ),
     r'email': PropertySchema(
-      id: BigInt.parse("1").toInt(),
+      id: 1,
       name: r'email',
       type: IsarType.string,
     ),
     r'name': PropertySchema(
-      id: BigInt.parse("2").toInt(),
+      id: 2,
       name: r'name',
       type: IsarType.string,
     ),
     r'nfcEnabled': PropertySchema(
-      id: BigInt.parse("3").toInt(),
+      id: 3,
       name: r'nfcEnabled',
       type: IsarType.bool,
     ),
     r'phoneNumber': PropertySchema(
-      id: BigInt.parse("4").toInt(),
+      id: 4,
       name: r'phoneNumber',
       type: IsarType.string,
     )

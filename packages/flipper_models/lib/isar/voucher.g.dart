@@ -7,43 +7,43 @@ part of 'voucher.dart';
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
 
 extension GetVoucherCollection on Isar {
   IsarCollection<Voucher> get vouchers => this.collection();
 }
 
-final VoucherSchema = CollectionSchema(
+const VoucherSchema = CollectionSchema(
   name: r'Voucher',
-  id: BigInt.parse("6548118931563840322").toInt(),
+  id: 6548118931563840322,
   properties: {
     r'createdAt': PropertySchema(
-      id: BigInt.parse("0").toInt(),
+      id: 0,
       name: r'createdAt',
       type: IsarType.long,
     ),
     r'descriptor': PropertySchema(
-      id: BigInt.parse("1").toInt(),
+      id: 1,
       name: r'descriptor',
       type: IsarType.string,
     ),
     r'interval': PropertySchema(
-      id: BigInt.parse("2").toInt(),
+      id: 2,
       name: r'interval',
       type: IsarType.long,
     ),
     r'used': PropertySchema(
-      id: BigInt.parse("3").toInt(),
+      id: 3,
       name: r'used',
       type: IsarType.bool,
     ),
     r'usedAt': PropertySchema(
-      id: BigInt.parse("4").toInt(),
+      id: 4,
       name: r'usedAt',
       type: IsarType.long,
     ),
     r'value': PropertySchema(
-      id: BigInt.parse("5").toInt(),
+      id: 5,
       name: r'value',
       type: IsarType.long,
     )
@@ -56,7 +56,7 @@ final VoucherSchema = CollectionSchema(
   indexes: {},
   links: {
     r'features': LinkSchema(
-      id: BigInt.parse("-7255176189479997051").toInt(),
+      id: -7255176189479997051,
       name: r'features',
       target: r'Feature',
       single: false,

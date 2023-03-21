@@ -7,7 +7,7 @@ import 'package:pocketbase/pocketbase.dart';
 part 'product.g.dart';
 
 @Collection()
-class Product extends JsonSerializable {
+class Product extends IJsonSerializable {
   Id? id = null;
   @Index(caseSensitive: true)
   late String name;

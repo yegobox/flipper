@@ -5,7 +5,7 @@ import 'package:pocketbase/pocketbase.dart';
 part 'order.g.dart';
 
 @Collection()
-class Order extends JsonSerializable {
+class Order extends IJsonSerializable {
   Id? id = null;
   late String reference;
   late String orderNumber;

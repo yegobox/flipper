@@ -11,11 +11,11 @@ import 'package:pocketbase/pocketbase.dart';
 
 import 'isar/clean.dart';
 
-abstract class JsonSerializable {
+abstract class IJsonSerializable {
   Map<String, dynamic> toJson();
 }
 
-class SynchronizationService<M extends JsonSerializable>
+class SynchronizationService<M extends IJsonSerializable>
     implements SyncApiInterface<M> {
   @override
   Future<RecordModel?> push(M model) async {
