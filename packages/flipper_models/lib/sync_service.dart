@@ -3,13 +3,14 @@
 import 'dart:developer';
 
 import 'package:flipper_models/isar/random.dart';
+import 'package:flipper_models/isar/utils.dart';
 import 'package:flipper_models/server_definitions.dart';
 import 'package:flipper_models/sync.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:isar_crdt/isar_crdt.dart';
+import 'package:isar_crdt/utils/hlc.dart';
 import 'package:pocketbase/pocketbase.dart';
 
-import 'isar/clean.dart';
+import 'isar_models.dart';
 
 abstract class IJsonSerializable {
   Map<String, dynamic> toJson();
@@ -36,24 +37,26 @@ class SynchronizationService<M extends IJsonSerializable>
         json["itemName"] = namesString;
       }
       if (json["name"] != "temp" || json["productName"] != "temp") {
-        String desiredDate = removeNegativeNumber(Hlc.fromDate(
-                DateTime.now(), ProxyService.box.getBranchId()!.toString())
-            .toString());
-        json["lastTouched"] = desiredDate;
-
+        IChange? filter = await ProxyService.isarApi.latestChange(
+            branchId: ProxyService.box.getBranchId()!,
+            model: endpoint,
+            isRemoteDataSource: false);
+        json["lastTouched"] = filter?.lastTouched ??
+            removeTrailingDash(Hlc.fromDate(
+                    DateTime.now(), ProxyService.box.getBranchId()!.toString())
+                .toString());
         json["id"] = syncId();
-
-        RecordModel result = await ProxyService.remoteApi
-            .create(collection: json, collectionName: endpoint);
-        log("pushedModel ${endpoint}");
-
-        /// save lastTouched in global clock
-        await ProxyService.remoteApi.create(collection: {
-          "model": endpoint,
-          "branchId": ProxyService.box.getBranchId()!,
-          "lastTouched": desiredDate
-        }, collectionName: 'clocks');
-        return result;
+        RecordModel? result;
+        if (json['action'] == 'create') {
+          result = await ProxyService.remoteApi
+              .create(collection: json, collectionName: endpoint);
+          log("created ${endpoint}");
+        } else if (json['action'] == 'update') {
+          result = await ProxyService.remoteApi
+              .create(collection: json, collectionName: endpoint);
+          log("updated ${endpoint}");
+        }
+        return result ?? null;
       }
     }
     return Future.value(null);

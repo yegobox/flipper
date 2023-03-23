@@ -9,10 +9,12 @@ abstract class RemoteInterface {
   Future<RecordModel> create(
       {required Map<String, dynamic> collection,
       required String collectionName});
-  Future<void> update(
-      {required Map<String, dynamic> updateCollection,
+  Future<RecordModel> update(
+      {required Map<String, dynamic> collection,
       required String collectionName});
   void listenToChanges();
+  Future<void> savePointer(
+      int branchId, String? lastQuery, String model, IChange? filter);
 }
 
 class RemoteService implements RemoteInterface {
@@ -38,22 +40,22 @@ class RemoteService implements RemoteInterface {
     try {
       return await pb.collection(collectionName).create(body: collection);
     } catch (e) {
-      // You can add custom handling here if you want to do something with the error
       rethrow;
     }
   }
 
   @override
-  Future<void> update(
-      {required Map<String, dynamic> updateCollection,
-      required String collectionName}) {
-    return pb
-        .collection(collectionName)
-        .update(updateCollection["id"], body: updateCollection)
-        .then((record) {
-      print(record.id);
-      print(record.getStringValue('id'));
-    });
+  Future<RecordModel> update({
+    required Map<String, dynamic> collection,
+    required String collectionName,
+  }) async {
+    try {
+      return await pb
+          .collection(collectionName)
+          .update(collectionName, body: collection);
+    } catch (e) {
+      rethrow;
+    }
   }
 
   @override
@@ -62,7 +64,6 @@ class RemoteService implements RemoteInterface {
     gettingRealTimeData();
   }
 
-  // https://pocketbase.io/docs/api-collections
   Future<void> gettingDataAsync() async {
     int branchId = ProxyService.box.getBranchId()!;
 
@@ -76,18 +77,19 @@ class RemoteService implements RemoteInterface {
     // Get the latest change for each model and sync the remote data with the local database
     await Future.forEach(['stocks', 'variants', 'products'],
         (String model) async {
-      IChange? filter = await ProxyService.isarApi
-          .latestChange(branchId: branchId, model: model);
+      IChange? filter = await ProxyService.isarApi.latestChange(
+          branchId: branchId, model: model, isRemoteDataSource: true);
 
-      String filterValue = filter?.lastReportQuery ?? '';
+      String filterValue = filter?.lastTouched ?? '';
       String filterString = generateFilterString(filterValue);
-
+      // ignore: todo
+      // TODO: once we have 10 users using the product, implement pagination here
       List<RecordModel> items = await pb
           .collection(model)
           .getList(page: 1, perPage: 100, filter: filterString)
           .then((event) => event.items);
 
-      String? lastQuery;
+      String? lastTouched;
       await Future.forEach(items, (RecordModel item) async {
         switch (model) {
           case 'stocks':
@@ -96,8 +98,14 @@ class RemoteService implements RemoteInterface {
                 .getStockById(id: remoteStock.localId!);
             if (localStock == null && remoteStock.branchId == branchId) {
               await ProxyService.isarApi.create(data: remoteStock);
-              lastQuery = remoteStock.lastTouched;
-              await savePointer(branchId, lastQuery, model, filter);
+              lastTouched = remoteStock.lastTouched;
+              await savePointer(branchId, lastTouched, model, filter);
+            } else if (localStock != null &&
+                remoteStock.lastTouched!
+                    .isGreaterThanOrEqualTo(localStock.lastTouched!)) {
+              await ProxyService.isarApi.update(data: remoteStock);
+              lastTouched = remoteStock.lastTouched;
+              await savePointer(branchId, lastTouched, model, filter);
             }
             break;
           case 'variants':
@@ -106,8 +114,14 @@ class RemoteService implements RemoteInterface {
                 .getVariantById(id: remoteVariant.localId!);
             if (localVariant == null && remoteVariant.branchId == branchId) {
               await ProxyService.isarApi.create(data: remoteVariant);
-              lastQuery = remoteVariant.lastTouched;
-              await savePointer(branchId, lastQuery, model, filter);
+              lastTouched = remoteVariant.lastTouched;
+              await savePointer(branchId, lastTouched, model, filter);
+            } else if (localVariant != null &&
+                remoteVariant.lastTouched!
+                    .isGreaterThanOrEqualTo(localVariant.lastTouched!)) {
+              await ProxyService.isarApi.update(data: remoteVariant);
+              lastTouched = remoteVariant.lastTouched;
+              await savePointer(branchId, lastTouched, model, filter);
             }
             break;
           case 'products':
@@ -116,8 +130,14 @@ class RemoteService implements RemoteInterface {
                 .getProduct(id: remoteProduct.localId!);
             if (localProduct == null && remoteProduct.branchId == branchId) {
               await ProxyService.isarApi.create(data: remoteProduct);
-              lastQuery = remoteProduct.lastTouched;
-              await savePointer(branchId, lastQuery, model, filter);
+              lastTouched = remoteProduct.lastTouched;
+              await savePointer(branchId, lastTouched, model, filter);
+            } else if (localProduct != null &&
+                remoteProduct.lastTouched!
+                    .isGreaterThanOrEqualTo(localProduct.lastTouched!)) {
+              await ProxyService.isarApi.update(data: remoteProduct);
+              lastTouched = remoteProduct.lastTouched;
+              await savePointer(branchId, lastTouched, model, filter);
             }
             break;
         }
@@ -125,12 +145,17 @@ class RemoteService implements RemoteInterface {
     });
   }
 
+  // ignore: todo
+  ///TODO: right now I am not saving id of the model in pointer, is this necessary
+  ///in making sure that I do not miss understood the change??
+  @override
   Future<void> savePointer(
-      int branchId, String? lastQuery, String model, IChange? filter) async {
+      int branchId, String? lastTouched, String model, IChange? filter) async {
     IChange change = IChange(
         branchId: branchId,
+        remoteChange: true,
         businessId: ProxyService.box.getBusinessId()!,
-        lastReportQuery: lastQuery,
+        lastTouched: lastTouched,
         model: model);
     if (filter == null) {
       await ProxyService.isarApi.create(data: change);

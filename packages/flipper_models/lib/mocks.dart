@@ -47,6 +47,7 @@ final List<Map<String, dynamic>> mockUnits = [
 
 // variation mock
 final variationMock = Variant(
+    action: 'create',
     name: 'Regular',
     sku: 'sku',
     productId: 2,
@@ -71,20 +72,23 @@ final variationMock = Variant(
   ..supplyPrice = 0.0;
 
 // stock
-final stockMock =
-    Stock(branchId: 11, variantId: 1, currentStock: 0.0, productId: 2)
-      ..id = DateTime.now().millisecondsSinceEpoch
-      ..branchId = 11
-      ..variantId = 1
-      ..lowStock = 0.0
-      ..currentStock = 0.0
-      ..supplyPrice = 0.0
-      ..retailPrice = 0.0
-      ..canTrackingStock = false
-      ..value = 0
-      ..showLowStockAlert = false
-      ..productId = 2
-      ..active = false;
+final stockMock = Stock(
+    branchId: 11,
+    variantId: 1,
+    currentStock: 0.0,
+    productId: 2,
+    action: 'create')
+  ..id = DateTime.now().millisecondsSinceEpoch
+  ..branchId = 11
+  ..variantId = 1
+  ..lowStock = 0.0
+  ..currentStock = 0.0
+  ..supplyPrice = 0.0
+  ..retailPrice = 0.0
+  ..canTrackingStock = false
+  ..showLowStockAlert = false
+  ..productId = 2
+  ..active = false;
 
 // order mock
 Order? OrderFMock = Order(
@@ -107,6 +111,7 @@ Order? OrderFMock = Order(
 final AppService _appService = locator<AppService>();
 
 final customProductMock = Product(
+    action: 'create',
     name: "temp",
     businessId: _appService.businessId!,
     color: "#e74c3c",
@@ -123,6 +128,7 @@ final customProductMock = Product(
   ..createdAt = DateTime.now().toIso8601String();
 
 final productMock = Product(
+    action: 'create',
     name: "temp",
     businessId: _appService.businessId!,
     color: "#e74c3c",

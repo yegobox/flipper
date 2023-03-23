@@ -61,7 +61,8 @@ class _AddVariationState extends State<AddVariation> {
                   Variant data = Variant(
                       name: nameController.text,
                       sku: sku,
-                      productId: model.product.id!!,
+                      action: "create",
+                      productId: model.product.id!,
                       unit: model.productService.currentUnit!,
                       table: AppTables.variation,
                       productName: nameController.text,
@@ -73,7 +74,7 @@ class _AddVariationState extends State<AddVariation> {
                     ..sku = sku
                     ..retailPrice = double.parse(retailController.text)
                     ..supplyPrice = double.parse(costController.text)
-                    ..productId = model.product.id!!
+                    ..productId = model.product.id!
                     ..unit = model.productService.currentUnit!
                     ..isTaxExempted = isTaxExempted
                     ..productName = model.product.productName

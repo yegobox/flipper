@@ -17,98 +17,103 @@ const ProductSchema = CollectionSchema(
   name: r'Product',
   id: -6222113721139403729,
   properties: {
-    r'barCode': PropertySchema(
+    r'action': PropertySchema(
       id: 0,
+      name: r'action',
+      type: IsarType.string,
+    ),
+    r'barCode': PropertySchema(
+      id: 1,
       name: r'barCode',
       type: IsarType.string,
     ),
     r'bindedToTenantId': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'bindedToTenantId',
       type: IsarType.long,
     ),
     r'branchId': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'branchId',
       type: IsarType.long,
     ),
     r'businessId': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'businessId',
       type: IsarType.long,
     ),
     r'categoryId': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'categoryId',
       type: IsarType.string,
     ),
     r'color': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'color',
       type: IsarType.string,
     ),
     r'createdAt': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'createdAt',
       type: IsarType.string,
     ),
     r'description': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'description',
       type: IsarType.string,
     ),
     r'expiryDate': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'expiryDate',
       type: IsarType.string,
     ),
     r'imageUrl': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'imageUrl',
       type: IsarType.string,
     ),
     r'isFavorite': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'isFavorite',
       type: IsarType.bool,
     ),
     r'lastTouched': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'lastTouched',
       type: IsarType.string,
     ),
     r'localId': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'localId',
       type: IsarType.long,
     ),
     r'name': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'name',
       type: IsarType.string,
     ),
     r'nfcEnabled': PropertySchema(
-      id: 14,
+      id: 15,
       name: r'nfcEnabled',
       type: IsarType.bool,
     ),
     r'remoteID': PropertySchema(
-      id: 15,
+      id: 16,
       name: r'remoteID',
       type: IsarType.string,
     ),
     r'supplierId': PropertySchema(
-      id: 16,
+      id: 17,
       name: r'supplierId',
       type: IsarType.string,
     ),
     r'taxId': PropertySchema(
-      id: 17,
+      id: 18,
       name: r'taxId',
       type: IsarType.string,
     ),
     r'unit': PropertySchema(
-      id: 18,
+      id: 19,
       name: r'unit',
       type: IsarType.string,
     )
@@ -220,6 +225,12 @@ int _productEstimateSize(
 ) {
   var bytesCount = offsets.last;
   {
+    final value = object.action;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
     final value = object.barCode;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
@@ -296,25 +307,26 @@ void _productSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeString(offsets[0], object.barCode);
-  writer.writeLong(offsets[1], object.bindedToTenantId);
-  writer.writeLong(offsets[2], object.branchId);
-  writer.writeLong(offsets[3], object.businessId);
-  writer.writeString(offsets[4], object.categoryId);
-  writer.writeString(offsets[5], object.color);
-  writer.writeString(offsets[6], object.createdAt);
-  writer.writeString(offsets[7], object.description);
-  writer.writeString(offsets[8], object.expiryDate);
-  writer.writeString(offsets[9], object.imageUrl);
-  writer.writeBool(offsets[10], object.isFavorite);
-  writer.writeString(offsets[11], object.lastTouched);
-  writer.writeLong(offsets[12], object.localId);
-  writer.writeString(offsets[13], object.name);
-  writer.writeBool(offsets[14], object.nfcEnabled);
-  writer.writeString(offsets[15], object.remoteID);
-  writer.writeString(offsets[16], object.supplierId);
-  writer.writeString(offsets[17], object.taxId);
-  writer.writeString(offsets[18], object.unit);
+  writer.writeString(offsets[0], object.action);
+  writer.writeString(offsets[1], object.barCode);
+  writer.writeLong(offsets[2], object.bindedToTenantId);
+  writer.writeLong(offsets[3], object.branchId);
+  writer.writeLong(offsets[4], object.businessId);
+  writer.writeString(offsets[5], object.categoryId);
+  writer.writeString(offsets[6], object.color);
+  writer.writeString(offsets[7], object.createdAt);
+  writer.writeString(offsets[8], object.description);
+  writer.writeString(offsets[9], object.expiryDate);
+  writer.writeString(offsets[10], object.imageUrl);
+  writer.writeBool(offsets[11], object.isFavorite);
+  writer.writeString(offsets[12], object.lastTouched);
+  writer.writeLong(offsets[13], object.localId);
+  writer.writeString(offsets[14], object.name);
+  writer.writeBool(offsets[15], object.nfcEnabled);
+  writer.writeString(offsets[16], object.remoteID);
+  writer.writeString(offsets[17], object.supplierId);
+  writer.writeString(offsets[18], object.taxId);
+  writer.writeString(offsets[19], object.unit);
 }
 
 Product _productDeserialize(
@@ -324,26 +336,27 @@ Product _productDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Product(
-    barCode: reader.readStringOrNull(offsets[0]),
-    bindedToTenantId: reader.readLongOrNull(offsets[1]),
-    branchId: reader.readLong(offsets[2]),
-    businessId: reader.readLong(offsets[3]),
-    categoryId: reader.readStringOrNull(offsets[4]),
-    color: reader.readString(offsets[5]),
-    createdAt: reader.readStringOrNull(offsets[6]),
-    description: reader.readStringOrNull(offsets[7]),
-    expiryDate: reader.readStringOrNull(offsets[8]),
+    action: reader.readStringOrNull(offsets[0]),
+    barCode: reader.readStringOrNull(offsets[1]),
+    bindedToTenantId: reader.readLongOrNull(offsets[2]),
+    branchId: reader.readLong(offsets[3]),
+    businessId: reader.readLong(offsets[4]),
+    categoryId: reader.readStringOrNull(offsets[5]),
+    color: reader.readString(offsets[6]),
+    createdAt: reader.readStringOrNull(offsets[7]),
+    description: reader.readStringOrNull(offsets[8]),
+    expiryDate: reader.readStringOrNull(offsets[9]),
     id: id,
-    imageUrl: reader.readStringOrNull(offsets[9]),
-    isFavorite: reader.readBoolOrNull(offsets[10]),
-    lastTouched: reader.readStringOrNull(offsets[11]),
-    localId: reader.readLongOrNull(offsets[12]),
-    name: reader.readString(offsets[13]),
-    nfcEnabled: reader.readBoolOrNull(offsets[14]),
-    remoteID: reader.readStringOrNull(offsets[15]),
-    supplierId: reader.readStringOrNull(offsets[16]),
-    taxId: reader.readStringOrNull(offsets[17]),
-    unit: reader.readStringOrNull(offsets[18]),
+    imageUrl: reader.readStringOrNull(offsets[10]),
+    isFavorite: reader.readBoolOrNull(offsets[11]),
+    lastTouched: reader.readStringOrNull(offsets[12]),
+    localId: reader.readLongOrNull(offsets[13]),
+    name: reader.readString(offsets[14]),
+    nfcEnabled: reader.readBoolOrNull(offsets[15]),
+    remoteID: reader.readStringOrNull(offsets[16]),
+    supplierId: reader.readStringOrNull(offsets[17]),
+    taxId: reader.readStringOrNull(offsets[18]),
+    unit: reader.readStringOrNull(offsets[19]),
   );
   return object;
 }
@@ -358,17 +371,17 @@ P _productDeserializeProp<P>(
     case 0:
       return (reader.readStringOrNull(offset)) as P;
     case 1:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 2:
-      return (reader.readLong(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 3:
       return (reader.readLong(offset)) as P;
     case 4:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 5:
-      return (reader.readString(offset)) as P;
-    case 6:
       return (reader.readStringOrNull(offset)) as P;
+    case 6:
+      return (reader.readString(offset)) as P;
     case 7:
       return (reader.readStringOrNull(offset)) as P;
     case 8:
@@ -376,22 +389,24 @@ P _productDeserializeProp<P>(
     case 9:
       return (reader.readStringOrNull(offset)) as P;
     case 10:
-      return (reader.readBoolOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 11:
-      return (reader.readStringOrNull(offset)) as P;
-    case 12:
-      return (reader.readLongOrNull(offset)) as P;
-    case 13:
-      return (reader.readString(offset)) as P;
-    case 14:
       return (reader.readBoolOrNull(offset)) as P;
-    case 15:
+    case 12:
       return (reader.readStringOrNull(offset)) as P;
+    case 13:
+      return (reader.readLongOrNull(offset)) as P;
+    case 14:
+      return (reader.readString(offset)) as P;
+    case 15:
+      return (reader.readBoolOrNull(offset)) as P;
     case 16:
       return (reader.readStringOrNull(offset)) as P;
     case 17:
       return (reader.readStringOrNull(offset)) as P;
     case 18:
+      return (reader.readStringOrNull(offset)) as P;
+    case 19:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -944,6 +959,152 @@ extension ProductQueryWhere on QueryBuilder<Product, Product, QWhereClause> {
 
 extension ProductQueryFilter
     on QueryBuilder<Product, Product, QFilterCondition> {
+  QueryBuilder<Product, Product, QAfterFilterCondition> actionIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'action',
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> actionIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'action',
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> actionEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> actionGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> actionLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> actionBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'action',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> actionStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> actionEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> actionContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> actionMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'action',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> actionIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'action',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> actionIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'action',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Product, Product, QAfterFilterCondition> barCodeIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -3245,6 +3406,18 @@ extension ProductQueryLinks
 }
 
 extension ProductQuerySortBy on QueryBuilder<Product, Product, QSortBy> {
+  QueryBuilder<Product, Product, QAfterSortBy> sortByAction() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'action', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> sortByActionDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'action', Sort.desc);
+    });
+  }
+
   QueryBuilder<Product, Product, QAfterSortBy> sortByBarCode() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'barCode', Sort.asc);
@@ -3476,6 +3649,18 @@ extension ProductQuerySortBy on QueryBuilder<Product, Product, QSortBy> {
 
 extension ProductQuerySortThenBy
     on QueryBuilder<Product, Product, QSortThenBy> {
+  QueryBuilder<Product, Product, QAfterSortBy> thenByAction() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'action', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> thenByActionDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'action', Sort.desc);
+    });
+  }
+
   QueryBuilder<Product, Product, QAfterSortBy> thenByBarCode() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'barCode', Sort.asc);
@@ -3719,6 +3904,13 @@ extension ProductQuerySortThenBy
 
 extension ProductQueryWhereDistinct
     on QueryBuilder<Product, Product, QDistinct> {
+  QueryBuilder<Product, Product, QDistinct> distinctByAction(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'action', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<Product, Product, QDistinct> distinctByBarCode(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -3855,6 +4047,12 @@ extension ProductQueryProperty
     });
   }
 
+  QueryBuilder<Product, String?, QQueryOperations> actionProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'action');
+    });
+  }
+
   QueryBuilder<Product, String?, QQueryOperations> barCodeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'barCode');
@@ -3969,3 +4167,55 @@ extension ProductQueryProperty
     });
   }
 }
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+Product _$ProductFromJson(Map<String, dynamic> json) => Product(
+      name: json['name'] as String,
+      color: json['color'] as String,
+      businessId: json['businessId'] as int,
+      branchId: json['branchId'] as int,
+      id: json['id'] as int?,
+      description: json['description'] as String?,
+      taxId: json['taxId'] as String?,
+      supplierId: json['supplierId'] as String?,
+      categoryId: json['categoryId'] as String?,
+      createdAt: json['createdAt'] as String?,
+      unit: json['unit'] as String?,
+      imageUrl: json['imageUrl'] as String?,
+      expiryDate: json['expiryDate'] as String?,
+      barCode: json['barCode'] as String?,
+      nfcEnabled: json['nfcEnabled'] as bool?,
+      bindedToTenantId: json['bindedToTenantId'] as int?,
+      isFavorite: json['isFavorite'] as bool?,
+      lastTouched: json['lastTouched'] as String?,
+      localId: json['localId'] as int?,
+      action: json['action'] as String?,
+      remoteID: json['remoteID'] as String?,
+    );
+
+Map<String, dynamic> _$ProductToJson(Product instance) => <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+      'description': instance.description,
+      'taxId': instance.taxId,
+      'color': instance.color,
+      'businessId': instance.businessId,
+      'branchId': instance.branchId,
+      'supplierId': instance.supplierId,
+      'categoryId': instance.categoryId,
+      'createdAt': instance.createdAt,
+      'unit': instance.unit,
+      'imageUrl': instance.imageUrl,
+      'expiryDate': instance.expiryDate,
+      'barCode': instance.barCode,
+      'nfcEnabled': instance.nfcEnabled,
+      'bindedToTenantId': instance.bindedToTenantId,
+      'isFavorite': instance.isFavorite,
+      'lastTouched': instance.lastTouched,
+      'remoteID': instance.remoteID,
+      'localId': instance.localId,
+      'action': instance.action,
+    };

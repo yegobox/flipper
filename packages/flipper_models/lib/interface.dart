@@ -209,5 +209,8 @@ abstract class IsarApiInterface {
   Future<void> deleteAllProducts();
   Future<Stock?> getStockById({required int id});
   Future<List<Order>> getLocalOrders();
-  Future<IChange?> latestChange({required int branchId, required String model});
+  Future<IChange?> latestChange(
+      {required int branchId,
+      required String model,
+      required bool isRemoteDataSource});
 }

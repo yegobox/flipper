@@ -3,9 +3,11 @@ library flipper_models;
 import 'package:flipper_models/isar/variant.dart';
 import 'package:flipper_models/sync_service.dart';
 import 'package:isar/isar.dart';
+import 'package:json_annotation/json_annotation.dart';
 import 'package:pocketbase/pocketbase.dart';
 part 'product.g.dart';
 
+@JsonSerializable()
 @Collection()
 class Product extends IJsonSerializable {
   Id? id = null;
@@ -39,6 +41,7 @@ class Product extends IJsonSerializable {
   @Index()
   String? remoteID;
   int? localId;
+  String? action;
   final variants = IsarLinks<Variant>();
 
   Product(
@@ -61,6 +64,7 @@ class Product extends IJsonSerializable {
       this.isFavorite,
       this.lastTouched,
       this.localId,
+      this.action,
       this.remoteID});
 
   factory Product.fromRecord(RecordModel record) =>
@@ -87,6 +91,7 @@ class Product extends IJsonSerializable {
         isFavorite: json['isFavorite'],
         lastTouched: json['lastTouched'],
         id: json['localId'],
+        action: json['action'],
         remoteID: json['id']);
   }
 
@@ -109,7 +114,8 @@ class Product extends IJsonSerializable {
       "nfcEnabled": nfcEnabled,
       "bindedToTenantId": bindedToTenantId,
       "isFavorite": isFavorite,
-      "localId": id
+      "localId": id,
+      "action": action
     };
   }
 }

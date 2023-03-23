@@ -27,15 +27,20 @@ const IChangeSchema = CollectionSchema(
       name: r'businessId',
       type: IsarType.long,
     ),
-    r'lastReportQuery': PropertySchema(
+    r'lastTouched': PropertySchema(
       id: 2,
-      name: r'lastReportQuery',
+      name: r'lastTouched',
       type: IsarType.string,
     ),
     r'model': PropertySchema(
       id: 3,
       name: r'model',
       type: IsarType.string,
+    ),
+    r'remoteChange': PropertySchema(
+      id: 4,
+      name: r'remoteChange',
+      type: IsarType.bool,
     )
   },
   estimateSize: _iChangeEstimateSize,
@@ -70,14 +75,14 @@ const IChangeSchema = CollectionSchema(
         )
       ],
     ),
-    r'lastReportQuery': IndexSchema(
-      id: -5740697805305456451,
-      name: r'lastReportQuery',
+    r'lastTouched': IndexSchema(
+      id: -1197289422054722944,
+      name: r'lastTouched',
       unique: false,
       replace: false,
       properties: [
         IndexPropertySchema(
-          name: r'lastReportQuery',
+          name: r'lastTouched',
           type: IndexType.hash,
           caseSensitive: true,
         )
@@ -112,7 +117,7 @@ int _iChangeEstimateSize(
 ) {
   var bytesCount = offsets.last;
   {
-    final value = object.lastReportQuery;
+    final value = object.lastTouched;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
     }
@@ -129,8 +134,9 @@ void _iChangeSerialize(
 ) {
   writer.writeLong(offsets[0], object.branchId);
   writer.writeLong(offsets[1], object.businessId);
-  writer.writeString(offsets[2], object.lastReportQuery);
+  writer.writeString(offsets[2], object.lastTouched);
   writer.writeString(offsets[3], object.model);
+  writer.writeBool(offsets[4], object.remoteChange);
 }
 
 IChange _iChangeDeserialize(
@@ -143,8 +149,9 @@ IChange _iChangeDeserialize(
     branchId: reader.readLong(offsets[0]),
     businessId: reader.readLong(offsets[1]),
     id: id,
-    lastReportQuery: reader.readStringOrNull(offsets[2]),
+    lastTouched: reader.readStringOrNull(offsets[2]),
     model: reader.readString(offsets[3]),
+    remoteChange: reader.readBoolOrNull(offsets[4]),
   );
   return object;
 }
@@ -164,6 +171,8 @@ P _iChangeDeserializeProp<P>(
       return (reader.readStringOrNull(offset)) as P;
     case 3:
       return (reader.readString(offset)) as P;
+    case 4:
+      return (reader.readBoolOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -451,19 +460,19 @@ extension IChangeQueryWhere on QueryBuilder<IChange, IChange, QWhereClause> {
     });
   }
 
-  QueryBuilder<IChange, IChange, QAfterWhereClause> lastReportQueryIsNull() {
+  QueryBuilder<IChange, IChange, QAfterWhereClause> lastTouchedIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'lastReportQuery',
+        indexName: r'lastTouched',
         value: [null],
       ));
     });
   }
 
-  QueryBuilder<IChange, IChange, QAfterWhereClause> lastReportQueryIsNotNull() {
+  QueryBuilder<IChange, IChange, QAfterWhereClause> lastTouchedIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'lastReportQuery',
+        indexName: r'lastTouched',
         lower: [null],
         includeLower: false,
         upper: [],
@@ -471,45 +480,45 @@ extension IChangeQueryWhere on QueryBuilder<IChange, IChange, QWhereClause> {
     });
   }
 
-  QueryBuilder<IChange, IChange, QAfterWhereClause> lastReportQueryEqualTo(
-      String? lastReportQuery) {
+  QueryBuilder<IChange, IChange, QAfterWhereClause> lastTouchedEqualTo(
+      String? lastTouched) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'lastReportQuery',
-        value: [lastReportQuery],
+        indexName: r'lastTouched',
+        value: [lastTouched],
       ));
     });
   }
 
-  QueryBuilder<IChange, IChange, QAfterWhereClause> lastReportQueryNotEqualTo(
-      String? lastReportQuery) {
+  QueryBuilder<IChange, IChange, QAfterWhereClause> lastTouchedNotEqualTo(
+      String? lastTouched) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'lastReportQuery',
+              indexName: r'lastTouched',
               lower: [],
-              upper: [lastReportQuery],
+              upper: [lastTouched],
               includeUpper: false,
             ))
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'lastReportQuery',
-              lower: [lastReportQuery],
+              indexName: r'lastTouched',
+              lower: [lastTouched],
               includeLower: false,
               upper: [],
             ));
       } else {
         return query
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'lastReportQuery',
-              lower: [lastReportQuery],
+              indexName: r'lastTouched',
+              lower: [lastTouched],
               includeLower: false,
               upper: [],
             ))
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'lastReportQuery',
+              indexName: r'lastTouched',
               lower: [],
-              upper: [lastReportQuery],
+              upper: [lastTouched],
               includeUpper: false,
             ));
       }
@@ -737,39 +746,36 @@ extension IChangeQueryFilter
     });
   }
 
-  QueryBuilder<IChange, IChange, QAfterFilterCondition>
-      lastReportQueryIsNull() {
+  QueryBuilder<IChange, IChange, QAfterFilterCondition> lastTouchedIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'lastReportQuery',
+        property: r'lastTouched',
       ));
     });
   }
 
-  QueryBuilder<IChange, IChange, QAfterFilterCondition>
-      lastReportQueryIsNotNull() {
+  QueryBuilder<IChange, IChange, QAfterFilterCondition> lastTouchedIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'lastReportQuery',
+        property: r'lastTouched',
       ));
     });
   }
 
-  QueryBuilder<IChange, IChange, QAfterFilterCondition> lastReportQueryEqualTo(
+  QueryBuilder<IChange, IChange, QAfterFilterCondition> lastTouchedEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'lastReportQuery',
+        property: r'lastTouched',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<IChange, IChange, QAfterFilterCondition>
-      lastReportQueryGreaterThan(
+  QueryBuilder<IChange, IChange, QAfterFilterCondition> lastTouchedGreaterThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
@@ -777,14 +783,14 @@ extension IChangeQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
-        property: r'lastReportQuery',
+        property: r'lastTouched',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<IChange, IChange, QAfterFilterCondition> lastReportQueryLessThan(
+  QueryBuilder<IChange, IChange, QAfterFilterCondition> lastTouchedLessThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
@@ -792,14 +798,14 @@ extension IChangeQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
-        property: r'lastReportQuery',
+        property: r'lastTouched',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<IChange, IChange, QAfterFilterCondition> lastReportQueryBetween(
+  QueryBuilder<IChange, IChange, QAfterFilterCondition> lastTouchedBetween(
     String? lower,
     String? upper, {
     bool includeLower = true,
@@ -808,7 +814,7 @@ extension IChangeQueryFilter
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
-        property: r'lastReportQuery',
+        property: r'lastTouched',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -818,72 +824,70 @@ extension IChangeQueryFilter
     });
   }
 
-  QueryBuilder<IChange, IChange, QAfterFilterCondition>
-      lastReportQueryStartsWith(
+  QueryBuilder<IChange, IChange, QAfterFilterCondition> lastTouchedStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'lastReportQuery',
+        property: r'lastTouched',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<IChange, IChange, QAfterFilterCondition> lastReportQueryEndsWith(
+  QueryBuilder<IChange, IChange, QAfterFilterCondition> lastTouchedEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'lastReportQuery',
+        property: r'lastTouched',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<IChange, IChange, QAfterFilterCondition> lastReportQueryContains(
+  QueryBuilder<IChange, IChange, QAfterFilterCondition> lastTouchedContains(
       String value,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
-        property: r'lastReportQuery',
+        property: r'lastTouched',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<IChange, IChange, QAfterFilterCondition> lastReportQueryMatches(
+  QueryBuilder<IChange, IChange, QAfterFilterCondition> lastTouchedMatches(
       String pattern,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
-        property: r'lastReportQuery',
+        property: r'lastTouched',
         wildcard: pattern,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<IChange, IChange, QAfterFilterCondition>
-      lastReportQueryIsEmpty() {
+  QueryBuilder<IChange, IChange, QAfterFilterCondition> lastTouchedIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'lastReportQuery',
+        property: r'lastTouched',
         value: '',
       ));
     });
   }
 
   QueryBuilder<IChange, IChange, QAfterFilterCondition>
-      lastReportQueryIsNotEmpty() {
+      lastTouchedIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'lastReportQuery',
+        property: r'lastTouched',
         value: '',
       ));
     });
@@ -1018,6 +1022,33 @@ extension IChangeQueryFilter
       ));
     });
   }
+
+  QueryBuilder<IChange, IChange, QAfterFilterCondition> remoteChangeIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'remoteChange',
+      ));
+    });
+  }
+
+  QueryBuilder<IChange, IChange, QAfterFilterCondition>
+      remoteChangeIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'remoteChange',
+      ));
+    });
+  }
+
+  QueryBuilder<IChange, IChange, QAfterFilterCondition> remoteChangeEqualTo(
+      bool? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'remoteChange',
+        value: value,
+      ));
+    });
+  }
 }
 
 extension IChangeQueryObject
@@ -1051,15 +1082,15 @@ extension IChangeQuerySortBy on QueryBuilder<IChange, IChange, QSortBy> {
     });
   }
 
-  QueryBuilder<IChange, IChange, QAfterSortBy> sortByLastReportQuery() {
+  QueryBuilder<IChange, IChange, QAfterSortBy> sortByLastTouched() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'lastReportQuery', Sort.asc);
+      return query.addSortBy(r'lastTouched', Sort.asc);
     });
   }
 
-  QueryBuilder<IChange, IChange, QAfterSortBy> sortByLastReportQueryDesc() {
+  QueryBuilder<IChange, IChange, QAfterSortBy> sortByLastTouchedDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'lastReportQuery', Sort.desc);
+      return query.addSortBy(r'lastTouched', Sort.desc);
     });
   }
 
@@ -1072,6 +1103,18 @@ extension IChangeQuerySortBy on QueryBuilder<IChange, IChange, QSortBy> {
   QueryBuilder<IChange, IChange, QAfterSortBy> sortByModelDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'model', Sort.desc);
+    });
+  }
+
+  QueryBuilder<IChange, IChange, QAfterSortBy> sortByRemoteChange() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'remoteChange', Sort.asc);
+    });
+  }
+
+  QueryBuilder<IChange, IChange, QAfterSortBy> sortByRemoteChangeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'remoteChange', Sort.desc);
     });
   }
 }
@@ -1114,15 +1157,15 @@ extension IChangeQuerySortThenBy
     });
   }
 
-  QueryBuilder<IChange, IChange, QAfterSortBy> thenByLastReportQuery() {
+  QueryBuilder<IChange, IChange, QAfterSortBy> thenByLastTouched() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'lastReportQuery', Sort.asc);
+      return query.addSortBy(r'lastTouched', Sort.asc);
     });
   }
 
-  QueryBuilder<IChange, IChange, QAfterSortBy> thenByLastReportQueryDesc() {
+  QueryBuilder<IChange, IChange, QAfterSortBy> thenByLastTouchedDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'lastReportQuery', Sort.desc);
+      return query.addSortBy(r'lastTouched', Sort.desc);
     });
   }
 
@@ -1135,6 +1178,18 @@ extension IChangeQuerySortThenBy
   QueryBuilder<IChange, IChange, QAfterSortBy> thenByModelDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'model', Sort.desc);
+    });
+  }
+
+  QueryBuilder<IChange, IChange, QAfterSortBy> thenByRemoteChange() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'remoteChange', Sort.asc);
+    });
+  }
+
+  QueryBuilder<IChange, IChange, QAfterSortBy> thenByRemoteChangeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'remoteChange', Sort.desc);
     });
   }
 }
@@ -1153,11 +1208,10 @@ extension IChangeQueryWhereDistinct
     });
   }
 
-  QueryBuilder<IChange, IChange, QDistinct> distinctByLastReportQuery(
+  QueryBuilder<IChange, IChange, QDistinct> distinctByLastTouched(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'lastReportQuery',
-          caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'lastTouched', caseSensitive: caseSensitive);
     });
   }
 
@@ -1165,6 +1219,12 @@ extension IChangeQueryWhereDistinct
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'model', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<IChange, IChange, QDistinct> distinctByRemoteChange() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'remoteChange');
     });
   }
 }
@@ -1189,15 +1249,21 @@ extension IChangeQueryProperty
     });
   }
 
-  QueryBuilder<IChange, String?, QQueryOperations> lastReportQueryProperty() {
+  QueryBuilder<IChange, String?, QQueryOperations> lastTouchedProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'lastReportQuery');
+      return query.addPropertyName(r'lastTouched');
     });
   }
 
   QueryBuilder<IChange, String, QQueryOperations> modelProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'model');
+    });
+  }
+
+  QueryBuilder<IChange, bool?, QQueryOperations> remoteChangeProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'remoteChange');
     });
   }
 }
@@ -1211,13 +1277,15 @@ IChange _$IChangeFromJson(Map<String, dynamic> json) => IChange(
       model: json['model'] as String,
       businessId: json['businessId'] as int,
       id: json['id'] as int?,
-      lastReportQuery: json['lastReportQuery'] as String?,
+      remoteChange: json['remoteChange'] as bool?,
+      lastTouched: json['lastTouched'] as String?,
     );
 
 Map<String, dynamic> _$IChangeToJson(IChange instance) => <String, dynamic>{
       'id': instance.id,
       'branchId': instance.branchId,
       'businessId': instance.businessId,
-      'lastReportQuery': instance.lastReportQuery,
+      'lastTouched': instance.lastTouched,
       'model': instance.model,
+      'remoteChange': instance.remoteChange,
     };

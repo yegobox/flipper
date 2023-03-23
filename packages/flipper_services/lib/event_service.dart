@@ -65,9 +65,6 @@ class EventService {
     channel.publish(loginDetails);
   }
 
-  void subscribePaymentEvent(
-      {required String channel, required BuildContext context}) {}
-
   void subscribeLoginEvent(
       {required String channel, required BuildContext context}) {
     try {

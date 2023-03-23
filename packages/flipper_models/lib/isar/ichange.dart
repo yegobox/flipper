@@ -15,15 +15,17 @@ class IChange implements IJsonSerializable {
   @Index()
   int businessId;
   @Index()
-  String? lastReportQuery;
+  String? lastTouched;
   @Index()
   String model;
+  bool? remoteChange;
   IChange(
       {required this.branchId,
       required this.model,
       required this.businessId,
       this.id,
-      this.lastReportQuery});
+      this.remoteChange,
+      this.lastTouched});
 
   factory IChange.fromJson(Map<String, dynamic> json) =>
       _$IChangeFromJson(json);

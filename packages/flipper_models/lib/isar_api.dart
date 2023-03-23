@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_models/data.loads/jcounter.dart';
+import 'package:flipper_models/isar/utils.dart';
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_routing/routes.logger.dart';
@@ -11,6 +12,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart' as foundation;
+import 'package:isar_crdt/utils/hlc.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'view_models/gate.dart';
 // import StreamZip
@@ -158,6 +160,9 @@ class IsarAPI<M> implements IsarApiInterface {
   }) async {
     int branchId = ProxyService.box.getBranchId()!;
 
+    String desiredDate = removeTrailingDash(
+        Hlc.fromDate(DateTime.now(), branchId.toString()).toString());
+
     Order? existOrder = await pendingOrder(branchId: branchId);
 
     if (existOrder == null) {
@@ -185,6 +190,12 @@ class IsarAPI<M> implements IsarApiInterface {
         ProxyService.box.write(key: 'currentOrderId', value: id);
         return await isar.orders.get(id);
       });
+      IChange? filter = await latestChange(
+          branchId: ProxyService.box.getBranchId()!,
+          model: 'orders',
+          isRemoteDataSource: false);
+      ProxyService.remoteApi
+          .savePointer(branchId, desiredDate, 'orders', filter);
       return createdOrder!;
     } else {
       return existOrder;
@@ -290,6 +301,7 @@ class IsarAPI<M> implements IsarApiInterface {
         final stock = Stock(
             branchId: ProxyService.box.getBranchId()!,
             variantId: variantId,
+            action: 'create',
             currentStock: 0.0,
             productId: variation.productId)
           ..id = stockId
@@ -302,7 +314,6 @@ class IsarAPI<M> implements IsarApiInterface {
           ..canTrackingStock = false
           ..showLowStockAlert = false
           ..productId = variation.productId
-          ..value = 0
           ..active = false;
         await isar.stocks.put(stock);
       }
@@ -519,16 +530,20 @@ class IsarAPI<M> implements IsarApiInterface {
 
     final int branchId = ProxyService.box.getBranchId()!;
 
+    String lastTouched = removeTrailingDash(
+        Hlc.fromDate(DateTime.now(), branchId.toString()).toString());
+
     Product? kProduct = await isar.writeTxn(() async {
       int id = await isar.products.put(product);
       return isar.products.get(id);
     });
     // save variants in isar Db with the above productId
     await isar.writeTxn(() async {
-      return isar.variants.put(
+      return await isar.variants.put(
         Variant(
             name: 'Regular',
             sku: 'sku',
+            action: 'create',
             productId: kProduct!.id!,
             unit: 'Per Item',
             table: AppTables.variation,
@@ -579,11 +594,21 @@ class IsarAPI<M> implements IsarApiInterface {
       );
     });
 
+    ProxyService.remoteApi.savePointer(
+        branchId,
+        lastTouched,
+        'variants',
+        await latestChange(
+            branchId: ProxyService.box.getBranchId()!,
+            model: 'variants',
+            isRemoteDataSource: false));
+
     Variant? variant =
         await isar.variants.where().productIdEqualTo(kProduct!.id!).findFirst();
 
     Stock stock = Stock(
         id: syncIdInt(),
+        action: 'create',
         branchId: branchId,
         variantId: variant!.id!,
         currentStock: 0.0,
@@ -598,16 +623,31 @@ class IsarAPI<M> implements IsarApiInterface {
       ..lowStock = 10.0 // default static
       ..canTrackingStock = true
       ..showLowStockAlert = true
-      // normaly this should be currentStock * retailPrice
-      ..value = variant.retailPrice * 0.0
       ..active = false
       ..productId = kProduct.id!
       ..rsdQty = 0.0;
 
     await isar.writeTxn(() async {
-      return isar.stocks.put(stock);
+      return await isar.stocks.put(stock);
     });
 
+    ProxyService.remoteApi.savePointer(
+        branchId,
+        lastTouched,
+        'stocks',
+        await latestChange(
+            branchId: ProxyService.box.getBranchId()!,
+            model: 'stocks',
+            isRemoteDataSource: false));
+
+    ProxyService.remoteApi.savePointer(
+        branchId,
+        lastTouched,
+        'products',
+        await latestChange(
+            branchId: ProxyService.box.getBranchId()!,
+            model: 'products',
+            isRemoteDataSource: false));
     return kProduct;
   }
 
@@ -798,6 +838,7 @@ class IsarAPI<M> implements IsarApiInterface {
       Product newProduct = await createProduct(
           product: Product(
               name: "Custom Amount",
+              action: 'create',
               businessId: businessId,
               color: "#e74c3c",
               branchId: businessId)
@@ -1402,8 +1443,19 @@ class IsarAPI<M> implements IsarApiInterface {
   /// @Deprecated [endpoint] don't give the endpoint params
   @override
   Future<T?> update<T>({required T data}) async {
+    int branchId = ProxyService.box.getBranchId()!;
+    String lastTouched = removeTrailingDash(
+        Hlc.fromDate(DateTime.now(), branchId.toString()).toString());
+
     if (data is Product) {
-      final product = data;
+      Product product = data;
+      product.action = 'update';
+      IChange? filter = await latestChange(
+          branchId: ProxyService.box.getBranchId()!,
+          model: 'products',
+          isRemoteDataSource: false);
+      ProxyService.remoteApi
+          .savePointer(branchId, lastTouched, 'products', filter);
       await isar.writeTxn(() async {
         return await isar.products.put(product);
       });
@@ -1415,13 +1467,27 @@ class IsarAPI<M> implements IsarApiInterface {
       });
     }
     if (data is Variant) {
-      final variant = data;
+      Variant variant = data;
+      variant.action = 'update';
+      IChange? filter = await latestChange(
+          branchId: ProxyService.box.getBranchId()!,
+          model: 'variants',
+          isRemoteDataSource: false);
+      ProxyService.remoteApi
+          .savePointer(branchId, lastTouched, 'variants', filter);
       await isar.writeTxn(() async {
         return await isar.variants.put(variant);
       });
     }
     if (data is Stock) {
-      final stock = data;
+      Stock stock = data;
+      stock.action = 'update';
+      IChange? filter = await latestChange(
+          branchId: ProxyService.box.getBranchId()!,
+          model: 'stocks',
+          isRemoteDataSource: false);
+      ProxyService.remoteApi
+          .savePointer(branchId, lastTouched, 'stocks', filter);
       await isar.writeTxn(() async {
         return await isar.stocks.put(stock);
       });
@@ -1951,42 +2017,6 @@ class IsarAPI<M> implements IsarApiInterface {
   /// this method is one way i.e we get to know local unsynched changes
   /// then we send them but we are not working on the changes after this push.
   /// those change will stay on local, so I need to work on them as well.
-  @override
-  Future<List<Product>> getLocalProducts() async {
-    return await isar.products.where().lastTouchedIsNull().findAll();
-  }
-
-  @override
-  Future<List<Variant>> getLocalVariants() async {
-    return await isar.variants
-        .filter()
-        .retailPriceGreaterThan(0)
-        .and()
-        .lastTouchedIsNull()
-        .findAll();
-  }
-
-  @override
-  Future<List<Stock>> getLocalStocks() async {
-    return await isar.stocks
-        .filter()
-        .retailPriceGreaterThan(0)
-        .and()
-        .lastTouchedIsNull()
-        .findAll();
-  }
-
-  @override
-  Future<List<Order>> getLocalOrders() async {
-    return await isar.orders
-        .filter()
-        .statusEqualTo(completeStatus)
-        .and()
-        .lastTouchedIsNull()
-        .and()
-        .branchIdEqualTo(ProxyService.box.getBranchId()!)
-        .findAll();
-  }
 
   @override
   Stream<Order?> completedOrdersStream(
@@ -2035,12 +2065,79 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<IChange?> latestChange(
-      {required int branchId, required String model}) async {
+      {required int branchId,
+      required String model,
+      required bool isRemoteDataSource}) async {
     return await isar.iChanges
         .filter()
         .branchIdEqualTo(branchId)
         .and()
         .modelEqualTo(model)
+        .and()
+        .remoteChangeEqualTo(isRemoteDataSource)
         .findFirst();
+  }
+
+  @override
+  Future<List<Stock>> getLocalStocks() async {
+    // get last touched of this model
+    IChange? filter = await latestChange(
+        branchId: ProxyService.box.getBranchId()!,
+        model: 'stocks',
+        isRemoteDataSource: false);
+    return await isar.stocks
+        .filter()
+        .retailPriceGreaterThan(0)
+        .or()
+        .lastTouchedIsNull()
+        .or()
+        .lastTouchedGreaterThan(filter?.lastTouched)
+        .findAll();
+  }
+
+  @override
+  Future<List<Product>> getLocalProducts() async {
+    IChange? filter = await latestChange(
+        branchId: ProxyService.box.getBranchId()!,
+        model: 'products',
+        isRemoteDataSource: false);
+    return await isar.products
+        .filter()
+        .lastTouchedIsNull()
+        .or()
+        .lastTouchedGreaterThan(filter?.lastTouched)
+        .findAll();
+  }
+
+  @override
+  Future<List<Variant>> getLocalVariants() async {
+    IChange? filter = await latestChange(
+        branchId: ProxyService.box.getBranchId()!,
+        model: 'variants',
+        isRemoteDataSource: false);
+    return await isar.variants
+        .filter()
+        .retailPriceGreaterThan(0)
+        .lastTouchedIsNull()
+        .or()
+        .lastTouchedGreaterThan(filter?.lastTouched)
+        .findAll();
+  }
+
+  @override
+  Future<List<Order>> getLocalOrders() async {
+    IChange? filter = await latestChange(
+        branchId: ProxyService.box.getBranchId()!,
+        model: 'orders',
+        isRemoteDataSource: false);
+    return await isar.orders
+        .filter()
+        .statusEqualTo(completeStatus)
+        .lastTouchedIsNull()
+        .or()
+        .lastTouchedGreaterThan(filter?.lastTouched)
+        .and()
+        .branchIdEqualTo(ProxyService.box.getBranchId()!)
+        .findAll();
   }
 }

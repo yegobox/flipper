@@ -63,6 +63,7 @@ class ProductViewModel extends AddTenantViewModel {
           product: Product(
               id: syncIdInt(),
               name: "temp",
+              action: 'create',
               businessId: businessId,
               color: "#e74c3c",
               branchId: branchId)

@@ -3,6 +3,7 @@ import 'variant.dart';
 final variationMock = Variant(
     name: 'Regular',
     sku: 'sku',
+    action: 'create',
     productId: 2,
     unit: 'Per Item',
     table: 'variants',

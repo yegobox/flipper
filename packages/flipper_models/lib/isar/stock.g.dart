@@ -17,78 +17,83 @@ const StockSchema = CollectionSchema(
   name: r'Stock',
   id: 6740185341894042082,
   properties: {
-    r'active': PropertySchema(
+    r'action': PropertySchema(
       id: 0,
+      name: r'action',
+      type: IsarType.string,
+    ),
+    r'active': PropertySchema(
+      id: 1,
       name: r'active',
       type: IsarType.bool,
     ),
     r'branchId': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'branchId',
       type: IsarType.long,
     ),
     r'canTrackingStock': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'canTrackingStock',
       type: IsarType.bool,
     ),
     r'currentStock': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'currentStock',
       type: IsarType.double,
     ),
     r'lastTouched': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'lastTouched',
       type: IsarType.string,
     ),
     r'localId': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'localId',
       type: IsarType.long,
     ),
     r'lowStock': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'lowStock',
       type: IsarType.double,
     ),
     r'productId': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'productId',
       type: IsarType.long,
     ),
     r'remoteID': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'remoteID',
       type: IsarType.string,
     ),
     r'retailPrice': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'retailPrice',
       type: IsarType.double,
     ),
     r'rsdQty': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'rsdQty',
       type: IsarType.double,
     ),
     r'showLowStockAlert': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'showLowStockAlert',
       type: IsarType.bool,
     ),
     r'supplyPrice': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'supplyPrice',
       type: IsarType.double,
     ),
     r'value': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'value',
       type: IsarType.double,
     ),
     r'variantId': PropertySchema(
-      id: 14,
+      id: 15,
       name: r'variantId',
       type: IsarType.long,
     )
@@ -211,6 +216,12 @@ int _stockEstimateSize(
 ) {
   var bytesCount = offsets.last;
   {
+    final value = object.action;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
     final value = object.lastTouched;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
@@ -231,21 +242,22 @@ void _stockSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeBool(offsets[0], object.active);
-  writer.writeLong(offsets[1], object.branchId);
-  writer.writeBool(offsets[2], object.canTrackingStock);
-  writer.writeDouble(offsets[3], object.currentStock);
-  writer.writeString(offsets[4], object.lastTouched);
-  writer.writeLong(offsets[5], object.localId);
-  writer.writeDouble(offsets[6], object.lowStock);
-  writer.writeLong(offsets[7], object.productId);
-  writer.writeString(offsets[8], object.remoteID);
-  writer.writeDouble(offsets[9], object.retailPrice);
-  writer.writeDouble(offsets[10], object.rsdQty);
-  writer.writeBool(offsets[11], object.showLowStockAlert);
-  writer.writeDouble(offsets[12], object.supplyPrice);
-  writer.writeDouble(offsets[13], object.value);
-  writer.writeLong(offsets[14], object.variantId);
+  writer.writeString(offsets[0], object.action);
+  writer.writeBool(offsets[1], object.active);
+  writer.writeLong(offsets[2], object.branchId);
+  writer.writeBool(offsets[3], object.canTrackingStock);
+  writer.writeDouble(offsets[4], object.currentStock);
+  writer.writeString(offsets[5], object.lastTouched);
+  writer.writeLong(offsets[6], object.localId);
+  writer.writeDouble(offsets[7], object.lowStock);
+  writer.writeLong(offsets[8], object.productId);
+  writer.writeString(offsets[9], object.remoteID);
+  writer.writeDouble(offsets[10], object.retailPrice);
+  writer.writeDouble(offsets[11], object.rsdQty);
+  writer.writeBool(offsets[12], object.showLowStockAlert);
+  writer.writeDouble(offsets[13], object.supplyPrice);
+  writer.writeDouble(offsets[14], object.value);
+  writer.writeLong(offsets[15], object.variantId);
 }
 
 Stock _stockDeserialize(
@@ -255,22 +267,23 @@ Stock _stockDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Stock(
-    active: reader.readBoolOrNull(offsets[0]),
-    branchId: reader.readLong(offsets[1]),
-    canTrackingStock: reader.readBoolOrNull(offsets[2]),
-    currentStock: reader.readDouble(offsets[3]),
+    action: reader.readStringOrNull(offsets[0]),
+    active: reader.readBoolOrNull(offsets[1]),
+    branchId: reader.readLong(offsets[2]),
+    canTrackingStock: reader.readBoolOrNull(offsets[3]),
+    currentStock: reader.readDouble(offsets[4]),
     id: id,
-    lastTouched: reader.readStringOrNull(offsets[4]),
-    localId: reader.readLongOrNull(offsets[5]),
-    lowStock: reader.readDoubleOrNull(offsets[6]),
-    productId: reader.readLong(offsets[7]),
-    remoteID: reader.readStringOrNull(offsets[8]),
-    retailPrice: reader.readDoubleOrNull(offsets[9]),
-    rsdQty: reader.readDoubleOrNull(offsets[10]),
-    showLowStockAlert: reader.readBoolOrNull(offsets[11]),
-    supplyPrice: reader.readDoubleOrNull(offsets[12]),
-    value: reader.readDoubleOrNull(offsets[13]),
-    variantId: reader.readLong(offsets[14]),
+    lastTouched: reader.readStringOrNull(offsets[5]),
+    localId: reader.readLongOrNull(offsets[6]),
+    lowStock: reader.readDoubleOrNull(offsets[7]),
+    productId: reader.readLong(offsets[8]),
+    remoteID: reader.readStringOrNull(offsets[9]),
+    retailPrice: reader.readDoubleOrNull(offsets[10]),
+    rsdQty: reader.readDoubleOrNull(offsets[11]),
+    showLowStockAlert: reader.readBoolOrNull(offsets[12]),
+    supplyPrice: reader.readDoubleOrNull(offsets[13]),
+    value: reader.readDoubleOrNull(offsets[14]),
+    variantId: reader.readLong(offsets[15]),
   );
   return object;
 }
@@ -283,34 +296,36 @@ P _stockDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readBoolOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 1:
-      return (reader.readLong(offset)) as P;
-    case 2:
       return (reader.readBoolOrNull(offset)) as P;
-    case 3:
-      return (reader.readDouble(offset)) as P;
-    case 4:
-      return (reader.readStringOrNull(offset)) as P;
-    case 5:
-      return (reader.readLongOrNull(offset)) as P;
-    case 6:
-      return (reader.readDoubleOrNull(offset)) as P;
-    case 7:
+    case 2:
       return (reader.readLong(offset)) as P;
-    case 8:
+    case 3:
+      return (reader.readBoolOrNull(offset)) as P;
+    case 4:
+      return (reader.readDouble(offset)) as P;
+    case 5:
       return (reader.readStringOrNull(offset)) as P;
-    case 9:
+    case 6:
+      return (reader.readLongOrNull(offset)) as P;
+    case 7:
       return (reader.readDoubleOrNull(offset)) as P;
+    case 8:
+      return (reader.readLong(offset)) as P;
+    case 9:
+      return (reader.readStringOrNull(offset)) as P;
     case 10:
       return (reader.readDoubleOrNull(offset)) as P;
     case 11:
-      return (reader.readBoolOrNull(offset)) as P;
-    case 12:
       return (reader.readDoubleOrNull(offset)) as P;
+    case 12:
+      return (reader.readBoolOrNull(offset)) as P;
     case 13:
       return (reader.readDoubleOrNull(offset)) as P;
     case 14:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 15:
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1159,6 +1174,151 @@ extension StockQueryWhere on QueryBuilder<Stock, Stock, QWhereClause> {
 }
 
 extension StockQueryFilter on QueryBuilder<Stock, Stock, QFilterCondition> {
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> actionIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'action',
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> actionIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'action',
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> actionEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> actionGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> actionLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> actionBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'action',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> actionStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> actionEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> actionContains(String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> actionMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'action',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> actionIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'action',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> actionIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'action',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Stock, Stock, QAfterFilterCondition> activeIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -2282,6 +2442,18 @@ extension StockQueryObject on QueryBuilder<Stock, Stock, QFilterCondition> {}
 extension StockQueryLinks on QueryBuilder<Stock, Stock, QFilterCondition> {}
 
 extension StockQuerySortBy on QueryBuilder<Stock, Stock, QSortBy> {
+  QueryBuilder<Stock, Stock, QAfterSortBy> sortByAction() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'action', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterSortBy> sortByActionDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'action', Sort.desc);
+    });
+  }
+
   QueryBuilder<Stock, Stock, QAfterSortBy> sortByActive() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'active', Sort.asc);
@@ -2464,6 +2636,18 @@ extension StockQuerySortBy on QueryBuilder<Stock, Stock, QSortBy> {
 }
 
 extension StockQuerySortThenBy on QueryBuilder<Stock, Stock, QSortThenBy> {
+  QueryBuilder<Stock, Stock, QAfterSortBy> thenByAction() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'action', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterSortBy> thenByActionDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'action', Sort.desc);
+    });
+  }
+
   QueryBuilder<Stock, Stock, QAfterSortBy> thenByActive() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'active', Sort.asc);
@@ -2658,6 +2842,13 @@ extension StockQuerySortThenBy on QueryBuilder<Stock, Stock, QSortThenBy> {
 }
 
 extension StockQueryWhereDistinct on QueryBuilder<Stock, Stock, QDistinct> {
+  QueryBuilder<Stock, Stock, QDistinct> distinctByAction(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'action', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<Stock, Stock, QDistinct> distinctByActive() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'active');
@@ -2758,6 +2949,12 @@ extension StockQueryProperty on QueryBuilder<Stock, Stock, QQueryProperty> {
     });
   }
 
+  QueryBuilder<Stock, String?, QQueryOperations> actionProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'action');
+    });
+  }
+
   QueryBuilder<Stock, bool?, QQueryOperations> activeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'active');
@@ -2848,3 +3045,47 @@ extension StockQueryProperty on QueryBuilder<Stock, Stock, QQueryProperty> {
     });
   }
 }
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+Stock _$StockFromJson(Map<String, dynamic> json) => Stock(
+      branchId: json['branchId'] as int,
+      variantId: json['variantId'] as int,
+      currentStock: (json['currentStock'] as num).toDouble(),
+      productId: json['productId'] as int,
+      id: json['id'] as int?,
+      action: json['action'] as String?,
+      lowStock: (json['lowStock'] as num?)?.toDouble(),
+      supplyPrice: (json['supplyPrice'] as num?)?.toDouble(),
+      retailPrice: (json['retailPrice'] as num?)?.toDouble(),
+      canTrackingStock: json['canTrackingStock'] as bool?,
+      showLowStockAlert: json['showLowStockAlert'] as bool?,
+      active: json['active'] as bool?,
+      value: (json['value'] as num?)?.toDouble(),
+      rsdQty: (json['rsdQty'] as num?)?.toDouble(),
+      lastTouched: json['lastTouched'] as String?,
+      remoteID: json['remoteID'] as String?,
+      localId: json['localId'] as int?,
+    );
+
+Map<String, dynamic> _$StockToJson(Stock instance) => <String, dynamic>{
+      'id': instance.id,
+      'branchId': instance.branchId,
+      'variantId': instance.variantId,
+      'lowStock': instance.lowStock,
+      'currentStock': instance.currentStock,
+      'canTrackingStock': instance.canTrackingStock,
+      'showLowStockAlert': instance.showLowStockAlert,
+      'productId': instance.productId,
+      'active': instance.active,
+      'value': instance.value,
+      'rsdQty': instance.rsdQty,
+      'supplyPrice': instance.supplyPrice,
+      'retailPrice': instance.retailPrice,
+      'lastTouched': instance.lastTouched,
+      'remoteID': instance.remoteID,
+      'localId': instance.localId,
+      'action': instance.action,
+    };

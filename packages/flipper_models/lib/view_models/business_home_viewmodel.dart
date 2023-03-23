@@ -133,10 +133,10 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       if (double.parse(ProxyService.keypad.key) != 0.0 &&
           ProxyService.keypad.key.length == 1) {
         Variant? variation = await ProxyService.isarApi.getCustomVariant();
-
+        if (variation == null) return;
         double amount = double.parse(ProxyService.keypad.key);
         await saveOrder(
-            amountTotal: amount, variationId: variation!.id!, customItem: true);
+            amountTotal: amount, variationId: variation.id!, customItem: true);
         Order? updatedOrder = await ProxyService.isarApi.manageOrder();
         items =
             await ProxyService.isarApi.orderItems(orderId: updatedOrder.id!);

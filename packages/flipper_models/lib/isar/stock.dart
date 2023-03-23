@@ -2,9 +2,11 @@ library flipper_models;
 
 import 'package:flipper_models/sync_service.dart';
 import 'package:isar/isar.dart';
+import 'package:json_annotation/json_annotation.dart';
 import 'package:pocketbase/pocketbase.dart';
 part 'stock.g.dart';
 
+@JsonSerializable()
 @Collection()
 class Stock extends IJsonSerializable {
   Id? id = null;
@@ -33,12 +35,14 @@ class Stock extends IJsonSerializable {
   @Index()
   String? remoteID;
   int? localId;
+  String? action;
   Stock(
       {required this.branchId,
       required this.variantId,
       required this.currentStock,
       required this.productId,
       this.id,
+      this.action,
       this.lowStock,
       this.supplyPrice,
       this.retailPrice,
@@ -65,7 +69,8 @@ class Stock extends IJsonSerializable {
         'active': active,
         'value': value,
         'rsdQty': rsdQty,
-        "localId": id
+        "localId": id,
+        "action": action
       };
   factory Stock.fromRecord(RecordModel record) =>
       Stock.fromJson(record.toJson());
@@ -86,6 +91,7 @@ class Stock extends IJsonSerializable {
         rsdQty: json['rsdQty']?.toDouble() ?? 0.0,
         lastTouched: json['lastTouched'],
         id: json['localId'],
+        action: json['action'],
         remoteID: json['id']);
   }
 }
