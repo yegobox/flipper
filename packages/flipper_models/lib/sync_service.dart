@@ -51,7 +51,8 @@ class SynchronizationService<M extends IJsonSerializable>
           result = await ProxyService.remoteApi
               .create(collection: json, collectionName: endpoint);
           log("created ${endpoint}");
-        } else if (json['action'] == 'update') {
+        } else if (json['action'] == 'update' &&
+            filter!.lastTouched!.isGreaterThanOrEqualTo(json['lastTouched'])) {
           result = await ProxyService.remoteApi
               .create(collection: json, collectionName: endpoint);
           log("updated ${endpoint}");
