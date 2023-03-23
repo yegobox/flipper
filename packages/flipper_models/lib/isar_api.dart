@@ -1450,6 +1450,7 @@ class IsarAPI<M> implements IsarApiInterface {
     if (data is Product) {
       Product product = data;
       product.action = 'update';
+      product.lastTouched = lastTouched;
       IChange? filter = await latestChange(
           branchId: ProxyService.box.getBranchId()!,
           model: 'products',
@@ -1469,6 +1470,7 @@ class IsarAPI<M> implements IsarApiInterface {
     if (data is Variant) {
       Variant variant = data;
       variant.action = 'update';
+      variant.lastTouched = lastTouched;
       IChange? filter = await latestChange(
           branchId: ProxyService.box.getBranchId()!,
           model: 'variants',
@@ -1482,6 +1484,7 @@ class IsarAPI<M> implements IsarApiInterface {
     if (data is Stock) {
       Stock stock = data;
       stock.action = 'update';
+      stock.lastTouched = lastTouched;
       IChange? filter = await latestChange(
           branchId: ProxyService.box.getBranchId()!,
           model: 'stocks',
