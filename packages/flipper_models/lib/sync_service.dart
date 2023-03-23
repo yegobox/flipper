@@ -56,6 +56,7 @@ class SynchronizationService<M extends IJsonSerializable>
           result = await ProxyService.remoteApi
               .create(collection: json, collectionName: endpoint);
           log("updated ${endpoint}");
+          // Product.fromJson(json);
         }
         return result ?? null;
       }

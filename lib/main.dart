@@ -525,8 +525,8 @@ void main() async {
             // darkTheme: GThemeGenerator.generateDark(),
             theme: ThemeData(
               useMaterial3: true,
-              textTheme:
-                  GoogleFonts.poppinsTextTheme().apply(bodyColor: Colors.white),
+              // textTheme:
+              //     GoogleFonts.poppinsTextTheme().apply(bodyColor: Colors.white),
               // colorSchemeSeed: Colors.red
             ),
             localizationsDelegates: [
