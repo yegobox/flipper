@@ -85,7 +85,7 @@ dev_dependencies:
   flutter_launcher_icons: ^0.11.0
   # objectbox_generator: ^1.4.0
   matcher: ^0.12.10
-  msix: ^3.8.2
+  msix: ^3.9.1
   flutter_lints: ^2.0.0
 
 flutter_icons:
@@ -117,7 +117,7 @@ msix_config:
     force_update_from_any_version: true
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
-  msix_version: 1.170.92.0
+  msix_version: 1.170.93.0
   publisher: CN=B0F98A1E-8AE8-4B2B-BD1B-F494D4F791AE
   logo_path: "./assets/icon/icon.png"
   start_menu_icon_path: "/assets/icon/icon.png"

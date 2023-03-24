@@ -81,6 +81,7 @@ dependencies:
     git:
       url: https://github.com/Jamalianpour/easy_sidemenu.git
       ref: master
+  flipper_socials: 1.0.0+1
 flutter:
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

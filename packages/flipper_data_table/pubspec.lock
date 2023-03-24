@@ -839,6 +839,13 @@ packages:
       relative: true
     source: path
     version: "0.0.1-dev.6"
+  flipper_socials:
+    dependency: "direct overridden"
+    description:
+      path: "../flipper_socials"
+      relative: true
+    source: path
+    version: "1.0.0+1"
   flipper_ui:
     dependency: "direct overridden"
     description:
@@ -867,6 +874,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_animate:
+    dependency: transitive
+    description:
+      name: flutter_animate
+      sha256: f611a67082d4c5ff9b8b7737ec7e675a22af70a94c8c3c22109f14b078d4d2bf
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.1.1+1"
   flutter_bloc:
     dependency: transitive
     description:
@@ -2011,6 +2026,14 @@ packages:
       relative: true
     source: path
     version: "1.0.0-dev.2"
+  responsive_builder:
+    dependency: transitive
+    description:
+      name: responsive_builder
+      sha256: e23ef8ce1191f878dd50d28f1496d659fc923718dbfd407b121bb167f95ba090
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.6.4"
   riverpod:
     dependency: transitive
     description:
@@ -2223,22 +2246,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.2.0"
-  stacked_core:
-    dependency: transitive
-    description:
-      name: stacked_core
-      sha256: "28889e0b3cb612bf8f13d85050df43fb386f9483bd0fba6756637d9bc7af23dd"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.2.4"
   stacked_services:
     dependency: transitive
     description:
       name: stacked_services
-      sha256: "7e9e4e2f7b507165fb029449216829e7484f4da41627cef5f3e61b8ad5867231"
+      sha256: f14486f7a7186222948e5993d7c843b5597b2074241ccb2960003acd5bd122be
       url: "https://pub.dev"
     source: hosted
-    version: "0.8.26"
+    version: "1.0.0"
   stacked_shared:
     dependency: transitive
     description:
@@ -2446,6 +2461,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.5"
+  url_strategy:
+    dependency: transitive
+    description:
+      name: url_strategy
+      sha256: "42b68b42a9864c4d710401add17ad06e28f1c1d5500c93b98c431f6b0ea4ab87"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.0"
   uuid:
     dependency: transitive
     description:

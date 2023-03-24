@@ -45,7 +45,7 @@ dependencies:
   go_router: ^3.0.1
   timeago: ^3.2.1
   pubnub: ^4.1.4
-  stacked_services: ^0.8.16
+  stacked_services: ^1.0.0
   universal_platform: ^1.0.0+1
   googleapis_auth: ^1.1.0
   get_it: ^7.2.0
