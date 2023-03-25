@@ -10,8 +10,9 @@ abstract class RemoteInterface {
       {required Map<String, dynamic> collection,
       required String collectionName});
   Future<RecordModel> update(
-      {required Map<String, dynamic> collection,
-      required String collectionName});
+      {required Map<String, dynamic> data,
+      required String collectionName,
+      required String recordId});
   void listenToChanges();
   Future<void> savePointer(
       int branchId, String? lastQuery, String model, IChange? filter);
@@ -46,13 +47,12 @@ class RemoteService implements RemoteInterface {
 
   @override
   Future<RecordModel> update({
-    required Map<String, dynamic> collection,
+    required Map<String, dynamic> data,
     required String collectionName,
+    required String recordId,
   }) async {
     try {
-      return await pb
-          .collection(collectionName)
-          .update(collectionName, body: collection);
+      return await pb.collection(collectionName).update(recordId, body: data);
     } catch (e) {
       rethrow;
     }
@@ -70,8 +70,8 @@ class RemoteService implements RemoteInterface {
     // Define a helper function to generate the filter string
     String generateFilterString(String? filterValue) {
       return filterValue != null && filterValue.isNotEmpty
-          ? 'lastTouched >= "$filterValue"'
-          : 'lastTouched >= ""';
+          ? 'lastTouched > "$filterValue"'
+          : 'lastTouched > ""';
     }
 
     // Get the latest change for each model and sync the remote data with the local database
@@ -176,6 +176,13 @@ class RemoteService implements RemoteInterface {
         if (localStock == null && stockFromRecord.branchId == branchId) {
           await ProxyService.isarApi.create(data: stockFromRecord);
         }
+      } else if (stockEvent.action == "update") {
+        Stock stockFromRecord = Stock.fromRecord(stockEvent.record!);
+        Stock? localStock = await ProxyService.isarApi
+            .getStockById(id: stockFromRecord.localId!);
+        if (localStock != null && stockFromRecord.branchId == branchId) {
+          await ProxyService.isarApi.update(data: stockFromRecord);
+        }
       }
     });
     pb.collection('variants').subscribe("*", (variantEvent) async {
@@ -187,6 +194,14 @@ class RemoteService implements RemoteInterface {
         if (localVariant == null && variant.branchId == branchId) {
           await ProxyService.isarApi.create(data: variant);
         }
+      } else if (variantEvent.action == "update") {
+        Variant variant = Variant.fromRecord(variantEvent.record!);
+
+        Variant? localVariant =
+            await ProxyService.isarApi.getVariantById(id: variant.localId!);
+        if (localVariant != null && variant.branchId == branchId) {
+          await ProxyService.isarApi.update(data: variant);
+        }
       }
     });
     pb.collection('products').subscribe("*", (productEvent) async {
@@ -197,6 +212,14 @@ class RemoteService implements RemoteInterface {
         if (localProduct == null && productFromRecord.branchId == branchId) {
           log("created product from remote");
           await ProxyService.isarApi.create(data: productFromRecord);
+        }
+      } else if (productEvent.action == "update") {
+        Product productFromRecord = Product.fromRecord(productEvent.record!);
+        Product? localProduct = await ProxyService.isarApi
+            .getProduct(id: productFromRecord.localId!);
+        if (localProduct != null && productFromRecord.branchId == branchId) {
+          log("updated product from remote");
+          await ProxyService.isarApi.update(data: productFromRecord);
         }
       }
     });

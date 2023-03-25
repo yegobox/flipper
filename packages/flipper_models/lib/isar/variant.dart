@@ -184,6 +184,7 @@ class Variant extends IJsonSerializable {
         "rsdQty": rsdQty,
         "localId": id,
         "action": action,
+        "remoteID": remoteID,
       };
   factory Variant.fromRecord(RecordModel record) =>
       Variant.fromJson(record.toJson());

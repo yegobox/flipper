@@ -32,7 +32,16 @@ class SynchronizationService<M extends IJsonSerializable>
             .join(',');
         json["itemName"] = namesString;
       }
-      if (json["name"] != "temp" || json["productName"] != "temp") {
+      if (endpoint == "stocks" && json["retailPrice"] == null ||
+          json["retailPrice"] == 0) {
+        return null;
+      }
+      if (endpoint == "products" && json["name"] == "Custom Amount") {
+        return null;
+      }
+      if (json["name"] != "temp" ||
+          json["productName"] != "temp" ||
+          json["name"] != "Custom Amount") {
         IChange? filter = await ProxyService.isarApi.latestChange(
             branchId: ProxyService.box.getBranchId()!,
             model: endpoint,
@@ -47,10 +56,10 @@ class SynchronizationService<M extends IJsonSerializable>
         if (json['action'] == 'create') {
           result = await ProxyService.remoteApi
               .create(collection: json, collectionName: endpoint);
-        } else if (json['action'] == 'update') {
-          json['action'] = 'sync';
-          result = await ProxyService.remoteApi
-              .create(collection: json, collectionName: endpoint);
+        } else if (json['action'] == 'update' && json["remoteID"] != null) {
+          json["id"] = json["remoteID"];
+          result = await ProxyService.remoteApi.update(
+              data: json, collectionName: endpoint, recordId: json["remoteID"]);
           print(endpoint);
         }
         return result;

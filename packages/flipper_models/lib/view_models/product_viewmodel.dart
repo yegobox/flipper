@@ -43,16 +43,20 @@ class ProductViewModel extends AddTenantViewModel {
     yield productService.barCode;
   }
 
+  bool? inUpdateProcess;
+
   /// Create a temporal product to use during this session of product creation
   /// the same product will be use if it is still temp product
   String kProductName = 'null';
   Future<int> getTempOrCreateProduct({int? productId}) async {
     if (productId != null) {
+      inUpdateProcess = true;
       Product? product = await ProxyService.isarApi.getProduct(id: productId);
       productService.setCurrentProduct(product: product!);
       kProductName = product.name;
+
       productService.variantsProduct(productId: product.id!);
-      rebuildUi();
+      notifyListeners();
       return product.id!;
     }
     int branchId = ProxyService.box.getBranchId()!;
@@ -337,7 +341,18 @@ class ProductViewModel extends AddTenantViewModel {
     mproduct.barCode = productService.barCode.toString();
     mproduct.color = app.currentColor;
     mproduct.color = app.currentColor;
-    mproduct.action = actions["update"];
+
+    /// we negate where remoteID is null because we want to change action to update
+    /// only if the product is already synced with the server
+    if (inUpdateProcess != null &&
+        inUpdateProcess! &&
+        mproduct.remoteID != null) {
+      mproduct.action = actions["update"];
+      mproduct.lastTouched = removeTrailingDash(Hlc.fromDate(
+              DateTime.now(), ProxyService.box.getBranchId()!.toString())
+          .toString());
+    }
+
     final response = await ProxyService.isarApi.update(data: mproduct);
     List<Variant> variants = await ProxyService.isarApi
         .getVariantByProductId(productId: mproduct.id!);
@@ -347,10 +362,18 @@ class ProductViewModel extends AddTenantViewModel {
       variant.prc = variant.retailPrice;
       variant.productId = mproduct.id!;
       variant.pkgUnitCd = "NT";
-      variant.action = actions["update"];
-      variant.lastTouched = removeTrailingDash(Hlc.fromDate(
-              DateTime.now(), ProxyService.box.getBranchId()!.toString())
-          .toString());
+
+      /// we negate where remoteID is null because we want to change action to update
+      /// only if the product is already synced with the server
+      if (inUpdateProcess != null &&
+          inUpdateProcess! &&
+          variant.remoteID != null) {
+        variant.action = actions["update"];
+        variant.lastTouched = removeTrailingDash(Hlc.fromDate(
+                DateTime.now(), ProxyService.box.getBranchId()!.toString())
+            .toString());
+      }
+
       await ProxyService.isarApi.update(data: variant);
       if (await ProxyService.isarApi.isTaxEnabled()) {
         ProxyService.tax.saveItem(variation: variant);

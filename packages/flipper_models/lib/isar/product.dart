@@ -115,7 +115,8 @@ class Product extends IJsonSerializable {
       "bindedToTenantId": bindedToTenantId,
       "isFavorite": isFavorite,
       "localId": id,
-      "action": action
+      "action": action,
+      "remoteID": remoteID,
     };
   }
 }

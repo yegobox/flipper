@@ -70,7 +70,8 @@ class Stock extends IJsonSerializable {
         'value': value,
         'rsdQty': rsdQty,
         "localId": id,
-        "action": action
+        "action": action,
+        "remoteID": remoteID,
       };
   factory Stock.fromRecord(RecordModel record) =>
       Stock.fromJson(record.toJson());
