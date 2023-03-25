@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_models/isar_models.dart' as isar;
+import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart' as material;
 import 'package:pocketbase/pocketbase.dart';
 import 'package:stacked/stacked.dart';
@@ -228,6 +229,7 @@ class AppService with ListenableServiceMixin {
 
         /// keep the local ID unchanged to avoid complication
         s.id = stockId;
+        s.action = actions["afterUpdate"];
 
         await ProxyService.isarApi.update(data: s);
       }
@@ -246,7 +248,7 @@ class AppService with ListenableServiceMixin {
 
         // /// keep the local ID unchanged to avoid complication
         va.id = variantId;
-
+        va.action = actions["afterUpdate"];
         await ProxyService.isarApi.update(data: va);
       }
     }
@@ -262,6 +264,7 @@ class AppService with ListenableServiceMixin {
 
         /// keep the local ID unchanged to avoid complication
         product.id = oldId;
+        product.action = actions["afterUpdate"];
         await ProxyService.isarApi.update(data: product);
       }
     }

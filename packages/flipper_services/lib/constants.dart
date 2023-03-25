@@ -6,6 +6,14 @@ String parkedStatus = 'parked';
 const String pendingStatus = 'pending';
 const String postPonedStatus = 'postponed';
 String addBarCode = 'addBarCode';
+Map actions = {
+  "update": "update",
+  "afterUpdate": "afterUpdate",
+  "delete": "delete",
+  "afterDelete": "afterDelete",
+  "create": "create",
+  "afterCreate": "afterCreate"
+};
 String attendance = 'attendance';
 String login = 'login';
 String selling = 'selling';

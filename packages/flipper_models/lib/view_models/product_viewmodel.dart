@@ -3,6 +3,7 @@ library flipper_models;
 // import 'package:flipper_models/isar_models.dart';
 
 import 'package:flipper_models/isar/random.dart';
+import 'package:flipper_models/isar/utils.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
@@ -14,6 +15,7 @@ import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/product_service.dart';
 
 import 'package:flipper_services/constants.dart';
+import 'package:isar_crdt/utils/hlc.dart';
 import 'package:stacked/stacked.dart';
 
 // class ProductViewModel extends BusinessHomeViewModel {
@@ -335,6 +337,7 @@ class ProductViewModel extends AddTenantViewModel {
     mproduct.barCode = productService.barCode.toString();
     mproduct.color = app.currentColor;
     mproduct.color = app.currentColor;
+    mproduct.action = actions["update"];
     final response = await ProxyService.isarApi.update(data: mproduct);
     List<Variant> variants = await ProxyService.isarApi
         .getVariantByProductId(productId: mproduct.id!);
@@ -344,6 +347,10 @@ class ProductViewModel extends AddTenantViewModel {
       variant.prc = variant.retailPrice;
       variant.productId = mproduct.id!;
       variant.pkgUnitCd = "NT";
+      variant.action = actions["update"];
+      variant.lastTouched = removeTrailingDash(Hlc.fromDate(
+              DateTime.now(), ProxyService.box.getBranchId()!.toString())
+          .toString());
       await ProxyService.isarApi.update(data: variant);
       if (await ProxyService.isarApi.isTaxEnabled()) {
         ProxyService.tax.saveItem(variation: variant);

@@ -410,12 +410,19 @@ class IsarAPI<M> implements IsarApiInterface {
     order.customerChangeDue = (cashReceived - totalPayable!);
 
     order.cashReceived = cashReceived;
+    order.lastTouched = removeTrailingDash(
+        Hlc.fromDate(DateTime.now(), ProxyService.box.getBranchId()!.toString())
+            .toString());
 
     await update(data: order);
 
     for (OrderItem item in items) {
       Stock? stock = await stockByVariantId(variantId: item.variantId);
       stock?.currentStock = stock.currentStock - item.qty;
+      stock?.action = actions["update"];
+      stock?.lastTouched = removeTrailingDash(Hlc.fromDate(
+              DateTime.now(), ProxyService.box.getBranchId()!.toString())
+          .toString());
       update(data: stock);
     }
     // remove currentOrderId from local storage to leave a room
@@ -1443,20 +1450,11 @@ class IsarAPI<M> implements IsarApiInterface {
   /// @Deprecated [endpoint] don't give the endpoint params
   @override
   Future<T?> update<T>({required T data}) async {
-    int branchId = ProxyService.box.getBranchId()!;
-    String lastTouched = removeTrailingDash(
-        Hlc.fromDate(DateTime.now(), branchId.toString()).toString());
+    // int branchId = ProxyService.box.getBranchId()!;
 
     if (data is Product) {
       Product product = data;
-      product.action = 'update';
-      product.lastTouched = lastTouched;
-      IChange? filter = await latestChange(
-          branchId: ProxyService.box.getBranchId()!,
-          model: 'products',
-          isRemoteDataSource: false);
-      ProxyService.remoteApi
-          .savePointer(branchId, lastTouched, 'products', filter);
+
       await isar.writeTxn(() async {
         return await isar.products.put(product);
       });
@@ -1469,28 +1467,12 @@ class IsarAPI<M> implements IsarApiInterface {
     }
     if (data is Variant) {
       Variant variant = data;
-      variant.action = 'update';
-      variant.lastTouched = lastTouched;
-      IChange? filter = await latestChange(
-          branchId: ProxyService.box.getBranchId()!,
-          model: 'variants',
-          isRemoteDataSource: false);
-      ProxyService.remoteApi
-          .savePointer(branchId, lastTouched, 'variants', filter);
       await isar.writeTxn(() async {
         return await isar.variants.put(variant);
       });
     }
     if (data is Stock) {
       Stock stock = data;
-      stock.action = 'update';
-      stock.lastTouched = lastTouched;
-      IChange? filter = await latestChange(
-          branchId: ProxyService.box.getBranchId()!,
-          model: 'stocks',
-          isRemoteDataSource: false);
-      ProxyService.remoteApi
-          .savePointer(branchId, lastTouched, 'stocks', filter);
       await isar.writeTxn(() async {
         return await isar.stocks.put(stock);
       });
@@ -2083,62 +2065,51 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<List<Stock>> getLocalStocks() async {
-    // get last touched of this model
-    IChange? filter = await latestChange(
-        branchId: ProxyService.box.getBranchId()!,
-        model: 'stocks',
-        isRemoteDataSource: false);
     return await isar.stocks
         .filter()
         .retailPriceGreaterThan(0)
         .or()
         .lastTouchedIsNull()
         .or()
-        .lastTouchedGreaterThan(filter?.lastTouched)
+        .actionEqualTo('update')
+        .and()
+        .branchIdEqualTo(ProxyService.box.getBranchId()!)
         .findAll();
   }
 
   @override
   Future<List<Product>> getLocalProducts() async {
-    IChange? filter = await latestChange(
-        branchId: ProxyService.box.getBranchId()!,
-        model: 'products',
-        isRemoteDataSource: false);
     return await isar.products
         .filter()
         .lastTouchedIsNull()
         .or()
-        .lastTouchedGreaterThan(filter?.lastTouched)
+        .actionEqualTo('update')
+        .and()
+        .branchIdEqualTo(ProxyService.box.getBranchId()!)
         .findAll();
   }
 
   @override
   Future<List<Variant>> getLocalVariants() async {
-    IChange? filter = await latestChange(
-        branchId: ProxyService.box.getBranchId()!,
-        model: 'variants',
-        isRemoteDataSource: false);
     return await isar.variants
         .filter()
         .retailPriceGreaterThan(0)
         .lastTouchedIsNull()
         .or()
-        .lastTouchedGreaterThan(filter?.lastTouched)
+        .actionEqualTo('update')
+        .and()
+        .branchIdEqualTo(ProxyService.box.getBranchId()!)
         .findAll();
   }
 
   @override
   Future<List<Order>> getLocalOrders() async {
-    IChange? filter = await latestChange(
-        branchId: ProxyService.box.getBranchId()!,
-        model: 'orders',
-        isRemoteDataSource: false);
     return await isar.orders
         .filter()
         .statusEqualTo(completeStatus)
         .lastTouchedIsNull()
         .or()
-        .lastTouchedGreaterThan(filter?.lastTouched)
+        .actionEqualTo('update')
         .and()
         .branchIdEqualTo(ProxyService.box.getBranchId()!)
         .findAll();

@@ -1,7 +1,3 @@
-// import 'package:pocketbase/pocketbase.dart';
-
-import 'dart:developer';
-
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar/utils.dart';
 import 'package:flipper_models/server_definitions.dart';
@@ -46,22 +42,21 @@ class SynchronizationService<M extends IJsonSerializable>
                     DateTime.now(), ProxyService.box.getBranchId()!.toString())
                 .toString());
         json["id"] = syncId();
+
         RecordModel? result;
         if (json['action'] == 'create') {
           result = await ProxyService.remoteApi
               .create(collection: json, collectionName: endpoint);
-          log("created ${endpoint}");
-        } else if (json['action'] == 'update' &&
-            json['lastTouched'].isGreaterThanOrEqualTo(filter!.lastTouched!)) {
+        } else if (json['action'] == 'update') {
+          json['action'] = 'sync';
           result = await ProxyService.remoteApi
               .create(collection: json, collectionName: endpoint);
-          log("updated ${endpoint}");
-          // Product.fromJson(json);
+          print(endpoint);
         }
-        return result ?? null;
+        return result;
       }
     }
-    return Future.value(null);
+    return null;
   }
 
   @override

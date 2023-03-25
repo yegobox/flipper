@@ -17,103 +17,108 @@ const OrderSchema = CollectionSchema(
   name: r'Order',
   id: 103494837486634173,
   properties: {
-    r'active': PropertySchema(
+    r'action': PropertySchema(
       id: 0,
+      name: r'action',
+      type: IsarType.string,
+    ),
+    r'active': PropertySchema(
+      id: 1,
       name: r'active',
       type: IsarType.bool,
     ),
     r'branchId': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'branchId',
       type: IsarType.long,
     ),
     r'cashReceived': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'cashReceived',
       type: IsarType.double,
     ),
     r'createdAt': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'createdAt',
       type: IsarType.string,
     ),
     r'customerChangeDue': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'customerChangeDue',
       type: IsarType.double,
     ),
     r'customerId': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'customerId',
       type: IsarType.long,
     ),
     r'draft': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'draft',
       type: IsarType.bool,
     ),
     r'lastTouched': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'lastTouched',
       type: IsarType.string,
     ),
     r'localId': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'localId',
       type: IsarType.long,
     ),
     r'note': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'note',
       type: IsarType.string,
     ),
     r'orderNumber': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'orderNumber',
       type: IsarType.string,
     ),
     r'orderType': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'orderType',
       type: IsarType.string,
     ),
     r'paymentType': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'paymentType',
       type: IsarType.string,
     ),
     r'receiptType': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'receiptType',
       type: IsarType.string,
     ),
     r'reference': PropertySchema(
-      id: 14,
+      id: 15,
       name: r'reference',
       type: IsarType.string,
     ),
     r'remoteID': PropertySchema(
-      id: 15,
+      id: 16,
       name: r'remoteID',
       type: IsarType.string,
     ),
     r'reported': PropertySchema(
-      id: 16,
+      id: 17,
       name: r'reported',
       type: IsarType.bool,
     ),
     r'status': PropertySchema(
-      id: 17,
+      id: 18,
       name: r'status',
       type: IsarType.string,
     ),
     r'subTotal': PropertySchema(
-      id: 18,
+      id: 19,
       name: r'subTotal',
       type: IsarType.double,
     ),
     r'updatedAt': PropertySchema(
-      id: 19,
+      id: 20,
       name: r'updatedAt',
       type: IsarType.string,
     )
@@ -222,6 +227,12 @@ int _orderEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  {
+    final value = object.action;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.createdAt.length * 3;
   {
     final value = object.lastTouched;
@@ -267,26 +278,27 @@ void _orderSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeBool(offsets[0], object.active);
-  writer.writeLong(offsets[1], object.branchId);
-  writer.writeDouble(offsets[2], object.cashReceived);
-  writer.writeString(offsets[3], object.createdAt);
-  writer.writeDouble(offsets[4], object.customerChangeDue);
-  writer.writeLong(offsets[5], object.customerId);
-  writer.writeBool(offsets[6], object.draft);
-  writer.writeString(offsets[7], object.lastTouched);
-  writer.writeLong(offsets[8], object.localId);
-  writer.writeString(offsets[9], object.note);
-  writer.writeString(offsets[10], object.orderNumber);
-  writer.writeString(offsets[11], object.orderType);
-  writer.writeString(offsets[12], object.paymentType);
-  writer.writeString(offsets[13], object.receiptType);
-  writer.writeString(offsets[14], object.reference);
-  writer.writeString(offsets[15], object.remoteID);
-  writer.writeBool(offsets[16], object.reported);
-  writer.writeString(offsets[17], object.status);
-  writer.writeDouble(offsets[18], object.subTotal);
-  writer.writeString(offsets[19], object.updatedAt);
+  writer.writeString(offsets[0], object.action);
+  writer.writeBool(offsets[1], object.active);
+  writer.writeLong(offsets[2], object.branchId);
+  writer.writeDouble(offsets[3], object.cashReceived);
+  writer.writeString(offsets[4], object.createdAt);
+  writer.writeDouble(offsets[5], object.customerChangeDue);
+  writer.writeLong(offsets[6], object.customerId);
+  writer.writeBool(offsets[7], object.draft);
+  writer.writeString(offsets[8], object.lastTouched);
+  writer.writeLong(offsets[9], object.localId);
+  writer.writeString(offsets[10], object.note);
+  writer.writeString(offsets[11], object.orderNumber);
+  writer.writeString(offsets[12], object.orderType);
+  writer.writeString(offsets[13], object.paymentType);
+  writer.writeString(offsets[14], object.receiptType);
+  writer.writeString(offsets[15], object.reference);
+  writer.writeString(offsets[16], object.remoteID);
+  writer.writeBool(offsets[17], object.reported);
+  writer.writeString(offsets[18], object.status);
+  writer.writeDouble(offsets[19], object.subTotal);
+  writer.writeString(offsets[20], object.updatedAt);
 }
 
 Order _orderDeserialize(
@@ -296,27 +308,28 @@ Order _orderDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Order(
-    active: reader.readBool(offsets[0]),
-    branchId: reader.readLong(offsets[1]),
-    cashReceived: reader.readDouble(offsets[2]),
-    createdAt: reader.readString(offsets[3]),
-    customerChangeDue: reader.readDouble(offsets[4]),
-    customerId: reader.readLongOrNull(offsets[5]),
-    draft: reader.readBool(offsets[6]),
+    action: reader.readStringOrNull(offsets[0]),
+    active: reader.readBool(offsets[1]),
+    branchId: reader.readLong(offsets[2]),
+    cashReceived: reader.readDouble(offsets[3]),
+    createdAt: reader.readString(offsets[4]),
+    customerChangeDue: reader.readDouble(offsets[5]),
+    customerId: reader.readLongOrNull(offsets[6]),
+    draft: reader.readBool(offsets[7]),
     id: id,
-    lastTouched: reader.readStringOrNull(offsets[7]),
-    localId: reader.readLongOrNull(offsets[8]),
-    note: reader.readStringOrNull(offsets[9]),
-    orderNumber: reader.readString(offsets[10]),
-    orderType: reader.readString(offsets[11]),
-    paymentType: reader.readString(offsets[12]),
-    receiptType: reader.readStringOrNull(offsets[13]),
-    reference: reader.readString(offsets[14]),
-    remoteID: reader.readStringOrNull(offsets[15]),
-    reported: reader.readBool(offsets[16]),
-    status: reader.readString(offsets[17]),
-    subTotal: reader.readDouble(offsets[18]),
-    updatedAt: reader.readStringOrNull(offsets[19]),
+    lastTouched: reader.readStringOrNull(offsets[8]),
+    localId: reader.readLongOrNull(offsets[9]),
+    note: reader.readStringOrNull(offsets[10]),
+    orderNumber: reader.readString(offsets[11]),
+    orderType: reader.readString(offsets[12]),
+    paymentType: reader.readString(offsets[13]),
+    receiptType: reader.readStringOrNull(offsets[14]),
+    reference: reader.readString(offsets[15]),
+    remoteID: reader.readStringOrNull(offsets[16]),
+    reported: reader.readBool(offsets[17]),
+    status: reader.readString(offsets[18]),
+    subTotal: reader.readDouble(offsets[19]),
+    updatedAt: reader.readStringOrNull(offsets[20]),
   );
   return object;
 }
@@ -329,44 +342,46 @@ P _orderDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readBool(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 1:
-      return (reader.readLong(offset)) as P;
-    case 2:
-      return (reader.readDouble(offset)) as P;
-    case 3:
-      return (reader.readString(offset)) as P;
-    case 4:
-      return (reader.readDouble(offset)) as P;
-    case 5:
-      return (reader.readLongOrNull(offset)) as P;
-    case 6:
       return (reader.readBool(offset)) as P;
-    case 7:
-      return (reader.readStringOrNull(offset)) as P;
-    case 8:
-      return (reader.readLongOrNull(offset)) as P;
-    case 9:
-      return (reader.readStringOrNull(offset)) as P;
-    case 10:
+    case 2:
+      return (reader.readLong(offset)) as P;
+    case 3:
+      return (reader.readDouble(offset)) as P;
+    case 4:
       return (reader.readString(offset)) as P;
+    case 5:
+      return (reader.readDouble(offset)) as P;
+    case 6:
+      return (reader.readLongOrNull(offset)) as P;
+    case 7:
+      return (reader.readBool(offset)) as P;
+    case 8:
+      return (reader.readStringOrNull(offset)) as P;
+    case 9:
+      return (reader.readLongOrNull(offset)) as P;
+    case 10:
+      return (reader.readStringOrNull(offset)) as P;
     case 11:
       return (reader.readString(offset)) as P;
     case 12:
       return (reader.readString(offset)) as P;
     case 13:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 14:
-      return (reader.readString(offset)) as P;
-    case 15:
       return (reader.readStringOrNull(offset)) as P;
-    case 16:
-      return (reader.readBool(offset)) as P;
-    case 17:
+    case 15:
       return (reader.readString(offset)) as P;
+    case 16:
+      return (reader.readStringOrNull(offset)) as P;
+    case 17:
+      return (reader.readBool(offset)) as P;
     case 18:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 19:
+      return (reader.readDouble(offset)) as P;
+    case 20:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -883,6 +898,151 @@ extension OrderQueryWhere on QueryBuilder<Order, Order, QWhereClause> {
 }
 
 extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
+  QueryBuilder<Order, Order, QAfterFilterCondition> actionIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'action',
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> actionIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'action',
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> actionEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> actionGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> actionLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> actionBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'action',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> actionStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> actionEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> actionContains(String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> actionMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'action',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> actionIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'action',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> actionIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'action',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Order, Order, QAfterFilterCondition> activeEqualTo(bool value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -2980,6 +3140,18 @@ extension OrderQueryLinks on QueryBuilder<Order, Order, QFilterCondition> {
 }
 
 extension OrderQuerySortBy on QueryBuilder<Order, Order, QSortBy> {
+  QueryBuilder<Order, Order, QAfterSortBy> sortByAction() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'action', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterSortBy> sortByActionDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'action', Sort.desc);
+    });
+  }
+
   QueryBuilder<Order, Order, QAfterSortBy> sortByActive() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'active', Sort.asc);
@@ -3222,6 +3394,18 @@ extension OrderQuerySortBy on QueryBuilder<Order, Order, QSortBy> {
 }
 
 extension OrderQuerySortThenBy on QueryBuilder<Order, Order, QSortThenBy> {
+  QueryBuilder<Order, Order, QAfterSortBy> thenByAction() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'action', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterSortBy> thenByActionDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'action', Sort.desc);
+    });
+  }
+
   QueryBuilder<Order, Order, QAfterSortBy> thenByActive() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'active', Sort.asc);
@@ -3476,6 +3660,13 @@ extension OrderQuerySortThenBy on QueryBuilder<Order, Order, QSortThenBy> {
 }
 
 extension OrderQueryWhereDistinct on QueryBuilder<Order, Order, QDistinct> {
+  QueryBuilder<Order, Order, QDistinct> distinctByAction(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'action', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<Order, Order, QDistinct> distinctByActive() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'active');
@@ -3612,6 +3803,12 @@ extension OrderQueryProperty on QueryBuilder<Order, Order, QQueryProperty> {
   QueryBuilder<Order, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<Order, String?, QQueryOperations> actionProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'action');
     });
   }
 

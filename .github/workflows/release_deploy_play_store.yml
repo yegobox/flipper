@@ -62,7 +62,7 @@ jobs:
           java-version: "11" #defines the java version
       - name: Update version in YAML
         # run: sed -i 's/1.0.1-dev.3/1.170.28+1111010198/g' pubspec.yaml
-        run: sed -i 's/1.0.1-dev.3/1.170.75+1111010275/g' pubspec.yaml
+        run: sed -i 's/1.0.1-dev.3/1.170.76+1111010276/g' pubspec.yaml
       - name: submodule init
         run: git submodule update --init
       - name: Configure Missing files
