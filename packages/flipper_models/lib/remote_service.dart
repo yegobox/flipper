@@ -132,6 +132,7 @@ class RemoteService implements RemoteInterface {
               await ProxyService.isarApi.create(data: remoteProduct);
               lastTouched = remoteProduct.lastTouched;
               await savePointer(branchId, lastTouched, model, filter);
+              //
             } else if (localProduct != null &&
                 remoteProduct.lastTouched!
                     .isGreaterThanOrEqualTo(localProduct.lastTouched!)) {
