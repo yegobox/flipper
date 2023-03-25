@@ -87,7 +87,7 @@ class Variant extends IJsonSerializable {
   @Index()
   String? remoteID;
   int? localId;
-  String? action;
+  String action;
 
   Variant(
       {required this.name,
@@ -100,8 +100,8 @@ class Variant extends IJsonSerializable {
       required this.supplyPrice,
       required this.retailPrice,
       required this.isTaxExempted,
+      required this.action,
       this.id,
-      this.action,
       this.taxName,
       this.taxPercentage,
       this.itemSeq,
@@ -236,6 +236,6 @@ class Variant extends IJsonSerializable {
         lastTouched: json['lastTouched'],
         id: json['localId'],
         remoteID: json['id'],
-        action: json["action"]);
+        action: "sync");
   }
 }

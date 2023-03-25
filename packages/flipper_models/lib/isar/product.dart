@@ -41,7 +41,7 @@ class Product extends IJsonSerializable {
   @Index()
   String? remoteID;
   int? localId;
-  String? action;
+  String action;
   final variants = IsarLinks<Variant>();
 
   Product(
@@ -49,6 +49,7 @@ class Product extends IJsonSerializable {
       required this.color,
       required this.businessId,
       required this.branchId,
+      required this.action,
       this.id,
       this.description,
       this.taxId,
@@ -64,7 +65,6 @@ class Product extends IJsonSerializable {
       this.isFavorite,
       this.lastTouched,
       this.localId,
-      this.action,
       this.remoteID});
 
   factory Product.fromRecord(RecordModel record) =>
@@ -91,7 +91,7 @@ class Product extends IJsonSerializable {
         isFavorite: json['isFavorite'],
         lastTouched: json['lastTouched'],
         id: json['localId'],
-        action: json['action'],
+        action: "sync",
         remoteID: json['id']);
   }
 

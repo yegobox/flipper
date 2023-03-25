@@ -35,14 +35,14 @@ class Stock extends IJsonSerializable {
   @Index()
   String? remoteID;
   int? localId;
-  String? action;
+  String action;
   Stock(
       {required this.branchId,
       required this.variantId,
       required this.currentStock,
       required this.productId,
+      required this.action,
       this.id,
-      this.action,
       this.lowStock,
       this.supplyPrice,
       this.retailPrice,
@@ -92,7 +92,7 @@ class Stock extends IJsonSerializable {
         rsdQty: json['rsdQty']?.toDouble() ?? 0.0,
         lastTouched: json['lastTouched'],
         id: json['localId'],
-        action: json['action'],
+        action: "sync",
         remoteID: json['id']);
   }
 }

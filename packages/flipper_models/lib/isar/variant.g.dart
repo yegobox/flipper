@@ -349,9 +349,7 @@ int _variantEstimateSize(
   var bytesCount = offsets.last;
   {
     final value = object.action;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
+    bytesCount += 3 + value.length * 3;
   }
   {
     final value = object.addInfo;
@@ -584,7 +582,7 @@ Variant _variantDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Variant(
-    action: reader.readStringOrNull(offsets[0]),
+    action: reader.readString(offsets[0]),
     addInfo: reader.readStringOrNull(offsets[1]),
     bcd: reader.readStringOrNull(offsets[2]),
     bhfId: reader.readStringOrNull(offsets[3]),
@@ -8693,7 +8691,7 @@ Variant _$VariantFromJson(Map<String, dynamic> json) => Variant(
       retailPrice: (json['retailPrice'] as num).toDouble(),
       isTaxExempted: json['isTaxExempted'] as bool,
       id: json['id'] as int?,
-      action: json['action'] as String?,
+      action: json['action'] as String,
       taxName: json['taxName'] as String?,
       taxPercentage: (json['taxPercentage'] as num?)?.toDouble(),
       itemSeq: json['itemSeq'] as String?,

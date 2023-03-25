@@ -625,6 +625,9 @@ class IsarAPI<M> implements IsarApiInterface {
       ..currentStock = 0.0
       ..branchId = branchId
       ..variantId = variant.id!
+      ..lastTouched = removeTrailingDash(Hlc.fromDate(
+              DateTime.now(), ProxyService.box.getBranchId()!.toString())
+          .toString())
       ..supplyPrice = 0.0
       ..retailPrice = 0.0
       ..lowStock = 10.0 // default static
