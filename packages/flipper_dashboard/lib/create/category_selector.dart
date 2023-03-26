@@ -1,7 +1,9 @@
 import 'package:flipper_models/isar_models.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flipper_routing/routes.router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class CategorySelector extends StatelessWidget {
   const CategorySelector({Key? key, required this.categories})
@@ -12,7 +14,11 @@ class CategorySelector extends StatelessWidget {
       {required List<Category> categories, required BuildContext context}) {
     late Text text;
     if (categories.isEmpty) {
-      return const Text('Select Category');
+      return Text(
+        'Select Category',
+        style: GoogleFonts.poppins(
+            color: Colors.black, fontSize: 17, fontWeight: FontWeight.w400),
+      );
     }
     for (Category category in categories) {
       if (category.focused) {
@@ -25,7 +31,11 @@ class CategorySelector extends StatelessWidget {
         );
         return text;
       } else {
-        text = const Text('Select Category');
+        text = Text('Select Category',
+            style: GoogleFonts.poppins(
+                color: Colors.black,
+                fontSize: 17,
+                fontWeight: FontWeight.w400));
       }
     }
     return text;
@@ -45,7 +55,13 @@ class CategorySelector extends StatelessWidget {
             },
             child: ListTile(
               contentPadding: const EdgeInsets.symmetric(horizontal: 0.3),
-              leading: const Text('Category'),
+              leading: Text(
+                'Category',
+                style: GoogleFonts.poppins(
+                    color: Colors.black,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w400),
+              ),
               trailing: Wrap(
                 children: <Widget>[
                   categorySelector(categories: categories, context: context),
@@ -55,7 +71,7 @@ class CategorySelector extends StatelessWidget {
                         color: Colors.black,
                       ),
                     ),
-                    child: const Icon(Icons.arrow_forward_ios),
+                    child: const Icon(FluentIcons.arrow_forward_20_regular),
                   )
                 ],
               ),

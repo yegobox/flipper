@@ -31,6 +31,7 @@ export 'isar/product.dart';
 export 'package:uuid/uuid.dart';
 export 'isar/drawer.dart';
 export 'exceptions.dart';
+export 'isar/extensions.dart';
 
 export 'package:flipper_models/view_models/login_viewmodel.dart';
 

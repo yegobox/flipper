@@ -106,7 +106,7 @@ class KeyPadService with ListenableServiceMixin {
     log.d('getOrder: $order');
     if (order != null) {
       List<OrderItem> items =
-          await ProxyService.isarApi.orderItems(orderId: order.id);
+          await ProxyService.isarApi.orderItems(orderId: order.id!);
       _countOrderItems.value = items.length;
     }
     _order.value = order;

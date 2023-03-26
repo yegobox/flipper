@@ -23,7 +23,7 @@ abstract class IsarApiInterface {
   Stream<List<Category>> categoriesStream({required int branchId});
   Stream<Order?> pendingOrderStream();
   Future<List<IUnit>> units({required int branchId});
-  Future<int> create<T>({required T data, required String endPoint});
+  Future<T?> create<T>({required T data});
   Future<T?> update<T>({required T data});
 
   Future<bool> delete({required dynamic id, String? endPoint});
@@ -203,4 +203,10 @@ abstract class IsarApiInterface {
   Future<String> whatsAppToken();
   Future<bool> bindProduct({required int productId, required int tenantId});
   Future<Product?> findProductByTenantId({required int tenantId});
+  Future<List<Product>> getLocalProducts();
+  Future<List<Variant>> getLocalVariants();
+  Future<List<Stock>> getLocalStocks();
+  Future<void> deleteAllProducts();
+  Future<Stock?> getStockById({required int id});
+  Future<List<Order>> getLocalOrders();
 }

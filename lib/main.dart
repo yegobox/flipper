@@ -76,16 +76,6 @@ Future<void> backgroundHandler(RemoteMessage message) async {
       tz.TZDateTime.now(tz.local).add(const Duration(seconds: 5)));
 }
 
-/// no need to override the certificate as we trust cert on yegobox domains
-// class FlipperHttpOverrides extends HttpOverrides {
-//   @override
-//   HttpClient createHttpClient(SecurityContext? context) {
-//     return super.createHttpClient(context)
-//       ..badCertificateCallback =
-//           (X509Certificate cert, String host, int port) => true;
-//   }
-// }
-
 void main() async {
   GoogleFonts.config.allowRuntimeFetching = false;
   foundation.LicenseRegistry.addLicense(() async* {
@@ -126,16 +116,18 @@ void main() async {
   }
 
   runZonedGuarded<Future<void>>(() async {
-    await SentryFlutter.init(
-      (options) {
-        options.dsn =
-            'https://f3b8abd190f84fa0abdb139178362bc2@o205255.ingest.sentry.io/6067680';
-        // Set tracesSampleRate to 1.0 to capture 100% of transactions for performance monitoring.
-        // We recommend adjusting this value in production.
-        options.tracesSampleRate = 1.0;
-        options.attachScreenshot = true;
-      },
-    );
+    if (foundation.kReleaseMode) {
+      await SentryFlutter.init(
+        (options) {
+          options.dsn =
+              'https://f3b8abd190f84fa0abdb139178362bc2@o205255.ingest.sentry.io/6067680';
+          // Set tracesSampleRate to 1.0 to capture 100% of transactions for performance monitoring.
+          // We recommend adjusting this value in production.
+          options.tracesSampleRate = 1.0;
+          options.attachScreenshot = true;
+        },
+      );
+    }
 
     final router = GoRouter(
       initialLocation: Routes.home,
@@ -533,6 +525,8 @@ void main() async {
             // darkTheme: GThemeGenerator.generateDark(),
             theme: ThemeData(
               useMaterial3: true,
+              // textTheme:
+              //     GoogleFonts.poppinsTextTheme().apply(bodyColor: Colors.white),
               // colorSchemeSeed: Colors.red
             ),
             localizationsDelegates: [

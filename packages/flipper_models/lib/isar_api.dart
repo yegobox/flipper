@@ -1,6 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_models/data.loads/jcounter.dart';
+import 'package:flipper_models/isar/utils.dart';
+import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_routing/routes.router.dart';
@@ -9,10 +12,10 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart' as foundation;
-import 'package:isar_crdt/isar_crdt.dart';
+import 'package:isar_crdt/utils/hlc.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'view_models/gate.dart';
-import 'package:async/async.dart'; // import StreamZip
+// import StreamZip
 
 final isAndroid = UniversalPlatform.isAndroid;
 
@@ -49,7 +52,7 @@ class ExtendedClient extends http.BaseClient {
   }
 }
 
-class IsarAPI implements IsarApiInterface {
+class IsarAPI<M> implements IsarApiInterface {
   final log = getLogger('IsarAPI');
   ExtendedClient client = ExtendedClient(http.Client());
   late String apihub;
@@ -98,20 +101,22 @@ class IsarAPI implements IsarApiInterface {
           ITenantSchema,
           PermissionSchema,
           CounterSchema,
-          TokenSchema
+          TokenSchema,
         ],
       );
     } else {
       isar = iisar;
     }
-    final changesSync = IsarCrdt(
-      store: IsarMasterCrdtStore<Product>(
-        isar.products,
-        builder: () => Product(),
-        sidGenerator: () => Uuid().v4(),
-      ),
-    );
-    isar.setCrdt(changesSync);
+
+    /// pausing on crdt for now work on in-house solution
+    // final changesSync = IsarCrdt(
+    //   store: IsarMasterCrdtStore<Product>(
+    //     isar.products,
+    //     builder: () => Product(),
+    //     sidGenerator: () => Uuid().v4(),
+    //   ),
+    // );
+    // isar.setCrdt(changesSync);
     return this;
   }
 
@@ -141,16 +146,6 @@ class IsarAPI implements IsarApiInterface {
     return kcustomer;
   }
 
-// https://pub.dev/packages/excel
-  @override
-  Future<List<Order>> completedOrders(
-      {required int branchId, String? status = completeStatus}) async {
-    return await isar.orders
-        .where()
-        .statusBranchIdEqualTo(status!, branchId)
-        .findAll();
-  }
-
   @override
   Stream<Order?> pendingOrderStream() {
     int? currentOrderId = ProxyService.box.currentOrderId();
@@ -164,24 +159,30 @@ class IsarAPI implements IsarApiInterface {
   }) async {
     int branchId = ProxyService.box.getBranchId()!;
 
+    String desiredDate = removeTrailingDash(
+        Hlc.fromDate(DateTime.now(), branchId.toString()).toString());
+
     Order? existOrder = await pendingOrder(branchId: branchId);
 
     if (existOrder == null) {
-      final order = Order()
-        ..reference = Uuid().v1()
-        ..orderNumber = Uuid().v1()
-        ..status = pendingStatus
-        ..orderType = orderType
-        ..active = true
-        ..draft = true
-        ..reported = false
-        ..subTotal = 0
-        ..cashReceived = 0
-        ..updatedAt = DateTime.now().toIso8601String()
-        ..customerChangeDue = 0.0
-        ..paymentType = 'Cash'
-        ..branchId = branchId
-        ..createdAt = DateTime.now().toIso8601String();
+      final order = Order(
+        id: syncIdInt(),
+        reference: syncId(),
+        orderNumber: syncId(),
+        draft: true,
+        status: pendingStatus,
+        orderType: orderType,
+        active: true,
+        reported: false,
+        subTotal: 0,
+        cashReceived: 0,
+        updatedAt: DateTime.now().toIso8601String(),
+        customerChangeDue: 0.0,
+        paymentType: 'Cash',
+        branchId: branchId,
+        createdAt: DateTime.now().toIso8601String(),
+      );
+
       // save order to db
       Order? createdOrder = await isar.writeTxn(() async {
         int id = await isar.orders.put(order);
@@ -290,7 +291,12 @@ class IsarAPI implements IsarApiInterface {
         variation.pkg = "1";
         int variantId = await isar.variants.put(variation);
         final stockId = DateTime.now().millisecondsSinceEpoch;
-        final stock = Stock()
+        final stock = Stock(
+            branchId: ProxyService.box.getBranchId()!,
+            variantId: variantId,
+            action: 'create',
+            currentStock: 0.0,
+            productId: variation.productId)
           ..id = stockId
           ..variantId = variantId
           ..lowStock = 0.0
@@ -301,7 +307,6 @@ class IsarAPI implements IsarApiInterface {
           ..canTrackingStock = false
           ..showLowStockAlert = false
           ..productId = variation.productId
-          ..value = 0
           ..active = false;
         await isar.stocks.put(stock);
       }
@@ -391,25 +396,32 @@ class IsarAPI implements IsarApiInterface {
       {required double cashReceived, required Order order}) async {
     order.status = completeStatus;
 
-    List<OrderItem> items = await orderItems(orderId: order.id);
+    List<OrderItem> items = await orderItems(orderId: order.id!);
 
     double? totalPayable = items.fold(0, (a, b) => a! + (b.price * b.qty));
 
     order.customerChangeDue = (cashReceived - totalPayable!);
 
     order.cashReceived = cashReceived;
+    order.lastTouched = removeTrailingDash(
+        Hlc.fromDate(DateTime.now(), ProxyService.box.getBranchId()!.toString())
+            .toString());
 
     await update(data: order);
 
     for (OrderItem item in items) {
       Stock? stock = await stockByVariantId(variantId: item.variantId);
       stock?.currentStock = stock.currentStock - item.qty;
+      stock?.action = actions["update"];
+      stock?.lastTouched = removeTrailingDash(Hlc.fromDate(
+              DateTime.now(), ProxyService.box.getBranchId()!.toString())
+          .toString());
       update(data: stock);
     }
     // remove currentOrderId from local storage to leave a room
     // for listening to new order that will be created
     ProxyService.box.remove(key: 'currentOrderId');
-    ProxyService.appService.backup();
+    ProxyService.appService.pushDataToServer();
   }
 
   @override
@@ -454,28 +466,6 @@ class IsarAPI implements IsarApiInterface {
   Stream<List<Business>> contacts() {
     // TODO: implement contacts
     throw UnimplementedError();
-  }
-
-  @override
-  Future<int> create<T>({required T data, required String endPoint}) {
-    if (endPoint == 'color') {
-      PColor color = data as PColor;
-      isar.writeTxn(() async {
-        for (String colorName in data.colors!) {
-          await isar.pColors.put(PColor()
-            ..name = colorName
-            ..active = color.active
-            ..branchId = color.branchId);
-        }
-      });
-    }
-    if (endPoint == 'category') {
-      Category category = data as Category;
-      isar.writeTxn(() {
-        return isar.categorys.put(category);
-      });
-    }
-    return Future.value(200);
   }
 
   @override
@@ -531,14 +521,17 @@ class IsarAPI implements IsarApiInterface {
     String itemPrefix = "flip-";
     String clip = itemPrefix +
         DateTime.now().microsecondsSinceEpoch.toString().substring(0, 5);
-    product.active = false;
+
     product.description = 'description';
     product.color = '#5A2328';
-    product.hasPicture = false;
+    product.id = syncIdInt();
     product.businessId = ProxyService.box.getBusinessId()!;
     product.branchId = ProxyService.box.getBranchId()!;
 
     final int branchId = ProxyService.box.getBranchId()!;
+
+    String lastTouched = removeTrailingDash(
+        Hlc.fromDate(DateTime.now(), branchId.toString()).toString());
 
     Product? kProduct = await isar.writeTxn(() async {
       int id = await isar.products.put(product);
@@ -546,10 +539,22 @@ class IsarAPI implements IsarApiInterface {
     });
     // save variants in isar Db with the above productId
     await isar.writeTxn(() async {
-      return isar.variants.put(
-        Variant()
+      return await isar.variants.put(
+        Variant(
+            name: 'Regular',
+            sku: 'sku',
+            action: 'create',
+            productId: kProduct!.id!,
+            unit: 'Per Item',
+            table: AppTables.variation,
+            productName: product.name,
+            branchId: ProxyService.box.getBranchId()!,
+            supplyPrice: 0.0,
+            retailPrice: 0.0,
+            id: syncIdInt(),
+            isTaxExempted: false)
           ..name = 'Regular'
-          ..productId = kProduct!.id
+          ..productId = kProduct.id!
           ..unit = 'Per Item'
           ..table = 'variants'
           ..productName = product.name
@@ -590,29 +595,35 @@ class IsarAPI implements IsarApiInterface {
     });
 
     Variant? variant =
-        await isar.variants.where().productIdEqualTo(kProduct!.id).findFirst();
+        await isar.variants.where().productIdEqualTo(kProduct!.id!).findFirst();
 
-    Stock stock = Stock()
+    Stock stock = Stock(
+        id: syncIdInt(),
+        action: 'create',
+        branchId: branchId,
+        variantId: variant!.id!,
+        currentStock: 0.0,
+        productId: kProduct.id!)
       ..canTrackingStock = false
       ..showLowStockAlert = false
       ..currentStock = 0.0
       ..branchId = branchId
-      ..variantId = variant!.id
+      ..variantId = variant.id!
+      ..lastTouched = removeTrailingDash(Hlc.fromDate(
+              DateTime.now(), ProxyService.box.getBranchId()!.toString())
+          .toString())
       ..supplyPrice = 0.0
       ..retailPrice = 0.0
       ..lowStock = 10.0 // default static
       ..canTrackingStock = true
       ..showLowStockAlert = true
-      // normaly this should be currentStock * retailPrice
-      ..value = variant.retailPrice * 0.0
       ..active = false
-      ..productId = kProduct.id
+      ..productId = kProduct.id!
       ..rsdQty = 0.0;
 
     await isar.writeTxn(() async {
-      return isar.stocks.put(stock);
+      return await isar.stocks.put(stock);
     });
-
     return kProduct;
   }
 
@@ -801,28 +812,26 @@ class IsarAPI implements IsarApiInterface {
         await isar.products.where().nameEqualTo('Custom Amount').findFirst();
     if (product == null) {
       Product newProduct = await createProduct(
-          product: Product()
+          product: Product(
+              name: "Custom Amount",
+              action: 'create',
+              businessId: businessId,
+              color: "#e74c3c",
+              branchId: businessId)
             ..branchId = branchId
-            ..draft = true
-            ..currentUpdate = true
             ..taxId = "XX"
-            ..imageLocal = false
             ..businessId = businessId
             ..name = "Custom Amount"
             ..description = "L"
-            ..active = true
-            ..hasPicture = false
-            ..table = "products"
             ..color = "#e74c3c"
             ..supplierId = "XXX"
             ..categoryId = "XXX"
             ..unit = "kg"
-            ..synced = false
             ..createdAt = DateTime.now().toIso8601String());
       // add this newProduct's variant to the RRA DB
       Variant? variant = await isar.variants
           .where()
-          .productIdEqualTo(newProduct.id)
+          .productIdEqualTo(newProduct.id!)
           .findFirst();
       if (await ProxyService.isarApi.isTaxEnabled()) {
         ProxyService.tax.saveItem(variation: variant!);
@@ -831,7 +840,7 @@ class IsarAPI implements IsarApiInterface {
     } else {
       return await isar.variants
           .where()
-          .productIdEqualTo(product.id)
+          .productIdEqualTo(product.id!)
           .findFirst();
     }
   }
@@ -1220,28 +1229,11 @@ class IsarAPI implements IsarApiInterface {
 
   @override
   Stream<List<Product>> productStreams({required int branchId}) {
-    final productsStream = isar.products
+    return isar.products
         .where()
-        .draftBranchIdEqualTo(false, branchId)
+        .branchIdEqualTo(branchId)
+        .sortByCreatedAt()
         .watch(fireImmediately: true);
-
-    final excludedProductsStream = isar.products
-        .where()
-        .nameEqualTo('temp')
-        .or()
-        .nameEqualTo('Custom Amount')
-        .watch(fireImmediately: true);
-
-    return StreamZip([productsStream, excludedProductsStream]).map((event) {
-      final List<Product> products = event[0];
-      final List<Product> excludedProducts = event[1];
-
-      // Filter out the excluded products
-      final List<Product> filteredProducts =
-          products.where((p) => !excludedProducts.contains(p)).toList();
-
-      return filteredProducts;
-    });
   }
 
   @override
@@ -1251,14 +1243,6 @@ class IsarAPI implements IsarApiInterface {
         .branchIdEqualTo(branchId)
         .build()
         .watch(fireImmediately: true);
-  }
-
-  @override
-  Future<List<Product>> products({required int branchId}) async {
-    final products =
-        await isar.products.where().branchIdEqualTo(branchId).findAll();
-
-    return products;
   }
 
   @override
@@ -1386,23 +1370,66 @@ class IsarAPI implements IsarApiInterface {
     });
   }
 
+  @override
+  Future<T?> create<T>({required T data}) async {
+    if (data is PColor) {
+      PColor color = data;
+      isar.writeTxn(() async {
+        for (String colorName in data.colors!) {
+          await isar.pColors.put(PColor()
+            ..name = colorName
+            ..active = color.active
+            ..branchId = color.branchId);
+        }
+      });
+    }
+    if (data is Category) {
+      Category category = data;
+      return await isar.writeTxn(() async {
+        await isar.categorys.put(category);
+        return Future.value(null);
+      });
+    }
+    if (data is Product) {
+      isar.writeTxn(() {
+        return isar.products.put(data);
+      });
+    }
+    if (data is Variant) {
+      await isar.writeTxn(() async {
+        await isar.variants.put(data);
+        return Future.value(null);
+      });
+    }
+    if (data is Stock) {
+      await isar.writeTxn(() async {
+        await isar.stocks.put(data);
+        return Future.value(null);
+      });
+    }
+    return Future.value(null);
+  }
+
   /// @Deprecated [endpoint] don't give the endpoint params
   @override
   Future<T?> update<T>({required T data}) async {
+    // int branchId = ProxyService.box.getBranchId()!;
+
     if (data is Product) {
-      final product = data;
+      Product product = data;
+
       await isar.writeTxn(() async {
         return await isar.products.put(product);
       });
     }
     if (data is Variant) {
-      final variant = data;
+      Variant variant = data;
       await isar.writeTxn(() async {
         return await isar.variants.put(variant);
       });
     }
     if (data is Stock) {
-      final stock = data;
+      Stock stock = data;
       await isar.writeTxn(() async {
         return await isar.stocks.put(stock);
       });
@@ -1691,7 +1718,7 @@ class IsarAPI implements IsarApiInterface {
         ..sdcId = signature.data.sdcId
         ..totRcptNo = signature.data.totRcptNo
         ..mrcNo = signature.data.mrcNo
-        ..orderId = order.id
+        ..orderId = order.id!
         ..resultDt = signature.resultDt;
       int id = await isar.receipts.put(receipt);
       // get receipt from isar db
@@ -1739,6 +1766,14 @@ class IsarAPI implements IsarApiInterface {
   Future<int> size<T>({required T object}) async {
     if (object is Product) {
       return await isar.products
+          .getSize(includeIndexes: true, includeLinks: true);
+    }
+    if (object is Variant) {
+      return await isar.variants
+          .getSize(includeIndexes: true, includeLinks: true);
+    }
+    if (object is Stock) {
+      return await isar.stocks
           .getSize(includeIndexes: true, includeLinks: true);
     }
     if (object is Counter) {
@@ -1923,29 +1958,110 @@ class IsarAPI implements IsarApiInterface {
   }
 
   @override
+  Future<List<Product>> products({required int branchId}) async {
+    return isar.writeTxn(() async {
+      return await isar.products.where().branchIdEqualTo(branchId).findAll();
+    });
+  }
+
+  /// this method is one way i.e we get to know local unsynched changes
+  /// then we send them but we are not working on the changes after this push.
+  /// those change will stay on local, so I need to work on them as well.
+
+  @override
   Stream<Order?> completedOrdersStream(
       {required String status, required int branchId}) {
-    final filter1 = isar.orders
-        .filter()
-        .statusEqualTo(status)
-        .and()
-        .reportedEqualTo(false)
-        .branchIdEqualTo(branchId);
-    final filter2 = isar.orders
+    return isar.orders
         .filter()
         .statusEqualTo(postPonedStatus)
         .reportedEqualTo(false)
-        .branchIdEqualTo(branchId);
+        .or()
+        .statusEqualTo(status)
+        .branchIdEqualTo(branchId)
+        .and()
+        .lastTouchedIsNull()
+        .build()
+        .watch(fireImmediately: true)
+        .asyncMap((event) => event.first);
+  }
 
-    final zip = StreamZip([
-      filter1.watch(fireImmediately: true),
-      filter2.watch(fireImmediately: true)
-    ]);
+// https://pub.dev/packages/excel
+  @override
+  Future<List<Order>> completedOrders(
+      {required int branchId, String? status = completeStatus}) async {
+    return await isar.orders
+        .where()
+        .statusBranchIdEqualTo(status!, branchId)
+        .findAll();
+  }
 
-    return zip.map((events) {
-      final mergedList = [...events[0], ...events[1]];
-      mergedList.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      return mergedList.isNotEmpty ? mergedList[0] : null;
+  /// Do not call this function in production
+  @override
+  Future<void> deleteAllProducts() async {
+    List<Product> products =
+        await productsFuture(branchId: ProxyService.box.getBranchId()!);
+    List<int> productIds = products.map((product) => product.id ?? 0).toList();
+    isar.writeTxn(() async {
+      isar.products.deleteAll(productIds);
     });
+  }
+
+  @override
+  Future<Stock?> getStockById({required int id}) async {
+    return isar.writeTxn(() async {
+      return await isar.stocks.get(id);
+    });
+  }
+
+  @override
+  Future<List<Stock>> getLocalStocks() async {
+    return await isar.stocks
+        .filter()
+        .retailPriceGreaterThan(0)
+        .or()
+        .lastTouchedIsNull()
+        .or()
+        .actionEqualTo('update')
+        .and()
+        .branchIdEqualTo(ProxyService.box.getBranchId()!)
+        .findAll();
+  }
+
+  @override
+  Future<List<Product>> getLocalProducts() async {
+    return await isar.products
+        .filter()
+        .lastTouchedIsNull()
+        .or()
+        .actionEqualTo('update')
+        .and()
+        .branchIdEqualTo(ProxyService.box.getBranchId()!)
+        .findAll();
+  }
+
+  @override
+  Future<List<Variant>> getLocalVariants() async {
+    return await isar.variants
+        .filter()
+        .retailPriceGreaterThan(0)
+        .lastTouchedIsNull()
+        .or()
+        .actionEqualTo('update')
+        .and()
+        .branchIdEqualTo(ProxyService.box.getBranchId()!)
+        .findAll();
+  }
+
+  @override
+  Future<List<Order>> getLocalOrders() async {
+    return await isar.orders
+        .filter()
+        .statusEqualTo(completeStatus)
+        .lastTouchedIsNull()
+        .or()
+        .actionEqualTo('update')
+        .and()
+        .branchIdEqualTo(ProxyService.box.getBranchId()!)
+        .findAll();
   }
 }

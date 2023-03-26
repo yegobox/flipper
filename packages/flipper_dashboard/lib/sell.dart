@@ -27,7 +27,7 @@ class Sell extends StatelessWidget {
         ///start by clearning the previous amountTotal and Quantity as it is confusing some time!
         model.clearPreviousSaleCounts();
         model.toggleCheckbox(variantId: -1);
-        await model.getVariants(productId: product.id);
+        await model.getVariants(productId: product.id!);
       },
       viewModelBuilder: () => BusinessHomeViewModel(),
       builder: (context, model, child) {

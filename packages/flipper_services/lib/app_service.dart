@@ -1,8 +1,9 @@
 import 'dart:async';
 
 import 'package:flipper_models/isar_models.dart' as isar;
-import 'package:flutter/material.dart' as material;
 import 'package:flipper_services/constants.dart';
+import 'package:flutter/material.dart' as material;
+import 'package:pocketbase/pocketbase.dart';
 import 'package:stacked/stacked.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flipper_models/isar_models.dart';
@@ -176,18 +177,6 @@ class AppService with ListenableServiceMixin {
     ProxyService.box.write(key: 'businessId', value: businesses.first.id);
   }
 
-  Future<void> bootstraper() async {
-    if (await ProxyService.isarApi.size(object: Product()) == 0 &&
-        ProxyService.box.getBranchId() != null) {
-      await ProxyService.isarApi.createProduct(
-          product: Product()
-            ..name = "Custom Amount"
-            ..color = "#5A2328"
-            ..branchId = ProxyService.box.getBranchId()!
-            ..businessId = ProxyService.box.getBusinessId()!);
-    }
-  }
-
   Future<void> loadCounters(isar.Business business) async {
     if (await ProxyService.isarApi.size(object: Counter()) == 0) {
       await ProxyService.isarApi
@@ -201,37 +190,82 @@ class AppService with ListenableServiceMixin {
   static Stream<String> get cleanedData => cleanedDataController.stream;
 
   // The extracted function for updating and reporting orders
-  Future<void> updateAndReportOrder(Order order, String namesString) async {
+  Future<void> pushOrders(Order order) async {
     List<OrderItem> updatedItems =
-        await ProxyService.isarApi.orderItems(orderId: order.id);
+        await ProxyService.isarApi.orderItems(orderId: order.id!);
     order.subTotal = updatedItems.fold(0, (a, b) => a + (b.price * b.qty));
 
     /// fix@issue where the createdAt synced on server is older compared to when a transaction was completed.
     order.updatedAt = DateTime.now().toIso8601String();
     order.createdAt = DateTime.now().toIso8601String();
-    await ProxyService.remoteApi.create(
-        collection:
-            order.toJson(convertIdToString: true, itemName: namesString),
-        collectionName: 'orders');
-    order.reported = true;
-    await ProxyService.isarApi.update(data: order);
+
+    RecordModel? variantRecord = await ProxyService.sync.push(order);
+    if (variantRecord != null) {
+      Order o = Order.fromRecord(variantRecord);
+      o.remoteID = variantRecord.id;
+
+      // /// keep the local ID unchanged to avoid complication
+      o.id = order.id;
+
+      await ProxyService.isarApi.update(data: o);
+    }
   }
 
-// The updated backup() method
-  Future<void> backup() async {
-    List<Order> completedOrders = await ProxyService.isarApi.completedOrders(
-      branchId: ProxyService.box.getBranchId()!,
-    );
+  Future<void> pushDataToServer() async {
+    /// push stock
+    List<Order> orders = await ProxyService.isarApi.getLocalOrders();
+    for (Order order in orders) {
+      await pushOrders(order);
+    }
 
-    for (Order completedOrder in completedOrders) {
-      if (!completedOrder.reported) {
-        String namesString = (await ProxyService.isarApi.orderItems(
-          orderId: completedOrder.id,
-        ))
-            .map((item) => item.name)
-            .join(',');
+    List<Stock> stocks = await ProxyService.isarApi.getLocalStocks();
+    for (Stock stock in stocks) {
+      int stockId = stock.id!;
 
-        await updateAndReportOrder(completedOrder, namesString);
+      RecordModel? stockRecord = await ProxyService.sync.push(stock);
+      if (stockRecord != null) {
+        Stock s = Stock.fromRecord(stockRecord);
+        s.remoteID = stockRecord.id;
+
+        /// keep the local ID unchanged to avoid complication
+        s.id = stockId;
+        s.action = actions["afterUpdate"];
+
+        await ProxyService.isarApi.update(data: s);
+      }
+    }
+
+    //push variant
+    /// get variants
+    List<Variant> variants = await ProxyService.isarApi.getLocalVariants();
+    for (Variant variant in variants) {
+      int variantId = variant.id!;
+
+      RecordModel? variantRecord = await ProxyService.sync.push(variant);
+      if (variantRecord != null) {
+        Variant va = Variant.fromRecord(variantRecord);
+        va.remoteID = variantRecord.id;
+
+        // /// keep the local ID unchanged to avoid complication
+        va.id = variantId;
+        va.action = actions["afterUpdate"];
+        await ProxyService.isarApi.update(data: va);
+      }
+    }
+
+    /// pushing products data
+    List<Product> products = await ProxyService.isarApi.getLocalProducts();
+    for (Product product in products) {
+      RecordModel? record = await ProxyService.sync.push(product);
+      int oldId = product.id!;
+      if (record != null) {
+        Product product = Product.fromRecord(record);
+        product.remoteID = record.id;
+
+        /// keep the local ID unchanged to avoid complication
+        product.id = oldId;
+        product.action = actions["afterUpdate"];
+        await ProxyService.isarApi.update(data: product);
       }
     }
   }
@@ -285,7 +319,6 @@ class AppService with ListenableServiceMixin {
       } else {
         _statusText = "";
         appBarColor(material.Colors.black);
-        backup();
       }
       notifyListeners();
     });

@@ -1,37 +1,66 @@
-// import 'package:pocketbase/pocketbase.dart';
-
+import 'package:flipper_models/isar/random.dart';
+import 'package:flipper_models/isar/utils.dart';
 import 'package:flipper_models/server_definitions.dart';
+import 'package:flipper_models/sync.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:isar_crdt/utils/hlc.dart';
+import 'package:pocketbase/pocketbase.dart';
 
-abstract class JsonSerializable {
+abstract class IJsonSerializable {
   Map<String, dynamic> toJson();
 }
 
-class SynchronizationService<M extends JsonSerializable> {
-  /// read the entire isar models
-  /// see changes in them
-  /// if there is change send them to appropriate endpoint on
-  /// our sync server
-  // ignore: todo
-  /// TODO: how will I know the model type if I make it generic like bellow?
-  /// this method is
-  /// how do we know changes to send?
-  /// We can have strategy 1:
-  /// fetch data from remote first
-  /// if there conflict on local replace data and move on
-  void sendChanges(List<M> models) {
-    for (M model in models) {
-      Type modelType = model.runtimeType;
-      // Use the model type to get the corresponding endpoint from the map
-      String? endpoint = serverDefinitions[modelType];
-      if (endpoint == null) {
-        throw ArgumentError('Unsupported model type: $modelType');
-      }
+class SynchronizationService<M extends IJsonSerializable>
+    implements SyncApiInterface<M> {
+  @override
+  Future<RecordModel?> push(M model) async {
+    Type modelType = model.runtimeType;
+    // Use the model type to get the corresponding endpoint from the map
+    String? endpoint = serverDefinitions[modelType];
+
+    if (endpoint != null) {
       // Convert the model to JSON using the `toJson()` method
       Map<String, dynamic> json = model.toJson();
+
+      if (endpoint == "orders") {
+        String namesString = (await ProxyService.isarApi.orderItems(
+          orderId: json["localId"],
+        ))
+            .map((item) => item.name)
+            .join(',');
+        json["itemName"] = namesString;
+      }
+      if (endpoint == "stocks" && json["retailPrice"] == null ||
+          json["retailPrice"] == 0) {
+        return null;
+      }
+      // if (endpoint == "products" && json["name"] == "Custom Amount") {
+      //   return null;
+      // }
+      if (json["name"] != "temp" || json["productName"] != "temp") {
+        json["lastTouched"] = removeTrailingDash(Hlc.fromDate(
+                DateTime.now(), ProxyService.box.getBranchId()!.toString())
+            .toString());
+        json["id"] = syncId();
+
+        RecordModel? result;
+        if (json['action'] == 'create') {
+          result = await ProxyService.remoteApi
+              .create(collection: json, collectionName: endpoint);
+        } else if (json['action'] == 'update' && json["remoteID"] != null) {
+          json["id"] = json["remoteID"];
+          result = await ProxyService.remoteApi.update(
+              data: json, collectionName: endpoint, recordId: json["remoteID"]);
+          print(endpoint);
+        }
+        return result;
+      }
     }
+    return null;
   }
 
-  void receiveChanges() {
-    // ProxyService.remoteApi.
+  @override
+  void pull() async {
+    ProxyService.remoteApi.listenToChanges();
   }
 }

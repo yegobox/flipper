@@ -1,4 +1,5 @@
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 
 class RetailPrice extends StatelessWidget {
@@ -22,7 +23,7 @@ class RetailPrice extends StatelessWidget {
           decoration: InputDecoration(
               enabled: true,
               border: const OutlineInputBorder(),
-              suffixIcon: const Icon(Icons.book),
+              suffixIcon: const Icon(FluentIcons.money_24_regular),
               hintText: FLocalization.of(context).retailPrice),
         ),
       ),

@@ -46,7 +46,18 @@ final List<Map<String, dynamic>> mockUnits = [
 ];
 
 // variation mock
-final variationMock = Variant()
+final variationMock = Variant(
+    action: 'create',
+    name: 'Regular',
+    sku: 'sku',
+    productId: 2,
+    unit: 'Per Item',
+    table: 'variants',
+    productName: 'Custom Amount',
+    branchId: 11,
+    supplyPrice: 0.0,
+    retailPrice: 0.0,
+    isTaxExempted: false)
   ..id = DateTime.now().millisecondsSinceEpoch
   ..name = 'Regular'
   ..sku = 'sku'
@@ -61,7 +72,12 @@ final variationMock = Variant()
   ..supplyPrice = 0.0;
 
 // stock
-final stockMock = Stock()
+final stockMock = Stock(
+    branchId: 11,
+    variantId: 1,
+    currentStock: 0.0,
+    productId: 2,
+    action: 'create')
   ..id = DateTime.now().millisecondsSinceEpoch
   ..branchId = 11
   ..variantId = 1
@@ -70,59 +86,58 @@ final stockMock = Stock()
   ..supplyPrice = 0.0
   ..retailPrice = 0.0
   ..canTrackingStock = false
-  ..value = 0
   ..showLowStockAlert = false
   ..productId = 2
   ..active = false;
 
 // order mock
-Order? OrderFMock = Order()
-  ..id = DateTime.now().millisecondsSinceEpoch
-  ..reference = 'caa5cbf1-b3c3-11'
-  ..orderNumber = 'caa5cbf1-b3c3-'
-  ..branchId = 11
-  ..status = 'pending'
-  ..orderType = 'local'
-  ..active = true
-  ..draft = true
-  ..subTotal = 300
-  ..cashReceived = 300
-  ..customerChangeDue = 0.0
-  ..createdAt = DateTime.now().toIso8601String()
-  ..paymentType = 'Cash';
+Order? OrderFMock = Order(
+  reference: Uuid().v1(),
+  orderNumber: Uuid().v1(),
+  draft: true,
+  status: "pending",
+  orderType: 'local',
+  active: true,
+  reported: false,
+  subTotal: 0,
+  cashReceived: 0,
+  updatedAt: DateTime.now().toIso8601String(),
+  customerChangeDue: 0.0,
+  paymentType: 'Cash',
+  branchId: 11,
+  createdAt: DateTime.now().toIso8601String(),
+);
 
 final AppService _appService = locator<AppService>();
 
-final customProductMock = Product()
-  ..draft = true
-  ..currentUpdate = true
+final customProductMock = Product(
+    action: 'create',
+    name: "temp",
+    businessId: _appService.businessId!,
+    color: "#e74c3c",
+    branchId: _appService.branchId!)
   ..taxId = "XX"
-  ..imageLocal = false
   ..businessId = _appService.businessId!
-  ..name = "Custom Amount"
+  ..name = "temp"
   ..branchId = _appService.branchId!
   ..description = "L"
-  ..active = true
-  ..hasPicture = false
-  ..table = "products"
   ..color = "#e74c3c"
   ..supplierId = "XXX"
   ..categoryId = "XXX"
   ..unit = "kg"
   ..createdAt = DateTime.now().toIso8601String();
 
-final productMock = Product()
-  ..draft = true
-  ..currentUpdate = true
+final productMock = Product(
+    action: 'create',
+    name: "temp",
+    businessId: _appService.businessId!,
+    color: "#e74c3c",
+    branchId: _appService.branchId!)
   ..taxId = "XX"
-  ..imageLocal = false
   ..businessId = _appService.businessId!
   ..name = "temp"
   ..branchId = _appService.branchId!
   ..description = "L"
-  ..active = true
-  ..hasPicture = false
-  ..table = "products"
   ..color = "#e74c3c"
   ..supplierId = "XXX"
   ..categoryId = "XXX"

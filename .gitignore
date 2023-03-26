@@ -62,3 +62,4 @@ pubspec_overrides.yaml
 .packages
 .flutter-plugins
 .env
+pubspec_overrides.yaml

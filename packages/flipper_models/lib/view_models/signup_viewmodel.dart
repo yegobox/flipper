@@ -113,8 +113,7 @@ class SignupViewModel extends FormViewModel {
         ..focused = true
         ..name = 'NONE'
         ..branchId = branches[0].id!;
-      await ProxyService.isarApi
-          .create<Category>(data: category, endPoint: 'category');
+      await ProxyService.isarApi.create<Category>(data: category);
       //get default colors for this branch
       final List<String> colors = [
         '#d63031',
@@ -136,7 +135,7 @@ class SignupViewModel extends FormViewModel {
         ..branchId = branches[0].id
         ..name = 'sample';
 
-      await ProxyService.isarApi.create<PColor>(data: color, endPoint: 'color');
+      await ProxyService.isarApi.create<PColor>(data: color);
       //now create default units for this branch
       final units = IUnit()
         ..name = 'Per Kilogram (kg)'
@@ -148,7 +147,7 @@ class SignupViewModel extends FormViewModel {
       await ProxyService.isarApi.addUnits(data: units);
 
       //now create a default custom product
-      appService.bootstraper();
+      ProxyService.forceDateEntry.caller();
       ProxyService.whatsApp.optIn();
 
       loginInfo.isLoggedIn = true;

@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flipper_login/colors.dart';
 import 'package:flipper_routing/routes.router.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flipper_models/isar_models.dart';
@@ -13,7 +14,6 @@ class ProductRow extends StatelessWidget {
     Key? key,
     required this.color,
     required this.name,
-    required this.hasImage,
     this.imageUrl,
     required this.stocks,
     required this.addToMenu,
@@ -25,7 +25,6 @@ class ProductRow extends StatelessWidget {
   }) : super(key: key);
   final String color;
   final String name;
-  final bool hasImage;
   final String? imageUrl;
   final Product product;
   final Function delete;
@@ -38,7 +37,7 @@ class ProductRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Slidable(
-      key: Key('slidable-${product.id}'),
+      key: Key('slidable-${product.id!}'),
       child: GestureDetector(
         onTap: () {
           GoRouter.of(context).push(Routes.sell, extra: product);
@@ -54,7 +53,7 @@ class ProductRow extends StatelessWidget {
             leading: SizedBox(
               height: MediaQuery.of(context).size.height,
               width: 58,
-              child: !hasImage
+              child: imageUrl == null
                   ? TextDrawable(
                       backgroundColor: HexColor(color),
                       text: name,
@@ -111,27 +110,27 @@ class ProductRow extends StatelessWidget {
       startActionPane: ActionPane(
         // A motion is a widget used to control how the pane animates.
         motion: ScrollMotion(
-          key: Key('dismissable-${product.id}'),
+          key: Key('dismissable-${product.id!}'),
         ),
         // All actions are defined in the children parameter.
         children: [
           // A SlidableAction can have an icon and/or a label.
           SlidableAction(
             onPressed: (_) {
-              delete(product.id);
+              delete(product.id!);
             },
             backgroundColor: const Color(0xFFFE4A49),
             foregroundColor: Colors.white,
-            icon: Icons.delete,
+            icon: FluentIcons.delete_20_regular,
             label: 'Delete',
           ),
           SlidableAction(
             onPressed: (_) {
-              edit(product.id);
+              edit(product.id!);
             },
             backgroundColor: Colors.blue,
             foregroundColor: Colors.white,
-            icon: Icons.edit,
+            icon: FluentIcons.edit_24_regular,
             label: 'Edit',
           ),
           SlidableAction(
@@ -150,27 +149,18 @@ class ProductRow extends StatelessWidget {
       endActionPane: ActionPane(
         // A motion is a widget used to control how the pane animates.
         motion: ScrollMotion(
-          key: Key('dismissable-${product.id}'),
+          key: Key('dismissable-${product.id!}'),
         ),
         // All actions are defined in the children parameter.
         children: [
           // A SlidableAction can have an icon and/or a label.
           SlidableAction(
             onPressed: (_) {
-              delete(product.id);
-            },
-            backgroundColor: const Color(0xFFFE4A49),
-            foregroundColor: Colors.white,
-            icon: Icons.delete,
-            label: 'Delete',
-          ),
-          SlidableAction(
-            onPressed: (_) {
-              edit(product.id);
+              edit(product.id!);
             },
             backgroundColor: Colors.blue,
             foregroundColor: Colors.white,
-            icon: Icons.edit,
+            icon: FluentIcons.edit_24_regular,
             label: 'Edit',
           )
         ],

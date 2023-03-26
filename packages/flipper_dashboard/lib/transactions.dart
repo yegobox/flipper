@@ -1,5 +1,6 @@
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -176,7 +177,7 @@ class _TransactionsState extends State<Transactions> {
                 Text(order.subTotal.toString()),
                 const Spacer(),
                 Text(order.createdAt.toString().substring(11, 19)),
-                const Icon(Icons.arrow_forward_ios),
+                const Icon(FluentIcons.arrow_forward_20_regular),
               ],
             ),
           ),

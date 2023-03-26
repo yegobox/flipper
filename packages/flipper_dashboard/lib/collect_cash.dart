@@ -228,7 +228,7 @@ class _CollectCashViewState extends State<CollectCashView> {
         },
         onViewModelReady: (model) {
           nub.PubNub pubnub = ProxyService.event.connect();
-          ProxyService.box.write(key: 'orderId', value: model.kOrder!.id);
+          ProxyService.box.write(key: 'orderId', value: model.kOrder!.id!);
           nub.Subscription subscription =
               pubnub.subscribe(channels: {"payment"});
           subscription.messages.listen((event) {

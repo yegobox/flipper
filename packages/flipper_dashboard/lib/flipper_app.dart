@@ -46,13 +46,21 @@ class _FlipperAppState extends State<FlipperApp>
     await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
   }
 
+  bool _initialized = false;
+
   @override
   void initState() {
     super.initState();
     if (isAndroid) {
       _disableScreenshots();
     }
-
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_initialized) {
+        // ProxyService.isarApi.deleteAllProducts();
+        InitApp.init();
+        _initialized = true;
+      }
+    });
     if (mounted) {
       WidgetsBinding.instance.addObserver(this);
       _tabController = TabController(length: 3, vsync: this);
@@ -89,19 +97,17 @@ class _FlipperAppState extends State<FlipperApp>
       // AppLifecycleState.
       case AppLifecycleState.resumed:
         nfc();
-        ProxyService.appService.backup();
+        ProxyService.appService.pushDataToServer();
         break;
       case AppLifecycleState.paused:
         // AppService.cleanedDataController.close();
-        ProxyService.appService.backup();
+        ProxyService.appService.pushDataToServer();
         break;
       default:
-        ProxyService.appService.backup();
+        ProxyService.appService.pushDataToServer();
         break;
     }
   }
-
-  bool _initAppCalled = false;
 
   @override
   Widget build(BuildContext context) {
@@ -109,11 +115,6 @@ class _FlipperAppState extends State<FlipperApp>
         fireOnViewModelReadyOnce: true,
         viewModelBuilder: () => BusinessHomeViewModel(),
         onViewModelReady: (model) async {
-          if (!_initAppCalled) {
-            _initAppCalled = true;
-            InitApp.init();
-          }
-
           /// if there is current order ongoing show them when the app starts
           model.currentOrder();
           ProxyService.dynamicLink.handleDynamicLink(context);

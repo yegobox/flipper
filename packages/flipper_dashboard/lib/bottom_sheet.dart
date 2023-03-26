@@ -1,5 +1,6 @@
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_ui/bottom_sheets/general_bottom_sheet.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
@@ -90,12 +91,12 @@ void preferences(
         const ListTile(
           leading: Icon(Ionicons.search),
           title: Text('Accessibility'),
-          trailing: Icon(Icons.arrow_forward_ios),
+          trailing: Icon(FluentIcons.arrow_forward_20_regular),
         ),
       ListTile(
         leading: const Icon(Ionicons.language),
         title: const Text('Language'),
-        trailing: const Icon(Icons.arrow_forward_ios),
+        trailing: const Icon(FluentIcons.arrow_forward_20_regular),
         onTap: () {
           bottomSheetBuilder(
             context: context,
@@ -142,7 +143,7 @@ void preferences(
       ListTile(
         leading: const Icon(Ionicons.keypad),
         title: const Text('Reports'),
-        trailing: const Icon(Icons.arrow_forward_ios),
+        trailing: const Icon(FluentIcons.arrow_forward_20_regular),
         onTap: () {
           bottomSheetBuilder(
             header: header(title: 'Reports', context: context),
@@ -192,7 +193,7 @@ void preferences(
         ListTile(
           leading: const Icon(Ionicons.sync),
           title: const Text('BackUps'),
-          trailing: const Icon(Icons.arrow_forward_ios),
+          trailing: const Icon(FluentIcons.arrow_forward_20_regular),
           onTap: () {
             bottomSheetBuilder(
               context: context,
@@ -247,7 +248,7 @@ void preferences(
         ListTile(
           leading: const Icon(Ionicons.analytics),
           title: const Text('Analytics'),
-          trailing: const Icon(Icons.arrow_forward_ios),
+          trailing: const Icon(FluentIcons.arrow_forward_20_regular),
           onTap: () {
             GoRouter.of(context).push(Routes.analytics);
           },
@@ -256,7 +257,7 @@ void preferences(
         ListTile(
           leading: const Icon(Ionicons.sync),
           title: const Text('Sync'),
-          trailing: const Icon(Icons.arrow_forward_ios),
+          trailing: const Icon(FluentIcons.arrow_forward_20_regular),
           onTap: () {
             bottomSheetBuilder(
               header: header(title: 'Sync', context: context),
@@ -284,7 +285,7 @@ void preferences(
           Icons.center_focus_weak,
         ),
         title: const Text('QR Code'),
-        trailing: const Icon(Icons.arrow_forward_ios),
+        trailing: const Icon(FluentIcons.arrow_forward_20_regular),
         onTap: () {
           bottomSheetBuilder(
             header: header(title: 'Qr Mode', context: context),
@@ -405,13 +406,13 @@ void addWorkSpace({required BuildContext context}) {
               ListTile(
                 leading: const Icon(Ionicons.language),
                 title: const Text('Language'),
-                trailing: const Icon(Icons.arrow_forward_ios),
+                trailing: const Icon(FluentIcons.arrow_forward_20_regular),
                 onTap: () {},
               ),
             ListTile(
               leading: const Icon(Ionicons.keypad),
               title: const Text('Enable report'),
-              trailing: const Icon(Icons.arrow_forward_ios),
+              trailing: const Icon(FluentIcons.arrow_forward_20_regular),
               onTap: () {},
             ),
           ]);

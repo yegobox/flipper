@@ -81,7 +81,7 @@ class _TransactionDetailState extends State<TransactionDetail> {
         viewModelBuilder: () => BusinessHomeViewModel(),
         onViewModelReady: (model) async {
           List<OrderItem> items =
-              await ProxyService.isarApi.orderItems(orderId: widget.order.id);
+              await ProxyService.isarApi.orderItems(orderId: widget.order.id!);
 
           model.completedOrderItemsList = items;
         },
@@ -122,7 +122,7 @@ class _TransactionDetailState extends State<TransactionDetail> {
   Future<void> refund(int id, BusinessHomeViewModel model) async {
     ProxyService.isarApi.refund(itemId: id);
     List<OrderItem> items =
-        await ProxyService.isarApi.orderItems(orderId: widget.order.id);
+        await ProxyService.isarApi.orderItems(orderId: widget.order.id!);
 
     model.completedOrderItemsList = items;
   }

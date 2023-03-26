@@ -1,17 +1,13 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flipper_models/isar_models.dart';
-import 'package:flipper_services/abstractions/printer.dart';
 import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flipper_routing/routes.locator.dart';
-import 'package:flipper_services/setting_service.dart';
+import 'package:flutter/foundation.dart';
 
 class CronService {
-  final settingService = locator<SettingsService>();
-  final printer = locator<Printer>();
   final log = getLogger('CronService');
   final drive = GoogleDrive();
 
@@ -33,6 +29,11 @@ class CronService {
     //save the device token to firestore if it is not already there
     Business? business = await ProxyService.isarApi.getBusiness();
     String? token;
+    Timer.periodic(Duration(minutes: kDebugMode ? 1 : 2), (Timer t) async {
+      /// get a list of local copy of product to sync
+      ProxyService.appService.pushDataToServer();
+      ProxyService.sync.pull();
+    });
     if (!Platform.isWindows) {
       token = await FirebaseMessaging.instance.getToken();
 
@@ -50,8 +51,6 @@ class CronService {
     // this sill make more sence once we implement the sync that is when we will implement such solution
 
     Timer.periodic(Duration(minutes: 10), (Timer t) async {
-      ProxyService.appService.backup();
-
       /// get unsynced counter and send them online for houseKeping.
       List<Counter> counters = await ProxyService.isarApi
           .unSyncedCounters(branchId: ProxyService.box.getBranchId()!);

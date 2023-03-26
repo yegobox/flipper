@@ -187,18 +187,18 @@ class _AddProductViewState extends State<AddProductView> {
                 // retailPriceController this is to present missing out key stroke.
                 await model.updateRegularVariant(
                     retailPrice: double.parse(retailPriceController.text),
-                    productId: model.product.id);
+                    productId: model.product.id!);
                 await model.updateRegularVariant(
                     supplyPrice:
                         double.tryParse(supplyPriceController.text) ?? 0.0,
-                    productId: model.product.id);
+                    productId: model.product.id!);
 
                 GoRouter.of(context).pop();
               },
               rightActionButtonName: 'Save',
               icon: Icons.close,
               multi: 3,
-              bottomSpacer: 41,
+              bottomSpacer: 48.99,
             ),
             body: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
@@ -211,7 +211,13 @@ class _AddProductViewState extends State<AddProductView> {
                           currentColor: model.app.currentColor,
                           product: model.product,
                         ),
-                  const Text('Product'),
+                  Text(
+                    'Product',
+                    style: GoogleFonts.poppins(
+                        color: Colors.black,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w400),
+                  ),
                   Padding(
                     padding: const EdgeInsets.only(left: 18, right: 18),
                     child: SizedBox(
@@ -236,7 +242,9 @@ class _AddProductViewState extends State<AddProductView> {
                       width: double.infinity,
                       child: Text('PRICE AND INVENTORY',
                           style: GoogleFonts.poppins(
-                              fontSize: 20, color: Colors.black)),
+                              color: Colors.black,
+                              fontSize: 17,
+                              fontWeight: FontWeight.w400)),
                     ),
                   ),
                   const CenterDivider(
@@ -258,10 +266,9 @@ class _AddProductViewState extends State<AddProductView> {
                         double? parsedValue = double.tryParse(value);
                         if (parsedValue != null) {
                           model.lockButton(false);
-                          log.i(parsedValue);
                           await model.updateRegularVariant(
                               retailPrice: parsedValue,
-                              productId: model.product.id);
+                              productId: model.product.id!);
                         } else {
                           model.lockButton(true);
                           return '.';
@@ -281,7 +288,7 @@ class _AddProductViewState extends State<AddProductView> {
                         if (parsedValue != null) {
                           await model.updateRegularVariant(
                               supplyPrice: parsedValue,
-                              productId: model.product.id);
+                              productId: model.product.id!);
                         } else {
                           return '.';
                         }
@@ -300,8 +307,9 @@ class _AddProductViewState extends State<AddProductView> {
                                         model.product.expiryDate == null))
                                 ? 'Expiry Date'
                                 : 'Expires at ' +
-                                    formatter.format(DateTime.parse(
-                                        model.product.expiryDate)),
+                                    formatter.format(DateTime.tryParse(
+                                            model.product.expiryDate) ??
+                                        DateTime.now()),
                             style: GoogleFonts.poppins(
                               fontSize: 16.0,
                               fontWeight: FontWeight.w400,
@@ -364,12 +372,12 @@ class _AddProductViewState extends State<AddProductView> {
                       child: TextButton(
                         child: Text('Add Variation',
                             style: GoogleFonts.poppins(
-                              fontSize: 16.0,
-                              fontWeight: FontWeight.w500,
-                            )),
+                                color: Colors.black,
+                                fontSize: 17,
+                                fontWeight: FontWeight.w400)),
                         onPressed: () {
                           model.navigateAddVariation(
-                              context: context, productId: model.product.id!);
+                              context: context, productId: model.product.id!!);
                         },
                       ),
                     ),

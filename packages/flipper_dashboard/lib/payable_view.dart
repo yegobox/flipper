@@ -3,6 +3,7 @@ import 'package:flipper_dashboard/preview_sale_button.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class PayableView extends StatelessWidget {
   const PayableView(
@@ -81,9 +82,9 @@ class PayableView extends StatelessWidget {
       return Text(
         FLocalization.of(context).tickets,
         textAlign: TextAlign.center,
-        style: const TextStyle(
-          fontSize: 19,
-          fontWeight: FontWeight.w500,
+        style: GoogleFonts.poppins(
+          fontSize: 17,
+          fontWeight: FontWeight.w400,
           color: Colors.black,
         ),
       );
@@ -94,9 +95,9 @@ class PayableView extends StatelessWidget {
           Text(
             FLocalization.of(context).save,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 19,
-              fontWeight: FontWeight.w500,
+            style: GoogleFonts.poppins(
+              fontSize: 17,
+              fontWeight: FontWeight.w400,
               color: Colors.black,
             ),
           ),
@@ -104,8 +105,8 @@ class PayableView extends StatelessWidget {
             orders.toString() + ' New Item' + (tickets > 1 ? 's' : ''),
             textAlign: TextAlign.center,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 15,
+            style: GoogleFonts.poppins(
+              fontSize: 17,
               fontWeight: FontWeight.w400,
               color: Colors.black,
             ),
@@ -113,7 +114,12 @@ class PayableView extends StatelessWidget {
         ],
       );
     } else {
-      return const SizedBox.shrink();
+      return Text(
+        "Error: Invalid parameters passed to ticketText",
+        textAlign: TextAlign.center,
+        style: GoogleFonts.poppins(
+            fontSize: 17, fontWeight: FontWeight.w400, color: Colors.red),
+      );
     }
   }
 }

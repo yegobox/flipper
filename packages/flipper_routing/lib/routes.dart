@@ -31,3 +31,11 @@ class AppSetup {
 // FIXME: use dart-define for secrets
 // https://thiele.dev/blog/part-1-configure-a-flutter-app-with-dart-define-environment-variable/
 // flutter pub run msix:create
+// TODO: implement SNS notification as well
+// https://medium.com/iiitians-network/flutter-push-notifications-using-aws-sns-dac464c1edf0
+// TODO: implement quick action on mobile
+// https://www.youtube.com/watch?v=sqw-taR2_Ww
+// TODO: implement shortcut https://www.youtube.com/watch?v=WMVoNA5cY9A 
+//TODO: can I sync data acrross connect bluethooth?? https://github.com/boskokg/flutter_blue_plus
+// FIXME: https://github.com/isar/isar/issues/686
+// TODO: tip for pro flutter web: https://www.youtube.com/watch?v=ZFx9leiFlvM

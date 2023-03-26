@@ -39,7 +39,7 @@ class HttpUpload implements UploadT {
     Luban.compressImage(compressObject).then((_path) {
       final String fileName = _path!.split('/').removeLast();
       final String storagePath = _path.replaceAll('/' + fileName, '');
-      // final Document productUpdated = _databaseService.getById(id: product.id!);
+      // final Document productUpdated = _databaseService.getById(id: product.id!!);
       // _state.setProduct(product: Product.fromMap(productUpdated.map));
       // final bool internetAvailable = await isInternetAvailable();
       log.i('we got here');
@@ -132,9 +132,7 @@ class MobileUpload implements UploadT {
           Product? product =
               await ProxyService.isarApi.getProduct(id: productId);
           // Map map = product!.toJson();
-          product!.picture = uploadResponse.url;
-          product.imageUrl = uploadResponse.url;
-          product.hasPicture = true;
+          product!.imageUrl = uploadResponse.url;
           log.i(productId);
           ProxyService.isarApi.update(data: product);
           Product? kProduct =

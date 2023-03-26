@@ -1,10 +1,12 @@
 import 'package:flipper_routing/routes.router.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flipper_services/proxy.dart';
 // import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/isar_models.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class VariationList extends StatelessWidget {
   const VariationList({
@@ -24,7 +26,7 @@ class VariationList extends StatelessWidget {
         list.add(
           StreamBuilder<Stock>(
             stream: ProxyService.isarApi.stockByVariantIdStream(
-              variantId: variations[i].id,
+              variantId: variations[i].id!,
             ),
             builder: (context, snapshot) {
               final Stock? stock = snapshot.data;
@@ -36,11 +38,14 @@ class VariationList extends StatelessWidget {
                     width: double.infinity,
                     child: Column(children: <Widget>[
                       ListTile(
-                        leading: const Icon(
-                          Icons.dehaze,
-                        ),
+                        leading: Icon(FluentIcons.cart_24_regular),
                         subtitle: Text(
-                            '${variations[i].name} \nRWF ${variations[i].retailPrice}'),
+                          '${variations[i].name} \nRWF ${variations[i].retailPrice}',
+                          style: GoogleFonts.poppins(
+                              color: Colors.black,
+                              fontSize: 17,
+                              fontWeight: FontWeight.w400),
+                        ),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: <Widget>[
@@ -50,6 +55,10 @@ class VariationList extends StatelessWidget {
                                     ? 'Receive Stock'
                                     : stock.currentStock.toString() +
                                         ' in stock',
+                                style: GoogleFonts.poppins(
+                                    color: Colors.black,
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w400),
                               ),
                               onPressed: () {
                                 GoRouter.of(context).push(Routes.stock +
@@ -75,7 +84,7 @@ class VariationList extends StatelessWidget {
                       },
                       backgroundColor: const Color(0xFFFE4A49),
                       foregroundColor: Colors.white,
-                      icon: Icons.delete,
+                      icon: FluentIcons.delete_20_regular,
                       label: 'Delete',
                     ),
                   ],
@@ -92,7 +101,7 @@ class VariationList extends StatelessWidget {
                       },
                       backgroundColor: const Color(0xFFFE4A49),
                       foregroundColor: Colors.white,
-                      icon: Icons.delete,
+                      icon: FluentIcons.delete_20_regular,
                       label: 'Delete',
                     ),
                   ],

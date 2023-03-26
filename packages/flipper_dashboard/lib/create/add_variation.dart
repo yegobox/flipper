@@ -58,7 +58,18 @@ class _AddVariationState extends State<AddVariation> {
                 if (AddVariation._formKey.currentState!.validate()) {
                   final variantId = DateTime.now().millisecondsSinceEpoch;
                   List<Variant> variations = [];
-                  Variant data = Variant()
+                  Variant data = Variant(
+                      name: nameController.text,
+                      sku: sku,
+                      action: "create",
+                      productId: model.product.id!,
+                      unit: model.productService.currentUnit!,
+                      table: AppTables.variation,
+                      productName: nameController.text,
+                      branchId: ProxyService.box.getBranchId()!,
+                      supplyPrice: double.parse(costController.text),
+                      retailPrice: double.parse(retailController.text),
+                      isTaxExempted: isTaxExempted)
                     ..name = nameController.text
                     ..sku = sku
                     ..retailPrice = double.parse(retailController.text)
@@ -110,7 +121,7 @@ class _AddVariationState extends State<AddVariation> {
                     ),
                   );
                   model.productService
-                      .variantsProduct(productId: model.product.id!);
+                      .variantsProduct(productId: model.product.id!!);
                   GoRouter.of(context).pop();
                 }
               },
@@ -207,7 +218,7 @@ class _AddVariationState extends State<AddVariation> {
                           child: Text(
                             'Leave the price blank to enter at the time of sale.',
                             style:
-                                Theme.of(context).textTheme.bodyText1!.copyWith(
+                                Theme.of(context).textTheme.bodyLarge!.copyWith(
                                       color: Colors.black,
                                       height: 1.37,
                                     ),

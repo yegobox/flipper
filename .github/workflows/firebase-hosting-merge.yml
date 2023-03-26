@@ -19,7 +19,7 @@ jobs:
           channel: "stable"
       - run: git submodule update --init
 
-      - run: dart pub global activate melos
+      - run: dart pub global activate melos 2.9.0
       - name: "Run Melos bootstrap"
         run: melos bootstrap
       - name: Configure Missing files
