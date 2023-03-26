@@ -29,7 +29,7 @@ class CronService {
     //save the device token to firestore if it is not already there
     Business? business = await ProxyService.isarApi.getBusiness();
     String? token;
-    Timer.periodic(Duration(minutes: kDebugMode ? 1 : 2), (Timer t) async {
+    Timer.periodic(Duration(minutes: kDebugMode ? 1 : 20), (Timer t) async {
       /// get a list of local copy of product to sync
       ProxyService.appService.pushDataToServer();
       ProxyService.sync.pull();
