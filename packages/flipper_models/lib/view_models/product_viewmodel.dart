@@ -452,6 +452,13 @@ class ProductViewModel extends AddTenantViewModel {
     }
   }
 
+  String? searchkey = '';
+
+  void search(String value) {
+    searchkey = value;
+    notifyListeners();
+  }
+
   @override
   List<ListenableServiceMixin> get listenableServices => [app, productService];
 }

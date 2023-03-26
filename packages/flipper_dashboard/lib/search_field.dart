@@ -1,15 +1,14 @@
 import 'package:flipper_dashboard/add_product_buttons.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
+import 'package:flipper_models/view_models/product_viewmodel.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 
 class SearchField extends StatefulWidget {
-  final TextEditingController controller;
-  final Function(String)? onChanged;
-
-  const SearchField({Key? key, required this.controller, this.onChanged})
+  SearchField({Key? key, required this.controller, required this.model})
       : super(key: key);
-
+  final TextEditingController controller;
+  final ProductViewModel model;
   @override
   _SearchFieldState createState() => _SearchFieldState();
 }
@@ -30,7 +29,9 @@ class _SearchFieldState extends State<SearchField> {
   Widget build(BuildContext context) {
     return TextFormField(
       controller: widget.controller,
-      onChanged: widget.onChanged,
+      onChanged: (value) {
+        widget.model.search(value);
+      },
       decoration: InputDecoration(
         border: const OutlineInputBorder(),
         hintText: 'Search items here',

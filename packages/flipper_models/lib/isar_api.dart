@@ -1215,11 +1215,6 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  void migrateToSync() {
-    // TODO: implement migrateToSync
-  }
-
-  @override
   Future<Order?> pendingOrder({required int branchId}) async {
     return await isar.orders
         .where()
@@ -1232,7 +1227,7 @@ class IsarAPI<M> implements IsarApiInterface {
     return isar.products
         .where()
         .branchIdEqualTo(branchId)
-        .sortByCreatedAt()
+        .sortByLastTouchedDesc()
         .watch(fireImmediately: true);
   }
 
