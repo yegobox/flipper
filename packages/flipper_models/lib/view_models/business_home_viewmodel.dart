@@ -151,10 +151,11 @@ class BusinessHomeViewModel extends ReactiveViewModel {
             await ProxyService.isarApi.orderItems(orderId: pendingOrder.id!);
         double amount = double.parse(ProxyService.keypad.key);
         Variant? variation = await ProxyService.isarApi.getCustomVariant();
+        if (variation == null) return;
         if (items.isEmpty) {
           await saveOrder(
             amountTotal: amount,
-            variationId: variation!.id!,
+            variationId: variation.id!,
             customItem: true,
           );
         }
