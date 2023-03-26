@@ -1,12 +1,15 @@
+import 'package:flipper_dashboard/discount_row.dart';
 import 'package:flipper_dashboard/product_row.dart';
 import 'package:flipper_dashboard/search_field.dart';
 import 'package:flipper_dashboard/sticky_search.dart';
 import 'package:flipper_dashboard/tenants_list.dart';
+import 'package:flipper_routing/routes.router.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:go_router/go_router.dart';
 import 'package:keyboard_visibility_pro/keyboard_visibility_pro.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:universal_platform/universal_platform.dart';
@@ -144,6 +147,48 @@ class _ProductViewState extends State<ProductView> {
                     ]));
                   },
                 ),
+                StreamBuilder<List<Discount>>(
+                  stream: model.productService.discountStream(
+                      branchId: ProxyService.box.getBranchId()!),
+                  builder: (context, snapshot) {
+                    final discounts = snapshot.data ?? [];
+                    if (!ProxyService.remoteConfig.isDiscountAvailable() ||
+                        discounts.isEmpty) {
+                      // return SizedBox.shrink();
+                      return SliverList(
+                          delegate:
+                              SliverChildListDelegate([SizedBox.shrink()]));
+                    }
+                    return SliverList(
+                        delegate: SliverChildListDelegate([
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: discounts.map((discount) {
+                          return DiscountRow(
+                            discount: discount,
+                            name: discount.name,
+                            model: model,
+                            hasImage: false,
+                            delete: (id) {
+                              model.deleteDiscount(id: id);
+                            },
+                            edit: (discount) {
+                              GoRouter.of(context).push(Routes.discount);
+                            },
+                            applyDiscount: (discount) async {
+                              await model.applyDiscount(discount: discount);
+                              showSimpleNotification(
+                                const Text('Apply discount'),
+                                background: Colors.green,
+                                position: NotificationPosition.bottom,
+                              );
+                            },
+                          );
+                        }).toList(),
+                      )
+                    ]));
+                  },
+                )
               ],
             ));
       },
