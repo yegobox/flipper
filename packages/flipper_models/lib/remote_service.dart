@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:pocketbase/pocketbase.dart';
+import 'dart:io';
 
 abstract class RemoteInterface {
   Future<List<RecordModel>> getCollection({required String collectionName});
@@ -22,6 +23,10 @@ class RemoteService implements RemoteInterface {
     try {
       pb = PocketBase('https://db.yegobox.com');
       await pb.admins.authWithPassword('info@yegobox.com', '5nUeS5TjpArcSGd');
+    } on SocketException catch (e) {
+      log(e.toString());
+    } on ClientException catch (e) {
+      log(e.toString());
     } catch (e) {}
     return this;
   }
@@ -38,6 +43,10 @@ class RemoteService implements RemoteInterface {
   }) async {
     try {
       return await pb.collection(collectionName).create(body: collection);
+    } on SocketException catch (e) {
+      return Future.error(e);
+    } on ClientException catch (e) {
+      return Future.error(e);
     } catch (e) {
       rethrow;
     }
@@ -51,6 +60,10 @@ class RemoteService implements RemoteInterface {
   }) async {
     try {
       return await pb.collection(collectionName).update(recordId, body: data);
+    } on SocketException catch (e) {
+      return Future.error(e);
+    } on ClientException catch (e) {
+      return Future.error(e);
     } catch (e) {
       rethrow;
     }
@@ -58,39 +71,52 @@ class RemoteService implements RemoteInterface {
 
   @override
   void listenToChanges() {
-    gettingDataFirstTime();
-    gettingRealTimeData();
+    try {
+      gettingDataFirstTime();
+      gettingRealTimeData();
+    } on SocketException catch (e) {
+      log(e.toString());
+    } on ClientException catch (e) {
+      log(e.toString());
+    } catch (e) {
+      // Handle any other errors
+      print('Unexpected error: $e');
+    }
   }
 
   Future<void> gettingDataFirstTime() async {
-    int branchId = ProxyService.box.getBranchId()!;
+    try {
+      int branchId = ProxyService.box.getBranchId()!;
 
-    List<RecordModel> stockItems = await pb
-        .collection('stocks')
-        .getList(page: 1, perPage: 100, filter: 'branchId = ${branchId}')
-        .then((event) => event.items);
-    await Future.forEach(stockItems, (RecordModel item) async {
-      Stock remoteStock = Stock.fromJson(item.toJson());
-      await handleStock(item, branchId, remoteStock.lastTouched, 'stocks');
-    });
-    List<RecordModel> variantItems = await pb
-        .collection('variants')
-        .getList(page: 1, perPage: 100, filter: 'branchId = ${branchId}')
-        .then((event) => event.items);
-    await Future.forEach(variantItems, (RecordModel item) async {
-      Variant remoteVariant = Variant.fromJson(item.toJson());
-      await handleVariant(
-          item, branchId, remoteVariant.lastTouched, 'variants');
-    });
-    List<RecordModel> productItems = await pb
-        .collection('products')
-        .getList(page: 1, perPage: 100, filter: 'branchId = ${branchId}')
-        .then((event) => event.items);
-    await Future.forEach(productItems, (RecordModel item) async {
-      Product remoteProduct = Product.fromJson(item.toJson());
-      await handleProduct(
-          item, branchId, remoteProduct.lastTouched, 'products');
-    });
+      List<RecordModel> stockItems = await pb
+          .collection('stocks')
+          .getList(page: 1, perPage: 100, filter: 'branchId = ${branchId}')
+          .then((event) => event.items);
+      await Future.forEach(stockItems, (RecordModel item) async {
+        Stock remoteStock = Stock.fromJson(item.toJson());
+        await handleStock(item, branchId, remoteStock.lastTouched, 'stocks');
+      });
+      List<RecordModel> variantItems = await pb
+          .collection('variants')
+          .getList(page: 1, perPage: 100, filter: 'branchId = ${branchId}')
+          .then((event) => event.items);
+      await Future.forEach(variantItems, (RecordModel item) async {
+        Variant remoteVariant = Variant.fromJson(item.toJson());
+        await handleVariant(
+            item, branchId, remoteVariant.lastTouched, 'variants');
+      });
+      List<RecordModel> productItems = await pb
+          .collection('products')
+          .getList(page: 1, perPage: 100, filter: 'branchId = ${branchId}')
+          .then((event) => event.items);
+      await Future.forEach(productItems, (RecordModel item) async {
+        Product remoteProduct = Product.fromJson(item.toJson());
+        await handleProduct(
+            item, branchId, remoteProduct.lastTouched, 'products');
+      });
+    } on ClientException {
+    } on SocketException {
+    } on Exception {}
   }
 
   Future<String?> handleVariant(
