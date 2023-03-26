@@ -30,26 +30,17 @@ class ProductView extends StatefulWidget {
 class _ProductViewState extends State<ProductView> {
   final log = getLogger('_onCreate');
   final searchController = TextEditingController();
-  bool _isFocused = false;
   final FocusNode _searchFocusNode = FocusNode();
 
   @override
   void initState() {
     super.initState();
-    _searchFocusNode.addListener(_onSearchFocusChanged);
   }
 
   @override
   void dispose() {
-    _searchFocusNode.removeListener(_onSearchFocusChanged);
     _searchFocusNode.dispose();
     super.dispose();
-  }
-
-  void _onSearchFocusChanged() {
-    setState(() {
-      _isFocused = _searchFocusNode.hasFocus;
-    });
   }
 
   @override
@@ -71,12 +62,15 @@ class _ProductViewState extends State<ProductView> {
             child: CustomScrollView(
               slivers: [
                 SliverPersistentHeader(
-                  pinned: false,
-                  floating: true,
+                  pinned: true,
+                  floating: false,
                   delegate: StickyHeader(
                     child: Container(
                       height: kToolbarHeight,
-                      child: SearchField(controller: searchController),
+                      child: SearchField(
+                        controller: searchController,
+                        model: model,
+                      ),
                     ),
                   ),
                 ),
@@ -85,7 +79,7 @@ class _ProductViewState extends State<ProductView> {
                   stream: model.productService
                       .productStream(branchId: ProxyService.box.getBranchId()!)
                       .transform(model.productService
-                          .searchTransformer(searchController.text)),
+                          .searchTransformer(model.searchkey!)),
                   builder: (context, snapshot) {
                     final products = (snapshot.data ?? [])
                         .where((p) =>

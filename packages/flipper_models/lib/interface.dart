@@ -133,14 +133,10 @@ abstract class IsarApiInterface {
   Future<List<ITenant>> tenantsFromOnline({required int businessId});
   Future<Business?> getBusinessFromOnlineGivenId({required int id});
 
-  /// sync related methods
-  // Future<void> addAllVariants({required List<Variant> variants});
   Future<void> syncProduct(
       {required Product product,
       required Variant variant,
       required Stock stock});
-  // Future<void> addStock({required Stock stock});
-  void migrateToSync();
   bool isSubscribed({required String feature, required int businessId});
   bool subscribe({
     required String feature,
