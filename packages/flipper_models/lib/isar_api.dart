@@ -102,7 +102,6 @@ class IsarAPI<M> implements IsarApiInterface {
           PermissionSchema,
           CounterSchema,
           TokenSchema,
-          IChangeSchema
         ],
       );
     } else {
@@ -190,12 +189,6 @@ class IsarAPI<M> implements IsarApiInterface {
         ProxyService.box.write(key: 'currentOrderId', value: id);
         return await isar.orders.get(id);
       });
-      IChange? filter = await latestChange(
-          branchId: ProxyService.box.getBranchId()!,
-          model: 'orders',
-          isRemoteDataSource: false);
-      ProxyService.remoteApi
-          .savePointer(branchId, desiredDate, 'orders', filter);
       return createdOrder!;
     } else {
       return existOrder;
@@ -601,15 +594,6 @@ class IsarAPI<M> implements IsarApiInterface {
       );
     });
 
-    ProxyService.remoteApi.savePointer(
-        branchId,
-        lastTouched,
-        'variants',
-        await latestChange(
-            branchId: ProxyService.box.getBranchId()!,
-            model: 'variants',
-            isRemoteDataSource: false));
-
     Variant? variant =
         await isar.variants.where().productIdEqualTo(kProduct!.id!).findFirst();
 
@@ -640,24 +624,6 @@ class IsarAPI<M> implements IsarApiInterface {
     await isar.writeTxn(() async {
       return await isar.stocks.put(stock);
     });
-
-    ProxyService.remoteApi.savePointer(
-        branchId,
-        lastTouched,
-        'stocks',
-        await latestChange(
-            branchId: ProxyService.box.getBranchId()!,
-            model: 'stocks',
-            isRemoteDataSource: false));
-
-    ProxyService.remoteApi.savePointer(
-        branchId,
-        lastTouched,
-        'products',
-        await latestChange(
-            branchId: ProxyService.box.getBranchId()!,
-            model: 'products',
-            isRemoteDataSource: false));
     return kProduct;
   }
 
@@ -1441,12 +1407,6 @@ class IsarAPI<M> implements IsarApiInterface {
         return Future.value(null);
       });
     }
-    if (data is IChange) {
-      await isar.writeTxn(() async {
-        await isar.iChanges.put(data);
-        return Future.value(null);
-      });
-    }
     return Future.value(null);
   }
 
@@ -1460,12 +1420,6 @@ class IsarAPI<M> implements IsarApiInterface {
 
       await isar.writeTxn(() async {
         return await isar.products.put(product);
-      });
-    }
-    if (data is IChange) {
-      final product = data;
-      await isar.writeTxn(() async {
-        return await isar.iChanges.put(product);
       });
     }
     if (data is Variant) {
@@ -1814,6 +1768,14 @@ class IsarAPI<M> implements IsarApiInterface {
       return await isar.products
           .getSize(includeIndexes: true, includeLinks: true);
     }
+    if (object is Variant) {
+      return await isar.variants
+          .getSize(includeIndexes: true, includeLinks: true);
+    }
+    if (object is Stock) {
+      return await isar.stocks
+          .getSize(includeIndexes: true, includeLinks: true);
+    }
     if (object is Counter) {
       return await isar.counters
           .getSize(includeIndexes: true, includeLinks: true);
@@ -2049,21 +2011,6 @@ class IsarAPI<M> implements IsarApiInterface {
     return isar.writeTxn(() async {
       return await isar.stocks.get(id);
     });
-  }
-
-  @override
-  Future<IChange?> latestChange(
-      {required int branchId,
-      required String model,
-      required bool isRemoteDataSource}) async {
-    return await isar.iChanges
-        .filter()
-        .branchIdEqualTo(branchId)
-        .and()
-        .modelEqualTo(model)
-        .and()
-        .remoteChangeEqualTo(isRemoteDataSource)
-        .findFirst();
   }
 
   @override

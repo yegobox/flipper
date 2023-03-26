@@ -14,8 +14,6 @@ abstract class RemoteInterface {
       required String collectionName,
       required String recordId});
   void listenToChanges();
-  Future<void> savePointer(
-      int branchId, String? lastQuery, String model, IChange? filter);
 }
 
 class RemoteService implements RemoteInterface {
@@ -60,109 +58,89 @@ class RemoteService implements RemoteInterface {
 
   @override
   void listenToChanges() {
-    gettingDataAsync();
+    gettingDataFirstTime();
     gettingRealTimeData();
   }
 
-  Future<void> gettingDataAsync() async {
+  Future<void> gettingDataFirstTime() async {
     int branchId = ProxyService.box.getBranchId()!;
 
-    // Define a helper function to generate the filter string
-    String generateFilterString(String? filterValue) {
-      return filterValue != null && filterValue.isNotEmpty
-          ? 'lastTouched > "$filterValue"'
-          : 'lastTouched > ""';
-    }
-
-    // Get the latest change for each model and sync the remote data with the local database
-    await Future.forEach(['stocks', 'variants', 'products'],
-        (String model) async {
-      IChange? filter = await ProxyService.isarApi.latestChange(
-          branchId: branchId, model: model, isRemoteDataSource: true);
-
-      String filterValue = filter?.lastTouched ?? '';
-      String filterString = generateFilterString(filterValue);
-      // ignore: todo
-      // TODO: once we have 10 users using the product, implement pagination here
-      List<RecordModel> items = await pb
-          .collection(model)
-          .getList(page: 1, perPage: 100, filter: filterString)
-          .then((event) => event.items);
-
-      String? lastTouched;
-      await Future.forEach(items, (RecordModel item) async {
-        switch (model) {
-          case 'stocks':
-            Stock remoteStock = Stock.fromJson(item.toJson());
-            Stock? localStock = await ProxyService.isarApi
-                .getStockById(id: remoteStock.localId!);
-            if (localStock == null && remoteStock.branchId == branchId) {
-              await ProxyService.isarApi.create(data: remoteStock);
-              lastTouched = remoteStock.lastTouched;
-              await savePointer(branchId, lastTouched, model, filter);
-            } else if (localStock != null &&
-                remoteStock.lastTouched!
-                    .isFutureDateCompareTo(localStock.lastTouched!)) {
-              await ProxyService.isarApi.update(data: remoteStock);
-              lastTouched = remoteStock.lastTouched;
-              await savePointer(branchId, lastTouched, model, filter);
-            }
-            break;
-          case 'variants':
-            Variant remoteVariant = Variant.fromJson(item.toJson());
-            Variant? localVariant = await ProxyService.isarApi
-                .getVariantById(id: remoteVariant.localId!);
-            if (localVariant == null && remoteVariant.branchId == branchId) {
-              await ProxyService.isarApi.create(data: remoteVariant);
-              lastTouched = remoteVariant.lastTouched;
-              await savePointer(branchId, lastTouched, model, filter);
-            } else if (localVariant != null &&
-                remoteVariant.lastTouched!
-                    .isFutureDateCompareTo(localVariant.lastTouched!)) {
-              await ProxyService.isarApi.update(data: remoteVariant);
-              lastTouched = remoteVariant.lastTouched;
-              await savePointer(branchId, lastTouched, model, filter);
-            }
-            break;
-          case 'products':
-            Product remoteProduct = Product.fromJson(item.toJson());
-            Product? localProduct = await ProxyService.isarApi
-                .getProduct(id: remoteProduct.localId!);
-            if (localProduct == null && remoteProduct.branchId == branchId) {
-              await ProxyService.isarApi.create(data: remoteProduct);
-              lastTouched = remoteProduct.lastTouched;
-              await savePointer(branchId, lastTouched, model, filter);
-              //
-            } else if (localProduct != null &&
-                remoteProduct.lastTouched!
-                    .isFutureDateCompareTo(localProduct.lastTouched!)) {
-              await ProxyService.isarApi.update(data: remoteProduct);
-              lastTouched = remoteProduct.lastTouched;
-              await savePointer(branchId, lastTouched, model, filter);
-            }
-            break;
-        }
-      });
+    List<RecordModel> stockItems = await pb
+        .collection('stocks')
+        .getList(page: 1, perPage: 100, filter: 'branchId = ${branchId}')
+        .then((event) => event.items);
+    await Future.forEach(stockItems, (RecordModel item) async {
+      Stock remoteStock = Stock.fromJson(item.toJson());
+      await handleStock(item, branchId, remoteStock.lastTouched, 'stocks');
+    });
+    List<RecordModel> variantItems = await pb
+        .collection('variants')
+        .getList(page: 1, perPage: 100, filter: 'branchId = ${branchId}')
+        .then((event) => event.items);
+    await Future.forEach(variantItems, (RecordModel item) async {
+      Variant remoteVariant = Variant.fromJson(item.toJson());
+      await handleVariant(
+          item, branchId, remoteVariant.lastTouched, 'variants');
+    });
+    List<RecordModel> productItems = await pb
+        .collection('products')
+        .getList(page: 1, perPage: 100, filter: 'branchId = ${branchId}')
+        .then((event) => event.items);
+    await Future.forEach(productItems, (RecordModel item) async {
+      Product remoteProduct = Product.fromJson(item.toJson());
+      await handleProduct(
+          item, branchId, remoteProduct.lastTouched, 'products');
     });
   }
 
-  // ignore: todo
-  ///TODO: right now I am not saving id of the model in pointer, is this necessary
-  ///in making sure that I do not miss understood the change??
-  @override
-  Future<void> savePointer(
-      int branchId, String? lastTouched, String model, IChange? filter) async {
-    IChange change = IChange(
-        branchId: branchId,
-        remoteChange: true,
-        businessId: ProxyService.box.getBusinessId()!,
-        lastTouched: lastTouched,
-        model: model);
-    if (filter == null) {
-      await ProxyService.isarApi.create(data: change);
-    } else {
-      change.id = filter.id;
-      await ProxyService.isarApi.update(data: change);
+  Future<String?> handleVariant(
+      RecordModel item, int branchId, String? lastTouched, String model) async {
+    Variant remoteVariant = Variant.fromJson(item.toJson());
+    Variant? localVariant =
+        await ProxyService.isarApi.getVariantById(id: remoteVariant.localId!);
+    if (localVariant == null && remoteVariant.branchId == branchId) {
+      await ProxyService.isarApi.create(data: remoteVariant);
+      lastTouched = remoteVariant.lastTouched;
+    } else if (localVariant != null &&
+        remoteVariant.lastTouched!
+            .isFutureDateCompareTo(localVariant.lastTouched!)) {
+      await ProxyService.isarApi.update(data: remoteVariant);
+      lastTouched = remoteVariant.lastTouched;
+    }
+    return lastTouched;
+  }
+
+  Future<String?> handleStock(
+      RecordModel item, int branchId, String? lastTouched, String model) async {
+    Stock remoteStock = Stock.fromJson(item.toJson());
+    Stock? localStock =
+        await ProxyService.isarApi.getStockById(id: remoteStock.localId!);
+    if (localStock == null && remoteStock.branchId == branchId) {
+      await ProxyService.isarApi.create(data: remoteStock);
+      lastTouched = remoteStock.lastTouched;
+    } else if (localStock != null &&
+        remoteStock.lastTouched!
+            .isFutureDateCompareTo(localStock.lastTouched!)) {
+      await ProxyService.isarApi.update(data: remoteStock);
+      lastTouched = remoteStock.lastTouched;
+    }
+    return lastTouched;
+  }
+
+  Future<void> handleProduct(
+      RecordModel item, int branchId, String? lastTouched, String model) async {
+    Product remoteProduct = Product.fromJson(item.toJson());
+    Product? localProduct =
+        await ProxyService.isarApi.getProduct(id: remoteProduct.localId!);
+    if (localProduct == null && remoteProduct.branchId == branchId) {
+      await ProxyService.isarApi.create(data: remoteProduct);
+      lastTouched = remoteProduct.lastTouched;
+      //
+    } else if (localProduct != null &&
+        remoteProduct.lastTouched!
+            .isFutureDateCompareTo(localProduct.lastTouched!)) {
+      await ProxyService.isarApi.update(data: remoteProduct);
+      lastTouched = remoteProduct.lastTouched;
     }
   }
 

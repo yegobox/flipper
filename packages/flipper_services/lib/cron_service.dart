@@ -5,6 +5,7 @@ import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 
 class CronService {
   final log = getLogger('CronService');
@@ -28,7 +29,7 @@ class CronService {
     //save the device token to firestore if it is not already there
     Business? business = await ProxyService.isarApi.getBusiness();
     String? token;
-    Timer.periodic(Duration(minutes: 1), (Timer t) async {
+    Timer.periodic(Duration(minutes: kDebugMode ? 1 : 2), (Timer t) async {
       /// get a list of local copy of product to sync
       ProxyService.appService.pushDataToServer();
       ProxyService.sync.pull();

@@ -6,8 +6,6 @@ import 'package:flipper_services/proxy.dart';
 import 'package:isar_crdt/utils/hlc.dart';
 import 'package:pocketbase/pocketbase.dart';
 
-import 'isar_models.dart';
-
 abstract class IJsonSerializable {
   Map<String, dynamic> toJson();
 }
@@ -36,20 +34,13 @@ class SynchronizationService<M extends IJsonSerializable>
           json["retailPrice"] == 0) {
         return null;
       }
-      if (endpoint == "products" && json["name"] == "Custom Amount") {
-        return null;
-      }
-      if (json["name"] != "temp" ||
-          json["productName"] != "temp" ||
-          json["name"] != "Custom Amount") {
-        IChange? filter = await ProxyService.isarApi.latestChange(
-            branchId: ProxyService.box.getBranchId()!,
-            model: endpoint,
-            isRemoteDataSource: false);
-        json["lastTouched"] = filter?.lastTouched ??
-            removeTrailingDash(Hlc.fromDate(
-                    DateTime.now(), ProxyService.box.getBranchId()!.toString())
-                .toString());
+      // if (endpoint == "products" && json["name"] == "Custom Amount") {
+      //   return null;
+      // }
+      if (json["name"] != "temp" || json["productName"] != "temp") {
+        json["lastTouched"] = removeTrailingDash(Hlc.fromDate(
+                DateTime.now(), ProxyService.box.getBranchId()!.toString())
+            .toString());
         json["id"] = syncId();
 
         RecordModel? result;
