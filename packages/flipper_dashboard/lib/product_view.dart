@@ -14,6 +14,7 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:flipper_routing/routes.logger.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 final isMacOs = UniversalPlatform.isMacOS;
@@ -87,6 +88,20 @@ class _ProductViewState extends State<ProductView> {
                         .toList();
                     return SliverList(
                         delegate: SliverChildListDelegate([
+                      products.isEmpty
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    FluentIcons.calendar_cancel_20_filled,
+                                    size: 48,
+                                  ),
+                                  Text('No items found'),
+                                ],
+                              ),
+                            )
+                          : SizedBox.shrink(),
                       ...products.map((product) {
                         return FutureBuilder<List<Stock?>>(
                             future: model.productService
