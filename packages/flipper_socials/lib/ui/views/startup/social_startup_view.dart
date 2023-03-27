@@ -5,8 +5,8 @@ import 'package:flipper_socials/ui/common/ui_helpers.dart';
 
 import 'startup_viewmodel.dart';
 
-class StartupView extends StackedView<StartupViewModel> {
-  const StartupView({Key? key}) : super(key: key);
+class SocialStartUpView extends StackedView<StartupViewModel> {
+  const SocialStartUpView({Key? key}) : super(key: key);
 
   @override
   Widget builder(

@@ -18,7 +18,7 @@ import 'package:stacked/stacked.dart' as _i4;
 import 'package:stacked_services/stacked_services.dart' as _i1;
 
 import '../ui/views/home/home_view.dart' as _i3;
-import '../ui/views/startup/startup_view.dart' as _i2;
+import '../ui/views/startup/social_startup_view.dart' as _i2;
 
 final stackedRouter = StackedRouterWeb(_i1.StackedService.navigatorKey);
 
@@ -31,7 +31,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
     StartupViewRoute.name: (routeData) {
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i2.StartupView(),
+        child: const _i2.SocialStartUpView(),
         opaque: true,
         barrierDismissible: false,
       );
@@ -60,7 +60,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
 }
 
 /// generated route for
-/// [_i2.StartupView]
+/// [_i2.SocialStartUpView]
 class StartupViewRoute extends _i4.PageRouteInfo<void> {
   const StartupViewRoute()
       : super(
