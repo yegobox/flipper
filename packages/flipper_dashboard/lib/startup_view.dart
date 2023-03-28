@@ -2,7 +2,6 @@ library flipper_dashboard;
 
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/view_models/gate.dart';
-import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_services/proxy.dart';
 
 import 'package:flutter/material.dart';
@@ -32,14 +31,7 @@ class StartUpView extends StatelessWidget {
                   ),
                 );
                 GoRouter.of(context).go("/login");
-              }
-              if (nav == "drawer") {
-                GoRouter.of(context).push("/drawer/open");
-              }
-              if (nav == "home") {
-                GoRouter.of(context).push(Routes.home);
-              }
-              if (nav == "signup") {
+              } else if (nav == "signup") {
                 String? countryName =
                     await ProxyService.country.getCountryName();
                 loginInfo.country = countryName!;
@@ -47,6 +39,8 @@ class StartUpView extends StatelessWidget {
                 loginInfo.isLoggedIn = false;
                 loginInfo.redirecting = false;
                 GoRouter.of(context).push("/signup/$countryName");
+              } else {
+                GoRouter.of(context).push('/${nav}');
               }
             },
           );
@@ -56,7 +50,14 @@ class StartUpView extends StatelessWidget {
       builder: (context, model, child) {
         return const Scaffold(
           body: Center(
-            child: CircularProgressIndicator(),
+            child: SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                color: Colors.black,
+                strokeWidth: 6,
+              ),
+            ),
           ),
         );
       },

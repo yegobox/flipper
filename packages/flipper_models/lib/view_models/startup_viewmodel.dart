@@ -42,14 +42,18 @@ class StartUpViewModel extends BaseViewModel {
         throw NoDrawerOpenException(term: "Business Drawer is not open");
       }
       loginInfo.isLoggedIn = true;
-      navigationCallback("home");
+      if (ProxyService.box.getDefaultApp() != null) {
+        navigationCallback(ProxyService.box.getDefaultApp()!);
+      } else {
+        navigationCallback("home");
+      }
     } catch (e, stack) {
       if (e is LoginChoicesException) {
         loginInfo.isLoggedIn = false;
         loginInfo.loginChoices = true;
         navigationCallback("login_choices");
       } else if (e is NoDrawerOpenException) {
-        navigationCallback("drawer");
+        navigationCallback("drawer/open");
       } else if (e is SessionException || e is ErrorReadingFromYBServer) {
         loginInfo.isLoggedIn = false;
         navigationCallback("login");

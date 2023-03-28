@@ -30,7 +30,6 @@ import 'package:flipper_dashboard/tenant_add.dart';
 import 'package:flipper_login/pin_login.dart';
 import 'package:flipper_login/signup_form_view.dart';
 import 'package:flipper_models/view_models/gate.dart';
-import 'package:flipper_socials/ui/views/startup/social_startup_view.dart';
 import 'package:flutter/material.dart';
 
 import 'package:go_router/go_router.dart';
@@ -45,6 +44,8 @@ final router = GoRouter(
     final bool loggedIn = loginInfo.isLoggedIn;
     final bool needSignUp = loginInfo.needSignUp;
     final onHome = state.subloc == Routes.home;
+    // final onSocials = state.subloc == Routes.socials;
+    // final onStarter = state.subloc == Routes.starter;
     final onLogin = state.subloc == Routes.login;
     final onNoNet = state.subloc == Routes.noNet;
     final String country = loginInfo.country.replaceAll(" ", "");
@@ -58,6 +59,8 @@ final router = GoRouter(
       Routes.noNet,
       Routes.home,
       Routes.tenants,
+      // Routes.socials,
+      // Routes.starter,
     ];
 
     if (needSignUp &&
@@ -69,6 +72,16 @@ final router = GoRouter(
     if (loggedIn && !onHome && routeWithRedirectRules.contains(state.subloc)) {
       return Routes.home;
     }
+    // if (loggedIn &&
+    //     !onSocials &&
+    //     routeWithRedirectRules.contains(state.subloc)) {
+    //   return Routes.socials;
+    // }
+    // if (loggedIn &&
+    //     !onStarter &&
+    //     routeWithRedirectRules.contains(state.subloc)) {
+    //   return Routes.starter;
+    // }
 
     if (!loggedIn &&
         !onLogin &&
@@ -413,13 +426,13 @@ final router = GoRouter(
     ),
 
     /// socials routes
-    GoRoute(
-      path: '/chats',
-      name: 'chats',
-      pageBuilder: (context, state) => MaterialPage(
-        key: state.pageKey,
-        child: const SocialStartUpView(),
-      ),
-    )
+    // GoRoute(
+    //   path: '/socials',
+    //   name: 'socials',
+    //   pageBuilder: (context, state) => MaterialPage(
+    //     key: state.pageKey,
+    //     child: const SocialStartUpView(),
+    //   ),
+    // )
   ],
 );

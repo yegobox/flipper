@@ -25,8 +25,6 @@ import 'init.dart'
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'routes.dart';
-import 'package:flipper_socials/app/app.bottomsheets.dart';
-import 'package:flipper_socials/app/app.dialogs.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 final isIos = UniversalPlatform.isIOS;
@@ -73,8 +71,8 @@ void main() async {
   await GetStorage.init();
   // done init in mobile.//done separation.
   await setupLocator();
-  setupDialogUi();
-  setupBottomSheetUi();
+  // setupDialogUi();
+  // setupBottomSheetUi();
 
   await initDb();
   if (!isWindows && !isWeb) {
