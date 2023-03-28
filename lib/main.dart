@@ -5,6 +5,8 @@ import 'package:firebase_ui_localizations/firebase_ui_localizations.dart';
 import 'package:flipper_models/view_models/gate.dart';
 import 'package:flipper_rw/flipper_localize/lib/flipper_localize.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_socials/app/app.bottomsheets.dart';
+import 'package:flipper_socials/app/app.dialogs.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:overlay_support/overlay_support.dart';
@@ -71,8 +73,8 @@ void main() async {
   await GetStorage.init();
   // done init in mobile.//done separation.
   await setupLocator();
-  // setupDialogUi();
-  // setupBottomSheetUi();
+  setupDialogUi();
+  setupBottomSheetUi();
 
   await initDb();
   if (!isWindows && !isWeb) {
