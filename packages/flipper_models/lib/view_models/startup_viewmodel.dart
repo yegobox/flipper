@@ -42,11 +42,9 @@ class StartUpViewModel extends BaseViewModel {
         throw NoDrawerOpenException(term: "Business Drawer is not open");
       }
       loginInfo.isLoggedIn = true;
-      if (ProxyService.box.getDefaultApp() != null) {
-        navigationCallback(ProxyService.box.getDefaultApp()!);
-      } else {
-        navigationCallback("home");
-      }
+
+      /// name the default route to app chooser
+      navigationCallback("cold-start");
     } catch (e, stack) {
       if (e is LoginChoicesException) {
         loginInfo.isLoggedIn = false;

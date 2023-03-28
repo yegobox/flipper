@@ -8,8 +8,8 @@ import 'package:stacked_services/stacked_services.dart';
 
 @StackedApp(
   routes: [
-    CustomRoute(page: SocialStartUpView, initial: true),
-    CustomRoute(page: HomeView),
+    CustomRoute(page: ColdStartView, initial: true),
+    CustomRoute(page: SocialHomeView),
     // @stacked-route
   ],
   dependencies: [

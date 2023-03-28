@@ -30,6 +30,7 @@ import 'package:flipper_dashboard/tenant_add.dart';
 import 'package:flipper_login/pin_login.dart';
 import 'package:flipper_login/signup_form_view.dart';
 import 'package:flipper_models/view_models/gate.dart';
+import 'package:flipper_socials/ui/views/startup/social_startup_view.dart';
 import 'package:flutter/material.dart';
 
 import 'package:go_router/go_router.dart';
@@ -38,13 +39,12 @@ import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_models/isar_models.dart';
 
 final router = GoRouter(
-  initialLocation: Routes.home,
+  initialLocation: Routes.coldStart,
   refreshListenable: loginInfo,
   redirect: (state) {
     final bool loggedIn = loginInfo.isLoggedIn;
     final bool needSignUp = loginInfo.needSignUp;
-    final onHome = state.subloc == Routes.home;
-    final onSocials = state.subloc == Routes.socials;
+    final coldStart = state.subloc == Routes.coldStart;
     final onLogin = state.subloc == Routes.login;
     final onNoNet = state.subloc == Routes.noNet;
     final String country = loginInfo.country.replaceAll(" ", "");
@@ -56,10 +56,8 @@ final router = GoRouter(
       "${Routes.signup}/$country",
       Routes.login,
       Routes.noNet,
-      Routes.home,
+      Routes.coldStart,
       Routes.tenants,
-      Routes.socials,
-      Routes.starter,
     ];
 
     if (needSignUp &&
@@ -67,14 +65,11 @@ final router = GoRouter(
         routeWithRedirectRules.contains(state.subloc)) {
       return "${Routes.signup}/$country";
     }
+
     if (loggedIn &&
-        !onSocials &&
-        !onHome &&
+        !coldStart &&
         routeWithRedirectRules.contains(state.subloc)) {
-      return Routes.socials;
-    }
-    if (loggedIn && !onHome && routeWithRedirectRules.contains(state.subloc)) {
-      return Routes.home;
+      return Routes.coldStart;
     }
 
     if (!loggedIn &&
@@ -88,7 +83,7 @@ final router = GoRouter(
     if (noNet &&
         !onNoNet &&
         !onLogin &&
-        !onHome && // because if we are on home we don't need this condition
+        !coldStart && // because if we are on home we don't need this condition
         routeWithRedirectRules.contains(state.subloc)) {
       return Routes.noNet;
     }
@@ -420,13 +415,13 @@ final router = GoRouter(
     ),
 
     /// socials routes
-    // GoRoute(
-    //   path: '/socials',
-    //   name: 'socials',
-    //   pageBuilder: (context, state) => MaterialPage(
-    //     key: state.pageKey,
-    //     child: const SocialStartUpView(),
-    //   ),
-    // )
+    GoRoute(
+      path: '/cold-start',
+      name: 'cold-start',
+      pageBuilder: (context, state) => MaterialPage(
+        key: state.pageKey,
+        child: const ColdStartView(),
+      ),
+    ),
   ],
 );

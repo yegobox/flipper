@@ -5,8 +5,8 @@ import 'package:flipper_socials/ui/common/ui_helpers.dart';
 
 import 'startup_viewmodel.dart';
 
-class SocialStartUpView extends StackedView<StartupViewModel> {
-  const SocialStartUpView({Key? key}) : super(key: key);
+class ColdStartView extends StackedView<StartupViewModel> {
+  const ColdStartView({Key? key}) : super(key: key);
 
   @override
   Widget builder(
@@ -20,7 +20,7 @@ class SocialStartUpView extends StackedView<StartupViewModel> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text(
-              'STACKED',
+              'Flipper',
               style: TextStyle(
                 fontSize: 40,
                 fontWeight: FontWeight.w900,
@@ -30,7 +30,7 @@ class SocialStartUpView extends StackedView<StartupViewModel> {
               mainAxisSize: MainAxisSize.min,
               children: const [
                 Text(
-                  'Loading ...',
+                  'A revolutionary business software ...',
                   style: TextStyle(
                     fontSize: 16,
                   ),

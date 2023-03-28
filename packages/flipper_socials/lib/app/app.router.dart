@@ -31,7 +31,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
     StartupViewRoute.name: (routeData) {
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i2.SocialStartUpView(),
+        child: const _i2.ColdStartView(),
         opaque: true,
         barrierDismissible: false,
       );
@@ -39,7 +39,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
     HomeViewRoute.name: (routeData) {
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i3.HomeView(),
+        child: const _i3.SocialHomeView(),
         opaque: true,
         barrierDismissible: false,
       );
@@ -60,7 +60,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
 }
 
 /// generated route for
-/// [_i2.SocialStartUpView]
+/// [_i2.ColdStartView]
 class StartupViewRoute extends _i4.PageRouteInfo<void> {
   const StartupViewRoute()
       : super(
@@ -72,7 +72,7 @@ class StartupViewRoute extends _i4.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i3.HomeView]
+/// [_i3.SocialHomeView]
 class HomeViewRoute extends _i4.PageRouteInfo<void> {
   const HomeViewRoute()
       : super(
