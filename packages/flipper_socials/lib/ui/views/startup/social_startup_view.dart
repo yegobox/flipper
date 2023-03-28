@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_socials/ui/common/ui_helpers.dart';
-
+import 'package:google_fonts/google_fonts.dart';
 import 'startup_viewmodel.dart';
 
 class ColdStartView extends StackedView<StartupViewModel> {
@@ -19,12 +19,12 @@ class ColdStartView extends StackedView<StartupViewModel> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
+            Text(
               'Flipper',
-              style: TextStyle(
-                fontSize: 40,
-                fontWeight: FontWeight.w900,
-              ),
+              style: GoogleFonts.poppins(
+                  color: Colors.black,
+                  fontSize: 40,
+                  fontWeight: FontWeight.w900),
             ),
             Row(
               mainAxisSize: MainAxisSize.min,
