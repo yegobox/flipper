@@ -44,8 +44,7 @@ final router = GoRouter(
     final bool loggedIn = loginInfo.isLoggedIn;
     final bool needSignUp = loginInfo.needSignUp;
     final onHome = state.subloc == Routes.home;
-    // final onSocials = state.subloc == Routes.socials;
-    // final onStarter = state.subloc == Routes.starter;
+    final onSocials = state.subloc == Routes.socials;
     final onLogin = state.subloc == Routes.login;
     final onNoNet = state.subloc == Routes.noNet;
     final String country = loginInfo.country.replaceAll(" ", "");
@@ -59,8 +58,8 @@ final router = GoRouter(
       Routes.noNet,
       Routes.home,
       Routes.tenants,
-      // Routes.socials,
-      // Routes.starter,
+      Routes.socials,
+      Routes.starter,
     ];
 
     if (needSignUp &&
@@ -68,20 +67,15 @@ final router = GoRouter(
         routeWithRedirectRules.contains(state.subloc)) {
       return "${Routes.signup}/$country";
     }
-
+    if (loggedIn &&
+        !onSocials &&
+        !onHome &&
+        routeWithRedirectRules.contains(state.subloc)) {
+      return Routes.socials;
+    }
     if (loggedIn && !onHome && routeWithRedirectRules.contains(state.subloc)) {
       return Routes.home;
     }
-    // if (loggedIn &&
-    //     !onSocials &&
-    //     routeWithRedirectRules.contains(state.subloc)) {
-    //   return Routes.socials;
-    // }
-    // if (loggedIn &&
-    //     !onStarter &&
-    //     routeWithRedirectRules.contains(state.subloc)) {
-    //   return Routes.starter;
-    // }
 
     if (!loggedIn &&
         !onLogin &&
