@@ -147,6 +147,9 @@ class HomeViewMobile extends ViewModelWidget<HomeViewModel> {
                     // Add your onPressed code here!
                   },
                   style: ButtonStyle(
+                    side: MaterialStateProperty.all<BorderSide>(
+                      const BorderSide(color: Color(0xff006AFE)),
+                    ),
                     shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
                       (states) => RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10.0),

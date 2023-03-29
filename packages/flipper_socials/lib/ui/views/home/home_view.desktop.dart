@@ -1,7 +1,8 @@
-import 'package:flipper_socials/ui/common/app_colors.dart';
-import 'package:flipper_socials/ui/common/app_constants.dart';
-import 'package:flipper_socials/ui/common/ui_helpers.dart';
+import 'package:flipper_socials/ui/widgets/bubble_type.dart';
+import 'package:flipper_socials/ui/widgets/chat_bubble.dart';
+import 'package:flipper_socials/ui/widgets/custom_paint.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
 
 import 'home_viewmodel.dart';
@@ -12,62 +13,173 @@ class HomeViewDesktop extends ViewModelWidget<HomeViewModel> {
   @override
   Widget build(BuildContext context, HomeViewModel viewModel) {
     return Scaffold(
-      body: Center(
-        child: SizedBox(
-          width: kdDesktopMaxContentWidth,
-          height: kdDesktopMaxContentHeight,
-          child: Column(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              verticalSpaceLarge,
-              Column(
-                children: [
-                  const Text(
-                    'Hello, DESKTOP UI!',
-                    style: TextStyle(
-                      fontSize: 35,
-                      fontWeight: FontWeight.w900,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 60.0),
+              child: Text.rich(
+                TextSpan(
+                  text: 'Connect your business and reply\n',
+                  style: GoogleFonts.poppins(
+                      color: Colors.black,
+                      fontSize: 20,
+                      height: 1.5,
+                      fontWeight: FontWeight.w600),
+                  children: [
+                    TextSpan(
+                      text: 'to your suppliers instantly',
+                      style: GoogleFonts.poppins(
+                          color: Colors.black,
+                          fontSize: 20,
+                          height: 1.5,
+                          fontWeight: FontWeight.w600),
                     ),
+                  ],
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 64.0, right: 144, left: 144),
+              child: Stack(
+                children: [
+                  const CircleAvatar(
+                    backgroundImage:
+                        AssetImage("assets/c.png", package: "flipper_socials"),
+                    radius: 80,
                   ),
-                  verticalSpaceMedium,
-                  MaterialButton(
-                    color: Colors.black,
-                    onPressed: viewModel.incrementCounter,
-                    child: Text(
-                      viewModel.counterLabel,
-                      style: const TextStyle(color: Colors.white),
+                  Positioned(
+                    bottom: 20,
+                    right: 0,
+                    child: ChatBubble(
+                      clipper: CustomPainte(type: BubbleType.sendBubble),
+                      alignment: Alignment.bottomCenter,
+                      margin: const EdgeInsets.only(top: 20),
+                      backGroundColor: const Color(0xffDFF6FF),
+                      child: Container(
+                        constraints: BoxConstraints(
+                          maxWidth: MediaQuery.of(context).size.width * 0.7,
+                        ),
+                        child: const Text(
+                          "Mwiriwe?",
+                          style: TextStyle(color: Colors.black),
+                        ),
+                      ),
                     ),
                   ),
                 ],
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            ),
+            Padding(
+              padding: EdgeInsets.symmetric(
+                  horizontal: MediaQuery.of(context).size.width * 0.37),
+              child: Row(
                 children: [
-                  MaterialButton(
-                    color: kcDarkGreyColor,
-                    child: const Text(
-                      'Show Dialog',
-                      style: TextStyle(
-                        color: Colors.white,
+                  Stack(
+                    children: [
+                      const CircleAvatar(
+                        backgroundImage: AssetImage(
+                          "assets/a.png",
+                          package: "flipper_socials",
+                        ),
+                        radius: 80,
                       ),
-                    ),
-                    onPressed: viewModel.showDialog,
-                  ),
-                  MaterialButton(
-                    color: kcDarkGreyColor,
-                    child: const Text(
-                      'Show Bottom Sheet',
-                      style: TextStyle(
-                        color: Colors.white,
+                      Positioned(
+                        bottom: 20,
+                        right: 0,
+                        child: ChatBubble(
+                          clipper: CustomPainte(type: BubbleType.sendBubble),
+                          alignment: Alignment.bottomCenter,
+                          margin: const EdgeInsets.only(top: 20),
+                          backGroundColor: const Color(0xffDFF6FF),
+                          child: Container(
+                            constraints: BoxConstraints(
+                              maxWidth: MediaQuery.of(context).size.width * 0.7,
+                            ),
+                            child: const Text(
+                              "Nshaka ibiro 10",
+                              style: TextStyle(color: Colors.black),
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                    onPressed: viewModel.showBottomSheet,
+                    ],
                   ),
+                  Stack(
+                    children: [
+                      const CircleAvatar(
+                        backgroundImage: AssetImage("assets/b.png",
+                            package: "flipper_socials"),
+                        radius: 80,
+                      ),
+                      Positioned(
+                        bottom: 20,
+                        right: 0,
+                        child: ChatBubble(
+                          clipper: CustomPainte(type: BubbleType.sendBubble),
+                          alignment: Alignment.bottomCenter,
+                          margin: const EdgeInsets.only(top: 20),
+                          backGroundColor: const Color(0xffDFF6FF),
+                          child: Container(
+                            constraints: BoxConstraints(
+                              maxWidth: MediaQuery.of(context).size.width * 0.7,
+                            ),
+                            child: const Text(
+                              'Nshaka ibiro 10',
+                              style: TextStyle(color: Colors.black),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
                 ],
-              )
-            ],
-          ),
+              ),
+            ),
+
+            /// a flat button bellow
+            Padding(
+              padding: const EdgeInsets.only(top: 75.0),
+              child: SizedBox(
+                height: 45,
+                width: 140,
+                child: OutlinedButton(
+                  onPressed: () {
+                    // Add your onPressed code here!
+                  },
+                  style: ButtonStyle(
+                    side: MaterialStateProperty.all<BorderSide>(
+                      const BorderSide(color: Color(0xff006AFE)),
+                    ),
+                    shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
+                      (states) => RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                        side: const BorderSide(
+                          color: Color(0xff006AFE),
+                        ),
+                      ),
+                    ),
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                        const Color(0xff006AFE)),
+                    overlayColor: MaterialStateProperty.resolveWith<Color?>(
+                      (Set<MaterialState> states) {
+                        if (states.contains(MaterialState.hovered)) {
+                          return Colors.blue.withOpacity(0.04);
+                        }
+                        if (states.contains(MaterialState.focused) ||
+                            states.contains(MaterialState.pressed)) {
+                          return Colors.blue.withOpacity(0.12);
+                        }
+                        return null; // Defer to the widget's default.
+                      },
+                    ),
+                  ),
+                  child: const Text('Add Channels',
+                      style: TextStyle(color: Colors.white)),
+                ),
+              ),
+            )
+          ],
         ),
       ),
     );
