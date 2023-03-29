@@ -21,8 +21,8 @@ class HomeViewTablet extends ViewModelWidget<HomeViewModel> {
               children: [
                 verticalSpaceLarge,
                 Column(
-                  children: [
-                    const Text(
+                  children: const [
+                    Text(
                       'Hello, TABLET UI!',
                       style: TextStyle(
                         fontSize: 35,
@@ -32,36 +32,36 @@ class HomeViewTablet extends ViewModelWidget<HomeViewModel> {
                     verticalSpaceMedium,
                     MaterialButton(
                       color: Colors.black,
-                      onPressed: viewModel.incrementCounter,
+                      onPressed: null,
                       child: Text(
-                        viewModel.counterLabel,
-                        style: const TextStyle(color: Colors.white),
+                        "hello",
+                        style: TextStyle(color: Colors.white),
                       ),
                     ),
                   ],
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
+                  children: const [
                     MaterialButton(
                       color: kcDarkGreyColor,
-                      child: const Text(
+                      child: Text(
                         'Show Dialog',
                         style: TextStyle(
                           color: Colors.white,
                         ),
                       ),
-                      onPressed: viewModel.showDialog,
+                      onPressed: null,
                     ),
                     MaterialButton(
                       color: kcDarkGreyColor,
-                      child: const Text(
+                      child: Text(
                         'Show Bottom Sheet',
                         style: TextStyle(
                           color: Colors.white,
                         ),
                       ),
-                      onPressed: viewModel.showBottomSheet,
+                      onPressed: null,
                     ),
                   ],
                 )

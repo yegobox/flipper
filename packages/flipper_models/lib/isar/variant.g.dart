@@ -347,10 +347,7 @@ int _variantEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  {
-    final value = object.action;
-    bytesCount += 3 + value.length * 3;
-  }
+  bytesCount += 3 + object.action.length * 3;
   {
     final value = object.addInfo;
     if (value != null) {
@@ -641,7 +638,7 @@ P _variantDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 1:
       return (reader.readStringOrNull(offset)) as P;
     case 2:
@@ -1294,24 +1291,8 @@ extension VariantQueryWhere on QueryBuilder<Variant, Variant, QWhereClause> {
 
 extension VariantQueryFilter
     on QueryBuilder<Variant, Variant, QFilterCondition> {
-  QueryBuilder<Variant, Variant, QAfterFilterCondition> actionIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'action',
-      ));
-    });
-  }
-
-  QueryBuilder<Variant, Variant, QAfterFilterCondition> actionIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'action',
-      ));
-    });
-  }
-
   QueryBuilder<Variant, Variant, QAfterFilterCondition> actionEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1324,7 +1305,7 @@ extension VariantQueryFilter
   }
 
   QueryBuilder<Variant, Variant, QAfterFilterCondition> actionGreaterThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -1339,7 +1320,7 @@ extension VariantQueryFilter
   }
 
   QueryBuilder<Variant, Variant, QAfterFilterCondition> actionLessThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -1354,8 +1335,8 @@ extension VariantQueryFilter
   }
 
   QueryBuilder<Variant, Variant, QAfterFilterCondition> actionBetween(
-    String? lower,
-    String? upper, {
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -8398,7 +8379,7 @@ extension VariantQueryProperty
     });
   }
 
-  QueryBuilder<Variant, String?, QQueryOperations> actionProperty() {
+  QueryBuilder<Variant, String, QQueryOperations> actionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'action');
     });
@@ -8690,8 +8671,8 @@ Variant _$VariantFromJson(Map<String, dynamic> json) => Variant(
       supplyPrice: (json['supplyPrice'] as num).toDouble(),
       retailPrice: (json['retailPrice'] as num).toDouble(),
       isTaxExempted: json['isTaxExempted'] as bool,
-      id: json['id'] as int?,
       action: json['action'] as String,
+      id: json['id'] as int?,
       taxName: json['taxName'] as String?,
       taxPercentage: (json['taxPercentage'] as num?)?.toDouble(),
       itemSeq: json['itemSeq'] as String?,
