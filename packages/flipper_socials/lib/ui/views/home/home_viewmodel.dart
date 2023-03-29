@@ -1,6 +1,6 @@
 import 'package:flipper_socials/app/app.bottomsheets.dart';
 import 'package:flipper_socials/app/app.dialogs.dart';
-import 'package:flipper_socials/app/app.locator.dart';
+import 'package:flipper_services/locator.dart';
 import 'package:flipper_socials/ui/common/app_strings.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';

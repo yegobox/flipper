@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:flipper_socials/app/app.bottomsheets.dart';
-import 'package:flipper_socials/app/app.locator.dart';
 import 'package:flipper_socials/ui/common/app_strings.dart';
 import 'package:flipper_socials/ui/views/home/home_viewmodel.dart';
 
@@ -12,7 +11,7 @@ void main() {
 
   group('HomeViewmodelTest -', () {
     setUp(() => registerServices());
-    tearDown(() => locator.reset());
+    //tearDown(() => locator.reset());
 
     group('incrementCounter -', () {
       test('When called once should return  Counter is: 1', () {

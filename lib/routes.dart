@@ -30,6 +30,7 @@ import 'package:flipper_dashboard/tenant_add.dart';
 import 'package:flipper_login/pin_login.dart';
 import 'package:flipper_login/signup_form_view.dart';
 import 'package:flipper_models/view_models/gate.dart';
+import 'package:flipper_socials/ui/views/home/home_view.dart';
 import 'package:flipper_socials/ui/views/startup/social_startup_view.dart';
 import 'package:flutter/material.dart';
 
@@ -421,6 +422,14 @@ final router = GoRouter(
       pageBuilder: (context, state) => MaterialPage(
         key: state.pageKey,
         child: const ColdStartView(),
+      ),
+    ),
+    GoRoute(
+      path: '/onboarding',
+      name: 'onboarding',
+      pageBuilder: (context, state) => MaterialPage(
+        key: state.pageKey,
+        child: const SocialHomeView(),
       ),
     ),
   ],

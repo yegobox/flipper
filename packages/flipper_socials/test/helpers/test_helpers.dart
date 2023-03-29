@@ -1,6 +1,6 @@
+import 'package:flipper_services/locator.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:flipper_socials/app/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 // @stacked-import
 
@@ -22,7 +22,6 @@ void registerServices() {
 MockRouterService getAndRegisterRouterService() {
   _removeRegistrationIfExists<RouterService>();
   final service = MockRouterService();
-  locator.registerSingleton<RouterService>(service);
   return service;
 }
 
