@@ -42,7 +42,7 @@ import 'package:flipper_models/isar_models.dart';
 final router = GoRouter(
   initialLocation: Routes.coldStart,
   refreshListenable: loginInfo,
-  redirect: (state) {
+  redirect: (BuildContext context, GoRouterState state) async {
     final bool loggedIn = loginInfo.isLoggedIn;
     final bool needSignUp = loginInfo.needSignUp;
     final coldStart = state.subloc == Routes.coldStart;

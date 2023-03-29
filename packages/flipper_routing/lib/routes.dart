@@ -39,3 +39,8 @@ class AppSetup {
 //TODO: can I sync data acrross connect bluethooth?? https://github.com/boskokg/flutter_blue_plus
 // FIXME: https://github.com/isar/isar/issues/686
 // TODO: tip for pro flutter web: https://www.youtube.com/watch?v=ZFx9leiFlvM
+
+/// packages to use in socials
+// https://pub.dev/packages/flutter_link_previewer
+// https://pub.dev/packages/any_link_preview
+// https://pub.dev/packages/chat_list

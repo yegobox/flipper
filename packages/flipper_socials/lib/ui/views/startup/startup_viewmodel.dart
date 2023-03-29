@@ -14,8 +14,8 @@ class StartupViewModel extends BaseViewModel {
   Future runStartupLogic() async {
     // This is where you can make decisions on where your app should navigate when
     // you have custom startup logic
-    // GoRouter.of(context!).push('/home');
-    GoRouter.of(context!).push('/onboarding');
+    GoRouter.of(context!).push('/home');
+    // GoRouter.of(context!).push('/onboarding');
     // await _routerService.replaceWith(const HomeViewRoute());
   }
 }

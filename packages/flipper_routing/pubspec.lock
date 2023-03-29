@@ -1251,10 +1251,10 @@ packages:
     dependency: "direct main"
     description:
       name: go_router
-      sha256: "25ae21384b758eb80daff113fe8bfb785c2dd17b69fe4885008fe764b26fd1ca"
+      sha256: "7f25c4bb371b74b6f32f74946707db4595fa66e68ddc7f0da4a4dafb18a21480"
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.1"
+    version: "6.5.1"
   google_fonts:
     dependency: transitive
     description:

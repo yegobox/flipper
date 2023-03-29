@@ -97,7 +97,7 @@ class HomeViewDesktop extends ViewModelWidget<HomeViewModel> {
                               maxWidth: MediaQuery.of(context).size.width * 0.7,
                             ),
                             child: const Text(
-                              "Nshaka ibiro 10",
+                              "Duhure dupange!",
                               style: TextStyle(color: Colors.black),
                             ),
                           ),
@@ -125,7 +125,7 @@ class HomeViewDesktop extends ViewModelWidget<HomeViewModel> {
                               maxWidth: MediaQuery.of(context).size.width * 0.7,
                             ),
                             child: const Text(
-                              'Nshaka ibiro 10',
+                              'Mpa chips ebyiri',
                               style: TextStyle(color: Colors.black),
                             ),
                           ),
