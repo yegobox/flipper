@@ -115,7 +115,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
                           /// when you close a drawer we asume you also closed a business day
                           /// therefore we log you out for next day log in.
                           await ProxyService.isarApi.logOut();
-                          GoRouter.of(context).go(Routes.boot);
+                          GoRouter.of(context).push(Routes.boot);
                         }
                       }
                     },

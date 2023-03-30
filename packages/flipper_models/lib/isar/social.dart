@@ -14,10 +14,13 @@ class Social extends IJsonSerializable {
 
   String socialUrl;
 
+  int businessId;
+
   Social(
       {this.id,
       required this.isAccountSet,
       required this.socialType,
+      required this.businessId,
       required this.socialUrl});
 
   factory Social.fromJson(Map<String, dynamic> json) => _$SocialFromJson(json);

@@ -102,6 +102,7 @@ class IsarAPI<M> implements IsarApiInterface {
           PermissionSchema,
           CounterSchema,
           TokenSchema,
+          SocialSchema,
         ],
       );
     } else {
@@ -2058,5 +2059,10 @@ class IsarAPI<M> implements IsarApiInterface {
         .and()
         .branchIdEqualTo(ProxyService.box.getBranchId()!)
         .findAll();
+  }
+
+  @override
+  Future<Social?> social({required int businessId}) async {
+    return await isar.socials.get(businessId);
   }
 }

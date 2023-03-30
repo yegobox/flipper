@@ -80,6 +80,10 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
       signupViewModel.signup();
       emitSuccess();
     } catch (e) {
+      showSimpleNotification(
+        const Text("Error while signing up try again later"),
+        background: Colors.red,
+      );
       emitFailure();
     }
   }

@@ -207,7 +207,7 @@ class _ScannViewState extends State<ScannView> {
       Product? product =
           await model.productService.getProductByBarCode(code: code);
       if (product != null) {
-        GoRouter.of(context).go(Routes.sell + "/${product.id!}");
+        GoRouter.of(context).push(Routes.sell + "/${product.id!}");
 
         return;
       }

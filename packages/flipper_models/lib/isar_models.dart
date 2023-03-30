@@ -28,6 +28,7 @@ export 'isar/setting.dart';
 export 'isar/profile.dart';
 export 'isar/receipt.dart';
 export 'isar/product.dart';
+export 'isar/social.dart';
 export 'package:uuid/uuid.dart';
 export 'isar/drawer.dart';
 export 'exceptions.dart';

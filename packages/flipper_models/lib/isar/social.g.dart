@@ -17,18 +17,23 @@ const SocialSchema = CollectionSchema(
   name: r'Social',
   id: -7903313734955614803,
   properties: {
-    r'isAccountSet': PropertySchema(
+    r'businessId': PropertySchema(
       id: 0,
+      name: r'businessId',
+      type: IsarType.long,
+    ),
+    r'isAccountSet': PropertySchema(
+      id: 1,
       name: r'isAccountSet',
       type: IsarType.bool,
     ),
     r'socialType': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'socialType',
       type: IsarType.string,
     ),
     r'socialUrl': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'socialUrl',
       type: IsarType.string,
     )
@@ -64,9 +69,10 @@ void _socialSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeBool(offsets[0], object.isAccountSet);
-  writer.writeString(offsets[1], object.socialType);
-  writer.writeString(offsets[2], object.socialUrl);
+  writer.writeLong(offsets[0], object.businessId);
+  writer.writeBool(offsets[1], object.isAccountSet);
+  writer.writeString(offsets[2], object.socialType);
+  writer.writeString(offsets[3], object.socialUrl);
 }
 
 Social _socialDeserialize(
@@ -76,10 +82,11 @@ Social _socialDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Social(
+    businessId: reader.readLong(offsets[0]),
     id: id,
-    isAccountSet: reader.readBool(offsets[0]),
-    socialType: reader.readString(offsets[1]),
-    socialUrl: reader.readString(offsets[2]),
+    isAccountSet: reader.readBool(offsets[1]),
+    socialType: reader.readString(offsets[2]),
+    socialUrl: reader.readString(offsets[3]),
   );
   return object;
 }
@@ -92,10 +99,12 @@ P _socialDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readBool(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 1:
-      return (reader.readString(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 2:
+      return (reader.readString(offset)) as P;
+    case 3:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -190,6 +199,59 @@ extension SocialQueryWhere on QueryBuilder<Social, Social, QWhereClause> {
 }
 
 extension SocialQueryFilter on QueryBuilder<Social, Social, QFilterCondition> {
+  QueryBuilder<Social, Social, QAfterFilterCondition> businessIdEqualTo(
+      int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'businessId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Social, Social, QAfterFilterCondition> businessIdGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'businessId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Social, Social, QAfterFilterCondition> businessIdLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'businessId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Social, Social, QAfterFilterCondition> businessIdBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'businessId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<Social, Social, QAfterFilterCondition> idIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -534,6 +596,18 @@ extension SocialQueryObject on QueryBuilder<Social, Social, QFilterCondition> {}
 extension SocialQueryLinks on QueryBuilder<Social, Social, QFilterCondition> {}
 
 extension SocialQuerySortBy on QueryBuilder<Social, Social, QSortBy> {
+  QueryBuilder<Social, Social, QAfterSortBy> sortByBusinessId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'businessId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Social, Social, QAfterSortBy> sortByBusinessIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'businessId', Sort.desc);
+    });
+  }
+
   QueryBuilder<Social, Social, QAfterSortBy> sortByIsAccountSet() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isAccountSet', Sort.asc);
@@ -572,6 +646,18 @@ extension SocialQuerySortBy on QueryBuilder<Social, Social, QSortBy> {
 }
 
 extension SocialQuerySortThenBy on QueryBuilder<Social, Social, QSortThenBy> {
+  QueryBuilder<Social, Social, QAfterSortBy> thenByBusinessId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'businessId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Social, Social, QAfterSortBy> thenByBusinessIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'businessId', Sort.desc);
+    });
+  }
+
   QueryBuilder<Social, Social, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
@@ -622,6 +708,12 @@ extension SocialQuerySortThenBy on QueryBuilder<Social, Social, QSortThenBy> {
 }
 
 extension SocialQueryWhereDistinct on QueryBuilder<Social, Social, QDistinct> {
+  QueryBuilder<Social, Social, QDistinct> distinctByBusinessId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'businessId');
+    });
+  }
+
   QueryBuilder<Social, Social, QDistinct> distinctByIsAccountSet() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'isAccountSet');
@@ -647,6 +739,12 @@ extension SocialQueryProperty on QueryBuilder<Social, Social, QQueryProperty> {
   QueryBuilder<Social, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<Social, int, QQueryOperations> businessIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'businessId');
     });
   }
 
@@ -677,6 +775,7 @@ Social _$SocialFromJson(Map<String, dynamic> json) => Social(
       id: json['id'] as int?,
       isAccountSet: json['isAccountSet'] as bool,
       socialType: json['socialType'] as String,
+      businessId: json['businessId'] as int,
       socialUrl: json['socialUrl'] as String,
     );
 
@@ -685,4 +784,5 @@ Map<String, dynamic> _$SocialToJson(Social instance) => <String, dynamic>{
       'isAccountSet': instance.isAccountSet,
       'socialType': instance.socialType,
       'socialUrl': instance.socialUrl,
+      'businessId': instance.businessId,
     };

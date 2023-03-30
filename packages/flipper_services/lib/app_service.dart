@@ -111,8 +111,9 @@ class AppService with ListenableServiceMixin {
 
   Future<void> appInit() async {
     String? userId = ProxyService.box.getUserId();
+    if (userId == null) return;
     List<isar.Business> businesses =
-        await ProxyService.isarApi.businesses(userId: userId!);
+        await ProxyService.isarApi.businesses(userId: userId);
     if (businesses.isEmpty) {
       businesses
           .add(await ProxyService.isarApi.getOnlineBusiness(userId: userId));

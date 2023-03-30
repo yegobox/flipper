@@ -190,7 +190,7 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                   ),
                   onTap: () async {
                     // ProxyService.nav.navigateTo(Routes.inappBrowser);
-                    GoRouter.of(context).go(Routes.inappBrowser);
+                    GoRouter.of(context).push(Routes.inappBrowser);
                   },
                 ),
               ],

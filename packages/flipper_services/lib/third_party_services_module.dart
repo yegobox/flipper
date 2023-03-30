@@ -13,6 +13,7 @@ import 'package:flipper_models/sync.dart';
 import 'package:flipper_services/abstractions/system_time.dart';
 import 'package:flipper_services/billing_service.dart';
 import 'package:flipper_services/blue_thooth_service.dart';
+import 'package:flipper_services/fake_local_storage.dart';
 import 'package:flipper_services/firebase_analytics_service.dart';
 import 'package:flipper_services/force_data_service.dart';
 import 'package:flipper_services/in_app_review.dart';
@@ -196,6 +197,19 @@ abstract class ThirdPartyServicesModule {
     return await RemoteService().getInstance();
   }
 
+  // @lazySingleton
+  // NavigationService get nav;
+  @lazySingleton
+  LocalStorage get box {
+    LocalStorage box;
+    if (kDebugMode) {
+      box = FakeLocalStorage();
+    } else {
+      box = LocalStorageImpl();
+    }
+    return box;
+  }
+
   @preResolve
   Future<IsarApiInterface> get isarApi async {
     //first check if we are in testing mode.
@@ -288,21 +302,6 @@ abstract class ThirdPartyServicesModule {
         location = LocationService();
     }
     return location;
-  }
-
-  // @lazySingleton
-  // NavigationService get nav;
-  @lazySingleton
-  LocalStorage get box {
-    LocalStorage box;
-    switch (platform) {
-      case "windows":
-        box = LocalStorageImpl();
-        break;
-      default:
-        box = LocalStorageImpl();
-    }
-    return box;
   }
 
   @lazySingleton

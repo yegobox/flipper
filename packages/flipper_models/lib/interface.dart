@@ -205,4 +205,7 @@ abstract class IsarApiInterface {
   Future<void> deleteAllProducts();
   Future<Stock?> getStockById({required int id});
   Future<List<Order>> getLocalOrders();
+
+  /// socials methods
+  Future<Social?> social({required int businessId});
 }

@@ -30,7 +30,7 @@ class StartUpView extends StatelessWidget {
                     content: Text("A Fresh login is required!"),
                   ),
                 );
-                GoRouter.of(context).go("/login");
+                GoRouter.of(context).push("/login");
               } else if (nav == "signup") {
                 String? countryName =
                     await ProxyService.country.getCountryName();
