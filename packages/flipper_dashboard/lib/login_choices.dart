@@ -16,7 +16,7 @@ class LoginChoices extends StatefulWidget {
 
 class _LoginChoicesState extends State<LoginChoices> {
   List<Business> _businesses = [];
-  late List<Branch> _branches = [];
+
   bool _isNext = false;
   bool _businessChoosen = false;
   final bool _chooseBranch = false;
@@ -104,7 +104,7 @@ class _LoginChoicesState extends State<LoginChoices> {
                             const Text("Choose a branch"),
                             ListView(
                                 shrinkWrap: true,
-                                children: _branches
+                                children: model.branches
                                     .map((e) => Card(
                                           margin: const EdgeInsets.fromLTRB(
                                               120.0, 20, 120, 0),
@@ -144,17 +144,19 @@ class _LoginChoicesState extends State<LoginChoices> {
   }
 
   Future<void> chooseBusiness(
-      bool? value, BusinessHomeViewModel model, Business e) async {
+      bool? value, BusinessHomeViewModel model, Business business) async {
     _businessChoosen = value!;
     if (_businessChoosen) {
-      model.setDefaultBusiness(business: e);
-      _branches = await ProxyService.isarApi.branches(businessId: e.id!);
+      model.setDefaultBusiness(business: business);
+      print(business.id);
+      model.branchesList(
+          await ProxyService.isarApi.branches(businessId: business.id!));
       List<ITenant> tenants =
-          await ProxyService.isarApi.tenants(businessId: e.id!);
+          await ProxyService.isarApi.tenants(businessId: business.id!);
       if (tenants.isEmpty) {
-        await ProxyService.isarApi.tenantsFromOnline(businessId: e.id!);
+        await ProxyService.isarApi.tenantsFromOnline(businessId: business.id!);
       }
-      await model.app.loadCounters(e);
+      await model.app.loadCounters(business);
       setState(() {
         _isNext = true;
       });

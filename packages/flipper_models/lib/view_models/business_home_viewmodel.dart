@@ -862,6 +862,12 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     );
   }
 
+  List<Branch> branches = [];
+  void branchesList(List<Branch> value) {
+    branches = value;
+    notifyListeners();
+  }
+
   @override
   List<ListenableServiceMixin> get listenableServices =>
       [keypad, app, productService, settingService];

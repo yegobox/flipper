@@ -341,10 +341,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<List<Branch>> branches({required int businessId}) async {
-    List<Branch> kBranches =
-        await isar.branchs.filter().businessIdEqualTo(businessId).findAll();
-    log.i(kBranches.length);
-    return kBranches;
+    return await isar.branchs.filter().businessIdEqualTo(businessId).findAll();
   }
 
   @override
