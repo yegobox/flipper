@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flipper_services/proxy.dart';
 
+import 'data.loads/jcounter.dart';
 import 'isar_api.dart';
 import 'isar_models.dart';
 import 'package:http/http.dart' as http;
@@ -231,5 +232,69 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
           .findAll();
     }
     throw InternalServerException(term: "we got unexpected response");
+  }
+
+  @override
+  Future<void> loadCounterFromOnline({required int businessId}) async {
+    final responseJson = [
+      {
+        "id": 11,
+        "businessId": 1642645,
+        "branchId": 232,
+        "receiptType": "NS",
+        "totRcptNo": 0,
+        "curRcptNo": 0
+      },
+      {
+        "id": 12,
+        "businessId": 1642645,
+        "branchId": 232,
+        "receiptType": "TS",
+        "totRcptNo": 0,
+        "curRcptNo": 0
+      },
+      {
+        "id": 13,
+        "businessId": 1642645,
+        "branchId": 232,
+        "receiptType": "NR",
+        "totRcptNo": 0,
+        "curRcptNo": 0
+      },
+      {
+        "id": 14,
+        "businessId": 1642645,
+        "branchId": 232,
+        "receiptType": "CS",
+        "totRcptNo": 0,
+        "curRcptNo": 0
+      },
+      {
+        "id": 15,
+        "businessId": 1642645,
+        "branchId": 232,
+        "receiptType": "PS",
+        "totRcptNo": 0,
+        "curRcptNo": 0
+      }
+    ];
+    final response = http.Response(jsonEncode(responseJson), 200);
+    if (response.statusCode == 200) {
+      List<JCounter> counters = jCounterFromJson(response.body);
+      for (JCounter jCounter in counters) {
+        await isar.writeTxn(() async {
+          return isar.counters.put(Counter()
+            ..branchId = jCounter.branchId
+            ..businessId = jCounter.businessId
+            ..receiptType = jCounter.receiptType
+            ..id = jCounter.id
+            ..backed = true
+            ..totRcptNo = jCounter.totRcptNo
+            ..curRcptNo = jCounter.curRcptNo);
+        });
+      }
+    } else {
+      throw InternalServerError(term: "Error loading the counters");
+    }
   }
 }
