@@ -925,10 +925,10 @@ packages:
     dependency: transitive
     description:
       name: flutter_form_bloc
-      sha256: "63255ba6f48cbf1ac8c67bc23d5fc967d095138bf1d894ca238962e20ebd44cc"
+      sha256: "33048d47e9cc2ef4393f1404c3112f0a27d8b09080e15141c69e2660c28f552c"
       url: "https://pub.dev"
     source: hosted
-    version: "0.29.3"
+    version: "0.30.1"
   flutter_inappwebview:
     dependency: transitive
     description:
@@ -1139,10 +1139,10 @@ packages:
     dependency: transitive
     description:
       name: form_bloc
-      sha256: e70d95d1cd0017dcf4a660914ee27d4a9408a223160d06f6fbca8abb5970eef3
+      sha256: "14b4708e7be3123614e60fe7169350efa565b99a60b4f5fbd576e01696f54117"
       url: "https://pub.dev"
     source: hosted
-    version: "0.29.1"
+    version: "0.30.0"
   form_data:
     dependency: transitive
     description:

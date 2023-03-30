@@ -15,8 +15,18 @@ class DrawerScreen extends StatefulWidget {
 }
 
 class _DrawerScreenState extends State<DrawerScreen> {
-  final TextEditingController _controller = TextEditingController();
-  final GlobalKey<FormState> _sub = GlobalKey<FormState>();
+  final _controller = TextEditingController();
+  final _sub = GlobalKey<FormState>();
+  @override
+  void dispose() {
+    // Dispose of the TextEditingController
+    _controller.dispose();
+
+    // Dispose of the GlobalKey<FormState>
+    _sub.currentState?.dispose();
+
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

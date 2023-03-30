@@ -16,7 +16,7 @@ import 'gate.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 
-class SignupViewModel extends FormViewModel {
+class SignupViewModel extends ReactiveViewModel {
   final appService = locator<AppService>();
   String? businessType = 'Business';
   final log = getLogger('SignupViewModel');

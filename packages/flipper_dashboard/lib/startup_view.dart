@@ -19,7 +19,8 @@ class StartUpView extends StatelessWidget {
       fireOnViewModelReadyOnce: true,
       onViewModelReady: (model) =>
           SchedulerBinding.instance.addPostFrameCallback(
-        (timeStamp) {
+        (timeStamp) async {
+          await Future.delayed(Duration(seconds: 2));
           model.runStartupLogic(
             invokeLogin: invokeLogin ?? false,
             loginInfo: loginInfo,

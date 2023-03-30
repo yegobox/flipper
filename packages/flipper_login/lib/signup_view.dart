@@ -3,8 +3,6 @@ import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
-import 'package:stacked/stacked_annotations.dart';
-import 'signup_form_view.form.dart';
 import 'package:overlay_support/overlay_support.dart';
 
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
@@ -89,20 +87,15 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
   }
 }
 
-@FormView(fields: [
-  FormTextField(name: 'name'),
-  FormTextField(name: 'type'),
-])
-class SignUpFormView extends StatelessWidget with $SignUpFormView {
-  SignUpFormView({Key? key, required this.countryNm}) : super(key: key);
+class SignUpView extends StatelessWidget {
+  SignUpView({Key? key, required this.countryNm}) : super(key: key);
   final String countryNm;
   final _formKey = GlobalKey<FormState>();
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<SignupViewModel>.reactive(
+    return ViewModelBuilder<SignupViewModel>.nonReactive(
       onViewModelReady: (model) {
         model.context = context;
-        listenToFormUpdated(model);
         model.registerLocation();
       },
       viewModelBuilder: () => SignupViewModel(),
