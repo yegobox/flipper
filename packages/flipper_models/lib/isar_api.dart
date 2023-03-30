@@ -2062,4 +2062,10 @@ class IsarAPI<M> implements IsarApiInterface {
   Future<Social?> social({required int businessId}) async {
     return await isar.socials.get(businessId);
   }
+
+  @override
+  Future<List<BusinessType>> businessTypes() {
+    // TODO: implement businessTypes
+    throw UnimplementedError();
+  }
 }

@@ -53,7 +53,7 @@ void main() async {
   });
   WidgetsFlutterBinding.ensureInitialized();
   // imageCache.clear();
-  // HttpOverrides.global = FlipperHttpOverrides();y
+  // HttpOverrides.global = FlipperHttpOverrides();
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,

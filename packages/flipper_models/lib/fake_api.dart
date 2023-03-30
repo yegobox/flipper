@@ -139,7 +139,7 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
             "channels": null,
             "description": "Fake branch",
             "name": "FakeBranch",
-            "businessId": 1,
+            "businessId": 1642645,
             "longitude": "0",
             "latitude": "0",
             "table": "branches",
@@ -415,5 +415,21 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
       return null;
     }
     return null;
+  }
+
+  @override
+  Future<List<BusinessType>> businessTypes() async {
+    final responseJson = [
+      {"id": 1, "typeName": "Supplier"},
+      {"id": 2, "typeName": "Social"},
+      {"id": 3, "typeName": "Retailer"},
+      {"id": 4, "typeName": "Agent"}
+    ];
+    Future.delayed(Duration(seconds: 5));
+    final response = http.Response(jsonEncode(responseJson), 200);
+    if (response.statusCode == 200) {
+      return BusinessType.fromJsonList(jsonEncode(responseJson));
+    }
+    return BusinessType.fromJsonList(jsonEncode(responseJson));
   }
 }
