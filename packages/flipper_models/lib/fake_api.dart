@@ -297,4 +297,123 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
       throw InternalServerError(term: "Error loading the counters");
     }
   }
+
+  @override
+  Future<T?> update<T>({required T data}) async {
+    // int branchId = ProxyService.box.getBranchId()!;
+    if (data is Product) {
+      Product product = data;
+
+      await isar.writeTxn(() async {
+        return await isar.products.put(product);
+      });
+    }
+    if (data is Variant) {
+      Variant variant = data;
+      await isar.writeTxn(() async {
+        return await isar.variants.put(variant);
+      });
+    }
+    if (data is Stock) {
+      Stock stock = data;
+      await isar.writeTxn(() async {
+        return await isar.stocks.put(stock);
+      });
+    }
+    if (data is Order) {
+      final order = data;
+      await isar.writeTxn(() async {
+        return await isar.orders.put(order);
+      });
+    }
+    if (data is Category) {
+      final order = data;
+      await isar.writeTxn(() async {
+        return await isar.categorys.put(order);
+      });
+    }
+    if (data is IUnit) {
+      final unit = data;
+      await isar.writeTxn(() async {
+        return await isar.iUnits.put(unit);
+      });
+    }
+    if (data is PColor) {
+      final color = data;
+      await isar.writeTxn(() async {
+        return await isar.pColors.put(color);
+      });
+    }
+    if (data is OrderItem) {
+      await isar.writeTxn(() async {
+        return await isar.orderItems.put(data);
+      });
+    }
+    if (data is Ebm) {
+      final ebm = data;
+      await isar.writeTxn(() async {
+        ProxyService.box.write(key: "serverUrl", value: ebm.taxServerUrl);
+        Business? business =
+            await isar.business.where().userIdEqualTo(ebm.userId).findFirst();
+        business
+          ?..dvcSrlNo = ebm.dvcSrlNo
+          ..tinNumber = ebm.tinNumber
+          ..bhfId = ebm.bhfId
+          ..taxServerUrl = ebm.taxServerUrl
+          ..taxEnabled = true;
+        return await isar.business.put(business!);
+      });
+    }
+    if (data is Token) {
+      final token = data;
+      await isar.writeTxn(() async {
+        Token? ttoken =
+            await isar.tokens.where().userIdEqualTo(token.userId).findFirst();
+        if (ttoken == null) {
+          ttoken = Token()
+            ..token = token.token
+            ..userId = token.userId
+            ..type = token.type;
+          return await isar.tokens.put(ttoken);
+        } else {
+          ttoken
+            ..token = token.token
+            ..userId = token.userId
+            ..type = token.type;
+          return await isar.tokens.put(ttoken);
+        }
+      });
+    }
+    if (data is Business) {
+      final business = data;
+      await isar.writeTxn(() async {
+        return await isar.business.put(business);
+      });
+    }
+    if (data is Branch) {
+      isar.writeTxn(() async {
+        return await isar.branchs.put(data);
+      });
+    }
+    if (data is Counter) {
+      await isar.writeTxn(() async {
+        return isar.counters.put(data..backed = false);
+      });
+    }
+    if (data is Branch) {
+      isar.writeTxn(() async {
+        return await isar.branchs.put(data);
+      });
+    }
+    if (data is Drawers) {
+      final drawer = data;
+      await isar.writeTxn(() async {
+        return await isar.drawers.put(drawer);
+      });
+    }
+    if (data is ITenant) {
+      return null;
+    }
+    return null;
+  }
 }

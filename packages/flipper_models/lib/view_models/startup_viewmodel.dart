@@ -49,7 +49,7 @@ class StartUpViewModel extends BaseViewModel {
       if (e is LoginChoicesException) {
         loginInfo.isLoggedIn = false;
         loginInfo.loginChoices = true;
-        navigationCallback("login_choices");
+        navigationCallback("tenants");
       } else if (e is NoDrawerOpenException) {
         navigationCallback("drawer/open");
       } else if (e is SessionException || e is ErrorReadingFromYBServer) {
