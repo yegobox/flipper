@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flipper_services/proxy.dart';
 
 import 'isar_api.dart';
@@ -115,5 +117,119 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
     } else {
       throw Exception('403 Error');
     }
+  }
+
+  @override
+  Future<List<ITenant>> tenantsFromOnline({required int businessId}) async {
+    // Create a fake response JSON
+    final responseJson = [
+      {
+        "id": 1,
+        "name": "FakeTenant",
+        "phoneNumber": "+1234567890",
+        "email": "fake@tenant.com",
+        "permissions": [
+          {"id": 1, "name": "admin"}
+        ],
+        "branches": [
+          {
+            "id": 232,
+            "active": true,
+            "channels": null,
+            "description": "Fake branch",
+            "name": "FakeBranch",
+            "businessId": 1,
+            "longitude": "0",
+            "latitude": "0",
+            "table": "branches",
+            "createdAt": "2022-03-30T00:00:00.000Z",
+            "updatedAt": null,
+            "isDefault": true,
+            "tenants": [],
+            "default": true
+          }
+        ],
+        "businesses": [
+          {
+            "id": 1642645,
+            "name": "FakeBusiness",
+            "currency": "USD",
+            "categoryId": null,
+            "latitude": "1",
+            "longitude": "1",
+            "userId": "1651165831880765",
+            "typeId": null,
+            "timeZone": null,
+            "channels": null,
+            "table": null,
+            "country": "United States",
+            "businessUrl": null,
+            "hexColor": null,
+            "imageUrl": null,
+            "type": "Business",
+            "referredBy": "Organic",
+            "createdAt": "2022-03-30T00:00:00.000Z",
+            "updatedAt": null,
+            "metadata": null,
+            "role": null,
+            "lastSeen": 0,
+            "firstName": null,
+            "lastName": null,
+            "reported": "true",
+            "phoneNumber": "+1234567890",
+            "deviceToken": null,
+            "chatUid": null,
+            "backUpEnabled": false,
+            "subscriptionPlan": null,
+            "nextBillingDate": null,
+            "previousBillingDate": null,
+            "isLastSubscriptionPaymentSucceeded": false,
+            "backupFileId": null,
+            "email": "fake@business.com",
+            "lastDbBackup": null,
+            "fullName": "Fake Business",
+            "referralCode": null,
+            "authId": null,
+            "tinNumber": 123456,
+            "dvcSrlNo": null,
+            "bhfId": null,
+            "adrs": null,
+            "taxEnabled": false,
+            "isDefault": true,
+            "default": true,
+            "lastSubscriptionPaymentSucceeded": false
+          }
+        ],
+        "businessId": 1,
+        "nfcEnabled": false
+      }
+    ];
+    final response = http.Response(jsonEncode(responseJson), 200);
+    if (response.statusCode == 200) {
+      for (JTenant tenant in jListTenantFromJson(response.body)) {
+        JTenant jTenant = tenant;
+        ITenant iTenant = ITenant(
+            id: jTenant.id,
+            name: jTenant.name,
+            businessId: jTenant.businessId,
+            nfcEnabled: jTenant.nfcEnabled,
+            email: jTenant.email,
+            phoneNumber: jTenant.phoneNumber);
+
+        isar.writeTxn(() async {
+          await isar.business.putAll(jTenant.businesses);
+          await isar.branchs.putAll(jTenant.branches);
+          await isar.permissions.putAll(jTenant.permissions);
+        });
+        isar.writeTxn(() async {
+          await isar.iTenants.put(iTenant);
+        });
+      }
+      return await isar.iTenants
+          .filter()
+          .businessIdEqualTo(businessId)
+          .findAll();
+    }
+    throw InternalServerException(term: "we got unexpected response");
   }
 }
