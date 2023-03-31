@@ -160,9 +160,6 @@ class IsarAPI<M> implements IsarApiInterface {
   }) async {
     int branchId = ProxyService.box.getBranchId()!;
 
-    String desiredDate = removeTrailingDash(
-        Hlc.fromDate(DateTime.now(), branchId.toString()).toString());
-
     Order? existOrder = await pendingOrder(branchId: branchId);
 
     if (existOrder == null) {

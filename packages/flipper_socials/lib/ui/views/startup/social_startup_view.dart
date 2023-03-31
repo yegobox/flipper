@@ -3,8 +3,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_socials/ui/common/ui_helpers.dart';
 import 'package:google_fonts/google_fonts.dart';
-
-import 'package:flipper_models/isar_models.dart';
+import 'startup_viewmodel.dart';
 
 class ColdStartView extends StackedView<StartupViewModel> {
   const ColdStartView({Key? key}) : super(key: key);
@@ -60,7 +59,6 @@ class ColdStartView extends StackedView<StartupViewModel> {
       StartupViewModel(context: context);
 
   @override
-  void onViewModelReady(StartupViewModel viewModel) =>
-      SchedulerBinding.instance.addPostFrameCallback(
-          (timeStamp) => viewModel.runStartupLogic(invokeLogin: true));
+  void onViewModelReady(StartupViewModel viewModel) => SchedulerBinding.instance
+      .addPostFrameCallback((timeStamp) => viewModel.runStartupLogic());
 }

@@ -22,6 +22,7 @@ class StartupViewModel extends BaseViewModel {
   final log = getLogger('StartUpViewModel');
 
   StartupViewModel({required this.context});
+  Future<void> listenToAuthChange() async {}
 
   Future<void> runStartupLogic({
     required bool invokeLogin,
@@ -47,6 +48,10 @@ class StartupViewModel extends BaseViewModel {
       LoginInfo().isLoggedIn = true;
 
       GoRouter.of(context).push('/home');
+
+      /// if you want to test signup or any other route before landing to final destionation
+      /// un comment the code below but do not forget after testing to comment back the code
+      // GoRouter.of(context).push('/signup/Rwanda');
     } catch (e, stack) {
       if (e is LoginChoicesException) {
         LoginInfo().isLoggedIn = false;
@@ -59,7 +64,7 @@ class StartupViewModel extends BaseViewModel {
         LoginInfo().isLoggedIn = false;
         GoRouter.of(context).push('/login');
       } else if (e is NotFoundException) {
-        GoRouter.of(context).push('/signup');
+        GoRouter.of(context).push('/signup/Rwanda');
       } else {
         log.i(e.toString());
         log.i(stack);

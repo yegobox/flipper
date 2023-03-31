@@ -44,37 +44,21 @@ final router = GoRouter(
   refreshListenable: LoginInfo(),
   redirect: (BuildContext context, GoRouterState state) async {
     final bool loggedIn = LoginInfo().isLoggedIn;
-    final bool needSignUp = LoginInfo().needSignUp;
     final coldStart = state.subloc == Routes.coldStart;
     final onLogin = state.subloc == Routes.login;
     final onNoNet = state.subloc == Routes.noNet;
-    final String country = LoginInfo().country.replaceAll(" ", "");
-    final onSignUp = state.subloc == "${Routes.signup}/$country";
     final bool noNet = LoginInfo().noNet;
     final bool loginChoices = LoginInfo().loginChoices;
     final onTenants = state.subloc == Routes.tenants;
     final routeWithRedirectRules = [
-      "${Routes.signup}/$country",
       Routes.login,
       Routes.noNet,
       Routes.coldStart,
       Routes.tenants
     ];
 
-    if (needSignUp &&
-        !onSignUp &&
-        routeWithRedirectRules.contains(state.subloc)) {
-      return "${Routes.signup}/$country";
-    }
-    if (loggedIn &&
-        !coldStart &&
-        routeWithRedirectRules.contains(state.subloc)) {
-      return Routes.coldStart;
-    }
-
     if (!loggedIn &&
         !onLogin &&
-        !needSignUp &&
         !loginChoices &&
         routeWithRedirectRules.contains(state.subloc)) {
       return Routes.login;

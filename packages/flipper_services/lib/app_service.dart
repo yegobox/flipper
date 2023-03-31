@@ -140,7 +140,7 @@ class AppService with ListenableServiceMixin {
         }
       }
       if (!defaultBusiness) {
-        throw LoginChoicesException(term: "choose default business");
+        throw LoginChoicesException(term: "Choose default business");
       }
     }
   }

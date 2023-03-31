@@ -88,8 +88,8 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
 }
 
 class SignUpView extends StatelessWidget {
-  SignUpView({Key? key, required this.countryNm}) : super(key: key);
-  final String countryNm;
+  SignUpView({Key? key, this.countryNm = "Rwanda"}) : super(key: key);
+  final String? countryNm;
   final _formKey = GlobalKey<FormState>();
   @override
   Widget build(BuildContext context) {
@@ -102,7 +102,7 @@ class SignUpView extends StatelessWidget {
       builder: (context, model, child) {
         return BlocProvider(
           create: (context) => AsyncFieldValidationFormBloc(
-              signupViewModel: model, country: countryNm),
+              signupViewModel: model, country: countryNm ?? "Rwanda"),
           child: Builder(builder: (context) {
             final formBloc = context.read<AsyncFieldValidationFormBloc>();
             return Scaffold(
