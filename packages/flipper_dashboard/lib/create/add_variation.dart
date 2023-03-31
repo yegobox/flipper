@@ -1,6 +1,5 @@
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_localize/flipper_localize.dart';
-import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_dashboard/create/section_select_unit.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_services/proxy.dart';
@@ -26,7 +25,6 @@ class _AddVariationState extends State<AddVariation> {
 
   TextEditingController nameController = TextEditingController();
   bool isTaxExempted = false;
-  final log = getLogger('AddVariation');
   String sku = '';
   @override
   void dispose() {

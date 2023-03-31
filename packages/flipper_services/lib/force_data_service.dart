@@ -1,8 +1,7 @@
 import 'package:flipper_models/mocks.dart';
-import 'package:flipper_routing/routes.locator.dart';
-import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
 
 import 'package:flipper_models/isar_models.dart';
@@ -12,7 +11,6 @@ import 'package:flipper_models/isar_models.dart';
 
 class ForceDataEntryService {
   final appService = locator<AppService>();
-  final log = getLogger('ForceDataEntryService');
   void caller() {
     addData();
   }

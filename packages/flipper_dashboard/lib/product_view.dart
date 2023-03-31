@@ -3,7 +3,9 @@ import 'package:flipper_dashboard/product_row.dart';
 import 'package:flipper_dashboard/search_field.dart';
 import 'package:flipper_dashboard/sticky_search.dart';
 import 'package:flipper_dashboard/tenants_list.dart';
-import 'package:flipper_routing/routes.router.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:go_router/go_router.dart';
@@ -13,7 +15,6 @@ import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:universal_platform/universal_platform.dart';
-import 'package:flipper_routing/routes.logger.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 
 final isWindows = UniversalPlatform.isWindows;
@@ -29,10 +30,9 @@ class ProductView extends StatefulWidget {
 }
 
 class _ProductViewState extends State<ProductView> {
-  final log = getLogger('_onCreate');
   final searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
-
+  final _routerService = locator<RouterService>();
   @override
   void initState() {
     super.initState();
@@ -182,7 +182,7 @@ class _ProductViewState extends State<ProductView> {
                               model.deleteDiscount(id: id);
                             },
                             edit: (discount) {
-                              GoRouter.of(context).push(Routes.discount);
+                              _routerService.replaceWith(AddDiscountRoute());
                             },
                             applyDiscount: (discount) async {
                               await model.applyDiscount(discount: discount);

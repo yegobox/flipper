@@ -1,10 +1,7 @@
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_routing/routes.logger.dart';
 
 class BillingService {
-  final log = getLogger('BillingService');
-
   /// catch error on backend trying to use a voucher more than once
   /// I should not base on used property since this property is mutated
   /// after the use instead I should check this property before I mutate the voucher

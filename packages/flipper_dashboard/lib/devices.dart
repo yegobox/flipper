@@ -1,12 +1,14 @@
 import 'package:flipper_dashboard/customappbar.dart';
-import 'package:flipper_routing/routes.router.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 class Devices extends StatelessWidget {
-  const Devices({Key? key, this.pin}) : super(key: key);
+  Devices({Key? key, this.pin}) : super(key: key);
   final int? pin;
-
+  final _routerService = locator<RouterService>();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,7 +39,7 @@ class Devices extends StatelessWidget {
             child: ElevatedButton(
               child: Text('Link A Device'),
               onPressed: () {
-                GoRouter.of(context).push(Routes.scann + "/login");
+                _routerService.replaceWith(ScannViewRoute(intent: "login"));
               },
             ),
           ),

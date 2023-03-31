@@ -2,10 +2,8 @@ library flipper_models;
 
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/mocks.dart';
-import 'package:flipper_routing/routes.locator.dart';
-// import 'package:flipper_models/models/mocks.dart';
-import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_services/app_service.dart';
+import 'package:flipper_services/locator.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:stacked/stacked.dart';
 import 'package:universal_platform/universal_platform.dart';
@@ -19,7 +17,6 @@ final isWindows = UniversalPlatform.isWindows;
 class SignupViewModel extends ReactiveViewModel {
   final appService = locator<AppService>();
   String? businessType = 'Business';
-  final log = getLogger('SignupViewModel');
 
   bool registerStart = false;
 
@@ -81,7 +78,6 @@ class SignupViewModel extends ReactiveViewModel {
         ProxyService.box.write(key: pageKey, value: businessType);
       }
       String? referralCode = ProxyService.box.read(key: 'referralCode');
-      log.i(tin);
 
       List<JTenant> jTenants = await ProxyService.isarApi.signup(business: {
         'name': kName,

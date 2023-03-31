@@ -1,5 +1,7 @@
 import 'package:flipper_models/isar_models.dart';
-import 'package:flipper_routing/routes.router.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +17,7 @@ class Payments extends StatelessWidget {
     decimal: 0,
   );
   final Order order;
+  final _routerService = locator<RouterService>();
 
   @override
   Widget build(BuildContext context) {
@@ -69,10 +72,8 @@ class Payments extends StatelessWidget {
                         children: [
                           GestureDetector(
                             onTap: () {
-                              GoRouter.of(context).push(
-                                Routes.collect + "/cash",
-                                extra: order,
-                              );
+                              _routerService.replaceWith(CollectCashViewRoute(
+                                  order: order, paymentType: "cash"));
                             },
                             child: const ListTile(
                               leading: Text(
@@ -94,10 +95,10 @@ class Payments extends StatelessWidget {
                                   kDebugMode
                               ? GestureDetector(
                                   onTap: () {
-                                    GoRouter.of(context).push(
-                                      Routes.collect + "/spenn",
-                                      extra: order,
-                                    );
+                                    _routerService.replaceWith(
+                                        CollectCashViewRoute(
+                                            order: order,
+                                            paymentType: "spenn"));
                                   },
                                   child: const ListTile(
                                     leading: Text(

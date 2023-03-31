@@ -1,11 +1,12 @@
 library flipper_services;
 
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/cupertino.dart';
 import 'abstractions/dynamic_link.dart';
-import 'package:flipper_routing/constants.dart';
-import 'package:go_router/go_router.dart';
 
 class UnSupportedDynamicLink implements DynamicLink {
   @override
@@ -19,6 +20,7 @@ class UnSupportedDynamicLink implements DynamicLink {
 
 class DynamicLinkService implements DynamicLink {
   FirebaseDynamicLinks dynamicLinks = FirebaseDynamicLinks.instance;
+  final _routerService = locator<RouterService>();
   @override
   Future handleDynamicLink(BuildContext context) async {
     // if the app is opened with the link
@@ -48,7 +50,8 @@ class DynamicLinkService implements DynamicLink {
       }
       //save the code in localstorage to be used later
       ProxyService.box.write(key: 'referralCode', value: code.toString());
-      GoRouter.of(context).push(Routes.boot);
+
+      _routerService.replaceWith(StartUpViewRoute());
     }
   }
 

@@ -3,6 +3,8 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_ui_localizations/firebase_ui_localizations.dart';
 import 'package:flipper_models/view_models/gate.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_rw/flipper_localize/lib/flipper_localize.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart' as foundation;
@@ -71,7 +73,12 @@ void main() async {
   await GetStorage.init();
   // done init in mobile.//done separation.
   await thirdPartyLocator();
-
+  // setPathUrlStrategy();
+  setupLocator(
+    stackedRouter: stackedRouter,
+  );
+  // setupDialogUi();
+  // setupBottomSheetUi();
   await initDb();
   if (!isWindows && !isWeb) {
     FlutterError.onError = (FlutterErrorDetails details) {
@@ -137,8 +144,8 @@ void main() async {
             //     .languageService.locale,
             // themeMode: model.settingService.themeMode.value,
             themeMode: ThemeMode.system,
-            routeInformationParser: router.routeInformationParser,
-            routerDelegate: router.routerDelegate,
+            routerDelegate: stackedRouter.delegate(),
+            routeInformationParser: stackedRouter.defaultRouteParser(),
           ).animate().fadeIn(
                 delay: const Duration(milliseconds: 50),
                 duration: const Duration(milliseconds: 400),

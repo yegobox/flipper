@@ -1,4 +1,3 @@
-import 'package:flipper_routing/routes.logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
 import 'add_customer.dart';
@@ -14,7 +13,6 @@ class Customers extends StatelessWidget {
   Customers({Key? key, required this.orderId}) : super(key: key);
   final int orderId;
   final TextEditingController _seach = TextEditingController();
-  final log = getLogger('Customers');
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<BusinessHomeViewModel>.reactive(

@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_services/upload_response.dart';
 
 import 'abstractions/upload.dart';
@@ -13,7 +12,6 @@ import 'package:flutter_luban/flutter_luban.dart';
 import 'proxy.dart';
 
 class HttpUpload implements UploadT {
-  final log = getLogger('HttpUpload');
   @override
   Future browsePictureFromGallery(
       {required int productId, required Function onComplete}) async {
@@ -39,12 +37,7 @@ class HttpUpload implements UploadT {
     Luban.compressImage(compressObject).then((_path) {
       final String fileName = _path!.split('/').removeLast();
       final String storagePath = _path.replaceAll('/' + fileName, '');
-      // final Document productUpdated = _databaseService.getById(id: product.id!!);
-      // _state.setProduct(product: Product.fromMap(productUpdated.map));
-      // final bool internetAvailable = await isInternetAvailable();
-      log.i('we got here');
-      log.i(fileName);
-      log.i(storagePath);
+
       upload(
         paths: [storagePath],
         productId: productId,
@@ -79,7 +72,6 @@ class HttpUpload implements UploadT {
 // end of http upload
 class MobileUpload implements UploadT {
   final _picker = ImagePicker();
-  final log = getLogger('MobileUpload');
   @override
   Future handleImage(
       {required File image,
@@ -99,9 +91,7 @@ class MobileUpload implements UploadT {
         paths: [_path!],
         onUploadComplete: onUploadComplete,
       );
-    }).onError((error, stackTrace) {
-      log.i(error);
-    });
+    }).onError((error, stackTrace) {});
   }
 
   @override
@@ -133,7 +123,6 @@ class MobileUpload implements UploadT {
               await ProxyService.isarApi.getProduct(id: productId);
           // Map map = product!.toJson();
           product!.imageUrl = uploadResponse.url;
-          log.i(productId);
           ProxyService.isarApi.update(data: product);
           Product? kProduct =
               await ProxyService.isarApi.getProduct(id: productId);
@@ -144,9 +133,7 @@ class MobileUpload implements UploadT {
           onUploadComplete(500);
         }
       }
-    }, onError: (ex, stacktrace) {
-      log.i('error' + stacktrace.toString());
-    });
+    }, onError: (ex, stacktrace) {});
   }
 
   @override

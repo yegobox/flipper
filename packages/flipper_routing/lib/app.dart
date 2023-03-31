@@ -4,120 +4,100 @@ import 'package:stacked/stacked_annotations.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'all_routes.dart';
 
-// leave stacked for logging purposes
-// only stacked is used for their model and service but not for routing as we use go-router
 @StackedApp(
   routes: [
     CustomRoute(page: StartUpView, initial: true),
     CustomRoute(page: SignUpView),
     CustomRoute(page: FlipperApp),
-    // CustomRoute(
-    //   page: LoginView
-    // ),
-    // CustomRoute(
-    //   page: AddProductView
-    // ),
-    // CustomRoute(
-    //   page: AddDiscount,
-    // ),
-    // CustomRoute(
-    //   page: ListCategories,
-    // ),
-    // CustomRoute(
-    //   page: ColorTile,
-    // ),
-    // CustomRoute(
-    //   page: ReceiveStock,
-    // ),
-    // CustomRoute(
-    //   page: AddVariation,
-    // ),
-    // CustomRoute(
-    //   page: AddCategory,
-    // ),
-    // CustomRoute(
-    //   page: ListUnits,
-    // ),
-    // CustomRoute(
-    //   page: Sell,
-    // ),
-    // CustomRoute(
-    //   page: Payments,
-    // ),
-    // CustomRoute(
-    //   page: CollectCashView
-    // ),
-    // CustomRoute(
-    //   page: AfterSale,
-    // ),
-    // CustomRoute(
-    //   page: TransactionDetail,
-    // ),
-    // CustomRoute(
-    //   page: SettingsScreen,
-    // ),
-    // CustomRoute(
-    //   page: SwitchBranchView
-    // ),
-    // CustomRoute(
-    //   page: ScannView
-    // ),
-    // CustomRoute(
-    //   page: OrderView
-    // ),
-    // CustomRoute(
-    //   page: InAppBrowser,
-    // ),
-    // CustomRoute(
-    //   page: Customers,
-    // ),
-    // CustomRoute(
-    //   page: NoNet,
-    // ),
-    // CustomRoute(
-    //   page: PinLogin,
-    // ),
-    // CustomRoute(
-    //   page: Devices,
-    // ),
-    // CustomRoute(
-    //   page: TaxConfiguration,
-    // ),
-    // CustomRoute(
-    //   page: Printing,
-    // ),
-
-    // CustomRoute(
-    //   page: BackUp,
-    // ),
-    // CustomRoute(
-    //   page: LoginChoices,
-    // ),
-    // CustomRoute(
-    //   page: TenantAdd,
-    // ),
-    // CustomRoute(
-    //   page: ColdStartView
-    // ),
-    // CustomRoute(
-    //   page: SocialHomeView
-    // ),
-    //  CustomRoute(page: DrawerScreen, ),
+    CustomRoute(page: LoginView),
+    CustomRoute(page: AddProductView),
+    CustomRoute(
+      page: AddDiscount,
+    ),
+    CustomRoute(
+      page: ListCategories,
+    ),
+    CustomRoute(
+      page: ColorTile,
+    ),
+    CustomRoute(
+      page: ReceiveStock,
+    ),
+    CustomRoute(
+      page: AddVariation,
+    ),
+    CustomRoute(
+      page: AddCategory,
+    ),
+    CustomRoute(
+      page: ListUnits,
+    ),
+    CustomRoute(
+      page: Sell,
+    ),
+    CustomRoute(
+      page: Payments,
+    ),
+    CustomRoute(page: CollectCashView),
+    CustomRoute(
+      page: AfterSale,
+    ),
+    CustomRoute(
+      page: TransactionDetail,
+    ),
+    CustomRoute(
+      page: SettingsScreen,
+    ),
+    CustomRoute(page: SwitchBranchView),
+    CustomRoute(page: ScannView),
+    CustomRoute(page: OrderView),
+    CustomRoute(
+      page: InAppBrowser,
+    ),
+    CustomRoute(
+      page: Customers,
+    ),
+    CustomRoute(
+      page: NoNet,
+    ),
+    CustomRoute(
+      page: PinLogin,
+    ),
+    CustomRoute(
+      page: Devices,
+    ),
+    CustomRoute(
+      page: TaxConfiguration,
+    ),
+    CustomRoute(
+      page: Printing,
+    ),
+    CustomRoute(
+      page: BackUp,
+    ),
+    CustomRoute(
+      page: LoginChoices,
+    ),
+    CustomRoute(
+      page: TenantAdd,
+    ),
+    CustomRoute(page: ColdStartView),
+    CustomRoute(page: SocialHomeView),
+    CustomRoute(page: DrawerScreen),
   ],
   dependencies: [
-    LazySingleton(classType: NavigationService),
-    LazySingleton(classType: RouterService),
     LazySingleton(classType: BottomSheetService),
     LazySingleton(classType: DialogService),
+    LazySingleton(classType: RouterService)
   ],
-  bottomsheets: [
-    StackedBottomsheet(classType: NoticeSheet),
-    // @stacked-bottom-sheet
-  ],
-  dialogs: [
-    StackedDialog(classType: InfoAlertDialog),
-    // @stacked-dialog
-  ],
+  // bottomsheets: [
+  //   // StackedBottomsheet(classType: NoticeSheet),
+  //   // @stacked-bottom-sheet
+  // ],
+  // dialogs: [
+  //   // StackedDialog(classType: InfoAlertDialog),
+  //   // @stacked-dialog
+  // ],
   logger: StackedLogger(),
 )
 class App {}

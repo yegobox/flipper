@@ -1,3 +1,5 @@
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -8,7 +10,7 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'customappbar.dart';
-import 'package:go_router/go_router.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 class AfterSale extends StatefulWidget {
   const AfterSale(
@@ -30,8 +32,7 @@ class _AfterSaleState extends State<AfterSale> {
     length: 8,
     decimal: 0,
   );
-  final log = getLogger('AfterSale');
-
+  final _routerService = locator<RouterService>();
   @override
   void initState() {
     super.initState();
@@ -48,7 +49,7 @@ class _AfterSaleState extends State<AfterSale> {
                 useTransparentButton: false,
                 onPop: () {
                   model.currentOrder();
-                  GoRouter.of(context).push(Routes.home);
+                  _routerService.replaceWith(FlipperAppRoute());
                 },
                 closeButton: CLOSEBUTTON.BUTTON,
                 disableButton: false,
@@ -210,8 +211,8 @@ class _AfterSaleState extends State<AfterSale> {
                                               model.keyboardKeyPressed(
                                                   'C'); // to clear the keyboard
                                               model.currentOrder();
-                                              GoRouter.of(context)
-                                                  .push(Routes.home);
+                                              _routerService.replaceWith(
+                                                  FlipperAppRoute());
                                             },
                                           ),
                                         ),
@@ -257,8 +258,8 @@ class _AfterSaleState extends State<AfterSale> {
                                               model.currentOrder();
                                               model.keyboardKeyPressed(
                                                   'C'); // to clear the keyboard
-                                              GoRouter.of(context)
-                                                  .pushNamed(Routes.home);
+                                              _routerService.replaceWith(
+                                                  FlipperAppRoute());
                                             },
                                           ),
                                         ),

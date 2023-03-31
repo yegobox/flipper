@@ -1,9 +1,8 @@
 library flipper_models;
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flipper_routing/routes.locator.dart';
-import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -19,7 +18,6 @@ class StartupViewModel extends BaseViewModel {
   final appService = locator<AppService>();
   final BuildContext context;
   bool isBusinessSet = false;
-  final log = getLogger('StartUpViewModel');
 
   StartupViewModel({required this.context});
   Future<void> listenToAuthChange() async {}
@@ -52,7 +50,7 @@ class StartupViewModel extends BaseViewModel {
       /// if you want to test signup or any other route before landing to final destionation
       /// un comment the code below but do not forget after testing to comment back the code
       // GoRouter.of(context).push('/signup/Rwanda');
-    } catch (e, stack) {
+    } catch (e) {
       if (e is LoginChoicesException) {
         LoginInfo().isLoggedIn = false;
         LoginInfo().loginChoices = true;
@@ -66,8 +64,6 @@ class StartupViewModel extends BaseViewModel {
       } else if (e is NotFoundException) {
         GoRouter.of(context).push('/signup/Rwanda');
       } else {
-        log.i(e.toString());
-        log.i(stack);
         ProxyService.isarApi.logOut();
         LoginInfo().isLoggedIn = false;
         GoRouter.of(context).push('/login');

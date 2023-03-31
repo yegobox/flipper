@@ -1,5 +1,3 @@
-import 'package:flipper_routing/routes.logger.dart';
-import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_ui/toast.dart';
 import 'package:flutter/foundation.dart';
@@ -11,6 +9,9 @@ import 'package:go_router/go_router.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'dart:io';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 // import 'package:go_router/go_router.dart';
 
@@ -26,8 +27,7 @@ class _ScannViewState extends State<ScannView> {
   Barcode? result;
   QRViewController? controller;
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
-  final log = getLogger('_ScannViewState');
-
+  final _routerService = locator<RouterService>();
   // In order to get hot reload to work we need to pause the camera if the platform
   // is android, or resume the camera if the platform is iOS.
   @override
@@ -123,7 +123,6 @@ class _ScannViewState extends State<ScannView> {
   }
 
   void _onPermissionSet(BuildContext context, QRViewController ctrl, bool p) {
-    log.i('${DateTime.now().toIso8601String()}_onPermissionSet $p');
     if (!p) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('no Permission')),
@@ -207,8 +206,7 @@ class _ScannViewState extends State<ScannView> {
       Product? product =
           await model.productService.getProductByBarCode(code: code);
       if (product != null) {
-        GoRouter.of(context).push(Routes.sell + "/${product.id!}");
-
+        _routerService.replaceWith(SellRoute(product: product));
         return;
       }
       showSimpleNotification(

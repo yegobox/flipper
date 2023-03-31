@@ -74,7 +74,7 @@ class _AddDiscountState extends State<AddDiscount> {
                     key: _formKey,
                     child: Column(
                       children: [
-                        const ColorAndImagePlaceHolder(
+                        ColorAndImagePlaceHolder(
                           currentColor: '#ee5253',
                           product: null,
                         ),

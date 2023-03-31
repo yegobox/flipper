@@ -7,7 +7,6 @@ import 'package:flipper_models/isar/utils.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flipper_routing/routes.logger.dart';
 
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/locator.dart';
@@ -23,7 +22,6 @@ class ProductViewModel extends AddTenantViewModel {
   // extends ReactiveViewModel
   final AppService app = locator<AppService>();
   // ignore: annotate_overrides, overridden_fields
-  final log = getLogger('ProductViewModel');
   final ProductService productService = locator<ProductService>();
 
   List<PColor> get colors => app.colors;

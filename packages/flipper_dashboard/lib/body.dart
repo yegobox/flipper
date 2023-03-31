@@ -1,5 +1,7 @@
 import 'package:flipper_dashboard/transactions.dart';
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_ui/bottom_sheets/general_bottom_sheet.dart';
 import 'package:flipper_dashboard/sales_buttons_controller.dart';
 import 'package:flipper_dashboard/keypad_view.dart';
@@ -8,11 +10,9 @@ import 'package:flipper_dashboard/product_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_routing/routes.router.dart';
 import 'package:overlay_support/overlay_support.dart';
-import 'package:go_router/go_router.dart';
 import 'package:universal_platform/universal_platform.dart';
-
+import 'package:stacked_services/stacked_services.dart';
 import 'settings.dart';
 
 final isDesktopOrWeb = UniversalPlatform.isDesktopOrWeb;
@@ -22,6 +22,7 @@ Widget PaymentTicketManager(
     required BusinessHomeViewModel model,
     required TextEditingController controller,
     required bool nodeDisabled}) {
+  final _routerService = locator<RouterService>();
   return SalesButtonsController(
     tab: model.tab,
     model: model,
@@ -31,7 +32,7 @@ Widget PaymentTicketManager(
       saleCounts: model.keypad.itemsOnSale,
       onClick: () {
         if (model.kOrder != null) {
-          GoRouter.of(context).push(Routes.pay, extra: model.kOrder);
+          _routerService.replaceWith(PaymentsRoute(order: model.kOrder!));
         } else {
           showSimpleNotification(
             Text(FLocalization.of(context).noPayable),

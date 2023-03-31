@@ -3,7 +3,9 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
 import './universal/maybe_tooltip.dart';
-import 'package:flipper_routing/routes.router.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/proxy.dart';
 import 'about.dart';
 import 'package:go_router/go_router.dart';
@@ -919,6 +921,7 @@ class _UserProfile extends StatefulWidget {
 class _UserProfileState extends State<_UserProfile> {
   bool _collapsed = true;
 
+  final _routerService = locator<RouterService>();
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
@@ -996,12 +999,12 @@ class _UserProfileState extends State<_UserProfile> {
                         TextButton(
                           onPressed: () async {
                             await ProxyService.isarApi.logOut();
-                            GoRouter.of(context).push(Routes.boot);
+                            _routerService.replaceWith(StartUpViewRoute());
                           },
                           child: Column(
                             children: <Widget>[
                               const Icon(Icons.logout),
-                              Text('Sign out', style: textTheme.overline),
+                              Text('Sign out'),
                             ],
                           ),
                         ),

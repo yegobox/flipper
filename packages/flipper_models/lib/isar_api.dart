@@ -5,8 +5,6 @@ import 'package:flipper_models/data.loads/jcounter.dart';
 import 'package:flipper_models/isar/utils.dart';
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
-import 'package:flipper_routing/routes.logger.dart';
-import 'package:flipper_routing/constants.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/isar_models.dart';
@@ -15,7 +13,7 @@ import 'package:flutter/foundation.dart' as foundation;
 import 'package:isar_crdt/utils/hlc.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'view_models/gate.dart';
-// import StreamZip
+import 'package:flipper_routing/receipt_types.dart';
 
 final isAndroid = UniversalPlatform.isAndroid;
 
@@ -53,7 +51,6 @@ class ExtendedClient extends http.BaseClient {
 }
 
 class IsarAPI<M> implements IsarApiInterface {
-  final log = getLogger('IsarAPI');
   ExtendedClient client = ExtendedClient(http.Client());
   late String apihub;
   late String commApi;
@@ -150,7 +147,6 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Stream<Order?> pendingOrderStream() {
     int? currentOrderId = ProxyService.box.currentOrderId();
-    log.d('currentOrderId: $currentOrderId');
     return isar.orders.watchObject(currentOrderId ?? 0, fireImmediately: true);
   }
 
@@ -743,7 +739,6 @@ class IsarAPI<M> implements IsarApiInterface {
         }),
         headers: {'Content-Type': 'application/json'});
     if (response.statusCode == 200) {
-      log.d('created attendance document');
       // update settings with enableAttendance = true
       String userId = ProxyService.box.read(key: 'userId');
       Setting? setting = await getSetting(userId: int.parse(userId));
@@ -1037,7 +1032,6 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<bool> logOut() async {
-    log.i("logging out");
     // delete all business and branches from isar db for
     // potential next business that can log-in to not mix data.
     await isar.writeTxn(() async {
@@ -1186,7 +1180,6 @@ class IsarAPI<M> implements IsarApiInterface {
   /// then call add this user to tenants of specific business/branch.
   @override
   Future<SyncF> user({required String userPhone}) async {
-    log.i(userPhone);
     final response = await http.post(
       Uri.parse(apihub + '/v2/api/user'),
       headers: <String, String>{
@@ -1197,12 +1190,10 @@ class IsarAPI<M> implements IsarApiInterface {
       ),
     );
     if (response.statusCode == 200) {
-      log.d(response.body);
       return syncFFromJson(response.body);
     } else if (response.statusCode == 401) {
       throw SessionException(term: "session expired");
     } else if (response.statusCode == 500) {
-      log.d(response.body);
       throw ErrorReadingFromYBServer(term: "Error from server");
     } else {
       throw Exception('403 Error');
@@ -1545,9 +1536,7 @@ class IsarAPI<M> implements IsarApiInterface {
         await client.patch(Uri.parse("$apihub/v2/api/branch/${data.id}"),
             body: jsonEncode(data.toJson()),
             headers: {'Content-Type': 'application/json'});
-      } catch (e) {
-        log.e(e);
-      }
+      } catch (e) {}
     }
     if (data is Drawers) {
       final drawer = data;
@@ -1582,7 +1571,6 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<int> userNameAvailable({required String name}) async {
-    log.d("$apihub/search?name=$name");
     final response = await client.get(Uri.parse("$apihub/search?name=$name"));
     return response.statusCode;
   }

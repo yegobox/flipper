@@ -1,4 +1,3 @@
-import 'package:flipper_routing/routes.logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
@@ -21,7 +20,6 @@ class Sell extends StatelessWidget {
   final Product product;
   final ForHere forHere = ForHere.lafayette;
   final ToGo toGo = ToGo.lafayette;
-  final log = getLogger('Sell');
 
   final Delivery delivery = Delivery.lafayette;
   final Pickup pick = Pickup.lafayette;
@@ -518,10 +516,10 @@ class Sell extends StatelessWidget {
         child: InkWell(
           onTap: () {
             //load stock of this variant
-            model.loadVariantStock(variantId: variant.id!!);
+            model.loadVariantStock(variantId: variant.id!);
             model.keypad
                 .setAmount(amount: variant.retailPrice * model.quantity);
-            model.toggleCheckbox(variantId: variant.id!!);
+            model.toggleCheckbox(variantId: variant.id!);
           },
           child: Container(
             child: Padding(
@@ -535,7 +533,7 @@ class Sell extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       FutureBuilder<Variant?>(
-                          future: model.getVariant(variantId: variant.id!!),
+                          future: model.getVariant(variantId: variant.id!),
                           builder: (context, snapshot) {
                             return snapshot.hasData
                                 ? Expanded(

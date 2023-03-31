@@ -1,11 +1,5 @@
-// Import all PubNub objects into your namespace
-// import 'package:pubnub/core.dart';
-import 'package:flipper_routing/routes.logger.dart';
 import 'package:flutter/cupertino.dart';
-// Or import PubNub into a named namespace
 import 'package:pubnub/pubnub.dart' as nub;
-// To parse this JSON data, do
-//     final loginData = loginDataFromMap(jsonString);
 import 'package:flipper_services/proxy.dart';
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -48,7 +42,6 @@ class LoginData {
 }
 
 class EventService {
-  final log = getLogger('LoginService');
   late nub.PubNub pubnub;
   final keySet = nub.Keyset(
     subscribeKey: 'sub-c-2fb5f1f2-84dc-11ec-9f2b-a2cedba671e8',

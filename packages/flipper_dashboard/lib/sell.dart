@@ -1,4 +1,3 @@
-import 'package:flipper_routing/routes.logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'customappbar.dart';
@@ -14,8 +13,6 @@ import 'widgets/variant_widget.dart';
 class Sell extends StatelessWidget {
   Sell({Key? key, required this.product}) : super(key: key);
   final Product product;
-
-  final log = getLogger('Sell');
 
   final TextEditingController quantityController =
       TextEditingController(text: "1");
@@ -45,7 +42,6 @@ class Sell extends StatelessWidget {
             disableButton: false,
             showActionButton: true,
             onPressedCallback: () async {
-              log.w(model.checked);
               bool saved = await model.saveOrder(
                 variationId: model.checked,
                 amountTotal: model.amountTotal,

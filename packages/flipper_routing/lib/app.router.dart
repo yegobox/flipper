@@ -1,763 +1,767 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
 // **************************************************************************
-// StackedNavigatorGenerator
+// StackedRouterGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+// **************************************************************************
+// StackedRouterGenerator
+// **************************************************************************
+//
+// ignore_for_file: type=lint
+
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:flipper_models/isar_models.dart' as _i4;
-import 'package:flipper_routing/all_routes.dart' as _i2;
-import 'package:flutter/material.dart' as _i3;
-import 'package:flutter/material.dart';
-import 'package:stacked/stacked.dart' as _i1;
-import 'package:stacked_services/stacked_services.dart' as _i5;
+import 'package:flipper_models/isar_models.dart' as _i5;
+import 'package:flutter/material.dart' as _i4;
+import 'package:stacked/stacked.dart' as _i3;
+import 'package:stacked_services/stacked_services.dart' as _i1;
 
-class Routes {
-  static const startUpView = '/';
+import 'all_routes.dart' as _i2;
 
-  static const signUpView = '/sign-up-view';
+final stackedRouter = StackedRouterWeb(_i1.StackedService.navigatorKey);
 
-  static const flipperApp = '/flipper-app';
+class StackedRouterWeb extends _i3.RootStackRouter {
+  StackedRouterWeb([_i4.GlobalKey<_i4.NavigatorState>? navigatorKey])
+      : super(navigatorKey);
 
-  static const loginView = '/login-view';
-
-  static const addProductView = '/add-product-view';
-
-  static const addDiscount = '/add-discount';
-
-  static const listCategories = '/list-categories';
-
-  static const colorTile = '/color-tile';
-
-  static const receiveStock = '/receive-stock';
-
-  static const addVariation = '/add-variation';
-
-  static const addCategory = '/add-category';
-
-  static const listUnits = '/list-units';
-
-  static const sell = '/Sell';
-
-  static const payments = '/Payments';
-
-  static const collectCashView = '/collect-cash-view';
-
-  static const afterSale = '/after-sale';
-
-  static const transactionDetail = '/transaction-detail';
-
-  static const settingsScreen = '/settings-screen';
-
-  static const switchBranchView = '/switch-branch-view';
-
-  static const scannView = '/scann-view';
-
-  static const orderView = '/order-view';
-
-  static const inAppBrowser = '/in-app-browser';
-
-  static const customers = '/Customers';
-
-  static const noNet = '/no-net';
-
-  static const pinLogin = '/pin-login';
-
-  static const devices = '/Devices';
-
-  static const taxConfiguration = '/tax-configuration';
-
-  static const printing = '/Printing';
-
-  static const backUp = '/back-up';
-
-  static const loginChoices = '/login-choices';
-
-  static const tenantAdd = '/tenant-add';
-
-  static const coldStartView = '/cold-start-view';
-
-  static const socialHomeView = '/social-home-view';
-
-  static const all = <String>{
-    startUpView,
-    signUpView,
-    flipperApp,
-    loginView,
-    addProductView,
-    addDiscount,
-    listCategories,
-    colorTile,
-    receiveStock,
-    addVariation,
-    addCategory,
-    listUnits,
-    sell,
-    payments,
-    collectCashView,
-    afterSale,
-    transactionDetail,
-    settingsScreen,
-    switchBranchView,
-    scannView,
-    orderView,
-    inAppBrowser,
-    customers,
-    noNet,
-    pinLogin,
-    devices,
-    taxConfiguration,
-    printing,
-    backUp,
-    loginChoices,
-    tenantAdd,
-    coldStartView,
-    socialHomeView,
-  };
-}
-
-class StackedRouter extends _i1.RouterBase {
-  final _routes = <_i1.RouteDef>[
-    _i1.RouteDef(
-      Routes.startUpView,
-      page: _i2.StartUpView,
-    ),
-    _i1.RouteDef(
-      Routes.signUpView,
-      page: _i2.SignUpView,
-    ),
-    _i1.RouteDef(
-      Routes.flipperApp,
-      page: _i2.FlipperApp,
-    ),
-    _i1.RouteDef(
-      Routes.loginView,
-      page: _i2.LoginView,
-    ),
-    _i1.RouteDef(
-      Routes.addProductView,
-      page: _i2.AddProductView,
-    ),
-    _i1.RouteDef(
-      Routes.addDiscount,
-      page: _i2.AddDiscount,
-    ),
-    _i1.RouteDef(
-      Routes.listCategories,
-      page: _i2.ListCategories,
-    ),
-    _i1.RouteDef(
-      Routes.colorTile,
-      page: _i2.ColorTile,
-    ),
-    _i1.RouteDef(
-      Routes.receiveStock,
-      page: _i2.ReceiveStock,
-    ),
-    _i1.RouteDef(
-      Routes.addVariation,
-      page: _i2.AddVariation,
-    ),
-    _i1.RouteDef(
-      Routes.addCategory,
-      page: _i2.AddCategory,
-    ),
-    _i1.RouteDef(
-      Routes.listUnits,
-      page: _i2.ListUnits,
-    ),
-    _i1.RouteDef(
-      Routes.sell,
-      page: _i2.Sell,
-    ),
-    _i1.RouteDef(
-      Routes.payments,
-      page: _i2.Payments,
-    ),
-    _i1.RouteDef(
-      Routes.collectCashView,
-      page: _i2.CollectCashView,
-    ),
-    _i1.RouteDef(
-      Routes.afterSale,
-      page: _i2.AfterSale,
-    ),
-    _i1.RouteDef(
-      Routes.transactionDetail,
-      page: _i2.TransactionDetail,
-    ),
-    _i1.RouteDef(
-      Routes.settingsScreen,
-      page: _i2.SettingsScreen,
-    ),
-    _i1.RouteDef(
-      Routes.switchBranchView,
-      page: _i2.SwitchBranchView,
-    ),
-    _i1.RouteDef(
-      Routes.scannView,
-      page: _i2.ScannView,
-    ),
-    _i1.RouteDef(
-      Routes.orderView,
-      page: _i2.OrderView,
-    ),
-    _i1.RouteDef(
-      Routes.inAppBrowser,
-      page: _i2.InAppBrowser,
-    ),
-    _i1.RouteDef(
-      Routes.customers,
-      page: _i2.Customers,
-    ),
-    _i1.RouteDef(
-      Routes.noNet,
-      page: _i2.NoNet,
-    ),
-    _i1.RouteDef(
-      Routes.pinLogin,
-      page: _i2.PinLogin,
-    ),
-    _i1.RouteDef(
-      Routes.devices,
-      page: _i2.Devices,
-    ),
-    _i1.RouteDef(
-      Routes.taxConfiguration,
-      page: _i2.TaxConfiguration,
-    ),
-    _i1.RouteDef(
-      Routes.printing,
-      page: _i2.Printing,
-    ),
-    _i1.RouteDef(
-      Routes.backUp,
-      page: _i2.BackUp,
-    ),
-    _i1.RouteDef(
-      Routes.loginChoices,
-      page: _i2.LoginChoices,
-    ),
-    _i1.RouteDef(
-      Routes.tenantAdd,
-      page: _i2.TenantAdd,
-    ),
-    _i1.RouteDef(
-      Routes.coldStartView,
-      page: _i2.ColdStartView,
-    ),
-    _i1.RouteDef(
-      Routes.socialHomeView,
-      page: _i2.SocialHomeView,
-    ),
-  ];
-
-  final _pagesMap = <Type, _i1.StackedRouteFactory>{
-    _i2.StartUpView: (data) {
-      final args = data.getArgs<StartUpViewArguments>(
-        orElse: () => const StartUpViewArguments(),
-      );
-      return _i3.PageRouteBuilder<dynamic>(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            _i2.StartUpView(key: args.key, invokeLogin: args.invokeLogin),
-        settings: data,
-        transitionsBuilder: data.transition ??
-            (context, animation, secondaryAnimation, child) {
-              return child;
-            },
+  @override
+  final Map<String, _i3.PageFactory> pagesMap = {
+    StartUpViewRoute.name: (routeData) {
+      final args = routeData.argsAs<StartUpViewArgs>(
+          orElse: () => const StartUpViewArgs());
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i2.StartUpView(
+          key: args.key,
+          invokeLogin: args.invokeLogin,
+        ),
+        opaque: true,
+        barrierDismissible: false,
       );
     },
-    _i2.SignUpView: (data) {
-      final args = data.getArgs<SignUpViewArguments>(
-        orElse: () => const SignUpViewArguments(),
-      );
-      return _i3.PageRouteBuilder<dynamic>(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            _i2.SignUpView(key: args.key, countryNm: args.countryNm),
-        settings: data,
-        transitionsBuilder: data.transition ??
-            (context, animation, secondaryAnimation, child) {
-              return child;
-            },
-      );
-    },
-    _i2.FlipperApp: (data) {
-      return _i3.PageRouteBuilder<dynamic>(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const _i2.FlipperApp(),
-        settings: data,
-        transitionsBuilder: data.transition ??
-            (context, animation, secondaryAnimation, child) {
-              return child;
-            },
+    SignUpViewRoute.name: (routeData) {
+      final args = routeData.argsAs<SignUpViewArgs>(
+          orElse: () => const SignUpViewArgs());
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i2.SignUpView(
+          key: args.key,
+          countryNm: args.countryNm,
+        ),
+        opaque: true,
+        barrierDismissible: false,
       );
     },
-    _i2.LoginView: (data) {
-      return _i3.PageRouteBuilder<dynamic>(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const _i2.LoginView(),
-        settings: data,
-        transitionsBuilder: data.transition ??
-            (context, animation, secondaryAnimation, child) {
-              return child;
-            },
+    FlipperAppRoute.name: (routeData) {
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: const _i2.FlipperApp(),
+        opaque: true,
+        barrierDismissible: false,
       );
     },
-    _i2.AddProductView: (data) {
-      final args = data.getArgs<AddProductViewArguments>(
-        orElse: () => const AddProductViewArguments(),
-      );
-      return _i3.PageRouteBuilder<dynamic>(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            _i2.AddProductView(key: args.key, productId: args.productId),
-        settings: data,
-        transitionsBuilder: data.transition ??
-            (context, animation, secondaryAnimation, child) {
-              return child;
-            },
+    LoginViewRoute.name: (routeData) {
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: const _i2.LoginView(),
+        opaque: true,
+        barrierDismissible: false,
       );
     },
-    _i2.AddDiscount: (data) {
-      final args = data.getArgs<AddDiscountArguments>(
-        orElse: () => const AddDiscountArguments(),
-      );
-      return _i3.PageRouteBuilder<dynamic>(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            _i2.AddDiscount(key: args.key, discount: args.discount),
-        settings: data,
-        transitionsBuilder: data.transition ??
-            (context, animation, secondaryAnimation, child) {
-              return child;
-            },
-      );
-    },
-    _i2.ListCategories: (data) {
-      final args = data.getArgs<ListCategoriesArguments>(nullOk: false);
-      return _i3.PageRouteBuilder<dynamic>(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            _i2.ListCategories(key: args.key, categories: args.categories),
-        settings: data,
-        transitionsBuilder: data.transition ??
-            (context, animation, secondaryAnimation, child) {
-              return child;
-            },
+    AddProductViewRoute.name: (routeData) {
+      final args = routeData.argsAs<AddProductViewArgs>(
+          orElse: () => const AddProductViewArgs());
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i2.AddProductView(
+          key: args.key,
+          productId: args.productId,
+        ),
+        opaque: true,
+        barrierDismissible: false,
       );
     },
-    _i2.ColorTile: (data) {
-      return _i3.PageRouteBuilder<dynamic>(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const _i2.ColorTile(),
-        settings: data,
-        transitionsBuilder: data.transition ??
-            (context, animation, secondaryAnimation, child) {
-              return child;
-            },
+    AddDiscountRoute.name: (routeData) {
+      final args = routeData.argsAs<AddDiscountArgs>(
+          orElse: () => const AddDiscountArgs());
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i2.AddDiscount(
+          key: args.key,
+          discount: args.discount,
+        ),
+        opaque: true,
+        barrierDismissible: false,
       );
     },
-    _i2.ReceiveStock: (data) {
-      final args = data.getArgs<ReceiveStockArguments>(nullOk: false);
-      return _i3.PageRouteBuilder<dynamic>(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            _i2.ReceiveStock(
-                key: args.key,
-                variantId: args.variantId,
-                existingStock: args.existingStock),
-        settings: data,
-        transitionsBuilder: data.transition ??
-            (context, animation, secondaryAnimation, child) {
-              return child;
-            },
+    ListCategoriesRoute.name: (routeData) {
+      final args = routeData.argsAs<ListCategoriesArgs>();
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i2.ListCategories(
+          key: args.key,
+          categories: args.categories,
+        ),
+        opaque: true,
+        barrierDismissible: false,
       );
     },
-    _i2.AddVariation: (data) {
-      final args = data.getArgs<AddVariationArguments>(nullOk: false);
-      return _i3.PageRouteBuilder<dynamic>(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            _i2.AddVariation(key: args.key, productId: args.productId),
-        settings: data,
-        transitionsBuilder: data.transition ??
-            (context, animation, secondaryAnimation, child) {
-              return child;
-            },
+    ColorTileRoute.name: (routeData) {
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: const _i2.ColorTile(),
+        opaque: true,
+        barrierDismissible: false,
       );
     },
-    _i2.AddCategory: (data) {
-      return _i3.PageRouteBuilder<dynamic>(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const _i2.AddCategory(),
-        settings: data,
-        transitionsBuilder: data.transition ??
-            (context, animation, secondaryAnimation, child) {
-              return child;
-            },
+    ReceiveStockRoute.name: (routeData) {
+      final args = routeData.argsAs<ReceiveStockArgs>();
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i2.ReceiveStock(
+          key: args.key,
+          variantId: args.variantId,
+          existingStock: args.existingStock,
+        ),
+        opaque: true,
+        barrierDismissible: false,
       );
     },
-    _i2.ListUnits: (data) {
-      final args = data.getArgs<ListUnitsArguments>(nullOk: false);
-      return _i3.PageRouteBuilder<dynamic>(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            _i2.ListUnits(key: args.key, type: args.type),
-        settings: data,
-        transitionsBuilder: data.transition ??
-            (context, animation, secondaryAnimation, child) {
-              return child;
-            },
+    AddVariationRoute.name: (routeData) {
+      final args = routeData.argsAs<AddVariationArgs>();
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i2.AddVariation(
+          key: args.key,
+          productId: args.productId,
+        ),
+        opaque: true,
+        barrierDismissible: false,
       );
     },
-    _i2.Sell: (data) {
-      final args = data.getArgs<SellArguments>(nullOk: false);
-      return _i3.PageRouteBuilder<dynamic>(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            _i2.Sell(key: args.key, product: args.product),
-        settings: data,
-        transitionsBuilder: data.transition ??
-            (context, animation, secondaryAnimation, child) {
-              return child;
-            },
+    AddCategoryRoute.name: (routeData) {
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: const _i2.AddCategory(),
+        opaque: true,
+        barrierDismissible: false,
       );
     },
-    _i2.Payments: (data) {
-      final args = data.getArgs<PaymentsArguments>(nullOk: false);
-      return _i3.PageRouteBuilder<dynamic>(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            _i2.Payments(key: args.key, order: args.order),
-        settings: data,
-        transitionsBuilder: data.transition ??
-            (context, animation, secondaryAnimation, child) {
-              return child;
-            },
+    ListUnitsRoute.name: (routeData) {
+      final args = routeData.argsAs<ListUnitsArgs>();
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i2.ListUnits(
+          key: args.key,
+          type: args.type,
+        ),
+        opaque: true,
+        barrierDismissible: false,
       );
     },
-    _i2.CollectCashView: (data) {
-      final args = data.getArgs<CollectCashViewArguments>(nullOk: false);
-      return _i3.PageRouteBuilder<dynamic>(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            _i2.CollectCashView(
-                key: args.key,
-                paymentType: args.paymentType,
-                order: args.order),
-        settings: data,
-        transitionsBuilder: data.transition ??
-            (context, animation, secondaryAnimation, child) {
-              return child;
-            },
+    SellRoute.name: (routeData) {
+      final args = routeData.argsAs<SellArgs>();
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i2.Sell(
+          key: args.key,
+          product: args.product,
+        ),
+        opaque: true,
+        barrierDismissible: false,
       );
     },
-    _i2.AfterSale: (data) {
-      final args = data.getArgs<AfterSaleArguments>(nullOk: false);
-      return _i3.PageRouteBuilder<dynamic>(
-        pageBuilder: (context, animation, secondaryAnimation) => _i2.AfterSale(
-            key: args.key,
-            totalOrderAmount: args.totalOrderAmount,
-            order: args.order,
-            receiptType: args.receiptType),
-        settings: data,
-        transitionsBuilder: data.transition ??
-            (context, animation, secondaryAnimation, child) {
-              return child;
-            },
+    PaymentsRoute.name: (routeData) {
+      final args = routeData.argsAs<PaymentsArgs>();
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i2.Payments(
+          key: args.key,
+          order: args.order,
+        ),
+        opaque: true,
+        barrierDismissible: false,
       );
     },
-    _i2.TransactionDetail: (data) {
-      final args = data.getArgs<TransactionDetailArguments>(nullOk: false);
-      return _i3.PageRouteBuilder<dynamic>(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            _i2.TransactionDetail(key: args.key, order: args.order),
-        settings: data,
-        transitionsBuilder: data.transition ??
-            (context, animation, secondaryAnimation, child) {
-              return child;
-            },
+    CollectCashViewRoute.name: (routeData) {
+      final args = routeData.argsAs<CollectCashViewArgs>();
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i2.CollectCashView(
+          key: args.key,
+          paymentType: args.paymentType,
+          order: args.order,
+        ),
+        opaque: true,
+        barrierDismissible: false,
       );
     },
-    _i2.SettingsScreen: (data) {
-      return _i3.PageRouteBuilder<dynamic>(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            _i2.SettingsScreen(),
-        settings: data,
-        transitionsBuilder: data.transition ??
-            (context, animation, secondaryAnimation, child) {
-              return child;
-            },
+    AfterSaleRoute.name: (routeData) {
+      final args = routeData.argsAs<AfterSaleArgs>();
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i2.AfterSale(
+          key: args.key,
+          totalOrderAmount: args.totalOrderAmount,
+          order: args.order,
+          receiptType: args.receiptType,
+        ),
+        opaque: true,
+        barrierDismissible: false,
       );
     },
-    _i2.SwitchBranchView: (data) {
-      final args = data.getArgs<SwitchBranchViewArguments>(
-        orElse: () => const SwitchBranchViewArguments(),
-      );
-      return _i3.PageRouteBuilder<dynamic>(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            _i2.SwitchBranchView(key: args.key),
-        settings: data,
-        transitionsBuilder: data.transition ??
-            (context, animation, secondaryAnimation, child) {
-              return child;
-            },
+    TransactionDetailRoute.name: (routeData) {
+      final args = routeData.argsAs<TransactionDetailArgs>();
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i2.TransactionDetail(
+          key: args.key,
+          order: args.order,
+        ),
+        opaque: true,
+        barrierDismissible: false,
       );
     },
-    _i2.ScannView: (data) {
-      final args = data.getArgs<ScannViewArguments>(
-        orElse: () => const ScannViewArguments(),
-      );
-      return _i3.PageRouteBuilder<dynamic>(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            _i2.ScannView(key: args.key, intent: args.intent),
-        settings: data,
-        transitionsBuilder: data.transition ??
-            (context, animation, secondaryAnimation, child) {
-              return child;
-            },
+    SettingsScreenRoute.name: (routeData) {
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i2.SettingsScreen(),
+        opaque: true,
+        barrierDismissible: false,
       );
     },
-    _i2.OrderView: (data) {
-      final args = data.getArgs<OrderViewArguments>(
-        orElse: () => const OrderViewArguments(),
-      );
-      return _i3.PageRouteBuilder<dynamic>(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            _i2.OrderView(key: args.key),
-        settings: data,
-        transitionsBuilder: data.transition ??
-            (context, animation, secondaryAnimation, child) {
-              return child;
-            },
+    SwitchBranchViewRoute.name: (routeData) {
+      final args = routeData.argsAs<SwitchBranchViewArgs>(
+          orElse: () => const SwitchBranchViewArgs());
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i2.SwitchBranchView(key: args.key),
+        opaque: true,
+        barrierDismissible: false,
       );
     },
-    _i2.InAppBrowser: (data) {
-      return _i3.PageRouteBuilder<dynamic>(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const _i2.InAppBrowser(),
-        settings: data,
-        transitionsBuilder: data.transition ??
-            (context, animation, secondaryAnimation, child) {
-              return child;
-            },
+    ScannViewRoute.name: (routeData) {
+      final args =
+          routeData.argsAs<ScannViewArgs>(orElse: () => const ScannViewArgs());
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i2.ScannView(
+          key: args.key,
+          intent: args.intent,
+        ),
+        opaque: true,
+        barrierDismissible: false,
       );
     },
-    _i2.Customers: (data) {
-      final args = data.getArgs<CustomersArguments>(nullOk: false);
-      return _i3.PageRouteBuilder<dynamic>(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            _i2.Customers(key: args.key, orderId: args.orderId),
-        settings: data,
-        transitionsBuilder: data.transition ??
-            (context, animation, secondaryAnimation, child) {
-              return child;
-            },
+    OrderViewRoute.name: (routeData) {
+      final args =
+          routeData.argsAs<OrderViewArgs>(orElse: () => const OrderViewArgs());
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i2.OrderView(key: args.key),
+        opaque: true,
+        barrierDismissible: false,
       );
     },
-    _i2.NoNet: (data) {
-      return _i3.PageRouteBuilder<dynamic>(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const _i2.NoNet(),
-        settings: data,
-        transitionsBuilder: data.transition ??
-            (context, animation, secondaryAnimation, child) {
-              return child;
-            },
+    InAppBrowserRoute.name: (routeData) {
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: const _i2.InAppBrowser(),
+        opaque: true,
+        barrierDismissible: false,
       );
     },
-    _i2.PinLogin: (data) {
-      final args = data.getArgs<PinLoginArguments>(
-        orElse: () => const PinLoginArguments(),
-      );
-      return _i3.PageRouteBuilder<dynamic>(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            _i2.PinLogin(key: args.key),
-        settings: data,
-        transitionsBuilder: data.transition ??
-            (context, animation, secondaryAnimation, child) {
-              return child;
-            },
+    CustomersRoute.name: (routeData) {
+      final args = routeData.argsAs<CustomersArgs>();
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i2.Customers(
+          key: args.key,
+          orderId: args.orderId,
+        ),
+        opaque: true,
+        barrierDismissible: false,
       );
     },
-    _i2.Devices: (data) {
-      final args = data.getArgs<DevicesArguments>(
-        orElse: () => const DevicesArguments(),
-      );
-      return _i3.PageRouteBuilder<dynamic>(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            _i2.Devices(key: args.key, pin: args.pin),
-        settings: data,
-        transitionsBuilder: data.transition ??
-            (context, animation, secondaryAnimation, child) {
-              return child;
-            },
+    NoNetRoute.name: (routeData) {
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: const _i2.NoNet(),
+        opaque: true,
+        barrierDismissible: false,
       );
     },
-    _i2.TaxConfiguration: (data) {
-      return _i3.PageRouteBuilder<dynamic>(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const _i2.TaxConfiguration(),
-        settings: data,
-        transitionsBuilder: data.transition ??
-            (context, animation, secondaryAnimation, child) {
-              return child;
-            },
+    PinLoginRoute.name: (routeData) {
+      final args =
+          routeData.argsAs<PinLoginArgs>(orElse: () => const PinLoginArgs());
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i2.PinLogin(key: args.key),
+        opaque: true,
+        barrierDismissible: false,
       );
     },
-    _i2.Printing: (data) {
-      return _i3.PageRouteBuilder<dynamic>(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const _i2.Printing(),
-        settings: data,
-        transitionsBuilder: data.transition ??
-            (context, animation, secondaryAnimation, child) {
-              return child;
-            },
+    DevicesRoute.name: (routeData) {
+      final args =
+          routeData.argsAs<DevicesArgs>(orElse: () => const DevicesArgs());
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i2.Devices(
+          key: args.key,
+          pin: args.pin,
+        ),
+        opaque: true,
+        barrierDismissible: false,
       );
     },
-    _i2.BackUp: (data) {
-      return _i3.PageRouteBuilder<dynamic>(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const _i2.BackUp(),
-        settings: data,
-        transitionsBuilder: data.transition ??
-            (context, animation, secondaryAnimation, child) {
-              return child;
-            },
+    TaxConfigurationRoute.name: (routeData) {
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: const _i2.TaxConfiguration(),
+        opaque: true,
+        barrierDismissible: false,
       );
     },
-    _i2.LoginChoices: (data) {
-      return _i3.PageRouteBuilder<dynamic>(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const _i2.LoginChoices(),
-        settings: data,
-        transitionsBuilder: data.transition ??
-            (context, animation, secondaryAnimation, child) {
-              return child;
-            },
+    PrintingRoute.name: (routeData) {
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: const _i2.Printing(),
+        opaque: true,
+        barrierDismissible: false,
       );
     },
-    _i2.TenantAdd: (data) {
-      return _i3.PageRouteBuilder<dynamic>(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const _i2.TenantAdd(),
-        settings: data,
-        transitionsBuilder: data.transition ??
-            (context, animation, secondaryAnimation, child) {
-              return child;
-            },
+    BackUpRoute.name: (routeData) {
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: const _i2.BackUp(),
+        opaque: true,
+        barrierDismissible: false,
       );
     },
-    _i2.ColdStartView: (data) {
-      return _i3.PageRouteBuilder<dynamic>(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const _i2.ColdStartView(),
-        settings: data,
-        transitionsBuilder: data.transition ??
-            (context, animation, secondaryAnimation, child) {
-              return child;
-            },
+    LoginChoicesRoute.name: (routeData) {
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: const _i2.LoginChoices(),
+        opaque: true,
+        barrierDismissible: false,
       );
     },
-    _i2.SocialHomeView: (data) {
-      return _i3.PageRouteBuilder<dynamic>(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const _i2.SocialHomeView(),
-        settings: data,
-        transitionsBuilder: data.transition ??
-            (context, animation, secondaryAnimation, child) {
-              return child;
-            },
+    TenantAddRoute.name: (routeData) {
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: const _i2.TenantAdd(),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
+    ColdStartViewRoute.name: (routeData) {
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: const _i2.ColdStartView(),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
+    SocialHomeViewRoute.name: (routeData) {
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: const _i2.SocialHomeView(),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
+    DrawerScreenRoute.name: (routeData) {
+      final args = routeData.argsAs<DrawerScreenArgs>();
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i2.DrawerScreen(
+          key: args.key,
+          open: args.open,
+          drawer: args.drawer,
+        ),
+        opaque: true,
+        barrierDismissible: false,
       );
     },
   };
 
   @override
-  List<_i1.RouteDef> get routes => _routes;
-  @override
-  Map<Type, _i1.StackedRouteFactory> get pagesMap => _pagesMap;
+  List<_i3.RouteConfig> get routes => [
+        _i3.RouteConfig(
+          StartUpViewRoute.name,
+          path: '/',
+        ),
+        _i3.RouteConfig(
+          SignUpViewRoute.name,
+          path: '/sign-up-view',
+        ),
+        _i3.RouteConfig(
+          FlipperAppRoute.name,
+          path: '/flipper-app',
+        ),
+        _i3.RouteConfig(
+          LoginViewRoute.name,
+          path: '/login-view',
+        ),
+        _i3.RouteConfig(
+          AddProductViewRoute.name,
+          path: '/add-product-view',
+        ),
+        _i3.RouteConfig(
+          AddDiscountRoute.name,
+          path: '/add-discount',
+        ),
+        _i3.RouteConfig(
+          ListCategoriesRoute.name,
+          path: '/list-categories',
+        ),
+        _i3.RouteConfig(
+          ColorTileRoute.name,
+          path: '/color-tile',
+        ),
+        _i3.RouteConfig(
+          ReceiveStockRoute.name,
+          path: '/receive-stock',
+        ),
+        _i3.RouteConfig(
+          AddVariationRoute.name,
+          path: '/add-variation',
+        ),
+        _i3.RouteConfig(
+          AddCategoryRoute.name,
+          path: '/add-category',
+        ),
+        _i3.RouteConfig(
+          ListUnitsRoute.name,
+          path: '/list-units',
+        ),
+        _i3.RouteConfig(
+          SellRoute.name,
+          path: '/Sell',
+        ),
+        _i3.RouteConfig(
+          PaymentsRoute.name,
+          path: '/Payments',
+        ),
+        _i3.RouteConfig(
+          CollectCashViewRoute.name,
+          path: '/collect-cash-view',
+        ),
+        _i3.RouteConfig(
+          AfterSaleRoute.name,
+          path: '/after-sale',
+        ),
+        _i3.RouteConfig(
+          TransactionDetailRoute.name,
+          path: '/transaction-detail',
+        ),
+        _i3.RouteConfig(
+          SettingsScreenRoute.name,
+          path: '/settings-screen',
+        ),
+        _i3.RouteConfig(
+          SwitchBranchViewRoute.name,
+          path: '/switch-branch-view',
+        ),
+        _i3.RouteConfig(
+          ScannViewRoute.name,
+          path: '/scann-view',
+        ),
+        _i3.RouteConfig(
+          OrderViewRoute.name,
+          path: '/order-view',
+        ),
+        _i3.RouteConfig(
+          InAppBrowserRoute.name,
+          path: '/in-app-browser',
+        ),
+        _i3.RouteConfig(
+          CustomersRoute.name,
+          path: '/Customers',
+        ),
+        _i3.RouteConfig(
+          NoNetRoute.name,
+          path: '/no-net',
+        ),
+        _i3.RouteConfig(
+          PinLoginRoute.name,
+          path: '/pin-login',
+        ),
+        _i3.RouteConfig(
+          DevicesRoute.name,
+          path: '/Devices',
+        ),
+        _i3.RouteConfig(
+          TaxConfigurationRoute.name,
+          path: '/tax-configuration',
+        ),
+        _i3.RouteConfig(
+          PrintingRoute.name,
+          path: '/Printing',
+        ),
+        _i3.RouteConfig(
+          BackUpRoute.name,
+          path: '/back-up',
+        ),
+        _i3.RouteConfig(
+          LoginChoicesRoute.name,
+          path: '/login-choices',
+        ),
+        _i3.RouteConfig(
+          TenantAddRoute.name,
+          path: '/tenant-add',
+        ),
+        _i3.RouteConfig(
+          ColdStartViewRoute.name,
+          path: '/cold-start-view',
+        ),
+        _i3.RouteConfig(
+          SocialHomeViewRoute.name,
+          path: '/social-home-view',
+        ),
+        _i3.RouteConfig(
+          DrawerScreenRoute.name,
+          path: '/drawer-screen',
+        ),
+      ];
 }
 
-class StartUpViewArguments {
-  const StartUpViewArguments({
+/// generated route for
+/// [_i2.StartUpView]
+class StartUpViewRoute extends _i3.PageRouteInfo<StartUpViewArgs> {
+  StartUpViewRoute({
+    _i4.Key? key,
+    bool? invokeLogin,
+  }) : super(
+          StartUpViewRoute.name,
+          path: '/',
+          args: StartUpViewArgs(
+            key: key,
+            invokeLogin: invokeLogin,
+          ),
+        );
+
+  static const String name = 'StartUpView';
+}
+
+class StartUpViewArgs {
+  const StartUpViewArgs({
     this.key,
     this.invokeLogin,
   });
 
-  final _i3.Key? key;
+  final _i4.Key? key;
 
   final bool? invokeLogin;
 
   @override
   String toString() {
-    return '{"key": "$key", "invokeLogin": "$invokeLogin"}';
+    return 'StartUpViewArgs{key: $key, invokeLogin: $invokeLogin}';
   }
 }
 
-class SignUpViewArguments {
-  const SignUpViewArguments({
+/// generated route for
+/// [_i2.SignUpView]
+class SignUpViewRoute extends _i3.PageRouteInfo<SignUpViewArgs> {
+  SignUpViewRoute({
+    _i4.Key? key,
+    String? countryNm = "Rwanda",
+  }) : super(
+          SignUpViewRoute.name,
+          path: '/sign-up-view',
+          args: SignUpViewArgs(
+            key: key,
+            countryNm: countryNm,
+          ),
+        );
+
+  static const String name = 'SignUpView';
+}
+
+class SignUpViewArgs {
+  const SignUpViewArgs({
     this.key,
     this.countryNm = "Rwanda",
   });
 
-  final _i3.Key? key;
+  final _i4.Key? key;
 
   final String? countryNm;
 
   @override
   String toString() {
-    return '{"key": "$key", "countryNm": "$countryNm"}';
+    return 'SignUpViewArgs{key: $key, countryNm: $countryNm}';
   }
 }
 
-class AddProductViewArguments {
-  const AddProductViewArguments({
+/// generated route for
+/// [_i2.FlipperApp]
+class FlipperAppRoute extends _i3.PageRouteInfo<void> {
+  const FlipperAppRoute()
+      : super(
+          FlipperAppRoute.name,
+          path: '/flipper-app',
+        );
+
+  static const String name = 'FlipperApp';
+}
+
+/// generated route for
+/// [_i2.LoginView]
+class LoginViewRoute extends _i3.PageRouteInfo<void> {
+  const LoginViewRoute()
+      : super(
+          LoginViewRoute.name,
+          path: '/login-view',
+        );
+
+  static const String name = 'LoginView';
+}
+
+/// generated route for
+/// [_i2.AddProductView]
+class AddProductViewRoute extends _i3.PageRouteInfo<AddProductViewArgs> {
+  AddProductViewRoute({
+    _i4.Key? key,
+    int? productId,
+  }) : super(
+          AddProductViewRoute.name,
+          path: '/add-product-view',
+          args: AddProductViewArgs(
+            key: key,
+            productId: productId,
+          ),
+        );
+
+  static const String name = 'AddProductView';
+}
+
+class AddProductViewArgs {
+  const AddProductViewArgs({
     this.key,
     this.productId,
   });
 
-  final _i3.Key? key;
+  final _i4.Key? key;
 
   final int? productId;
 
   @override
   String toString() {
-    return '{"key": "$key", "productId": "$productId"}';
+    return 'AddProductViewArgs{key: $key, productId: $productId}';
   }
 }
 
-class AddDiscountArguments {
-  const AddDiscountArguments({
+/// generated route for
+/// [_i2.AddDiscount]
+class AddDiscountRoute extends _i3.PageRouteInfo<AddDiscountArgs> {
+  AddDiscountRoute({
+    _i4.Key? key,
+    _i5.Discount? discount,
+  }) : super(
+          AddDiscountRoute.name,
+          path: '/add-discount',
+          args: AddDiscountArgs(
+            key: key,
+            discount: discount,
+          ),
+        );
+
+  static const String name = 'AddDiscount';
+}
+
+class AddDiscountArgs {
+  const AddDiscountArgs({
     this.key,
     this.discount,
   });
 
-  final _i3.Key? key;
+  final _i4.Key? key;
 
-  final _i4.Discount? discount;
+  final _i5.Discount? discount;
 
   @override
   String toString() {
-    return '{"key": "$key", "discount": "$discount"}';
+    return 'AddDiscountArgs{key: $key, discount: $discount}';
   }
 }
 
-class ListCategoriesArguments {
-  const ListCategoriesArguments({
+/// generated route for
+/// [_i2.ListCategories]
+class ListCategoriesRoute extends _i3.PageRouteInfo<ListCategoriesArgs> {
+  ListCategoriesRoute({
+    _i4.Key? key,
+    required List<_i5.Category> categories,
+  }) : super(
+          ListCategoriesRoute.name,
+          path: '/list-categories',
+          args: ListCategoriesArgs(
+            key: key,
+            categories: categories,
+          ),
+        );
+
+  static const String name = 'ListCategories';
+}
+
+class ListCategoriesArgs {
+  const ListCategoriesArgs({
     this.key,
     required this.categories,
   });
 
-  final _i3.Key? key;
+  final _i4.Key? key;
 
-  final List<_i4.Category> categories;
+  final List<_i5.Category> categories;
 
   @override
   String toString() {
-    return '{"key": "$key", "categories": "$categories"}';
+    return 'ListCategoriesArgs{key: $key, categories: $categories}';
   }
 }
 
-class ReceiveStockArguments {
-  const ReceiveStockArguments({
+/// generated route for
+/// [_i2.ColorTile]
+class ColorTileRoute extends _i3.PageRouteInfo<void> {
+  const ColorTileRoute()
+      : super(
+          ColorTileRoute.name,
+          path: '/color-tile',
+        );
+
+  static const String name = 'ColorTile';
+}
+
+/// generated route for
+/// [_i2.ReceiveStock]
+class ReceiveStockRoute extends _i3.PageRouteInfo<ReceiveStockArgs> {
+  ReceiveStockRoute({
+    _i4.Key? key,
+    required int variantId,
+    String? existingStock,
+  }) : super(
+          ReceiveStockRoute.name,
+          path: '/receive-stock',
+          args: ReceiveStockArgs(
+            key: key,
+            variantId: variantId,
+            existingStock: existingStock,
+          ),
+        );
+
+  static const String name = 'ReceiveStock';
+}
+
+class ReceiveStockArgs {
+  const ReceiveStockArgs({
     this.key,
     required this.variantId,
     this.existingStock,
   });
 
-  final _i3.Key? key;
+  final _i4.Key? key;
 
   final int variantId;
 
@@ -765,1262 +769,604 @@ class ReceiveStockArguments {
 
   @override
   String toString() {
-    return '{"key": "$key", "variantId": "$variantId", "existingStock": "$existingStock"}';
+    return 'ReceiveStockArgs{key: $key, variantId: $variantId, existingStock: $existingStock}';
   }
 }
 
-class AddVariationArguments {
-  const AddVariationArguments({
+/// generated route for
+/// [_i2.AddVariation]
+class AddVariationRoute extends _i3.PageRouteInfo<AddVariationArgs> {
+  AddVariationRoute({
+    _i4.Key? key,
+    required int productId,
+  }) : super(
+          AddVariationRoute.name,
+          path: '/add-variation',
+          args: AddVariationArgs(
+            key: key,
+            productId: productId,
+          ),
+        );
+
+  static const String name = 'AddVariation';
+}
+
+class AddVariationArgs {
+  const AddVariationArgs({
     this.key,
     required this.productId,
   });
 
-  final _i3.Key? key;
+  final _i4.Key? key;
 
   final int productId;
 
   @override
   String toString() {
-    return '{"key": "$key", "productId": "$productId"}';
+    return 'AddVariationArgs{key: $key, productId: $productId}';
   }
 }
 
-class ListUnitsArguments {
-  const ListUnitsArguments({
+/// generated route for
+/// [_i2.AddCategory]
+class AddCategoryRoute extends _i3.PageRouteInfo<void> {
+  const AddCategoryRoute()
+      : super(
+          AddCategoryRoute.name,
+          path: '/add-category',
+        );
+
+  static const String name = 'AddCategory';
+}
+
+/// generated route for
+/// [_i2.ListUnits]
+class ListUnitsRoute extends _i3.PageRouteInfo<ListUnitsArgs> {
+  ListUnitsRoute({
+    _i4.Key? key,
+    required String type,
+  }) : super(
+          ListUnitsRoute.name,
+          path: '/list-units',
+          args: ListUnitsArgs(
+            key: key,
+            type: type,
+          ),
+        );
+
+  static const String name = 'ListUnits';
+}
+
+class ListUnitsArgs {
+  const ListUnitsArgs({
     this.key,
     required this.type,
   });
 
-  final _i3.Key? key;
+  final _i4.Key? key;
 
   final String type;
 
   @override
   String toString() {
-    return '{"key": "$key", "type": "$type"}';
+    return 'ListUnitsArgs{key: $key, type: $type}';
   }
 }
 
-class SellArguments {
-  const SellArguments({
+/// generated route for
+/// [_i2.Sell]
+class SellRoute extends _i3.PageRouteInfo<SellArgs> {
+  SellRoute({
+    _i4.Key? key,
+    required _i5.Product product,
+  }) : super(
+          SellRoute.name,
+          path: '/Sell',
+          args: SellArgs(
+            key: key,
+            product: product,
+          ),
+        );
+
+  static const String name = 'Sell';
+}
+
+class SellArgs {
+  const SellArgs({
     this.key,
     required this.product,
   });
 
-  final _i3.Key? key;
+  final _i4.Key? key;
 
-  final _i4.Product product;
+  final _i5.Product product;
 
   @override
   String toString() {
-    return '{"key": "$key", "product": "$product"}';
+    return 'SellArgs{key: $key, product: $product}';
   }
 }
 
-class PaymentsArguments {
-  const PaymentsArguments({
+/// generated route for
+/// [_i2.Payments]
+class PaymentsRoute extends _i3.PageRouteInfo<PaymentsArgs> {
+  PaymentsRoute({
+    _i4.Key? key,
+    required _i5.Order order,
+  }) : super(
+          PaymentsRoute.name,
+          path: '/Payments',
+          args: PaymentsArgs(
+            key: key,
+            order: order,
+          ),
+        );
+
+  static const String name = 'Payments';
+}
+
+class PaymentsArgs {
+  const PaymentsArgs({
     this.key,
     required this.order,
   });
 
-  final _i3.Key? key;
+  final _i4.Key? key;
 
-  final _i4.Order order;
+  final _i5.Order order;
 
   @override
   String toString() {
-    return '{"key": "$key", "order": "$order"}';
+    return 'PaymentsArgs{key: $key, order: $order}';
   }
 }
 
-class CollectCashViewArguments {
-  const CollectCashViewArguments({
+/// generated route for
+/// [_i2.CollectCashView]
+class CollectCashViewRoute extends _i3.PageRouteInfo<CollectCashViewArgs> {
+  CollectCashViewRoute({
+    _i4.Key? key,
+    required String paymentType,
+    required _i5.Order order,
+  }) : super(
+          CollectCashViewRoute.name,
+          path: '/collect-cash-view',
+          args: CollectCashViewArgs(
+            key: key,
+            paymentType: paymentType,
+            order: order,
+          ),
+        );
+
+  static const String name = 'CollectCashView';
+}
+
+class CollectCashViewArgs {
+  const CollectCashViewArgs({
     this.key,
     required this.paymentType,
     required this.order,
   });
 
-  final _i3.Key? key;
+  final _i4.Key? key;
 
   final String paymentType;
 
-  final _i4.Order order;
+  final _i5.Order order;
 
   @override
   String toString() {
-    return '{"key": "$key", "paymentType": "$paymentType", "order": "$order"}';
+    return 'CollectCashViewArgs{key: $key, paymentType: $paymentType, order: $order}';
   }
 }
 
-class AfterSaleArguments {
-  const AfterSaleArguments({
+/// generated route for
+/// [_i2.AfterSale]
+class AfterSaleRoute extends _i3.PageRouteInfo<AfterSaleArgs> {
+  AfterSaleRoute({
+    _i4.Key? key,
+    required double totalOrderAmount,
+    required _i5.Order order,
+    String? receiptType = "ns",
+  }) : super(
+          AfterSaleRoute.name,
+          path: '/after-sale',
+          args: AfterSaleArgs(
+            key: key,
+            totalOrderAmount: totalOrderAmount,
+            order: order,
+            receiptType: receiptType,
+          ),
+        );
+
+  static const String name = 'AfterSale';
+}
+
+class AfterSaleArgs {
+  const AfterSaleArgs({
     this.key,
     required this.totalOrderAmount,
     required this.order,
     this.receiptType = "ns",
   });
 
-  final _i3.Key? key;
+  final _i4.Key? key;
 
   final double totalOrderAmount;
 
-  final _i4.Order order;
+  final _i5.Order order;
 
   final String? receiptType;
 
   @override
   String toString() {
-    return '{"key": "$key", "totalOrderAmount": "$totalOrderAmount", "order": "$order", "receiptType": "$receiptType"}';
+    return 'AfterSaleArgs{key: $key, totalOrderAmount: $totalOrderAmount, order: $order, receiptType: $receiptType}';
   }
 }
 
-class TransactionDetailArguments {
-  const TransactionDetailArguments({
+/// generated route for
+/// [_i2.TransactionDetail]
+class TransactionDetailRoute extends _i3.PageRouteInfo<TransactionDetailArgs> {
+  TransactionDetailRoute({
+    _i4.Key? key,
+    required _i5.Order order,
+  }) : super(
+          TransactionDetailRoute.name,
+          path: '/transaction-detail',
+          args: TransactionDetailArgs(
+            key: key,
+            order: order,
+          ),
+        );
+
+  static const String name = 'TransactionDetail';
+}
+
+class TransactionDetailArgs {
+  const TransactionDetailArgs({
     this.key,
     required this.order,
   });
 
-  final _i3.Key? key;
+  final _i4.Key? key;
 
-  final _i4.Order order;
-
-  @override
-  String toString() {
-    return '{"key": "$key", "order": "$order"}';
-  }
-}
-
-class SwitchBranchViewArguments {
-  const SwitchBranchViewArguments({this.key});
-
-  final _i3.Key? key;
+  final _i5.Order order;
 
   @override
   String toString() {
-    return '{"key": "$key"}';
+    return 'TransactionDetailArgs{key: $key, order: $order}';
   }
 }
 
-class ScannViewArguments {
-  const ScannViewArguments({
+/// generated route for
+/// [_i2.SettingsScreen]
+class SettingsScreenRoute extends _i3.PageRouteInfo<void> {
+  const SettingsScreenRoute()
+      : super(
+          SettingsScreenRoute.name,
+          path: '/settings-screen',
+        );
+
+  static const String name = 'SettingsScreen';
+}
+
+/// generated route for
+/// [_i2.SwitchBranchView]
+class SwitchBranchViewRoute extends _i3.PageRouteInfo<SwitchBranchViewArgs> {
+  SwitchBranchViewRoute({_i4.Key? key})
+      : super(
+          SwitchBranchViewRoute.name,
+          path: '/switch-branch-view',
+          args: SwitchBranchViewArgs(key: key),
+        );
+
+  static const String name = 'SwitchBranchView';
+}
+
+class SwitchBranchViewArgs {
+  const SwitchBranchViewArgs({this.key});
+
+  final _i4.Key? key;
+
+  @override
+  String toString() {
+    return 'SwitchBranchViewArgs{key: $key}';
+  }
+}
+
+/// generated route for
+/// [_i2.ScannView]
+class ScannViewRoute extends _i3.PageRouteInfo<ScannViewArgs> {
+  ScannViewRoute({
+    _i4.Key? key,
+    String intent = 'selling',
+  }) : super(
+          ScannViewRoute.name,
+          path: '/scann-view',
+          args: ScannViewArgs(
+            key: key,
+            intent: intent,
+          ),
+        );
+
+  static const String name = 'ScannView';
+}
+
+class ScannViewArgs {
+  const ScannViewArgs({
     this.key,
     this.intent = 'selling',
   });
 
-  final _i3.Key? key;
+  final _i4.Key? key;
 
   final String intent;
 
   @override
   String toString() {
-    return '{"key": "$key", "intent": "$intent"}';
+    return 'ScannViewArgs{key: $key, intent: $intent}';
   }
 }
 
-class OrderViewArguments {
-  const OrderViewArguments({this.key});
+/// generated route for
+/// [_i2.OrderView]
+class OrderViewRoute extends _i3.PageRouteInfo<OrderViewArgs> {
+  OrderViewRoute({_i4.Key? key})
+      : super(
+          OrderViewRoute.name,
+          path: '/order-view',
+          args: OrderViewArgs(key: key),
+        );
 
-  final _i3.Key? key;
+  static const String name = 'OrderView';
+}
+
+class OrderViewArgs {
+  const OrderViewArgs({this.key});
+
+  final _i4.Key? key;
 
   @override
   String toString() {
-    return '{"key": "$key"}';
+    return 'OrderViewArgs{key: $key}';
   }
 }
 
-class CustomersArguments {
-  const CustomersArguments({
+/// generated route for
+/// [_i2.InAppBrowser]
+class InAppBrowserRoute extends _i3.PageRouteInfo<void> {
+  const InAppBrowserRoute()
+      : super(
+          InAppBrowserRoute.name,
+          path: '/in-app-browser',
+        );
+
+  static const String name = 'InAppBrowser';
+}
+
+/// generated route for
+/// [_i2.Customers]
+class CustomersRoute extends _i3.PageRouteInfo<CustomersArgs> {
+  CustomersRoute({
+    _i4.Key? key,
+    required int orderId,
+  }) : super(
+          CustomersRoute.name,
+          path: '/Customers',
+          args: CustomersArgs(
+            key: key,
+            orderId: orderId,
+          ),
+        );
+
+  static const String name = 'Customers';
+}
+
+class CustomersArgs {
+  const CustomersArgs({
     this.key,
     required this.orderId,
   });
 
-  final _i3.Key? key;
+  final _i4.Key? key;
 
   final int orderId;
 
   @override
   String toString() {
-    return '{"key": "$key", "orderId": "$orderId"}';
+    return 'CustomersArgs{key: $key, orderId: $orderId}';
   }
 }
 
-class PinLoginArguments {
-  const PinLoginArguments({this.key});
+/// generated route for
+/// [_i2.NoNet]
+class NoNetRoute extends _i3.PageRouteInfo<void> {
+  const NoNetRoute()
+      : super(
+          NoNetRoute.name,
+          path: '/no-net',
+        );
 
-  final _i3.Key? key;
+  static const String name = 'NoNet';
+}
+
+/// generated route for
+/// [_i2.PinLogin]
+class PinLoginRoute extends _i3.PageRouteInfo<PinLoginArgs> {
+  PinLoginRoute({_i4.Key? key})
+      : super(
+          PinLoginRoute.name,
+          path: '/pin-login',
+          args: PinLoginArgs(key: key),
+        );
+
+  static const String name = 'PinLogin';
+}
+
+class PinLoginArgs {
+  const PinLoginArgs({this.key});
+
+  final _i4.Key? key;
 
   @override
   String toString() {
-    return '{"key": "$key"}';
+    return 'PinLoginArgs{key: $key}';
   }
 }
 
-class DevicesArguments {
-  const DevicesArguments({
+/// generated route for
+/// [_i2.Devices]
+class DevicesRoute extends _i3.PageRouteInfo<DevicesArgs> {
+  DevicesRoute({
+    _i4.Key? key,
+    int? pin,
+  }) : super(
+          DevicesRoute.name,
+          path: '/Devices',
+          args: DevicesArgs(
+            key: key,
+            pin: pin,
+          ),
+        );
+
+  static const String name = 'Devices';
+}
+
+class DevicesArgs {
+  const DevicesArgs({
     this.key,
     this.pin,
   });
 
-  final _i3.Key? key;
+  final _i4.Key? key;
 
   final int? pin;
 
   @override
   String toString() {
-    return '{"key": "$key", "pin": "$pin"}';
+    return 'DevicesArgs{key: $key, pin: $pin}';
   }
 }
 
-extension NavigatorStateExtension on _i5.NavigationService {
-  Future<dynamic> navigateToStartUpView({
-    _i3.Key? key,
-    bool? invokeLogin,
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  }) async {
-    return navigateTo<dynamic>(Routes.startUpView,
-        arguments: StartUpViewArguments(key: key, invokeLogin: invokeLogin),
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
+/// generated route for
+/// [_i2.TaxConfiguration]
+class TaxConfigurationRoute extends _i3.PageRouteInfo<void> {
+  const TaxConfigurationRoute()
+      : super(
+          TaxConfigurationRoute.name,
+          path: '/tax-configuration',
+        );
 
-  Future<dynamic> navigateToSignUpView({
-    _i3.Key? key,
-    String? countryNm = "Rwanda",
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  }) async {
-    return navigateTo<dynamic>(Routes.signUpView,
-        arguments: SignUpViewArguments(key: key, countryNm: countryNm),
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
+  static const String name = 'TaxConfiguration';
+}
 
-  Future<dynamic> navigateToFlipperApp([
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  ]) async {
-    return navigateTo<dynamic>(Routes.flipperApp,
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
+/// generated route for
+/// [_i2.Printing]
+class PrintingRoute extends _i3.PageRouteInfo<void> {
+  const PrintingRoute()
+      : super(
+          PrintingRoute.name,
+          path: '/Printing',
+        );
 
-  Future<dynamic> navigateToLoginView([
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  ]) async {
-    return navigateTo<dynamic>(Routes.loginView,
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
+  static const String name = 'Printing';
+}
 
-  Future<dynamic> navigateToAddProductView({
-    _i3.Key? key,
-    int? productId,
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  }) async {
-    return navigateTo<dynamic>(Routes.addProductView,
-        arguments: AddProductViewArguments(key: key, productId: productId),
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
+/// generated route for
+/// [_i2.BackUp]
+class BackUpRoute extends _i3.PageRouteInfo<void> {
+  const BackUpRoute()
+      : super(
+          BackUpRoute.name,
+          path: '/back-up',
+        );
 
-  Future<dynamic> navigateToAddDiscount({
-    _i3.Key? key,
-    _i4.Discount? discount,
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  }) async {
-    return navigateTo<dynamic>(Routes.addDiscount,
-        arguments: AddDiscountArguments(key: key, discount: discount),
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
+  static const String name = 'BackUp';
+}
 
-  Future<dynamic> navigateToListCategories({
-    _i3.Key? key,
-    required List<_i4.Category> categories,
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  }) async {
-    return navigateTo<dynamic>(Routes.listCategories,
-        arguments: ListCategoriesArguments(key: key, categories: categories),
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
+/// generated route for
+/// [_i2.LoginChoices]
+class LoginChoicesRoute extends _i3.PageRouteInfo<void> {
+  const LoginChoicesRoute()
+      : super(
+          LoginChoicesRoute.name,
+          path: '/login-choices',
+        );
 
-  Future<dynamic> navigateToColorTile([
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  ]) async {
-    return navigateTo<dynamic>(Routes.colorTile,
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
+  static const String name = 'LoginChoices';
+}
 
-  Future<dynamic> navigateToReceiveStock({
-    _i3.Key? key,
-    required int variantId,
-    String? existingStock,
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  }) async {
-    return navigateTo<dynamic>(Routes.receiveStock,
-        arguments: ReceiveStockArguments(
-            key: key, variantId: variantId, existingStock: existingStock),
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
+/// generated route for
+/// [_i2.TenantAdd]
+class TenantAddRoute extends _i3.PageRouteInfo<void> {
+  const TenantAddRoute()
+      : super(
+          TenantAddRoute.name,
+          path: '/tenant-add',
+        );
 
-  Future<dynamic> navigateToAddVariation({
-    _i3.Key? key,
-    required int productId,
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  }) async {
-    return navigateTo<dynamic>(Routes.addVariation,
-        arguments: AddVariationArguments(key: key, productId: productId),
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
+  static const String name = 'TenantAdd';
+}
 
-  Future<dynamic> navigateToAddCategory([
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  ]) async {
-    return navigateTo<dynamic>(Routes.addCategory,
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
+/// generated route for
+/// [_i2.ColdStartView]
+class ColdStartViewRoute extends _i3.PageRouteInfo<void> {
+  const ColdStartViewRoute()
+      : super(
+          ColdStartViewRoute.name,
+          path: '/cold-start-view',
+        );
 
-  Future<dynamic> navigateToListUnits({
-    _i3.Key? key,
-    required String type,
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  }) async {
-    return navigateTo<dynamic>(Routes.listUnits,
-        arguments: ListUnitsArguments(key: key, type: type),
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
+  static const String name = 'ColdStartView';
+}
 
-  Future<dynamic> navigateToSell({
-    _i3.Key? key,
-    required _i4.Product product,
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  }) async {
-    return navigateTo<dynamic>(Routes.sell,
-        arguments: SellArguments(key: key, product: product),
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
+/// generated route for
+/// [_i2.SocialHomeView]
+class SocialHomeViewRoute extends _i3.PageRouteInfo<void> {
+  const SocialHomeViewRoute()
+      : super(
+          SocialHomeViewRoute.name,
+          path: '/social-home-view',
+        );
 
-  Future<dynamic> navigateToPayments({
-    _i3.Key? key,
-    required _i4.Order order,
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  }) async {
-    return navigateTo<dynamic>(Routes.payments,
-        arguments: PaymentsArguments(key: key, order: order),
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
+  static const String name = 'SocialHomeView';
+}
 
-  Future<dynamic> navigateToCollectCashView({
-    _i3.Key? key,
-    required String paymentType,
-    required _i4.Order order,
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  }) async {
-    return navigateTo<dynamic>(Routes.collectCashView,
-        arguments: CollectCashViewArguments(
-            key: key, paymentType: paymentType, order: order),
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> navigateToAfterSale({
-    _i3.Key? key,
-    required double totalOrderAmount,
-    required _i4.Order order,
-    String? receiptType = "ns",
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  }) async {
-    return navigateTo<dynamic>(Routes.afterSale,
-        arguments: AfterSaleArguments(
+/// generated route for
+/// [_i2.DrawerScreen]
+class DrawerScreenRoute extends _i3.PageRouteInfo<DrawerScreenArgs> {
+  DrawerScreenRoute({
+    _i4.Key? key,
+    required String open,
+    _i5.Drawers? drawer,
+  }) : super(
+          DrawerScreenRoute.name,
+          path: '/drawer-screen',
+          args: DrawerScreenArgs(
             key: key,
-            totalOrderAmount: totalOrderAmount,
-            order: order,
-            receiptType: receiptType),
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
+            open: open,
+            drawer: drawer,
+          ),
+        );
 
-  Future<dynamic> navigateToTransactionDetail({
-    _i3.Key? key,
-    required _i4.Order order,
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  }) async {
-    return navigateTo<dynamic>(Routes.transactionDetail,
-        arguments: TransactionDetailArguments(key: key, order: order),
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
+  static const String name = 'DrawerScreen';
+}
 
-  Future<dynamic> navigateToSettingsScreen([
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  ]) async {
-    return navigateTo<dynamic>(Routes.settingsScreen,
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
+class DrawerScreenArgs {
+  const DrawerScreenArgs({
+    this.key,
+    required this.open,
+    this.drawer,
+  });
 
-  Future<dynamic> navigateToSwitchBranchView({
-    _i3.Key? key,
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  }) async {
-    return navigateTo<dynamic>(Routes.switchBranchView,
-        arguments: SwitchBranchViewArguments(key: key),
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
+  final _i4.Key? key;
 
-  Future<dynamic> navigateToScannView({
-    _i3.Key? key,
-    String intent = 'selling',
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  }) async {
-    return navigateTo<dynamic>(Routes.scannView,
-        arguments: ScannViewArguments(key: key, intent: intent),
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
+  final String open;
 
-  Future<dynamic> navigateToOrderView({
-    _i3.Key? key,
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  }) async {
-    return navigateTo<dynamic>(Routes.orderView,
-        arguments: OrderViewArguments(key: key),
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
+  final _i5.Drawers? drawer;
 
-  Future<dynamic> navigateToInAppBrowser([
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  ]) async {
-    return navigateTo<dynamic>(Routes.inAppBrowser,
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> navigateToCustomers({
-    _i3.Key? key,
-    required int orderId,
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  }) async {
-    return navigateTo<dynamic>(Routes.customers,
-        arguments: CustomersArguments(key: key, orderId: orderId),
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> navigateToNoNet([
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  ]) async {
-    return navigateTo<dynamic>(Routes.noNet,
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> navigateToPinLogin({
-    _i3.Key? key,
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  }) async {
-    return navigateTo<dynamic>(Routes.pinLogin,
-        arguments: PinLoginArguments(key: key),
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> navigateToDevices({
-    _i3.Key? key,
-    int? pin,
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  }) async {
-    return navigateTo<dynamic>(Routes.devices,
-        arguments: DevicesArguments(key: key, pin: pin),
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> navigateToTaxConfiguration([
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  ]) async {
-    return navigateTo<dynamic>(Routes.taxConfiguration,
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> navigateToPrinting([
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  ]) async {
-    return navigateTo<dynamic>(Routes.printing,
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> navigateToBackUp([
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  ]) async {
-    return navigateTo<dynamic>(Routes.backUp,
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> navigateToLoginChoices([
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  ]) async {
-    return navigateTo<dynamic>(Routes.loginChoices,
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> navigateToTenantAdd([
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  ]) async {
-    return navigateTo<dynamic>(Routes.tenantAdd,
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> navigateToColdStartView([
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  ]) async {
-    return navigateTo<dynamic>(Routes.coldStartView,
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> navigateToSocialHomeView([
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  ]) async {
-    return navigateTo<dynamic>(Routes.socialHomeView,
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> replaceWithStartUpView({
-    _i3.Key? key,
-    bool? invokeLogin,
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  }) async {
-    return replaceWith<dynamic>(Routes.startUpView,
-        arguments: StartUpViewArguments(key: key, invokeLogin: invokeLogin),
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> replaceWithSignUpView({
-    _i3.Key? key,
-    String? countryNm = "Rwanda",
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  }) async {
-    return replaceWith<dynamic>(Routes.signUpView,
-        arguments: SignUpViewArguments(key: key, countryNm: countryNm),
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> replaceWithFlipperApp([
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  ]) async {
-    return replaceWith<dynamic>(Routes.flipperApp,
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> replaceWithLoginView([
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  ]) async {
-    return replaceWith<dynamic>(Routes.loginView,
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> replaceWithAddProductView({
-    _i3.Key? key,
-    int? productId,
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  }) async {
-    return replaceWith<dynamic>(Routes.addProductView,
-        arguments: AddProductViewArguments(key: key, productId: productId),
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> replaceWithAddDiscount({
-    _i3.Key? key,
-    _i4.Discount? discount,
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  }) async {
-    return replaceWith<dynamic>(Routes.addDiscount,
-        arguments: AddDiscountArguments(key: key, discount: discount),
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> replaceWithListCategories({
-    _i3.Key? key,
-    required List<_i4.Category> categories,
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  }) async {
-    return replaceWith<dynamic>(Routes.listCategories,
-        arguments: ListCategoriesArguments(key: key, categories: categories),
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> replaceWithColorTile([
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  ]) async {
-    return replaceWith<dynamic>(Routes.colorTile,
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> replaceWithReceiveStock({
-    _i3.Key? key,
-    required int variantId,
-    String? existingStock,
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  }) async {
-    return replaceWith<dynamic>(Routes.receiveStock,
-        arguments: ReceiveStockArguments(
-            key: key, variantId: variantId, existingStock: existingStock),
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> replaceWithAddVariation({
-    _i3.Key? key,
-    required int productId,
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  }) async {
-    return replaceWith<dynamic>(Routes.addVariation,
-        arguments: AddVariationArguments(key: key, productId: productId),
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> replaceWithAddCategory([
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  ]) async {
-    return replaceWith<dynamic>(Routes.addCategory,
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> replaceWithListUnits({
-    _i3.Key? key,
-    required String type,
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  }) async {
-    return replaceWith<dynamic>(Routes.listUnits,
-        arguments: ListUnitsArguments(key: key, type: type),
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> replaceWithSell({
-    _i3.Key? key,
-    required _i4.Product product,
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  }) async {
-    return replaceWith<dynamic>(Routes.sell,
-        arguments: SellArguments(key: key, product: product),
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> replaceWithPayments({
-    _i3.Key? key,
-    required _i4.Order order,
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  }) async {
-    return replaceWith<dynamic>(Routes.payments,
-        arguments: PaymentsArguments(key: key, order: order),
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> replaceWithCollectCashView({
-    _i3.Key? key,
-    required String paymentType,
-    required _i4.Order order,
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  }) async {
-    return replaceWith<dynamic>(Routes.collectCashView,
-        arguments: CollectCashViewArguments(
-            key: key, paymentType: paymentType, order: order),
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> replaceWithAfterSale({
-    _i3.Key? key,
-    required double totalOrderAmount,
-    required _i4.Order order,
-    String? receiptType = "ns",
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  }) async {
-    return replaceWith<dynamic>(Routes.afterSale,
-        arguments: AfterSaleArguments(
-            key: key,
-            totalOrderAmount: totalOrderAmount,
-            order: order,
-            receiptType: receiptType),
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> replaceWithTransactionDetail({
-    _i3.Key? key,
-    required _i4.Order order,
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  }) async {
-    return replaceWith<dynamic>(Routes.transactionDetail,
-        arguments: TransactionDetailArguments(key: key, order: order),
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> replaceWithSettingsScreen([
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  ]) async {
-    return replaceWith<dynamic>(Routes.settingsScreen,
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> replaceWithSwitchBranchView({
-    _i3.Key? key,
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  }) async {
-    return replaceWith<dynamic>(Routes.switchBranchView,
-        arguments: SwitchBranchViewArguments(key: key),
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> replaceWithScannView({
-    _i3.Key? key,
-    String intent = 'selling',
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  }) async {
-    return replaceWith<dynamic>(Routes.scannView,
-        arguments: ScannViewArguments(key: key, intent: intent),
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> replaceWithOrderView({
-    _i3.Key? key,
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  }) async {
-    return replaceWith<dynamic>(Routes.orderView,
-        arguments: OrderViewArguments(key: key),
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> replaceWithInAppBrowser([
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  ]) async {
-    return replaceWith<dynamic>(Routes.inAppBrowser,
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> replaceWithCustomers({
-    _i3.Key? key,
-    required int orderId,
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  }) async {
-    return replaceWith<dynamic>(Routes.customers,
-        arguments: CustomersArguments(key: key, orderId: orderId),
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> replaceWithNoNet([
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  ]) async {
-    return replaceWith<dynamic>(Routes.noNet,
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> replaceWithPinLogin({
-    _i3.Key? key,
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  }) async {
-    return replaceWith<dynamic>(Routes.pinLogin,
-        arguments: PinLoginArguments(key: key),
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> replaceWithDevices({
-    _i3.Key? key,
-    int? pin,
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  }) async {
-    return replaceWith<dynamic>(Routes.devices,
-        arguments: DevicesArguments(key: key, pin: pin),
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> replaceWithTaxConfiguration([
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  ]) async {
-    return replaceWith<dynamic>(Routes.taxConfiguration,
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> replaceWithPrinting([
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  ]) async {
-    return replaceWith<dynamic>(Routes.printing,
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> replaceWithBackUp([
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  ]) async {
-    return replaceWith<dynamic>(Routes.backUp,
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> replaceWithLoginChoices([
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  ]) async {
-    return replaceWith<dynamic>(Routes.loginChoices,
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> replaceWithTenantAdd([
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  ]) async {
-    return replaceWith<dynamic>(Routes.tenantAdd,
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> replaceWithColdStartView([
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  ]) async {
-    return replaceWith<dynamic>(Routes.coldStartView,
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> replaceWithSocialHomeView([
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  ]) async {
-    return replaceWith<dynamic>(Routes.socialHomeView,
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
+  @override
+  String toString() {
+    return 'DrawerScreenArgs{key: $key, open: $open, drawer: $drawer}';
   }
 }

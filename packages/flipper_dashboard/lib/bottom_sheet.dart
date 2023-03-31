@@ -1,4 +1,6 @@
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_ui/bottom_sheets/general_bottom_sheet.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
@@ -10,9 +12,7 @@ import 'package:overlay_support/overlay_support.dart';
 import 'package:flutter_settings_ui/flutter_settings_ui.dart';
 
 import 'package:flipper_login/update_email.dart';
-import 'package:flipper_routing/routes.router.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:go_router/go_router.dart';
 
 Widget header({required String title, required BuildContext context}) {
   return Material(
@@ -83,6 +83,7 @@ void inviteMembers({required BuildContext context}) {
 
 void preferences(
     {required BuildContext context, required BusinessHomeViewModel model}) {
+  final _routerService = locator<RouterService>();
   bottomSheetBuilder(
     header: header(title: 'Preferences', context: context),
     context: context,
@@ -250,7 +251,7 @@ void preferences(
           title: const Text('Analytics'),
           trailing: const Icon(FluentIcons.arrow_forward_20_regular),
           onTap: () {
-            GoRouter.of(context).push(Routes.analytics);
+            // GoRouter.of(context).push(Routes.analytics);
           },
         ),
       if (ProxyService.remoteConfig.isSyncAvailable())

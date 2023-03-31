@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart'
 import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/view_models/gate.dart';
+import 'package:flipper_services/locator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:stacked/stacked.dart';
 import 'config.dart';
@@ -12,9 +13,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'decorations.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_routing/routes.logger.dart';
-import 'package:universal_platform/universal_platform.dart';
-import 'package:flipper_routing/routes.locator.dart';
 import 'package:flutter/scheduler.dart';
 
 class LoginView extends StatefulWidget {
@@ -26,7 +24,6 @@ class LoginView extends StatefulWidget {
 
 class _LoginViewState extends State<LoginView>
     with AutomaticKeepAliveClientMixin {
-  final log = getLogger('LoginView');
   final appService = locator<AppService>();
 
   Future<void> isNetAvailable() async {

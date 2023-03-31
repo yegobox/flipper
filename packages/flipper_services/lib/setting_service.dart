@@ -1,11 +1,9 @@
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/isar_models.dart';
-import 'package:flipper_routing/routes.logger.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
 class SettingsService with ListenableServiceMixin {
-  final log = getLogger('SettingsService');
   //  bool sendDailReport = false;
   final _enablePrinter = ReactiveValue<bool>(false);
 

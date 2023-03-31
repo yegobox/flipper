@@ -7,7 +7,6 @@ import 'package:pocketbase/pocketbase.dart';
 import 'package:stacked/stacked.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flipper_models/isar_models.dart';
-import 'package:flipper_routing/routes.logger.dart';
 import 'proxy.dart';
 import 'package:flutter_statusbarcolor_ns/flutter_statusbarcolor_ns.dart';
 import 'package:flipper_nfc/flipper_nfc.dart';
@@ -21,8 +20,6 @@ class AppService with ListenableServiceMixin {
   String? get userid => ProxyService.box.read(key: 'userId');
   int? get businessId => ProxyService.box.read(key: 'businessId');
   int? get branchId => ProxyService.box.read(key: 'branchId');
-
-  final log = getLogger('AppService');
 
   final _categories = ReactiveValue<List<Category>>([]);
   List<Category> get categories => _categories.value;
@@ -78,7 +75,7 @@ class AppService with ListenableServiceMixin {
     List<PColor> result =
         await ProxyService.isarApi.colors(branchId: branchId!);
     _colors.value = result;
-    log.i(result.length);
+
     for (PColor color in result) {
       if (color.active) {
         setCurrentColor(color: color.name!);

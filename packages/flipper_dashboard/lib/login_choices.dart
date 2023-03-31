@@ -1,6 +1,8 @@
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/view_models/gate.dart';
-import 'package:flipper_routing/routes.router.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -20,6 +22,7 @@ class _LoginChoicesState extends State<LoginChoices> {
   bool _isNext = false;
   bool _businessChoosen = false;
   final bool _chooseBranch = false;
+  final _routerService = locator<RouterService>();
 
   @override
   Widget build(BuildContext context) {
@@ -126,8 +129,8 @@ class _LoginChoicesState extends State<LoginChoices> {
                                                   Checkbox(
                                                     value: _chooseBranch,
                                                     onChanged: (value) async {
-                                                      await chooseBranch(value,
-                                                          model, e, context);
+                                                      await chooseBranch(
+                                                          value, model, e);
                                                     },
                                                   ),
                                                 ],
@@ -163,16 +166,16 @@ class _LoginChoicesState extends State<LoginChoices> {
     }
   }
 
-  Future<void> chooseBranch(bool? value, BusinessHomeViewModel model,
-      Branch branch, BuildContext context) async {
+  Future<void> chooseBranch(
+      bool? value, BusinessHomeViewModel model, Branch branch) async {
     model.setDefaultBranch(branch: branch);
     if (await ProxyService.isarApi
             .isDrawerOpen(cashierId: ProxyService.box.getBusinessId()!) ==
         null) {
-      GoRouter.of(context).push("/drawer/open");
+      _routerService.replaceWith(DrawerScreenRoute(open: "open"));
     }
     LoginInfo().isLoggedIn = true;
 
-    GoRouter.of(context).push(Routes.home);
+    _routerService.replaceWith(FlipperAppRoute());
   }
 }

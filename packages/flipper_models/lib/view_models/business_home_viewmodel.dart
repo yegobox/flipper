@@ -1,11 +1,9 @@
 library flipper_models;
 
 import 'dart:async';
-
 import 'package:flipper_models/isar/receipt_signature.dart';
-import 'package:flipper_routing/routes.locator.dart';
-import 'package:flipper_routing/routes.logger.dart';
-import 'package:flipper_routing/constants.dart';
+import 'package:flipper_routing/receipt_types.dart';
+import 'package:flipper_services/locator.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
@@ -23,7 +21,6 @@ import 'package:receipt/print.dart';
 class BusinessHomeViewModel extends ReactiveViewModel {
   final settingService = locator<SettingsService>();
   final languageService = locator<Language>();
-  final log = getLogger('BusinessHomeViewModel');
   final KeyPadService keypad = locator<KeyPadService>();
   final ProductService productService = locator<ProductService>();
   final AppService app = locator<AppService>();
@@ -48,7 +45,6 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     klocale = Locale(lang);
     ProxyService.box.write(key: 'defaultLanguage', value: lang);
     defaultLanguage = lang;
-    log.i(defaultLanguage);
     languageService.setLocale(lang: defaultLanguage!);
   }
 
@@ -101,7 +97,6 @@ class BusinessHomeViewModel extends ReactiveViewModel {
           await ProxyService.isarApi.orderItems(orderId: pendingOrder.id!);
 
       if (items.isEmpty) {
-        log.e('No order items found');
         ProxyService.keypad.reset();
         return;
       }
@@ -218,7 +213,6 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   /// for the initation of writing this orderId in a box for later use!.
   Future<void> getOrderById() async {
     int? id = ProxyService.box.read(key: 'orderId');
-    log.i(id);
     await ProxyService.keypad.getOrderById(id: id!);
   }
 
@@ -305,7 +299,6 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     required double amountTotal,
     required bool customItem,
   }) async {
-    log.i(amountTotal);
     Variant? variation =
         await ProxyService.isarApi.variant(variantId: variationId);
     Stock? stock =
@@ -429,7 +422,6 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       //should show a global snack bar
       return;
     }
-    log.i(cashReceived);
     await ProxyService.isarApi
         .spennPayment(amount: cashReceived, phoneNumber: phoneNumber);
     await ProxyService.isarApi
@@ -845,9 +837,9 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   Future<void> sellWithCard({required int tenantId}) async {
     Product? product =
         await ProxyService.isarApi.findProductByTenantId(tenantId: tenantId);
-    log.i(product!.id);
+
     clearPreviousSaleCounts();
-    List<Variant> variants = await getVariants(productId: product.id!);
+    List<Variant> variants = await getVariants(productId: product!.id!);
     loadVariantStock(variantId: variants.first.id!);
 
     handleCustomQtySetBeforeSelectingVariation();

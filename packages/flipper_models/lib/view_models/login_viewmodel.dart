@@ -1,17 +1,15 @@
 import 'package:flipper_models/isar/pin.dart';
 import 'package:flipper_models/view_models/gate.dart';
 import 'package:flipper_services/app_service.dart';
+import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_routing/routes.logger.dart';
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flipper_routing/routes.locator.dart';
 
 class LoginViewModel extends FormViewModel {
   LoginViewModel();
-  final log = getLogger('LoginViewModel');
   final appService = locator<AppService>();
 
   bool loginStart = false;
@@ -59,7 +57,6 @@ class LoginViewModel extends FormViewModel {
     notifyListeners();
     Pin? pin = await ProxyService.isarApi.getPin(pin: pinCode);
     if (pin != null) {
-      log.i(pin.userId);
       ProxyService.box.write(key: 'businessId', value: pin.businessId);
       ProxyService.box.write(key: 'branchId', value: pin.branchId);
       ProxyService.box.write(key: 'userId', value: pin.userId);

@@ -1,8 +1,9 @@
 import 'package:flipper_models/view_models/gate.dart';
-import 'package:flipper_routing/constants.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flipper_models/isar_models.dart' as model;
 
 class DrawerScreen extends StatefulWidget {
@@ -17,6 +18,7 @@ class DrawerScreen extends StatefulWidget {
 class _DrawerScreenState extends State<DrawerScreen> {
   final _controller = TextEditingController();
   final _sub = GlobalKey<FormState>();
+  final _routerService = locator<RouterService>();
   @override
   void dispose() {
     // Dispose of the TextEditingController
@@ -112,7 +114,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
                           );
                           LoginInfo().isLoggedIn = true;
 
-                          GoRouter.of(context).push(Routes.home);
+                          _routerService.replaceWith(FlipperAppRoute());
                         } else {
                           ProxyService.isarApi.update(
                               data: widget.drawer!
@@ -125,7 +127,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
                           /// when you close a drawer we asume you also closed a business day
                           /// therefore we log you out for next day log in.
                           await ProxyService.isarApi.logOut();
-                          GoRouter.of(context).push(Routes.boot);
+                          _routerService.replaceWith(StartUpViewRoute());
                         }
                       }
                     },

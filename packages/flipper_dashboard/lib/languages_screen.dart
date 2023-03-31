@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_settings_ui/flutter_settings_ui.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/view_models/setting_view_model.dart';
-import 'package:flipper_routing/routes.logger.dart';
 import 'package:go_router/go_router.dart';
 
 class LanguagesScreen extends StatefulWidget {
@@ -15,7 +14,6 @@ class LanguagesScreen extends StatefulWidget {
 
 class _LanguagesScreenState extends State<LanguagesScreen> {
   int languageIndex = 0;
-  final log = getLogger('LanguagesScreen');
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +21,6 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
         viewModelBuilder: () => SettingViewModel(),
         onViewModelReady: (model) {
           model.getSetting();
-          log.i(model.getSetting());
         },
         builder: (context, model, child) {
           return Scaffold(

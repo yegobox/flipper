@@ -1,4 +1,6 @@
-import 'package:flipper_routing/routes.logger.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flutter/scheduler.dart';
@@ -7,7 +9,6 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
 import 'create/build_image_holder.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:flipper_routing/constants.dart';
 import 'create/category_selector.dart';
 import 'create/divider.dart';
 import 'create/retail_price.dart';
@@ -29,8 +30,6 @@ class AddProductView extends StatefulWidget {
 }
 
 class _AddProductViewState extends State<AddProductView> {
-  final log = getLogger('AddProductView');
-
   final DateFormat formatter = DateFormat('yyyy-MM-dd');
 
   TextEditingController barCode = TextEditingController();
@@ -40,7 +39,7 @@ class _AddProductViewState extends State<AddProductView> {
   TextEditingController retailPriceController = TextEditingController(text: '');
 
   TextEditingController supplyPriceController = TextEditingController(text: '');
-
+  final _routerService = locator<RouterService>();
   @override
   Widget build(BuildContext context) {
     Future<bool> _onWillPop() async {
@@ -144,7 +143,6 @@ class _AddProductViewState extends State<AddProductView> {
         /// get the regular variant then get it's price to fill in the form when we are in edit mode!
         /// normal this is a List of variants where match the productId and take where we have the regular variant
         if (widget.productId != null) {
-          log.i(widget.productId);
           List<Variant> variants = await ProxyService.isarApi
               .getVariantByProductId(productId: widget.productId!);
           //filter the variants where we have the regular variant and get one of them
@@ -176,7 +174,6 @@ class _AddProductViewState extends State<AddProductView> {
               disableButton: model.lock,
               showActionButton: true,
               onPressedCallback: () async {
-                log.e(model.productName);
                 if (model.productName == " ") {
                   showToast(context, 'Provide name for the product');
                   return;
@@ -339,11 +336,9 @@ class _AddProductViewState extends State<AddProductView> {
                           ),
                         ),
                         onPressed: () {
-                          DatePicker.showPicker(context, showTitleActions: true,
-                              onChanged: (date) {
-                            log.i('change $date in time zone ' +
-                                date.timeZoneOffset.inHours.toString());
-                          }, onConfirm: (date) {
+                          DatePicker.showPicker(context,
+                              showTitleActions: true,
+                              onChanged: (date) {}, onConfirm: (date) {
                             model.updateExpiryDate(date);
                           }, locale: LocaleType.en);
                         },
@@ -396,8 +391,8 @@ class _AddProductViewState extends State<AddProductView> {
                         ),
                         child: GestureDetector(
                           onTap: () {
-                            GoRouter.of(context)
-                                .go(Routes.scann + "/addBarCode");
+                            _routerService.replaceWith(
+                                ScannViewRoute(intent: 'addBarCode'));
                           },
                           child: BoxInputField(
                             enabled: false,

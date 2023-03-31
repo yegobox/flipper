@@ -1,5 +1,4 @@
-import 'package:flipper_routing/routes.logger.dart';
-import 'package:flipper_routing/routes.locator.dart';
+import 'package:flipper_services/locator.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_services/language_service.dart';
@@ -15,7 +14,6 @@ class SettingViewModel extends ReactiveViewModel {
   Setting? _setting;
   Setting? get setting => _setting;
   bool get updateStart => _updateStarted;
-  final log = getLogger('SettingViewModel');
 
   Business? _business;
   Business? get business => _business;
@@ -46,7 +44,6 @@ class SettingViewModel extends ReactiveViewModel {
     klocale = Locale(lang);
     ProxyService.box.write(key: 'defaultLanguage', value: lang);
     defaultLanguage = lang;
-    log.i(defaultLanguage);
     languageService.setLocale(lang: defaultLanguage!);
     notifyListeners();
   }
@@ -198,7 +195,6 @@ class SettingViewModel extends ReactiveViewModel {
         success(1);
       }
     } catch (e) {
-      log.d(e);
       _isProceeding = false;
       notifyListeners();
       success(1);

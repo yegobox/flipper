@@ -3,12 +3,10 @@ import 'dart:io';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_routing/routes.logger.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 
 class CronService {
-  final log = getLogger('CronService');
   final drive = GoogleDrive();
 
   void companyWideReport() {}

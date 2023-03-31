@@ -1,12 +1,10 @@
 import 'package:flipper_ui/helpers/stack.dart';
-import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/isar_models.dart';
 
 class KeyPadService with ListenableServiceMixin {
   final _key = ReactiveValue<String>("0.00");
-  final log = getLogger('KeyPadService');
   Stack stack = Stack<String>();
 
   final _itemsOnSale = ReactiveValue<int>(0);
@@ -103,7 +101,7 @@ class KeyPadService with ListenableServiceMixin {
   /// it is in this recard in application anywhere else it's okay to access orders[0]
   Future<Order?> getOrder({required int branchId}) async {
     Order? order = await ProxyService.isarApi.pendingOrder(branchId: branchId);
-    log.d('getOrder: $order');
+
     if (order != null) {
       List<OrderItem> items =
           await ProxyService.isarApi.orderItems(orderId: order.id!);
