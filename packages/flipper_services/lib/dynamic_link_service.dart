@@ -4,8 +4,7 @@ import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/cupertino.dart';
 import 'abstractions/dynamic_link.dart';
-import 'package:flipper_routing/routes.logger.dart';
-import 'package:flipper_routing/routes.router.dart';
+import 'package:flipper_routing/constants.dart';
 import 'package:go_router/go_router.dart';
 
 class UnSupportedDynamicLink implements DynamicLink {
@@ -19,7 +18,6 @@ class UnSupportedDynamicLink implements DynamicLink {
 }
 
 class DynamicLinkService implements DynamicLink {
-  final log = getLogger('DynamicLinkService');
   FirebaseDynamicLinks dynamicLinks = FirebaseDynamicLinks.instance;
   @override
   Future handleDynamicLink(BuildContext context) async {
@@ -42,7 +40,6 @@ class DynamicLinkService implements DynamicLink {
     if (data == null) return;
     final Uri deepLink = data.link;
 
-    log.i('_deepLink: $deepLink');
     bool isRefer = deepLink.pathSegments.contains('refer');
     if (isRefer) {
       String? code = deepLink.queryParameters['code'];
@@ -80,7 +77,7 @@ class DynamicLinkService implements DynamicLink {
     try {
       ShortDynamicLink shortLink =
           await dynamicLinks.buildShortLink(parameters);
-      log.d(shortLink.shortUrl.toString());
+
       return shortLink.shortUrl.toString(); //as ShortDynamicLink
     } catch (e) {
       return "https://play.google.com/store/apps/details?id=rw.flipper";

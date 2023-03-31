@@ -194,7 +194,7 @@ class _CollectCashViewState extends State<CollectCashView> {
                                               double.parse(_cash.text),
                                         );
                                       } else {
-                                        String receiptType = ReceiptType.ns;
+                                        String receiptType = "ns";
                                         if (ProxyService.box
                                             .isPoroformaMode()) {
                                           receiptType = ReceiptType.ps;

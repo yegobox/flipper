@@ -7,7 +7,7 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
 import 'create/build_image_holder.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:flipper_routing/routes.router.dart';
+import 'package:flipper_routing/constants.dart';
 import 'create/category_selector.dart';
 import 'create/divider.dart';
 import 'create/retail_price.dart';

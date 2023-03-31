@@ -1,5 +1,3 @@
-import 'package:flipper_routing/routes.logger.dart';
-import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +15,7 @@ class AfterSale extends StatefulWidget {
       {Key? key,
       required this.totalOrderAmount,
       required this.order,
-      this.receiptType = ReceiptType.ns})
+      this.receiptType = "ns"})
       : super(key: key);
   final double totalOrderAmount;
   final Order order;
@@ -98,9 +96,7 @@ class _AfterSaleState extends State<AfterSale> {
                       left: 0,
                       child: StreamBuilder<Customer?>(
                           stream: ProxyService.isarApi.getCustomerByOrderId(
-                              id: model.kOrder == null
-                                  ? 0
-                                  : model.kOrder!.id!!),
+                              id: model.kOrder == null ? 0 : model.kOrder!.id!),
                           builder: (context, snapshot) {
                             return snapshot.data == null
                                 ? Column(
@@ -162,7 +158,7 @@ class _AfterSaleState extends State<AfterSale> {
                                                   List<OrderItem> items =
                                                       await ProxyService.isarApi
                                                           .orderItems(
-                                                    orderId: widget.order.id!!,
+                                                    orderId: widget.order.id!,
                                                   );
                                                   model.printReceipt(
                                                       items: items,
@@ -302,7 +298,7 @@ class _AfterSaleState extends State<AfterSale> {
           if (await ProxyService.isarApi.isTaxEnabled()) {
             Business? business = await ProxyService.isarApi.getBusiness();
             List<OrderItem> items = await ProxyService.isarApi
-                .orderItems(orderId: widget.order.id!!);
+                .orderItems(orderId: widget.order.id!);
 
             final bool isDone = await model.generateRRAReceipt(
                 items: items,

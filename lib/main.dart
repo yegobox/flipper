@@ -5,8 +5,6 @@ import 'package:firebase_ui_localizations/firebase_ui_localizations.dart';
 import 'package:flipper_models/view_models/gate.dart';
 import 'package:flipper_rw/flipper_localize/lib/flipper_localize.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_socials/app/app.bottomsheets.dart';
-import 'package:flipper_socials/app/app.dialogs.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:overlay_support/overlay_support.dart';
@@ -26,7 +24,7 @@ import 'init.dart'
     if (dart.library.io) 'io_init.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'routes.dart';
+
 import 'package:flutter_animate/flutter_animate.dart';
 
 final isIos = UniversalPlatform.isIOS;
@@ -72,9 +70,7 @@ void main() async {
 
   await GetStorage.init();
   // done init in mobile.//done separation.
-  await setupLocator();
-  setupDialogUi();
-  setupBottomSheetUi();
+  await thirdPartyLocator();
 
   await initDb();
   if (!isWindows && !isWeb) {

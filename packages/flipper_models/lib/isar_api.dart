@@ -6,7 +6,7 @@ import 'package:flipper_models/isar/utils.dart';
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_routing/routes.logger.dart';
-import 'package:flipper_routing/routes.router.dart';
+import 'package:flipper_routing/constants.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/isar_models.dart';
@@ -1846,7 +1846,7 @@ class IsarAPI<M> implements IsarApiInterface {
         .filter()
         .branchIdEqualTo(branchId)
         .and()
-        .receiptTypeEqualTo(ReceiptType.ns)
+        .receiptTypeEqualTo("ns")
         .findFirst();
   }
 

@@ -178,7 +178,7 @@ packages:
     source: hosted
     version: "2.2.0"
   build_runner:
-    dependency: transitive
+    dependency: "direct dev"
     description:
       name: build_runner
       sha256: b0a8a7b8a76c493e85f1b84bffa0588859a06197863dba8c9036b15581fd9727
@@ -977,6 +977,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.0"
+  flutter_lints:
+    dependency: "direct dev"
+    description:
+      name: flutter_lints
+      sha256: b543301ad291598523947dc534aaddc5aaad597b709d2426d3a0e0d44c5cb493
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.4"
   flutter_local_notifications:
     dependency: transitive
     description:
@@ -1078,7 +1086,7 @@ packages:
     source: hosted
     version: "1.1.6"
   flutter_test:
-    dependency: transitive
+    dependency: "direct dev"
     description: flutter
     source: sdk
     version: "0.0.0"
@@ -1143,6 +1151,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.0-nullsafety.1"
+  freezed_annotation:
+    dependency: transitive
+    description:
+      name: freezed_annotation
+      sha256: aeac15850ef1b38ee368d4c53ba9a847e900bb2c53a4db3f6881cbb3cb684338
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.2.0"
   frontend_server_client:
     dependency: transitive
     description:
@@ -1518,6 +1534,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.0.2+8"
+  lints:
+    dependency: transitive
+    description:
+      name: lints
+      sha256: a2c3d198cb5ea2e179926622d433331d8b58374ab8f29cdda6e863bd62fd369c
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.1"
   location:
     dependency: transitive
     description:
@@ -1614,6 +1638,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.4"
+  mockito:
+    dependency: "direct dev"
+    description:
+      name: mockito
+      sha256: dd61809f04da1838a680926de50a9e87385c1de91c6579629c3d1723946e8059
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.4.0"
   modal_bottom_sheet:
     dependency: transitive
     description:
@@ -2190,6 +2222,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.99"
+  source_gen:
+    dependency: transitive
+    description:
+      name: source_gen
+      sha256: c2bea18c95cfa0276a366270afaa2850b09b4a76db95d546f3d003dcc7011298
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.7"
   source_span:
     dependency: transitive
     description:
@@ -2230,6 +2270,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.2.0"
+  stacked_generator:
+    dependency: "direct dev"
+    description:
+      name: stacked_generator
+      sha256: "9967bb3231d0b95ed4594fba6b86d913102b29bbae3d4e3190e70c902c6f61e2"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
   stacked_services:
     dependency: "direct main"
     description:
@@ -2446,7 +2494,7 @@ packages:
     source: hosted
     version: "3.0.5"
   url_strategy:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: url_strategy
       sha256: "42b68b42a9864c4d710401add17ad06e28f1c1d5500c93b98c431f6b0ea4ab87"

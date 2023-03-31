@@ -1,5 +1,5 @@
 import 'package:flipper_models/view_models/gate.dart';
-import 'package:flipper_routing/routes.router.dart';
+import 'package:flipper_routing/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';

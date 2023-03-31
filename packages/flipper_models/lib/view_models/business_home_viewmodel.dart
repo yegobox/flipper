@@ -5,7 +5,7 @@ import 'dart:async';
 import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_routing/routes.locator.dart';
 import 'package:flipper_routing/routes.logger.dart';
-import 'package:flipper_routing/routes.router.dart';
+import 'package:flipper_routing/constants.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
@@ -695,7 +695,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   Future<bool> generateRRAReceipt(
       {required List<OrderItem> items,
       required Business business,
-      String? receiptType = ReceiptType.ns,
+      String? receiptType = "ns",
       required Order order,
       required Function callback}) async {
     // use local counter as long as it is marked as synced.
@@ -751,7 +751,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   Future<Counter> getCounter(String? receiptType) async {
     Counter? counter;
     int branchId = ProxyService.box.getBranchId()!;
-    if (receiptType == ReceiptType.ns) {
+    if (receiptType == "ns") {
       counter = await ProxyService.isarApi.nSCounter(branchId: branchId);
     }
     if (receiptType == ReceiptType.ts) {

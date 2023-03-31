@@ -17,9 +17,6 @@ import 'package:universal_platform/universal_platform.dart';
 import 'package:flipper_routing/routes.locator.dart';
 import 'package:flutter/scheduler.dart';
 
-final isWindows = UniversalPlatform.isWindows;
-final isWeb = UniversalPlatform.isWeb;
-
 class LoginView extends StatefulWidget {
   const LoginView({Key? key}) : super(key: key);
 

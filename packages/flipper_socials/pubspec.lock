@@ -833,7 +833,7 @@ packages:
     source: hosted
     version: "1.2.0"
   flipper_routing:
-    dependency: "direct overridden"
+    dependency: "direct main"
     description:
       path: "../flipper_routing"
       relative: true

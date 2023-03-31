@@ -1,7 +1,13 @@
-import 'package:flipper_routing/app.locator.dart';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+// **************************************************************************
+// StackedBottomsheetGenerator
+// **************************************************************************
+
 import 'package:stacked_services/stacked_services.dart';
 
-import '../ui/bottom_sheets/notice/notice_sheet.dart';
+import 'app.locator.dart';
+import 'package:flipper_socials/ui/bottom_sheets/notice/notice_sheet.dart';
 
 enum BottomSheetType {
   notice,
