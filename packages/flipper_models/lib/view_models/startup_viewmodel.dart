@@ -5,6 +5,8 @@ import 'package:flipper_routing/routes.locator.dart';
 import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:universal_platform/universal_platform.dart';
@@ -13,17 +15,18 @@ import 'gate.dart';
 
 final isWeb = UniversalPlatform.isWeb;
 
-class StartUpViewModel extends BaseViewModel {
+class StartupViewModel extends BaseViewModel {
   final appService = locator<AppService>();
+  final BuildContext context;
   bool isBusinessSet = false;
   final log = getLogger('StartUpViewModel');
 
+  StartupViewModel({required this.context});
+
   Future<void> runStartupLogic({
     required bool invokeLogin,
-    required LoginInfo loginInfo,
-    required Function navigationCallback,
   }) async {
-    loginInfo.redirecting = true;
+    LoginInfo().redirecting = true;
     try {
       /// an event should be trigered from mobile not desktop as desktop is anonmous and login() func might have been called.
       if (invokeLogin && !ProxyService.box.isAnonymous()) {
@@ -41,30 +44,28 @@ class StartUpViewModel extends BaseViewModel {
           null) {
         throw NoDrawerOpenException(term: "Business Drawer is not open");
       }
-      loginInfo.isLoggedIn = true;
+      LoginInfo().isLoggedIn = true;
 
-      /// name the default route to app chooser
-      navigationCallback("cold-start");
+      GoRouter.of(context).push('/home');
     } catch (e, stack) {
       if (e is LoginChoicesException) {
-        // loginInfo.isLoggedIn = false;
-        // loginInfo.loginChoices = true;
-        // navigationCallback("tenants");
-        loginInfo.needSignUp = true;
-        navigationCallback("signup");
+        LoginInfo().isLoggedIn = false;
+        LoginInfo().loginChoices = true;
+        GoRouter.of(context).push('/tenants');
       } else if (e is NoDrawerOpenException) {
-        navigationCallback("drawer/open");
+        // LoginInfo().setDrawerOpen(true);
+        GoRouter.of(context).push('/drawer/open');
       } else if (e is SessionException || e is ErrorReadingFromYBServer) {
-        loginInfo.isLoggedIn = false;
-        navigationCallback("login");
+        LoginInfo().isLoggedIn = false;
+        GoRouter.of(context).push('/login');
       } else if (e is NotFoundException) {
-        navigationCallback("signup");
+        GoRouter.of(context).push('/signup');
       } else {
         log.i(e.toString());
         log.i(stack);
         ProxyService.isarApi.logOut();
-        loginInfo.isLoggedIn = false;
-        navigationCallback("login");
+        LoginInfo().isLoggedIn = false;
+        GoRouter.of(context).push('/login');
       }
     }
   }

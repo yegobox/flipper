@@ -108,8 +108,8 @@ void main() async {
     FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
     runApp(
       OverlaySupport.global(
-        child: ChangeNotifierProvider.value(
-          value: loginInfo,
+        child: ChangeNotifierProvider(
+          create: (_) => LoginInfo(),
           child: MaterialApp.router(
             debugShowCheckedModeBanner: false,
             title: 'flipper',

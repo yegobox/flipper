@@ -2,8 +2,8 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart'
     hide PhoneAuthProvider, EmailAuthProvider;
 import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
-import 'package:flipper_dashboard/startup_view.dart';
 import 'package:flipper_models/view_models/gate.dart';
+import 'package:flipper_socials/ui/views/startup/social_startup_view.dart';
 import 'package:go_router/go_router.dart';
 import 'config.dart';
 import 'package:flipper_services/app_service.dart';
@@ -28,8 +28,7 @@ class LoginView extends StatefulWidget {
   State<LoginView> createState() => _LoginViewState();
 }
 
-class _LoginViewState extends State<LoginView>
-    with AutomaticKeepAliveClientMixin {
+class _LoginViewState extends State<LoginView> {
   final log = getLogger('LoginView');
   final appService = locator<AppService>();
 
@@ -39,9 +38,9 @@ class _LoginViewState extends State<LoginView>
           await (Connectivity().checkConnectivity());
       if (connectivityResult == ConnectivityResult.mobile ||
           connectivityResult == ConnectivityResult.wifi) {
-        loginInfo.noNet = false;
+        LoginInfo().noNet = false;
       } else {
-        loginInfo.noNet = true;
+        LoginInfo().noNet = true;
       }
     }
   }
@@ -62,10 +61,10 @@ class _LoginViewState extends State<LoginView>
           // Got a new connectivity status!
           if (result == ConnectivityResult.mobile ||
               result == ConnectivityResult.wifi) {
-            loginInfo.noNet = false;
+            LoginInfo().noNet = false;
             GoRouter.of(context).refresh();
           } else {
-            loginInfo.noNet = true;
+            LoginInfo().noNet = true;
             GoRouter.of(context).refresh();
           }
         });
@@ -84,14 +83,11 @@ class _LoginViewState extends State<LoginView>
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.userChanges(),
       builder: (BuildContext context, snapshot) {
         if (snapshot.hasData) {
-          return const StartUpView(
-            invokeLogin: true,
-          );
+          return const ColdStartView();
         } else {
           return isWindows || isWeb
               ? const Scaffold(body: DesktopLoginView())

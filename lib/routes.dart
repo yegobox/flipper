@@ -41,24 +41,24 @@ import 'package:flipper_models/isar_models.dart';
 
 final router = GoRouter(
   initialLocation: Routes.coldStart,
-  refreshListenable: loginInfo,
+  refreshListenable: LoginInfo(),
   redirect: (BuildContext context, GoRouterState state) async {
-    final bool loggedIn = loginInfo.isLoggedIn;
-    final bool needSignUp = loginInfo.needSignUp;
+    final bool loggedIn = LoginInfo().isLoggedIn;
+    final bool needSignUp = LoginInfo().needSignUp;
     final coldStart = state.subloc == Routes.coldStart;
     final onLogin = state.subloc == Routes.login;
     final onNoNet = state.subloc == Routes.noNet;
-    final String country = loginInfo.country.replaceAll(" ", "");
+    final String country = LoginInfo().country.replaceAll(" ", "");
     final onSignUp = state.subloc == "${Routes.signup}/$country";
-    final bool noNet = loginInfo.noNet;
-    final bool loginChoices = loginInfo.loginChoices;
+    final bool noNet = LoginInfo().noNet;
+    final bool loginChoices = LoginInfo().loginChoices;
     final onTenants = state.subloc == Routes.tenants;
     final routeWithRedirectRules = [
       "${Routes.signup}/$country",
       Routes.login,
       Routes.noNet,
       Routes.coldStart,
-      Routes.tenants,
+      Routes.tenants
     ];
 
     if (needSignUp &&
@@ -66,7 +66,6 @@ final router = GoRouter(
         routeWithRedirectRules.contains(state.subloc)) {
       return "${Routes.signup}/$country";
     }
-
     if (loggedIn &&
         !coldStart &&
         routeWithRedirectRules.contains(state.subloc)) {
@@ -104,7 +103,7 @@ final router = GoRouter(
       name: 'boot',
       pageBuilder: (context, state) => MaterialPage(
         key: state.pageKey,
-        child: const StartUpView(),
+        child: const StartUpView(invokeLogin: true),
       ),
     ),
     GoRoute(

@@ -110,7 +110,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
                                   DateTime.now().toIso8601String()
                               ..open = true,
                           );
-                          loginInfo.isLoggedIn = true;
+                          LoginInfo().isLoggedIn = true;
 
                           GoRouter.of(context).push(Routes.home);
                         } else {

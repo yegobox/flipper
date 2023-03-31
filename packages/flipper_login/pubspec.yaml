@@ -37,6 +37,7 @@ dependencies:
   gap: ^2.0.0
   qr_flutter: ^4.0.1
   flipper_ui: ^1.0.3
+  flipper_socials: 1.0.0+1
 
 flutter:
   assets:

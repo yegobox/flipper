@@ -8,6 +8,7 @@ class Routes {
   static const String home = '/home';
   static const String coldStart = '/cold-start';
   static const String tenants = '/tenants';
+  static const String drawerOpen = '/drawer/open';
   static const String login = '/login';
   static const String create = '/create';
   static const String addProductModal = '/addProductModal';

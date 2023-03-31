@@ -171,7 +171,7 @@ class _LoginChoicesState extends State<LoginChoices> {
         null) {
       GoRouter.of(context).push("/drawer/open");
     }
-    loginInfo.isLoggedIn = true;
+    LoginInfo().isLoggedIn = true;
 
     GoRouter.of(context).push(Routes.home);
   }

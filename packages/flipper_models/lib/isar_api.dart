@@ -1055,8 +1055,8 @@ class IsarAPI<M> implements IsarApiInterface {
     ProxyService.box.remove(key: 'userPhone');
     ProxyService.box.remove(key: 'UToken');
     ProxyService.box.remove(key: 'businessId');
-    loginInfo.isLoggedIn = false;
-    loginInfo.needSignUp = false;
+    LoginInfo().isLoggedIn = false;
+    LoginInfo().needSignUp = false;
     FirebaseAuth.instance.signOut();
     return await Future.value(true);
   }
@@ -2008,6 +2008,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<List<Stock>> getLocalStocks() async {
+    if (ProxyService.box.getBranchId() == null) return [];
     return await isar.stocks
         .filter()
         .retailPriceGreaterThan(0)
@@ -2022,6 +2023,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<List<Product>> getLocalProducts() async {
+    if (ProxyService.box.getBranchId() == null) return [];
     return await isar.products
         .filter()
         .lastTouchedIsNull()
@@ -2034,6 +2036,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<List<Variant>> getLocalVariants() async {
+    if (ProxyService.box.getBranchId() == null) return [];
     return await isar.variants
         .filter()
         .retailPriceGreaterThan(0)
@@ -2047,6 +2050,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<List<Order>> getLocalOrders() async {
+    if (ProxyService.box.getBranchId() == null) return [];
     return await isar.orders
         .filter()
         .statusEqualTo(completeStatus)

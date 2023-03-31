@@ -151,19 +151,14 @@ class SignupViewModel extends ReactiveViewModel {
         ProxyService.forceDateEntry.caller();
         ProxyService.whatsApp.optIn();
 
-        loginInfo.isLoggedIn = true;
-        loginInfo.redirecting = false;
-        loginInfo.needSignUp = false;
+        LoginInfo().isLoggedIn = true;
+        LoginInfo().redirecting = false;
+        LoginInfo().needSignUp = false;
       }
     } catch (e) {
       registerStart = false;
       notifyListeners();
       rethrow;
     }
-  }
-
-  @override
-  void setFormStatus() {
-    // TODO: implement setFormStatus
   }
 }

@@ -72,11 +72,11 @@ class LoginViewModel extends FormViewModel {
       await FirebaseAuth.instance.signInAnonymously();
       final auth = FirebaseAuth.instance;
       if (auth.currentUser != null) {
-        loginInfo.isLoggedIn = true;
+        LoginInfo().isLoggedIn = true;
         // we are logged in but there is a chance that this number is a tenant
         // that is given access to this business's branch
         // TODOtenant's is not useful when sync is not supported.
-        loginInfo.redirecting = false;
+        LoginInfo().redirecting = false;
 
         notifyListeners();
         //TODOSubmit this data in Device model to know which device is logged in

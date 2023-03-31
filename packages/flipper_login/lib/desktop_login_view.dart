@@ -157,7 +157,7 @@ class _DesktopLoginViewState extends State<DesktopLoginView> {
                           ),
                         ),
                         onPressed: () {
-                          loginInfo.redirecting = true;
+                          LoginInfo().redirecting = true;
                           GoRouter.of(context).push("/pin");
                         },
                       ),
