@@ -34,6 +34,5 @@ export 'package:flipper_login/login.dart';
 export 'package:flipper_login/signup_view.dart';
 export 'package:flipper_models/view_models/gate.dart';
 export 'package:flipper_socials/ui/views/home/home_view.dart';
-export 'package:flipper_socials/ui/views/startup/social_startup_view.dart';
 export 'package:flipper_socials/ui/bottom_sheets/notice/notice_sheet.dart';
 export 'package:flipper_socials/ui/dialogs/info_alert/info_alert_dialog.dart';

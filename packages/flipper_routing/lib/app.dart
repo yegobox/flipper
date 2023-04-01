@@ -81,7 +81,6 @@ import 'all_routes.dart';
     CustomRoute(
       page: TenantAdd,
     ),
-    CustomRoute(page: ColdStartView),
     CustomRoute(page: SocialHomeView),
     CustomRoute(page: DrawerScreen),
   ],
@@ -90,14 +89,14 @@ import 'all_routes.dart';
     LazySingleton(classType: DialogService),
     LazySingleton(classType: RouterService)
   ],
-  // bottomsheets: [
-  //   // StackedBottomsheet(classType: NoticeSheet),
-  //   // @stacked-bottom-sheet
-  // ],
-  // dialogs: [
-  //   // StackedDialog(classType: InfoAlertDialog),
-  //   // @stacked-dialog
-  // ],
+  bottomsheets: [
+    StackedBottomsheet(classType: NoticeSheet),
+    // @stacked-bottom-sheet
+  ],
+  dialogs: [
+    StackedDialog(classType: InfoAlertDialog),
+    //   // @stacked-dialog
+  ],
   logger: StackedLogger(),
 )
 class App {}

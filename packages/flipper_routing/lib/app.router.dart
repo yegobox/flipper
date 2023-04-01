@@ -109,9 +109,11 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       );
     },
     ColorTileRoute.name: (routeData) {
+      final args =
+          routeData.argsAs<ColorTileArgs>(orElse: () => const ColorTileArgs());
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i2.ColorTile(),
+        child: _i2.ColorTile(key: args.key),
         opaque: true,
         barrierDismissible: false,
       );
@@ -142,9 +144,11 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       );
     },
     AddCategoryRoute.name: (routeData) {
+      final args = routeData.argsAs<AddCategoryArgs>(
+          orElse: () => const AddCategoryArgs());
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i2.AddCategory(),
+        child: _i2.AddCategory(key: args.key),
         opaque: true,
         barrierDismissible: false,
       );
@@ -286,9 +290,10 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       );
     },
     NoNetRoute.name: (routeData) {
+      final args = routeData.argsAs<NoNetArgs>(orElse: () => const NoNetArgs());
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i2.NoNet(),
+        child: _i2.NoNet(key: args.key),
         opaque: true,
         barrierDismissible: false,
       );
@@ -352,14 +357,6 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: const _i2.TenantAdd(),
-        opaque: true,
-        barrierDismissible: false,
-      );
-    },
-    ColdStartViewRoute.name: (routeData) {
-      return _i3.CustomPage<dynamic>(
-        routeData: routeData,
-        child: const _i2.ColdStartView(),
         opaque: true,
         barrierDismissible: false,
       );
@@ -512,10 +509,6 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         _i3.RouteConfig(
           TenantAddRoute.name,
           path: '/tenant-add',
-        ),
-        _i3.RouteConfig(
-          ColdStartViewRoute.name,
-          path: '/cold-start-view',
         ),
         _i3.RouteConfig(
           SocialHomeViewRoute.name,
@@ -724,14 +717,26 @@ class ListCategoriesArgs {
 
 /// generated route for
 /// [_i2.ColorTile]
-class ColorTileRoute extends _i3.PageRouteInfo<void> {
-  const ColorTileRoute()
+class ColorTileRoute extends _i3.PageRouteInfo<ColorTileArgs> {
+  ColorTileRoute({_i4.Key? key})
       : super(
           ColorTileRoute.name,
           path: '/color-tile',
+          args: ColorTileArgs(key: key),
         );
 
   static const String name = 'ColorTile';
+}
+
+class ColorTileArgs {
+  const ColorTileArgs({this.key});
+
+  final _i4.Key? key;
+
+  @override
+  String toString() {
+    return 'ColorTileArgs{key: $key}';
+  }
 }
 
 /// generated route for
@@ -809,14 +814,26 @@ class AddVariationArgs {
 
 /// generated route for
 /// [_i2.AddCategory]
-class AddCategoryRoute extends _i3.PageRouteInfo<void> {
-  const AddCategoryRoute()
+class AddCategoryRoute extends _i3.PageRouteInfo<AddCategoryArgs> {
+  AddCategoryRoute({_i4.Key? key})
       : super(
           AddCategoryRoute.name,
           path: '/add-category',
+          args: AddCategoryArgs(key: key),
         );
 
   static const String name = 'AddCategory';
+}
+
+class AddCategoryArgs {
+  const AddCategoryArgs({this.key});
+
+  final _i4.Key? key;
+
+  @override
+  String toString() {
+    return 'AddCategoryArgs{key: $key}';
+  }
 }
 
 /// generated route for
@@ -1180,14 +1197,26 @@ class CustomersArgs {
 
 /// generated route for
 /// [_i2.NoNet]
-class NoNetRoute extends _i3.PageRouteInfo<void> {
-  const NoNetRoute()
+class NoNetRoute extends _i3.PageRouteInfo<NoNetArgs> {
+  NoNetRoute({_i4.Key? key})
       : super(
           NoNetRoute.name,
           path: '/no-net',
+          args: NoNetArgs(key: key),
         );
 
   static const String name = 'NoNet';
+}
+
+class NoNetArgs {
+  const NoNetArgs({this.key});
+
+  final _i4.Key? key;
+
+  @override
+  String toString() {
+    return 'NoNetArgs{key: $key}';
+  }
 }
 
 /// generated route for
@@ -1306,18 +1335,6 @@ class TenantAddRoute extends _i3.PageRouteInfo<void> {
         );
 
   static const String name = 'TenantAdd';
-}
-
-/// generated route for
-/// [_i2.ColdStartView]
-class ColdStartViewRoute extends _i3.PageRouteInfo<void> {
-  const ColdStartViewRoute()
-      : super(
-          ColdStartViewRoute.name,
-          path: '/cold-start-view',
-        );
-
-  static const String name = 'ColdStartView';
 }
 
 /// generated route for
