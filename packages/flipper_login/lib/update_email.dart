@@ -6,7 +6,8 @@ import 'package:flipper_ui/flipper_ui.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:overlay_support/overlay_support.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 
@@ -18,7 +19,7 @@ class UpdateEmailSetting extends StatefulWidget {
 class _UpdateEmailSettingState extends State<UpdateEmailSetting> {
   TextEditingController emailController = TextEditingController();
   static GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
-
+  final _routerService = locator<RouterService>();
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<SettingViewModel>.reactive(
@@ -83,7 +84,7 @@ class _UpdateEmailSettingState extends State<UpdateEmailSetting> {
                                       background: Colors.green,
                                       position: NotificationPosition.bottom,
                                     );
-                                    GoRouter.of(context).pop();
+                                    _routerService.pop();
                                   }
                                 }
                               },

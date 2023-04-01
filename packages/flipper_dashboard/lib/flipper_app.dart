@@ -4,12 +4,14 @@ import 'dart:developer';
 import 'package:easy_sidemenu/easy_sidemenu.dart';
 import 'package:flipper_dashboard/product_view.dart';
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/toast.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
 import 'package:universal_platform/universal_platform.dart';
@@ -41,6 +43,7 @@ class _FlipperAppState extends State<FlipperApp>
   PageController page = PageController();
   final TextEditingController controller = TextEditingController();
   SideMenuController sideMenu = SideMenuController();
+  final _routerService = locator<RouterService>();
   int tabselected = 0;
   Future<void> _disableScreenshots() async {
     await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
@@ -401,7 +404,8 @@ class _FlipperAppState extends State<FlipperApp>
       // ...
       Drawers? drawer = await ProxyService.isarApi
           .isDrawerOpen(cashierId: ProxyService.box.getBusinessId()!);
-      GoRouter.of(context).push("/drawer/close", extra: drawer);
+      _routerService
+          .replaceWith(DrawerScreenRoute(open: "close", drawer: drawer));
       //we return again false to be able to go to close a day page
       return false;
     } else {

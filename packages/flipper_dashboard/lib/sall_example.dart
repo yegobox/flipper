@@ -5,7 +5,6 @@ import 'customappbar.dart';
 import 'package:stacked/stacked.dart';
 import 'package:google_fonts/google_fonts.dart';
 // import 'package:easy_debounce/easy_debounce.dart';
-import 'package:go_router/go_router.dart';
 
 enum ForHere { lafayette, jefferson }
 
@@ -596,7 +595,7 @@ class Sell extends StatelessWidget {
             backgroundColor: Colors.white,
             appBar: CustomAppBar(
               onPop: () {
-                GoRouter.of(context).pop();
+                // _routerService.pop();
               },
               title: buildTitle(model),
               rightActionButtonName: 'Save',
@@ -608,7 +607,7 @@ class Sell extends StatelessWidget {
                   amountTotal: model.amountTotal,
                   customItem: false,
                 );
-                GoRouter.of(context).pop();
+                // _routerService.pop();
               },
               // actionButtonName: 'Add',
               icon: Icons.close,

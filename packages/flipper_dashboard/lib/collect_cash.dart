@@ -10,7 +10,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
 import 'package:pubnub/pubnub.dart' as nub;
 import 'package:stacked_services/stacked_services.dart';
-import 'package:go_router/go_router.dart';
 
 import 'rounded_loading_button.dart';
 
@@ -43,7 +42,7 @@ class _CollectCashViewState extends State<CollectCashView> {
             child: Scaffold(
               appBar: CustomAppBar(
                 onPop: () {
-                  GoRouter.of(context).pop();
+                  _routerService.pop();
                 },
                 title: '',
                 icon: Icons.close,

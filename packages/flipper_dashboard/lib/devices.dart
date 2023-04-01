@@ -3,7 +3,6 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 class Devices extends StatelessWidget {
   Devices({Key? key, this.pin}) : super(key: key);
@@ -14,7 +13,7 @@ class Devices extends StatelessWidget {
     return Scaffold(
       appBar: CustomAppBar(
         onPop: () async {
-          GoRouter.of(context).pop();
+          _routerService.pop();
         },
         title: 'Link Device',
         disableButton: false,

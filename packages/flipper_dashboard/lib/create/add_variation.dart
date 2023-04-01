@@ -6,7 +6,8 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:stacked/stacked.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'divider.dart';
 
 class AddVariation extends StatefulWidget {
@@ -25,6 +26,7 @@ class _AddVariationState extends State<AddVariation> {
 
   TextEditingController nameController = TextEditingController();
   bool isTaxExempted = false;
+  final _routerService = locator<RouterService>();
   String sku = '';
   @override
   void dispose() {
@@ -39,7 +41,7 @@ class _AddVariationState extends State<AddVariation> {
           return Scaffold(
             appBar: CustomAppBar(
               onPop: () {
-                GoRouter.of(context).pop();
+                _routerService.pop();
               },
               title: 'Add Variation',
               showActionButton: true,
@@ -120,7 +122,7 @@ class _AddVariationState extends State<AddVariation> {
                   );
                   model.productService
                       .variantsProduct(productId: model.product.id!!);
-                  GoRouter.of(context).pop();
+                  _routerService.pop();
                 }
               },
               icon: Icons.close,

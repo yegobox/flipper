@@ -19,7 +19,6 @@ import 'customappbar.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:intl/intl.dart';
-import 'package:go_router/go_router.dart';
 
 class AddProductView extends StatefulWidget {
   const AddProductView({Key? key, this.productId}) : super(key: key);
@@ -168,7 +167,8 @@ class _AddProductViewState extends State<AddProductView> {
           child: Scaffold(
             appBar: CustomAppBar(
               onPop: () async {
-                GoRouter.of(context).pop();
+                _routerService.pop();
+                ;
               },
               title: 'Create Product',
               disableButton: model.lock,
@@ -190,7 +190,8 @@ class _AddProductViewState extends State<AddProductView> {
                         double.tryParse(supplyPriceController.text) ?? 0.0,
                     productId: model.product.id!);
 
-                GoRouter.of(context).pop();
+                _routerService.pop();
+                ;
               },
               rightActionButtonName: 'Save',
               icon: Icons.close,

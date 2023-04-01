@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 class BackButton extends StatelessWidget {
-  const BackButton({Key? key}) : super(key: key);
-
+  BackButton({Key? key}) : super(key: key);
+  final _routerService = locator<RouterService>();
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -48,7 +49,7 @@ class BackButton extends StatelessWidget {
           ),
         ),
         onPressed: () {
-          GoRouter.of(context).pop();
+          _routerService.pop();
         },
       ),
     );

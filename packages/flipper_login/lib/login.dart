@@ -4,8 +4,9 @@ import 'package:firebase_auth/firebase_auth.dart'
 import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/view_models/gate.dart';
-import 'package:flipper_services/locator.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_services/locator.dart' as loc;
+
 import 'package:stacked/stacked.dart';
 import 'config.dart';
 import 'package:flipper_services/app_service.dart';
@@ -14,6 +15,8 @@ import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'decorations.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({Key? key}) : super(key: key);
@@ -24,8 +27,8 @@ class LoginView extends StatefulWidget {
 
 class _LoginViewState extends State<LoginView>
     with AutomaticKeepAliveClientMixin {
-  final appService = locator<AppService>();
-
+  final appService = loc.locator<AppService>();
+  final _routerService = locator<RouterService>();
   Future<void> isNetAvailable() async {
     if (!appService.isLoggedIn()) {
       ConnectivityResult connectivityResult =
@@ -56,10 +59,11 @@ class _LoginViewState extends State<LoginView>
           if (result == ConnectivityResult.mobile ||
               result == ConnectivityResult.wifi) {
             LoginInfo().noNet = false;
-            GoRouter.of(context).refresh();
+            // GoRouter.of(context).refresh();
+            _routerService.replaceWith(NoNetRoute());
           } else {
             LoginInfo().noNet = true;
-            GoRouter.of(context).refresh();
+            _routerService.replaceWith(LoginViewRoute());
           }
         });
       });

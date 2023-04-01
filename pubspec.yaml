@@ -49,7 +49,7 @@ dependencies:
   firebase_crashlytics: ^3.0.2
   path: ^1.8.0
   flutter_riverpod: any
-  go_router: ^6.5.1
+
   meta: any
   flipper_dashboard: ^0.0.1-dev.5
   # flipper_ui: ^1.0.3

@@ -2,7 +2,8 @@ import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_models/view_models/setting_view_model.dart';
 import 'package:flipper_ui/bottom_sheets/general_bottom_sheet.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'package:stacked/stacked.dart';
 
 class BackUp extends StatefulWidget {
@@ -14,6 +15,7 @@ class BackUp extends StatefulWidget {
 
 class _BackUpState extends State<BackUp> {
   bool isAutoBackup = false;
+  final _routerService = locator<RouterService>();
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<SettingViewModel>.reactive(
@@ -29,7 +31,8 @@ class _BackUpState extends State<BackUp> {
         return Scaffold(
           appBar: CustomAppBar(
             onPop: () async {
-              GoRouter.of(context).pop();
+              _routerService.pop();
+              ;
             },
             title: 'BackUp Configuration',
             disableButton: false,

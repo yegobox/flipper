@@ -5,14 +5,15 @@ library flipper_models;
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar/utils.dart';
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_routing/app.router.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/locator.dart' as loc;
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/product_service.dart';
-
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:isar_crdt/utils/hlc.dart';
 import 'package:stacked/stacked.dart';
@@ -20,10 +21,10 @@ import 'package:stacked/stacked.dart';
 // class ProductViewModel extends BusinessHomeViewModel {
 class ProductViewModel extends AddTenantViewModel {
   // extends ReactiveViewModel
-  final AppService app = locator<AppService>();
+  final AppService app = loc.locator<AppService>();
   // ignore: annotate_overrides, overridden_fields
-  final ProductService productService = locator<ProductService>();
-
+  final ProductService productService = loc.locator<ProductService>();
+  final _routerService = locator<RouterService>();
   List<PColor> get colors => app.colors;
 
   List<IUnit> get units => app.units;
@@ -282,7 +283,7 @@ class ProductViewModel extends AddTenantViewModel {
 
   void navigateAddVariation(
       {required int productId, required BuildContext context}) {
-    GoRouter.of(context).push("/variation/$productId");
+    _routerService.replaceWith(AddVariationRoute(productId: productId));
   }
 
   /// When called should check the related product's variant and set the retail and or supply price

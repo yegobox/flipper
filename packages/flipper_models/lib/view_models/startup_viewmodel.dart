@@ -2,23 +2,25 @@ library flipper_models;
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_models/isar_models.dart';
-import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/locator.dart' as loc;
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:universal_platform/universal_platform.dart';
-
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'gate.dart';
 
 final isWeb = UniversalPlatform.isWeb;
 
 class StartupViewModel extends BaseViewModel {
-  final appService = locator<AppService>();
+  final appService = loc.locator<AppService>();
   final BuildContext context;
   bool isBusinessSet = false;
-
+  final _routerService = locator<RouterService>();
   StartupViewModel({required this.context});
   Future<void> listenToAuthChange() async {}
 
@@ -45,7 +47,7 @@ class StartupViewModel extends BaseViewModel {
       }
       LoginInfo().isLoggedIn = true;
 
-      GoRouter.of(context).push('/home');
+      _routerService.replaceWith(FlipperAppRoute());
 
       /// if you want to test signup or any other route before landing to final destionation
       /// un comment the code below but do not forget after testing to comment back the code
@@ -54,19 +56,18 @@ class StartupViewModel extends BaseViewModel {
       if (e is LoginChoicesException) {
         LoginInfo().isLoggedIn = false;
         LoginInfo().loginChoices = true;
-        GoRouter.of(context).push('/tenants');
+        _routerService.replaceWith(TenantAddRoute());
       } else if (e is NoDrawerOpenException) {
-        // LoginInfo().setDrawerOpen(true);
-        GoRouter.of(context).push('/drawer/open');
+        _routerService.replaceWith(DrawerScreenRoute(open: "open"));
       } else if (e is SessionException || e is ErrorReadingFromYBServer) {
         LoginInfo().isLoggedIn = false;
-        GoRouter.of(context).push('/login');
+        _routerService.replaceWith(LoginViewRoute());
       } else if (e is NotFoundException) {
-        GoRouter.of(context).push('/signup/Rwanda');
+        _routerService.replaceWith(SignUpViewRoute(countryNm: "Rwanda"));
       } else {
         ProxyService.isarApi.logOut();
         LoginInfo().isLoggedIn = false;
-        GoRouter.of(context).push('/login');
+        _routerService.replaceWith(LoginViewRoute());
       }
     }
   }

@@ -1,7 +1,9 @@
 import 'package:flipper_dashboard/no_net.dart';
 import 'package:flipper_models/view_models/gate.dart';
+import 'package:flipper_routing/app.router.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stacked/stacked.dart';
@@ -19,7 +21,7 @@ class DesktopLoginView extends StatefulWidget {
 class _DesktopLoginViewState extends State<DesktopLoginView> {
   String? loginCode;
   bool switchToPinLogin = false;
-
+  final _routerService = locator<RouterService>();
   Future<bool> internet() async {
     ConnectivityResult connectivityResult =
         await (Connectivity().checkConnectivity());
@@ -158,7 +160,7 @@ class _DesktopLoginViewState extends State<DesktopLoginView> {
                         ),
                         onPressed: () {
                           LoginInfo().redirecting = true;
-                          GoRouter.of(context).push("/pin");
+                          _routerService.replaceWith(PinLoginRoute());
                         },
                       ),
                     ),
@@ -167,7 +169,7 @@ class _DesktopLoginViewState extends State<DesktopLoginView> {
                 ),
               );
             } else {
-              return const NoNet();
+              return NoNet();
             }
           },
         );

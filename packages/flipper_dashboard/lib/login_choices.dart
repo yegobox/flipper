@@ -5,7 +5,6 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
 
@@ -34,7 +33,7 @@ class _LoginChoicesState extends State<LoginChoices> {
               await ProxyService.isarApi.businesses(userId: userId!);
           if (_b.isEmpty) {
             ProxyService.isarApi.logOut();
-            GoRouter.of(context).push("/login");
+            _routerService.replaceWith(LoginViewRoute());
           }
 
           setState(() {

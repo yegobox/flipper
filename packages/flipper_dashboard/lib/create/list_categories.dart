@@ -11,7 +11,6 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
 import 'divider.dart';
-import 'package:go_router/go_router.dart';
 
 class ListCategories extends StatelessWidget {
   ListCategories({Key? key, required this.categories}) : super(key: key);
@@ -73,7 +72,7 @@ class ListCategories extends StatelessWidget {
         return Scaffold(
           appBar: CustomAppBar(
             onPop: () {
-              GoRouter.of(context).pop();
+              _routerService.pop();
             },
             showActionButton: false,
             title: 'Category',

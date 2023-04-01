@@ -5,7 +5,7 @@ import 'package:flipper_models/isar_models.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:stacked/stacked.dart';
-import 'package:go_router/go_router.dart';
+
 import 'package:flipper_services/proxy.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'dart:io';
@@ -13,7 +13,7 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
-// import 'package:go_router/go_router.dart';
+//
 
 class ScannView extends StatefulWidget {
   const ScannView({Key? key, this.intent = 'selling'}) : super(key: key);
@@ -58,7 +58,7 @@ class _ScannViewState extends State<ScannView> {
                 right: MediaQuery.of(context).size.width / 2 - 20,
                 child: IconButton(
                   iconSize: 40,
-                  onPressed: () => GoRouter.of(context).pop(),
+                  onPressed: () => _routerService.pop(),
                   icon: const CircleAvatar(
                     child: Icon(
                       Icons.close,
@@ -185,7 +185,7 @@ class _ScannViewState extends State<ScannView> {
                 background: Colors.green,
                 position: NotificationPosition.bottom,
               );
-              GoRouter.of(context).pop();
+              _routerService.pop();
             }
           }
 
@@ -199,7 +199,7 @@ class _ScannViewState extends State<ScannView> {
 
   void navigate(String? code, BusinessHomeViewModel model) async {
     if (widget.intent == addBarCode) {
-      GoRouter.of(context).pop();
+      _routerService.pop();
       return;
     }
     if (widget.intent == selling) {
@@ -214,7 +214,7 @@ class _ScannViewState extends State<ScannView> {
         background: Colors.green,
         position: NotificationPosition.bottom,
       );
-      GoRouter.of(context).pop();
+      _routerService.pop();
       return;
     }
     if (widget.intent == attendance) {

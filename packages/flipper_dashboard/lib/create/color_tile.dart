@@ -7,10 +7,12 @@ import 'package:stacked/stacked.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'list_divider.dart';
 import 'package:overlay_support/overlay_support.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 class ColorTile extends StatelessWidget {
-  const ColorTile({Key? key}) : super(key: key);
+  ColorTile({Key? key}) : super(key: key);
+  final _routerService = locator<RouterService>();
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<ProductViewModel>.reactive(
@@ -18,7 +20,7 @@ class ColorTile extends StatelessWidget {
         return Scaffold(
           appBar: CustomAppBar(
             onPop: () {
-              GoRouter.of(context).pop();
+              _routerService.pop();
             },
             title: 'Edit product Tiles',
             icon: Icons.keyboard_backspace,

@@ -8,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 import 'package:number_display/number_display.dart';
-import 'package:go_router/go_router.dart';
 
 class Payments extends StatelessWidget {
   Payments({Key? key, required this.order}) : super(key: key);
@@ -27,10 +26,10 @@ class Payments extends StatelessWidget {
             child: Scaffold(
               appBar: CustomAppBar(
                 onPop: () {
-                  GoRouter.of(context).pop();
+                  _routerService.pop();
                 },
                 onPressedCallback: () {
-                  GoRouter.of(context).pop();
+                  _routerService.pop();
                 },
                 title: '',
                 rightActionButtonName: 'Split payment',

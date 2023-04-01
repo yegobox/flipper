@@ -2,13 +2,16 @@ import 'package:flipper_models/view_models/setting_view_model.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_settings_ui/flutter_settings_ui.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/isar_models.dart' as isar;
 
 class SettingPage extends StatelessWidget {
-  const SettingPage({Key? key, this.business}) : super(key: key);
+  SettingPage({Key? key, this.business}) : super(key: key);
   final isar.Business? business;
+  final _routerService = locator<RouterService>();
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<SettingViewModel>.reactive(
@@ -59,8 +62,8 @@ class SettingPage extends StatelessWidget {
                                 color: Theme.of(context).primaryColor,
                               ),
                               onPressed: (BuildContext context) {
-                                GoRouter.of(context).push(
-                                    "/devices/" + model.pin!.pin.toString());
+                                _routerService.replaceWith(
+                                    DevicesRoute(pin: model.pin!.pin));
                               },
                             ),
                             SettingsTile(
@@ -77,7 +80,7 @@ class SettingPage extends StatelessWidget {
                                 color: Theme.of(context).primaryColor,
                               ),
                               onPressed: (BuildContext context) {
-                                GoRouter.of(context).push("/printing");
+                                _routerService.replaceWith(PrintingRoute());
                               },
                             ),
                             SettingsTile(
@@ -94,7 +97,7 @@ class SettingPage extends StatelessWidget {
                                 color: Theme.of(context).primaryColor,
                               ),
                               onPressed: (BuildContext context) {
-                                GoRouter.of(context).push("/backup");
+                                _routerService.replaceWith(BackUpRoute());
                               },
                             ),
                             SettingsTile(
@@ -111,7 +114,8 @@ class SettingPage extends StatelessWidget {
                                 color: Theme.of(context).primaryColor,
                               ),
                               onPressed: (BuildContext context) {
-                                GoRouter.of(context).push("/tax_config");
+                                _routerService
+                                    .replaceWith(TaxConfigurationRoute());
                               },
                             ),
                             SettingsTile(
@@ -128,7 +132,7 @@ class SettingPage extends StatelessWidget {
                                 color: Theme.of(context).primaryColor,
                               ),
                               onPressed: (BuildContext context) async {
-                                GoRouter.of(context).push("/tenant_add");
+                                _routerService.replaceWith(TenantAddRoute());
                               },
                             ),
                             SettingsTile(
@@ -150,8 +154,8 @@ class SettingPage extends StatelessWidget {
                                     await ProxyService.isarApi.isDrawerOpen(
                                         cashierId:
                                             ProxyService.box.getBusinessId()!);
-                                GoRouter.of(context)
-                                    .push("/drawer/close", extra: drawer);
+                                _routerService.replaceWith(DrawerScreenRoute(
+                                    open: "close", drawer: drawer));
                               },
                             )
                           ],

@@ -4,7 +4,8 @@ import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:stacked/stacked.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 class ReceiveStock extends StatefulWidget {
   const ReceiveStock({Key? key, required this.variantId, this.existingStock})
@@ -20,7 +21,7 @@ class _ReceiveStockState extends State<ReceiveStock> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController controller;
   final FocusNode _searchFocusNode = FocusNode();
-
+  final _routerService = locator<RouterService>();
   @override
   void initState() {
     super.initState();
@@ -55,14 +56,14 @@ class _ReceiveStockState extends State<ReceiveStock> {
         return Scaffold(
           appBar: CustomAppBar(
             onPop: () {
-              GoRouter.of(context).pop();
+              _routerService.pop();
             },
             disableButton: false,
             title: 'Receive stock',
             onPressedCallback: () {
               if (_formKey.currentState!.validate()) {
                 model.updateStock(variantId: widget.variantId);
-                GoRouter.of(context).pop();
+                _routerService.pop();
               }
             },
             showActionButton: true,

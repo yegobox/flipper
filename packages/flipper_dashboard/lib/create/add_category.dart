@@ -2,10 +2,12 @@ import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/isar_models.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 class AddCategory extends StatelessWidget {
-  const AddCategory({Key? key}) : super(key: key);
+  AddCategory({Key? key}) : super(key: key);
+  final _routerService = locator<RouterService>();
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<ProductViewModel>.reactive(
@@ -14,7 +16,7 @@ class AddCategory extends StatelessWidget {
           appBar: CustomAppBar(
             onPop: () async {
               model.createCategory();
-              GoRouter.of(context).pop();
+              _routerService.pop();
             },
             title: 'Create Category',
             icon: Icons.keyboard_backspace,

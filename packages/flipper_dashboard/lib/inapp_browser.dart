@@ -2,8 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:flipper_services/proxy.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 class InAppBrowser extends StatefulWidget {
   const InAppBrowser({Key? key}) : super(key: key);
@@ -13,6 +13,7 @@ class InAppBrowser extends StatefulWidget {
 }
 
 class _InAppBrowserState extends State<InAppBrowser> {
+  final _routerService = locator<RouterService>();
   InAppWebViewController? webViewController;
   final GlobalKey webViewKey = GlobalKey();
   InAppWebViewGroupOptions options = InAppWebViewGroupOptions(
@@ -61,7 +62,7 @@ class _InAppBrowserState extends State<InAppBrowser> {
           padding: const EdgeInsets.only(top: 18.0, left: 0),
           child: TextButton(
               onPressed: () {
-                GoRouter.of(context).pop();
+                _routerService.pop();
               },
               child: Text('Done')),
         ),

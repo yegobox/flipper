@@ -8,7 +8,6 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
-import 'package:go_router/go_router.dart';
 import 'package:keyboard_visibility_pro/keyboard_visibility_pro.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:overlay_support/overlay_support.dart';
@@ -33,6 +32,7 @@ class _ProductViewState extends State<ProductView> {
   final searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   final _routerService = locator<RouterService>();
+
   @override
   void initState() {
     super.initState();
@@ -120,8 +120,9 @@ class _ProductViewState extends State<ProductView> {
                                 name: product.name,
                                 imageUrl: product.imageUrl,
                                 edit: (productId) {
-                                  GoRouter.of(context)
-                                      .push("/edit/product/$productId");
+                                  _routerService.replaceWith(
+                                      AddProductViewRoute(
+                                          productId: productId));
                                 },
                                 addToMenu: (productId) {
                                   // ignore: todo

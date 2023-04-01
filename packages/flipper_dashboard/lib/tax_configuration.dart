@@ -1,11 +1,11 @@
 import 'package:flipper_dashboard/bottom_sheet.dart';
 import 'package:flipper_dashboard/customappbar.dart';
-import 'package:flipper_dashboard/flipper_dashboard.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_ui/bottom_sheets/tax_configuration.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'package:stacked/stacked.dart';
 
 class TaxConfiguration extends StatefulWidget {
@@ -20,6 +20,7 @@ class TaxConfiguration extends StatefulWidget {
 class _TaxConfigurationState extends State<TaxConfiguration> {
   String _supportLine = "";
   bool isTaxEnabled = false;
+  final _routerService = locator<RouterService>();
   @override
   void initState() {
     setState(() {
@@ -57,7 +58,7 @@ class _TaxConfigurationState extends State<TaxConfiguration> {
         return Scaffold(
           appBar: CustomAppBar(
             onPop: () async {
-              GoRouter.of(context).pop();
+              _routerService.pop();
             },
             title: 'Tax Configuration',
             disableButton: false,

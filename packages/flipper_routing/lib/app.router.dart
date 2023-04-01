@@ -111,7 +111,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     ColorTileRoute.name: (routeData) {
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i2.ColorTile(),
+        child: _i2.ColorTile(),
         opaque: true,
         barrierDismissible: false,
       );
@@ -144,7 +144,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     AddCategoryRoute.name: (routeData) {
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i2.AddCategory(),
+        child: _i2.AddCategory(),
         opaque: true,
         barrierDismissible: false,
       );
@@ -288,7 +288,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     NoNetRoute.name: (routeData) {
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i2.NoNet(),
+        child: _i2.NoNet(),
         opaque: true,
         barrierDismissible: false,
       );

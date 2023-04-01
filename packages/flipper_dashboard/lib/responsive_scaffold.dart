@@ -8,7 +8,6 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/proxy.dart';
 import 'about.dart';
-import 'package:go_router/go_router.dart';
 
 class MenuConfig {
   static String share = 'Share';
