@@ -11,7 +11,7 @@ class HomeViewMobile extends ViewModelWidget<HomeViewModel> {
   const HomeViewMobile({super.key});
 
   @override
-  Widget build(BuildContext context, HomeViewModel viewModel) {
+  Widget build(BuildContext context, HomeViewModel model) {
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -143,9 +143,7 @@ class HomeViewMobile extends ViewModelWidget<HomeViewModel> {
                 height: 45,
                 width: 140,
                 child: OutlinedButton(
-                  onPressed: () {
-                    // Add your onPressed code here!
-                  },
+                  onPressed: model.showBottomSheet,
                   style: ButtonStyle(
                     side: MaterialStateProperty.all<BorderSide>(
                       const BorderSide(color: Color(0xff006AFE)),
