@@ -77,6 +77,7 @@ class _LoginViewState extends State<LoginView>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return ViewModelBuilder<StartupViewModel>.reactive(
       onViewModelReady: (model) {
         FirebaseAuth.instance.userChanges().listen((event) {

@@ -32,14 +32,32 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
   );
   final SignupViewModel signupViewModel;
 
+  final businessTypes = SelectFieldBloc<BusinessType, Object>(
+    name: 'businessTypes',
+    items: [], // Initially empty
+  );
   AsyncFieldValidationFormBloc(
       {required this.signupViewModel, required String country}) {
     countryName.updateInitialValue(country);
-    addFieldBlocs(fieldBlocs: [username, fullName, countryName, tinNumber]);
+    addFieldBlocs(fieldBlocs: [
+      username,
+      fullName,
+      countryName,
+      tinNumber,
+      businessTypes
+    ]);
 
     username.addAsyncValidators(
       [_checkUsername],
     );
+    ProxyService.isarApi.businessTypes().then((data) {
+      // Update the items of the SelectFieldBloc
+      print(data);
+      businessTypes.updateItems(data);
+    }).catchError((error) {
+      // Handle the error
+      print(error);
+    });
   }
 
   static String? _min4Char(String? username) {
@@ -146,6 +164,19 @@ class SignUpView extends StatelessWidget {
                               decoration: const InputDecoration(
                                 labelText: 'First name, Last name',
                                 prefixIcon: Icon(Icons.person),
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.only(
+                                left: 0.0, right: 0.0, top: 0.0),
+                            child: DropdownFieldBlocBuilder<BusinessType>(
+                              selectFieldBloc: formBloc.businessTypes,
+                              itemBuilder: (context, value) =>
+                                  FieldItem(child: Text(value.typeName)),
+                              decoration: InputDecoration(
+                                labelText: 'Business Types',
+                                prefixIcon: Icon(Icons.business),
                               ),
                             ),
                           ),
