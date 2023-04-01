@@ -82,9 +82,98 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
 
   @override
   Future<SyncF> login({required String userPhone}) async {
-    final response = http.Response(
-        '{"id": 1651165831880765,"phoneNumber": "+250783054874","token": "Bearer ","tenants": [{"id": 49,  "name": "Richard", "phoneNumber": "+250783054874", "email": "nyiringabohubert@gmail.com", "permissions": [{ "id": 49, "name": "admin"}],"branches": [{"id": 76, "active": true, "channels": null,"description": "desc","name": "Richard","businessId": 68, "longitude": "0","latitude": "0","table": "branches","createdAt": "2021-10-05T19:28:08.612022","updatedAt": null,"isDefault": false,"tenants": [],"default": false}],"businesses": [],"businessId": 0,"nfcEnabled": false}],"channels": ["1651165831880765"],"points": 0,"editId": false,"newId": 0}',
-        200);
+    final jsonResponse = {
+      "id": 1651165831880765,
+      "phoneNumber": "+250783054874",
+      "token": "Bearer ",
+      "tenants": [
+        {
+          "id": 49,
+          "name": "Richard",
+          "phoneNumber": "+250783054874",
+          "email": "nyiringabohubert@gmail.com",
+          "permissions": [
+            {"id": 49, "name": "admin"}
+          ],
+          "branches": [
+            {
+              "id": 76,
+              "active": true,
+              "channels": null,
+              "description": "desc",
+              "name": "Richard",
+              "businessId": 68,
+              "longitude": "0",
+              "latitude": "0",
+              "table": "branches",
+              "createdAt": "2021-10-05T19:28:08.612022",
+              "updatedAt": null,
+              "isDefault": false,
+              "tenants": [],
+              "default": false
+            }
+          ],
+          "businesses": [
+            {
+              "id": 1642645,
+              "name": "FakeBusiness",
+              "currency": "USD",
+              "categoryId": null,
+              "latitude": "1",
+              "longitude": "1",
+              "userId": "1651165831880765",
+              "typeId": null,
+              "timeZone": null,
+              "channels": null,
+              "table": null,
+              "country": "United States",
+              "businessUrl": null,
+              "hexColor": null,
+              "imageUrl": null,
+              "type": "Business",
+              "referredBy": "Organic",
+              "createdAt": "2022-03-30T00:00:00.000Z",
+              "updatedAt": null,
+              "metadata": null,
+              "role": null,
+              "lastSeen": 0,
+              "firstName": null,
+              "lastName": null,
+              "reported": "true",
+              "phoneNumber": "+1234567890",
+              "deviceToken": null,
+              "chatUid": null,
+              "backUpEnabled": false,
+              "subscriptionPlan": null,
+              "nextBillingDate": null,
+              "previousBillingDate": null,
+              "isLastSubscriptionPaymentSucceeded": false,
+              "backupFileId": null,
+              "email": "fake@business.com",
+              "lastDbBackup": null,
+              "fullName": "Fake Business",
+              "referralCode": null,
+              "authId": null,
+              "tinNumber": 123456,
+              "dvcSrlNo": null,
+              "bhfId": null,
+              "adrs": null,
+              "taxEnabled": false,
+              "isDefault": true,
+              "default": true,
+              "lastSubscriptionPaymentSucceeded": false
+            }
+          ],
+          "businessId": 0,
+          "nfcEnabled": false
+        }
+      ],
+      "channels": ["1651165831880765"],
+      "points": 0,
+      "editId": false,
+      "newId": 0
+    };
+    final response = http.Response(jsonEncode(jsonResponse), 200);
     if (response.statusCode == 200) {
       await ProxyService.box.write(
         key: 'bearerToken',
