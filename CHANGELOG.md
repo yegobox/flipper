@@ -1,3 +1,8 @@
+<!-- TODO: -->
+- Add businessTypeId as long or int in business endpoint on backend  (POST)
+- Add add default ID to existing businesses
+
+
 # Change Log
 
 All notable changes to this project will be documented in this file.

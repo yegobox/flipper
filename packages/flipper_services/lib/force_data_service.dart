@@ -1,6 +1,5 @@
 import 'package:flipper_models/mocks.dart';
 import 'package:flipper_services/app_service.dart';
-import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
 
@@ -52,7 +51,6 @@ class ForceDataEntryService {
     final PColor color = PColor()
       ..id = DateTime.now().millisecondsSinceEpoch
       ..colors = colors
-      ..table = AppTables.color
       ..channels = [userId!]
       ..active = false
       ..branchId = branchId

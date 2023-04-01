@@ -121,7 +121,6 @@ class ProductViewModel extends AddTenantViewModel {
     final Category category = Category()
       ..id = categoryId
       ..active = true
-      ..table = AppTables.category
       ..focused = false
       ..name = productName!
       ..branchId = branchId!;

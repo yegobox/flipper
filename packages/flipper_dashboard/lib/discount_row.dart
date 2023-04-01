@@ -3,8 +3,6 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:flipper_models/isar_models.dart';
 
-import 'package:flipper_services/constants.dart';
-
 class DiscountRow extends StatelessWidget {
   const DiscountRow(
       {Key? key,
@@ -47,7 +45,7 @@ class DiscountRow extends StatelessWidget {
                     height: 10,
                     child: Icon(
                       Ionicons.pricetags_sharp,
-                      color: black,
+                      color: Colors.black,
                     ),
                   ),
                 ),

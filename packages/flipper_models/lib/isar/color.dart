@@ -10,7 +10,6 @@ class PColor {
   List<String>? channels;
 
   List<String>? colors;
-  String? table;
   late int? branchId;
   late bool active;
 }

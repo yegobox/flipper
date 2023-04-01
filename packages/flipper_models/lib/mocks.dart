@@ -52,7 +52,6 @@ final variationMock = Variant(
     sku: 'sku',
     productId: 2,
     unit: 'Per Item',
-    table: 'variants',
     productName: 'Custom Amount',
     branchId: 11,
     supplyPrice: 0.0,
@@ -63,7 +62,6 @@ final variationMock = Variant(
   ..sku = 'sku'
   ..productId = 2
   ..unit = 'Per Item'
-  ..table = 'variants'
   ..productName = 'Custom Amount'
   ..branchId = 11
   ..taxName = 'N/A'

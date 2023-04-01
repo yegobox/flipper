@@ -4,7 +4,6 @@ import 'package:flipper_models/isar_api.dart';
 import 'package:flipper_services/abstractions/location.dart';
 import 'package:flipper_services/abstractions/remote.dart';
 import 'package:flipper_services/billing_service.dart';
-import 'package:flipper_services/constants.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/abstractions/storage.dart';
 import 'package:flipper_services/app_service.dart';
@@ -167,7 +166,7 @@ MockLocalStorage getAndRegisterLocalStorage() {
   when(service.read(key: 'branchId')).thenAnswer((_) => 11);
   when(service.read(key: 'referralCode')).thenAnswer((_) => "11");
   when(service.read(key: 'businessId')).thenAnswer((_) => 10);
-  when(service.read(key: pageKey)).thenAnswer((_) => 'XXX');
+  when(service.read(key: 'defaultApp')).thenAnswer((_) => 'XXX');
 
   // when(service.write(key: pageKey, value: 'key')).thenAnswer((_) => true);
   // when(service.write(key: 'branchId', value: anyNamed("value")))

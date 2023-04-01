@@ -212,38 +212,33 @@ const VariantSchema = CollectionSchema(
       name: r'supplyPrice',
       type: IsarType.double,
     ),
-    r'table': PropertySchema(
-      id: 39,
-      name: r'table',
-      type: IsarType.string,
-    ),
     r'taxName': PropertySchema(
-      id: 40,
+      id: 39,
       name: r'taxName',
       type: IsarType.string,
     ),
     r'taxPercentage': PropertySchema(
-      id: 41,
+      id: 40,
       name: r'taxPercentage',
       type: IsarType.double,
     ),
     r'taxTyCd': PropertySchema(
-      id: 42,
+      id: 41,
       name: r'taxTyCd',
       type: IsarType.string,
     ),
     r'tin': PropertySchema(
-      id: 43,
+      id: 42,
       name: r'tin',
       type: IsarType.long,
     ),
     r'unit': PropertySchema(
-      id: 44,
+      id: 43,
       name: r'unit',
       type: IsarType.string,
     ),
     r'useYn': PropertySchema(
-      id: 45,
+      id: 44,
       name: r'useYn',
       type: IsarType.string,
     )
@@ -495,7 +490,6 @@ int _variantEstimateSize(
     }
   }
   bytesCount += 3 + object.sku.length * 3;
-  bytesCount += 3 + object.table.length * 3;
   {
     final value = object.taxName;
     if (value != null) {
@@ -563,13 +557,12 @@ void _variantSerialize(
   writer.writeString(offsets[36], object.sku);
   writer.writeDouble(offsets[37], object.splyAmt);
   writer.writeDouble(offsets[38], object.supplyPrice);
-  writer.writeString(offsets[39], object.table);
-  writer.writeString(offsets[40], object.taxName);
-  writer.writeDouble(offsets[41], object.taxPercentage);
-  writer.writeString(offsets[42], object.taxTyCd);
-  writer.writeLong(offsets[43], object.tin);
-  writer.writeString(offsets[44], object.unit);
-  writer.writeString(offsets[45], object.useYn);
+  writer.writeString(offsets[39], object.taxName);
+  writer.writeDouble(offsets[40], object.taxPercentage);
+  writer.writeString(offsets[41], object.taxTyCd);
+  writer.writeLong(offsets[42], object.tin);
+  writer.writeString(offsets[43], object.unit);
+  writer.writeString(offsets[44], object.useYn);
 }
 
 Variant _variantDeserialize(
@@ -619,13 +612,12 @@ Variant _variantDeserialize(
     sku: reader.readString(offsets[36]),
     splyAmt: reader.readDoubleOrNull(offsets[37]),
     supplyPrice: reader.readDouble(offsets[38]),
-    table: reader.readString(offsets[39]),
-    taxName: reader.readStringOrNull(offsets[40]),
-    taxPercentage: reader.readDoubleOrNull(offsets[41]),
-    taxTyCd: reader.readStringOrNull(offsets[42]),
-    tin: reader.readLongOrNull(offsets[43]),
-    unit: reader.readString(offsets[44]),
-    useYn: reader.readStringOrNull(offsets[45]),
+    taxName: reader.readStringOrNull(offsets[39]),
+    taxPercentage: reader.readDoubleOrNull(offsets[40]),
+    taxTyCd: reader.readStringOrNull(offsets[41]),
+    tin: reader.readLongOrNull(offsets[42]),
+    unit: reader.readString(offsets[43]),
+    useYn: reader.readStringOrNull(offsets[44]),
   );
   return object;
 }
@@ -716,18 +708,16 @@ P _variantDeserializeProp<P>(
     case 38:
       return (reader.readDouble(offset)) as P;
     case 39:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 40:
-      return (reader.readStringOrNull(offset)) as P;
-    case 41:
       return (reader.readDoubleOrNull(offset)) as P;
-    case 42:
+    case 41:
       return (reader.readStringOrNull(offset)) as P;
-    case 43:
+    case 42:
       return (reader.readLongOrNull(offset)) as P;
-    case 44:
+    case 43:
       return (reader.readString(offset)) as P;
-    case 45:
+    case 44:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -6085,136 +6075,6 @@ extension VariantQueryFilter
     });
   }
 
-  QueryBuilder<Variant, Variant, QAfterFilterCondition> tableEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'table',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Variant, Variant, QAfterFilterCondition> tableGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'table',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Variant, Variant, QAfterFilterCondition> tableLessThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'table',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Variant, Variant, QAfterFilterCondition> tableBetween(
-    String lower,
-    String upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'table',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Variant, Variant, QAfterFilterCondition> tableStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'table',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Variant, Variant, QAfterFilterCondition> tableEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'table',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Variant, Variant, QAfterFilterCondition> tableContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'table',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Variant, Variant, QAfterFilterCondition> tableMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'table',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Variant, Variant, QAfterFilterCondition> tableIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'table',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Variant, Variant, QAfterFilterCondition> tableIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'table',
-        value: '',
-      ));
-    });
-  }
-
   QueryBuilder<Variant, Variant, QAfterFilterCondition> taxNameIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -7407,18 +7267,6 @@ extension VariantQuerySortBy on QueryBuilder<Variant, Variant, QSortBy> {
     });
   }
 
-  QueryBuilder<Variant, Variant, QAfterSortBy> sortByTable() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'table', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Variant, Variant, QAfterSortBy> sortByTableDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'table', Sort.desc);
-    });
-  }
-
   QueryBuilder<Variant, Variant, QAfterSortBy> sortByTaxName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'taxName', Sort.asc);
@@ -7974,18 +7822,6 @@ extension VariantQuerySortThenBy
     });
   }
 
-  QueryBuilder<Variant, Variant, QAfterSortBy> thenByTable() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'table', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Variant, Variant, QAfterSortBy> thenByTableDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'table', Sort.desc);
-    });
-  }
-
   QueryBuilder<Variant, Variant, QAfterSortBy> thenByTaxName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'taxName', Sort.asc);
@@ -8323,13 +8159,6 @@ extension VariantQueryWhereDistinct
     });
   }
 
-  QueryBuilder<Variant, Variant, QDistinct> distinctByTable(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'table', caseSensitive: caseSensitive);
-    });
-  }
-
   QueryBuilder<Variant, Variant, QDistinct> distinctByTaxName(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -8613,12 +8442,6 @@ extension VariantQueryProperty
     });
   }
 
-  QueryBuilder<Variant, String, QQueryOperations> tableProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'table');
-    });
-  }
-
   QueryBuilder<Variant, String?, QQueryOperations> taxNameProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'taxName');
@@ -8665,7 +8488,6 @@ Variant _$VariantFromJson(Map<String, dynamic> json) => Variant(
       sku: json['sku'] as String,
       productId: json['productId'] as int,
       unit: json['unit'] as String,
-      table: json['table'] as String,
       productName: json['productName'] as String,
       branchId: json['branchId'] as int,
       supplyPrice: (json['supplyPrice'] as num).toDouble(),
@@ -8716,7 +8538,6 @@ Map<String, dynamic> _$VariantToJson(Variant instance) => <String, dynamic>{
       'sku': instance.sku,
       'productId': instance.productId,
       'unit': instance.unit,
-      'table': instance.table,
       'productName': instance.productName,
       'branchId': instance.branchId,
       'taxName': instance.taxName,

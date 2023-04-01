@@ -33,9 +33,11 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
   final SignupViewModel signupViewModel;
 
   final businessTypes = SelectFieldBloc<BusinessType, Object>(
-    name: 'businessType',
-    items: [], // Initially empty
-  );
+      name: 'businessType',
+      items: [], // Initially empty
+      validators: [
+        FieldBlocValidators.required,
+      ]);
   AsyncFieldValidationFormBloc(
       {required this.signupViewModel, required String country}) {
     countryName.updateInitialValue(country);
@@ -93,6 +95,7 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
       signupViewModel.setFullName(name: fullName.value);
       signupViewModel.setCountry(country: countryName.value);
       signupViewModel.tin = tinNumber.value;
+      signupViewModel.businessType = businessTypes.value!;
       signupViewModel.signup();
       emitSuccess();
     } catch (e) {

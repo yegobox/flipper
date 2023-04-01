@@ -64,7 +64,6 @@ class _AddVariationState extends State<AddVariation> {
                       action: "create",
                       productId: model.product.id!,
                       unit: model.productService.currentUnit!,
-                      table: AppTables.variation,
                       productName: nameController.text,
                       branchId: ProxyService.box.getBranchId()!,
                       supplyPrice: double.parse(costController.text),
@@ -82,7 +81,6 @@ class _AddVariationState extends State<AddVariation> {
                     ..id = variantId
                     ..branchId = ProxyService.box.getBranchId()!
                     ..taxPercentage = 0.0
-                    ..table = AppTables.variation
                     // RRA fields
                     ..bhfId = business?.bhfId
                     ..tin = business?.tinNumber

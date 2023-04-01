@@ -16,14 +16,8 @@ final isWindows = UniversalPlatform.isWindows;
 
 class SignupViewModel extends ReactiveViewModel {
   final appService = locator<AppService>();
-  String? businessType = 'Business';
 
   bool registerStart = false;
-
-  void setBuinessType({required String type}) {
-    businessType = type;
-    notifyListeners();
-  }
 
   String? longitude = '1';
   String? latitude = '1';
@@ -47,6 +41,13 @@ class SignupViewModel extends ReactiveViewModel {
   String get tin => _tin;
   set tin(String value) {
     _tin = value;
+    notifyListeners();
+  }
+
+  var _businessType = null;
+  BusinessType get businessType => _businessType;
+  set businessType(BusinessType value) {
+    _businessType = value;
     notifyListeners();
   }
 
@@ -74,9 +75,8 @@ class SignupViewModel extends ReactiveViewModel {
       registerStart = true;
       notifyListeners();
       //set the startup app.
-      if (ProxyService.remoteConfig.isChatAvailable()) {
-        ProxyService.box.write(key: pageKey, value: businessType);
-      }
+      ProxyService.box.write(key: defaultApp, value: businessType.id);
+
       String? referralCode = ProxyService.box.read(key: 'referralCode');
 
       List<JTenant> jTenants = await ProxyService.isarApi.signup(business: {
@@ -88,7 +88,7 @@ class SignupViewModel extends ReactiveViewModel {
         'createdAt': DateTime.now().toIso8601String(),
         'userId': ProxyService.box.getUserId(),
         "tinNumber": int.parse(tin),
-        // 'type': businessType,
+        'businessTypeId': businessType.id,
         'type': 'Business',
         'referredBy': referralCode ?? 'Organic',
         'fullName': kFullName,
@@ -126,7 +126,6 @@ class SignupViewModel extends ReactiveViewModel {
         final PColor color = PColor()
           ..id = DateTime.now().millisecondsSinceEpoch
           ..colors = colors
-          ..table = AppTables.color
           ..channels = [userId]
           ..active = false
           ..branchId = branches[0].id

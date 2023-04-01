@@ -537,7 +537,6 @@ class IsarAPI<M> implements IsarApiInterface {
             action: 'create',
             productId: kProduct!.id!,
             unit: 'Per Item',
-            table: AppTables.variation,
             productName: product.name,
             branchId: ProxyService.box.getBranchId()!,
             supplyPrice: 0.0,
@@ -547,7 +546,6 @@ class IsarAPI<M> implements IsarApiInterface {
           ..name = 'Regular'
           ..productId = kProduct.id!
           ..unit = 'Per Item'
-          ..table = 'variants'
           ..productName = product.name
           ..branchId = branchId
           ..taxName = 'N/A'
