@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:universal_platform/universal_platform.dart';
 
 const String defaultApp = 'defaultApp';
 String parkedStatus = 'parked';
@@ -25,3 +26,10 @@ bool isNumeric(String? s) {
 }
 
 const Color primary = Color(0xFF399df8);
+final isMacOs = UniversalPlatform.isMacOS;
+final isIos = UniversalPlatform.isIOS;
+final isAndroid = UniversalPlatform.isAndroid;
+final isWeb = UniversalPlatform.isWeb;
+final isWindows = UniversalPlatform.isWindows;
+
+final isDesktopOrWeb = UniversalPlatform.isDesktopOrWeb;

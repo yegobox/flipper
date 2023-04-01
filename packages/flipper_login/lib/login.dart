@@ -2,11 +2,12 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart'
     hide PhoneAuthProvider, EmailAuthProvider;
 import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
-import 'package:flipper_models/isar_models.dart';
-import 'package:flipper_models/view_models/gate.dart';
-import 'package:flipper_routing/app.router.dart';
-import 'package:flipper_services/locator.dart' as loc;
 
+import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_routing/all_routes.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/locator.dart' as loc;
 import 'package:stacked/stacked.dart';
 import 'config.dart';
 import 'package:flipper_services/app_service.dart';
@@ -88,50 +89,63 @@ class _LoginViewState extends State<LoginView>
       },
       viewModelBuilder: () => StartupViewModel(context: context),
       builder: (context, model, child) {
-        return Scaffold(
-          key: Key("login-page"),
-          body: Theme(
-            data: ThemeData(
-              inputDecorationTheme: InputDecorationTheme(
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
-            child: SignInScreen(
-              actions: [
-                AuthStateChangeAction<SignedIn>((context, state) {
-                  //do nothing to avoid bug.
-                }),
-              ],
-              headerBuilder: headerImage('assets/logo.png'),
-              sideBuilder: sideImage('assets/logo.png'),
-              subtitleBuilder: (context, action) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Text(
-                    action == AuthAction.signIn
-                        ? 'Welcome to Flipper Please sign in to continue.'
-                        : 'Welcome to Flipper Please create an account to continue',
-                  ),
-                );
-              },
-              footerBuilder: (context, action) {
-                return Center(
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 16),
-                    child: Text(
-                      action == AuthAction.signIn
-                          ? 'By signing in, you agree to our terms and conditions.'
-                          : 'By registering, you agree to our terms and conditions.',
-                      style: const TextStyle(color: Colors.grey),
-                    ),
-                  ),
-                );
-              },
-              providers: providers(),
-            ),
-          ),
+        return StreamBuilder<User?>(
+          stream: FirebaseAuth.instance.userChanges(),
+          builder: (BuildContext context, snapshot) {
+            if (snapshot.hasData) {
+              return const StartUpView(
+                invokeLogin: true,
+              );
+            } else {
+              return isDesktopOrWeb
+                  ? const Scaffold(body: DesktopLoginView())
+                  : Scaffold(
+                      key: Key("login-page"),
+                      body: Theme(
+                        data: ThemeData(
+                          inputDecorationTheme: InputDecorationTheme(
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                        child: SignInScreen(
+                          actions: [
+                            AuthStateChangeAction<SignedIn>((context, state) {
+                              //do nothing to avoid bug.
+                            }),
+                          ],
+                          headerBuilder: headerImage('assets/logo.png'),
+                          sideBuilder: sideImage('assets/logo.png'),
+                          subtitleBuilder: (context, action) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: Text(
+                                action == AuthAction.signIn
+                                    ? 'Welcome to Flipper Please sign in to continue.'
+                                    : 'Welcome to Flipper Please create an account to continue',
+                              ),
+                            );
+                          },
+                          footerBuilder: (context, action) {
+                            return Center(
+                              child: Padding(
+                                padding: const EdgeInsets.only(top: 16),
+                                child: Text(
+                                  action == AuthAction.signIn
+                                      ? 'By signing in, you agree to our terms and conditions.'
+                                      : 'By registering, you agree to our terms and conditions.',
+                                  style: const TextStyle(color: Colors.grey),
+                                ),
+                              ),
+                            );
+                          },
+                          providers: providers(),
+                        ),
+                      ),
+                    );
+            }
+          },
         );
       },
     );

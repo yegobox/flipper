@@ -6,6 +6,7 @@ import 'package:flipper_dashboard/product_view.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/app_service.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/toast.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
@@ -14,21 +15,13 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
-import 'package:universal_platform/universal_platform.dart';
+
 import 'package:permission_handler/permission_handler.dart' as perm;
 import 'badge_icon.dart';
 import 'init_app.dart';
 import 'page_switcher.dart';
 import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:nfc_manager/nfc_manager.dart';
-
-final isWindows = UniversalPlatform.isWindows;
-final isMacOs = UniversalPlatform.isMacOS;
-final isIos = UniversalPlatform.isIOS;
-final isAndroid = UniversalPlatform.isAndroid;
-final isWeb = UniversalPlatform.isWeb;
-
-final isDesktopOrWeb = UniversalPlatform.isDesktopOrWeb;
 
 class FlipperApp extends StatefulWidget {
   const FlipperApp({Key? key}) : super(key: key);

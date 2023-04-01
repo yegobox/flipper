@@ -8,13 +8,12 @@ import 'package:flutter/material.dart';
 
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/app_service.dart';
-import 'package:universal_platform/universal_platform.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'gate.dart';
 
-final isWeb = UniversalPlatform.isWeb;
+// final isWeb = UniversalPlatform.isWeb;
 
 class StartupViewModel extends BaseViewModel {
   final appService = loc.locator<AppService>();
