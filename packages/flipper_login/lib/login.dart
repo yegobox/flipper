@@ -55,15 +55,11 @@ class _LoginViewState extends State<LoginView>
         Connectivity()
             .onConnectivityChanged
             .listen((ConnectivityResult result) {
-          // Got a new connectivity status!
           if (result == ConnectivityResult.mobile ||
               result == ConnectivityResult.wifi) {
-            LoginInfo().noNet = false;
-            // GoRouter.of(context).refresh();
-            _routerService.replaceWith(NoNetRoute());
-          } else {
-            LoginInfo().noNet = true;
             _routerService.replaceWith(LoginViewRoute());
+          } else {
+            _routerService.replaceWith(NoNetRoute());
           }
         });
       });
