@@ -100,7 +100,7 @@ class LocalStorageImpl implements LocalStorage {
   }
   
   @override
-  String? getDefaultApp() {
+  int getDefaultApp() {
     return box.read('defaultApp');
   }
 }

@@ -3,20 +3,22 @@ library flipper_models;
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/mocks.dart';
 import 'package:flipper_services/app_service.dart';
-import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/locator.dart' as loc;
 import 'package:flutter/cupertino.dart';
 import 'package:stacked/stacked.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/constants.dart';
-
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'gate.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 
 class SignupViewModel extends ReactiveViewModel {
-  final appService = locator<AppService>();
-
+  final appService = loc.locator<AppService>();
+  final _routerService = locator<RouterService>();
   bool registerStart = false;
 
   String? longitude = '1';
@@ -37,9 +39,9 @@ class SignupViewModel extends ReactiveViewModel {
     kCountry = country;
   }
 
-  var _tin = "";
-  String get tin => _tin;
-  set tin(String value) {
+  String? _tin;
+  String? get tin => _tin;
+  set tin(String? value) {
     _tin = value;
     notifyListeners();
   }
@@ -87,7 +89,7 @@ class SignupViewModel extends ReactiveViewModel {
         'currency': 'RW',
         'createdAt': DateTime.now().toIso8601String(),
         'userId': ProxyService.box.getUserId(),
-        "tinNumber": int.parse(tin),
+        "tinNumber": tin != null ? int.parse(tin!) : 1111,
         'businessTypeId': businessType.id,
         'type': 'Business',
         'referredBy': referralCode ?? 'Organic',
@@ -149,6 +151,7 @@ class SignupViewModel extends ReactiveViewModel {
         LoginInfo().isLoggedIn = true;
         LoginInfo().redirecting = false;
         LoginInfo().needSignUp = false;
+        _routerService.navigateTo(StartUpViewRoute());
       }
     } catch (e) {
       registerStart = false;

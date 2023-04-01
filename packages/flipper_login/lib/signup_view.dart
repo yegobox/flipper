@@ -22,11 +22,7 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
     ],
     asyncValidatorDebounceTime: const Duration(milliseconds: 300),
   );
-  final tinNumber = TextFieldBloc(
-    validators: [
-      FieldBlocValidators.required,
-    ],
-  );
+  final tinNumber = TextFieldBloc();
   TextFieldBloc countryName = TextFieldBloc(
     initialValue: 'Kenya',
   );
@@ -85,24 +81,22 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
   @override
   void onSubmitting() async {
     try {
-      showSimpleNotification(
-        const Text("Signup in progress"),
-        background: Colors.green,
-      );
+      showSimpleNotification(const Text("Signup in progress"),
+          background: Colors.green, position: NotificationPosition.bottom);
       // If the form is valid, display a snackbar. In the real world,
       // you'd often call a server or save the information in a database.
       signupViewModel.setName(name: username.value);
       signupViewModel.setFullName(name: fullName.value);
       signupViewModel.setCountry(country: countryName.value);
-      signupViewModel.tin = tinNumber.value;
+      signupViewModel.tin = tinNumber.value.isEmpty ? "11111" : tinNumber.value;
       signupViewModel.businessType = businessTypes.value!;
       signupViewModel.signup();
       emitSuccess();
     } catch (e) {
       showSimpleNotification(
-        const Text("Error while signing up try again later"),
-        background: Colors.red,
-      );
+          const Text("Error while signing up try again later"),
+          background: Colors.red,
+          position: NotificationPosition.bottom);
       emitFailure();
     }
   }

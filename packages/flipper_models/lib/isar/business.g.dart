@@ -42,178 +42,183 @@ const BusinessSchema = CollectionSchema(
       name: r'bhfId',
       type: IsarType.string,
     ),
-    r'businessUrl': PropertySchema(
+    r'businessTypeId': PropertySchema(
       id: 5,
+      name: r'businessTypeId',
+      type: IsarType.long,
+    ),
+    r'businessUrl': PropertySchema(
+      id: 6,
       name: r'businessUrl',
       type: IsarType.string,
     ),
     r'categoryId': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'categoryId',
       type: IsarType.string,
     ),
     r'channels': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'channels',
       type: IsarType.stringList,
     ),
     r'chatUid': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'chatUid',
       type: IsarType.string,
     ),
     r'country': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'country',
       type: IsarType.string,
     ),
     r'createdAt': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'createdAt',
       type: IsarType.string,
     ),
     r'currency': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'currency',
       type: IsarType.string,
     ),
     r'deviceToken': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'deviceToken',
       type: IsarType.string,
     ),
     r'dvcSrlNo': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'dvcSrlNo',
       type: IsarType.string,
     ),
     r'email': PropertySchema(
-      id: 14,
+      id: 15,
       name: r'email',
       type: IsarType.string,
     ),
     r'firstName': PropertySchema(
-      id: 15,
+      id: 16,
       name: r'firstName',
       type: IsarType.string,
     ),
     r'fullName': PropertySchema(
-      id: 16,
+      id: 17,
       name: r'fullName',
       type: IsarType.string,
     ),
     r'hexColor': PropertySchema(
-      id: 17,
+      id: 18,
       name: r'hexColor',
       type: IsarType.string,
     ),
     r'imageUrl': PropertySchema(
-      id: 18,
+      id: 19,
       name: r'imageUrl',
       type: IsarType.string,
     ),
     r'isDefault': PropertySchema(
-      id: 19,
+      id: 20,
       name: r'isDefault',
       type: IsarType.bool,
     ),
     r'isLastSubscriptionPaymentSucceeded': PropertySchema(
-      id: 20,
+      id: 21,
       name: r'isLastSubscriptionPaymentSucceeded',
       type: IsarType.bool,
     ),
     r'lastDbBackup': PropertySchema(
-      id: 21,
+      id: 22,
       name: r'lastDbBackup',
       type: IsarType.string,
     ),
     r'lastName': PropertySchema(
-      id: 22,
+      id: 23,
       name: r'lastName',
       type: IsarType.string,
     ),
     r'lastSeen': PropertySchema(
-      id: 23,
+      id: 24,
       name: r'lastSeen',
       type: IsarType.long,
     ),
     r'latitude': PropertySchema(
-      id: 24,
+      id: 25,
       name: r'latitude',
       type: IsarType.string,
     ),
     r'longitude': PropertySchema(
-      id: 25,
+      id: 26,
       name: r'longitude',
       type: IsarType.string,
     ),
     r'metadata': PropertySchema(
-      id: 26,
+      id: 27,
       name: r'metadata',
       type: IsarType.string,
     ),
     r'name': PropertySchema(
-      id: 27,
+      id: 28,
       name: r'name',
       type: IsarType.string,
     ),
     r'nextBillingDate': PropertySchema(
-      id: 28,
+      id: 29,
       name: r'nextBillingDate',
       type: IsarType.string,
     ),
     r'previousBillingDate': PropertySchema(
-      id: 29,
+      id: 30,
       name: r'previousBillingDate',
       type: IsarType.string,
     ),
     r'role': PropertySchema(
-      id: 30,
+      id: 31,
       name: r'role',
       type: IsarType.string,
     ),
     r'subscriptionPlan': PropertySchema(
-      id: 31,
+      id: 32,
       name: r'subscriptionPlan',
       type: IsarType.string,
     ),
     r'table': PropertySchema(
-      id: 32,
+      id: 33,
       name: r'table',
       type: IsarType.string,
     ),
     r'taxEnabled': PropertySchema(
-      id: 33,
+      id: 34,
       name: r'taxEnabled',
       type: IsarType.bool,
     ),
     r'taxServerUrl': PropertySchema(
-      id: 34,
+      id: 35,
       name: r'taxServerUrl',
       type: IsarType.string,
     ),
     r'timeZone': PropertySchema(
-      id: 35,
+      id: 36,
       name: r'timeZone',
       type: IsarType.string,
     ),
     r'tinNumber': PropertySchema(
-      id: 36,
+      id: 37,
       name: r'tinNumber',
       type: IsarType.long,
     ),
     r'type': PropertySchema(
-      id: 37,
+      id: 38,
       name: r'type',
       type: IsarType.string,
     ),
     r'typeId': PropertySchema(
-      id: 38,
+      id: 39,
       name: r'typeId',
       type: IsarType.string,
     ),
     r'userId': PropertySchema(
-      id: 39,
+      id: 40,
       name: r'userId',
       type: IsarType.string,
     )
@@ -470,41 +475,42 @@ void _businessSerialize(
   writer.writeBool(offsets[2], object.backUpEnabled);
   writer.writeString(offsets[3], object.backupFileId);
   writer.writeString(offsets[4], object.bhfId);
-  writer.writeString(offsets[5], object.businessUrl);
-  writer.writeString(offsets[6], object.categoryId);
-  writer.writeStringList(offsets[7], object.channels);
-  writer.writeString(offsets[8], object.chatUid);
-  writer.writeString(offsets[9], object.country);
-  writer.writeString(offsets[10], object.createdAt);
-  writer.writeString(offsets[11], object.currency);
-  writer.writeString(offsets[12], object.deviceToken);
-  writer.writeString(offsets[13], object.dvcSrlNo);
-  writer.writeString(offsets[14], object.email);
-  writer.writeString(offsets[15], object.firstName);
-  writer.writeString(offsets[16], object.fullName);
-  writer.writeString(offsets[17], object.hexColor);
-  writer.writeString(offsets[18], object.imageUrl);
-  writer.writeBool(offsets[19], object.isDefault);
-  writer.writeBool(offsets[20], object.isLastSubscriptionPaymentSucceeded);
-  writer.writeString(offsets[21], object.lastDbBackup);
-  writer.writeString(offsets[22], object.lastName);
-  writer.writeLong(offsets[23], object.lastSeen);
-  writer.writeString(offsets[24], object.latitude);
-  writer.writeString(offsets[25], object.longitude);
-  writer.writeString(offsets[26], object.metadata);
-  writer.writeString(offsets[27], object.name);
-  writer.writeString(offsets[28], object.nextBillingDate);
-  writer.writeString(offsets[29], object.previousBillingDate);
-  writer.writeString(offsets[30], object.role);
-  writer.writeString(offsets[31], object.subscriptionPlan);
-  writer.writeString(offsets[32], object.table);
-  writer.writeBool(offsets[33], object.taxEnabled);
-  writer.writeString(offsets[34], object.taxServerUrl);
-  writer.writeString(offsets[35], object.timeZone);
-  writer.writeLong(offsets[36], object.tinNumber);
-  writer.writeString(offsets[37], object.type);
-  writer.writeString(offsets[38], object.typeId);
-  writer.writeString(offsets[39], object.userId);
+  writer.writeLong(offsets[5], object.businessTypeId);
+  writer.writeString(offsets[6], object.businessUrl);
+  writer.writeString(offsets[7], object.categoryId);
+  writer.writeStringList(offsets[8], object.channels);
+  writer.writeString(offsets[9], object.chatUid);
+  writer.writeString(offsets[10], object.country);
+  writer.writeString(offsets[11], object.createdAt);
+  writer.writeString(offsets[12], object.currency);
+  writer.writeString(offsets[13], object.deviceToken);
+  writer.writeString(offsets[14], object.dvcSrlNo);
+  writer.writeString(offsets[15], object.email);
+  writer.writeString(offsets[16], object.firstName);
+  writer.writeString(offsets[17], object.fullName);
+  writer.writeString(offsets[18], object.hexColor);
+  writer.writeString(offsets[19], object.imageUrl);
+  writer.writeBool(offsets[20], object.isDefault);
+  writer.writeBool(offsets[21], object.isLastSubscriptionPaymentSucceeded);
+  writer.writeString(offsets[22], object.lastDbBackup);
+  writer.writeString(offsets[23], object.lastName);
+  writer.writeLong(offsets[24], object.lastSeen);
+  writer.writeString(offsets[25], object.latitude);
+  writer.writeString(offsets[26], object.longitude);
+  writer.writeString(offsets[27], object.metadata);
+  writer.writeString(offsets[28], object.name);
+  writer.writeString(offsets[29], object.nextBillingDate);
+  writer.writeString(offsets[30], object.previousBillingDate);
+  writer.writeString(offsets[31], object.role);
+  writer.writeString(offsets[32], object.subscriptionPlan);
+  writer.writeString(offsets[33], object.table);
+  writer.writeBool(offsets[34], object.taxEnabled);
+  writer.writeString(offsets[35], object.taxServerUrl);
+  writer.writeString(offsets[36], object.timeZone);
+  writer.writeLong(offsets[37], object.tinNumber);
+  writer.writeString(offsets[38], object.type);
+  writer.writeString(offsets[39], object.typeId);
+  writer.writeString(offsets[40], object.userId);
 }
 
 Business _businessDeserialize(
@@ -519,43 +525,44 @@ Business _businessDeserialize(
     backUpEnabled: reader.readBoolOrNull(offsets[2]),
     backupFileId: reader.readStringOrNull(offsets[3]),
     bhfId: reader.readStringOrNull(offsets[4]),
-    businessUrl: reader.readStringOrNull(offsets[5]),
-    categoryId: reader.readStringOrNull(offsets[6]),
-    channels: reader.readStringList(offsets[7]),
-    chatUid: reader.readStringOrNull(offsets[8]),
-    country: reader.readStringOrNull(offsets[9]),
-    currency: reader.readStringOrNull(offsets[11]),
-    deviceToken: reader.readStringOrNull(offsets[12]),
-    dvcSrlNo: reader.readStringOrNull(offsets[13]),
-    email: reader.readStringOrNull(offsets[14]),
-    firstName: reader.readStringOrNull(offsets[15]),
-    fullName: reader.readStringOrNull(offsets[16]),
-    hexColor: reader.readStringOrNull(offsets[17]),
+    businessTypeId: reader.readLongOrNull(offsets[5]),
+    businessUrl: reader.readStringOrNull(offsets[6]),
+    categoryId: reader.readStringOrNull(offsets[7]),
+    channels: reader.readStringList(offsets[8]),
+    chatUid: reader.readStringOrNull(offsets[9]),
+    country: reader.readStringOrNull(offsets[10]),
+    currency: reader.readStringOrNull(offsets[12]),
+    deviceToken: reader.readStringOrNull(offsets[13]),
+    dvcSrlNo: reader.readStringOrNull(offsets[14]),
+    email: reader.readStringOrNull(offsets[15]),
+    firstName: reader.readStringOrNull(offsets[16]),
+    fullName: reader.readStringOrNull(offsets[17]),
+    hexColor: reader.readStringOrNull(offsets[18]),
     id: id,
-    imageUrl: reader.readStringOrNull(offsets[18]),
-    isDefault: reader.readBoolOrNull(offsets[19]),
-    isLastSubscriptionPaymentSucceeded: reader.readBoolOrNull(offsets[20]),
-    lastDbBackup: reader.readStringOrNull(offsets[21]),
-    lastName: reader.readStringOrNull(offsets[22]),
-    lastSeen: reader.readLongOrNull(offsets[23]),
-    latitude: reader.readStringOrNull(offsets[24]),
-    longitude: reader.readStringOrNull(offsets[25]),
-    metadata: reader.readStringOrNull(offsets[26]),
-    name: reader.readStringOrNull(offsets[27]),
-    nextBillingDate: reader.readStringOrNull(offsets[28]),
-    previousBillingDate: reader.readStringOrNull(offsets[29]),
-    role: reader.readStringOrNull(offsets[30]),
-    subscriptionPlan: reader.readStringOrNull(offsets[31]),
-    table: reader.readStringOrNull(offsets[32]),
-    taxEnabled: reader.readBoolOrNull(offsets[33]),
-    taxServerUrl: reader.readStringOrNull(offsets[34]),
-    timeZone: reader.readStringOrNull(offsets[35]),
-    tinNumber: reader.readLongOrNull(offsets[36]),
-    type: reader.readStringOrNull(offsets[37]),
-    typeId: reader.readStringOrNull(offsets[38]),
-    userId: reader.readStringOrNull(offsets[39]),
+    imageUrl: reader.readStringOrNull(offsets[19]),
+    isDefault: reader.readBoolOrNull(offsets[20]),
+    isLastSubscriptionPaymentSucceeded: reader.readBoolOrNull(offsets[21]),
+    lastDbBackup: reader.readStringOrNull(offsets[22]),
+    lastName: reader.readStringOrNull(offsets[23]),
+    lastSeen: reader.readLongOrNull(offsets[24]),
+    latitude: reader.readStringOrNull(offsets[25]),
+    longitude: reader.readStringOrNull(offsets[26]),
+    metadata: reader.readStringOrNull(offsets[27]),
+    name: reader.readStringOrNull(offsets[28]),
+    nextBillingDate: reader.readStringOrNull(offsets[29]),
+    previousBillingDate: reader.readStringOrNull(offsets[30]),
+    role: reader.readStringOrNull(offsets[31]),
+    subscriptionPlan: reader.readStringOrNull(offsets[32]),
+    table: reader.readStringOrNull(offsets[33]),
+    taxEnabled: reader.readBoolOrNull(offsets[34]),
+    taxServerUrl: reader.readStringOrNull(offsets[35]),
+    timeZone: reader.readStringOrNull(offsets[36]),
+    tinNumber: reader.readLongOrNull(offsets[37]),
+    type: reader.readStringOrNull(offsets[38]),
+    typeId: reader.readStringOrNull(offsets[39]),
+    userId: reader.readStringOrNull(offsets[40]),
   );
-  object.createdAt = reader.readStringOrNull(offsets[10]);
+  object.createdAt = reader.readStringOrNull(offsets[11]);
   return object;
 }
 
@@ -577,13 +584,13 @@ P _businessDeserializeProp<P>(
     case 4:
       return (reader.readStringOrNull(offset)) as P;
     case 5:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 6:
       return (reader.readStringOrNull(offset)) as P;
     case 7:
-      return (reader.readStringList(offset)) as P;
-    case 8:
       return (reader.readStringOrNull(offset)) as P;
+    case 8:
+      return (reader.readStringList(offset)) as P;
     case 9:
       return (reader.readStringOrNull(offset)) as P;
     case 10:
@@ -605,17 +612,17 @@ P _businessDeserializeProp<P>(
     case 18:
       return (reader.readStringOrNull(offset)) as P;
     case 19:
-      return (reader.readBoolOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 20:
       return (reader.readBoolOrNull(offset)) as P;
     case 21:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readBoolOrNull(offset)) as P;
     case 22:
       return (reader.readStringOrNull(offset)) as P;
     case 23:
-      return (reader.readLongOrNull(offset)) as P;
-    case 24:
       return (reader.readStringOrNull(offset)) as P;
+    case 24:
+      return (reader.readLongOrNull(offset)) as P;
     case 25:
       return (reader.readStringOrNull(offset)) as P;
     case 26:
@@ -633,18 +640,20 @@ P _businessDeserializeProp<P>(
     case 32:
       return (reader.readStringOrNull(offset)) as P;
     case 33:
-      return (reader.readBoolOrNull(offset)) as P;
-    case 34:
       return (reader.readStringOrNull(offset)) as P;
+    case 34:
+      return (reader.readBoolOrNull(offset)) as P;
     case 35:
       return (reader.readStringOrNull(offset)) as P;
     case 36:
-      return (reader.readLongOrNull(offset)) as P;
-    case 37:
       return (reader.readStringOrNull(offset)) as P;
+    case 37:
+      return (reader.readLongOrNull(offset)) as P;
     case 38:
       return (reader.readStringOrNull(offset)) as P;
     case 39:
+      return (reader.readStringOrNull(offset)) as P;
+    case 40:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1298,6 +1307,79 @@ extension BusinessQueryFilter
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'bhfId',
         value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      businessTypeIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'businessTypeId',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      businessTypeIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'businessTypeId',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> businessTypeIdEqualTo(
+      int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'businessTypeId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      businessTypeIdGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'businessTypeId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      businessTypeIdLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'businessTypeId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> businessTypeIdBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'businessTypeId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
       ));
     });
   }
@@ -6174,6 +6256,18 @@ extension BusinessQuerySortBy on QueryBuilder<Business, Business, QSortBy> {
     });
   }
 
+  QueryBuilder<Business, Business, QAfterSortBy> sortByBusinessTypeId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'businessTypeId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterSortBy> sortByBusinessTypeIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'businessTypeId', Sort.desc);
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterSortBy> sortByBusinessUrl() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'businessUrl', Sort.asc);
@@ -6648,6 +6742,18 @@ extension BusinessQuerySortThenBy
     });
   }
 
+  QueryBuilder<Business, Business, QAfterSortBy> thenByBusinessTypeId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'businessTypeId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterSortBy> thenByBusinessTypeIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'businessTypeId', Sort.desc);
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterSortBy> thenByBusinessUrl() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'businessUrl', Sort.asc);
@@ -7107,6 +7213,12 @@ extension BusinessQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Business, Business, QDistinct> distinctByBusinessTypeId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'businessTypeId');
+    });
+  }
+
   QueryBuilder<Business, Business, QDistinct> distinctByBusinessUrl(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -7386,6 +7498,12 @@ extension BusinessQueryProperty
   QueryBuilder<Business, String?, QQueryOperations> bhfIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'bhfId');
+    });
+  }
+
+  QueryBuilder<Business, int?, QQueryOperations> businessTypeIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'businessTypeId');
     });
   }
 

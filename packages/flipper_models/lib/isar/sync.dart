@@ -14,6 +14,7 @@ class SyncF {
     required this.phoneNumber,
     required this.token,
     required this.tenants,
+    required this.businesses,
     required this.channels,
     required this.points,
   });
@@ -22,6 +23,7 @@ class SyncF {
   String phoneNumber;
   String token;
   List<Tenant> tenants;
+  List<Business> businesses;
   List<String> channels;
   int points;
 
@@ -31,6 +33,8 @@ class SyncF {
         token: json["token"],
         tenants:
             List<Tenant>.from(json["tenants"].map((x) => Tenant.fromJson(x))),
+        businesses: List<Business>.from(
+            json["tenants"].map((x) => Business.fromJson(x))),
         channels: List<String>.from(json["channels"].map((x) => x)),
         points: json["points"],
       );
@@ -40,6 +44,7 @@ class SyncF {
         "phoneNumber": phoneNumber,
         "token": token,
         "tenants": List<dynamic>.from(tenants.map((x) => x.toJson())),
+        "businesses": List<dynamic>.from(businesses.map((x) => x.toJson())),
         "channels": List<dynamic>.from(channels.map((x) => x)),
         "points": points,
       };

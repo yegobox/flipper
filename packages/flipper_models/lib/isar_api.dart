@@ -1899,7 +1899,7 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<String> whatsAppToken() async {
     final http.Response response = await client.post(
-        Uri.parse("$commApi/api/login"),
+        Uri.parse("$commApi/login"),
         body: json.encode(
             {"email": "murag.richard@gmail.com", "password": "love@123"}),
         headers: {'Content-Type': 'application/json'});

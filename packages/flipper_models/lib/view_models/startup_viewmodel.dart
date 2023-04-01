@@ -4,7 +4,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:flipper_services/proxy.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:stacked/stacked.dart';
@@ -60,9 +59,17 @@ class StartupViewModel extends BaseViewModel {
         _routerService.replaceWith(TenantAddRoute());
       } else if (e is NoDrawerOpenException) {
         /// in debug mode start with the signup flow, this will help in testing entire flow instead of jumping
-        /// right to opening drawer
-        if (kDebugMode) {
-          _routerService.navigateTo(SignUpViewRoute(countryNm: "Rwanda"));
+        /// right to opening drawer, start of debug code
+        /// comment them after testing
+        // if (kDebugMode) {
+        //   _routerService.navigateTo(SignUpViewRoute(countryNm: "Rwanda"));
+        // } else {
+        //   _routerService.navigateTo(DrawerScreenRoute(open: "open"));
+        // }
+
+        /// end of debug code
+        if (ProxyService.box.getDefaultApp() == 1) {
+          _routerService.navigateTo(SocialHomeViewRoute());
         } else {
           _routerService.navigateTo(DrawerScreenRoute(open: "open"));
         }

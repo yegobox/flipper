@@ -102,7 +102,7 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
               "channels": null,
               "description": "desc",
               "name": "Richard",
-              "businessId": 68,
+              "businessId": 1642645,
               "longitude": "0",
               "latitude": "0",
               "table": "branches",
@@ -161,6 +161,7 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
               "taxEnabled": false,
               "isDefault": true,
               "default": true,
+              "businessTypeId": 1,
               "lastSubscriptionPaymentSucceeded": false
             }
           ],
@@ -178,6 +179,10 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
       await ProxyService.box.write(
         key: 'bearerToken',
         value: syncFFromJson(response.body).token,
+      );
+      await ProxyService.box.write(
+        key: 'defaultApp',
+        value: syncFFromJson(response.body).businesses.first.businessTypeId,
       );
       await ProxyService.box.write(
         key: 'userId',
