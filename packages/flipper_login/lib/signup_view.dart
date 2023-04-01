@@ -33,7 +33,7 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
   final SignupViewModel signupViewModel;
 
   final businessTypes = SelectFieldBloc<BusinessType, Object>(
-    name: 'businessTypes',
+    name: 'businessType',
     items: [], // Initially empty
   );
   AsyncFieldValidationFormBloc(
@@ -105,10 +105,19 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
   }
 }
 
-class SignUpView extends StatelessWidget {
+class SignUpView extends StatefulWidget {
   SignUpView({Key? key, this.countryNm = "Rwanda"}) : super(key: key);
   final String? countryNm;
+
+  @override
+  State<SignUpView> createState() => _SignUpViewState();
+}
+
+class _SignUpViewState extends State<SignUpView> {
+  bool _showTinField = false;
+
   final _formKey = GlobalKey<FormState>();
+
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<SignupViewModel>.nonReactive(
@@ -120,7 +129,7 @@ class SignUpView extends StatelessWidget {
       builder: (context, model, child) {
         return BlocProvider(
           create: (context) => AsyncFieldValidationFormBloc(
-              signupViewModel: model, country: countryNm ?? "Rwanda"),
+              signupViewModel: model, country: widget.countryNm ?? "Rwanda"),
           child: Builder(builder: (context) {
             final formBloc = context.read<AsyncFieldValidationFormBloc>();
             return Scaffold(
@@ -178,21 +187,34 @@ class SignUpView extends StatelessWidget {
                                 labelText: 'Business Types',
                                 prefixIcon: Icon(Icons.business),
                               ),
+                              onChanged: (value) {
+                                if (value!.typeName != "Customer Support") {
+                                  setState(() {
+                                    _showTinField = true;
+                                  });
+                                } else {
+                                  setState(() {
+                                    _showTinField = false;
+                                  });
+                                }
+                              },
                             ),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.only(
-                                left: 0.0, right: 0.0, top: 0.0),
-                            child: TextFieldBlocBuilder(
-                              textFieldBloc: formBloc.tinNumber,
-                              suffixButton: SuffixButton.asyncValidating,
-                              keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(
-                                labelText: 'Tin number',
-                                prefixIcon: Icon(Icons.person),
-                              ),
-                            ),
-                          ),
+                          _showTinField
+                              ? Padding(
+                                  padding: const EdgeInsets.only(
+                                      left: 0.0, right: 0.0, top: 0.0),
+                                  child: TextFieldBlocBuilder(
+                                    textFieldBloc: formBloc.tinNumber,
+                                    suffixButton: SuffixButton.asyncValidating,
+                                    keyboardType: TextInputType.number,
+                                    decoration: const InputDecoration(
+                                      labelText: 'Tin number',
+                                      prefixIcon: Icon(Icons.person),
+                                    ),
+                                  ),
+                                )
+                              : SizedBox.shrink(),
                           Padding(
                             padding: const EdgeInsets.only(
                                 left: 0.0, right: 0.0, top: 0.0),
@@ -206,12 +228,6 @@ class SignUpView extends StatelessWidget {
                               ),
                             ),
                           ),
-                          Text('How do you want to use flipper?',
-                              style: GoogleFonts.poppins(
-                                fontSize: 16.0,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black,
-                              )),
                           !model.registerStart
                               ? Padding(
                                   padding: const EdgeInsets.only(
