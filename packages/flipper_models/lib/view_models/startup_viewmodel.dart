@@ -56,7 +56,7 @@ class StartupViewModel extends BaseViewModel {
       if (e is LoginChoicesException) {
         LoginInfo().isLoggedIn = false;
         LoginInfo().loginChoices = true;
-        _routerService.replaceWith(TenantAddRoute());
+        _routerService.replaceWith(LoginChoicesRoute());
       } else if (e is NoDrawerOpenException) {
         /// in debug mode start with the signup flow, this will help in testing entire flow instead of jumping
         /// right to opening drawer, start of debug code
