@@ -26,10 +26,10 @@ bool isNumeric(String? s) {
 }
 
 const Color primary = Color(0xFF399df8);
-final isMacOs = UniversalPlatform.isMacOS;
-final isIos = UniversalPlatform.isIOS;
-final isAndroid = UniversalPlatform.isAndroid;
-final isWeb = UniversalPlatform.isWeb;
-final isWindows = UniversalPlatform.isWindows;
+bool isMacOs = UniversalPlatform.isMacOS;
+bool isIos = UniversalPlatform.isIOS;
+bool isAndroid = UniversalPlatform.isAndroid;
+bool isWeb = UniversalPlatform.isWeb;
+bool isWindows = UniversalPlatform.isWindows;
 
-final isDesktopOrWeb = UniversalPlatform.isDesktopOrWeb;
+bool isDesktopOrWeb = UniversalPlatform.isDesktopOrWeb;

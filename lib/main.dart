@@ -8,6 +8,7 @@ import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_rw/flipper_localize/lib/flipper_localize.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:google_fonts/google_fonts.dart';
@@ -18,7 +19,6 @@ import 'package:flipper_services/locator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:universal_platform/universal_platform.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -31,11 +31,6 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import 'package:flutter_animate/flutter_animate.dart';
 
-final isIos = UniversalPlatform.isIOS;
-final isWindows = UniversalPlatform.isWindows;
-final isMacOs = UniversalPlatform.isMacOS;
-final isAndroid = UniversalPlatform.isAndroid;
-final isWeb = UniversalPlatform.isWeb;
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
 Future<void> backgroundHandler(RemoteMessage message) async {

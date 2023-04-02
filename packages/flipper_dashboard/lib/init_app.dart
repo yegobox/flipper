@@ -1,8 +1,6 @@
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'package:universal_platform/universal_platform.dart';
-
-final isWindows = UniversalPlatform.isWindows;
 
 class InitApp {
   static void init() {

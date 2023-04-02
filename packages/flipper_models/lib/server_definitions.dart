@@ -5,4 +5,5 @@ final Map<Type, String> serverDefinitions = {
   Stock: "stocks",
   Variant: "variants",
   Order: "orders",
+  Social: "socials",
 };

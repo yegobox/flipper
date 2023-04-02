@@ -1386,6 +1386,12 @@ class IsarAPI<M> implements IsarApiInterface {
         return Future.value(null);
       });
     }
+    if (data is Social) {
+      await isar.writeTxn(() async {
+        await isar.socials.put(data);
+        return Future.value(null);
+      });
+    }
     return Future.value(null);
   }
 
@@ -1394,6 +1400,13 @@ class IsarAPI<M> implements IsarApiInterface {
   Future<T?> update<T>({required T data}) async {
     // int branchId = ProxyService.box.getBranchId()!;
 
+    if (data is Social) {
+      Social product = data;
+
+      await isar.writeTxn(() async {
+        return await isar.socials.put(product);
+      });
+    }
     if (data is Product) {
       Product product = data;
 
@@ -2046,13 +2059,23 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Social?> social({required int businessId}) async {
-    return await isar.socials.get(businessId);
+  Stream<Social> socialsStream({required int businessId}) {
+    return isar.socials
+        .filter()
+        .businessIdEqualTo(businessId)
+        .build()
+        .watch(fireImmediately: true)
+        .asyncMap((event) => event.first);
   }
 
   @override
   Future<List<BusinessType>> businessTypes() {
     // TODO: implement businessTypes
     throw UnimplementedError();
+  }
+
+  @override
+  Future<Social?> getSocialById({required int id}) async {
+    return await isar.socials.get(id);
   }
 }

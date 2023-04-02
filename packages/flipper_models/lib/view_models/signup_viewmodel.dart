@@ -6,15 +6,12 @@ import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:flutter/cupertino.dart';
 import 'package:stacked/stacked.dart';
-import 'package:universal_platform/universal_platform.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'gate.dart';
-
-final isWindows = UniversalPlatform.isWindows;
 
 class SignupViewModel extends ReactiveViewModel {
   final appService = loc.locator<AppService>();

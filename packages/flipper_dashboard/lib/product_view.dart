@@ -13,11 +13,7 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:universal_platform/universal_platform.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
-
-final isWindows = UniversalPlatform.isWindows;
-final isMacOs = UniversalPlatform.isMacOS;
 
 class ProductView extends StatefulWidget {
   const ProductView({

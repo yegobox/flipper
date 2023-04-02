@@ -11,9 +11,6 @@ import 'proxy.dart';
 import 'package:flutter_statusbarcolor_ns/flutter_statusbarcolor_ns.dart';
 import 'package:flipper_nfc/flipper_nfc.dart';
 import 'package:flutter/services.dart';
-import 'package:universal_platform/universal_platform.dart';
-
-final isWindows = UniversalPlatform.isWindows;
 
 class AppService with ListenableServiceMixin {
   // required constants

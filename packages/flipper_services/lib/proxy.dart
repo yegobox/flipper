@@ -16,7 +16,6 @@ import 'package:flipper_services/local_notification_service.dart';
 import 'package:flipper_services/event_service.dart';
 import 'package:flipper_services/cron_service.dart';
 import 'package:flipper_services/setting_service.dart';
-import 'package:universal_platform/universal_platform.dart';
 import 'abstractions/api.dart';
 import 'abstractions/dynamic_link.dart';
 import 'abstractions/location.dart';
@@ -29,8 +28,6 @@ import 'locator.dart';
 import 'product_service.dart';
 import 'package:flipper_models/interface.dart';
 import 'package:flipper_models/tax_api.dart';
-
-final isWindows = UniversalPlatform.isWindows;
 
 final Api _apiService = locator<Api>();
 final DynamicLink _dynamicLink = locator<DynamicLink>();

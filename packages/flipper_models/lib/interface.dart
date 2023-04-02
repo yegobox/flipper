@@ -207,7 +207,8 @@ abstract class IsarApiInterface {
   Future<List<Order>> getLocalOrders();
 
   /// socials methods
-  Future<Social?> social({required int businessId});
+  Stream<Social> socialsStream({required int businessId});
+  Future<Social?> getSocialById({required int id});
 
   Future<List<BusinessType>> businessTypes();
 }
