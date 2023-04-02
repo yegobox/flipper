@@ -1046,6 +1046,13 @@ class IsarAPI<M> implements IsarApiInterface {
     ProxyService.box.remove(key: 'businessId');
     LoginInfo().isLoggedIn = false;
     LoginInfo().needSignUp = false;
+    ProxyService.event.publish(loginDetails: {
+      'channel': "${ProxyService.box.getUserId()!}-logout",
+      'userId': ProxyService.box.getUserId()!,
+      'businessId': ProxyService.box.getBusinessId()!,
+      'branchId': ProxyService.box.getBranchId()!,
+      'phone': ProxyService.box.getUserPhone(),
+    });
     FirebaseAuth.instance.signOut();
     return await Future.value(true);
   }

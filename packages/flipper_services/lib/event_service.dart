@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:pubnub/pubnub.dart' as nub;
 import 'package:flipper_services/proxy.dart';
 import 'dart:convert';
@@ -58,8 +57,22 @@ class EventService {
     channel.publish(loginDetails);
   }
 
-  void subscribeLoginEvent(
-      {required String channel, required BuildContext context}) {
+  void subscribeToLogoutEvent({required String channel}) {
+    try {
+      nub.Subscription subscription = pubnub.subscribe(channels: {channel});
+      subscription.messages.listen((envelope) async {
+        LoginData loginData = LoginData.fromMap(envelope.payload);
+        if (loginData.userId == ProxyService.box.read(key: 'userId')) {
+          await FirebaseAuth.instance.signOut();
+          ProxyService.isarApi.logOut();
+        }
+      });
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  void subscribeLoginEvent({required String channel}) {
     try {
       nub.Subscription subscription = pubnub.subscribe(channels: {channel});
       subscription.messages.listen((envelope) async {

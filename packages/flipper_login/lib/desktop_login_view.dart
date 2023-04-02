@@ -53,8 +53,8 @@ class _DesktopLoginViewState extends State<DesktopLoginView> {
         if (loginCode != null) {
           ProxyService.event.connect();
           try {
-            ProxyService.event.subscribeLoginEvent(
-                channel: loginCode!.split('-')[1], context: context);
+            ProxyService.event
+                .subscribeLoginEvent(channel: loginCode!.split('-')[1]);
           } catch (e) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(

@@ -40,6 +40,9 @@ class InitApp {
 
     ProxyService.messaging.init();
 
+    ProxyService.event.subscribeToLogoutEvent(
+        channel: "${ProxyService.box.getUserId()!}-logout");
+
     /// to avoid receiving the message of the contact you don't have in your book
     /// we need to load contacts when the app starts.
     // ProxyService.isarApi.contacts().asBroadcastStream();

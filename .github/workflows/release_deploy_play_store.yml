@@ -9,7 +9,7 @@ on:
         default: "beta"
   # Refs/tags push events to matching v*, i.e. v1.0, v20.15.10
   push:
-    branches: [main, dev]
+    branches: [main, dev, socials]
     # tags:
     # - 'v*'
 env:
@@ -62,7 +62,7 @@ jobs:
           java-version: "11" #defines the java version
       - name: Update version in YAML
         # run: sed -i 's/1.0.1-dev.3/1.170.28+1111010198/g' pubspec.yaml
-        run: sed -i 's/1.0.1-dev.3/1.170.81+1111010281/g' pubspec.yaml
+        run: sed -i 's/1.0.1-dev.3/1.170.82+1111010282/g' pubspec.yaml
       - name: submodule init
         run: git submodule update --init
       - name: Configure Missing files
