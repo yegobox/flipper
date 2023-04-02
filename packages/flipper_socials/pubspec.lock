@@ -1480,7 +1480,7 @@ packages:
     source: hosted
     version: "3.0.6-dev.0"
   isar_crdt:
-    dependency: "direct overridden"
+    dependency: "direct main"
     description:
       path: "../../open-sources/isar_crdt"
       relative: true

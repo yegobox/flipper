@@ -1,5 +1,6 @@
 library flipper_dashboard;
 
+import 'package:flipper_dashboard/init_app.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
@@ -62,6 +63,8 @@ class StartUpView extends StackedView<StartupViewModel> {
 
   @override
   void onViewModelReady(StartupViewModel viewModel) =>
-      SchedulerBinding.instance.addPostFrameCallback((timeStamp) =>
-          viewModel.runStartupLogic(invokeLogin: invokeLogin ?? false));
+      SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+        InitApp.init();
+        viewModel.runStartupLogic(invokeLogin: invokeLogin ?? false);
+      });
 }

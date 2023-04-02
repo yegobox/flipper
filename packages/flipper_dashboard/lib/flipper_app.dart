@@ -18,7 +18,6 @@ import 'package:stacked/stacked.dart';
 
 import 'package:permission_handler/permission_handler.dart' as perm;
 import 'badge_icon.dart';
-import 'init_app.dart';
 import 'page_switcher.dart';
 import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:nfc_manager/nfc_manager.dart';
@@ -50,13 +49,6 @@ class _FlipperAppState extends State<FlipperApp>
     if (isAndroid) {
       _disableScreenshots();
     }
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!_initialized) {
-        // ProxyService.isarApi.deleteAllProducts();
-        InitApp.init();
-        _initialized = true;
-      }
-    });
     if (mounted) {
       WidgetsBinding.instance.addObserver(this);
       _tabController = TabController(length: 3, vsync: this);

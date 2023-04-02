@@ -18,7 +18,7 @@ class HomeViewMobile extends ViewModelWidget<HomeViewModel> {
       body: SafeArea(
         child: StreamBuilder<Social>(
             stream: ProxyService.isarApi
-                .socialsStream(businessId: ProxyService.box.getBranchId()!),
+                .socialsStream(businessId: ProxyService.box.getBusinessId()!),
             builder: (context, snapshot) {
               if (snapshot.hasData) {
                 return const Text("social dashboard");

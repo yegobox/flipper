@@ -152,15 +152,15 @@ Social _socialDeserialize(
 ) {
   final object = Social(
     businessId: reader.readLong(offsets[0]),
-    id: id,
     isAccountSet: reader.readBool(offsets[1]),
+    lastTouched: reader.readStringOrNull(offsets[2]),
+    localId: reader.readLongOrNull(offsets[3]),
     message: reader.readStringOrNull(offsets[4]),
+    remoteID: reader.readStringOrNull(offsets[5]),
     socialType: reader.readString(offsets[6]),
     socialUrl: reader.readString(offsets[7]),
   );
-  object.lastTouched = reader.readStringOrNull(offsets[2]);
-  object.localId = reader.readLongOrNull(offsets[3]);
-  object.remoteID = reader.readStringOrNull(offsets[5]);
+  object.id = id;
   return object;
 }
 
@@ -1637,19 +1637,17 @@ extension SocialQueryProperty on QueryBuilder<Social, Social, QQueryProperty> {
 // **************************************************************************
 
 Social _$SocialFromJson(Map<String, dynamic> json) => Social(
-      id: json['id'] as int?,
       isAccountSet: json['isAccountSet'] as bool,
       socialType: json['socialType'] as String,
       businessId: json['businessId'] as int,
       message: json['message'] as String?,
       socialUrl: json['socialUrl'] as String,
-    )
-      ..lastTouched = json['lastTouched'] as String?
-      ..remoteID = json['remoteID'] as String?
-      ..localId = json['localId'] as int?;
+      lastTouched: json['lastTouched'] as String?,
+      remoteID: json['remoteID'] as String?,
+      localId: json['localId'] as int?,
+    );
 
 Map<String, dynamic> _$SocialToJson(Social instance) => <String, dynamic>{
-      'id': instance.id,
       'isAccountSet': instance.isAccountSet,
       'socialType': instance.socialType,
       'socialUrl': instance.socialUrl,

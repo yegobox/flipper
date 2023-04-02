@@ -27,6 +27,7 @@ class StartupViewModel extends BaseViewModel {
     required bool invokeLogin,
   }) async {
     LoginInfo().redirecting = true;
+
     try {
       /// an event should be trigered from mobile not desktop as desktop is anonmous and login() func might have been called.
       if (invokeLogin && !ProxyService.box.isAnonymous()) {

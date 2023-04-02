@@ -94,7 +94,8 @@ class RemoteService implements RemoteInterface {
           .then((event) => event.items);
       await Future.forEach(socialItems, (RecordModel item) async {
         Social remoteStock = Social.fromJson(item.toJson());
-        await handleSocial(item, branchId, remoteStock.lastTouched, 'socials');
+        await handleSocial(
+            item, businessId, remoteStock.lastTouched, 'socials');
       });
 
       List<RecordModel> stockItems = await pb
@@ -147,17 +148,18 @@ class RemoteService implements RemoteInterface {
 
   Future<String?> handleSocial(RecordModel item, int businessId,
       String? lastTouched, String model) async {
-    Social remoteStock = Social.fromJson(item.toJson());
-    Stock? localStock =
-        await ProxyService.isarApi.getStockById(id: remoteStock.localId!);
-    if (localStock == null && remoteStock.businessId == businessId) {
-      await ProxyService.isarApi.create(data: remoteStock);
-      lastTouched = remoteStock.lastTouched;
-    } else if (localStock != null &&
-        remoteStock.lastTouched!
-            .isFutureDateCompareTo(localStock.lastTouched!)) {
-      await ProxyService.isarApi.update(data: remoteStock);
-      lastTouched = remoteStock.lastTouched;
+    Social remoteSocial = Social.fromJson(item.toJson());
+    Social? localSocial =
+        await ProxyService.isarApi.getSocialById(id: remoteSocial.localId!);
+    if (localSocial == null && remoteSocial.businessId == businessId) {
+      remoteSocial.id = remoteSocial.localId;
+      await ProxyService.isarApi.create(data: remoteSocial);
+      lastTouched = remoteSocial.lastTouched;
+    } else if (localSocial != null &&
+        remoteSocial.lastTouched!
+            .isFutureDateCompareTo(localSocial.lastTouched!)) {
+      await ProxyService.isarApi.update(data: remoteSocial);
+      lastTouched = remoteSocial.lastTouched;
     }
     return lastTouched;
   }
@@ -199,23 +201,29 @@ class RemoteService implements RemoteInterface {
   void gettingRealTimeData() {
     int branchId = ProxyService.box.getBranchId()!;
     int businessId = ProxyService.box.getBusinessId()!;
-    pb.collection('socials').subscribe("*", (stockEvent) async {
-      if (stockEvent.action == "create") {
-        Social stockFromRecord = Social.fromRecord(stockEvent.record!);
-        Social? localStock = await ProxyService.isarApi
-            .getSocialById(id: stockFromRecord.localId!);
-        if (localStock == null && stockFromRecord.businessId == businessId) {
-          await ProxyService.isarApi.create(data: stockFromRecord);
+    pb.collection('socials').subscribe("*", (socialEvent) async {
+      if (socialEvent.action == "create") {
+        Social socialFromRecord = Social.fromRecord(socialEvent.record!);
+        Social? localSocial = await ProxyService.isarApi
+            .getSocialById(id: socialFromRecord.localId!);
+        if (localSocial == null && socialFromRecord.businessId == businessId) {
+          socialFromRecord.id = socialFromRecord.localId;
+          await ProxyService.isarApi.create(data: socialFromRecord);
         }
-      } else if (stockEvent.action == "update") {
-        Social stockFromRecord = Social.fromRecord(stockEvent.record!);
-        Social? localStock = await ProxyService.isarApi
-            .getSocialById(id: stockFromRecord.localId!);
-        String lastTouched = stockFromRecord.lastTouched!;
-        if (localStock != null &&
-            stockFromRecord.businessId == businessId &&
-            lastTouched.isFutureDateCompareTo(localStock.lastTouched!)) {
-          await ProxyService.isarApi.update(data: stockFromRecord);
+      } else if (socialEvent.action == "update") {
+        Social socialFromRecord = Social.fromRecord(socialEvent.record!);
+        Social? localSocial = await ProxyService.isarApi
+            .getSocialById(id: socialFromRecord.localId!);
+        if (localSocial == null && socialFromRecord.businessId == businessId) {
+          await ProxyService.isarApi.create(data: socialFromRecord);
+        }
+        Social a = Social.fromRecord(socialEvent.record!);
+        Social? b = await ProxyService.isarApi.getSocialById(id: a.localId!);
+        String lastTouched = a.lastTouched!;
+        if (b != null &&
+            a.businessId == businessId &&
+            lastTouched.isFutureDateCompareTo(b.lastTouched!)) {
+          await ProxyService.isarApi.update(data: a);
         }
       }
     });
