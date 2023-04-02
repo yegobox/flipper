@@ -51,14 +51,30 @@ class NoticeSheet extends StackedView<NoticeSheetModel> {
                   onFieldSubmitted: (value) {
                     viewModel.message = value;
                   },
-                  maxLines: 5,
-                  onChanged: (value) {},
+                  maxLines: 2,
+                  onChanged: (value) {
+                    viewModel.message = value;
+                  },
                 ),
                 // add a button to send the message
                 OutlinedButton(
-                    onPressed: () {
+                    onPressed: () async {
                       if (_formKey.currentState!.validate()) {
-                        viewModel.expressInterest();
+                        await viewModel.expressInterest();
+                        // show a snackbar using built flutter
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Thank you for your interest'),
+                            backgroundColor: Colors.green,
+                            padding: EdgeInsets.all(10),
+                          ),
+                        );
+
+                        completer!(SheetResponse(
+                          confirmed: true,
+                          data:
+                              "Thank you for your interest, we will get back to you soon",
+                        ));
                       }
                     },
                     style: ButtonStyle(

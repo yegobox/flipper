@@ -11,7 +11,7 @@ class NoticeSheetModel extends BaseViewModel {
     notifyListeners();
   }
 
-  void expressInterest() {
+  Future<void> expressInterest()async {
     Social social = Social(
         businessId: ProxyService.box.getBusinessId()!,
         isAccountSet: false,
@@ -19,7 +19,7 @@ class NoticeSheetModel extends BaseViewModel {
         socialType: 'whatapp',
         socialUrl:
             'https://ers84w6ehl.execute-api.us-east-1.amazonaws.com/api');
-    ProxyService.remoteApi
+  await  ProxyService.remoteApi
         .create(collection: social.toJson(), collectionName: 'socials');
   }
 }
