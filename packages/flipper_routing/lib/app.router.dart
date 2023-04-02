@@ -382,6 +382,14 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         barrierDismissible: false,
       );
     },
+    ChatListViewRoute.name: (routeData) {
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: const _i2.ChatListView(),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
   };
 
   @override
@@ -517,6 +525,10 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         _i3.RouteConfig(
           DrawerScreenRoute.name,
           path: '/drawer-screen',
+        ),
+        _i3.RouteConfig(
+          ChatListViewRoute.name,
+          path: '/chat-list-view',
         ),
       ];
 }
@@ -1386,4 +1398,16 @@ class DrawerScreenArgs {
   String toString() {
     return 'DrawerScreenArgs{key: $key, open: $open, drawer: $drawer}';
   }
+}
+
+/// generated route for
+/// [_i2.ChatListView]
+class ChatListViewRoute extends _i3.PageRouteInfo<void> {
+  const ChatListViewRoute()
+      : super(
+          ChatListViewRoute.name,
+          path: '/chat-list-view',
+        );
+
+  static const String name = 'ChatListView';
 }

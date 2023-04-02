@@ -83,6 +83,7 @@ import 'all_routes.dart';
     ),
     CustomRoute(page: SocialHomeView),
     CustomRoute(page: DrawerScreen),
+    CustomRoute(page: ChatListView),
   ],
   dependencies: [
     LazySingleton(classType: BottomSheetService),

@@ -35,6 +35,7 @@ dependencies:
   flipper_models: ^0.0.1-dev.7
   flipper_routing: ^0.0.1-dev.3
   isar_crdt: 0.0.2-dev
+  fluentui_system_icons: ^1.1.198
 dev_dependencies:
   flutter_test:
     sdk: flutter

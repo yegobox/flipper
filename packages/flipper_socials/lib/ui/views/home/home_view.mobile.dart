@@ -1,5 +1,6 @@
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_socials/ui/views/chat_list/chat_list_view.dart';
 import 'package:flipper_socials/ui/widgets/bubble_type.dart';
 import 'package:flipper_socials/ui/widgets/chat_bubble.dart';
 import 'package:flipper_socials/ui/widgets/custom_paint.dart';
@@ -21,7 +22,7 @@ class HomeViewMobile extends ViewModelWidget<HomeViewModel> {
                 .socialsStream(businessId: ProxyService.box.getBusinessId()!),
             builder: (context, snapshot) {
               if (snapshot.hasData) {
-                return const Text("social dashboard");
+                return const ChatListView();
               } else {
                 return Column(
                   children: [

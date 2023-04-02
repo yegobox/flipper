@@ -41,8 +41,6 @@ class _FlipperAppState extends State<FlipperApp>
     await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
   }
 
-  bool _initialized = false;
-
   @override
   void initState() {
     super.initState();
