@@ -1038,6 +1038,13 @@ class IsarAPI<M> implements IsarApiInterface {
       await isar.iTenants.clear();
       await isar.permissions.clear();
     });
+    ProxyService.event.publish(loginDetails: {
+      'channel': "${ProxyService.box.getUserId()!}-logout",
+      'userId': ProxyService.box.getUserId()!,
+      'businessId': ProxyService.box.getBusinessId()!,
+      'branchId': ProxyService.box.getBranchId()!,
+      'phone': ProxyService.box.getUserPhone(),
+    });
     ProxyService.box.remove(key: 'userId');
     ProxyService.box.remove(key: 'bearerToken');
     ProxyService.box.remove(key: 'branchId');
@@ -1046,13 +1053,6 @@ class IsarAPI<M> implements IsarApiInterface {
     ProxyService.box.remove(key: 'businessId');
     LoginInfo().isLoggedIn = false;
     LoginInfo().needSignUp = false;
-    ProxyService.event.publish(loginDetails: {
-      'channel': "${ProxyService.box.getUserId()!}-logout",
-      'userId': ProxyService.box.getUserId()!,
-      'businessId': ProxyService.box.getBusinessId()!,
-      'branchId': ProxyService.box.getBranchId()!,
-      'phone': ProxyService.box.getUserPhone(),
-    });
     FirebaseAuth.instance.signOut();
     return await Future.value(true);
   }
@@ -2075,10 +2075,21 @@ class IsarAPI<M> implements IsarApiInterface {
         .asyncMap((event) => event.first);
   }
 
+  /// sincd this type does not change no point of getting it from the server
   @override
-  Future<List<BusinessType>> businessTypes() {
-    // TODO: implement businessTypes
-    throw UnimplementedError();
+  Future<List<BusinessType>> businessTypes() async {
+    final responseJson = [
+      {"id": 1, "typeName": "Customer Support"},
+      {"id": 2, "typeName": "Supplier"},
+      {"id": 3, "typeName": "Retailer"},
+      {"id": 4, "typeName": "Agent"}
+    ];
+    Future.delayed(Duration(seconds: 5));
+    final response = http.Response(jsonEncode(responseJson), 200);
+    if (response.statusCode == 200) {
+      return BusinessType.fromJsonList(jsonEncode(responseJson));
+    }
+    return BusinessType.fromJsonList(jsonEncode(responseJson));
   }
 
   @override

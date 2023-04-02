@@ -1,8 +1,5 @@
 <!-- TODO: -->
-- Add businessTypeId as long or int in business endpoint on backend  (POST)
-- Add add default ID to existing businesses
 - change {{URL}}/v2/api/user to work even on patch
-- add to {{URL}}/v2/api/user so the returned object has businesses object instead of empty returned in business
 
 
 # Change Log
