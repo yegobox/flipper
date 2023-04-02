@@ -43,8 +43,8 @@ class NoticeSheet extends StackedView<NoticeSheetModel> {
                     border: OutlineInputBorder(),
                   ),
                   validator: (value) {
-                    if (value == null) {
-                      return 'Invalid input';
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a message';
                     }
                     return null;
                   },
