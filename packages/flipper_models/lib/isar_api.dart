@@ -334,6 +334,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<List<Branch>> branches({required int businessId}) async {
+    // if in local db we have no branch fetch it from online
     return await isar.branchs.filter().businessIdEqualTo(businessId).findAll();
   }
 

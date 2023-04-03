@@ -98,9 +98,9 @@ class LocalStorageImpl implements LocalStorage {
   bool? getIsTokenRegistered() {
     return box.read('getIsTokenRegistered');
   }
-  
+
   @override
   int getDefaultApp() {
-    return box.read('defaultApp');
+    return box.read('defaultApp') ?? 2;
   }
 }
