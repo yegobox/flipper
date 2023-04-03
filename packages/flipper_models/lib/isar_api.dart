@@ -1018,12 +1018,6 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Tenant?> isTenant({required String phoneNumber}) {
-    // TODO: implement isTenant
-    throw UnimplementedError();
-  }
-
-  @override
   int lifeTimeCustomersForbranch({required int branchId}) {
     // TODO: implement lifeTimeCustomersForbranch
     throw UnimplementedError();
@@ -1153,29 +1147,29 @@ class IsarAPI<M> implements IsarApiInterface {
     if (response.statusCode == 200) {
       await ProxyService.box.write(
         key: 'bearerToken',
-        value: syncFFromJson(response.body).token,
+        value: SyncF.fromJson(jsonDecode(response.body)).token,
       );
       await ProxyService.box.write(
         key: 'userId',
-        value: syncFFromJson(response.body).id.toString(),
+        value: SyncF.fromJson(jsonDecode(response.body)).id.toString(),
       );
       await ProxyService.box.write(
         key: 'userPhone',
         value: userPhone,
       );
-      if (syncFFromJson(response.body).tenants.isEmpty) {
+      if (SyncF.fromJson(jsonDecode(response.body)).tenants.isEmpty) {
         throw NotFoundException(term: "Not found");
       }
       await isar.writeTxn(() async {
-        return isar.business
-            .putAll(syncFFromJson(response.body).tenants.first.businesses);
+        return isar.business.putAll(
+            SyncF.fromJson(jsonDecode(response.body)).tenants.first.businesses);
       });
       await isar.writeTxn(() async {
-        return isar.branchs
-            .putAll(syncFFromJson(response.body).tenants.first.branches);
+        return isar.branchs.putAll(
+            SyncF.fromJson(jsonDecode(response.body)).tenants.first.branches);
       });
 
-      return syncFFromJson(response.body);
+      return SyncF.fromJson(jsonDecode(response.body));
     } else if (response.statusCode == 401) {
       throw SessionException(term: "session expired");
     } else if (response.statusCode == 500) {
@@ -1199,7 +1193,7 @@ class IsarAPI<M> implements IsarApiInterface {
       ),
     );
     if (response.statusCode == 200) {
-      return syncFFromJson(response.body);
+      return SyncF.fromJson(jsonDecode(response.body));
     } else if (response.statusCode == 401) {
       throw SessionException(term: "session expired");
     } else if (response.statusCode == 500) {

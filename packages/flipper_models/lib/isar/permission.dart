@@ -1,9 +1,11 @@
 library flipper_models;
 
 import 'package:isar/isar.dart';
-
+import 'package:json_annotation/json_annotation.dart';
+import 'package:pocketbase/pocketbase.dart';
 part 'permission.g.dart';
 
+@JsonSerializable()
 @Collection()
 class Permission {
   Permission({
@@ -13,11 +15,11 @@ class Permission {
   Id id = Isar.autoIncrement;
   late String name;
 
-  static fromJson(Map<dynamic, dynamic> json) =>
-      Permission(id: json["id"], name: json["name"]);
+  factory Permission.fromRecord(RecordModel record) =>
+      Permission.fromJson(record.toJson());
 
-  Map<String, dynamic> toJson() => {
-        "id": id.toString(),
-        "name": name,
-      };
+  factory Permission.fromJson(Map<String, dynamic> json) =>
+      _$PermissionFromJson(json);
+
+  Map<String, dynamic> toJson() => _$PermissionToJson(this);
 }

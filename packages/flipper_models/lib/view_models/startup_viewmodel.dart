@@ -79,6 +79,7 @@ class StartupViewModel extends BaseViewModel {
       } else if (e is NotFoundException) {
         _routerService.replaceWith(SignUpViewRoute(countryNm: "Rwanda"));
       } else {
+        print(e);
         ProxyService.isarApi.logOut();
         LoginInfo().isLoggedIn = false;
         _routerService.replaceWith(LoginViewRoute());
