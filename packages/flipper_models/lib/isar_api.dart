@@ -1039,13 +1039,16 @@ class IsarAPI<M> implements IsarApiInterface {
       await isar.iTenants.clear();
       await isar.permissions.clear();
     });
-    ProxyService.event.publish(loginDetails: {
-      'channel': "${ProxyService.box.getUserId()!}-logout",
-      'userId': ProxyService.box.getUserId()!,
-      'businessId': ProxyService.box.getBusinessId()!,
-      'branchId': ProxyService.box.getBranchId()!,
-      'phone': ProxyService.box.getUserPhone(),
-    });
+    if (ProxyService.box.getUserId() != null) {
+      ProxyService.event.publish(loginDetails: {
+        'channel': "${ProxyService.box.getUserId()!}-logout",
+        'userId': ProxyService.box.getUserId()!,
+        'businessId': ProxyService.box.getBusinessId()!,
+        'branchId': ProxyService.box.getBranchId()!,
+        'phone': ProxyService.box.getUserPhone(),
+      });
+    }
+
     ProxyService.box.remove(key: 'userId');
     ProxyService.box.remove(key: 'bearerToken');
     ProxyService.box.remove(key: 'branchId');
