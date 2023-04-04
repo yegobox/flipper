@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_models/data.loads/jcounter.dart';
 import 'package:flipper_models/isar/utils.dart';
@@ -884,7 +885,7 @@ class IsarAPI<M> implements IsarApiInterface {
       throw SessionException(term: "session expired");
     }
     if (response.statusCode == 404) {
-      throw NotFoundException(term: "Business not found");
+      throw BusinessNotFoundException(term: "Business not found");
     }
 
     Business? business = await isar.writeTxn(() {
@@ -1033,7 +1034,8 @@ class IsarAPI<M> implements IsarApiInterface {
       await isar.iTenants.clear();
       await isar.permissions.clear();
     });
-    if (ProxyService.box.getUserId() != null) {
+    if (ProxyService.box.getUserId() != null &&
+        ProxyService.box.getBusinessId() != null) {
       ProxyService.event.publish(loginDetails: {
         'channel': "${ProxyService.box.getUserId()!}-logout",
         'userId': ProxyService.box.getUserId()!,
@@ -1134,7 +1136,7 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<SyncF> login({required String userPhone}) async {
+  Future<IUser> login({required String userPhone}) async {
     final response = await http.post(
       Uri.parse(apihub + '/v2/api/user'),
       headers: <String, String>{
@@ -1144,60 +1146,38 @@ class IsarAPI<M> implements IsarApiInterface {
         <String, String>{'phoneNumber': userPhone},
       ),
     );
-    if (response.statusCode == 200) {
+//here
+    if (response.statusCode == 200 && response.body.isNotEmpty) {
+      IUser syncF = IUser.fromRawJson(response.body);
+      log(syncF.token);
+      log(syncF.id.toString());
       await ProxyService.box.write(
         key: 'bearerToken',
-        value: SyncF.fromJson(jsonDecode(response.body)).token,
+        value: syncF.token,
       );
       await ProxyService.box.write(
         key: 'userId',
-        value: SyncF.fromJson(jsonDecode(response.body)).id.toString(),
+        value: syncF.id.toString(),
       );
       await ProxyService.box.write(
         key: 'userPhone',
         value: userPhone,
       );
-      if (SyncF.fromJson(jsonDecode(response.body)).tenants.isEmpty) {
-        throw NotFoundException(term: "Not found");
+      if (syncF.tenants.isEmpty) {
+        throw TenantNotFoundException(term: "No tenant added to the user");
       }
       await isar.writeTxn(() async {
-        return isar.business.putAll(
-            SyncF.fromJson(jsonDecode(response.body)).tenants.first.businesses);
+        return isar.business.putAll(syncF.tenants.first.businesses);
       });
       await isar.writeTxn(() async {
-        return isar.branchs.putAll(
-            SyncF.fromJson(jsonDecode(response.body)).tenants.first.branches);
+        return isar.branchs.putAll(syncF.tenants.first.branches);
       });
 
-      return SyncF.fromJson(jsonDecode(response.body));
+      return syncF;
     } else if (response.statusCode == 401) {
       throw SessionException(term: "session expired");
     } else if (response.statusCode == 500) {
       throw ErrorReadingFromYBServer(term: "Not found");
-    } else {
-      throw Exception('403 Error');
-    }
-  }
-
-  /// when adding a user call this endPoint to create a user first.
-  /// then call add this user to tenants of specific business/branch.
-  @override
-  Future<SyncF> user({required String userPhone}) async {
-    final response = await http.post(
-      Uri.parse(apihub + '/v2/api/user'),
-      headers: <String, String>{
-        'Content-Type': 'application/json',
-      },
-      body: json.encode(
-        {"phoneNumber": userPhone},
-      ),
-    );
-    if (response.statusCode == 200) {
-      return SyncF.fromJson(jsonDecode(response.body));
-    } else if (response.statusCode == 401) {
-      throw SessionException(term: "session expired");
-    } else if (response.statusCode == 500) {
-      throw ErrorReadingFromYBServer(term: "Error from server");
     } else {
       throw Exception('403 Error');
     }

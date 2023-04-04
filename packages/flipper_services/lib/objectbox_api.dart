@@ -105,7 +105,7 @@
 //   //     throw SessionException(term: "session expired");
 //   //   }
 //   //   if (response.statusCode == 404) {
-//   //     throw NotFoundException(term: "Business not found");
+//   //     throw BusinessNotFoundException(term: "Business not found");
 //   //   } else if (response.statusCode == 500) {
 //   //     throw InternalServerException(term: "Business not found");
 //   //   }

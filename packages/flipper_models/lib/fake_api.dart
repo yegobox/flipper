@@ -59,7 +59,7 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
       throw SessionException(term: "session expired");
     }
     if (response.statusCode == 404) {
-      throw NotFoundException(term: "Business not found");
+      throw BusinessNotFoundException(term: "Business not found");
     }
 
     // Parse the response body and create a Business object
@@ -81,7 +81,7 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
   }
 
   @override
-  Future<SyncF> login({required String userPhone}) async {
+  Future<IUser> login({required String userPhone}) async {
     final jsonResponse = {
       "id": 1651165831880765,
       "phoneNumber": "+250783054874",
@@ -109,7 +109,6 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
               "createdAt": "2021-10-05T19:28:08.612022",
               "updatedAt": null,
               "isDefault": false,
-              "tenants": [],
               "default": false
             }
           ],
@@ -169,45 +168,44 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
           "nfcEnabled": false
         }
       ],
-      "channels": ["1651165831880765"],
-      "points": 0,
-      "editId": false,
-      "newId": 0
+      "channels": ["1651165831880765"]
     };
     final response = http.Response(jsonEncode(jsonResponse), 200);
     if (response.statusCode == 200) {
       await ProxyService.box.write(
         key: 'bearerToken',
-        value: SyncF.fromJson(jsonDecode(response.body)).token,
+        value: IUser.fromRawJson(response.body).token,
       );
       await ProxyService.box.write(
         key: 'defaultApp',
-        value: SyncF.fromJson(jsonDecode(response.body))
+        value: IUser.fromRawJson(response.body)
+            .tenants
+            .first
             .businesses
             .first
             .businessTypeId,
       );
       await ProxyService.box.write(
         key: 'userId',
-        value: SyncF.fromJson(jsonDecode(response.body)).id.toString(),
+        value: IUser.fromRawJson(response.body).id.toString(),
       );
       await ProxyService.box.write(
         key: 'userPhone',
         value: "+250783054874",
       );
-      if (SyncF.fromJson(jsonDecode(response.body)).tenants.isEmpty) {
-        throw NotFoundException(term: "Not found");
+      if (IUser.fromRawJson(response.body).tenants.isEmpty) {
+        throw TenantNotFoundException(term: "No tenant added to the user");
       }
       await isar.writeTxn(() async {
-        return isar.business.putAll(
-            SyncF.fromJson(jsonDecode(response.body)).tenants.first.businesses);
+        return isar.business
+            .putAll(IUser.fromRawJson(response.body).tenants.first.businesses);
       });
       await isar.writeTxn(() async {
-        return isar.branchs.putAll(
-            SyncF.fromJson(jsonDecode(response.body)).tenants.first.branches);
+        return isar.branchs
+            .putAll(IUser.fromRawJson(response.body).tenants.first.branches);
       });
 
-      return SyncF.fromJson(jsonDecode(response.body));
+      return IUser.fromRawJson(response.body);
     } else if (response.statusCode == 401) {
       throw SessionException(term: "session expired");
     } else if (response.statusCode == 500) {

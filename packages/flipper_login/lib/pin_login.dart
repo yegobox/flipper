@@ -83,7 +83,7 @@ class _PinLoginState extends State<PinLogin> {
                                         );
                                       } catch (e) {
                                         log("PinLogin" + e.toString());
-                                        if (e is NotFoundException) {
+                                        if (e is BusinessNotFoundException) {
                                           ScaffoldMessenger.of(context)
                                               .showSnackBar(
                                             const SnackBar(

@@ -27,7 +27,6 @@ class StartupViewModel extends BaseViewModel {
     required bool invokeLogin,
   }) async {
     LoginInfo().redirecting = true;
-
     try {
       /// an event should be trigered from mobile not desktop as desktop is anonmous and login() func might have been called.
       if (invokeLogin && !ProxyService.box.isAnonymous()) {
@@ -76,7 +75,7 @@ class StartupViewModel extends BaseViewModel {
       } else if (e is SessionException || e is ErrorReadingFromYBServer) {
         LoginInfo().isLoggedIn = false;
         _routerService.replaceWith(LoginViewRoute());
-      } else if (e is NotFoundException) {
+      } else if (e is BusinessNotFoundException) {
         _routerService.replaceWith(SignUpViewRoute(countryNm: "Rwanda"));
       } else {
         print(e);

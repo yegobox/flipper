@@ -139,7 +139,7 @@ class _TenantAddState extends State<TenantAdd> {
                                           if (_sub.currentState!.validate()) {
                                             log(_phoneController.text);
                                             try {
-                                              await ProxyService.isarApi.user(
+                                              await ProxyService.isarApi.login(
                                                   userPhone:
                                                       _phoneController.text);
                                               Business? business =
