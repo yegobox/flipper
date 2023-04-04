@@ -96,6 +96,7 @@ class SignupViewModel extends ReactiveViewModel {
       if (jTenants.isNotEmpty) {
         /// create tenants.
         final String userId = ProxyService.box.getUserId()!;
+        ProxyService.box.write(key: 'businessTypeId', value: businessType.id);
         Business? business = await ProxyService.isarApi
             .getBusinessById(id: jTenants.first.businesses.first.id!);
 

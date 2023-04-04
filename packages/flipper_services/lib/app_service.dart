@@ -116,6 +116,8 @@ class AppService with ListenableServiceMixin {
       await setActiveBusiness(businesses);
       await loadTenants(businesses);
       await loadCounters(businesses.first);
+      ProxyService.box
+          .write(key: 'defaultApp', value: businesses.first.businessTypeId);
       bool defaultBranch = await setActiveBranch(businesses: businesses.first);
 
       if (!defaultBranch) {

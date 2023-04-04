@@ -151,6 +151,7 @@ class _LoginChoicesState extends State<LoginChoices> {
     if (_businessChoosen) {
       model.setDefaultBusiness(business: business);
       print(business.id);
+      ProxyService.box.write(key: 'defaultApp', value: business.businessTypeId);
       model.branchesList(
           await ProxyService.isarApi.branches(businessId: business.id!));
       List<ITenant> tenants =
