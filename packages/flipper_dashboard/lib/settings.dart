@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_settings_ui/flutter_settings_ui.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/isar_models.dart' as isar;
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 
 class SettingPage extends StatelessWidget {
   SettingPage({Key? key, this.business}) : super(key: key);
@@ -24,9 +26,13 @@ class SettingPage extends StatelessWidget {
             child: Center(
               child: Column(
                 children: [
-                  const Text(
-                    "Settings",
-                  ),
+                  SizedBox(height: 10),
+                  Text("Settings",
+                      style: GoogleFonts.poppins(
+                        fontSize: 17.0,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black,
+                      )),
                   Flexible(
                     child: SettingsList(
                       backgroundColor: Theme.of(context).canvasColor,
@@ -38,13 +44,11 @@ class SettingPage extends StatelessWidget {
                               leading: CircleAvatar(
                                 backgroundColor: Colors.white,
                                 child: Icon(
-                                  Icons.person,
-                                  color: Theme.of(context).primaryColor,
+                                  FluentIcons.person_24_regular,
                                 ),
                               ),
                               trailing: Icon(
-                                Icons.arrow_forward_ios,
-                                color: Theme.of(context).primaryColor,
+                                FluentIcons.chevron_right_24_regular,
                               ),
                               onPressed: (BuildContext context) {},
                             ),
@@ -53,13 +57,11 @@ class SettingPage extends StatelessWidget {
                               leading: CircleAvatar(
                                 backgroundColor: Colors.white,
                                 child: Icon(
-                                  Icons.computer,
-                                  color: Theme.of(context).primaryColor,
+                                  FluentIcons.desktop_24_regular,
                                 ),
                               ),
                               trailing: Icon(
-                                Icons.arrow_forward_ios,
-                                color: Theme.of(context).primaryColor,
+                                FluentIcons.chevron_right_24_regular,
                               ),
                               onPressed: (BuildContext context) {
                                 _routerService.replaceWith(
@@ -71,13 +73,11 @@ class SettingPage extends StatelessWidget {
                               leading: CircleAvatar(
                                 backgroundColor: Colors.white,
                                 child: Icon(
-                                  Icons.print,
-                                  color: Theme.of(context).primaryColor,
+                                  FluentIcons.print_24_regular,
                                 ),
                               ),
                               trailing: Icon(
-                                Icons.arrow_forward_ios,
-                                color: Theme.of(context).primaryColor,
+                                FluentIcons.chevron_right_24_regular,
                               ),
                               onPressed: (BuildContext context) {
                                 _routerService.replaceWith(PrintingRoute());
@@ -88,13 +88,11 @@ class SettingPage extends StatelessWidget {
                               leading: CircleAvatar(
                                 backgroundColor: Colors.white,
                                 child: Icon(
-                                  Icons.backup,
-                                  color: Theme.of(context).primaryColor,
+                                  FluentIcons.arrow_upload_20_regular,
                                 ),
                               ),
                               trailing: Icon(
-                                Icons.arrow_forward_ios,
-                                color: Theme.of(context).primaryColor,
+                                FluentIcons.chevron_right_24_regular,
                               ),
                               onPressed: (BuildContext context) {
                                 _routerService.replaceWith(BackUpRoute());
@@ -105,13 +103,11 @@ class SettingPage extends StatelessWidget {
                               leading: CircleAvatar(
                                 backgroundColor: Colors.white,
                                 child: Icon(
-                                  Icons.calculate,
-                                  color: Theme.of(context).primaryColor,
+                                  FluentIcons.calculator_24_regular,
                                 ),
                               ),
                               trailing: Icon(
-                                Icons.arrow_forward_ios,
-                                color: Theme.of(context).primaryColor,
+                                FluentIcons.chevron_right_24_regular,
                               ),
                               onPressed: (BuildContext context) {
                                 _routerService
@@ -123,13 +119,11 @@ class SettingPage extends StatelessWidget {
                               leading: CircleAvatar(
                                 backgroundColor: Colors.white,
                                 child: Icon(
-                                  Icons.group_add,
-                                  color: Theme.of(context).primaryColor,
+                                  FluentIcons.people_add_24_regular,
                                 ),
                               ),
                               trailing: Icon(
-                                Icons.arrow_forward_ios,
-                                color: Theme.of(context).primaryColor,
+                                FluentIcons.chevron_right_24_regular,
                               ),
                               onPressed: (BuildContext context) async {
                                 _routerService.replaceWith(TenantAddRoute());
@@ -140,13 +134,11 @@ class SettingPage extends StatelessWidget {
                               leading: CircleAvatar(
                                 backgroundColor: Colors.white,
                                 child: Icon(
-                                  Icons.draw_rounded,
-                                  color: Theme.of(context).primaryColor,
+                                  FluentIcons.paint_brush_24_regular,
                                 ),
                               ),
                               trailing: Icon(
-                                Icons.arrow_forward_ios,
-                                color: Theme.of(context).primaryColor,
+                                FluentIcons.chevron_right_24_regular,
                               ),
                               onPressed: (BuildContext context) async {
                                 // get active drawer
@@ -156,6 +148,26 @@ class SettingPage extends StatelessWidget {
                                             ProxyService.box.getBusinessId()!);
                                 _routerService.replaceWith(DrawerScreenRoute(
                                     open: "close", drawer: drawer));
+                              },
+                            ),
+                            SettingsTile(
+                              title: "Switch to customer support",
+                              leading: CircleAvatar(
+                                backgroundColor: Colors.white,
+                                child: Icon(
+                                  FluentIcons.comment_24_regular,
+                                ),
+                              ),
+                              trailing: Icon(
+                                FluentIcons.chevron_right_24_regular,
+                              ),
+                              onPressed: (BuildContext context) async {
+                                // get active drawer
+                                ProxyService.box
+                                    .write(key: 'defaultApp', value: 1);
+                                // navigate
+                                _routerService
+                                    .navigateTo(SocialHomeViewRoute());
                               },
                             )
                           ],
