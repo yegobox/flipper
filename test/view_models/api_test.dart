@@ -9,7 +9,7 @@ void main() {
     setUpAll(() async {
       // registerServices();
       // await setupLocator();
-      // ProxyService.box.write(key: 'userId', value: "1");
+      // ProxyService.box.write(key: 'userId', value: 1);
       // ProxyService.box.write(key: 'businessId', value: 1);
       // ProxyService.box.write(key: 'branchId', value: 1);
     });

@@ -33,7 +33,7 @@ class ProductService with ListenableServiceMixin {
     notifyListeners();
   }
 
-  String? get userId => ProxyService.box.getUserId();
+  int? get userId => ProxyService.box.getUserId();
   int? get branchId => ProxyService.box.getBranchId()!;
 
   setProductUnit({required String unit}) {

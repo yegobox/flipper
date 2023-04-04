@@ -36,7 +36,7 @@ class ForceDataEntryService {
             ..branchId = branchId
             ..businessId = businessId);
     }
-    final String? userId = ProxyService.box.getUserId();
+    final int? userId = ProxyService.box.getUserId();
     final List<String> colors = [
       '#d63031',
       '#0984e3',
@@ -51,7 +51,7 @@ class ForceDataEntryService {
     final PColor color = PColor()
       ..id = DateTime.now().millisecondsSinceEpoch
       ..colors = colors
-      ..channels = [userId!]
+      ..channels = [userId!.toString()]
       ..active = false
       ..branchId = branchId
       ..name = '#d63031';

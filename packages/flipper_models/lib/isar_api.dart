@@ -474,7 +474,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<Pin?> createPin() async {
-    String id = ProxyService.box.getUserId()!;
+    String id = ProxyService.box.getUserId()!.toString();
     //get existing pin where userId =1
     // if pin is null then create new pin
     Pin? pin = await isar.pins.filter().userIdEqualTo(id).findFirst();
@@ -752,9 +752,12 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<Business?> getBusiness() {
-    String? userId = ProxyService.box.getUserId();
+    int? userId = ProxyService.box.getUserId();
     return isar.writeTxn(() {
-      return isar.business.filter().userIdEqualTo(userId!).findFirst();
+      return isar.business
+          .filter()
+          .userIdEqualTo(userId?.toString())
+          .findFirst();
     });
   }
 
@@ -869,9 +872,9 @@ class IsarAPI<M> implements IsarApiInterface {
   // get list of Business from isar where userId = userId
   // if list is empty then get list from online
   @override
-  Future<List<Business>> businesses({required String userId}) async {
+  Future<List<Business>> businesses({required int userId}) async {
     List<Business> businesses =
-        await isar.business.filter().userIdEqualTo(userId).findAll();
+        await isar.business.filter().userIdEqualTo(userId.toString()).findAll();
 
     return businesses;
   }
@@ -1146,7 +1149,6 @@ class IsarAPI<M> implements IsarApiInterface {
         <String, String>{'phoneNumber': userPhone},
       ),
     );
-//here
     if (response.statusCode == 200 && response.body.isNotEmpty) {
       IUser syncF = IUser.fromRawJson(response.body);
       log(syncF.token);
@@ -1157,7 +1159,15 @@ class IsarAPI<M> implements IsarApiInterface {
       );
       await ProxyService.box.write(
         key: 'userId',
-        value: syncF.id.toString(),
+        value: syncF.id,
+      );
+      await ProxyService.box.write(
+        key: 'branchId',
+        value: syncF.tenants.first.branches.first.id,
+      );
+      await ProxyService.box.write(
+        key: 'defaultApp',
+        value: syncF.tenants.first.businesses.first.businessTypeId,
       );
       await ProxyService.box.write(
         key: 'userPhone',

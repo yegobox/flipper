@@ -30,7 +30,7 @@ class LocalStorageImpl implements LocalStorage {
   }
 
   @override
-  String? getUserId() {
+  int? getUserId() {
     return box.read('userId');
   }
 

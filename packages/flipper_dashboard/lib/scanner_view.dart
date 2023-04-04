@@ -138,10 +138,10 @@ class _ScannViewState extends State<ScannView> {
       final split = result.split('-');
       if (split.length > 1 && split[0] == 'login') {
         /// send the login detail to pubnub
-        String userId = ProxyService.box.read(key: 'userId');
-        int businessId = ProxyService.box.read(key: 'businessId');
-        int branchId = ProxyService.box.read(key: 'branchId');
-        String phone = ProxyService.box.read(key: 'userPhone');
+        int userId = ProxyService.box.getUserId()!;
+        int businessId = ProxyService.box.getBusinessId()!;
+        int branchId = ProxyService.box.getBranchId()!;
+        String phone = ProxyService.box.getUserPhone()!;
         ProxyService.event.publish(loginDetails: {
           // this avoid users to log in to unintended device!
           'channel': split[1],

@@ -105,7 +105,7 @@ ProductService getAndRegisterProductService() {
   final service = MockProductService();
   when(service.currentUnit).thenReturn('kg');
   when(service.branchId).thenReturn(10);
-  when(service.userId).thenReturn("300");
+  when(service.userId).thenReturn(300);
   locator.registerSingleton<ProductService>(service);
   return service;
 }
@@ -159,7 +159,7 @@ MockSettingsService getAndRegisterSettingsService() {
 MockLocalStorage getAndRegisterLocalStorage() {
   _removeRegistrationIfExists<LocalStorage>();
   final service = MockLocalStorage();
-  when(service.getUserId()).thenAnswer((_) => '300');
+  when(service.getUserId()).thenAnswer((_) => 300);
   when(service.getBusinessId()).thenAnswer((_) => 10);
   when(service.getBranchId()).thenAnswer((_) => 11);
   when(service.read(key: 'bearerToken')).thenAnswer((_) => 'TOKEN');

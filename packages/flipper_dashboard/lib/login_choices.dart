@@ -28,7 +28,7 @@ class _LoginChoicesState extends State<LoginChoices> {
     return ViewModelBuilder<BusinessHomeViewModel>.reactive(
         viewModelBuilder: () => BusinessHomeViewModel(),
         onViewModelReady: (model) async {
-          String? userId = ProxyService.box.getUserId();
+          int? userId = ProxyService.box.getUserId();
           List<Business> _b =
               await ProxyService.isarApi.businesses(userId: userId!);
           if (_b.isEmpty) {

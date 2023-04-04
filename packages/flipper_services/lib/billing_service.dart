@@ -40,7 +40,7 @@ class BillingService {
 
   Future<bool> activeSubscription() async {
     if (ProxyService.box.getUserId() == null) return false;
-    int userId = int.parse(ProxyService.box.getUserId()!);
+    int userId = ProxyService.box.getUserId()!;
     Subscription? sub =
         await ProxyService.isarApi.getSubscription(userId: userId);
     if (sub != null) {

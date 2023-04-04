@@ -104,13 +104,13 @@ class AppService with ListenableServiceMixin {
   /// set the env the current user is operating in.
 
   Future<void> appInit() async {
-    String? userId = ProxyService.box.getUserId();
+    int? userId = ProxyService.box.getUserId();
     if (userId == null) return;
     List<isar.Business> businesses =
         await ProxyService.isarApi.businesses(userId: userId);
     if (businesses.isEmpty) {
-      businesses
-          .add(await ProxyService.isarApi.getOnlineBusiness(userId: userId));
+      businesses.add(await ProxyService.isarApi
+          .getOnlineBusiness(userId: userId.toString()));
     }
     if (businesses.length == 1) {
       await setActiveBusiness(businesses);

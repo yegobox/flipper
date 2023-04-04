@@ -95,8 +95,8 @@ class SignupViewModel extends ReactiveViewModel {
       });
       if (jTenants.isNotEmpty) {
         /// create tenants.
-        final String userId = ProxyService.box.getUserId()!;
-        ProxyService.box.write(key: 'businessTypeId', value: businessType.id);
+        final int userId = ProxyService.box.getUserId()!;
+        ProxyService.box.write(key: 'defaultApp', value: businessType.id);
         Business? business = await ProxyService.isarApi
             .getBusinessById(id: jTenants.first.businesses.first.id!);
 
@@ -126,7 +126,7 @@ class SignupViewModel extends ReactiveViewModel {
         final PColor color = PColor()
           ..id = DateTime.now().millisecondsSinceEpoch
           ..colors = colors
-          ..channels = [userId]
+          ..channels = [userId.toString()]
           ..active = false
           ..branchId = branches[0].id
           ..name = 'sample';

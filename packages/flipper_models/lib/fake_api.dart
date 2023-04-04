@@ -187,7 +187,7 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
       );
       await ProxyService.box.write(
         key: 'userId',
-        value: IUser.fromRawJson(response.body).id.toString(),
+        value: IUser.fromRawJson(response.body).id,
       );
       await ProxyService.box.write(
         key: 'userPhone',

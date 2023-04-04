@@ -151,7 +151,7 @@ class SettingPage extends StatelessWidget {
                               },
                             ),
                             SettingsTile(
-                              title: "Switch to customer support",
+                              title: "Switch to Customer Support",
                               leading: CircleAvatar(
                                 backgroundColor: Colors.white,
                                 child: Icon(
