@@ -69,6 +69,7 @@ class StartUpView extends StackedView<StartupViewModel> {
             ProxyService.box.getBusinessId() != null &&
             ProxyService.box.getUserId() != null) {
           InitApp.init();
+          ProxyService.remoteApi.listenToChanges();
         }
         viewModel.runStartupLogic(invokeLogin: invokeLogin ?? false);
       });
