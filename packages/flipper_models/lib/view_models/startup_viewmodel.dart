@@ -67,7 +67,7 @@ class StartupViewModel extends BaseViewModel {
         // }
 
         /// end of debug code
-        if (ProxyService.box.getDefaultApp() == 1) {
+        if (ProxyService.box.getDefaultApp() == 2) {
           _routerService.navigateTo(SocialHomeViewRoute());
         } else {
           _routerService.navigateTo(DrawerScreenRoute(open: "open"));

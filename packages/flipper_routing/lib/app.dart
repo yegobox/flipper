@@ -131,3 +131,6 @@ class App {}
 // https://pub.dev/packages/any_link_preview
 // https://pub.dev/packages/chat_list
 //  stacked create app name --template=web
+
+// TODO: learn from twitter algo
+// https://blog.twitter.com/engineering/en_us/topics/open-source/2023/twitter-recommendation-algorithm
