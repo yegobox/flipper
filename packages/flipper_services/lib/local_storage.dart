@@ -29,9 +29,34 @@ class LocalStorageImpl implements LocalStorage {
     return box.read('businessId');
   }
 
-  @override
   int? getUserId() {
-    return box.read('userId');
+    // get the userId as a dynamic value
+    dynamic userId = box.read('userId');
+    // check if the userId is a String
+    if (userId is String) {
+      // check if the userId is a valid int
+      if (isNumeric(userId)) {
+        // parse the userId as an int
+        return int.parse(userId);
+      } else {
+        // return null or some default value
+        return null;
+      }
+    } else if (userId is int) {
+      // return the userId as an int
+      return userId;
+    } else {
+      // return null or some default value
+      return null;
+    }
+  }
+
+// a helper function to check if a String is a valid int
+  bool isNumeric(String? s) {
+    if (s == null) {
+      return false;
+    }
+    return int.tryParse(s) != null;
   }
 
   @override
