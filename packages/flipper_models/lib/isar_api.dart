@@ -24,10 +24,12 @@ class ExtendedClient extends http.BaseClient {
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
-    String token = ProxyService.box.getBearerToken()!;
-    int userId = ProxyService.box.getUserId()!;
-    request.headers['Authorization'] = token;
-    request.headers['userId'] = userId.toString();
+    /// token,userId can be null when is desktop login with pin
+    String? token = ProxyService.box.getBearerToken();
+    int? userId = ProxyService.box.getUserId();
+
+    request.headers['Authorization'] = token ?? "";
+    request.headers['userId'] = userId == null ? "" : userId.toString();
     request.headers['Content-Type'] = 'application/json';
 
     try {

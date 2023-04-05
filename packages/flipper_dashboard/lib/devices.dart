@@ -13,7 +13,7 @@ class Devices extends StatelessWidget {
     return Scaffold(
       appBar: CustomAppBar(
         onPop: () async {
-          _routerService.pop();
+          _routerService.navigateTo(LoginViewRoute());
         },
         title: 'Link Device',
         disableButton: false,

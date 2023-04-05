@@ -3,7 +3,9 @@ import 'package:pubnub/pubnub.dart' as nub;
 import 'package:flipper_services/proxy.dart';
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
-
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'login_event.dart';
 
 LoginData loginDataFromMap(String str) => LoginData.fromMap(json.decode(str));
@@ -11,6 +13,7 @@ LoginData loginDataFromMap(String str) => LoginData.fromMap(json.decode(str));
 String loginDataToMap(LoginData data) => json.encode(data.toMap());
 
 class EventService implements EventInterface {
+  final _routerService = locator<RouterService>();
   nub.PubNub? pubnub;
   final keySet = nub.Keyset(
     subscribeKey: 'sub-c-2fb5f1f2-84dc-11ec-9f2b-a2cedba671e8',
@@ -44,10 +47,12 @@ class EventService implements EventInterface {
         if (loginData.userId == ProxyService.box.getUserId()) {
           await FirebaseAuth.instance.signOut();
           ProxyService.isarApi.logOut();
+          _routerService.navigateTo(LoginViewRoute());
         }
       });
-    } catch (e) {
-      rethrow;
+    } catch (e, stacktrace) {
+      print(e);
+      print(stacktrace);
     }
   }
 

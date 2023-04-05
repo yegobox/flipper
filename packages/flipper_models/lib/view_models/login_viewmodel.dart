@@ -80,6 +80,9 @@ class LoginViewModel extends FormViewModel {
         //I will work on this when sync on isar is complete I don't want to use firestoreanymore!
         // final deviceInfoPlugin = DeviceInfoPlugin();
       }
+    } else {
+      _isProceeding = false;
+      notifyListeners();
     }
   }
 

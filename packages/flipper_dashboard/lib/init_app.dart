@@ -43,7 +43,7 @@ class InitApp {
     ProxyService.messaging.init();
     if (isDesktopOrWeb) {
       ProxyService.event.subscribeToLogoutEvent(
-          channel: "${ProxyService.box.getUserId()!}-logout");
+          channel: "${ProxyService.box.getUserId()}-logout");
     }
 
     /// to avoid receiving the message of the contact you don't have in your book

@@ -9,7 +9,7 @@ class LoginData {
 
   String channel;
 
-  String userId;
+  int userId;
   int businessId;
   int branchId;
   String phone;

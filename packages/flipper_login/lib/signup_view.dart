@@ -274,13 +274,13 @@ class _SignUpViewState extends State<SignUpView> {
                                   ),
                                 )
                               : const Padding(
-                                  key: Key('busyButon'),
+                                  key: Key('busyButton'),
                                   padding: EdgeInsets.only(left: 0, right: 0),
                                   child: SizedBox(
                                     width: double.infinity,
                                     height: 50,
                                     child: BoxButton(
-                                      title: 'SIGN IN',
+                                      title: 'Log in',
                                       busy: true,
                                     ),
                                   ),
