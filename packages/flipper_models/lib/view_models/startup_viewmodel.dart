@@ -58,14 +58,6 @@ class StartupViewModel extends BaseViewModel {
         _routerService.replaceWith(LoginChoicesRoute());
       } else if (e is NoDrawerOpenException) {
         /// in debug mode start with the signup flow, this will help in testing entire flow instead of jumping
-        /// right to opening drawer, start of debug code
-        /// comment them after testing
-        // if (kDebugMode) {
-        //   _routerService.navigateTo(SignUpViewRoute(countryNm: "Rwanda"));
-        // } else {
-        //   _routerService.navigateTo(DrawerScreenRoute(open: "open"));
-        // }
-
         /// end of debug code
         if (ProxyService.box.getDefaultApp() == 2) {
           _routerService.navigateTo(SocialHomeViewRoute());
