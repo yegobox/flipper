@@ -44,7 +44,8 @@ class EventService implements EventInterface {
       nub.Subscription subscription = pubnub!.subscribe(channels: {channel});
       subscription.messages.listen((envelope) async {
         LoginData loginData = LoginData.fromMap(envelope.payload);
-        if (loginData.userId == ProxyService.box.getUserId()) {
+        if (ProxyService.box.getUserId() != null &&
+            loginData.userId == ProxyService.box.getUserId()) {
           await FirebaseAuth.instance.signOut();
           ProxyService.isarApi.logOut();
           _routerService.navigateTo(LoginViewRoute());
