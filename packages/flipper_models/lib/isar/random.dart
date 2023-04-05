@@ -28,8 +28,12 @@ String syncId() {
 int syncIdInt() {
   final random = Random();
   const chars = '0123456789';
-  final idString = String.fromCharCodes(
+  var idString = String.fromCharCodes(
       List.generate(14, (_) => chars.codeUnitAt(random.nextInt(chars.length))));
+  // Add a leading zero if idString starts with zero
+  if (idString.startsWith('0')) {
+    idString = '0' + idString;
+  }
   final lastDigit = (10 -
           (idString.codeUnits
                   .map((unit) => unit - 48)
