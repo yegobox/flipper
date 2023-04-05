@@ -132,7 +132,7 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                                                   onTap: () async {
                                                     await ProxyService.isarApi
                                                         .logOut();
-                                                    _routerService.replaceWith(
+                                                    _routerService.navigateTo(
                                                         StartUpViewRoute());
                                                   },
                                                   child:

@@ -3,12 +3,14 @@ import 'package:flipper_socials/ui/widgets/chat_model.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
-
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'chat_list_viewmodel.dart';
 
 class ChatListViewMobile extends ViewModelWidget<ChatListViewModel> {
   ChatListViewMobile({super.key});
-
+  final _routerService = locator<RouterService>();
   final List<Chat> chats = [
     Chat(
       name: 'Alice',
@@ -50,7 +52,11 @@ class ChatListViewMobile extends ViewModelWidget<ChatListViewModel> {
           // An icon button that shows a logout icon to sign out
           IconButton(
             icon: const Icon(FluentIcons.sign_out_24_regular),
-            onPressed: ProxyService.isarApi.logOut,
+            onPressed: () {
+              ProxyService.isarApi.logOut();
+              // navigate to login page
+              _routerService.navigateTo(const LoginViewRoute());
+            },
           ),
         ],
       ),
