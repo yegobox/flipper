@@ -27,6 +27,7 @@ class StartupViewModel extends BaseViewModel {
     required bool invokeLogin,
   }) async {
     LoginInfo().redirecting = true;
+    // ProxyService.isarApi.logOut();
     try {
       /// an event should be trigered from mobile not desktop as desktop is anonmous and login() func might have been called.
       if (invokeLogin && !ProxyService.box.isAnonymous()) {
@@ -42,7 +43,12 @@ class StartupViewModel extends BaseViewModel {
       if (await ProxyService.isarApi
               .isDrawerOpen(cashierId: ProxyService.box.getBusinessId()!) ==
           null) {
-        throw NoDrawerOpenException(term: "Business Drawer is not open");
+        if (ProxyService.box.getDefaultApp() == 2) {
+          _routerService.navigateTo(SocialHomeViewRoute());
+        } else {
+          _routerService.navigateTo(DrawerScreenRoute(open: "open"));
+        }
+        return;
       }
       LoginInfo().isLoggedIn = true;
 
@@ -56,19 +62,11 @@ class StartupViewModel extends BaseViewModel {
         LoginInfo().isLoggedIn = false;
         LoginInfo().loginChoices = true;
         _routerService.replaceWith(LoginChoicesRoute());
-      } else if (e is NoDrawerOpenException) {
-        /// in debug mode start with the signup flow, this will help in testing entire flow instead of jumping
-        /// end of debug code
-        if (ProxyService.box.getDefaultApp() == 2) {
-          _routerService.navigateTo(SocialHomeViewRoute());
-        } else {
-          _routerService.navigateTo(DrawerScreenRoute(open: "open"));
-        }
       } else if (e is SessionException || e is ErrorReadingFromYBServer) {
         LoginInfo().isLoggedIn = false;
         _routerService.replaceWith(LoginViewRoute());
       } else if (e is BusinessNotFoundException) {
-        _routerService.replaceWith(SignUpViewRoute(countryNm: "Rwanda"));
+        _routerService.navigateTo(SignUpViewRoute(countryNm: "Rwanda"));
       } else {
         print(stackTrace);
         ProxyService.isarApi.logOut();

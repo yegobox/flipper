@@ -110,9 +110,13 @@ class AppService with ListenableServiceMixin {
     List<isar.Business> businesses =
         await ProxyService.isarApi.businesses(userId: userId);
     if (businesses.isEmpty) {
-      Business b = await ProxyService.isarApi
-          .getOnlineBusiness(userId: userId.toString());
-      businesses.add(b);
+      try {
+        Business b = await ProxyService.isarApi
+            .getOnlineBusiness(userId: userId.toString());
+        businesses.add(b);
+      } catch (e) {
+        rethrow;
+      }
     }
     if (businesses.length == 1) {
       await setActiveBusiness(businesses);

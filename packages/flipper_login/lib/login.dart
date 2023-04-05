@@ -80,13 +80,7 @@ class _LoginViewState extends State<LoginView>
   Widget build(BuildContext context) {
     super.build(context);
     return ViewModelBuilder<StartupViewModel>.reactive(
-      onViewModelReady: (model) {
-        FirebaseAuth.instance.userChanges().listen((event) {
-          if (event != null) {
-            model.runStartupLogic(invokeLogin: true);
-          }
-        });
-      },
+      onViewModelReady: (model) {},
       viewModelBuilder: () => StartupViewModel(context: context),
       builder: (context, model, child) {
         return StreamBuilder<User?>(

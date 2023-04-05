@@ -47,37 +47,11 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
     }
   }
 
+  /// because when fake API is used we want to always start from signup
+  /// when there is no business we will always get a business not found exception
   @override
   Future<Business> getOnlineBusiness({required String userId}) async {
-    // Fake response with the provided data
-    final response = http.Response(
-      '{ "id": 1642645, "name": "Test001", "currency": null, "categoryId": null, "latitude": "293.98", "longitude": "-344.49", "userId": "1651165831880765", "typeId": null, "timeZone": null, "channels": null, "table": null, "country": "Rwanda", "businessUrl": null, "hexColor": null, "imageUrl": null, "type": "business", "referredBy": "Richie", "createdAt": "2/22/2021", "updatedAt": null, "metadata": null, "role": null, "lastSeen": 0, "firstName": null, "lastName": null, "reported": "true", "phoneNumber": "+250783054873", "deviceToken": null, "chatUid": null, "backUpEnabled": false, "subscriptionPlan": null, "nextBillingDate": null, "previousBillingDate": null, "isLastSubscriptionPaymentSucceeded": false, "backupFileId": null, "email": null, "lastDbBackup": null, "fullName": "Richie", "referralCode": null, "authId": null, "tinNumber": 12222, "dvcSrlNo": "warvsdcoriongatetest", "bhfId": "00", "adrs": null, "taxEnabled": false, "isDefault": true, "default": true, "lastSubscriptionPaymentSucceeded": false }',
-      200,
-    );
-
-    if (response.statusCode == 401) {
-      throw SessionException(term: "session expired");
-    }
-    if (response.statusCode == 404) {
-      throw BusinessNotFoundException(term: "Business not found");
-    }
-
-    // Parse the response body and create a Business object
-    final business = fromJson(response.body);
-
-    await isar.writeTxn(() async {
-      // Put the business object in the database
-      return isar.business.put(business);
-    });
-
-    // Get the business object from the database
-    final savedBusiness = await isar.writeTxn(() {
-      return isar.business.filter().userIdEqualTo(userId).findFirst();
-    });
-
-    ProxyService.box.write(key: 'businessId', value: savedBusiness!.id);
-
-    return savedBusiness;
+    throw BusinessNotFoundException(term: "Business not found");
   }
 
   @override
