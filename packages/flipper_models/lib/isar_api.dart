@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:developer';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_models/data.loads/jcounter.dart';
 import 'package:flipper_models/isar/utils.dart';
@@ -1025,7 +1024,7 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<bool> logOut() async {
+  Future<void> logOut() async {
     // delete all business and branches from isar db for
     // potential next business that can log-in to not mix data.
     await isar.writeTxn(() async {
@@ -1054,7 +1053,6 @@ class IsarAPI<M> implements IsarApiInterface {
     LoginInfo().isLoggedIn = false;
     LoginInfo().needSignUp = false;
     FirebaseAuth.instance.signOut();
-    return await Future.value(true);
   }
 
   @override
@@ -1148,10 +1146,7 @@ class IsarAPI<M> implements IsarApiInterface {
     );
     if (response.statusCode == 200 && response.body.isNotEmpty) {
       IUser syncF = IUser.fromRawJson(response.body);
-      log(syncF.token);
-      log(syncF.id.toString());
-      log(syncF.tenants.first.branches.first.id.toString());
-      log(syncF.tenants.first.businesses.first.businessTypeId.toString());
+
       await ProxyService.box.write(
         key: 'bearerToken',
         value: syncF.token,

@@ -1,21 +1,29 @@
-// void main() {
-//   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+// Import the test package and Counter class
+import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
+import 'package:flipper_rw/main.dart' as app;
 
-//   testWidgets(
-//   "Not inputting a text and wanting to go to the display page shows "
-//   "an error and prevents from going to the display page.",
-//   (WidgetTester tester) async {
-//     // Testing starts at the root widget in the widget tree
-//     await tester.pumpWidget(MyApp());
+void main() {
+  // Use IntegrationTestWidgetsFlutterBinding to ensure that tests are run on
+  // a real device or emulator
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-//     await tester.tap(find.byType(FloatingActionButton));
-//     // Wait for all the animations to finish
-//     await tester.pumpAndSettle();
+  // Define a test using testWidgets
+  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
+    // Run the app
+    app.main();
+    await tester.pumpAndSettle();
 
-//     expect(find.byType(TypingPage), findsOneWidget);
-//     expect(find.byType(DisplayPage), findsNothing);
-//     // This is the text displayed by an error message on the TextFormField
-//     expect(find.text('Input at least one character'), findsOneWidget);
-//   },
-// );
-// }
+    // Verify that the counter starts at 0
+    expect(find.text('0'), findsOneWidget);
+    expect(find.text('1'), findsNothing);
+
+    // Find and tap the increment button
+    // await tester.tap(find.byKey(const Key('increment')));
+    await tester.pumpAndSettle();
+
+    // Verify that the counter has incremented
+    expect(find.text('0'), findsNothing);
+    expect(find.text('1'), findsOneWidget);
+  });
+}
