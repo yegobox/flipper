@@ -182,43 +182,33 @@ const BusinessSchema = CollectionSchema(
       name: r'subscriptionPlan',
       type: IsarType.string,
     ),
-    r'table': PropertySchema(
-      id: 33,
-      name: r'table',
-      type: IsarType.string,
-    ),
     r'taxEnabled': PropertySchema(
-      id: 34,
+      id: 33,
       name: r'taxEnabled',
       type: IsarType.bool,
     ),
     r'taxServerUrl': PropertySchema(
-      id: 35,
+      id: 34,
       name: r'taxServerUrl',
       type: IsarType.string,
     ),
     r'timeZone': PropertySchema(
-      id: 36,
+      id: 35,
       name: r'timeZone',
       type: IsarType.string,
     ),
     r'tinNumber': PropertySchema(
-      id: 37,
+      id: 36,
       name: r'tinNumber',
       type: IsarType.long,
     ),
     r'type': PropertySchema(
-      id: 38,
+      id: 37,
       name: r'type',
       type: IsarType.string,
     ),
-    r'typeId': PropertySchema(
-      id: 39,
-      name: r'typeId',
-      type: IsarType.string,
-    ),
     r'userId': PropertySchema(
-      id: 40,
+      id: 38,
       name: r'userId',
       type: IsarType.string,
     )
@@ -426,12 +416,6 @@ int _businessEstimateSize(
     }
   }
   {
-    final value = object.table;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
-  {
     final value = object.taxServerUrl;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
@@ -445,12 +429,6 @@ int _businessEstimateSize(
   }
   {
     final value = object.type;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
-  {
-    final value = object.typeId;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
     }
@@ -503,14 +481,12 @@ void _businessSerialize(
   writer.writeString(offsets[30], object.previousBillingDate);
   writer.writeString(offsets[31], object.role);
   writer.writeString(offsets[32], object.subscriptionPlan);
-  writer.writeString(offsets[33], object.table);
-  writer.writeBool(offsets[34], object.taxEnabled);
-  writer.writeString(offsets[35], object.taxServerUrl);
-  writer.writeString(offsets[36], object.timeZone);
-  writer.writeLong(offsets[37], object.tinNumber);
-  writer.writeString(offsets[38], object.type);
-  writer.writeString(offsets[39], object.typeId);
-  writer.writeString(offsets[40], object.userId);
+  writer.writeBool(offsets[33], object.taxEnabled);
+  writer.writeString(offsets[34], object.taxServerUrl);
+  writer.writeString(offsets[35], object.timeZone);
+  writer.writeLong(offsets[36], object.tinNumber);
+  writer.writeString(offsets[37], object.type);
+  writer.writeString(offsets[38], object.userId);
 }
 
 Business _businessDeserialize(
@@ -553,14 +529,12 @@ Business _businessDeserialize(
     previousBillingDate: reader.readStringOrNull(offsets[30]),
     role: reader.readStringOrNull(offsets[31]),
     subscriptionPlan: reader.readStringOrNull(offsets[32]),
-    table: reader.readStringOrNull(offsets[33]),
-    taxEnabled: reader.readBoolOrNull(offsets[34]),
-    taxServerUrl: reader.readStringOrNull(offsets[35]),
-    timeZone: reader.readStringOrNull(offsets[36]),
-    tinNumber: reader.readLongOrNull(offsets[37]),
-    type: reader.readStringOrNull(offsets[38]),
-    typeId: reader.readStringOrNull(offsets[39]),
-    userId: reader.readStringOrNull(offsets[40]),
+    taxEnabled: reader.readBoolOrNull(offsets[33]),
+    taxServerUrl: reader.readStringOrNull(offsets[34]),
+    timeZone: reader.readStringOrNull(offsets[35]),
+    tinNumber: reader.readLongOrNull(offsets[36]),
+    type: reader.readStringOrNull(offsets[37]),
+    userId: reader.readStringOrNull(offsets[38]),
   );
   object.createdAt = reader.readStringOrNull(offsets[11]);
   return object;
@@ -640,20 +614,16 @@ P _businessDeserializeProp<P>(
     case 32:
       return (reader.readStringOrNull(offset)) as P;
     case 33:
-      return (reader.readStringOrNull(offset)) as P;
-    case 34:
       return (reader.readBoolOrNull(offset)) as P;
+    case 34:
+      return (reader.readStringOrNull(offset)) as P;
     case 35:
       return (reader.readStringOrNull(offset)) as P;
     case 36:
-      return (reader.readStringOrNull(offset)) as P;
-    case 37:
       return (reader.readLongOrNull(offset)) as P;
+    case 37:
+      return (reader.readStringOrNull(offset)) as P;
     case 38:
-      return (reader.readStringOrNull(offset)) as P;
-    case 39:
-      return (reader.readStringOrNull(offset)) as P;
-    case 40:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -5211,152 +5181,6 @@ extension BusinessQueryFilter
     });
   }
 
-  QueryBuilder<Business, Business, QAfterFilterCondition> tableIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'table',
-      ));
-    });
-  }
-
-  QueryBuilder<Business, Business, QAfterFilterCondition> tableIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'table',
-      ));
-    });
-  }
-
-  QueryBuilder<Business, Business, QAfterFilterCondition> tableEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'table',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Business, Business, QAfterFilterCondition> tableGreaterThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'table',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Business, Business, QAfterFilterCondition> tableLessThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'table',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Business, Business, QAfterFilterCondition> tableBetween(
-    String? lower,
-    String? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'table',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Business, Business, QAfterFilterCondition> tableStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'table',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Business, Business, QAfterFilterCondition> tableEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'table',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Business, Business, QAfterFilterCondition> tableContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'table',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Business, Business, QAfterFilterCondition> tableMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'table',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Business, Business, QAfterFilterCondition> tableIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'table',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Business, Business, QAfterFilterCondition> tableIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'table',
-        value: '',
-      ));
-    });
-  }
-
   QueryBuilder<Business, Business, QAfterFilterCondition> taxEnabledIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -5891,152 +5715,6 @@ extension BusinessQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'type',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Business, Business, QAfterFilterCondition> typeIdIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'typeId',
-      ));
-    });
-  }
-
-  QueryBuilder<Business, Business, QAfterFilterCondition> typeIdIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'typeId',
-      ));
-    });
-  }
-
-  QueryBuilder<Business, Business, QAfterFilterCondition> typeIdEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'typeId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Business, Business, QAfterFilterCondition> typeIdGreaterThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'typeId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Business, Business, QAfterFilterCondition> typeIdLessThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'typeId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Business, Business, QAfterFilterCondition> typeIdBetween(
-    String? lower,
-    String? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'typeId',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Business, Business, QAfterFilterCondition> typeIdStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'typeId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Business, Business, QAfterFilterCondition> typeIdEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'typeId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Business, Business, QAfterFilterCondition> typeIdContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'typeId',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Business, Business, QAfterFilterCondition> typeIdMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'typeId',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Business, Business, QAfterFilterCondition> typeIdIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'typeId',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Business, Business, QAfterFilterCondition> typeIdIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'typeId',
         value: '',
       ));
     });
@@ -6583,18 +6261,6 @@ extension BusinessQuerySortBy on QueryBuilder<Business, Business, QSortBy> {
     });
   }
 
-  QueryBuilder<Business, Business, QAfterSortBy> sortByTable() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'table', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Business, Business, QAfterSortBy> sortByTableDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'table', Sort.desc);
-    });
-  }
-
   QueryBuilder<Business, Business, QAfterSortBy> sortByTaxEnabled() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'taxEnabled', Sort.asc);
@@ -6652,18 +6318,6 @@ extension BusinessQuerySortBy on QueryBuilder<Business, Business, QSortBy> {
   QueryBuilder<Business, Business, QAfterSortBy> sortByTypeDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'type', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Business, Business, QAfterSortBy> sortByTypeId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'typeId', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Business, Business, QAfterSortBy> sortByTypeIdDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'typeId', Sort.desc);
     });
   }
 
@@ -7081,18 +6735,6 @@ extension BusinessQuerySortThenBy
     });
   }
 
-  QueryBuilder<Business, Business, QAfterSortBy> thenByTable() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'table', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Business, Business, QAfterSortBy> thenByTableDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'table', Sort.desc);
-    });
-  }
-
   QueryBuilder<Business, Business, QAfterSortBy> thenByTaxEnabled() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'taxEnabled', Sort.asc);
@@ -7150,18 +6792,6 @@ extension BusinessQuerySortThenBy
   QueryBuilder<Business, Business, QAfterSortBy> thenByTypeDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'type', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Business, Business, QAfterSortBy> thenByTypeId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'typeId', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Business, Business, QAfterSortBy> thenByTypeIdDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'typeId', Sort.desc);
     });
   }
 
@@ -7408,13 +7038,6 @@ extension BusinessQueryWhereDistinct
     });
   }
 
-  QueryBuilder<Business, Business, QDistinct> distinctByTable(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'table', caseSensitive: caseSensitive);
-    });
-  }
-
   QueryBuilder<Business, Business, QDistinct> distinctByTaxEnabled() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'taxEnabled');
@@ -7445,13 +7068,6 @@ extension BusinessQueryWhereDistinct
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'type', caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<Business, Business, QDistinct> distinctByTypeId(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'typeId', caseSensitive: caseSensitive);
     });
   }
 
@@ -7671,12 +7287,6 @@ extension BusinessQueryProperty
     });
   }
 
-  QueryBuilder<Business, String?, QQueryOperations> tableProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'table');
-    });
-  }
-
   QueryBuilder<Business, bool?, QQueryOperations> taxEnabledProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'taxEnabled');
@@ -7704,12 +7314,6 @@ extension BusinessQueryProperty
   QueryBuilder<Business, String?, QQueryOperations> typeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'type');
-    });
-  }
-
-  QueryBuilder<Business, String?, QQueryOperations> typeIdProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'typeId');
     });
   }
 

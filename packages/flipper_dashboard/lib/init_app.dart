@@ -38,6 +38,8 @@ class InitApp {
 
     ProxyService.appService.appBarColor(Colors.black);
 
+    ProxyService.event.connect();
+
     ProxyService.messaging.init();
 
     ProxyService.event.subscribeToLogoutEvent(

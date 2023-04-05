@@ -523,9 +523,6 @@ class IsarAPI<M> implements IsarApiInterface {
 
     final int branchId = ProxyService.box.getBranchId()!;
 
-    String lastTouched = removeTrailingDash(
-        Hlc.fromDate(DateTime.now(), branchId.toString()).toString());
-
     Product? kProduct = await isar.writeTxn(() async {
       int id = await isar.products.put(product);
       return isar.products.get(id);
@@ -1153,6 +1150,8 @@ class IsarAPI<M> implements IsarApiInterface {
       IUser syncF = IUser.fromRawJson(response.body);
       log(syncF.token);
       log(syncF.id.toString());
+      log(syncF.tenants.first.branches.first.id.toString());
+      log(syncF.tenants.first.businesses.first.businessTypeId.toString());
       await ProxyService.box.write(
         key: 'bearerToken',
         value: syncF.token,
@@ -1774,34 +1773,37 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<List<ITenant>> tenantsFromOnline({required int businessId}) async {
-    final http.Response response =
-        await client.get(Uri.parse("$apihub/v2/api/tenant/$businessId"));
-    if (response.statusCode == 200) {
-      for (JTenant tenant in jListTenantFromJson(response.body)) {
-        JTenant jTenant = tenant;
-        ITenant iTenant = ITenant(
-            id: jTenant.id,
-            name: jTenant.name,
-            businessId: jTenant.businessId,
-            nfcEnabled: jTenant.nfcEnabled,
-            email: jTenant.email,
-            phoneNumber: jTenant.phoneNumber);
+    String id = businessId.toString();
+    return [];
+    //
+    // final http.Response response =
+    //     await client.get(Uri.parse("$apihub/v2/api/tenant/$id"));
+    // if (response.statusCode == 200) {
+    //   for (JTenant tenant in jListTenantFromJson(response.body)) {
+    //     JTenant jTenant = tenant;
+    //     ITenant iTenant = ITenant(
+    //         id: jTenant.id,
+    //         name: jTenant.name,
+    //         businessId: jTenant.businessId,
+    //         nfcEnabled: jTenant.nfcEnabled,
+    //         email: jTenant.email,
+    //         phoneNumber: jTenant.phoneNumber);
 
-        isar.writeTxn(() async {
-          await isar.business.putAll(jTenant.businesses);
-          await isar.branchs.putAll(jTenant.branches);
-          await isar.permissions.putAll(jTenant.permissions);
-        });
-        isar.writeTxn(() async {
-          await isar.iTenants.put(iTenant);
-        });
-      }
-      return await isar.iTenants
-          .filter()
-          .businessIdEqualTo(businessId)
-          .findAll();
-    }
-    throw InternalServerException(term: "we got unexpected response");
+    //     isar.writeTxn(() async {
+    //       await isar.business.putAll(jTenant.businesses);
+    //       await isar.branchs.putAll(jTenant.branches);
+    //       await isar.permissions.putAll(jTenant.permissions);
+    //     });
+    //     isar.writeTxn(() async {
+    //       await isar.iTenants.put(iTenant);
+    //     });
+    //   }
+    //   return await isar.iTenants
+    //       .filter()
+    //       .businessIdEqualTo(businessId)
+    //       .findAll();
+    // }
+    // throw InternalServerException(term: "we got unexpected response");
   }
 
   @override

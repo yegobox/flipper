@@ -234,20 +234,19 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
             "channels": null,
             "description": "Fake branch",
             "name": "FakeBranch",
-            "businessId": 1642645,
+            "businessId": 1642636,
             "longitude": "0",
             "latitude": "0",
             "table": "branches",
             "createdAt": "2022-03-30T00:00:00.000Z",
             "updatedAt": null,
             "isDefault": true,
-            "tenants": [],
             "default": true
           }
         ],
         "businesses": [
           {
-            "id": 1642645,
+            "id": 1642636,
             "name": "FakeBusiness",
             "currency": "USD",
             "categoryId": null,

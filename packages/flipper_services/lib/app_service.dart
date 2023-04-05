@@ -84,7 +84,7 @@ class AppService with ListenableServiceMixin {
   bool get hasLoggedInUser => _loggedIn;
 
   bool isLoggedIn() {
-    _loggedIn = ProxyService.box.read(key: 'userId') == null ? false : true;
+    _loggedIn = ProxyService.box.getUserId() == null ? false : true;
     return _loggedIn;
   }
 
@@ -118,6 +118,7 @@ class AppService with ListenableServiceMixin {
       await loadCounters(businesses.first);
       ProxyService.box
           .write(key: 'defaultApp', value: businesses.first.businessTypeId);
+
       bool defaultBranch = await setActiveBranch(businesses: businesses.first);
 
       if (!defaultBranch) {
@@ -129,6 +130,8 @@ class AppService with ListenableServiceMixin {
       bool defaultBusiness = false;
       for (Business business in businesses) {
         if (business.isDefault != null && business.isDefault == true) {
+          ProxyService.box
+              .write(key: 'defaultApp', value: business.businessTypeId);
           await setActiveBusiness(businesses);
           await loadTenants(businesses);
           await loadCounters(businesses.first);

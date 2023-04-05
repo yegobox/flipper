@@ -34,9 +34,10 @@ class CronService {
     });
     if (!Platform.isWindows) {
       token = await FirebaseMessaging.instance.getToken();
-
-      Map updatedBusiness = business!.toJson();
-      updatedBusiness['deviceToken'] = token.toString();
+      if (business != null) {
+        Map updatedBusiness = business.toJson();
+        updatedBusiness['deviceToken'] = token.toString();
+      }
     }
     Timer.periodic(Duration(hours: 5), (Timer t) async {
       if (ProxyService.box.hasSignedInForAutoBackup()) {
@@ -48,7 +49,7 @@ class CronService {
     // for the case like that the token needs to be updated, but not covered now
     // this sill make more sence once we implement the sync that is when we will implement such solution
 
-    Timer.periodic(Duration(minutes: 10), (Timer t) async {
+    Timer.periodic(Duration(minutes: kDebugMode ? 1 : 10), (Timer t) async {
       /// get unsynced counter and send them online for houseKeping.
       List<Counter> counters = await ProxyService.isarApi
           .unSyncedCounters(branchId: ProxyService.box.getBranchId()!);

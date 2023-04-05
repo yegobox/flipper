@@ -27,7 +27,7 @@ import 'app_service.dart' as _i4;
 import 'billing_service.dart' as _i5;
 import 'country_service.dart' as _i6;
 import 'cron_service.dart' as _i8;
-import 'event_service.dart' as _i10;
+import 'event_interface.dart' as _i10;
 import 'firebase_messaging.dart' as _i18;
 import 'FirebaseCrashlyticService.dart' as _i7;
 import 'force_data_service.dart' as _i12;
@@ -60,8 +60,7 @@ Future<_i1.GetIt> $initGetIt(
   gh.lazySingleton<_i7.Crash>(() => thirdPartyServicesModule.crash);
   gh.lazySingleton<_i8.CronService>(() => thirdPartyServicesModule.cron);
   gh.lazySingleton<_i9.DynamicLink>(() => thirdPartyServicesModule.dynamicLink);
-  gh.lazySingleton<_i10.EventService>(
-      () => thirdPartyServicesModule.loginService);
+  gh.lazySingleton<_i10.EventInterface>(() => thirdPartyServicesModule.event);
   gh.lazySingleton<_i11.FlipperLocation>(
       () => thirdPartyServicesModule.location);
   gh.lazySingleton<_i12.ForceDataEntryService>(
@@ -106,8 +105,6 @@ class _$ThirdPartyServicesModule extends _i32.ThirdPartyServicesModule {
   _i5.BillingService get billing => _i5.BillingService();
   @override
   _i8.CronService get cron => _i8.CronService();
-  @override
-  _i10.EventService get loginService => _i10.EventService();
   @override
   _i12.ForceDataEntryService get forcedataEntry => _i12.ForceDataEntryService();
   @override

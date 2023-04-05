@@ -30,10 +30,8 @@ class Business {
       this.latitude,
       this.longitude,
       this.userId,
-      this.typeId,
       this.timeZone,
       this.channels,
-      this.table = "businesses",
       this.country,
       this.businessUrl,
       this.hexColor,
@@ -73,10 +71,8 @@ class Business {
   String? longitude;
   @Index()
   String? userId;
-  String? typeId;
   String? timeZone;
   List<String>? channels;
-  String? table;
   String? country;
   String? businessUrl;
   String? hexColor;
@@ -129,7 +125,6 @@ class Business {
         "latitude": latitude,
         "longitude": longitude,
         "userId": userId.toString(),
-        "typeId": typeId,
         "timeZone": timeZone,
         "metadata": metadata,
         "lastName": name,
@@ -137,7 +132,6 @@ class Business {
         "imageUrl": imageUrl,
         "role": role,
         "lastSeen": lastSeen,
-        "table": table,
         "country": country,
         "businessUrl": businessUrl,
         "hexColor": hexColor,
@@ -170,10 +164,8 @@ class Business {
         backUpEnabled = json["backUpEnabled"],
         latitude = json["latitude"] ?? '1',
         longitude = json["longitude"] ?? '1',
-        userId = json["userId"].toString(),
-        typeId = json["typeId"],
+        userId = json["userId"],
         timeZone = json["timeZone"],
-        table = json["table"],
         country = json["country"],
         businessUrl = json["businessUrl"],
         hexColor = json["hexColor"],

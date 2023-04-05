@@ -12,6 +12,7 @@ import 'package:flipper_models/sync.dart';
 import 'package:flipper_services/abstractions/system_time.dart';
 import 'package:flipper_services/billing_service.dart';
 import 'package:flipper_services/blue_thooth_service.dart';
+import 'package:flipper_services/event_interface.dart';
 import 'package:flipper_services/fake_local_storage.dart';
 import 'package:flipper_services/firebase_analytics_service.dart';
 import 'package:flipper_services/force_data_service.dart';
@@ -209,6 +210,15 @@ abstract class ThirdPartyServicesModule {
     return box;
   }
 
+  @lazySingleton
+  EventInterface get event {
+    EventInterface event;
+
+    event = EventService();
+
+    return event;
+  }
+
   @preResolve
   Future<IsarApiInterface> get isarApi async {
     //first check if we are in testing mode.
@@ -306,9 +316,6 @@ abstract class ThirdPartyServicesModule {
 
   @lazySingleton
   AppService get appService;
-
-  @lazySingleton
-  EventService get loginService;
 
   @lazySingleton
   ProductService get productService;
