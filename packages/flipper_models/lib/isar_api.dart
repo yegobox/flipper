@@ -1159,18 +1159,26 @@ class IsarAPI<M> implements IsarApiInterface {
       );
       await ProxyService.box.write(
         key: 'branchId',
-        value: syncF.tenants.first.branches.first.id,
+        // check if branches is empty
+        value: syncF.tenants.isEmpty
+            ? null
+            : syncF.tenants.first.branches.first.id,
       );
       await ProxyService.box.write(
         key: 'defaultApp',
-        value: syncF.tenants.first.businesses.first.businessTypeId,
+        // check if business is empty
+        value: syncF.tenants.isEmpty
+            ? null
+            : syncF.tenants.first.businesses.first.id,
       );
       await ProxyService.box.write(
         key: 'userPhone',
         value: userPhone,
       );
       if (syncF.tenants.isEmpty) {
-        throw TenantNotFoundException(term: "No tenant added to the user");
+        throw BusinessNotFoundException(
+            term:
+                "No tenant added to the user, if a business is added it should have one tenant");
       }
       await isar.writeTxn(() async {
         return isar.business.putAll(syncF.tenants.first.businesses);
