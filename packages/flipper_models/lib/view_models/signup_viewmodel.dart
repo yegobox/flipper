@@ -126,7 +126,6 @@ class SignupViewModel extends ReactiveViewModel {
         final PColor color = PColor()
           ..id = DateTime.now().millisecondsSinceEpoch
           ..colors = colors
-          ..channels = [userId.toString()]
           ..active = false
           ..branchId = branches[0].id
           ..name = 'sample';

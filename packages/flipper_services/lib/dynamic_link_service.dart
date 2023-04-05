@@ -58,7 +58,7 @@ class DynamicLinkService implements DynamicLink {
   @override
   Future<String> createDynamicLink() async {
     // get minimum version from firestore to keep up with update
-    final userId = ProxyService.box.read(key: 'userId');
+    final userId = ProxyService.box.getUserId();
     final DynamicLinkParameters parameters = DynamicLinkParameters(
       uriPrefix: 'https://flipper.page.link',
       link: Uri.parse("https://flipper.rw/refer?code=$userId"),

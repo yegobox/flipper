@@ -51,7 +51,7 @@ class StartupViewModel extends BaseViewModel {
       /// if you want to test signup or any other route before landing to final destionation
       /// un comment the code below but do not forget after testing to comment back the code
       // GoRouter.of(context).push('/signup/Rwanda');
-    } catch (e) {
+    } catch (e, stackTrace) {
       if (e is LoginChoicesException) {
         LoginInfo().isLoggedIn = false;
         LoginInfo().loginChoices = true;
@@ -78,7 +78,7 @@ class StartupViewModel extends BaseViewModel {
       } else if (e is BusinessNotFoundException) {
         _routerService.replaceWith(SignUpViewRoute(countryNm: "Rwanda"));
       } else {
-        print(e);
+        print(stackTrace);
         ProxyService.isarApi.logOut();
         LoginInfo().isLoggedIn = false;
         _routerService.replaceWith(LoginViewRoute());

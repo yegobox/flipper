@@ -27,18 +27,13 @@ const PColorSchema = CollectionSchema(
       name: r'branchId',
       type: IsarType.long,
     ),
-    r'channels': PropertySchema(
-      id: 2,
-      name: r'channels',
-      type: IsarType.stringList,
-    ),
     r'colors': PropertySchema(
-      id: 3,
+      id: 2,
       name: r'colors',
       type: IsarType.stringList,
     ),
     r'name': PropertySchema(
-      id: 4,
+      id: 3,
       name: r'name',
       type: IsarType.string,
     )
@@ -63,18 +58,6 @@ int _pColorEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  {
-    final list = object.channels;
-    if (list != null) {
-      bytesCount += 3 + list.length * 3;
-      {
-        for (var i = 0; i < list.length; i++) {
-          final value = list[i];
-          bytesCount += value.length * 3;
-        }
-      }
-    }
-  }
   {
     final list = object.colors;
     if (list != null) {
@@ -104,9 +87,8 @@ void _pColorSerialize(
 ) {
   writer.writeBool(offsets[0], object.active);
   writer.writeLong(offsets[1], object.branchId);
-  writer.writeStringList(offsets[2], object.channels);
-  writer.writeStringList(offsets[3], object.colors);
-  writer.writeString(offsets[4], object.name);
+  writer.writeStringList(offsets[2], object.colors);
+  writer.writeString(offsets[3], object.name);
 }
 
 PColor _pColorDeserialize(
@@ -118,10 +100,9 @@ PColor _pColorDeserialize(
   final object = PColor();
   object.active = reader.readBool(offsets[0]);
   object.branchId = reader.readLongOrNull(offsets[1]);
-  object.channels = reader.readStringList(offsets[2]);
-  object.colors = reader.readStringList(offsets[3]);
+  object.colors = reader.readStringList(offsets[2]);
   object.id = id;
-  object.name = reader.readStringOrNull(offsets[4]);
+  object.name = reader.readStringOrNull(offsets[3]);
   return object;
 }
 
@@ -139,8 +120,6 @@ P _pColorDeserializeProp<P>(
     case 2:
       return (reader.readStringList(offset)) as P;
     case 3:
-      return (reader.readStringList(offset)) as P;
-    case 4:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -311,238 +290,6 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
         upper: upper,
         includeUpper: includeUpper,
       ));
-    });
-  }
-
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'channels',
-      ));
-    });
-  }
-
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'channels',
-      ));
-    });
-  }
-
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsElementEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'channels',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<PColor, PColor, QAfterFilterCondition>
-      channelsElementGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'channels',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsElementLessThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'channels',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsElementBetween(
-    String lower,
-    String upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'channels',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsElementStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'channels',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsElementEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'channels',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsElementContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'channels',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsElementMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'channels',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsElementIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'channels',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<PColor, PColor, QAfterFilterCondition>
-      channelsElementIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'channels',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsLengthEqualTo(
-      int length) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'channels',
-        length,
-        true,
-        length,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'channels',
-        0,
-        true,
-        0,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'channels',
-        0,
-        false,
-        999999,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsLengthLessThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'channels',
-        0,
-        true,
-        length,
-        include,
-      );
-    });
-  }
-
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsLengthGreaterThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'channels',
-        length,
-        include,
-        999999,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> channelsLengthBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'channels',
-        lower,
-        includeLower,
-        upper,
-        includeUpper,
-      );
     });
   }
 
@@ -1080,12 +827,6 @@ extension PColorQueryWhereDistinct on QueryBuilder<PColor, PColor, QDistinct> {
     });
   }
 
-  QueryBuilder<PColor, PColor, QDistinct> distinctByChannels() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'channels');
-    });
-  }
-
   QueryBuilder<PColor, PColor, QDistinct> distinctByColors() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'colors');
@@ -1116,12 +857,6 @@ extension PColorQueryProperty on QueryBuilder<PColor, PColor, QQueryProperty> {
   QueryBuilder<PColor, int?, QQueryOperations> branchIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'branchId');
-    });
-  }
-
-  QueryBuilder<PColor, List<String>?, QQueryOperations> channelsProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'channels');
     });
   }
 

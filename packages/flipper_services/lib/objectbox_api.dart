@@ -23,7 +23,7 @@
 //   @override
 //   Future<http.StreamedResponse> send(http.BaseRequest request) {
 //     String? token = ProxyService.box.read(key: 'bearerToken');
-//     String? userId = ProxyService.box.read(key: 'userId');
+//     
 //     request.headers['Authorization'] = token ?? '';
 //     request.headers['userId'] = userId ?? '';
 //     request.headers['Content-Type'] = 'application/json';

@@ -218,7 +218,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   ///list products availabe for sell
   Future<List<Product>> products() async {
-    int branchId = ProxyService.box.read(key: 'branchId');
+    int branchId = ProxyService.box.getBranchId()!;
     return await ProxyService.isarApi.productsFuture(branchId: branchId);
   }
 
@@ -272,7 +272,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   }
 
   void loadVariantStock({required int variantId}) async {
-    int branchId = ProxyService.box.read(key: 'branchId');
+    int branchId = ProxyService.box.getBranchId()!;
     _currentItemStock = await ProxyService.isarApi
         .getStock(branchId: branchId, variantId: variantId);
   }
@@ -521,7 +521,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     _order!.status = pendingStatus;
     await ProxyService.isarApi.update(data: _order);
     await keypad.getTickets();
-    await keypad.getOrder(branchId: ProxyService.box.read(key: 'branchId'));
+    await keypad.getOrder(branchId: ProxyService.box.getBranchId()!);
     await currentOrder();
     await updatePayable();
   }

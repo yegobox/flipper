@@ -14,9 +14,9 @@ import 'package:flutter/services.dart';
 
 class AppService with ListenableServiceMixin {
   // required constants
-  String? get userid => ProxyService.box.read(key: 'userId');
-  int? get businessId => ProxyService.box.read(key: 'businessId');
-  int? get branchId => ProxyService.box.read(key: 'branchId');
+  int? get userid => ProxyService.box.getUserId();
+  int? get businessId => ProxyService.box.getBusinessId();
+  int? get branchId => ProxyService.box.getBranchId();
 
   final _categories = ReactiveValue<List<Category>>([]);
   List<Category> get categories => _categories.value;
@@ -49,7 +49,7 @@ class AppService with ListenableServiceMixin {
   }
 
   void loadCategories() async {
-    int? branchId = ProxyService.box.read(key: 'branchId');
+    int? branchId = ProxyService.box.getBranchId();
 
     final List<Category> result =
         await ProxyService.isarApi.categories(branchId: branchId!);
@@ -59,7 +59,7 @@ class AppService with ListenableServiceMixin {
   }
 
   Future<void> loadUnits() async {
-    int? branchId = ProxyService.box.read(key: 'branchId');
+    int? branchId = ProxyService.box.getBranchId();
     final List<IUnit> result =
         await ProxyService.isarApi.units(branchId: branchId!);
 
@@ -67,7 +67,7 @@ class AppService with ListenableServiceMixin {
   }
 
   Future<void> loadColors() async {
-    int? branchId = ProxyService.box.read(key: 'branchId');
+    int? branchId = ProxyService.box.getBranchId();
 
     List<PColor> result =
         await ProxyService.isarApi.colors(branchId: branchId!);
@@ -84,6 +84,7 @@ class AppService with ListenableServiceMixin {
   bool get hasLoggedInUser => _loggedIn;
 
   bool isLoggedIn() {
+    // from bellow logic add check if we also have businessId and branchId
     _loggedIn = ProxyService.box.getUserId() == null ? false : true;
     return _loggedIn;
   }
@@ -116,9 +117,11 @@ class AppService with ListenableServiceMixin {
       await setActiveBusiness(businesses);
       await loadTenants(businesses);
       await loadCounters(businesses.first);
+
       ProxyService.box
           .write(key: 'defaultApp', value: businesses.first.businessTypeId);
 
+      ProxyService.box.write(key: 'businessId', value: businesses.first.id);
       bool defaultBranch = await setActiveBranch(businesses: businesses.first);
 
       if (!defaultBranch) {
@@ -132,6 +135,7 @@ class AppService with ListenableServiceMixin {
         if (business.isDefault != null && business.isDefault == true) {
           ProxyService.box
               .write(key: 'defaultApp', value: business.businessTypeId);
+          ProxyService.box.write(key: 'businessId', value: business.id);
           await setActiveBusiness(businesses);
           await loadTenants(businesses);
           await loadCounters(businesses.first);

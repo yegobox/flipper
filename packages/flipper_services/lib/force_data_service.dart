@@ -15,7 +15,7 @@ class ForceDataEntryService {
   }
 
   Future<void> addData() async {
-    int? branchId = ProxyService.box.read(key: 'branchId');
+    int? branchId = ProxyService.box.getBranchId();
 
     if (branchId == null) {
       return;
@@ -36,7 +36,6 @@ class ForceDataEntryService {
             ..branchId = branchId
             ..businessId = businessId);
     }
-    final int? userId = ProxyService.box.getUserId();
     final List<String> colors = [
       '#d63031',
       '#0984e3',
@@ -51,12 +50,11 @@ class ForceDataEntryService {
     final PColor color = PColor()
       ..id = DateTime.now().millisecondsSinceEpoch
       ..colors = colors
-      ..channels = [userId!.toString()]
       ..active = false
       ..branchId = branchId
       ..name = '#d63031';
 
-    int branchid = ProxyService.box.read(key: 'branchId');
+    int branchid = ProxyService.box.getBranchId()!;
     List<PColor> kColors =
         await ProxyService.isarApi.colors(branchId: branchid);
     if (kColors.isEmpty) {

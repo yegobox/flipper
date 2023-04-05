@@ -115,7 +115,7 @@ class ProductViewModel extends AddTenantViewModel {
 
   ///create a new category and refresh list of categories
   Future<void> createCategory() async {
-    final int? branchId = ProxyService.box.read(key: 'branchId');
+    final int? branchId = ProxyService.box.getBranchId();
     final categoryId = DateTime.now().millisecondsSinceEpoch;
     if (productName == null) return;
     final Category category = Category()
@@ -129,7 +129,7 @@ class ProductViewModel extends AddTenantViewModel {
   }
 
   void updateCategory({required Category category}) async {
-    int branchId = ProxyService.box.read(key: 'branchId');
+    int branchId = ProxyService.box.getBranchId()!;
     for (Category category in categories) {
       if (category.focused) {
         Category cat = category;
@@ -238,7 +238,7 @@ class ProductViewModel extends AddTenantViewModel {
   }
 
   Future<void> switchColor({required PColor color}) async {
-    int branchId = ProxyService.box.read(key: 'branchId');
+    int branchId = ProxyService.box.getBranchId()!;
     for (PColor c in colors) {
       if (c.active) {
         final PColor? _color = await ProxyService.isarApi.getColor(id: c.id);
@@ -383,7 +383,7 @@ class ProductViewModel extends AddTenantViewModel {
 
   void deleteProduct({required int productId}) async {
     //get variants->delete
-    int branchId = ProxyService.box.read(key: 'branchId');
+    int branchId = ProxyService.box.getBranchId()!;
     List<Variant> variations = await ProxyService.isarApi
         .variants(branchId: branchId, productId: productId);
     for (Variant variation in variations) {

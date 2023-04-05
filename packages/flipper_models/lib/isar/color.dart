@@ -7,8 +7,6 @@ part 'color.g.dart';
 class PColor {
   Id id = Isar.autoIncrement;
   late String? name;
-  List<String>? channels;
-
   List<String>? colors;
   late int? branchId;
   late bool active;

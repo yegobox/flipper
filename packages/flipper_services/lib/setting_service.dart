@@ -27,9 +27,8 @@ class SettingsService with ListenableServiceMixin {
   Future<bool> updateSettings({required Map map}) async {
     //todo: when no setting for this user create one with given detail
     //if the setting exist then update the given detail.
-    String userId = ProxyService.box.read(key: 'userId');
-    Setting? setting =
-        await ProxyService.isarApi.getSetting(userId: int.parse(userId));
+    int userId = ProxyService.box.getUserId()!;
+    Setting? setting = await ProxyService.isarApi.getSetting(userId: userId);
     if (setting != null) {
       Map<String, dynamic> settingsMap = setting.toJson();
       //replace a key in settings_map if the key match with the key from map
@@ -48,7 +47,7 @@ class SettingsService with ListenableServiceMixin {
       });
       Setting setting = Setting(
         email: kMap['email'] ?? '',
-        userId: int.parse(userId),
+        userId: userId,
         hasPin: kMap['hasPin'] ?? '',
         googleSheetDocCreated: kMap['googleSheetDocCreated'] ?? false,
         attendnaceDocCreated: kMap['attendnaceDocCreated'] ?? false,
@@ -64,8 +63,8 @@ class SettingsService with ListenableServiceMixin {
   }
 
   Future<Setting?> settings() async {
-    return ProxyService.isarApi.getSetting(
-        userId: int.parse(ProxyService.box.read(key: 'userId') ?? '0'));
+    return ProxyService.isarApi
+        .getSetting(userId: ProxyService.box.getUserId()!);
   }
 
   Future<bool> isDailyReportEnabled() async {
@@ -161,7 +160,7 @@ class SettingsService with ListenableServiceMixin {
       {required bool bool, required Function callback}) async {
     Setting? setting = await settings();
     if (setting != null) {
-      int businessId = ProxyService.box.read(key: 'businessId');
+      int businessId = ProxyService.box.getBusinessId()!;
       await ProxyService.isarApi
           .enableAttendance(businessId: businessId, email: setting.email);
       return callback(true);

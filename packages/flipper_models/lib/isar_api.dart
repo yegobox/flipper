@@ -25,10 +25,10 @@ class ExtendedClient extends http.BaseClient {
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
-    String token = ProxyService.box.read(key: 'bearerToken');
-    String userId = ProxyService.box.read(key: 'userId');
+    String token = ProxyService.box.getBearerToken()!;
+    int userId = ProxyService.box.getUserId()!;
     request.headers['Authorization'] = token;
-    request.headers['userId'] = userId;
+    request.headers['userId'] = userId.toString();
     request.headers['Content-Type'] = 'application/json';
 
     try {
@@ -122,7 +122,7 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<Customer?> addCustomer(
       {required Map customer, required int orderId}) async {
-    int branchId = ProxyService.box.read(key: 'branchId');
+    int branchId = ProxyService.box.getBranchId()!;
     Customer kCustomer = Customer()
       ..name = customer['name']
       ..updatedAt = DateTime.now().toString()
@@ -737,8 +737,8 @@ class IsarAPI<M> implements IsarApiInterface {
         headers: {'Content-Type': 'application/json'});
     if (response.statusCode == 200) {
       // update settings with enableAttendance = true
-      String userId = ProxyService.box.read(key: 'userId');
-      Setting? setting = await getSetting(userId: int.parse(userId));
+      int userId = ProxyService.box.getUserId()!;
+      Setting? setting = await getSetting(userId: userId);
       setting!.attendnaceDocCreated = true;
       update(data: setting);
       return true;
@@ -1248,7 +1248,7 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<Spenn> spennPayment(
       {required double amount, required phoneNumber}) async {
-    String userId = ProxyService.box.read(key: 'userId');
+    int userId = ProxyService.box.getUserId()!;
     var headers = {'Content-Type': 'application/x-www-form-urlencoded'};
     Business? bu = await getBusiness();
     // ignore: fixme
@@ -1258,7 +1258,7 @@ class IsarAPI<M> implements IsarApiInterface {
         http.Request('POST', Uri.parse('https://flipper.yegobox.com/pay'));
     request.bodyFields = {
       'amount': amount.toString(),
-      'userId': userId,
+      'userId': userId.toString(),
       'RequestGuid': '00HK-KLJS',
       'paymentType': 'SPENN',
       'itemName': ' N/A',
@@ -1774,36 +1774,34 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<List<ITenant>> tenantsFromOnline({required int businessId}) async {
     String id = businessId.toString();
-    return [];
-    //
-    // final http.Response response =
-    //     await client.get(Uri.parse("$apihub/v2/api/tenant/$id"));
-    // if (response.statusCode == 200) {
-    //   for (JTenant tenant in jListTenantFromJson(response.body)) {
-    //     JTenant jTenant = tenant;
-    //     ITenant iTenant = ITenant(
-    //         id: jTenant.id,
-    //         name: jTenant.name,
-    //         businessId: jTenant.businessId,
-    //         nfcEnabled: jTenant.nfcEnabled,
-    //         email: jTenant.email,
-    //         phoneNumber: jTenant.phoneNumber);
+    final http.Response response =
+        await client.get(Uri.parse("$apihub/v2/api/tenant/$id"));
+    if (response.statusCode == 200) {
+      for (JTenant tenant in jListTenantFromJson(response.body)) {
+        JTenant jTenant = tenant;
+        ITenant iTenant = ITenant(
+            id: jTenant.id,
+            name: jTenant.name,
+            businessId: jTenant.businessId,
+            nfcEnabled: jTenant.nfcEnabled,
+            email: jTenant.email,
+            phoneNumber: jTenant.phoneNumber);
 
-    //     isar.writeTxn(() async {
-    //       await isar.business.putAll(jTenant.businesses);
-    //       await isar.branchs.putAll(jTenant.branches);
-    //       await isar.permissions.putAll(jTenant.permissions);
-    //     });
-    //     isar.writeTxn(() async {
-    //       await isar.iTenants.put(iTenant);
-    //     });
-    //   }
-    //   return await isar.iTenants
-    //       .filter()
-    //       .businessIdEqualTo(businessId)
-    //       .findAll();
-    // }
-    // throw InternalServerException(term: "we got unexpected response");
+        isar.writeTxn(() async {
+          await isar.business.putAll(jTenant.businesses);
+          await isar.branchs.putAll(jTenant.branches);
+          await isar.permissions.putAll(jTenant.permissions);
+        });
+        isar.writeTxn(() async {
+          await isar.iTenants.put(iTenant);
+        });
+      }
+      return await isar.iTenants
+          .filter()
+          .businessIdEqualTo(businessId)
+          .findAll();
+    }
+    throw InternalServerException(term: "we got unexpected response");
   }
 
   @override

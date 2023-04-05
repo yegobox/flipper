@@ -19,7 +19,7 @@ class SettingViewModel extends ReactiveViewModel {
   Business? get business => _business;
   getBusiness() async {
     _business = await ProxyService.isarApi
-        .getBusinessById(id: ProxyService.box.read(key: 'businessId'));
+        .getBusinessById(id: ProxyService.box.getBusinessId()!);
     notifyListeners();
   }
 
@@ -59,8 +59,8 @@ class SettingViewModel extends ReactiveViewModel {
   }
 
   loadUserSettings() async {
-    String userId = ProxyService.box.read(key: 'userId');
-    _setting = await ProxyService.isarApi.getSetting(userId: int.parse(userId));
+    int userId = ProxyService.box.getUserId()!;
+    _setting = await ProxyService.isarApi.getSetting(userId: userId);
     notifyListeners();
   }
 
@@ -72,10 +72,10 @@ class SettingViewModel extends ReactiveViewModel {
 
   bool isSubscribedOnSync() {
     int businessId = 0;
-    if (ProxyService.box.read(key: 'businessId').runtimeType is int) {
-      businessId = ProxyService.box.read(key: 'businessId');
-    } else if (ProxyService.box.read(key: 'businessId').runtimeType is String) {
-      businessId = int.parse(ProxyService.box.read(key: 'businessId'));
+    if (ProxyService.box.getBusinessId().runtimeType is int) {
+      businessId = ProxyService.box.getBusinessId()!;
+    } else if (ProxyService.box.getBusinessId().runtimeType is String) {
+      businessId = ProxyService.box.getBusinessId()!;
     }
     return ProxyService.isarApi
         .isSubscribed(feature: 'sync', businessId: businessId);
@@ -91,7 +91,7 @@ class SettingViewModel extends ReactiveViewModel {
     required Function callback,
   }) {
     // settingService.enableSync(bool: !settingService.enableSync);
-    int businessId = int.parse(ProxyService.box.read(key: 'businessId'));
+    int businessId = ProxyService.box.getBusinessId()!;
     bool isSubscribed = false;
 
     /// do we have a subscription on the feature
