@@ -44,6 +44,12 @@ class ChatListViewMobile extends ViewModelWidget<ChatListViewModel> {
         // An icon button that shows a plus icon to initiate a new chat
         actions: [
           IconButton(
+            icon: const Icon(FluentIcons.qr_code_24_regular),
+            onPressed: () {
+              _routerService.navigateTo(ScannViewRoute(intent: "login"));
+            },
+          ),
+          IconButton(
             icon: const Icon(FluentIcons.add_24_regular),
             onPressed: () {
               // TODO: implement the logic to initiate a new chat
