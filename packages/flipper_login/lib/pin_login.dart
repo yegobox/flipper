@@ -82,10 +82,7 @@ class _PinLoginState extends State<PinLogin> {
                                                 pinCode: _pin.text,
                                                 context: context,
                                               );
-                                            } catch (e, stacktrace) {
-                                              log("PinLogin" + e.toString());
-                                              log("PinLogin" +
-                                                  stacktrace.toString());
+                                            } catch (e) {
                                               if (e
                                                   is BusinessNotFoundException) {
                                                 ScaffoldMessenger.of(context)
@@ -93,7 +90,7 @@ class _PinLoginState extends State<PinLogin> {
                                                   const SnackBar(
                                                     backgroundColor: Colors.red,
                                                     content: Text(
-                                                        "Failed to authenticate try again, Business not found."),
+                                                        "Could not login with this pin."),
                                                   ),
                                                 );
                                               }
@@ -104,7 +101,7 @@ class _PinLoginState extends State<PinLogin> {
                                                   const SnackBar(
                                                     backgroundColor: Colors.red,
                                                     content: Text(
-                                                        "Failed to read server! try again"),
+                                                        "Could not login with this pin."),
                                                   ),
                                                 );
                                               }
