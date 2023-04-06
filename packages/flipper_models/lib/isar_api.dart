@@ -486,15 +486,17 @@ class IsarAPI<M> implements IsarApiInterface {
     int branchId = ProxyService.box.getBranchId()!;
     int businessId = ProxyService.box.getBusinessId()!;
     String phoneNumber = ProxyService.box.getUserPhone()!;
+    int defaultApp = ProxyService.box.getDefaultApp();
     final http.Response response =
         await client.post(Uri.parse("$apihub/v2/api/pin"),
             body: jsonEncode(
-              <String, String>{
+              <String, dynamic>{
                 'userId': id,
                 'branchId': branchId.toString(),
                 'businessId': businessId.toString(),
                 'phoneNumber': phoneNumber,
-                'pin': id
+                'pin': id,
+                'defaultApp': defaultApp
               },
             ),
             headers: {'Content-Type': 'application/json'});
@@ -1043,6 +1045,7 @@ class IsarAPI<M> implements IsarApiInterface {
         'businessId': ProxyService.box.getBusinessId()!,
         'branchId': ProxyService.box.getBranchId()!,
         'phone': ProxyService.box.getUserPhone(),
+        'defaultApp': ProxyService.box.getDefaultApp(),
       });
     }
 
@@ -1052,6 +1055,7 @@ class IsarAPI<M> implements IsarApiInterface {
     ProxyService.box.remove(key: 'userPhone');
     ProxyService.box.remove(key: 'UToken');
     ProxyService.box.remove(key: 'businessId');
+    ProxyService.box.remove(key: 'defaultApp');
     LoginInfo().isLoggedIn = false;
     LoginInfo().needSignUp = false;
     FirebaseAuth.instance.signOut();

@@ -71,6 +71,7 @@ class EventService implements EventInterface {
         ProxyService.box.write(key: 'branchId', value: loginData.branchId);
         ProxyService.box.write(key: 'userId', value: loginData.userId);
         ProxyService.box.write(key: 'userPhone', value: loginData.phone);
+        ProxyService.box.write(key: 'defaultApp', value: loginData.defaultApp);
         await ProxyService.isarApi.login(
           userPhone: loginData.phone,
         );
