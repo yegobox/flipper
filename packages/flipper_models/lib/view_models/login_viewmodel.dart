@@ -12,7 +12,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 class LoginViewModel extends FormViewModel {
   LoginViewModel();
   final appService = loc.locator<AppService>();
-  // final _bottomSheetService = locator<BottomSheetService>();
   final _routerService = locator<RouterService>();
   bool loginStart = false;
   bool otpStart = false;

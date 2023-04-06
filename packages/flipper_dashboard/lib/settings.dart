@@ -164,7 +164,7 @@ class SettingPage extends StatelessWidget {
                               onPressed: (BuildContext context) async {
                                 // get active drawer
                                 ProxyService.box
-                                    .write(key: 'defaultApp', value: 1);
+                                    .write(key: 'defaultApp', value: 2);
                                 // navigate
                                 _routerService
                                     .navigateTo(SocialHomeViewRoute());

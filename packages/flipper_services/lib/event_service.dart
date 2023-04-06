@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flipper_services/event_interface.dart';
 import 'package:pubnub/pubnub.dart' as nub;
 import 'package:flipper_services/proxy.dart';
@@ -72,9 +74,20 @@ class EventService implements EventInterface {
         ProxyService.box.write(key: 'userId', value: loginData.userId);
         ProxyService.box.write(key: 'userPhone', value: loginData.phone);
         ProxyService.box.write(key: 'defaultApp', value: loginData.defaultApp);
+        log(loginData.toMap().toString());
         await ProxyService.isarApi.login(
           userPhone: loginData.phone,
         );
+
+        /// because in login.dart file we have this code
+        /// if (snapshot.hasData) {
+        ///  return const StartUpView(
+        ///     invokeLogin: true,
+        ///   );
+        /// }
+        /// the code is triggered when the user is logged in so no need to do another
+        /// routing or redirecting here in case you want to know how it redirects
+        /// to to mentioned file and see the code
         await FirebaseAuth.instance.signInAnonymously();
       });
     } catch (e) {
