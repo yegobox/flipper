@@ -15,4 +15,13 @@ class ChatListViewModel extends BaseViewModel {
     _focusedConversation = true;
     notifyListeners();
   }
+
+  /// sending new message if conversationId is not given
+  /// but if source is whatsapp
+  Future<void> sendMessage(
+      {required String message, int? conversationId}) async {
+    // Conversation(
+
+    // );
+  }
 }

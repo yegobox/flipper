@@ -2116,6 +2116,12 @@ class IsarAPI<M> implements IsarApiInterface {
     throw UnimplementedError();
   }
 
+  @override
+  Future<Conversation> sendMessage({int? conversationId}) {
+    // TODO: implement sendMessage
+    throw UnimplementedError();
+  }
+
   // @override
   // Future<List<Conversation>> conversations({int? conversationId}) async {
   //   // if the conversationId is not given then check while oversation

@@ -213,4 +213,5 @@ abstract class IsarApiInterface {
 
   /// list messages
   Stream<List<Conversation>> conversations({int conversationId});
+  Future<Conversation> sendMessage({int conversationId});
 }

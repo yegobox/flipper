@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_socials/ui/widgets/chat_widget.dart';
@@ -19,7 +17,8 @@ class ChatListViewDesktop extends StatefulWidget {
 class _ChatListViewDesktopState extends State<ChatListViewDesktop>
     with TickerProviderStateMixin {
   late AnimationController animationController; // use late modifier
-
+  final TextEditingController _conversationController =
+      TextEditingController(text: '');
   @override
   void initState() {
     super.initState();
@@ -180,12 +179,22 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
                               padding:
                                   const EdgeInsets.only(bottom: 8.0, right: 10),
                               child: TextFormField(
+                                  controller: _conversationController,
                                   decoration: InputDecoration(
                                     suffixIcon: AnimatedIconButton(
                                       animationController: animationController,
                                       size: 20,
                                       onPressed: () {
-                                        print('all icons pressed');
+                                        if (_conversationController
+                                            .text.isNotEmpty) {
+                                          viewModel.sendMessage(
+                                            message:
+                                                _conversationController.text,
+                                            conversationId:
+                                                viewModel.conversationId,
+                                          );
+                                        }
+                                        _conversationController.clear();
                                         // send message logic here
                                       },
                                       icons: const <AnimatedIconItem>[
