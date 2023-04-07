@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_socials/ui/widgets/chat_widget.dart';
@@ -77,31 +79,47 @@ class ChatListViewDesktop extends ViewModelWidget<ChatListViewModel> {
                         automaticallyImplyLeading: false,
                         title: Padding(
                           padding: const EdgeInsets.only(left: 28.0),
-                          child: Row(
-                            children: [
-                              Stack(
-                                children: const [
-                                  // A circle avatar that shows the chat image
-                                  CircleAvatar(
-                                    backgroundImage: AssetImage('assets/b.png',
-                                        package: "flipper_socials"),
-                                    radius: 20,
-                                  ),
-                                  // A positioned widget that shows the source image at the bottom right corner
-                                  Positioned(
-                                    bottom: 0,
-                                    right: 0,
-                                    child: CircleAvatar(
-                                      radius: 10,
-                                      backgroundImage: AssetImage(
-                                          'assets/whatsapp.png',
-                                          package: "flipper_socials"),
-                                    ),
-                                  ),
-                                ],
-                              )
-                            ],
-                          ),
+                          child: StreamBuilder<List<Conversation>>(
+                              stream: ProxyService.isarApi.conversations(
+                                  conversationId: viewModel.conversationId!),
+                              builder: (context, snapshot) {
+                                if (snapshot.hasData) {
+                                  log(snapshot.data!.toString());
+                                  int businessId =
+                                      ProxyService.box.getBusinessId()!;
+                                  final data = snapshot.data!
+                                      .where((item) => item.to != businessId)
+                                      .toList();
+                                  return Row(
+                                    children: [
+                                      Stack(
+                                        children: [
+                                          // A circle avatar that shows the chat image
+                                          CircleAvatar(
+                                            backgroundImage: AssetImage(
+                                                data.first.avatar,
+                                                package: "flipper_socials"),
+                                            radius: 20,
+                                          ),
+                                          // A positioned widget that shows the source image at the bottom right corner
+                                          Positioned(
+                                            bottom: 0,
+                                            right: 0,
+                                            child: CircleAvatar(
+                                              radius: 10,
+                                              backgroundImage: AssetImage(
+                                                  data.first.source,
+                                                  package: "flipper_socials"),
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                    ],
+                                  );
+                                } else {
+                                  return const SizedBox.shrink();
+                                }
+                              }),
                         ),
                         actions: const [],
                       )
