@@ -46,8 +46,24 @@ class ChatScreen extends StatelessWidget {
               itemBuilder: (context, index) {
                 final chat = chats[index];
                 return ListTile(
-                  leading: CircleAvatar(
-                    backgroundImage: NetworkImage(chat.source),
+                  leading: Stack(
+                    children: [
+                      // A circle avatar that shows the chat image
+                      CircleAvatar(
+                        backgroundImage: NetworkImage(chat.avatar),
+                        radius: 20,
+                      ),
+                      // A positioned widget that shows the source image at the bottom right corner
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Image.network(
+                          chat.source,
+                          width: 16,
+                          height: 16,
+                        ),
+                      ),
+                    ],
                   ),
                   title: Text(chat.name),
                   subtitle: Text(chat.message),
@@ -71,18 +87,26 @@ class ChatScreen extends StatelessWidget {
                     padding: const EdgeInsets.only(left: 28.0),
                     child: Row(
                       children: [
-                        const CircleAvatar(
-                          backgroundImage: NetworkImage(
-                              "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/1200px-WhatsApp.svg.png"),
-                        ),
-                        const SizedBox(width: 16),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
-                            Text("Richard Muragijimana"),
-                            Text("online"),
+                        Stack(
+                          children: [
+                            // A circle avatar that shows the chat image
+                            const CircleAvatar(
+                              backgroundImage: NetworkImage(
+                                  'https://randomuser.me/api/portraits/women/1.jpg'),
+                              radius: 20,
+                            ),
+                            // A positioned widget that shows the source image at the bottom right corner
+                            Positioned(
+                              bottom: 0,
+                              right: 0,
+                              child: Image.network(
+                                'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/1200px-WhatsApp.svg.png',
+                                width: 16,
+                                height: 16,
+                              ),
+                            ),
                           ],
-                        ),
+                        )
                       ],
                     ),
                   ),
