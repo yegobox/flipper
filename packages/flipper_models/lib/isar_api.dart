@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_models/data.loads/jcounter.dart';
 import 'package:flipper_models/isar/utils.dart';
@@ -2076,9 +2077,12 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Stream<Social> socialsStream({required int businessId}) {
+    log("socialsStream called", name: "${businessId}");
     return isar.socials
         .filter()
         .businessIdEqualTo(businessId)
+        .and()
+        .isAccountSetEqualTo(true)
         .build()
         .watch(fireImmediately: true)
         .asyncMap((event) => event.first);

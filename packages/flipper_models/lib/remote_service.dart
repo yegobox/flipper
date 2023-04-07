@@ -86,8 +86,11 @@ class RemoteService implements RemoteInterface {
 
   Future<void> gettingDataFirstTime() async {
     try {
-      int branchId = ProxyService.box.getBranchId()!;
-      int businessId = ProxyService.box.getBusinessId()!;
+      int branchId = ProxyService.box.getBranchId() ?? 0;
+      int businessId = ProxyService.box.getBusinessId() ?? 0;
+      if (branchId == 0 || businessId == 0) {
+        return;
+      }
       List<RecordModel> socialItems = await pb
           .collection('socials')
           .getList(page: 1, perPage: 2, filter: 'businessId = ${businessId}')
@@ -158,6 +161,7 @@ class RemoteService implements RemoteInterface {
     } else if (localSocial != null &&
         remoteSocial.lastTouched!
             .isFutureDateCompareTo(localSocial.lastTouched!)) {
+      remoteSocial.id = remoteSocial.localId;
       await ProxyService.isarApi.update(data: remoteSocial);
       lastTouched = remoteSocial.lastTouched;
     }
@@ -199,8 +203,11 @@ class RemoteService implements RemoteInterface {
   }
 
   void gettingRealTimeData() {
-    int branchId = ProxyService.box.getBranchId()!;
-    int businessId = ProxyService.box.getBusinessId()!;
+    int branchId = ProxyService.box.getBranchId() ?? 0;
+    int businessId = ProxyService.box.getBusinessId() ?? 0;
+    if (branchId == 0 || businessId == 0) {
+      return;
+    }
     pb.collection('socials').subscribe("*", (socialEvent) async {
       if (socialEvent.action == "create") {
         Social socialFromRecord = Social.fromRecord(socialEvent.record!);
@@ -215,6 +222,7 @@ class RemoteService implements RemoteInterface {
         Social? localSocial = await ProxyService.isarApi
             .getSocialById(id: socialFromRecord.localId!);
         if (localSocial == null && socialFromRecord.businessId == businessId) {
+          socialFromRecord.id = socialFromRecord.localId;
           await ProxyService.isarApi.create(data: socialFromRecord);
         }
         Social a = Social.fromRecord(socialEvent.record!);

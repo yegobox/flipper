@@ -52,7 +52,7 @@ class AppService with ListenableServiceMixin {
     int? branchId = ProxyService.box.getBranchId();
 
     final List<Category> result =
-        await ProxyService.isarApi.categories(branchId: branchId!);
+        await ProxyService.isarApi.categories(branchId: branchId ?? 0);
 
     _categories.value = result;
     notifyListeners();
