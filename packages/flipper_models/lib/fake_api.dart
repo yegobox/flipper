@@ -506,6 +506,7 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
     // https://randomuser.me/api/portraits/men/3.jpg
     final responseJson = [
       {
+        "id": 1,
         "name": "Charlie",
         "message": "Hey, whats up?",
         "avatar": "assets/a.png",
@@ -515,6 +516,7 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
         "createdAt": "11/3/2024"
       },
       {
+        "id": 2,
         "name": "Bob",
         "message": "Hello, nice to meet you.",
         "avatar": "assets/b.png",
@@ -524,6 +526,7 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
         "createdAt": "11/3/2024"
       },
       {
+        "id": 3,
         "name": "Alice",
         "message": "Hi, how are you?",
         "avatar": "assets/c.png",
@@ -533,11 +536,42 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
         "createdAt": "11/3/2024"
       },
     ];
-    final response = http.Response(jsonEncode(responseJson), 200);
-    if (response.statusCode == 200) {
-      yield Conversation.fromJsonList(jsonEncode(responseJson));
+    if (conversationId != null) {
+      final json = [
+        {
+          "id": conversationId,
+          "name": "Bob",
+          "message": "Hello, nice to meet you.",
+          "avatar": "assets/b.png",
+          "source": "assets/instagram.png",
+          "to": 1642645,
+          "from": 2,
+          "createdAt": "11/3/2024"
+        },
+        {
+          "id": conversationId,
+          "name": "Bob",
+          "message": "Hello, nice to meet you.",
+          "avatar": "assets/b.png",
+          "source": "assets/instagram.png",
+          "to": 2,
+          "from": 1642645,
+          "createdAt": "11/3/2024"
+        },
+      ];
+      final response = http.Response(jsonEncode(json), 200);
+      if (response.statusCode == 200) {
+        yield Conversation.fromJsonList(jsonEncode(json));
+      } else {
+        throw Exception();
+      }
     } else {
-      throw Exception();
+      final response = http.Response(jsonEncode(responseJson), 200);
+      if (response.statusCode == 200) {
+        yield Conversation.fromJsonList(jsonEncode(responseJson));
+      } else {
+        throw Exception();
+      }
     }
   }
 }

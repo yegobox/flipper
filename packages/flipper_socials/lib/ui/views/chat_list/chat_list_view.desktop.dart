@@ -53,7 +53,8 @@ class ChatListViewDesktop extends ViewModelWidget<ChatListViewModel> {
                           subtitle: Text(chat.message),
                           trailing: const Text("11:12"),
                           onTap: () {
-                            // Select the chat and update the state
+                            viewModel.focusedConversation = true;
+                            viewModel.conversationId = chats[index].id;
                           },
                         );
                       },
@@ -108,17 +109,23 @@ class ChatListViewDesktop extends ViewModelWidget<ChatListViewModel> {
                 // The list of messages for the selected chat
                 viewModel.focusedConversation
                     ? StreamBuilder<List<Conversation>>(
-                        stream: null,
+                        stream: ProxyService.isarApi.conversations(
+                            conversationId: viewModel.conversationId!),
                         builder: (context, snapshot) {
-                          return Flexible(
-                            child: ListView.builder(
-                              itemCount: 3,
-                              itemBuilder: (context, index) {
-                                // Use the ChatWidget to display the message
-                                return ChatWidget(chat: snapshot.data![index]);
-                              },
-                            ),
-                          );
+                          if (snapshot.hasData) {
+                            final data = snapshot.data;
+                            return Flexible(
+                              child: ListView.builder(
+                                itemCount: data!.length,
+                                itemBuilder: (context, index) {
+                                  // Use the ChatWidget to display the message
+                                  return ChatWidget(chat: data[index]);
+                                },
+                              ),
+                            );
+                          } else {
+                            return const SizedBox.shrink();
+                          }
                         })
                     : const SizedBox.shrink(),
                 // The text field for sending messages
