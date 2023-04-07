@@ -93,14 +93,20 @@ class ChatScreen extends StatelessWidget {
                   child: ListView.builder(
                     itemCount: 3,
                     itemBuilder: (context, index) {
-                      const message = 1;
                       // Use the ChatWidget to display the message
                       return ChatWidget(chat: chats[index]);
                     },
                   ),
                 ),
                 // The text field for sending messages
-                const TextField(),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0, right: 10),
+                  child: TextFormField(
+                      decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    hintText: 'Type a message',
+                  )),
+                ),
               ],
             ),
           ),
