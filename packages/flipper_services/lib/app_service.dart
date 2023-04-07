@@ -123,9 +123,6 @@ class AppService with ListenableServiceMixin {
       await loadTenants(businesses);
       await loadCounters(businesses.first);
 
-      ProxyService.box
-          .write(key: 'defaultApp', value: businesses.first.businessTypeId);
-
       ProxyService.box.write(key: 'businessId', value: businesses.first.id);
       bool defaultBranch = await setActiveBranch(businesses: businesses.first);
 
@@ -138,8 +135,6 @@ class AppService with ListenableServiceMixin {
       bool defaultBusiness = false;
       for (Business business in businesses) {
         if (business.isDefault != null && business.isDefault == true) {
-          ProxyService.box
-              .write(key: 'defaultApp', value: business.businessTypeId);
           ProxyService.box.write(key: 'businessId', value: business.id);
           await setActiveBusiness(businesses);
           await loadTenants(businesses);

@@ -198,7 +198,7 @@ class _TransactionsState extends State<Transactions> {
           List<Order> completedOrders = await ProxyService.isarApi
               .completedOrders(branchId: ProxyService.box.getBranchId()!);
           Drawers? drawer = await ProxyService.isarApi
-              .isDrawerOpen(cashierId: ProxyService.box.getBusinessId()!);
+              .getDrawer(cashierId: ProxyService.box.getBusinessId()!);
 
           model.completedOrdersList = completedOrders;
 

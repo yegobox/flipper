@@ -165,7 +165,6 @@ MockLocalStorage getAndRegisterLocalStorage() {
   when(service.read(key: 'branchId')).thenAnswer((_) => 11);
   when(service.read(key: 'referralCode')).thenAnswer((_) => "11");
   when(service.read(key: 'businessId')).thenAnswer((_) => 10);
-  when(service.read(key: 'defaultApp')).thenAnswer((_) => 'XXX');
 
   // when(service.write(key: pageKey, value: 'key')).thenAnswer((_) => true);
   // when(service.write(key: 'branchId', value: anyNamed("value")))

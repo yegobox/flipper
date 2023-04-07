@@ -18,8 +18,8 @@ class HomeViewMobile extends ViewModelWidget<HomeViewModel> {
     return Scaffold(
       body: SafeArea(
         child: StreamBuilder<Social>(
-            stream: ProxyService.isarApi
-                .socialsStream(businessId: ProxyService.box.getBusinessId()!),
+            stream: ProxyService.isarApi.socialsStream(
+                businessId: ProxyService.box.getBusinessId() ?? 0),
             builder: (context, snapshot) {
               if (snapshot.hasData) {
                 return const ChatListView();

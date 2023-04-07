@@ -41,36 +41,30 @@ class StartupViewModel extends BaseViewModel {
       await appService.appInit();
       //if we reached this far then it means we have a default business/branch make sence to check drawer
       if (await ProxyService.isarApi
-              .isDrawerOpen(cashierId: ProxyService.box.getBusinessId()!) ==
-          null) {
+          .isDrawerOpen(cashierId: ProxyService.box.getBusinessId()!)) {
+        if (ProxyService.box.getDefaultApp() == 2) {
+          _routerService.navigateTo(SocialHomeViewRoute());
+        } else {
+          _routerService.replaceWith(FlipperAppRoute());
+        }
+        return;
+      } else {
         if (ProxyService.box.getDefaultApp() == 2) {
           _routerService.navigateTo(SocialHomeViewRoute());
         } else {
           _routerService.navigateTo(DrawerScreenRoute(open: "open"));
         }
-        return;
       }
-      LoginInfo().isLoggedIn = true;
-
-      _routerService.replaceWith(FlipperAppRoute());
-
-      /// if you want to test signup or any other route before landing to final destionation
-      /// un comment the code below but do not forget after testing to comment back the code
-      // GoRouter.of(context).push('/signup/Rwanda');
     } catch (e, stackTrace) {
       if (e is LoginChoicesException) {
-        LoginInfo().isLoggedIn = false;
-        LoginInfo().loginChoices = true;
         _routerService.replaceWith(LoginChoicesRoute());
       } else if (e is SessionException || e is ErrorReadingFromYBServer) {
-        LoginInfo().isLoggedIn = false;
         _routerService.replaceWith(LoginViewRoute());
       } else if (e is BusinessNotFoundException) {
         _routerService.navigateTo(SignUpViewRoute(countryNm: "Rwanda"));
       } else {
         print(stackTrace);
         ProxyService.isarApi.logOut();
-        LoginInfo().isLoggedIn = false;
         _routerService.replaceWith(LoginViewRoute());
       }
     }

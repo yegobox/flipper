@@ -386,7 +386,7 @@ class _FlipperAppState extends State<FlipperApp>
       // Handle leaving  the app
       // ...
       Drawers? drawer = await ProxyService.isarApi
-          .isDrawerOpen(cashierId: ProxyService.box.getBusinessId()!);
+          .getDrawer(cashierId: ProxyService.box.getBusinessId()!);
       _routerService
           .replaceWith(DrawerScreenRoute(open: "close", drawer: drawer));
       //we return again false to be able to go to close a day page

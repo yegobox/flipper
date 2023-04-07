@@ -178,7 +178,8 @@ abstract class IsarApiInterface {
   Future<Receipt?> getReceipt({required int orderId});
 
   Future<void> refund({required int itemId});
-  Future<Drawers?> isDrawerOpen({required int cashierId});
+  Future<bool> isDrawerOpen({required int cashierId});
+  Future<Drawers?> getDrawer({required int cashierId});
   Future<Branch?> defaultBranch();
   Future<Business?> defaultBusiness();
   Future<Drawers?> openDrawer({required Drawers drawer});

@@ -95,8 +95,7 @@ class SignupViewModel extends ReactiveViewModel {
       });
       if (jTenants.isNotEmpty) {
         /// create tenants.
-        final int userId = ProxyService.box.getUserId()!;
-        ProxyService.box.write(key: 'defaultApp', value: businessType.id);
+
         Business? business = await ProxyService.isarApi
             .getBusinessById(id: jTenants.first.businesses.first.id!);
 
@@ -148,7 +147,7 @@ class SignupViewModel extends ReactiveViewModel {
         LoginInfo().isLoggedIn = true;
         LoginInfo().redirecting = false;
         LoginInfo().needSignUp = false;
-        _routerService.navigateTo(StartUpViewRoute());
+        _routerService.navigateTo(StartUpViewRoute(invokeLogin: true));
       }
     } catch (e) {
       registerStart = false;

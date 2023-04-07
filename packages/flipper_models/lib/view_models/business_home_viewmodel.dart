@@ -763,7 +763,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   Future<void> updateDrawer(String receiptType, Order order) async {
     Drawers? drawer = await ProxyService.isarApi
-        .isDrawerOpen(cashierId: ProxyService.box.getBusinessId()!);
+        .getDrawer(cashierId: ProxyService.box.getBusinessId()!);
     drawer!
       ..cashierId = ProxyService.box.getBusinessId()!
       ..nsSaleCount = receiptType == "NS"

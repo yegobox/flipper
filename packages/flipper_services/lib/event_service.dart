@@ -69,12 +69,16 @@ class EventService implements EventInterface {
       subscription.messages.listen((envelope) async {
         LoginData loginData = LoginData.fromMap(envelope.payload);
 
-        ProxyService.box.write(key: 'businessId', value: loginData.businessId);
-        ProxyService.box.write(key: 'branchId', value: loginData.branchId);
-        ProxyService.box.write(key: 'userId', value: loginData.userId);
-        ProxyService.box.write(key: 'userPhone', value: loginData.phone);
-        ProxyService.box.write(key: 'defaultApp', value: loginData.defaultApp);
-        log(loginData.toMap().toString());
+        await ProxyService.box
+            .write(key: 'businessId', value: loginData.businessId);
+        await ProxyService.box
+            .write(key: 'branchId', value: loginData.branchId);
+        await ProxyService.box.write(key: 'userId', value: loginData.userId);
+        await ProxyService.box.write(key: 'userPhone', value: loginData.phone);
+        await ProxyService.box
+            .write(key: 'defaultApp', value: loginData.defaultApp);
+        // log(loginData.toMap().toString());
+        log(ProxyService.box.getDefaultApp().toString());
         await ProxyService.isarApi.login(
           userPhone: loginData.phone,
         );

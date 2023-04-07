@@ -1170,10 +1170,15 @@ class IsarAPI<M> implements IsarApiInterface {
       );
       await ProxyService.box.write(
         key: 'defaultApp',
-        // check if business is empty
+
+        /// because we don update default app from server
+        /// because we want the ability of switching apps to be entirely offline
+        /// then if we have a default app in the box we use it if it only different from 1
         value: syncF.tenants.isEmpty
             ? null
-            : syncF.tenants.first.businesses.first.id,
+            : ProxyService.box.getDefaultApp() != 1
+                ? ProxyService.box.getDefaultApp()
+                : syncF.tenants.first.businesses.first.businessTypeId,
       );
       await ProxyService.box.write(
         key: 'userPhone',
@@ -1735,14 +1740,21 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Drawers?> isDrawerOpen({required int cashierId}) {
-    return isar.writeTxn(() async {
-      Drawers? drawer = await isar.drawers
-          .where()
-          .openCashierIdEqualTo(true, cashierId)
-          .findFirst();
-      return drawer;
-    });
+  Future<bool> isDrawerOpen({required int cashierId}) async {
+    Drawers? drawer = await isar.drawers
+        .where()
+        .openCashierIdEqualTo(true, cashierId)
+        .findFirst();
+    return drawer != null;
+  }
+
+  @override
+  Future<Drawers?> getDrawer({required int cashierId}) async {
+    Drawers? drawer = await isar.drawers
+        .where()
+        .openCashierIdEqualTo(true, cashierId)
+        .findFirst();
+    return drawer;
   }
 
   @override
