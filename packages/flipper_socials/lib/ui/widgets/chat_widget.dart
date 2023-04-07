@@ -11,7 +11,7 @@ class ChatWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Check if the message is from the user or the other person
-    final isUser = chat.from == ProxyService.box.getBusinessId();
+    final isUser = chat.fromNumber == ProxyService.box.getUserPhone();
     // Align the message to the right or left depending on the source
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
@@ -32,7 +32,7 @@ class ChatWidget extends StatelessWidget {
                     AssetImage(chat.avatar, package: "flipper_socials"),
               ),
             // Show the message text
-            Text(chat.message),
+            Text(chat.body),
           ],
         ),
       ),

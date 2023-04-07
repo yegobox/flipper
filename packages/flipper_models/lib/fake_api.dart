@@ -12,7 +12,7 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
   Future<List<JTenant>> signup({required Map business}) async {
     // Simulating a successful API response
     final http.Response response = http.Response(
-        '[{"id": 1, "name": "Tenant 1", "businessId": 1642645, "nfcEnabled": true, "email": "tenant1@example.com", "phoneNumber": "${business['phoneNumber']}", "permissions":[{"id": 205, "name":"admin"}], "branches":[{"id": 232,"active": true,"channels": null,"description": "desc","name": "Test001","businessId": 1642645,"longitude": "0","latitude": "0","table": "branches","createdAt": "2/22/2021","updatedAt": null,"isDefault": true,"tenants": [],"default": true}], "businesses":[{"id": 1642645,"name": "Test001","currency": null,"categoryId": null,"latitude": "293.98","longitude": "-344.49","userId": "1651165831880765","typeId": null,"timeZone": null,"channels": null,"table": null,"country": "Rwanda","businessUrl": null,"hexColor": null,"imageUrl": null,"type": "business","referredBy": "Richie","createdAt": "2/22/2021","updatedAt": null,"metadata": null,"role": null,"lastSeen": 0,"firstName": null,"lastName": null,"reported": null,"phoneNumber": "+250783054873","deviceToken": null,"chatUid": null,"backUpEnabled": false,"subscriptionPlan": null,"nextBillingDate": null,"previousBillingDate": null,"isLastSubscriptionPaymentSucceeded": false,"backupFileId": null,"email": null,"lastDbBackup": null,"fullName": "Richie","referralCode": null,"authId": null,"tinNumber": 12222,"dvcSrlNo": "warvsdcoriongatetest","bhfId": "00","adrs": null,"taxEnabled": false,"isDefault": true,"default": true,"lastSubscriptionPaymentSucceeded": false}]}]',
+        '[{"messageId": 1, "name": "Tenant 1", "businessId": 1642645, "nfcEnabled": true, "email": "tenant1@example.com", "phoneNumber": "${business['phoneNumber']}", "permissions":[{"messageId": 205, "name":"admin"}], "branches":[{"messageId": 232,"active": true,"channels": null,"description": "desc","name": "Test001","businessId": 1642645,"longitude": "0","latitude": "0","table": "branches","createdAt": "2/22/2021","updatedAt": null,"isDefault": true,"tenants": [],"default": true}], "businesses":[{"messageId": 1642645,"name": "Test001","currency": null,"categoryId": null,"latitude": "293.98","longitude": "-344.49","userId": "1651165831880765","typeId": null,"timeZone": null,"channels": null,"table": null,"country": "Rwanda","businessUrl": null,"hexColor": null,"imageUrl": null,"type": "business","referredBy": "Richie","createdAt": "2/22/2021","updatedAt": null,"metadata": null,"role": null,"lastSeen": 0,"firstName": null,"lastName": null,"reported": null,"phoneNumber": "+250783054873","deviceToken": null,"chatUid": null,"backUpEnabled": false,"subscriptionPlan": null,"nextBillingDate": null,"previousBillingDate": null,"isLastSubscriptionPaymentSucceeded": false,"backupFileId": null,"email": null,"lastDbBackup": null,"fullName": "Richie","referralCode": null,"authId": null,"tinNumber": 12222,"dvcSrlNo": "warvsdcoriongatetest","bhfId": "00","adrs": null,"taxEnabled": false,"isDefault": true,"default": true,"lastSubscriptionPaymentSucceeded": false}]}]',
         200);
 
     if (response.statusCode == 200) {
@@ -57,21 +57,21 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
   @override
   Future<IUser> login({required String userPhone}) async {
     final jsonResponse = {
-      "id": 1651165831880765,
+      "messageId": 1651165831880765,
       "phoneNumber": "+250783054874",
       "token": "Bearer ",
       "tenants": [
         {
-          "id": 49,
+          "messageId": 49,
           "name": "Richard",
           "phoneNumber": "+250783054874",
           "email": "nyiringabohubert@gmail.com",
           "permissions": [
-            {"id": 49, "name": "admin"}
+            {"messageId": 49, "name": "admin"}
           ],
           "branches": [
             {
-              "id": 76,
+              "messageId": 76,
               "active": true,
               "channels": null,
               "description": "desc",
@@ -88,7 +88,7 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
           ],
           "businesses": [
             {
-              "id": 1642645,
+              "messageId": 1642645,
               "name": "FakeBusiness",
               "currency": "USD",
               "categoryId": null,
@@ -194,16 +194,16 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
     // Create a fake response JSON
     final responseJson = [
       {
-        "id": 1,
+        "messageId": 1,
         "name": "FakeTenant",
         "phoneNumber": "+1234567890",
         "email": "fake@tenant.com",
         "permissions": [
-          {"id": 1, "name": "admin"}
+          {"messageId": 1, "name": "admin"}
         ],
         "branches": [
           {
-            "id": 232,
+            "messageId": 232,
             "active": true,
             "channels": null,
             "description": "Fake branch",
@@ -220,7 +220,7 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
         ],
         "businesses": [
           {
-            "id": 1642636,
+            "messageId": 1642636,
             "name": "FakeBusiness",
             "currency": "USD",
             "categoryId": null,
@@ -306,7 +306,7 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
   Future<void> loadCounterFromOnline({required int businessId}) async {
     final responseJson = [
       {
-        "id": 11,
+        "messageId": 11,
         "businessId": 1642645,
         "branchId": 232,
         "receiptType": "NS",
@@ -314,7 +314,7 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
         "curRcptNo": 0
       },
       {
-        "id": 12,
+        "messageId": 12,
         "businessId": 1642645,
         "branchId": 232,
         "receiptType": "TS",
@@ -322,7 +322,7 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
         "curRcptNo": 0
       },
       {
-        "id": 13,
+        "messageId": 13,
         "businessId": 1642645,
         "branchId": 232,
         "receiptType": "NR",
@@ -330,7 +330,7 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
         "curRcptNo": 0
       },
       {
-        "id": 14,
+        "messageId": 14,
         "businessId": 1642645,
         "branchId": 232,
         "receiptType": "CS",
@@ -338,7 +338,7 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
         "curRcptNo": 0
       },
       {
-        "id": 15,
+        "messageId": 15,
         "businessId": 1642645,
         "branchId": 232,
         "receiptType": "PS",
@@ -488,10 +488,10 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
   @override
   Future<List<BusinessType>> businessTypes() async {
     final responseJson = [
-      {"id": 1, "typeName": "Supplier"},
-      {"id": 2, "typeName": "Customer Support"},
-      {"id": 3, "typeName": "Retailer"},
-      {"id": 4, "typeName": "Agent"}
+      {"messageId": 1, "typeName": "Supplier"},
+      {"messageId": 2, "typeName": "Customer Support"},
+      {"messageId": 3, "typeName": "Retailer"},
+      {"messageId": 4, "typeName": "Agent"}
     ];
     Future.delayed(Duration(seconds: 5));
     final response = http.Response(jsonEncode(responseJson), 200);
@@ -506,33 +506,33 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
     // https://randomuser.me/api/portraits/men/3.jpg
     final responseJson = [
       {
-        "id": 1,
+        "messageId": 1,
         "name": "Charlie",
-        "message": "Hey, whats up?",
+        "body": "Hey, whats up?",
         "avatar": "assets/a.png",
         "source": "assets/whatsapp.png",
-        "to": 2,
-        "from": 1642645,
+        "toNumber": 2,
+        "fromNumber": 1642645,
         "createdAt": "11/3/2024"
       },
       {
-        "id": 2,
+        "messageId": 2,
         "name": "Bob",
-        "message": "Hello, nice to meet you.",
+        "body": "Hello, nice to meet you.",
         "avatar": "assets/b.png",
         "source": "assets/instagram.png",
-        "to": 1642645,
-        "from": 2,
+        "toNumber": 1642645,
+        "fromNumber": 2,
         "createdAt": "11/3/2024"
       },
       {
-        "id": 3,
+        "messageId": 3,
         "name": "Alice",
-        "message": "Hi, how are you?",
+        "body": "Hi, how are you?",
         "avatar": "assets/c.png",
         "source": "assets/whatsapp.png",
-        "to": 1642645,
-        "from": 2,
+        "toNumber": 1642645,
+        "fromNumber": 2,
         "createdAt": "11/3/2024"
       },
     ];
@@ -558,23 +558,23 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
       }
       final json = [
         {
-          "id": conversationId,
+          "messageId": conversationId,
           "name": "Bob",
-          "message": message,
+          "body": message,
           "avatar": avatar,
           "source": source,
-          "to": 1642636,
-          "from": 2,
+          "toNumber": 1642636,
+          "fromNumber": 2,
           "createdAt": "11/3/2024"
         },
         {
-          "id": conversationId,
+          "messageId": conversationId,
           "name": "Bob",
-          "message": message,
+          "body": message,
           "avatar": avatar,
           "source": source,
-          "to": 2,
-          "from": 1642636,
+          "toNumber": 2,
+          "fromNumber": 1642636,
           "createdAt": "11/3/2024"
         },
       ];

@@ -10,25 +10,31 @@ part 'conversation.g.dart';
 @JsonSerializable()
 @Collection()
 class Conversation extends IJsonSerializable {
+  @JsonKey(includeToJson: false, includeFromJson: false)
   Id? id = null;
   final String name;
-  final String message;
+  final String body;
   final String avatar;
   final String source;
-  final int from;
-  final int to;
+  final String fromNumber;
+  final String toNumber;
 
   late String createdAt;
+  String? messageType;
+  String? phoneNumberId;
+  String? messageId;
 
-  Conversation({
-    required this.name,
-    required this.message,
-    required this.avatar,
-    required this.source,
-    required this.from,
-    required this.to,
-    required this.createdAt,
-  });
+  Conversation(
+      {required this.name,
+      required this.body,
+      required this.avatar,
+      required this.source,
+      required this.fromNumber,
+      required this.toNumber,
+      required this.createdAt,
+      this.messageType,
+      this.phoneNumberId,
+      this.messageId});
   factory Conversation.fromRecord(RecordModel record) =>
       Conversation.fromJson(record.toJson());
 

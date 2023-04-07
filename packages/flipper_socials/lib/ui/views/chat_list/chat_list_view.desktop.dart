@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_socials/ui/widgets/chat_widget.dart';
@@ -76,7 +78,7 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
                                   ],
                                 ),
                                 title: Text(chat.name),
-                                subtitle: Text(chat.message),
+                                subtitle: Text(chat.body),
                                 trailing: const Text("11:12"),
                                 onTap: () {
                                   viewModel.focusedConversation = true;
@@ -109,11 +111,13 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
                                             viewModel.conversationId!),
                                     builder: (context, snapshot) {
                                       if (snapshot.hasData) {
-                                        int businessId =
-                                            ProxyService.box.getBusinessId()!;
+                                        log(ProxyService.box.getUserPhone()!);
+                                        String userPhoneNumber =
+                                            ProxyService.box.getUserPhone()!;
                                         final data = snapshot.data!
-                                            .where(
-                                                (item) => item.to != businessId)
+                                            .where((item) =>
+                                                item.toNumber !=
+                                                userPhoneNumber)
                                             .toList();
                                         return Row(
                                           children: [
