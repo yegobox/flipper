@@ -19,7 +19,7 @@ class ChatListView extends StackedView<ChatListViewModel> {
     return ScreenTypeLayout.builder(
       mobile: (_) => ChatListViewMobile(),
       tablet: (_) => const ChatListViewTablet(),
-      desktop: (_) => const ChatListViewDesktop(),
+      desktop: (_) => ChatListViewDesktop(),
     );
   }
 
