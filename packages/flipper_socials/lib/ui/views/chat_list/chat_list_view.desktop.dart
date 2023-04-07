@@ -1,3 +1,5 @@
+import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flipper_socials/ui/widgets/chat_model.dart';
 import 'package:flipper_socials/ui/widgets/chat_widget.dart';
 import 'package:flutter/material.dart';
@@ -14,25 +16,22 @@ class ChatListViewDesktop extends ViewModelWidget<ChatListViewModel> {
       from: "me",
       name: 'Alice',
       message: 'Hi, how are you?',
-      avatar: 'https://randomuser.me/api/portraits/women/1.jpg',
-      source:
-          'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/1200px-WhatsApp.svg.png',
+      avatar: 'assets/a.png',
+      source: 'assets/whatsapp.png',
     ),
     Chat(
       from: "other",
       name: 'Bob',
       message: 'Hello, nice to meet you.',
-      avatar: 'https://randomuser.me/api/portraits/men/2.jpg',
-      source:
-          'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Instagram_logo_2016.svg/1200px-Instagram_logo_2016.svg.png',
+      avatar: 'assets/b.png',
+      source: 'assets/instagram.png',
     ),
     Chat(
       from: "me",
       name: 'Charlie',
       message: 'Hey, whats up?',
-      avatar: 'https://randomuser.me/api/portraits/men/3.jpg',
-      source:
-          'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fb/Facebook_icon_2013.svg/1200px-Facebook_icon_2013.svg.png',
+      avatar: 'assets/c.png',
+      source: 'assets/whatsapp.png',
     ),
   ];
   @override
@@ -44,42 +43,47 @@ class ChatListViewDesktop extends ViewModelWidget<ChatListViewModel> {
       body: Row(
         children: [
           // The left part with the list of messages
-          SizedBox(
-            width: size.width * 0.3,
-            child: ListView.builder(
-              itemCount: chats.length,
-              itemBuilder: (context, index) {
-                final chat = chats[index];
-                return ListTile(
-                  leading: Stack(
-                    children: [
-                      // A circle avatar that shows the chat image
-                      CircleAvatar(
-                        backgroundImage: NetworkImage(chat.avatar),
-                        radius: 20,
-                      ),
-                      // A positioned widget that shows the source image at the bottom right corner
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: Image.network(
-                          chat.source,
-                          width: 16,
-                          height: 16,
+          StreamBuilder<List<Conversation>>(
+              stream: ProxyService.isarApi.conversations(),
+              builder: (context, snapshot) {
+                return SizedBox(
+                  width: size.width * 0.3,
+                  child: ListView.builder(
+                    itemCount: chats.length,
+                    itemBuilder: (context, index) {
+                      final chat = chats[index];
+                      return ListTile(
+                        leading: Stack(
+                          children: [
+                            // A circle avatar that shows the chat image
+                            CircleAvatar(
+                              backgroundImage: AssetImage(chat.avatar,
+                                  package: "flipper_socials"),
+                              radius: 20,
+                            ),
+                            // A positioned widget that shows the source image at the bottom right corner
+                            Positioned(
+                              bottom: 0,
+                              right: 0,
+                              child: CircleAvatar(
+                                radius: 10,
+                                backgroundImage: AssetImage(chat.source,
+                                    package: "flipper_socials"),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
+                        title: Text(chat.name),
+                        subtitle: Text(chat.message),
+                        trailing: const Text("11:12"),
+                        onTap: () {
+                          // Select the chat and update the state
+                        },
+                      );
+                    },
                   ),
-                  title: Text(chat.name),
-                  subtitle: Text(chat.message),
-                  trailing: const Text("11:12"),
-                  onTap: () {
-                    // Select the chat and update the state
-                  },
                 );
-              },
-            ),
-          ),
+              }),
           // The right part with the selected chat details and messages
           SizedBox(
             width: size.width * 0.7,
@@ -93,21 +97,22 @@ class ChatListViewDesktop extends ViewModelWidget<ChatListViewModel> {
                     child: Row(
                       children: [
                         Stack(
-                          children: [
+                          children: const [
                             // A circle avatar that shows the chat image
-                            const CircleAvatar(
-                              backgroundImage: NetworkImage(
-                                  'https://randomuser.me/api/portraits/women/1.jpg'),
+                            CircleAvatar(
+                              backgroundImage: AssetImage('assets/b.png',
+                                  package: "flipper_socials"),
                               radius: 20,
                             ),
                             // A positioned widget that shows the source image at the bottom right corner
                             Positioned(
                               bottom: 0,
                               right: 0,
-                              child: Image.network(
-                                'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/1200px-WhatsApp.svg.png',
-                                width: 16,
-                                height: 16,
+                              child: CircleAvatar(
+                                radius: 10,
+                                backgroundImage: AssetImage(
+                                    'assets/whatsapp.png',
+                                    package: "flipper_socials"),
                               ),
                             ),
                           ],

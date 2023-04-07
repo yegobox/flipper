@@ -18,7 +18,7 @@ class Conversation extends IJsonSerializable {
   final int from;
   final int to;
 
-  late int createdAt;
+  late String createdAt;
 
   Conversation({
     required this.name,

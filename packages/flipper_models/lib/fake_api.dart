@@ -502,39 +502,40 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
   }
 
   @override
-  Future<List<Conversation>> conversations({int? conversationId}) async {
-    final jsonResponse = [
+  Stream<List<Conversation>> conversations({int? conversationId}) async* {
+    // https://randomuser.me/api/portraits/men/3.jpg
+    final responseJson = [
       {
         "name": "Charlie",
         "message": "Hey, whats up?",
-        "avatar": "https://randomuser.me/api/portraits/men/3.jpg",
-        "source":
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fb/Facebook_icon_2013.svg/1200px-Facebook_icon_2013.svg.png",
-        "to": "other",
-        "from": "me"
+        "avatar": "assets/a.png",
+        "source": "assets/whatsapp.png",
+        "to": 2,
+        "from": 1642645,
+        "createdAt": "11/3/2024"
       },
       {
         "name": "Bob",
         "message": "Hello, nice to meet you.",
-        "avatar": "https://randomuser.me/api/portraits/men/3.jpg",
-        "source":
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Instagram_logo_2016.svg/1200px-Instagram_logo_2016.svg.png",
-        "to": "me",
-        "from": "other"
+        "avatar": "assets/b.png",
+        "source": "assets/instagram.png",
+        "to": 1642645,
+        "from": 2,
+        "createdAt": "11/3/2024"
       },
       {
         "name": "Alice",
         "message": "Hi, how are you?",
-        "avatar": "https://randomuser.me/api/portraits/women/1.jpg",
-        "source":
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/1200px-WhatsApp.svg.png",
-        "to": "other",
-        "from": "other"
+        "avatar": "assets/c.png",
+        "source": "assets/whatsapp.png",
+        "to": 1642645,
+        "from": 2,
+        "createdAt": "11/3/2024"
       },
     ];
-    final response = http.Response(jsonEncode(jsonResponse), 200);
+    final response = http.Response(jsonEncode(responseJson), 200);
     if (response.statusCode == 200) {
-      return Conversation.fromJsonList(jsonEncode(response));
+      yield Conversation.fromJsonList(jsonEncode(responseJson));
     } else {
       throw Exception();
     }

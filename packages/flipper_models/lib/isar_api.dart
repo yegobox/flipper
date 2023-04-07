@@ -2111,7 +2111,7 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<List<Conversation>> conversations({int? conversationId}) {
+  Stream<List<Conversation>> conversations({int? conversationId}) {
     // TODO: implement conversations
     throw UnimplementedError();
   }

@@ -25,7 +25,7 @@ const ConversationSchema = CollectionSchema(
     r'createdAt': PropertySchema(
       id: 1,
       name: r'createdAt',
-      type: IsarType.long,
+      type: IsarType.string,
     ),
     r'from': PropertySchema(
       id: 2,
@@ -74,6 +74,7 @@ int _conversationEstimateSize(
 ) {
   var bytesCount = offsets.last;
   bytesCount += 3 + object.avatar.length * 3;
+  bytesCount += 3 + object.createdAt.length * 3;
   bytesCount += 3 + object.message.length * 3;
   bytesCount += 3 + object.name.length * 3;
   bytesCount += 3 + object.source.length * 3;
@@ -87,7 +88,7 @@ void _conversationSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeString(offsets[0], object.avatar);
-  writer.writeLong(offsets[1], object.createdAt);
+  writer.writeString(offsets[1], object.createdAt);
   writer.writeLong(offsets[2], object.from);
   writer.writeString(offsets[3], object.message);
   writer.writeString(offsets[4], object.name);
@@ -103,7 +104,7 @@ Conversation _conversationDeserialize(
 ) {
   final object = Conversation(
     avatar: reader.readString(offsets[0]),
-    createdAt: reader.readLong(offsets[1]),
+    createdAt: reader.readString(offsets[1]),
     from: reader.readLong(offsets[2]),
     message: reader.readString(offsets[3]),
     name: reader.readString(offsets[4]),
@@ -124,7 +125,7 @@ P _conversationDeserializeProp<P>(
     case 0:
       return (reader.readString(offset)) as P;
     case 1:
-      return (reader.readLong(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 2:
       return (reader.readLong(offset)) as P;
     case 3:
@@ -370,49 +371,58 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      createdAtEqualTo(int value) {
+      createdAtEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'createdAt',
         value: value,
+        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       createdAtGreaterThan(
-    int value, {
+    String value, {
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
         property: r'createdAt',
         value: value,
+        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       createdAtLessThan(
-    int value, {
+    String value, {
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
         property: r'createdAt',
         value: value,
+        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       createdAtBetween(
-    int lower,
-    int upper, {
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -421,6 +431,77 @@ extension ConversationQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      createdAtStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'createdAt',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      createdAtEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'createdAt',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      createdAtContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'createdAt',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      createdAtMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'createdAt',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      createdAtIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'createdAt',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      createdAtIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'createdAt',
+        value: '',
       ));
     });
   }
@@ -1209,9 +1290,10 @@ extension ConversationQueryWhereDistinct
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QDistinct> distinctByCreatedAt() {
+  QueryBuilder<Conversation, Conversation, QDistinct> distinctByCreatedAt(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'createdAt');
+      return query.addDistinctBy(r'createdAt', caseSensitive: caseSensitive);
     });
   }
 
@@ -1263,7 +1345,7 @@ extension ConversationQueryProperty
     });
   }
 
-  QueryBuilder<Conversation, int, QQueryOperations> createdAtProperty() {
+  QueryBuilder<Conversation, String, QQueryOperations> createdAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'createdAt');
     });
@@ -1311,7 +1393,7 @@ Conversation _$ConversationFromJson(Map<String, dynamic> json) => Conversation(
       source: json['source'] as String,
       from: json['from'] as int,
       to: json['to'] as int,
-      createdAt: json['createdAt'] as int,
+      createdAt: json['createdAt'] as String,
     )..id = json['id'] as int?;
 
 Map<String, dynamic> _$ConversationToJson(Conversation instance) =>
