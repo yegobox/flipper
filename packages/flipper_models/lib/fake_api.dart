@@ -537,13 +537,32 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
       },
     ];
     if (conversationId != null) {
+      // build avatar given the conversationId
+      String? avatar;
+      String? source;
+      String? message;
+      if (conversationId == 1) {
+        avatar = "assets/a.png";
+        source = "assets/whatsapp.png";
+        message = "Hey, whats up?";
+      }
+      if (conversationId == 2) {
+        avatar = "assets/b.png";
+        source = "assets/instagram.png";
+        message = "Hello, nice to meet you.";
+      }
+      if (conversationId == 3) {
+        avatar = "assets/c.png";
+        source = "assets/whatsapp.png";
+        message = "Hi, how are you?";
+      }
       final json = [
         {
           "id": conversationId,
           "name": "Bob",
-          "message": "Hello, nice to meet you.",
-          "avatar": "assets/b.png",
-          "source": "assets/instagram.png",
+          "message": message,
+          "avatar": avatar,
+          "source": source,
           "to": 1642645,
           "from": 2,
           "createdAt": "11/3/2024"
@@ -551,9 +570,9 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
         {
           "id": conversationId,
           "name": "Bob",
-          "message": "Hello, nice to meet you.",
-          "avatar": "assets/b.png",
-          "source": "assets/instagram.png",
+          "message": message,
+          "avatar": avatar,
+          "source": source,
           "to": 2,
           "from": 1642645,
           "createdAt": "11/3/2024"
