@@ -1,17 +1,16 @@
 // The chat widget with a container and a row
+import 'package:flipper_models/isar_models.dart';
 import 'package:flutter/material.dart';
 
-import 'chat_model.dart';
-
 class ChatWidget extends StatelessWidget {
-  final Chat chat;
+  final Conversation chat;
 
   const ChatWidget({Key? key, required this.chat}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     // Check if the message is from the user or the other person
-    final isUser = chat.from == 'me';
+    final isUser = chat.from == 1642645;
     // Align the message to the right or left depending on the source
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
