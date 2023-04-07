@@ -1,10 +1,12 @@
 import 'package:flipper_socials/ui/widgets/chat_model.dart';
+import 'package:flipper_socials/ui/widgets/chat_widget.dart';
 import 'package:flutter/material.dart';
 
 class ChatScreen extends StatelessWidget {
   ChatScreen({Key? key}) : super(key: key);
   final List<Chat> chats = [
     Chat(
+      from: "me",
       name: 'Alice',
       message: 'Hi, how are you?',
       avatar: 'https://randomuser.me/api/portraits/women/1.jpg',
@@ -12,6 +14,7 @@ class ChatScreen extends StatelessWidget {
           'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/1200px-WhatsApp.svg.png',
     ),
     Chat(
+      from: "other",
       name: 'Bob',
       message: 'Hello, nice to meet you.',
       avatar: 'https://randomuser.me/api/portraits/men/2.jpg',
@@ -19,6 +22,7 @@ class ChatScreen extends StatelessWidget {
           'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Instagram_logo_2016.svg/1200px-Instagram_logo_2016.svg.png',
     ),
     Chat(
+      from: "me",
       name: 'Charlie',
       message: 'Hey, whats up?',
       avatar: 'https://randomuser.me/api/portraits/men/3.jpg',
@@ -85,15 +89,14 @@ class ChatScreen extends StatelessWidget {
                   actions: const [],
                 ),
                 // The list of messages for the selected chat
-                Center(
-                  child: Flexible(
-                    child: ListView.builder(
-                      itemCount: 1,
-                      itemBuilder: (context, index) {
-                        // final message = selectedChat.messages[index];
-                        return const Text("hello");
-                      },
-                    ),
+                Flexible(
+                  child: ListView.builder(
+                    itemCount: 3,
+                    itemBuilder: (context, index) {
+                      const message = 1;
+                      // Use the ChatWidget to display the message
+                      return ChatWidget(chat: chats[index]);
+                    },
                   ),
                 ),
                 // The text field for sending messages
