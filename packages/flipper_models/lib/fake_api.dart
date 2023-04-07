@@ -502,79 +502,79 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
   }
 
   @override
-  Stream<List<Conversation>> conversations({int? conversationId}) async* {
+  Stream<List<Conversation>> conversations({String? messageId}) async* {
     // https://randomuser.me/api/portraits/men/3.jpg
     final responseJson = [
       {
-        "messageId": 1,
+        "messageId": "1",
         "name": "Charlie",
         "body": "Hey, whats up?",
         "avatar": "assets/a.png",
         "source": "assets/whatsapp.png",
-        "toNumber": 2,
-        "fromNumber": 1642645,
+        "toNumber": "250783054874",
+        "fromNumber": "250788360058",
         "createdAt": "11/3/2024"
       },
       {
-        "messageId": 2,
+        "messageId": "2",
         "name": "Bob",
         "body": "Hello, nice to meet you.",
         "avatar": "assets/b.png",
         "source": "assets/instagram.png",
-        "toNumber": 1642645,
-        "fromNumber": 2,
+        "toNumber": "250788360058",
+        "fromNumber": "250783054874",
         "createdAt": "11/3/2024"
       },
       {
-        "messageId": 3,
+        "messageId": "3",
         "name": "Alice",
         "body": "Hi, how are you?",
         "avatar": "assets/c.png",
         "source": "assets/whatsapp.png",
-        "toNumber": 1642645,
-        "fromNumber": 2,
+        "toNumber": "250783054874",
+        "fromNumber": "250788360058",
         "createdAt": "11/3/2024"
       },
     ];
-    if (conversationId != null) {
+    if (messageId != null) {
       // build avatar given the conversationId
       String? avatar;
       String? source;
       String? message;
-      if (conversationId == 1) {
+      if (messageId == "1") {
         avatar = "assets/a.png";
         source = "assets/whatsapp.png";
         message = "Hey, whats up?";
       }
-      if (conversationId == 2) {
+      if (messageId == "2") {
         avatar = "assets/b.png";
         source = "assets/instagram.png";
         message = "Hello, nice to meet you.";
       }
-      if (conversationId == 3) {
+      if (messageId == "3") {
         avatar = "assets/c.png";
         source = "assets/whatsapp.png";
         message = "Hi, how are you?";
       }
       final json = [
         {
-          "messageId": conversationId,
+          "messageId": messageId,
           "name": "Bob",
           "body": message,
           "avatar": avatar,
           "source": source,
-          "toNumber": 1642636,
-          "fromNumber": 2,
+          "toNumber": "250788360058",
+          "fromNumber": "250783054874",
           "createdAt": "11/3/2024"
         },
         {
-          "messageId": conversationId,
+          "messageId": messageId,
           "name": "Bob",
           "body": message,
           "avatar": avatar,
           "source": source,
-          "toNumber": 2,
-          "fromNumber": 1642636,
+          "toNumber": "250783054874",
+          "fromNumber": "250788360058",
           "createdAt": "11/3/2024"
         },
       ];
@@ -595,7 +595,7 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
   }
 
   @override
-  Future<Conversation> sendMessage({int? conversationId}) {
+  Future<Conversation> sendMessage({String? conversationId}) {
     // TODO: implement sendMessage
     throw UnimplementedError();
   }

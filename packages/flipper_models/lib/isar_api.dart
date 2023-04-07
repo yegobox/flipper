@@ -2111,13 +2111,13 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Stream<List<Conversation>> conversations({int? conversationId}) {
+  Stream<List<Conversation>> conversations({String? messageId}) {
     // TODO: implement conversations
     throw UnimplementedError();
   }
 
   @override
-  Future<Conversation> sendMessage({int? conversationId}) {
+  Future<Conversation> sendMessage({String? conversationId}) {
     // TODO: implement sendMessage
     throw UnimplementedError();
   }

@@ -82,7 +82,7 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
                                 trailing: const Text("11:12"),
                                 onTap: () {
                                   viewModel.focusedConversation = true;
-                                  viewModel.conversationId = chats[index].id;
+                                  viewModel.messageId = chats[index].messageId;
                                 },
                               );
                             },
@@ -107,8 +107,7 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
                                 padding: const EdgeInsets.only(left: 28.0),
                                 child: StreamBuilder<List<Conversation>>(
                                     stream: ProxyService.isarApi.conversations(
-                                        conversationId:
-                                            viewModel.conversationId!),
+                                        messageId: viewModel.messageId!),
                                     builder: (context, snapshot) {
                                       if (snapshot.hasData) {
                                         log(ProxyService.box.getUserPhone()!);
@@ -159,7 +158,7 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
                       viewModel.focusedConversation
                           ? StreamBuilder<List<Conversation>>(
                               stream: ProxyService.isarApi.conversations(
-                                  conversationId: viewModel.conversationId!),
+                                  messageId: viewModel.messageId!),
                               builder: (context, snapshot) {
                                 if (snapshot.hasData) {
                                   final data = snapshot.data;
@@ -194,8 +193,7 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
                                           viewModel.sendMessage(
                                             message:
                                                 _conversationController.text,
-                                            conversationId:
-                                                viewModel.conversationId,
+                                            messageId: viewModel.messageId,
                                           );
                                         }
                                         _conversationController.clear();

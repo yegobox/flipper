@@ -1,4 +1,6 @@
 // The chat widget with a container and a row
+import 'dart:developer';
+
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +13,9 @@ class ChatWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Check if the message is from the user or the other person
-    final isUser = chat.fromNumber == ProxyService.box.getUserPhone();
+    final isUser = chat.fromNumber ==
+        ProxyService.box.getUserPhone()!.replaceFirst("+", "");
+    log(isUser.toString());
     // Align the message to the right or left depending on the source
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
