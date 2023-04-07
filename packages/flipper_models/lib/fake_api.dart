@@ -500,4 +500,43 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
     }
     return BusinessType.fromJsonList(jsonEncode(responseJson));
   }
+
+  @override
+  Future<List<Conversation>> conversations({int? conversationId}) async {
+    final jsonResponse = [
+      {
+        "name": "Charlie",
+        "message": "Hey, whats up?",
+        "avatar": "https://randomuser.me/api/portraits/men/3.jpg",
+        "source":
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fb/Facebook_icon_2013.svg/1200px-Facebook_icon_2013.svg.png",
+        "to": "other",
+        "from": "me"
+      },
+      {
+        "name": "Bob",
+        "message": "Hello, nice to meet you.",
+        "avatar": "https://randomuser.me/api/portraits/men/3.jpg",
+        "source":
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Instagram_logo_2016.svg/1200px-Instagram_logo_2016.svg.png",
+        "to": "me",
+        "from": "other"
+      },
+      {
+        "name": "Alice",
+        "message": "Hi, how are you?",
+        "avatar": "https://randomuser.me/api/portraits/women/1.jpg",
+        "source":
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/1200px-WhatsApp.svg.png",
+        "to": "other",
+        "from": "other"
+      },
+    ];
+    final response = http.Response(jsonEncode(jsonResponse), 200);
+    if (response.statusCode == 200) {
+      return Conversation.fromJsonList(jsonEncode(response));
+    } else {
+      throw Exception();
+    }
+  }
 }

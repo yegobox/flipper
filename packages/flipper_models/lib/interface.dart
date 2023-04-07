@@ -210,4 +210,7 @@ abstract class IsarApiInterface {
   Future<Social?> getSocialById({required int id});
 
   Future<List<BusinessType>> businessTypes();
+
+  /// list messages
+  Future<List<Conversation>> conversations({int conversationId});
 }

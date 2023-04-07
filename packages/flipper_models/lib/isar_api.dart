@@ -2109,4 +2109,31 @@ class IsarAPI<M> implements IsarApiInterface {
   Future<Social?> getSocialById({required int id}) async {
     return await isar.socials.get(id);
   }
+
+  @override
+  Future<List<Conversation>> conversations({int? conversationId}) {
+    // TODO: implement conversations
+    throw UnimplementedError();
+  }
+
+  // @override
+  // Future<List<Conversation>> conversations({int? conversationId}) async {
+  //   // if the conversationId is not given then check while oversation
+  //   // where to equal to my businessId and to from equal to my businessId as well
+  //   // return the list of those messages
+  //   //otherwise if conversationId is not null then return the single message
+  //   // where id equal to conversation Id
+  //   List<Conversation> convos = [];
+  //   if (conversationId == null) {
+  //     return await isar.conversations
+  //         .filter()
+  //         .fromEqualTo(ProxyService.box.getBusinessId()!)
+  //         .and()
+  //         .toEqualTo(ProxyService.box.getBusinessId()!)
+  //         .build()
+  //         .findAll();
+  //   } else {
+  //     return await isar.conversations.get(conversationId);
+  //   }
+  // }
 }

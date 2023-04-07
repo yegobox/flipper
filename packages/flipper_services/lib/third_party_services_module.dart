@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:flipper_models/fake_api.dart';
 import 'package:flipper_models/marketing.dart';
 import 'package:flipper_models/remote_service.dart';
 import 'package:flipper_models/tax_api.dart';
@@ -258,8 +259,8 @@ abstract class ThirdPartyServicesModule {
       // ]);
 
       /// removed iisar: isar bellow will add it back when we have a test relying on isar database
-      // return await FakeApi().getInstance();
-      return await IsarAPI().getInstance();
+      return await FakeApi().getInstance();
+      // return await IsarAPI().getInstance();
     }
   }
 
