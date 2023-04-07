@@ -110,7 +110,6 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
                                             viewModel.conversationId!),
                                     builder: (context, snapshot) {
                                       if (snapshot.hasData) {
-                                        log(snapshot.data!.toString());
                                         int businessId =
                                             ProxyService.box.getBusinessId()!;
                                         final data = snapshot.data!
@@ -184,7 +183,7 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
                                   decoration: InputDecoration(
                                     suffixIcon: AnimatedIconButton(
                                       animationController: animationController,
-                                      size: 35,
+                                      size: 20,
                                       onPressed: () {
                                         print('all icons pressed');
                                         // send message logic here
@@ -195,14 +194,12 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
                                             FluentIcons.send_24_regular,
                                             color: Colors.grey,
                                           ),
-                                          backgroundColor: Colors.white,
                                         ),
                                         AnimatedIconItem(
                                           icon: Icon(
                                             FluentIcons.send_24_filled,
                                             color: Colors.blue,
                                           ),
-                                          backgroundColor: Colors.white,
                                         ),
                                       ],
                                     ),
