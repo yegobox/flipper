@@ -77,7 +77,7 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
                                     ),
                                   ],
                                 ),
-                                title: Text(chat.name),
+                                title: Text(chat.userName),
                                 subtitle: Text(chat.body),
                                 trailing: const Text("11:12"),
                                 onTap: () {

@@ -12,7 +12,7 @@ part 'conversation.g.dart';
 class Conversation extends IJsonSerializable {
   @JsonKey(includeToJson: false, includeFromJson: false)
   Id? id = null;
-  final String name;
+  final String userName;
   final String body;
   final String avatar;
   final String source;
@@ -23,15 +23,17 @@ class Conversation extends IJsonSerializable {
   String? messageType;
   String? phoneNumberId;
   String? messageId;
+  String? respondedBy;
 
   Conversation(
-      {required this.name,
+      {required this.userName,
       required this.body,
       required this.avatar,
       required this.source,
       required this.fromNumber,
       required this.toNumber,
       required this.createdAt,
+      this.respondedBy,
       this.messageType,
       this.phoneNumberId,
       this.messageId});
