@@ -61,8 +61,8 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
                                   children: [
                                     // A circle avatar that shows the chat image
                                     CircleAvatar(
-                                      backgroundImage: AssetImage(chat.avatar,
-                                          package: "flipper_socials"),
+                                      backgroundImage:
+                                          NetworkImage(chat.avatar),
                                       radius: 20,
                                     ),
                                     // A positioned widget that shows the source image at the bottom right corner
@@ -71,8 +71,8 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
                                       right: 0,
                                       child: CircleAvatar(
                                         radius: 10,
-                                        backgroundImage: AssetImage(chat.source,
-                                            package: "flipper_socials"),
+                                        backgroundImage:
+                                            NetworkImage(chat.source),
                                       ),
                                     ),
                                   ],
@@ -124,10 +124,8 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
                                               children: [
                                                 // A circle avatar that shows the chat image
                                                 CircleAvatar(
-                                                  backgroundImage: AssetImage(
-                                                      data.first.avatar,
-                                                      package:
-                                                          "flipper_socials"),
+                                                  backgroundImage: NetworkImage(
+                                                      data.first.avatar),
                                                   radius: 20,
                                                 ),
                                                 // A positioned widget that shows the source image at the bottom right corner
@@ -136,10 +134,9 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
                                                   right: 0,
                                                   child: CircleAvatar(
                                                     radius: 10,
-                                                    backgroundImage: AssetImage(
-                                                        data.first.source,
-                                                        package:
-                                                            "flipper_socials"),
+                                                    backgroundImage:
+                                                        NetworkImage(
+                                                            data.first.source),
                                                   ),
                                                 ),
                                               ],

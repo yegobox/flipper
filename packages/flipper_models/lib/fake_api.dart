@@ -509,7 +509,8 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
         "messageId": "1",
         "userName": "Charlie",
         "body": "Hey, whats up?",
-        "avatar": "assets/a.png",
+        "avatar":
+            "https://yegobox-flipper.s3.eu-west-2.amazonaws.com/tgWpp.png",
         "source": "assets/whatsapp.png",
         "toNumber": "250783054874",
         "fromNumber": "250788360058",
@@ -520,7 +521,8 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
         "messageId": "2",
         "userName": "Bob",
         "body": "Hello, nice to meet you.",
-        "avatar": "assets/b.png",
+        "avatar":
+            "https://yegobox-flipper.s3.eu-west-2.amazonaws.com/tgWpp.png",
         "source": "assets/instagram.png",
         "toNumber": "250788360058",
         "fromNumber": "250783054874",
@@ -531,7 +533,8 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
         "messageId": "3",
         "userName": "Alice",
         "body": "Hi, how are you?",
-        "avatar": "assets/c.png",
+        "avatar":
+            "https://yegobox-flipper.s3.eu-west-2.amazonaws.com/tgWpp.png",
         "source": "assets/whatsapp.png",
         "toNumber": "250783054874",
         "fromNumber": "250788360058",
@@ -545,17 +548,17 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
       String? source;
       String? message;
       if (messageId == "1") {
-        avatar = "assets/a.png";
+        avatar = "https://yegobox-flipper.s3.eu-west-2.amazonaws.com/tgWpp.png";
         source = "assets/whatsapp.png";
         message = "Hey, whats up?";
       }
       if (messageId == "2") {
-        avatar = "assets/b.png";
+        avatar = "https://yegobox-flipper.s3.eu-west-2.amazonaws.com/tgWpp.png";
         source = "assets/instagram.png";
         message = "Hello, nice to meet you.";
       }
       if (messageId == "3") {
-        avatar = "assets/c.png";
+        avatar = "https://yegobox-flipper.s3.eu-west-2.amazonaws.com/tgWpp.png";
         source = "assets/whatsapp.png";
         message = "Hi, how are you?";
       }

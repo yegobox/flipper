@@ -32,8 +32,7 @@ class ChatWidget extends StatelessWidget {
             // If the message is not from the user, show the avatar
             if (!isUser)
               CircleAvatar(
-                backgroundImage:
-                    AssetImage(chat.avatar, package: "flipper_socials"),
+                backgroundImage: NetworkImage(chat.avatar),
               ),
             // Show the message text
             Text(chat.body),
