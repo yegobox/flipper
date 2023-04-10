@@ -2120,8 +2120,41 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Stream<List<Conversation>> conversations({String? conversationId}) {
-    // TODO: implement conversations
-    throw UnimplementedError();
+    if (conversationId == null) {
+      /// get all conversations addressed to me or from me
+      String phone = ProxyService.box.getUserPhone()!.replaceAll("+", "");
+      return isar.conversations
+          .filter()
+          .toNumberEqualTo(phone)
+          .or()
+          .fromNumberEqualTo(phone)
+          .build()
+          .watch(fireImmediately: true)
+          .asyncMap((event) {
+        final uniqueUserNames = <String>{};
+
+        // Create a list to store the unique conversations
+        final uniqueConversations = <Conversation>[];
+
+        // Loop through each message in the responseJson
+        for (final message in event) {
+          // Check if the username of the message is already in the set
+          if (!uniqueUserNames.contains(message.userName)) {
+            // If not, add the username to the set and add the message to the uniqueConversations list
+            uniqueUserNames.add(message.userName);
+            uniqueConversations.add(message);
+          }
+        }
+        // Return the list of unique conversations
+        return uniqueConversations;
+      });
+    } else {
+      return isar.conversations
+          .filter()
+          .conversationIdEqualTo(conversationId)
+          .build()
+          .watch(fireImmediately: true);
+    }
   }
 
   @override
@@ -2137,25 +2170,4 @@ class IsarAPI<M> implements IsarApiInterface {
         .messageIdEqualTo(messageId)
         .findFirst();
   }
-
-  // @override
-  // Future<List<Conversation>> conversations({int? conversationId}) async {
-  //   // if the conversationId is not given then check while oversation
-  //   // where to equal to my businessId and to from equal to my businessId as well
-  //   // return the list of those messages
-  //   //otherwise if conversationId is not null then return the single message
-  //   // where id equal to conversation Id
-  //   List<Conversation> convos = [];
-  //   if (conversationId == null) {
-  //     return await isar.conversations
-  //         .filter()
-  //         .fromEqualTo(ProxyService.box.getBusinessId()!)
-  //         .and()
-  //         .toEqualTo(ProxyService.box.getBusinessId()!)
-  //         .build()
-  //         .findAll();
-  //   } else {
-  //     return await isar.conversations.get(conversationId);
-  //   }
-  // }
 }
