@@ -65,14 +65,16 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
                                           NetworkImage(chat.avatar),
                                       radius: 20,
                                     ),
-                                    // A positioned widget that shows the source image at the bottom right corner
+                                    // A positioned widget that shows the channelType image at the bottom right corner
                                     Positioned(
                                       bottom: 0,
                                       right: 0,
                                       child: CircleAvatar(
                                         radius: 10,
-                                        backgroundImage:
-                                            NetworkImage(chat.source),
+                                        backgroundImage: AssetImage(
+                                          "assets/${chat.channelType}.png",
+                                          package: 'flipper_socials',
+                                        ),
                                       ),
                                     ),
                                   ],
@@ -82,7 +84,8 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
                                 trailing: const Text("11:12"),
                                 onTap: () {
                                   viewModel.focusedConversation = true;
-                                  viewModel.messageId = chats[index].messageId;
+                                  viewModel.conversationId =
+                                      chats[index].conversationId;
                                 },
                               );
                             },
@@ -107,7 +110,8 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
                                 padding: const EdgeInsets.only(left: 28.0),
                                 child: StreamBuilder<List<Conversation>>(
                                     stream: ProxyService.isarApi.conversations(
-                                        messageId: viewModel.messageId!),
+                                        conversationId:
+                                            viewModel.conversationId!),
                                     builder: (context, snapshot) {
                                       if (snapshot.hasData) {
                                         log(ProxyService.box.getUserPhone()!);
@@ -128,15 +132,17 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
                                                       data.first.avatar),
                                                   radius: 20,
                                                 ),
-                                                // A positioned widget that shows the source image at the bottom right corner
+                                                // A positioned widget that shows the channelType image at the bottom right corner
                                                 Positioned(
                                                   bottom: 0,
                                                   right: 0,
                                                   child: CircleAvatar(
                                                     radius: 10,
-                                                    backgroundImage:
-                                                        NetworkImage(
-                                                            data.first.source),
+                                                    backgroundImage: AssetImage(
+                                                      "assets/${data.first.channelType}.png",
+                                                      package:
+                                                          'flipper_socials',
+                                                    ),
                                                   ),
                                                 ),
                                               ],
@@ -155,7 +161,7 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
                       viewModel.focusedConversation
                           ? StreamBuilder<List<Conversation>>(
                               stream: ProxyService.isarApi.conversations(
-                                  messageId: viewModel.messageId!),
+                                  conversationId: viewModel.conversationId!),
                               builder: (context, snapshot) {
                                 if (snapshot.hasData) {
                                   final data = snapshot.data;
@@ -190,7 +196,7 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
                                           viewModel.sendMessage(
                                             message:
                                                 _conversationController.text,
-                                            messageId: viewModel.messageId,
+                                            messageId: viewModel.conversationId,
                                           );
                                         }
                                         _conversationController.clear();

@@ -1371,6 +1371,13 @@ class IsarAPI<M> implements IsarApiInterface {
         }
       });
     }
+    if (data is Conversation) {
+      Conversation conversation = data;
+      return await isar.writeTxn(() async {
+        await isar.conversations.put(conversation);
+        return Future.value(null);
+      });
+    }
     if (data is Category) {
       Category category = data;
       return await isar.writeTxn(() async {
@@ -2111,7 +2118,7 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Stream<List<Conversation>> conversations({String? messageId}) {
+  Stream<List<Conversation>> conversations({String? conversationId}) {
     // TODO: implement conversations
     throw UnimplementedError();
   }
@@ -2120,6 +2127,11 @@ class IsarAPI<M> implements IsarApiInterface {
   Future<Conversation> sendMessage({String? conversationId}) {
     // TODO: implement sendMessage
     throw UnimplementedError();
+  }
+
+  @override
+  Future<Conversation?> getConversation({required String messageId}) {
+    return isar.conversations.where().messageIdEqualTo(messageId).findFirst();
   }
 
   // @override

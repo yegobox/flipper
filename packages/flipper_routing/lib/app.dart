@@ -134,3 +134,6 @@ class App {}
 
 // TODO: learn from twitter algo
 // https://blog.twitter.com/engineering/en_us/topics/open-source/2023/twitter-recommendation-algorithm
+// https://pub.dev/packages/pip_view
+// https://docs.getwidget.dev/gf-app-bar/
+// https://pub.dev/packages/getwidget

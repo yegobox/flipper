@@ -1,5 +1,4 @@
-import 'dart:developer';
-
+import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/event_interface.dart';
 import 'package:pubnub/pubnub.dart' as nub;
 import 'package:flipper_services/proxy.dart';
@@ -77,8 +76,7 @@ class EventService implements EventInterface {
         await ProxyService.box.write(key: 'userPhone', value: loginData.phone);
         await ProxyService.box
             .write(key: 'defaultApp', value: loginData.defaultApp);
-        // log(loginData.toMap().toString());
-        log(ProxyService.box.getDefaultApp().toString());
+
         await ProxyService.isarApi.login(
           userPhone: loginData.phone,
         );
@@ -93,6 +91,27 @@ class EventService implements EventInterface {
         /// routing or redirecting here in case you want to know how it redirects
         /// to to mentioned file and see the code
         await FirebaseAuth.instance.signInAnonymously();
+      });
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  void subscribeToMessages({required int channel}) {
+    if (pubnub == null) {
+      connect();
+    }
+    try {
+      nub.Subscription subscription =
+          pubnub!.subscribe(channels: {channel.toString()});
+      subscription.messages.listen((envelope) async {
+        Conversation conversation = Conversation.fromJson(envelope.payload);
+        Conversation? localConversation = await ProxyService.isarApi
+            .getConversation(messageId: conversation.messageId!);
+        if (localConversation == null) {
+          await ProxyService.isarApi.create(data: conversation);
+        }
       });
     } catch (e) {
       rethrow;

@@ -5,8 +5,8 @@ class ChatListViewModel extends BaseViewModel {
   bool get focusedConversation => _focusedConversation;
 
   String? _conversationId;
-  String? get messageId => _conversationId;
-  set messageId(String? conversationId) {
+  String? get conversationId => _conversationId;
+  set conversationId(String? conversationId) {
     _conversationId = conversationId;
     notifyListeners();
   }

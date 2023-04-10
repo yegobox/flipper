@@ -212,6 +212,7 @@ abstract class IsarApiInterface {
   Future<List<BusinessType>> businessTypes();
 
   /// list messages
-  Stream<List<Conversation>> conversations({String messageId});
+  Stream<List<Conversation>> conversations({String conversationId});
   Future<Conversation> sendMessage({String conversationId});
+  Future<Conversation?> getConversation({required String messageId});
 }

@@ -502,20 +502,21 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
   }
 
   @override
-  Stream<List<Conversation>> conversations({String? messageId}) async* {
+  Stream<List<Conversation>> conversations({String? conversationId}) async* {
     // https://randomuser.me/api/portraits/men/3.jpg
     final responseJson = [
       {
         "messageId": "1",
-        "userName": "Charlie",
+        "userName": "Alice",
         "body": "Hey, whats up?",
         "avatar":
             "https://yegobox-flipper.s3.eu-west-2.amazonaws.com/tgWpp.png",
-        "source": "assets/whatsapp.png",
+        "channelType": "whatsapp",
         "toNumber": "250783054874",
         "fromNumber": "250788360058",
         "createdAt": "11/3/2024",
-        "respondedBy": "none"
+        "respondedBy": "none",
+        "conversationId": "250783054874"
       },
       {
         "messageId": "2",
@@ -523,11 +524,12 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
         "body": "Hello, nice to meet you.",
         "avatar":
             "https://yegobox-flipper.s3.eu-west-2.amazonaws.com/tgWpp.png",
-        "source": "assets/instagram.png",
+        "channelType": "instagram",
         "toNumber": "250788360058",
         "fromNumber": "250783054874",
         "createdAt": "11/3/2024",
-        "respondedBy": "none"
+        "respondedBy": "none",
+        "conversationId": "2"
       },
       {
         "messageId": "3",
@@ -535,55 +537,53 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
         "body": "Hi, how are you?",
         "avatar":
             "https://yegobox-flipper.s3.eu-west-2.amazonaws.com/tgWpp.png",
-        "source": "assets/whatsapp.png",
+        "channelType": "whatsapp",
         "toNumber": "250783054874",
         "fromNumber": "250788360058",
         "createdAt": "11/3/2024",
-        "respondedBy": "none"
+        "respondedBy": "none",
+        "conversationId": "2"
       },
     ];
-    if (messageId != null) {
+    if (conversationId != null) {
       // build avatar given the conversationId
       String? avatar;
       String? source;
       String? message;
-      if (messageId == "1") {
+      if (conversationId == "250783054874") {
         avatar = "https://yegobox-flipper.s3.eu-west-2.amazonaws.com/tgWpp.png";
-        source = "assets/whatsapp.png";
+        source = "whatsapp";
         message = "Hey, whats up?";
       }
-      if (messageId == "2") {
+      if (conversationId == "2") {
         avatar = "https://yegobox-flipper.s3.eu-west-2.amazonaws.com/tgWpp.png";
-        source = "assets/instagram.png";
+        source = "instagram";
         message = "Hello, nice to meet you.";
-      }
-      if (messageId == "3") {
-        avatar = "https://yegobox-flipper.s3.eu-west-2.amazonaws.com/tgWpp.png";
-        source = "assets/whatsapp.png";
-        message = "Hi, how are you?";
       }
       final json = [
         {
-          "messageId": messageId,
+          "messageId": conversationId,
           "userName": "Bob",
           "body": message,
           "avatar": avatar,
-          "source": source,
+          "channelType": source,
           "toNumber": "250788360058",
           "fromNumber": "250783054874",
           "createdAt": "11/3/2024",
-          "respondedBy": "none"
+          "respondedBy": "none",
+          "conversationId": conversationId
         },
         {
-          "messageId": messageId,
+          "messageId": conversationId,
           "userName": "Bob",
           "body": message,
           "avatar": avatar,
-          "source": source,
+          "channelType": source,
           "toNumber": "250783054874",
           "fromNumber": "250788360058",
           "createdAt": "11/3/2024",
-          "respondedBy": "none"
+          "respondedBy": "none",
+          "conversationId": "2"
         },
       ];
       final response = http.Response(jsonEncode(json), 200);
@@ -595,7 +595,27 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
     } else {
       final response = http.Response(jsonEncode(responseJson), 200);
       if (response.statusCode == 200) {
-        yield Conversation.fromJsonList(jsonEncode(responseJson));
+        // remove duplicates where the same user has sent multiple messages use userName as key
+
+        // yield Conversation.fromJsonList(jsonEncode(responseJson));
+        final uniqueUserNames = <String>{};
+
+        // Create a list to store the unique conversations
+        final uniqueConversations = <Conversation>[];
+
+        // Loop through each message in the responseJson
+        for (final message
+            in Conversation.fromJsonList(jsonEncode(responseJson))) {
+          // Check if the username of the message is already in the set
+          if (!uniqueUserNames.contains(message.userName)) {
+            // If not, add the username to the set and add the message to the uniqueConversations list
+            uniqueUserNames.add(message.userName);
+            uniqueConversations.add(message);
+          }
+        }
+
+        // Yield the uniqueConversations list as a stream
+        yield uniqueConversations;
       } else {
         throw Exception();
       }

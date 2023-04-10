@@ -45,6 +45,10 @@ class InitApp {
       ProxyService.event.subscribeToLogoutEvent(
           channel: "${ProxyService.box.getUserId()}-logout");
     }
+    if (ProxyService.box.getBusinessId() != null) {
+      ProxyService.event
+          .subscribeToMessages(channel: ProxyService.box.getBusinessId()!);
+    }
 
     /// to avoid receiving the message of the contact you don't have in your book
     /// we need to load contacts when the app starts.

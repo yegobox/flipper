@@ -15,27 +15,30 @@ class Conversation extends IJsonSerializable {
   final String userName;
   final String body;
   final String avatar;
-  final String source;
+  final String channelType;
   final String fromNumber;
   final String toNumber;
 
   late String createdAt;
   String? messageType;
   String? phoneNumberId;
+  @Index(caseSensitive: true)
   String? messageId;
   String? respondedBy;
+  String? conversationId;
 
   Conversation(
       {required this.userName,
       required this.body,
       required this.avatar,
-      required this.source,
+      required this.channelType,
       required this.fromNumber,
       required this.toNumber,
       required this.createdAt,
       this.respondedBy,
       this.messageType,
       this.phoneNumberId,
+      this.conversationId,
       this.messageId});
   factory Conversation.fromRecord(RecordModel record) =>
       Conversation.fromJson(record.toJson());
