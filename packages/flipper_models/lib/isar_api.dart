@@ -103,6 +103,7 @@ class IsarAPI<M> implements IsarApiInterface {
           CounterSchema,
           TokenSchema,
           SocialSchema,
+          ConversationSchema,
         ],
       );
     } else {
@@ -2130,8 +2131,11 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Conversation?> getConversation({required String messageId}) {
-    return isar.conversations.where().messageIdEqualTo(messageId).findFirst();
+  Future<Conversation?> getConversation({required String messageId}) async {
+    return await isar.conversations
+        .where()
+        .messageIdEqualTo(messageId)
+        .findFirst();
   }
 
   // @override

@@ -44,7 +44,7 @@ dependencies:
   googleapis: ^8.1.0
 
   timeago: ^3.2.1
-  pubnub: ^4.1.4
+  pubnub: ^4.2.2
   stacked_services: ^1.0.0
   universal_platform: ^1.0.0+1
   googleapis_auth: ^1.1.0

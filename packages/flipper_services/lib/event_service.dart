@@ -104,20 +104,19 @@ class EventService implements EventInterface {
     if (pubnub == null) {
       connect();
     }
-    try {
-      log('subscribing to channel $channel');
-      nub.Subscription subscription = pubnub!.subscribe(channels: {channel});
-      subscription.messages.listen((envelope) async {
-        Conversation conversation = Conversation.fromJson(envelope.payload);
-        Conversation? localConversation = await ProxyService.isarApi
-            .getConversation(messageId: conversation.messageId!);
-        log(conversation.toJson().toString());
-        if (localConversation == null) {
-          await ProxyService.isarApi.create(data: conversation);
-        }
-      });
-    } catch (e) {
-      rethrow;
-    }
+    log('subscribing to channel $channel');
+    nub.Subscription subscription = pubnub!.subscribe(channels: {channel});
+    subscription.messages.listen((envelope) async {
+      log("received message aha!");
+      Conversation conversation = Conversation.fromJson(envelope.payload);
+
+      Conversation? localConversation = await ProxyService.isarApi
+          .getConversation(messageId: conversation.messageId!);
+
+      log(conversation.toJson().toString(), name: 'conversation');
+      if (localConversation == null) {
+        await ProxyService.isarApi.create(data: conversation);
+      }
+    });
   }
 }
