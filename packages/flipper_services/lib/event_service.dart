@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/event_interface.dart';
 import 'package:pubnub/pubnub.dart' as nub;
@@ -98,17 +100,18 @@ class EventService implements EventInterface {
   }
 
   @override
-  void subscribeToMessages({required int channel}) {
+  void subscribeToMessages({required String channel}) {
     if (pubnub == null) {
       connect();
     }
     try {
-      nub.Subscription subscription =
-          pubnub!.subscribe(channels: {channel.toString()});
+      log('subscribing to channel $channel');
+      nub.Subscription subscription = pubnub!.subscribe(channels: {channel});
       subscription.messages.listen((envelope) async {
         Conversation conversation = Conversation.fromJson(envelope.payload);
         Conversation? localConversation = await ProxyService.isarApi
             .getConversation(messageId: conversation.messageId!);
+        log(conversation.toJson().toString());
         if (localConversation == null) {
           await ProxyService.isarApi.create(data: conversation);
         }

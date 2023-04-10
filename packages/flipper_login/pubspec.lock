@@ -1255,6 +1255,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.1"
+  getwidget:
+    dependency: transitive
+    description:
+      name: getwidget
+      sha256: d97c08d2cc8f2456bb8b28e34931879b1c5da6545453f3d64b7bebd70b7abfcf
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.0.1"
   glob:
     dependency: transitive
     description:
@@ -1887,6 +1895,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.1.0"
+  pip_view:
+    dependency: transitive
+    description:
+      name: pip_view
+      sha256: "1ba2abcc3229dc6df72e6f23e263c966f9b0fbf3cb6a4b87bbef01ad9a930c81"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.9.7"
   platform:
     dependency: transitive
     description:

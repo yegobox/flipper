@@ -27,6 +27,8 @@ dependencies:
   isar_crdt: 0.0.2-dev
   fluentui_system_icons: ^1.1.198
   animated_icon_button: ^1.0.2
+  pip_view: ^0.9.7
+  getwidget: ^3.0.1
 dev_dependencies:
   flutter_test:
     sdk: flutter

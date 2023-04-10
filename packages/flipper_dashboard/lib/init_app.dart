@@ -46,8 +46,8 @@ class InitApp {
           channel: "${ProxyService.box.getUserId()}-logout");
     }
     if (ProxyService.box.getBusinessId() != null) {
-      ProxyService.event
-          .subscribeToMessages(channel: ProxyService.box.getBusinessId()!);
+      ProxyService.event.subscribeToMessages(
+          channel: ProxyService.box.getBusinessId()!.toString());
     }
 
     /// to avoid receiving the message of the contact you don't have in your book
