@@ -2112,20 +2112,24 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Conversation> sendMessage({Conversation? conversation}) async {
+  Future<Conversation?> sendMessage({Conversation? conversation}) async {
     final http.Response response = await socialsHttpClient.post(
         Uri.parse("$commApi/reply"),
         body: jsonEncode(conversation!.toJson()),
         headers: {'Content-Type': 'application/json'});
     if (response.statusCode == 200) {
       final responseJson = jsonDecode(response.body);
+      log(responseJson.toString());
       final conversation = Conversation.fromJson(responseJson);
       isar.writeTxn(() async {
         await isar.conversations.put(conversation);
       });
       return conversation;
+      // return await Future.value(null);
     } else {
+      log(response.body);
       throw Exception('Failed to load conversation');
+      // return await Future.value(null);
     }
   }
 

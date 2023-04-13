@@ -21,6 +21,7 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
   late AnimationController animationController; // use late modifier
   final TextEditingController _conversationController =
       TextEditingController(text: '');
+  Conversation? latestConversation;
   @override
   void initState() {
     super.initState();
@@ -50,10 +51,12 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
                     builder: (context, snapshot) {
                       if (snapshot.hasData) {
                         final chats = snapshot.data;
+                        // get last element from chat or the latest message
+                        latestConversation = chats!.last;
                         return SizedBox(
                           width: size.width * 0.3,
                           child: ListView.builder(
-                            itemCount: chats!.length,
+                            itemCount: chats.length,
                             itemBuilder: (context, index) {
                               final chat = chats[index];
                               return ListTile(
@@ -196,7 +199,8 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
                                           viewModel.sendMessage(
                                             message:
                                                 _conversationController.text,
-                                            messageId: viewModel.conversationId,
+                                            latestConversation:
+                                                latestConversation!,
                                           );
                                         }
                                         _conversationController.clear();

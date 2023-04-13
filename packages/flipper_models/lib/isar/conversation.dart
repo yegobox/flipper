@@ -21,13 +21,17 @@ class Conversation extends IJsonSerializable {
   @Index(caseSensitive: true)
   final String toNumber;
 
-  late String createdAt;
+  String? createdAt;
   String? messageType;
   String? phoneNumberId;
   @Index(caseSensitive: true)
   String? messageId;
   String? respondedBy;
   String? conversationId;
+
+  /// properties that are here only useful when replying
+  String? businessPhoneNumber;
+  String? businessId;
 
   Conversation(
       {required this.userName,
@@ -36,11 +40,13 @@ class Conversation extends IJsonSerializable {
       required this.channelType,
       required this.fromNumber,
       required this.toNumber,
-      required this.createdAt,
+      this.createdAt,
       this.respondedBy,
       this.messageType,
       this.phoneNumberId,
       this.conversationId,
+      this.businessPhoneNumber,
+      this.businessId,
       this.messageId});
   factory Conversation.fromRecord(RecordModel record) =>
       Conversation.fromJson(record.toJson());

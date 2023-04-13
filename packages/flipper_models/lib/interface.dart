@@ -212,7 +212,7 @@ abstract class IsarApiInterface {
 
   /// list messages
   Stream<List<Conversation>> conversations({String conversationId});
-  Future<Conversation> sendMessage({Conversation conversation});
+  Future<Conversation?> sendMessage({Conversation conversation});
   Future<Conversation?> getConversation({required String messageId});
   Future<int> registerOnSocial({String phoneNumberOrEmail, String password});
   Future<String> loginOnSocial({String phoneNumberOrEmail, String password});
