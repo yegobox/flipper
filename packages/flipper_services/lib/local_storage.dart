@@ -128,4 +128,9 @@ class LocalStorageImpl implements LocalStorage {
   int getDefaultApp() {
     return box.read('defaultApp') ?? 1;
   }
+
+  @override
+  String? getSocialBearerToken() {
+    return box.read('socialBearerToken');
+  }
 }

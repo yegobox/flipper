@@ -6,6 +6,7 @@ import 'package:flipper_models/data.loads/jcounter.dart';
 import 'package:flipper_models/isar/utils.dart';
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
+import 'package:flipper_models/socials_http_client.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/isar_models.dart';
@@ -13,48 +14,15 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:isar_crdt/utils/hlc.dart';
 import 'package:universal_platform/universal_platform.dart';
+import 'flipper_http_client.dart';
 import 'view_models/gate.dart';
 import 'package:flipper_routing/receipt_types.dart';
 
 final isAndroid = UniversalPlatform.isAndroid;
 
-class ExtendedClient extends http.BaseClient {
-  final http.Client _inner;
-  // ignore: sort_constructors_first
-  ExtendedClient(this._inner);
-
-  @override
-  Future<http.StreamedResponse> send(http.BaseRequest request) async {
-    /// token,userId can be null when is desktop login with pin
-    String? token = ProxyService.box.getBearerToken();
-    int? userId = ProxyService.box.getUserId();
-
-    request.headers['Authorization'] = token ?? "";
-    request.headers['userId'] = userId == null ? "" : userId.toString();
-    request.headers['Content-Type'] = 'application/json';
-
-    try {
-      return await _inner.send(request);
-    } catch (error, stackTrace) {
-      if (error is http.ClientException) {
-        // Handle network errors
-        ProxyService.crash.reportError(error, stackTrace);
-        throw Exception('Network error: ${error.message}');
-      } else if (error is http.Response) {
-        // Handle server errors
-        ProxyService.crash.reportError(error, stackTrace);
-        throw Exception('Server error: ${error.statusCode}');
-      } else {
-        // Handle any other errors
-        ProxyService.crash.reportError(error, stackTrace);
-        throw Exception('Unknown error: ${error.toString()}');
-      }
-    }
-  }
-}
-
 class IsarAPI<M> implements IsarApiInterface {
-  ExtendedClient client = ExtendedClient(http.Client());
+  FlipperHttpClient flipperHttpClient = FlipperHttpClient(http.Client());
+  SocialsHttpClient socialsHttpClient = SocialsHttpClient(http.Client());
   late String apihub;
   late String commApi;
   late Isar isar;
@@ -364,7 +332,7 @@ class IsarAPI<M> implements IsarApiInterface {
     /// to avoid that we add a flag to checkin then if we fail we remove it to enable next check in attempt
     // ProxyService.box.write(key: 'checkIn', value: 'checkIn');
     final http.Response response =
-        await client.post(Uri.parse("$apihub/v2/api/attendance"),
+        await flipperHttpClient.post(Uri.parse("$apihub/v2/api/attendance"),
             body: jsonEncode({
               "businessId": businessId,
               "businessName": businessName,
@@ -444,7 +412,7 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<Voucher?> consumeVoucher({required int voucherCode}) async {
     final http.Response response =
-        await client.patch(Uri.parse("$apihub/v2/api/voucher"),
+        await flipperHttpClient.patch(Uri.parse("$apihub/v2/api/voucher"),
             body: jsonEncode(
               <String, int>{'id': voucherCode},
             ),
@@ -470,7 +438,8 @@ class IsarAPI<M> implements IsarApiInterface {
     Business? business = await getBusiness();
     String docName = business!.name! + '- Report';
 
-    await client.post(Uri.parse("$apihub/v2/api/createSheetDocument"),
+    await flipperHttpClient.post(
+        Uri.parse("$apihub/v2/api/createSheetDocument"),
         body: jsonEncode({"title": docName, "shareToEmail": email}),
         headers: {'Content-Type': 'application/json'});
   }
@@ -490,7 +459,7 @@ class IsarAPI<M> implements IsarApiInterface {
     String phoneNumber = ProxyService.box.getUserPhone()!;
     int defaultApp = ProxyService.box.getDefaultApp();
     final http.Response response =
-        await client.post(Uri.parse("$apihub/v2/api/pin"),
+        await flipperHttpClient.post(Uri.parse("$apihub/v2/api/pin"),
             body: jsonEncode(
               <String, dynamic>{
                 'userId': id,
@@ -733,7 +702,7 @@ class IsarAPI<M> implements IsarApiInterface {
     Business? business = await isar.writeTxn(() {
       return isar.business.get(businessId);
     });
-    final http.Response response = await client.post(
+    final http.Response response = await flipperHttpClient.post(
         Uri.parse("$apihub/v2/api/createAttendanceDoc"),
         body: jsonEncode({
           "title": business!.name! + '-' + 'Attendance',
@@ -775,7 +744,7 @@ class IsarAPI<M> implements IsarApiInterface {
     });
     if (business != null) return business;
     final http.Response response =
-        await client.get(Uri.parse("$apihub/v2/api/business/$id"));
+        await flipperHttpClient.get(Uri.parse("$apihub/v2/api/business/$id"));
     if (response.statusCode == 200) {
       Business business = Business.fromJson(json.decode(response.body));
       return isar.writeTxn(() async {
@@ -883,8 +852,8 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<Business> getOnlineBusiness({required String userId}) async {
-    final response =
-        await client.get(Uri.parse("$apihub/v2/api/businessUserId/$userId"));
+    final response = await flipperHttpClient
+        .get(Uri.parse("$apihub/v2/api/businessUserId/$userId"));
 
     if (response.statusCode == 401) {
       throw SessionException(term: "session expired");
@@ -932,7 +901,7 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<Pin?> getPin({required String pin}) async {
     final http.Response response =
-        await client.get(Uri.parse("$apihub/v2/api/pin/$pin"));
+        await flipperHttpClient.get(Uri.parse("$apihub/v2/api/pin/$pin"));
     if (response.statusCode == 200) {
       return pinFromMap(response.body);
     }
@@ -982,8 +951,8 @@ class IsarAPI<M> implements IsarApiInterface {
       return isar.subscriptions.where().userIdEqualTo(userId).findFirst();
     });
     if (local == null) {
-      final response =
-          await client.get(Uri.parse("$apihub/v2/api/subscription/$userId"));
+      final response = await flipperHttpClient
+          .get(Uri.parse("$apihub/v2/api/subscription/$userId"));
       if (response.statusCode == 200) {
         Subscription? sub = Subscription.fromJson(json.decode(response.body));
 
@@ -1067,7 +1036,7 @@ class IsarAPI<M> implements IsarApiInterface {
   Future<JTenant> saveTenant(String phoneNumber, String name,
       {required Business business, required Branch branch}) async {
     final http.Response response =
-        await client.post(Uri.parse("$apihub/v2/api/tenant"),
+        await flipperHttpClient.post(Uri.parse("$apihub/v2/api/tenant"),
             body: jsonEncode({
               "phoneNumber": phoneNumber,
               "name": name,
@@ -1107,7 +1076,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<List<JTenant>> signup({required Map business}) async {
-    final http.Response response = await client.post(
+    final http.Response response = await flipperHttpClient.post(
         Uri.parse("$apihub/v2/api/business"),
         body: jsonEncode(business),
         headers: {'Content-Type': 'application/json'});
@@ -1512,7 +1481,7 @@ class IsarAPI<M> implements IsarApiInterface {
       await isar.writeTxn(() async {
         return await isar.business.put(business);
       });
-      final response = await client.patch(
+      final response = await flipperHttpClient.patch(
           Uri.parse("$apihub/v2/api/business/${business.id}"),
           body: jsonEncode(business.toJson()),
           headers: {'Content-Type': 'application/json'});
@@ -1524,7 +1493,7 @@ class IsarAPI<M> implements IsarApiInterface {
       isar.writeTxn(() async {
         return await isar.branchs.put(data);
       });
-      final response = await client.patch(
+      final response = await flipperHttpClient.patch(
           Uri.parse("$apihub/v2/api/branch/${data.id}"),
           body: jsonEncode(data.toJson()),
           headers: {'Content-Type': 'application/json'});
@@ -1536,7 +1505,7 @@ class IsarAPI<M> implements IsarApiInterface {
       await isar.writeTxn(() async {
         return isar.counters.put(data..backed = false);
       });
-      final response = await client.patch(
+      final response = await flipperHttpClient.patch(
           Uri.parse("$apihub/v2/api/counter/${data.id}"),
           body: jsonEncode(data.toJson()),
           headers: {'Content-Type': 'application/json'});
@@ -1561,7 +1530,8 @@ class IsarAPI<M> implements IsarApiInterface {
         return await isar.branchs.put(data);
       });
       try {
-        await client.patch(Uri.parse("$apihub/v2/api/branch/${data.id}"),
+        await flipperHttpClient.patch(
+            Uri.parse("$apihub/v2/api/branch/${data.id}"),
             body: jsonEncode(data.toJson()),
             headers: {'Content-Type': 'application/json'});
       } catch (e) {}
@@ -1573,7 +1543,7 @@ class IsarAPI<M> implements IsarApiInterface {
       });
     }
     if (data is ITenant) {
-      final response = await client.patch(
+      final response = await flipperHttpClient.patch(
           Uri.parse("$apihub/v2/api/tenant/${data.id}"),
           body: jsonEncode(data.toJson()),
           headers: {'Content-Type': 'application/json'});
@@ -1599,7 +1569,8 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<int> userNameAvailable({required String name}) async {
-    final response = await client.get(Uri.parse("$apihub/search?name=$name"));
+    final response =
+        await flipperHttpClient.get(Uri.parse("$apihub/search?name=$name"));
     return response.statusCode;
   }
 
@@ -1805,7 +1776,7 @@ class IsarAPI<M> implements IsarApiInterface {
   Future<List<ITenant>> tenantsFromOnline({required int businessId}) async {
     String id = businessId.toString();
     final http.Response response =
-        await client.get(Uri.parse("$apihub/v2/api/tenant/$id"));
+        await flipperHttpClient.get(Uri.parse("$apihub/v2/api/tenant/$id"));
     if (response.statusCode == 200) {
       for (JTenant tenant in jListTenantFromJson(response.body)) {
         JTenant jTenant = tenant;
@@ -1896,8 +1867,8 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<void> loadCounterFromOnline({required int businessId}) async {
-    final http.Response response =
-        await client.get(Uri.parse("$apihub/v2/api/counter/$businessId"));
+    final http.Response response = await flipperHttpClient
+        .get(Uri.parse("$apihub/v2/api/counter/$businessId"));
     if (response.statusCode == 200) {
       List<JCounter> counters = jCounterFromJson(response.body);
       for (JCounter jCounter in counters) {
@@ -1933,23 +1904,6 @@ class IsarAPI<M> implements IsarApiInterface {
   // String public() {
   //   // return isar.j
   // }
-
-  @override
-  Future<String> whatsAppToken() async {
-    final http.Response response = await client.post(
-        Uri.parse("$commApi/login"),
-        body: json.encode(
-            {"email": "murag.richard@gmail.com", "password": "love@123"}),
-        headers: {'Content-Type': 'application/json'});
-
-    if (response.statusCode == 200) {
-      Map<String, dynamic> responseBody = json.decode(response.body);
-      String token = responseBody["body"]["token"];
-      return token;
-    } else {
-      throw Exception("Failed to get token");
-    }
-  }
 
   @override
   Future<bool> bindProduct(
@@ -2158,9 +2112,21 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Conversation> sendMessage({String? conversationId}) {
-    // TODO: implement sendMessage
-    throw UnimplementedError();
+  Future<Conversation> sendMessage({Conversation? conversation}) async {
+    final http.Response response = await socialsHttpClient.post(
+        Uri.parse("$commApi/reply"),
+        body: jsonEncode(conversation!.toJson()),
+        headers: {'Content-Type': 'application/json'});
+    if (response.statusCode == 200) {
+      final responseJson = jsonDecode(response.body);
+      final conversation = Conversation.fromJson(responseJson);
+      isar.writeTxn(() async {
+        await isar.conversations.put(conversation);
+      });
+      return conversation;
+    } else {
+      throw Exception('Failed to load conversation');
+    }
   }
 
   @override
@@ -2169,5 +2135,36 @@ class IsarAPI<M> implements IsarApiInterface {
         .where()
         .messageIdEqualTo(messageId)
         .findFirst();
+  }
+
+  @override
+  Future<int> registerOnSocial(
+      {String? phoneNumberOrEmail, String? password}) async {
+    final http.Response response = await socialsHttpClient.post(
+        Uri.parse("$commApi/register"),
+        body: {"email": phoneNumberOrEmail, "password": password},
+        headers: {'Content-Type': 'application/json'});
+    if (response.statusCode == 200) {
+      return Future.value(200);
+    }
+    throw Exception();
+  }
+
+  @override
+  Future<String> loginOnSocial(
+      {String? phoneNumberOrEmail, String? password}) async {
+    final http.Response response = await flipperHttpClient.post(
+        Uri.parse("$commApi/login"),
+        body: json.encode(
+            {"email": "murag.richard@gmail.com", "password": "love@123"}),
+        headers: {'Content-Type': 'application/json'});
+
+    if (response.statusCode == 200) {
+      Map<String, dynamic> responseBody = json.decode(response.body);
+      String token = responseBody["body"]["token"];
+      return token;
+    } else {
+      throw Exception("Failed to get token");
+    }
   }
 }

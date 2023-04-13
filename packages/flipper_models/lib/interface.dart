@@ -195,7 +195,6 @@ abstract class IsarApiInterface {
 
   String dbPath();
   Future<Customer?> nGetCustomerByOrderId({required int id});
-  Future<String> whatsAppToken();
   Future<bool> bindProduct({required int productId, required int tenantId});
   Future<Product?> findProductByTenantId({required int tenantId});
   Future<List<Product>> getLocalProducts();
@@ -213,6 +212,8 @@ abstract class IsarApiInterface {
 
   /// list messages
   Stream<List<Conversation>> conversations({String conversationId});
-  Future<Conversation> sendMessage({String conversationId});
+  Future<Conversation> sendMessage({Conversation conversation});
   Future<Conversation?> getConversation({required String messageId});
+  Future<int> registerOnSocial({String phoneNumberOrEmail, String password});
+  Future<String> loginOnSocial({String phoneNumberOrEmail, String password});
 }

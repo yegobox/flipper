@@ -94,8 +94,13 @@ class SignupViewModel extends ReactiveViewModel {
         'country': kCountry
       });
       if (jTenants.isNotEmpty) {
-        /// create tenants.
-
+        /// we have socials as choosen app then register on social
+        if (businessType.id == 2) {
+          // it is customer support then register on socials as well
+          await ProxyService.isarApi.registerOnSocial(
+              password: ProxyService.box.getUserPhone()!,
+              phoneNumberOrEmail: ProxyService.box.getUserPhone()!);
+        }
         Business? business = await ProxyService.isarApi
             .getBusinessById(id: jTenants.first.businesses.first.id!);
 

@@ -332,4 +332,12 @@ class AppService with ListenableServiceMixin {
     listenToReactiveValues(
         [_categories, _units, _colors, _currentColor, _business, _contacts]);
   }
+
+  bool isSocialLoggedin() {
+    if (ProxyService.box.getSocialBearerToken() != null) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 }

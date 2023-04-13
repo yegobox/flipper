@@ -621,10 +621,4 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
       }
     }
   }
-
-  @override
-  Future<Conversation> sendMessage({String? conversationId}) {
-    // TODO: implement sendMessage
-    throw UnimplementedError();
-  }
 }
