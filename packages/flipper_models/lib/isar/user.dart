@@ -55,7 +55,7 @@ class Tenant {
   int id;
   String name;
   String phoneNumber;
-  String email;
+  String? email;
   List<Permission> permissions;
   List<Branch> branches;
   List<Business> businesses;
@@ -70,7 +70,7 @@ class Tenant {
         id: json["id"],
         name: json["name"],
         phoneNumber: json["phoneNumber"],
-        email: json["email"],
+        email: json["email"] ?? json["phoneNumber"],
         permissions: List<Permission>.from(
             json["permissions"].map((x) => Permission.fromJson(x))),
         branches:
@@ -85,7 +85,7 @@ class Tenant {
         "id": id,
         "name": name,
         "phoneNumber": phoneNumber,
-        "email": email,
+        "email": email ?? phoneNumber,
         "permissions": List<dynamic>.from(permissions.map((x) => x.toJson())),
         "branches": List<dynamic>.from(branches.map((x) => x.toJson())),
         "businesses": List<dynamic>.from(businesses.map((x) => x.toJson())),

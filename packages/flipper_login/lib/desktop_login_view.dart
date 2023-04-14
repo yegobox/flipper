@@ -89,15 +89,18 @@ class _DesktopLoginViewState extends State<DesktopLoginView> {
                         size: 200.0,
                       ),
                     ),
-                    SizedBox(
-                        width: 450,
-                        child: Text(
-                          'Log in to Flipper by QR Code',
-                          style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.w400,
-                              fontSize: 20,
-                              color: Colors.black),
-                        )),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 120.0),
+                      child: SizedBox(
+                          width: 450,
+                          child: Text(
+                            'Log in to Flipper by QR Code',
+                            style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w400,
+                                fontSize: 20,
+                                color: Colors.black),
+                          )),
+                    ),
                     SizedBox(height: 10),
                     SizedBox(
                       width: 380,
@@ -123,7 +126,7 @@ class _DesktopLoginViewState extends State<DesktopLoginView> {
                                 fontWeight: FontWeight.w400,
                                 fontSize: 15,
                                 color: Colors.black))),
-                    SizedBox(height: 10),
+                    SizedBox(height: 30),
                     SizedBox(
                       height: 40,
                       width: 350,

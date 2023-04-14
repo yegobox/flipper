@@ -137,3 +137,4 @@ class App {}
 // https://pub.dev/packages/pip_view
 // https://docs.getwidget.dev/gf-app-bar/
 // https://pub.dev/packages/getwidget
+// TODO: add profile picture on user https://firebase.google.com/docs/auth/flutter/manage-users
