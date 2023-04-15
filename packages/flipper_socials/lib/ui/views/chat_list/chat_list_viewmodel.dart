@@ -18,8 +18,6 @@ class ChatListViewModel extends BaseViewModel {
     notifyListeners();
   }
 
-  /// sending new message if conversationId is not given
-  /// but if source is whatsapp
   Future<void> sendMessage(
       {required String message,
       required Conversation latestConversation}) async {
@@ -27,12 +25,13 @@ class ChatListViewModel extends BaseViewModel {
       avatar: "https://yegobox-flipper.s3.eu-west-2.amazonaws.com/lRsBL.png",
       body: message,
       channelType: "whatsapp",
-      fromNumber: latestConversation.fromNumber,
+      fromNumber: latestConversation.toNumber,
       toNumber: latestConversation.fromNumber,
       userName: "Yego",
       messageId: latestConversation.messageId,
+      conversationId: latestConversation.conversationId,
       phoneNumberId: latestConversation.phoneNumberId,
-      businessPhoneNumber: latestConversation.toNumber,
+      businessPhoneNumber: ProxyService.box.getUserPhone()!.replaceAll("+", ""),
       messageType: "text",
       businessId: ProxyService.box.getBusinessId()!.toString(),
     );

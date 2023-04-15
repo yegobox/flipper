@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_socials/ui/widgets/chat_widget.dart';
@@ -52,11 +50,11 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
                       if (snapshot.hasData) {
                         final chats = snapshot.data;
                         // get last element from chat or the latest message
-                        latestConversation = chats!.last;
+
                         return SizedBox(
                           width: size.width * 0.3,
                           child: ListView.builder(
-                            itemCount: chats.length,
+                            itemCount: chats!.length,
                             itemBuilder: (context, index) {
                               final chat = chats[index];
                               return ListTile(
@@ -117,7 +115,9 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
                                             viewModel.conversationId!),
                                     builder: (context, snapshot) {
                                       if (snapshot.hasData) {
-                                        log(ProxyService.box.getUserPhone()!);
+                                        latestConversation =
+                                            snapshot.data!.last;
+
                                         String userPhoneNumber =
                                             ProxyService.box.getUserPhone()!;
                                         final data = snapshot.data!
