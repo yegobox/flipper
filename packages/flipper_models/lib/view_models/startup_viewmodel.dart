@@ -30,16 +30,11 @@ class StartupViewModel extends BaseViewModel {
     // ProxyService.isarApi.logOut();
     try {
       /// an event should be trigered from mobile not desktop as desktop is anonmous and login() func might have been called.
-      if (invokeLogin && !ProxyService.box.isAnonymous()) {
+      if (invokeLogin) {
         User? user = FirebaseAuth.instance.currentUser;
-        if (user != null && !(await appService.isLoggedIn())) {
-          await ProxyService.isarApi.login(
-            userPhone: user.phoneNumber ?? user.email!,
-          );
-        }
-      } else {
-        User? user = FirebaseAuth.instance.currentUser;
-        if (user != null && !(await appService.isLoggedIn())) {
+        if (user != null &&
+            !(await appService.isLoggedIn()) &&
+            !user.isAnonymous) {
           await ProxyService.isarApi.login(
             userPhone: user.phoneNumber ?? user.email!,
           );
