@@ -86,7 +86,6 @@ AppService getAndRegisterAppService(
   when(service.branchId).thenReturn(branchId);
   when(service.businessId).thenReturn(businessId);
   when(service.currentColor).thenReturn('#ee5253');
-  when(service.isLoggedIn()).thenAnswer((realInvocation) => hasLoggedInUser);
   locator.registerSingleton<AppService>(service);
 
   return service;

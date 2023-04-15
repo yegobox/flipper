@@ -1378,6 +1378,12 @@ class IsarAPI<M> implements IsarApiInterface {
         return Future.value(null);
       });
     }
+    if (data is Token) {
+      await isar.writeTxn(() async {
+        await isar.tokens.put(data);
+        return Future.value(null);
+      });
+    }
     return Future.value(null);
   }
 
@@ -1458,23 +1464,11 @@ class IsarAPI<M> implements IsarApiInterface {
     }
     if (data is Token) {
       final token = data;
-      await isar.writeTxn(() async {
-        Token? ttoken =
-            await isar.tokens.where().userIdEqualTo(token.userId).findFirst();
-        if (ttoken == null) {
-          ttoken = Token()
-            ..token = token.token
-            ..userId = token.userId
-            ..type = token.type;
-          return await isar.tokens.put(ttoken);
-        } else {
-          ttoken
-            ..token = token.token
-            ..userId = token.userId
-            ..type = token.type;
-          return await isar.tokens.put(ttoken);
-        }
-      });
+      token
+        ..token = token.token
+        ..businessId = token.businessId
+        ..type = token.type;
+      await isar.tokens.put(token);
     }
     if (data is Business) {
       final business = data;
@@ -2117,7 +2111,6 @@ class IsarAPI<M> implements IsarApiInterface {
         Uri.parse("$commApi/reply"),
         body: json.encode(conversation!.toJson()),
         headers: {'Content-Type': 'application/json'});
-    // return await Future.value(null);
     if (response.statusCode == 200) {
       final responseJson = jsonDecode(response.body);
       log(responseJson.toString());
@@ -2154,20 +2147,40 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<String> loginOnSocial(
+  Future<SocialToken> loginOnSocial(
       {String? phoneNumberOrEmail, String? password}) async {
     final http.Response response = await flipperHttpClient.post(
         Uri.parse("$commApi/login"),
-        body: json.encode(
-            {"email": "murag.richard@gmail.com", "password": "love@123"}),
+        body: json.encode({"email": phoneNumberOrEmail, "password": password}),
         headers: {'Content-Type': 'application/json'});
 
     if (response.statusCode == 200) {
-      Map<String, dynamic> responseBody = json.decode(response.body);
-      String token = responseBody["body"]["token"];
-      return token;
+      SocialToken responseBody = SocialToken.fromRawJson(response.body);
+      return responseBody;
     } else {
       throw Exception("Failed to get token");
     }
+  }
+
+  @override
+  Future<bool> isTokenValid(
+      {required String tokenType, required int businessId}) async {
+    // get token of a type from isar
+    Token? token = await isar.tokens
+        .filter()
+        .typeEqualTo(tokenType)
+        .and()
+        .businessIdEqualTo(businessId)
+        .build()
+        .findFirst();
+    if (token == null) {
+      return false;
+    }
+    // compare validFrom and ValidUntil from token
+    if (token.validFrom.isAfter(DateTime.now()) ||
+        token.validUntil.isBefore(DateTime.now())) {
+      return false;
+    }
+    return true;
   }
 }

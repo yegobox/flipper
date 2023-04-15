@@ -9,8 +9,7 @@ class SocialsHttpClient extends http.BaseClient {
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     /// token,userId can be null when is desktop login with pin
-    String? token =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IjI1MDc4ODM2MDA1OCIsImlkIjoiMjUwNzg4MzYwMDU4Iiwicm9sZXMiOlsiVVNFUiJdLCJpYXQiOjE2ODE1Mzc5NjAsImV4cCI6MTY4MTYyNDM2MH0.vcngMYauJpMNBjfq_M0U2sEzfNeH35e-atlfYYRb1is";
+    String token = ProxyService.box.getSocialBearerToken()!;
 
     request.headers['Authorization'] = token;
     request.headers['Content-Type'] = 'application/json';

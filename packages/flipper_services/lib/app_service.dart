@@ -12,6 +12,8 @@ import 'package:flutter_statusbarcolor_ns/flutter_statusbarcolor_ns.dart';
 import 'package:flipper_nfc/flipper_nfc.dart';
 import 'package:flutter/services.dart';
 
+const socialApp = "socials";
+
 class AppService with ListenableServiceMixin {
   // required constants
   int? get userid => ProxyService.box.getUserId();
@@ -83,9 +85,34 @@ class AppService with ListenableServiceMixin {
   bool _loggedIn = false;
   bool get hasLoggedInUser => _loggedIn;
 
-  bool isLoggedIn() {
+  /// we fist log in to the business portal
+  /// before we log to other apps as the business portal
+  /// is the mother of all apps
+  Future<bool> isLoggedIn() async {
     // from bellow logic add check if we also have businessId and branchId
     _loggedIn = ProxyService.box.getUserId() == null ? false : true;
+    if (!_loggedIn) {
+      return false;
+    }
+    int businessId = ProxyService.box.getBusinessId()!;
+    if (ProxyService.box.getDefaultApp() == 2) {
+      if (!(await isSocialLoggedin())) {
+        SocialToken token = await ProxyService.isarApi.loginOnSocial(
+            password: ProxyService.box.getUserPhone()!.replaceFirst("+", ""),
+            phoneNumberOrEmail:
+                ProxyService.box.getUserPhone()!.replaceFirst("+", ""));
+        ProxyService.box.write(
+            key: 'socialBearerToken', value: "Bearer " + token.body.token);
+        await ProxyService.isarApi.create(
+            data: Token(
+                businessId: businessId,
+                token: token.body.token,
+                validFrom: token.body.validFrom,
+                validUntil: token.body.validUntil,
+                type: socialApp));
+      }
+    }
+
     return _loggedIn;
   }
 
@@ -333,8 +360,10 @@ class AppService with ListenableServiceMixin {
         [_categories, _units, _colors, _currentColor, _business, _contacts]);
   }
 
-  bool isSocialLoggedin() {
-    if (ProxyService.box.getSocialBearerToken() != null) {
+  Future<bool> isSocialLoggedin() async {
+    int businessId = ProxyService.box.getBranchId()!;
+    if (await ProxyService.isarApi
+        .isTokenValid(businessId: businessId, tokenType: socialApp)) {
       return true;
     } else {
       return false;

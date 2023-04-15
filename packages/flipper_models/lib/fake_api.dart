@@ -435,18 +435,23 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
     if (data is Token) {
       final token = data;
       await isar.writeTxn(() async {
-        Token? ttoken =
-            await isar.tokens.where().userIdEqualTo(token.userId).findFirst();
+        Token? ttoken = await isar.tokens
+            .where()
+            .businessIdEqualTo(token.businessId)
+            .findFirst();
         if (ttoken == null) {
-          ttoken = Token()
-            ..token = token.token
-            ..userId = token.userId
-            ..type = token.type;
+          ttoken = Token(
+              businessId: token.businessId,
+              token: token.token,
+              type: token.type,
+              validFrom: token.validFrom,
+              validUntil: token.validUntil);
+
           return await isar.tokens.put(ttoken);
         } else {
           ttoken
             ..token = token.token
-            ..userId = token.userId
+            ..businessId = token.businessId
             ..type = token.type;
           return await isar.tokens.put(ttoken);
         }

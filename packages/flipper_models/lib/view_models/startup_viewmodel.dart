@@ -32,7 +32,14 @@ class StartupViewModel extends BaseViewModel {
       /// an event should be trigered from mobile not desktop as desktop is anonmous and login() func might have been called.
       if (invokeLogin && !ProxyService.box.isAnonymous()) {
         User? user = FirebaseAuth.instance.currentUser;
-        if (user != null && !appService.isLoggedIn()) {
+        if (user != null && !(await appService.isLoggedIn())) {
+          await ProxyService.isarApi.login(
+            userPhone: user.phoneNumber ?? user.email!,
+          );
+        }
+      } else {
+        User? user = FirebaseAuth.instance.currentUser;
+        if (user != null && !(await appService.isLoggedIn())) {
           await ProxyService.isarApi.login(
             userPhone: user.phoneNumber ?? user.email!,
           );
@@ -43,15 +50,6 @@ class StartupViewModel extends BaseViewModel {
       if (await ProxyService.isarApi
           .isDrawerOpen(cashierId: ProxyService.box.getBusinessId()!)) {
         if (ProxyService.box.getDefaultApp() == 2) {
-          if (!appService.isSocialLoggedin()) {
-            final token = await ProxyService.isarApi.loginOnSocial(
-                password:
-                    ProxyService.box.getUserPhone()!.replaceFirst("+", ""),
-                phoneNumberOrEmail:
-                    ProxyService.box.getUserPhone()!.replaceFirst("+", ""));
-            ProxyService.box
-                .write(key: 'socialBearerToken', value: "Bearer " + token);
-          }
           _routerService.navigateTo(SocialHomeViewRoute());
         } else {
           _routerService.replaceWith(FlipperAppRoute());
@@ -59,13 +57,6 @@ class StartupViewModel extends BaseViewModel {
         return;
       } else {
         if (ProxyService.box.getDefaultApp() == 2) {
-          // check first if we are logged in to social app
-          if (!appService.isSocialLoggedin()) {
-            final token = await ProxyService.isarApi.loginOnSocial(
-                password: ProxyService.box.getUserPhone()!,
-                phoneNumberOrEmail: ProxyService.box.getUserPhone()!);
-            ProxyService.box.write(key: 'socialBearerToken', value: token);
-          }
           _routerService.navigateTo(SocialHomeViewRoute());
         } else {
           _routerService.navigateTo(DrawerScreenRoute(open: "open"));

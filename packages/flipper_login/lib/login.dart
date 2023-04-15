@@ -31,7 +31,7 @@ class _LoginViewState extends State<LoginView>
   final appService = loc.locator<AppService>();
   final _routerService = locator<RouterService>();
   Future<void> isNetAvailable() async {
-    if (!appService.isLoggedIn()) {
+    if (!(await appService.isLoggedIn())) {
       ConnectivityResult connectivityResult =
           await (Connectivity().checkConnectivity());
       if (connectivityResult == ConnectivityResult.mobile ||
@@ -43,15 +43,8 @@ class _LoginViewState extends State<LoginView>
     }
   }
 
-  @override
-  void initState() {
-    ProxyService.remoteConfig.config();
-    ProxyService.remoteConfig.setDefault();
-    ProxyService.remoteConfig.fetch();
-    SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
-      isNetAvailable();
-    });
-    if (!appService.isLoggedIn()) {
+  Future<void> futures() async {
+    if (!(await appService.isLoggedIn())) {
       SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
         Connectivity()
             .onConnectivityChanged
@@ -65,6 +58,17 @@ class _LoginViewState extends State<LoginView>
         });
       });
     }
+  }
+
+  @override
+  initState() {
+    ProxyService.remoteConfig.config();
+    ProxyService.remoteConfig.setDefault();
+    ProxyService.remoteConfig.fetch();
+    SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+      isNetAvailable();
+    });
+    futures();
     super.initState();
   }
 
