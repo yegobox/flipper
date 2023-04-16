@@ -113,7 +113,6 @@ class EventService implements EventInterface {
       Conversation? localConversation = await ProxyService.isarApi
           .getConversation(messageId: conversation.messageId!);
 
-      log(conversation.toJson().toString(), name: 'conversation');
       if (localConversation == null) {
         await ProxyService.isarApi.create(data: conversation);
       }
