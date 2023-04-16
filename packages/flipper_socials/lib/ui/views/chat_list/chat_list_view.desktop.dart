@@ -1,6 +1,7 @@
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_socials/ui/widgets/chat_widget.dart';
+import 'package:flipper_socials/ui/widgets/list_of_messages.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -52,60 +53,7 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
             body: Row(
               children: [
                 // The left part with the list of messages
-                StreamBuilder<List<Conversation>>(
-                    stream: ProxyService.isarApi.conversations(),
-                    builder: (context, snapshot) {
-                      if (snapshot.hasData) {
-                        final chats = snapshot.data;
-                        // get last element from chat or the latest message
-
-                        return SizedBox(
-                          width: size.width * 0.3,
-                          child: ListView.builder(
-                            itemCount: chats!.length,
-                            itemBuilder: (context, index) {
-                              final chat = chats[index];
-                              return ListTile(
-                                leading: Stack(
-                                  children: [
-                                    // A circle avatar that shows the chat image
-                                    CircleAvatar(
-                                      backgroundImage:
-                                          NetworkImage(chat.avatar),
-                                      radius: 20,
-                                    ),
-                                    // A positioned widget that shows the channelType image at the bottom right corner
-                                    Positioned(
-                                      bottom: 0,
-                                      right: 0,
-                                      child: CircleAvatar(
-                                        radius: 10,
-                                        backgroundImage: AssetImage(
-                                          "assets/${chat.channelType}.png",
-                                          package: 'flipper_socials',
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                title: Text(chat.userName),
-                                subtitle: Text(chat.body),
-                                trailing: const Text("11:12"),
-                                onTap: () {
-                                  viewModel.focusedConversation = true;
-                                  viewModel.conversationId =
-                                      chats[index].conversationId;
-                                },
-                              );
-                            },
-                          ),
-                        );
-                      } else {
-                        return const Center(
-                          child: Text(" No conversations to show"),
-                        );
-                      }
-                    }),
+                ListOfMessages(size: size, viewModel: viewModel),
                 // The right part with the selected chat details and messages
                 SizedBox(
                   width: size.width * 0.7,

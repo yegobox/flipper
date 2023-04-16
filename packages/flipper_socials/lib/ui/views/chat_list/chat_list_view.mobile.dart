@@ -1,5 +1,6 @@
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_socials/ui/widgets/chat_model.dart';
+import 'package:flipper_socials/ui/widgets/list_of_messages.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
@@ -40,125 +41,42 @@ class ChatListViewMobile extends ViewModelWidget<ChatListViewModel> {
 
   @override
   Widget build(BuildContext context, ChatListViewModel viewModel) {
-    return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: const Text('Chat List'),
-        // An icon button that shows a plus icon to initiate a new chat
-        actions: [
-          IconButton(
-            icon: const Icon(FluentIcons.qr_code_24_regular),
-            onPressed: () {
-              _routerService.navigateTo(ScannViewRoute(intent: "login"));
-            },
-          ),
-          IconButton(
-            icon: const Icon(FluentIcons.add_24_regular),
-            onPressed: () {
-              // TODO: implement the logic to initiate a new chat
-            },
-          ),
-          // An icon button that shows a logout icon to sign out
-          IconButton(
-            icon: const Icon(FluentIcons.sign_out_24_regular),
-            onPressed: () {
-              ProxyService.isarApi.logOut();
-              // navigate to login page
-              _routerService.navigateTo(const LoginViewRoute());
-            },
-          ),
-        ],
-      ),
-      body: CustomScrollView(
-        slivers: [
-          // A sliver app bar that shows the top recent chat heads
-          SliverAppBar(
-            automaticallyImplyLeading: false,
-            // Make the app bar pinned so it stays visible
-            pinned: true,
-            // Make the app bar expanded so it takes more space
-            expandedHeight: 100,
-            // Make the app bar transparent so it blends with the background
-            backgroundColor: Colors.transparent,
-            // A flexible space widget that shows the chat heads in a row
-            flexibleSpace: FlexibleSpaceBar(
-              titlePadding: EdgeInsets.zero,
-              title: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  children: chats.map((chat) {
-                    // A circle avatar that shows the chat image
-                    return CircleAvatar(
-                      backgroundImage: NetworkImage(chat.avatar),
-                      radius: 30,
-                    );
-                  }).toList(),
+    final size = MediaQuery.of(context).size;
+    return ViewModelBuilder<ChatListViewModel>.reactive(
+        viewModelBuilder: () => ChatListViewModel(),
+        onViewModelReady: (model) {},
+        builder: (build, viewModel, child) {
+          return Scaffold(
+            appBar: AppBar(
+              automaticallyImplyLeading: false,
+              title: const Text('Chat List'),
+              // An icon button that shows a plus icon to initiate a new chat
+              actions: [
+                IconButton(
+                  icon: const Icon(FluentIcons.qr_code_24_regular),
+                  onPressed: () {
+                    _routerService.navigateTo(ScannViewRoute(intent: "login"));
+                  },
                 ),
-              ),
+                IconButton(
+                  icon: const Icon(FluentIcons.add_24_regular),
+                  onPressed: () {
+                    // TODO: implement the logic to initiate a new chat
+                  },
+                ),
+                // An icon button that shows a logout icon to sign out
+                IconButton(
+                  icon: const Icon(FluentIcons.sign_out_24_regular),
+                  onPressed: () {
+                    ProxyService.isarApi.logOut();
+                    // navigate to login page
+                    _routerService.navigateTo(const LoginViewRoute());
+                  },
+                ),
+              ],
             ),
-          ),
-          // A sliver list that displays the chat heads
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                // Get the chat data at the current index
-                final chat = chats[index];
-                return Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  // A row that contains the chat head and the message
-                  child: Row(
-                    children: [
-                      // A stack that shows the chat image and the source image
-                      Stack(
-                        children: [
-                          // A circle avatar that shows the chat image
-                          CircleAvatar(
-                            backgroundImage: NetworkImage(chat.avatar),
-                            radius: 30,
-                          ),
-                          // A positioned widget that shows the source image at the bottom right corner
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: Image.network(
-                              chat.source,
-                              width: 16,
-                              height: 16,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(width: 16),
-                      // A column that shows the chat name and message
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            chat.name,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            chat.message,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                );
-              },
-              // The child count is the length of the chat list
-              childCount: chats.length,
-            ),
-          ),
-        ],
-      ),
-    );
+            body: ListOfMessages(size: size, viewModel: viewModel),
+          );
+        });
   }
 }
