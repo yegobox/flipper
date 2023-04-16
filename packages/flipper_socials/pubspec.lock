@@ -2383,7 +2383,7 @@ packages:
     source: hosted
     version: "0.4.16"
   timeago:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: timeago
       sha256: "46c128312ab0ea144b146c0ac6426ddd96810efec2de3fccc425d00179cd8254"

@@ -113,7 +113,7 @@ class _ChatListViewMobileState extends State<ChatListViewMobile> {
                     ),
                   ),
                 ),
-                // A sliver list that displays the chat heads
+                // A sliver list that displays the chat conversations
                 SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
@@ -133,7 +133,7 @@ class _ChatListViewMobileState extends State<ChatListViewMobile> {
                             } else {
                               return const Center(
                                 child: Text(
-                                  " No conversations to show, wait for your customers!",
+                                  "No conversations to show, wait for your customers!",
                                   style: TextStyle(color: Colors.black),
                                 ),
                               );

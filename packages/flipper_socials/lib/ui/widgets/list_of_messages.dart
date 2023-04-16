@@ -1,6 +1,8 @@
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_socials/ui/views/chat_list/chat_list_viewmodel.dart';
 import 'package:flutter/material.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 class ListOfMessages extends StatelessWidget {
   const ListOfMessages(
@@ -44,11 +46,16 @@ class ListOfMessages extends StatelessWidget {
               ],
             ),
             title: Text(chat.userName),
-            subtitle: Text(chat.body),
-            trailing: const Text("11:12"),
+            subtitle: Text(conversations.last.body),
+            trailing: Text(
+                timeago.format(DateTime.parse(conversations.last.createdAt!))),
             onTap: () {
-              viewModel.focusedConversation = true;
-              viewModel.conversationId = conversations[index].conversationId;
+              if (isDesktopOrWeb) {
+                viewModel.focusedConversation = true;
+                viewModel.conversationId = conversations[index].conversationId;
+              } else {
+                // navigate to the page
+              }
             },
           );
         },

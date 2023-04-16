@@ -29,6 +29,7 @@ dependencies:
   animated_icon_button: ^1.0.2
   pip_view: ^0.9.7
   getwidget: ^3.0.1
+  timeago: ^3.2.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
