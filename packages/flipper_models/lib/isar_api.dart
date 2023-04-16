@@ -2113,7 +2113,6 @@ class IsarAPI<M> implements IsarApiInterface {
         headers: {'Content-Type': 'application/json'});
     if (response.statusCode == 200) {
       final responseJson = jsonDecode(response.body);
-      log(responseJson.toString());
       final conversation = Conversation.fromJson(responseJson);
       isar.writeTxn(() async {
         await isar.conversations.put(conversation);

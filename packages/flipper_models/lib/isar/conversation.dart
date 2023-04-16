@@ -24,7 +24,7 @@ class Conversation extends IJsonSerializable {
   String? createdAt;
   String? messageType;
   String? phoneNumberId;
-  @Index(caseSensitive: true)
+  @Index()
   String? messageId;
   String? respondedBy;
   String? conversationId;

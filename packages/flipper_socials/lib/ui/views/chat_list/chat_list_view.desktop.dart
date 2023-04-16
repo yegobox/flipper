@@ -3,6 +3,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_socials/ui/widgets/chat_widget.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:stacked/stacked.dart';
 import 'chat_list_viewmodel.dart';
 import 'package:animated_icon_button/animated_icon_button.dart';
@@ -20,6 +21,7 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
   final TextEditingController _conversationController =
       TextEditingController(text: '');
   Conversation? latestConversation;
+  final _scrollController = ScrollController();
   @override
   void initState() {
     super.initState();
@@ -29,6 +31,12 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
       duration: const Duration(milliseconds: 200),
       reverseDuration: const Duration(milliseconds: 200),
     );
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -168,8 +176,15 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
                               builder: (context, snapshot) {
                                 if (snapshot.hasData) {
                                   final data = snapshot.data;
+                                  SchedulerBinding.instance
+                                      .addPostFrameCallback((_) {
+                                    _scrollController.jumpTo(_scrollController
+                                        .position.maxScrollExtent);
+                                  });
                                   return Flexible(
                                     child: ListView.builder(
+                                      controller:
+                                          _scrollController, // Set the ScrollController
                                       itemCount: data!.length,
                                       itemBuilder: (context, index) {
                                         // Use the ChatWidget to display the message
@@ -193,14 +208,23 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
                                     suffixIcon: AnimatedIconButton(
                                       animationController: animationController,
                                       size: 20,
-                                      onPressed: () {
+                                      onPressed: () async {
                                         if (_conversationController
                                             .text.isNotEmpty) {
-                                          viewModel.sendMessage(
+                                          await viewModel.sendMessage(
                                             message:
                                                 _conversationController.text,
                                             latestConversation:
                                                 latestConversation!,
+                                          );
+                                          // Scroll to the bottom of the ListView
+                                          _scrollController.animateTo(
+                                            _scrollController
+                                                .position.maxScrollExtent,
+                                            duration: const Duration(
+                                                milliseconds: 300),
+                                            curve: Curves.fastOutSlowIn,
+                                            // curve: Curves.easeOut,
                                           );
                                         }
                                         _conversationController.clear();
