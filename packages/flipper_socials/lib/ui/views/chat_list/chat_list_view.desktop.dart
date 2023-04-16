@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_socials/ui/widgets/chat_widget.dart';
@@ -23,6 +25,7 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
       TextEditingController(text: '');
   Conversation? latestConversation;
   final _scrollController = ScrollController();
+  List<Conversation>? conversations;
   @override
   void initState() {
     super.initState();
@@ -53,7 +56,27 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
             body: Row(
               children: [
                 // The left part with the list of messages
-                ListOfMessages(size: size, viewModel: viewModel),
+                StreamBuilder<List<Conversation>>(
+                    stream: ProxyService.isarApi.conversations(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+                        log(snapshot.data!.length.toString());
+                        final _conversations = snapshot.data;
+                        conversations = _conversations!;
+                        return ListOfMessages(
+                          size: size,
+                          viewModel: viewModel,
+                          conversations: _conversations,
+                        );
+                      } else {
+                        return const Center(
+                          child: Text(
+                            " No conversations to show, wait for your customers!",
+                            style: TextStyle(color: Colors.black),
+                          ),
+                        );
+                      }
+                    }),
                 // The right part with the selected chat details and messages
                 SizedBox(
                   width: size.width * 0.7,
