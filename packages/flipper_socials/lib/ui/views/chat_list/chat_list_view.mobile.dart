@@ -8,6 +8,8 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'chat_list_viewmodel.dart';
+import 'package:flipper_dashboard/init_app.dart';
+import 'package:flutter/scheduler.dart';
 
 class ChatListViewMobile extends StatefulWidget {
   const ChatListViewMobile({super.key});
@@ -25,7 +27,16 @@ class _ChatListViewMobileState extends State<ChatListViewMobile> {
     final size = MediaQuery.of(context).size;
     return ViewModelBuilder<ChatListViewModel>.reactive(
         viewModelBuilder: () => ChatListViewModel(),
-        onViewModelReady: (model) {},
+        onViewModelReady: (viewModel) {
+          SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+            if (ProxyService.box.getBranchId() != null &&
+                ProxyService.box.getBusinessId() != null &&
+                ProxyService.box.getUserId() != null) {
+              InitApp.init();
+              ProxyService.remoteApi.listenToChanges();
+            }
+          });
+        },
         builder: (build, viewModel, child) {
           return Scaffold(
             appBar: AppBar(
