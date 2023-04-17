@@ -114,7 +114,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
                           );
                           LoginInfo().isLoggedIn = true;
 
-                          _routerService.replaceWith(FlipperAppRoute());
+                          _routerService.navigateTo(FlipperAppRoute());
                         } else {
                           ProxyService.isarApi.update(
                               data: widget.drawer!
@@ -127,7 +127,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
                           /// when you close a drawer we asume you also closed a business day
                           /// therefore we log you out for next day log in.
                           await ProxyService.isarApi.logOut();
-                          _routerService.replaceWith(StartUpViewRoute());
+                          _routerService.navigateTo(StartUpViewRoute());
                         }
                       }
                     },

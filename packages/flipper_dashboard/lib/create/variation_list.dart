@@ -63,7 +63,7 @@ class VariationList extends StatelessWidget {
                                     fontWeight: FontWeight.w400),
                               ),
                               onPressed: () {
-                                _routerService.replaceWith(ReceiveStockRoute(
+                                _routerService.navigateTo(ReceiveStockRoute(
                                     variantId: variations[i].id!,
                                     existingStock: stock!.currentStock
                                         .toInt()

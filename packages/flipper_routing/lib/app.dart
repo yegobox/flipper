@@ -11,79 +11,36 @@ import 'all_routes.dart';
     CustomRoute(page: FlipperApp),
     CustomRoute(page: LoginView),
     CustomRoute(page: AddProductView),
-    CustomRoute(
-      page: AddDiscount,
-    ),
-    CustomRoute(
-      page: ListCategories,
-    ),
-    CustomRoute(
-      page: ColorTile,
-    ),
-    CustomRoute(
-      page: ReceiveStock,
-    ),
-    CustomRoute(
-      page: AddVariation,
-    ),
-    CustomRoute(
-      page: AddCategory,
-    ),
-    CustomRoute(
-      page: ListUnits,
-    ),
-    CustomRoute(
-      page: Sell,
-    ),
-    CustomRoute(
-      page: Payments,
-    ),
+    CustomRoute(page: AddDiscount),
+    CustomRoute(page: ListCategories),
+    CustomRoute(page: ColorTile),
+    CustomRoute(page: ReceiveStock),
+    CustomRoute(page: AddVariation),
+    CustomRoute(page: AddCategory),
+    CustomRoute(page: ListUnits),
+    CustomRoute(page: Sell),
+    CustomRoute(page: Payments),
     CustomRoute(page: CollectCashView),
-    CustomRoute(
-      page: AfterSale,
-    ),
-    CustomRoute(
-      page: TransactionDetail,
-    ),
-    CustomRoute(
-      page: SettingsScreen,
-    ),
+    CustomRoute(page: AfterSale),
+    CustomRoute(page: TransactionDetail),
+    CustomRoute(page: SettingsScreen),
     CustomRoute(page: SwitchBranchView),
     CustomRoute(page: ScannView),
     CustomRoute(page: OrderView),
-    CustomRoute(
-      page: InAppBrowser,
-    ),
-    CustomRoute(
-      page: Customers,
-    ),
-    CustomRoute(
-      page: NoNet,
-    ),
-    CustomRoute(
-      page: PinLogin,
-    ),
-    CustomRoute(
-      page: Devices,
-    ),
-    CustomRoute(
-      page: TaxConfiguration,
-    ),
-    CustomRoute(
-      page: Printing,
-    ),
-    CustomRoute(
-      page: BackUp,
-    ),
-    CustomRoute(
-      page: LoginChoices,
-    ),
-    CustomRoute(
-      page: TenantAdd,
-    ),
+    CustomRoute(page: InAppBrowser),
+    CustomRoute(page: Customers),
+    CustomRoute(page: NoNet),
+    CustomRoute(page: PinLogin),
+    CustomRoute(page: Devices),
+    CustomRoute(page: TaxConfiguration),
+    CustomRoute(page: Printing),
+    CustomRoute(page: BackUp),
+    CustomRoute(page: LoginChoices),
+    CustomRoute(page: TenantAdd),
     CustomRoute(page: SocialHomeView),
     CustomRoute(page: DrawerScreen),
     CustomRoute(page: ChatListView),
+    CustomRoute(page: ConversationHistory),
   ],
   dependencies: [
     LazySingleton(classType: BottomSheetService),

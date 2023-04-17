@@ -390,6 +390,18 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         barrierDismissible: false,
       );
     },
+    ConversationHistoryRoute.name: (routeData) {
+      final args = routeData.argsAs<ConversationHistoryArgs>();
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i2.ConversationHistory(
+          key: args.key,
+          conversationId: args.conversationId,
+        ),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
   };
 
   @override
@@ -529,6 +541,10 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         _i3.RouteConfig(
           ChatListViewRoute.name,
           path: '/chat-list-view',
+        ),
+        _i3.RouteConfig(
+          ConversationHistoryRoute.name,
+          path: '/conversation-history',
         ),
       ];
 }
@@ -1410,4 +1426,39 @@ class ChatListViewRoute extends _i3.PageRouteInfo<void> {
         );
 
   static const String name = 'ChatListView';
+}
+
+/// generated route for
+/// [_i2.ConversationHistory]
+class ConversationHistoryRoute
+    extends _i3.PageRouteInfo<ConversationHistoryArgs> {
+  ConversationHistoryRoute({
+    _i4.Key? key,
+    required String conversationId,
+  }) : super(
+          ConversationHistoryRoute.name,
+          path: '/conversation-history',
+          args: ConversationHistoryArgs(
+            key: key,
+            conversationId: conversationId,
+          ),
+        );
+
+  static const String name = 'ConversationHistory';
+}
+
+class ConversationHistoryArgs {
+  const ConversationHistoryArgs({
+    this.key,
+    required this.conversationId,
+  });
+
+  final _i4.Key? key;
+
+  final String conversationId;
+
+  @override
+  String toString() {
+    return 'ConversationHistoryArgs{key: $key, conversationId: $conversationId}';
+  }
 }

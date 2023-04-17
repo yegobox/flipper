@@ -237,7 +237,7 @@ class _CollectCashViewState extends State<CollectCashView> {
               double totalOrderAmount = model.keypad.totalPayable;
               _btnController.success();
 
-              _routerService.replaceWith(AfterSaleRoute(
+              _routerService.navigateTo(AfterSaleRoute(
                   totalOrderAmount: totalOrderAmount, order: model.kOrder!));
             }
           });

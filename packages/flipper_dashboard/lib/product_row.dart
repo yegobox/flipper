@@ -40,10 +40,10 @@ class ProductRow extends StatelessWidget {
       key: Key('slidable-${product.id!}'),
       child: GestureDetector(
         onTap: () {
-          _routerService.replaceWith(SellRoute(product: product));
+          _routerService.navigateTo(SellRoute(product: product));
         },
         onLongPress: () {
-          _routerService.replaceWith(SellRoute(product: product));
+          _routerService.navigateTo(SellRoute(product: product));
         },
         child: Container(
           padding: EdgeInsets.zero,

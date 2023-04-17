@@ -116,9 +116,8 @@ class _ProductViewState extends State<ProductView> {
                                 name: product.name,
                                 imageUrl: product.imageUrl,
                                 edit: (productId) {
-                                  _routerService.replaceWith(
-                                      AddProductViewRoute(
-                                          productId: productId));
+                                  _routerService.navigateTo(AddProductViewRoute(
+                                      productId: productId));
                                 },
                                 addToMenu: (productId) {
                                   // ignore: todo
@@ -179,7 +178,7 @@ class _ProductViewState extends State<ProductView> {
                               model.deleteDiscount(id: id);
                             },
                             edit: (discount) {
-                              _routerService.replaceWith(AddDiscountRoute());
+                              _routerService.navigateTo(AddDiscountRoute());
                             },
                             applyDiscount: (discount) async {
                               await model.applyDiscount(discount: discount);

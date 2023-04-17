@@ -219,4 +219,6 @@ abstract class IsarApiInterface {
       {String phoneNumberOrEmail, String password});
   Future<bool> isTokenValid(
       {required String tokenType, required int businessId});
+
+  Stream<List<Conversation>> getTop5RecentConversations();
 }

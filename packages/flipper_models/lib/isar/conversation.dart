@@ -16,11 +16,11 @@ class Conversation extends IJsonSerializable {
   final String body;
   final String avatar;
   final String channelType;
-  @Index(caseSensitive: true)
+  @Index()
   final String fromNumber;
-  @Index(caseSensitive: true)
+  @Index()
   final String toNumber;
-
+  @Index()
   String? createdAt;
   String? messageType;
   String? phoneNumberId;

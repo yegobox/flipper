@@ -282,7 +282,7 @@ class ProductViewModel extends AddTenantViewModel {
 
   void navigateAddVariation(
       {required int productId, required BuildContext context}) {
-    _routerService.replaceWith(AddVariationRoute(productId: productId));
+    _routerService.navigateTo(AddVariationRoute(productId: productId));
   }
 
   /// When called should check the related product's variant and set the retail and or supply price

@@ -103,7 +103,7 @@ class ListCategories extends StatelessWidget {
                     GestureDetector(
                       onTap: () {
                         // GoRouter.of(context).push(Routes.category);
-                        _routerService.replaceWith(
+                        _routerService.navigateTo(
                             ListCategoriesRoute(categories: categories));
                       },
                       child: ListTile(

@@ -23,7 +23,7 @@ class ColorAndImagePlaceHolder extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        _routerService.replaceWith(ColorTileRoute());
+        _routerService.navigateTo(ColorTileRoute());
       },
       child: FutureBuilder<Product?>(
         future: getProduct(),

@@ -191,7 +191,7 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                     Icons.help,
                   ),
                   onTap: () async {
-                    _routerService.replaceWith(InAppBrowserRoute());
+                    _routerService.navigateTo(InAppBrowserRoute());
                   },
                 ),
               ],

@@ -998,7 +998,7 @@ class _UserProfileState extends State<_UserProfile> {
                         TextButton(
                           onPressed: () async {
                             await ProxyService.isarApi.logOut();
-                            _routerService.replaceWith(StartUpViewRoute());
+                            _routerService.navigateTo(StartUpViewRoute());
                           },
                           child: Column(
                             children: <Widget>[

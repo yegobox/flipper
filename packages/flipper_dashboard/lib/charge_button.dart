@@ -48,7 +48,7 @@ class ChargeButton extends StatelessWidget {
               ),
             ),
             onPressed: () {
-              _routerService.replaceWith(PaymentsRoute(order: model.kOrder!));
+              _routerService.navigateTo(PaymentsRoute(order: model.kOrder!));
             },
             child: Text(
               FLocalization.of(context).charge +

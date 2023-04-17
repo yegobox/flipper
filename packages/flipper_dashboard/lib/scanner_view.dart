@@ -208,7 +208,7 @@ class _ScannViewState extends State<ScannView> {
       Product? product =
           await model.productService.getProductByBarCode(code: code);
       if (product != null) {
-        _routerService.replaceWith(SellRoute(product: product));
+        _routerService.navigateTo(SellRoute(product: product));
         return;
       }
       showSimpleNotification(

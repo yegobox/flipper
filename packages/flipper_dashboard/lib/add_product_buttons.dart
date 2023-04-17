@@ -64,7 +64,7 @@ class _AddProductButtonsState extends State<AddProductButtons> {
                       ),
                     ),
                     onPressed: () {
-                      _routerService.replaceWith(AddProductViewRoute());
+                      _routerService.navigateTo(AddProductViewRoute());
                     },
                   ),
                 ),
@@ -107,7 +107,7 @@ class _AddProductButtonsState extends State<AddProductButtons> {
                         ),
                       ),
                       onPressed: () {
-                        _routerService.replaceWith(AddDiscountRoute());
+                        _routerService.navigateTo(AddDiscountRoute());
                       },
                     ),
                   ),

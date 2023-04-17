@@ -51,7 +51,7 @@ class DynamicLinkService implements DynamicLink {
       //save the code in localstorage to be used later
       ProxyService.box.write(key: 'referralCode', value: code.toString());
 
-      _routerService.replaceWith(StartUpViewRoute());
+      _routerService.navigateTo(StartUpViewRoute());
     }
   }
 

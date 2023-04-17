@@ -64,7 +64,7 @@ class SettingPage extends StatelessWidget {
                                 FluentIcons.chevron_right_24_regular,
                               ),
                               onPressed: (BuildContext context) {
-                                _routerService.replaceWith(
+                                _routerService.navigateTo(
                                     DevicesRoute(pin: model.pin!.pin));
                               },
                             ),
@@ -80,7 +80,7 @@ class SettingPage extends StatelessWidget {
                                 FluentIcons.chevron_right_24_regular,
                               ),
                               onPressed: (BuildContext context) {
-                                _routerService.replaceWith(PrintingRoute());
+                                _routerService.navigateTo(PrintingRoute());
                               },
                             ),
                             SettingsTile(
@@ -95,7 +95,7 @@ class SettingPage extends StatelessWidget {
                                 FluentIcons.chevron_right_24_regular,
                               ),
                               onPressed: (BuildContext context) {
-                                _routerService.replaceWith(BackUpRoute());
+                                _routerService.navigateTo(BackUpRoute());
                               },
                             ),
                             SettingsTile(
@@ -126,7 +126,7 @@ class SettingPage extends StatelessWidget {
                                 FluentIcons.chevron_right_24_regular,
                               ),
                               onPressed: (BuildContext context) async {
-                                _routerService.replaceWith(TenantAddRoute());
+                                _routerService.navigateTo(TenantAddRoute());
                               },
                             ),
                             SettingsTile(
@@ -146,7 +146,7 @@ class SettingPage extends StatelessWidget {
                                     await ProxyService.isarApi.getDrawer(
                                         cashierId:
                                             ProxyService.box.getBusinessId()!);
-                                _routerService.replaceWith(DrawerScreenRoute(
+                                _routerService.navigateTo(DrawerScreenRoute(
                                     open: "close", drawer: drawer));
                               },
                             ),

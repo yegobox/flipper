@@ -2067,12 +2067,44 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
+  Stream<List<Conversation>> getTop5RecentConversations() {
+    final phone = ProxyService.box.getUserPhone()!.replaceAll("+", "");
+    log(phone, name: "top5Conversations");
+    return isar.conversations
+        .where()
+        .toNumberEqualTo(phone)
+        .or()
+        .fromNumberEqualTo(phone)
+        .sortByCreatedAtDesc()
+        .build()
+        .watch(fireImmediately: true)
+        .map((event) {
+      final uniqueUserNames = <String>{};
+      final uniqueConversations = <Conversation>[];
+
+      for (final message in event) {
+        if (!uniqueUserNames.contains(message.userName)) {
+          uniqueUserNames.add(message.userName);
+          uniqueConversations.add(message);
+        }
+      }
+
+      // Sort conversations by creation date in descending order
+      uniqueConversations.sort((a, b) => b.createdAt!.compareTo(a.createdAt!));
+
+      // Return the top 5 recent conversations
+      return uniqueConversations.take(5).toList();
+    });
+  }
+
+  @override
   Stream<List<Conversation>> conversations({String? conversationId}) {
     if (conversationId == null) {
       /// get all conversations addressed to me or from me
       String phone = ProxyService.box.getUserPhone()!.replaceAll("+", "");
+      log(phone, name: "LoadInitialList");
       return isar.conversations
-          .filter()
+          .where()
           .toNumberEqualTo(phone)
           .or()
           .fromNumberEqualTo(phone)

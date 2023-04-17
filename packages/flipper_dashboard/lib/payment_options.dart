@@ -71,7 +71,7 @@ class Payments extends StatelessWidget {
                         children: [
                           GestureDetector(
                             onTap: () {
-                              _routerService.replaceWith(CollectCashViewRoute(
+                              _routerService.navigateTo(CollectCashViewRoute(
                                   order: order, paymentType: "cash"));
                             },
                             child: const ListTile(
@@ -94,7 +94,7 @@ class Payments extends StatelessWidget {
                                   kDebugMode
                               ? GestureDetector(
                                   onTap: () {
-                                    _routerService.replaceWith(
+                                    _routerService.navigateTo(
                                         CollectCashViewRoute(
                                             order: order,
                                             paymentType: "spenn"));

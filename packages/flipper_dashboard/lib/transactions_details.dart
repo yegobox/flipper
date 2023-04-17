@@ -99,7 +99,7 @@ class _TransactionDetailState extends State<TransactionDetail> {
               children: [
                 OutlinedButton(
                   onPressed: () {
-                    _routerService.replaceWith(AfterSaleRoute(
+                    _routerService.navigateTo(AfterSaleRoute(
                         totalOrderAmount: widget.order.subTotal,
                         receiptType: ReceiptType.nr,
                         order: widget.order));
@@ -108,7 +108,7 @@ class _TransactionDetailState extends State<TransactionDetail> {
                 ),
                 OutlinedButton(
                   onPressed: () {
-                    _routerService.replaceWith(AfterSaleRoute(
+                    _routerService.navigateTo(AfterSaleRoute(
                         totalOrderAmount: widget.order.subTotal,
                         receiptType: ReceiptType.cs,
                         order: widget.order));

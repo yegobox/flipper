@@ -46,7 +46,7 @@ class StartupViewModel extends BaseViewModel {
         if (ProxyService.box.getDefaultApp() == 2) {
           _routerService.navigateTo(SocialHomeViewRoute());
         } else {
-          _routerService.replaceWith(FlipperAppRoute());
+          _routerService.navigateTo(FlipperAppRoute());
         }
         return;
       } else {
@@ -58,15 +58,15 @@ class StartupViewModel extends BaseViewModel {
       }
     } catch (e, stackTrace) {
       if (e is LoginChoicesException) {
-        _routerService.replaceWith(LoginChoicesRoute());
+        _routerService.navigateTo(LoginChoicesRoute());
       } else if (e is SessionException || e is ErrorReadingFromYBServer) {
-        _routerService.replaceWith(LoginViewRoute());
+        _routerService.navigateTo(LoginViewRoute());
       } else if (e is BusinessNotFoundException) {
         _routerService.navigateTo(SignUpViewRoute(countryNm: "Rwanda"));
       } else {
         print(stackTrace);
         ProxyService.isarApi.logOut();
-        _routerService.replaceWith(LoginViewRoute());
+        _routerService.navigateTo(LoginViewRoute());
       }
     }
   }

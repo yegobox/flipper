@@ -1,8 +1,5 @@
-import 'dart:developer';
-
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_socials/ui/widgets/chat_model.dart';
 import 'package:flipper_socials/ui/widgets/list_of_messages.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
@@ -22,32 +19,6 @@ class ChatListViewMobile extends StatefulWidget {
 class _ChatListViewMobileState extends State<ChatListViewMobile> {
   final _routerService = locator<RouterService>();
   List<Conversation>? conversations;
-  final List<Chat> chats = [
-    Chat(
-      from: "me",
-      name: 'Alice',
-      message: 'Hi, how are you?',
-      avatar: 'https://randomuser.me/api/portraits/women/1.jpg',
-      source:
-          'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/1200px-WhatsApp.svg.png',
-    ),
-    Chat(
-      from: "me",
-      name: 'Bob',
-      message: 'Hello, nice to meet you.',
-      avatar: 'https://randomuser.me/api/portraits/men/2.jpg',
-      source:
-          'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Instagram_logo_2016.svg/1200px-Instagram_logo_2016.svg.png',
-    ),
-    Chat(
-      from: "me",
-      name: 'Charlie',
-      message: 'Hey, whats up?',
-      avatar: 'https://randomuser.me/api/portraits/men/3.jpg',
-      source:
-          'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fb/Facebook_icon_2013.svg/1200px-Facebook_icon_2013.svg.png',
-    ),
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -85,68 +56,84 @@ class _ChatListViewMobileState extends State<ChatListViewMobile> {
                 ),
               ],
             ),
-            body: CustomScrollView(
-              slivers: [
-                // A sliver app bar that shows the top recent chat heads
-                SliverAppBar(
-                  automaticallyImplyLeading: false,
-                  // Make the app bar pinned so it stays visible
-                  pinned: true,
-                  // Make the app bar expanded so it takes more space
-                  expandedHeight: 100,
-                  // Make the app bar transparent so it blends with the background
-                  backgroundColor: Colors.transparent,
-                  // A flexible space widget that shows the chat heads in a row
-                  flexibleSpace: FlexibleSpaceBar(
-                    titlePadding: EdgeInsets.zero,
-                    title: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        children: chats.map((chat) {
-                          // A circle avatar that shows the chat image
-                          return CircleAvatar(
-                            backgroundImage: NetworkImage(chat.avatar),
-                            radius: 30,
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                  ),
-                ),
-                // A sliver list that displays the chat conversations
-                SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      // Get the chat data at the current index
-                      return StreamBuilder<List<Conversation>>(
-                          stream: ProxyService.isarApi.conversations(),
-                          builder: (context, snapshot) {
-                            if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-                              log(snapshot.data!.length.toString());
-                              final _conversations = snapshot.data;
-                              conversations = _conversations!;
+            body: StreamBuilder<List<Conversation>>(
+                stream: ProxyService.isarApi.conversations(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+                    final _conversations = snapshot.data;
+                    conversations = _conversations!;
+                    return CustomScrollView(
+                      slivers: [
+                        // A sliver app bar that shows the top recent chat heads
+                        SliverAppBar(
+                          automaticallyImplyLeading: false,
+                          // Make the app bar pinned so it stays visible
+                          pinned: true,
+                          // Make the app bar expanded so it takes more space
+                          expandedHeight: 100,
+                          // Make the app bar transparent so it blends with the background
+                          backgroundColor: Colors.transparent,
+                          // A flexible space widget that shows the chat heads in a row
+                          flexibleSpace: FlexibleSpaceBar(
+                            titlePadding: EdgeInsets.zero,
+                            title: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: StreamBuilder<List<Conversation>>(
+                                  stream: ProxyService.isarApi
+                                      .getTop5RecentConversations(),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.hasData &&
+                                        snapshot.data!.isNotEmpty) {
+                                      final conversations = snapshot.data!;
+                                      return SizedBox(
+                                        height: 70,
+                                        child: ListView.builder(
+                                          scrollDirection: Axis.horizontal,
+                                          itemCount: conversations.length,
+                                          itemBuilder: (context, index) {
+                                            final conversation =
+                                                conversations[index];
+                                            return Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 8.0),
+                                              child: CircleAvatar(
+                                                backgroundImage: NetworkImage(
+                                                    conversation.avatar),
+                                                radius: 30,
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      );
+                                    } else {
+                                      return const SizedBox.shrink();
+                                    }
+                                  },
+                                )),
+                          ),
+                        ),
+                        // A sliver list that displays the chat conversations
+                        SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) {
                               return ListOfMessages(
+                                conversations: conversations!,
                                 size: size,
                                 viewModel: viewModel,
-                                conversations: _conversations,
+                                index: index,
                               );
-                            } else {
-                              return const Center(
-                                child: Text(
-                                  "No conversations to show, wait for your customers!",
-                                  style: TextStyle(color: Colors.black),
-                                ),
-                              );
-                            }
-                          });
-                    },
-                    // The child count is the length of the chat list
-                    childCount:
-                        conversations == null ? 0 : conversations!.length,
-                  ),
-                ),
-              ],
-            ),
+                            },
+                            // The child count is the length of the chat list
+                            childCount: conversations!.length,
+                          ),
+                        ),
+                      ],
+                    );
+                  } else {
+                    return const Text("No Conversations");
+                  }
+                }),
           );
         });
   }

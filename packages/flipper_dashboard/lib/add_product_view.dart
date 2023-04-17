@@ -392,7 +392,7 @@ class _AddProductViewState extends State<AddProductView> {
                         ),
                         child: GestureDetector(
                           onTap: () {
-                            _routerService.replaceWith(
+                            _routerService.navigateTo(
                                 ScannViewRoute(intent: 'addBarCode'));
                           },
                           child: BoxInputField(

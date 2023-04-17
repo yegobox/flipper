@@ -39,7 +39,7 @@ class AddCustomerButton extends StatelessWidget {
               ),
             ),
             onPressed: () {
-              _routerService.replaceWith(CustomersRoute(
+              _routerService.navigateTo(CustomersRoute(
                 orderId: orderId,
               ));
             },

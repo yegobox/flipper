@@ -163,7 +163,7 @@ class _DesktopLoginViewState extends State<DesktopLoginView> {
                         ),
                         onPressed: () {
                           LoginInfo().redirecting = true;
-                          _routerService.replaceWith(PinLoginRoute());
+                          _routerService.navigateTo(PinLoginRoute());
                         },
                       ),
                     ),

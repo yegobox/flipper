@@ -38,7 +38,7 @@ class Devices extends StatelessWidget {
             child: ElevatedButton(
               child: Text('Link A Device'),
               onPressed: () {
-                _routerService.replaceWith(ScannViewRoute(intent: "login"));
+                _routerService.navigateTo(ScannViewRoute(intent: "login"));
               },
             ),
           ),

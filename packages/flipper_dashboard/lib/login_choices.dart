@@ -33,7 +33,7 @@ class _LoginChoicesState extends State<LoginChoices> {
               await ProxyService.isarApi.businesses(userId: userId!);
           if (_b.isEmpty) {
             ProxyService.isarApi.logOut();
-            _routerService.replaceWith(LoginViewRoute());
+            _routerService.navigateTo(LoginViewRoute());
           }
 
           setState(() {
@@ -172,10 +172,10 @@ class _LoginChoicesState extends State<LoginChoices> {
     if (await ProxyService.isarApi
             .isDrawerOpen(cashierId: ProxyService.box.getBusinessId()!) ==
         null) {
-      _routerService.replaceWith(DrawerScreenRoute(open: "open"));
+      _routerService.navigateTo(DrawerScreenRoute(open: "open"));
     }
     LoginInfo().isLoggedIn = true;
 
-    _routerService.replaceWith(FlipperAppRoute());
+    _routerService.navigateTo(FlipperAppRoute());
   }
 }
