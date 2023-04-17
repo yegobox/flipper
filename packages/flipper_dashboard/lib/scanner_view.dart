@@ -53,15 +53,18 @@ class _ScannViewState extends State<ScannView> {
                 child: _buildQrView(context, model),
               ),
               Positioned(
-                bottom: MediaQuery.of(context).size.height / 1 - 120,
-                left: MediaQuery.of(context).size.width / 2 - 30,
-                right: MediaQuery.of(context).size.width / 2 - 20,
+                top: MediaQuery.of(context).size.height / 2 -
+                    (40 - 0.5 * 80) -
+                    340,
+                left: MediaQuery.of(context).size.width / 2 - 40,
                 child: IconButton(
-                  iconSize: 40,
+                  iconSize: 80,
                   onPressed: () => _routerService.pop(),
                   icon: const CircleAvatar(
+                    backgroundColor: Color(0xff006AFE),
                     child: Icon(
                       Icons.close,
+                      color: Colors.white,
                     ),
                   ),
                 ),
