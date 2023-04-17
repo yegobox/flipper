@@ -1024,6 +1024,7 @@ class IsarAPI<M> implements IsarApiInterface {
     }
 
     ProxyService.box.remove(key: 'userId');
+    ProxyService.box.remove(key: 'getIsTokenRegistered');
     ProxyService.box.remove(key: 'bearerToken');
     ProxyService.box.remove(key: 'branchId');
     ProxyService.box.remove(key: 'userPhone');
