@@ -7,10 +7,13 @@ import 'package:flipper_models/isar/utils.dart';
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_models/socials_http_client.dart';
+import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:http/http.dart' as http;
+
+import 'package:flipper_services/locator.dart' as loc;
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:isar_crdt/utils/hlc.dart';
 import 'package:universal_platform/universal_platform.dart';
@@ -2137,8 +2140,10 @@ class IsarAPI<M> implements IsarApiInterface {
     }
   }
 
+  final appService = loc.locator<AppService>();
   @override
   Future<Conversation?> sendMessage({Conversation? conversation}) async {
+    await appService.isLoggedIn();
     final http.Response response = await socialsHttpClient.post(
         Uri.parse("$commApi/reply"),
         body: json.encode(conversation!.toJson()),
