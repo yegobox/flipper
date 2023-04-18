@@ -33,6 +33,16 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import 'package:flutter_animate/flutter_animate.dart';
 
+Future<void> onDidReceiveBackgroundNotificationResponse(
+  NotificationResponse notificationResponse,
+) async {
+  // Handle the notification here.
+  await Sentry.captureMessage(
+    'On When notification clicked from background: ${notificationResponse.payload}',
+    level: SentryLevel.info,
+  );
+}
+
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
 Future<void> backgroundHandler(RemoteMessage message) async {
@@ -128,12 +138,7 @@ void main() async {
       // ));
     },
     onDidReceiveBackgroundNotificationResponse:
-        (NotificationResponse notificationResponse) async {
-      await Sentry.captureMessage(
-        'On When notification clicked from background: ${notificationResponse.payload}',
-        level: SentryLevel.info,
-      );
-    },
+        onDidReceiveBackgroundNotificationResponse,
   );
 
   runZonedGuarded<Future<void>>(() async {
