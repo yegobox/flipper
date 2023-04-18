@@ -2186,7 +2186,7 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<SocialToken> loginOnSocial(
       {String? phoneNumberOrEmail, String? password}) async {
-    final http.Response response = await flipperHttpClient.post(
+    final http.Response response = await socialsHttpClient.post(
         Uri.parse("$commApi/login"),
         body: json.encode({"email": phoneNumberOrEmail, "password": password}),
         headers: {'Content-Type': 'application/json'});
@@ -2224,7 +2224,7 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<int> patchSocialSetting({required String token}) async {
     String phoneNumber = ProxyService.box.getUserPhone()!.replaceAll("+", "");
-    final http.Response response = await flipperHttpClient
+    final http.Response response = await socialsHttpClient
         .get(Uri.parse("$commApi/settings/$phoneNumber"));
     // convert response to Setting
     if (response.statusCode == 200) {
