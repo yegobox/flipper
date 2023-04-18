@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_ui_localizations/firebase_ui_localizations.dart';
+import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/view_models/gate.dart';
 import 'package:flipper_routing/app.bottomsheets.dart';
 import 'package:flipper_routing/app.dialogs.dart';
@@ -35,8 +37,23 @@ final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
 Future<void> backgroundHandler(RemoteMessage message) async {
   int id = message.messageId.hashCode;
-  var title = message.data['title'];
-  var body = message.data['body'];
+  final title = message.data['title'];
+  final body = message.data['body'];
+  final type = message.data['type'];
+  if (type == "whatsapp") {
+    final conversationKey = message.data['conversation'];
+    final decodedConversationKey = base64Url.decode(conversationKey);
+    final conversationId = utf8.decode(decodedConversationKey);
+    final conversation = Conversation.fromJson(jsonDecode(conversationId));
+    Conversation? localConversation = await ProxyService.isarApi
+        .getConversation(messageId: conversation.messageId!);
+
+    if (localConversation == null) {
+      await ProxyService.isarApi.create(data: conversation);
+    }
+    // do something with conversationId
+    print('Received a new message in conversation: ${conversation.body}');
+  }
   // var date = DateTime.now();
   ProxyService.notification.localNotification(id, title, body,
       tz.TZDateTime.now(tz.local).add(const Duration(seconds: 5)));
