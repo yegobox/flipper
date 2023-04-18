@@ -50,9 +50,14 @@ Future<void> backgroundHandler(RemoteMessage message) async {
 
     if (localConversation == null) {
       await ProxyService.isarApi.create(data: conversation);
+      // do something with conversationId
+      print('Received a new message in conversation: ${conversation.body}');
+      // log conversation on sentry
+      await Sentry.captureMessage(
+        'Received a new message in conversation in message background: ${conversation.body}',
+        level: SentryLevel.info,
+      );
     }
-    // do something with conversationId
-    print('Received a new message in conversation: ${conversation.body}');
   }
   // var date = DateTime.now();
   ProxyService.notification.localNotification(id, title, body,
