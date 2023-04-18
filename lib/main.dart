@@ -125,21 +125,20 @@ void main() async {
 
   const InitializationSettings initializationSettings =
       InitializationSettings(android: initializationSettingsAndroid);
-  await flutterLocalNotificationsPlugin.initialize(
-    initializationSettings,
-    onDidReceiveNotificationResponse:
-        (NotificationResponse notificationResponse) async {
-      await Sentry.captureMessage(
-        'On When notification clicked: ${notificationResponse.payload}',
-        level: SentryLevel.info,
-      );
-      // _routerService.navigateTo(ConversationHistoryRoute(
-      //   conversationId: notificationResponse.payload!,
-      // ));
-    },
-    onDidReceiveBackgroundNotificationResponse:
-        onDidReceiveBackgroundNotificationResponse,
-  );
+  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+
+  // onDidReceiveNotificationResponse:
+  //     (NotificationResponse notificationResponse) async {
+  //   await Sentry.captureMessage(
+  //     'On When notification clicked: ${notificationResponse.payload}',
+  //     level: SentryLevel.info,
+  //   );
+  //   // _routerService.navigateTo(ConversationHistoryRoute(
+  //   //   conversationId: notificationResponse.payload!,
+  //   // ));
+  // },
+  // onDidReceiveBackgroundNotificationResponse:
+  //     onDidReceiveBackgroundNotificationResponse,
 
   runZonedGuarded<Future<void>>(() async {
     if (foundation.kReleaseMode) {
