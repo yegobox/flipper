@@ -85,10 +85,6 @@ void main() async {
   const AndroidInitializationSettings initializationSettingsAndroid =
       AndroidInitializationSettings('@mipmap/launcher_icon');
 
-  const InitializationSettings initializationSettings =
-      InitializationSettings(android: initializationSettingsAndroid);
-  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
-
   await GetStorage.init();
   // done init in mobile.//done separation.
   await thirdPartyLocator();
@@ -108,6 +104,25 @@ void main() async {
       FirebaseCrashlytics.instance.recordFlutterError(details);
     };
   }
+  const InitializationSettings initializationSettings =
+      InitializationSettings(android: initializationSettingsAndroid);
+  await flutterLocalNotificationsPlugin.initialize(
+    initializationSettings,
+    onDidReceiveNotificationResponse:
+        (NotificationResponse notificationResponse) async {
+      await Sentry.captureMessage(
+        'On When notification clicked: ${notificationResponse.payload}',
+        level: SentryLevel.info,
+      );
+    },
+    onDidReceiveBackgroundNotificationResponse:
+        (NotificationResponse notificationResponse) async {
+      await Sentry.captureMessage(
+        'On When notification clicked from background: ${notificationResponse.payload}',
+        level: SentryLevel.info,
+      );
+    },
+  );
 
   runZonedGuarded<Future<void>>(() async {
     if (foundation.kReleaseMode) {
