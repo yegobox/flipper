@@ -2223,7 +2223,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<int> patchSocialSetting({required String token}) async {
-    String phoneNumber = ProxyService.box.getUserPhone()!;
+    String phoneNumber = ProxyService.box.getUserPhone()!.replaceAll("+", "");
     final http.Response response = await flipperHttpClient
         .get(Uri.parse("$commApi/settings/$phoneNumber"));
     // convert response to Setting
