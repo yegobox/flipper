@@ -57,11 +57,19 @@ Future<void> backgroundHandler(RemoteMessage message) async {
         'Received a new message in conversation in message background: ${conversation.body}',
         level: SentryLevel.info,
       );
+      // var date = DateTime.now();
+      ProxyService.notification.localNotification(
+          id,
+          title,
+          body,
+          tz.TZDateTime.now(tz.local).add(const Duration(seconds: 5)),
+          conversation.conversationId);
     }
+  } else {
+    // var date = DateTime.now();
+    ProxyService.notification.localNotification(id, title, body,
+        tz.TZDateTime.now(tz.local).add(const Duration(seconds: 5)), "payload");
   }
-  // var date = DateTime.now();
-  ProxyService.notification.localNotification(id, title, body,
-      tz.TZDateTime.now(tz.local).add(const Duration(seconds: 5)));
 }
 
 void main() async {
@@ -104,6 +112,7 @@ void main() async {
       FirebaseCrashlytics.instance.recordFlutterError(details);
     };
   }
+
   const InitializationSettings initializationSettings =
       InitializationSettings(android: initializationSettingsAndroid);
   await flutterLocalNotificationsPlugin.initialize(
@@ -114,6 +123,9 @@ void main() async {
         'On When notification clicked: ${notificationResponse.payload}',
         level: SentryLevel.info,
       );
+      // _routerService.navigateTo(ConversationHistoryRoute(
+      //   conversationId: notificationResponse.payload!,
+      // ));
     },
     onDidReceiveBackgroundNotificationResponse:
         (NotificationResponse notificationResponse) async {
@@ -140,6 +152,10 @@ void main() async {
 
     if (!isWindows) {
       FirebaseMessaging.onBackgroundMessage(backgroundHandler);
+      await FirebaseMessaging.instance
+          .setForegroundNotificationPresentationOptions(
+        badge: true,
+      );
     } else if (isWindows) {}
     WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
     FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);

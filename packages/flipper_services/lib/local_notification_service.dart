@@ -7,19 +7,22 @@ final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
 
 abstract class LNotification {
-  void localNotification(int id, String title, String body, TZDateTime? date);
+  void localNotification(
+      int id, String title, String body, TZDateTime? date, String? payload);
 }
 
 class UnSupportedLocalNotification implements LNotification {
   @override
-  void localNotification(int id, String title, String body, TZDateTime? date) {
+  void localNotification(
+      int id, String title, String body, TZDateTime? date, String? payload) {
     // TODO: implement localNotification
   }
 }
 
 class LocalNotificationService implements LNotification {
   @override
-  void localNotification(int id, String title, String body, TZDateTime? date) {
+  void localNotification(
+      int id, String title, String body, TZDateTime? date, String? payload) {
     if (date == null) {
       return;
     }
@@ -41,7 +44,7 @@ class LocalNotificationService implements LNotification {
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
       androidAllowWhileIdle: true,
-      payload: 'notlification-payload',
+      payload: payload,
     );
   }
 }
