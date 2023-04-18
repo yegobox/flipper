@@ -221,4 +221,7 @@ abstract class IsarApiInterface {
       {required String tokenType, required int businessId});
 
   Stream<List<Conversation>> getTop5RecentConversations();
+
+  //
+  Future<int> patchSocialSetting({required String token});
 }

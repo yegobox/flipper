@@ -2220,4 +2220,28 @@ class IsarAPI<M> implements IsarApiInterface {
     }
     return true;
   }
+
+  @override
+  Future<int> patchSocialSetting({required String token}) async {
+    String phoneNumber = ProxyService.box.getUserPhone()!;
+    final http.Response response = await flipperHttpClient
+        .get(Uri.parse("$commApi/settings/$phoneNumber"));
+    // convert response to Setting
+    if (response.statusCode == 200) {
+      Setting setting = Setting.fromJson(jsonDecode(response.body));
+      setting.deviceToken = token;
+      // call patch api
+      final http.Response patch = await flipperHttpClient.patch(
+          Uri.parse("$commApi/settings"),
+          body: json.encode(setting.toJson()),
+          headers: {'Content-Type': 'application/json'});
+
+      if (patch.statusCode == 200) {
+        return Future.value(200);
+      } else {
+        return Future.value(200);
+      }
+    }
+    return Future.value(222);
+  }
 }
