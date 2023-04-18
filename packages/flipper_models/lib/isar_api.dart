@@ -2186,6 +2186,7 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<SocialToken> loginOnSocial(
       {String? phoneNumberOrEmail, String? password}) async {
+    await appService.isLoggedIn();
     final http.Response response = await socialsHttpClient.post(
         Uri.parse("$commApi/login"),
         body: json.encode({"email": phoneNumberOrEmail, "password": password}),
