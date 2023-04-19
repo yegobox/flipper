@@ -2,6 +2,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/locator.dart' as loc;
+import 'package:flutter/foundation.dart';
 
 abstract class Messaging {
   Future<void> init();
@@ -28,16 +29,19 @@ class FirebaseMessagingService implements Messaging {
     String? _token = await token();
     ProxyService.box.remove(key: 'getIsTokenRegistered');
     if (ProxyService.box.getIsTokenRegistered() == null) {
-      if (await appService.isSocialLoggedin()) {
+      if (await appService.isSocialLoggedin() && !kDebugMode) {
         ProxyService.isarApi.patchSocialSetting(token: _token!);
       }
-      if (true) {
-        ProxyService.remoteApi.create(collection: {
-          "deviceToken": _token,
-          "businessId": ProxyService.box.getBusinessId()!
-        }, collectionName: 'messagings');
+      if (!kDebugMode) {
+        try {
+          ProxyService.remoteApi.create(collection: {
+            "deviceToken": _token,
+            "businessId": ProxyService.box.getBusinessId()!
+          }, collectionName: 'messagings');
+        } catch (e) {
+          ProxyService.box.write(key: 'getIsTokenRegistered', value: true);
+        }
       }
-      ProxyService.box.write(key: 'getIsTokenRegistered', value: true);
     }
   }
 
