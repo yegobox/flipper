@@ -2,6 +2,7 @@ import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_socials/ui/views/chat_list/chat_list_viewmodel.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -77,10 +78,20 @@ class MessageDisplayMobile extends StatelessWidget {
           ),
         ],
       ),
-      title: Text(conversations![index].userName),
-      subtitle: Text(conversations!.last.body),
-      trailing:
-          Text(timeago.format(DateTime.parse(conversations!.last.createdAt!))),
+      title: Text(conversations![index].userName,
+          style: GoogleFonts.poppins(
+            fontSize: 17.0,
+            fontWeight: FontWeight.w500,
+            color: Colors.black,
+          )),
+      subtitle: Text(conversations!.last.body,
+          style: GoogleFonts.poppins(
+            fontSize: 17.0,
+            fontWeight: FontWeight.w300,
+            color: Colors.black,
+          )),
+      trailing: Text(
+          timeago.format(DateTime.parse(conversations![index].createdAt!))),
       onTap: () {
         if (isDesktopOrWeb) {
           viewModel.focusedConversation = true;
@@ -135,9 +146,9 @@ class MessagesDisplayDesktop extends StatelessWidget {
             ],
           ),
           title: Text(chat.userName),
-          subtitle: Text(conversations.last.body),
+          subtitle: Text(conversations[index].body),
           trailing: Text(
-              timeago.format(DateTime.parse(conversations.last.createdAt!))),
+              timeago.format(DateTime.parse(conversations[index].createdAt!))),
           onTap: () {
             if (isDesktopOrWeb) {
               viewModel.focusedConversation = true;
