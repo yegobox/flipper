@@ -49,6 +49,10 @@ class CronService {
     // for the case like that the token needs to be updated, but not covered now
     // this sill make more sence once we implement the sync that is when we will implement such solution
 
+    Timer.periodic(Duration(seconds: kDebugMode ? 5 : 5), (Timer t) async {
+      /// get unsynced counter and send them online for houseKeping.
+      ProxyService.isarApi.sendScheduleMessages();
+    });
     Timer.periodic(Duration(minutes: kDebugMode ? 1 : 10), (Timer t) async {
       /// get unsynced counter and send them online for houseKeping.
       if (ProxyService.box.getBranchId() != null) {

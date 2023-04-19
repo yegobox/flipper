@@ -31,10 +31,14 @@ class ChatListViewModel extends StartupViewModel {
       messageId: latestConversation.messageId,
       conversationId: latestConversation.conversationId,
       phoneNumberId: latestConversation.phoneNumberId,
+      delivered: false,
+      createdAt: DateTime.now().toString(),
+      // now add 5 seconds to the current time
+      scheduledAt: DateTime.now().add(const Duration(seconds: 5)),
       businessPhoneNumber: ProxyService.box.getUserPhone()!.replaceAll("+", ""),
       messageType: "text",
       businessId: ProxyService.box.getBusinessId()!.toString(),
     );
-    await ProxyService.isarApi.sendMessage(conversation: reply);
+    ProxyService.isarApi.create(data: reply);
   }
 }

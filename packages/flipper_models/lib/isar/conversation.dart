@@ -12,14 +12,14 @@ part 'conversation.g.dart';
 class Conversation extends IJsonSerializable {
   @JsonKey(includeToJson: false, includeFromJson: false)
   Id? id = null;
-  final String userName;
-  final String body;
-  final String avatar;
-  final String channelType;
+   String userName;
+   String body;
+   String avatar;
+   String channelType;
   @Index()
-  final String fromNumber;
+  String fromNumber;
   @Index()
-  final String toNumber;
+  String toNumber;
   @Index()
   String? createdAt;
   String? messageType;
@@ -32,6 +32,10 @@ class Conversation extends IJsonSerializable {
   /// properties that are here only useful when replying
   String? businessPhoneNumber;
   String? businessId;
+
+  DateTime? scheduledAt;
+
+  bool? delivered;
 
   Conversation(
       {required this.userName,
@@ -47,6 +51,8 @@ class Conversation extends IJsonSerializable {
       this.conversationId,
       this.businessPhoneNumber,
       this.businessId,
+      this.scheduledAt,
+      this.delivered,
       this.messageId});
   factory Conversation.fromRecord(RecordModel record) =>
       Conversation.fromJson(record.toJson());

@@ -52,38 +52,48 @@ const ConversationSchema = CollectionSchema(
       name: r'createdAt',
       type: IsarType.string,
     ),
-    r'fromNumber': PropertySchema(
+    r'delivered': PropertySchema(
       id: 7,
+      name: r'delivered',
+      type: IsarType.bool,
+    ),
+    r'fromNumber': PropertySchema(
+      id: 8,
       name: r'fromNumber',
       type: IsarType.string,
     ),
     r'messageId': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'messageId',
       type: IsarType.string,
     ),
     r'messageType': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'messageType',
       type: IsarType.string,
     ),
     r'phoneNumberId': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'phoneNumberId',
       type: IsarType.string,
     ),
     r'respondedBy': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'respondedBy',
       type: IsarType.string,
     ),
+    r'scheduledAt': PropertySchema(
+      id: 13,
+      name: r'scheduledAt',
+      type: IsarType.dateTime,
+    ),
     r'toNumber': PropertySchema(
-      id: 12,
+      id: 14,
       name: r'toNumber',
       type: IsarType.string,
     ),
     r'userName': PropertySchema(
-      id: 13,
+      id: 15,
       name: r'userName',
       type: IsarType.string,
     )
@@ -231,13 +241,15 @@ void _conversationSerialize(
   writer.writeString(offsets[4], object.channelType);
   writer.writeString(offsets[5], object.conversationId);
   writer.writeString(offsets[6], object.createdAt);
-  writer.writeString(offsets[7], object.fromNumber);
-  writer.writeString(offsets[8], object.messageId);
-  writer.writeString(offsets[9], object.messageType);
-  writer.writeString(offsets[10], object.phoneNumberId);
-  writer.writeString(offsets[11], object.respondedBy);
-  writer.writeString(offsets[12], object.toNumber);
-  writer.writeString(offsets[13], object.userName);
+  writer.writeBool(offsets[7], object.delivered);
+  writer.writeString(offsets[8], object.fromNumber);
+  writer.writeString(offsets[9], object.messageId);
+  writer.writeString(offsets[10], object.messageType);
+  writer.writeString(offsets[11], object.phoneNumberId);
+  writer.writeString(offsets[12], object.respondedBy);
+  writer.writeDateTime(offsets[13], object.scheduledAt);
+  writer.writeString(offsets[14], object.toNumber);
+  writer.writeString(offsets[15], object.userName);
 }
 
 Conversation _conversationDeserialize(
@@ -254,13 +266,15 @@ Conversation _conversationDeserialize(
     channelType: reader.readString(offsets[4]),
     conversationId: reader.readStringOrNull(offsets[5]),
     createdAt: reader.readStringOrNull(offsets[6]),
-    fromNumber: reader.readString(offsets[7]),
-    messageId: reader.readStringOrNull(offsets[8]),
-    messageType: reader.readStringOrNull(offsets[9]),
-    phoneNumberId: reader.readStringOrNull(offsets[10]),
-    respondedBy: reader.readStringOrNull(offsets[11]),
-    toNumber: reader.readString(offsets[12]),
-    userName: reader.readString(offsets[13]),
+    delivered: reader.readBoolOrNull(offsets[7]),
+    fromNumber: reader.readString(offsets[8]),
+    messageId: reader.readStringOrNull(offsets[9]),
+    messageType: reader.readStringOrNull(offsets[10]),
+    phoneNumberId: reader.readStringOrNull(offsets[11]),
+    respondedBy: reader.readStringOrNull(offsets[12]),
+    scheduledAt: reader.readDateTimeOrNull(offsets[13]),
+    toNumber: reader.readString(offsets[14]),
+    userName: reader.readString(offsets[15]),
   );
   object.id = id;
   return object;
@@ -288,9 +302,9 @@ P _conversationDeserializeProp<P>(
     case 6:
       return (reader.readStringOrNull(offset)) as P;
     case 7:
-      return (reader.readString(offset)) as P;
+      return (reader.readBoolOrNull(offset)) as P;
     case 8:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 9:
       return (reader.readStringOrNull(offset)) as P;
     case 10:
@@ -298,8 +312,12 @@ P _conversationDeserializeProp<P>(
     case 11:
       return (reader.readStringOrNull(offset)) as P;
     case 12:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 13:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 14:
+      return (reader.readString(offset)) as P;
+    case 15:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1646,6 +1664,34 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      deliveredIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'delivered',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      deliveredIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'delivered',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      deliveredEqualTo(bool? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'delivered',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       fromNumberEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -2468,6 +2514,80 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      scheduledAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'scheduledAt',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      scheduledAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'scheduledAt',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      scheduledAtEqualTo(DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'scheduledAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      scheduledAtGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'scheduledAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      scheduledAtLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'scheduledAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      scheduledAtBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'scheduledAt',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       toNumberEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -2838,6 +2958,18 @@ extension ConversationQuerySortBy
     });
   }
 
+  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByDelivered() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'delivered', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByDeliveredDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'delivered', Sort.desc);
+    });
+  }
+
   QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByFromNumber() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'fromNumber', Sort.asc);
@@ -2899,6 +3031,19 @@ extension ConversationQuerySortBy
       sortByRespondedByDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'respondedBy', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByScheduledAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'scheduledAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+      sortByScheduledAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'scheduledAt', Sort.desc);
     });
   }
 
@@ -3019,6 +3164,18 @@ extension ConversationQuerySortThenBy
     });
   }
 
+  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByDelivered() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'delivered', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByDeliveredDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'delivered', Sort.desc);
+    });
+  }
+
   QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByFromNumber() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'fromNumber', Sort.asc);
@@ -3092,6 +3249,19 @@ extension ConversationQuerySortThenBy
       thenByRespondedByDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'respondedBy', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByScheduledAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'scheduledAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+      thenByScheduledAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'scheduledAt', Sort.desc);
     });
   }
 
@@ -3173,6 +3343,12 @@ extension ConversationQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Conversation, Conversation, QDistinct> distinctByDelivered() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'delivered');
+    });
+  }
+
   QueryBuilder<Conversation, Conversation, QDistinct> distinctByFromNumber(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -3206,6 +3382,12 @@ extension ConversationQueryWhereDistinct
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'respondedBy', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QDistinct> distinctByScheduledAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'scheduledAt');
     });
   }
 
@@ -3276,6 +3458,12 @@ extension ConversationQueryProperty
     });
   }
 
+  QueryBuilder<Conversation, bool?, QQueryOperations> deliveredProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'delivered');
+    });
+  }
+
   QueryBuilder<Conversation, String, QQueryOperations> fromNumberProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'fromNumber');
@@ -3304,6 +3492,13 @@ extension ConversationQueryProperty
   QueryBuilder<Conversation, String?, QQueryOperations> respondedByProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'respondedBy');
+    });
+  }
+
+  QueryBuilder<Conversation, DateTime?, QQueryOperations>
+      scheduledAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'scheduledAt');
     });
   }
 
@@ -3338,6 +3533,10 @@ Conversation _$ConversationFromJson(Map<String, dynamic> json) => Conversation(
       conversationId: json['conversationId'] as String?,
       businessPhoneNumber: json['businessPhoneNumber'] as String?,
       businessId: json['businessId'] as String?,
+      scheduledAt: json['scheduledAt'] == null
+          ? null
+          : DateTime.parse(json['scheduledAt'] as String),
+      delivered: json['delivered'] as bool?,
       messageId: json['messageId'] as String?,
     );
 
@@ -3357,4 +3556,6 @@ Map<String, dynamic> _$ConversationToJson(Conversation instance) =>
       'conversationId': instance.conversationId,
       'businessPhoneNumber': instance.businessPhoneNumber,
       'businessId': instance.businessId,
+      'scheduledAt': instance.scheduledAt?.toIso8601String(),
+      'delivered': instance.delivered,
     };

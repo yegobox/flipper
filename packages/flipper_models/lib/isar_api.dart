@@ -2147,22 +2147,42 @@ class IsarAPI<M> implements IsarApiInterface {
 
   final appService = loc.locator<AppService>();
   @override
-  Future<Conversation?> sendMessage({Conversation? conversation}) async {
+  Future<List<Conversation>> getScheduleMessages() async {
+    return isar.conversations
+        .filter()
+        .deliveredEqualTo(false)
+        .build()
+        .findAll();
+  }
+
+  @override
+  Future<void> sendScheduleMessages() async {
     await appService.isLoggedIn();
-    final http.Response response = await socialsHttpClient.post(
-        Uri.parse("$commApi/reply"),
-        body: json.encode(conversation!.toJson()),
-        headers: {'Content-Type': 'application/json'});
-    if (response.statusCode == 200) {
-      final responseJson = jsonDecode(response.body);
-      final conversation = Conversation.fromJson(responseJson);
-      isar.writeTxn(() async {
-        await isar.conversations.put(conversation);
-      });
-      return conversation;
-    } else {
-      log(response.body);
-      throw Exception('Failed to load conversation');
+    List<Conversation> scheduledMessages = await getScheduleMessages();
+    for (Conversation message in scheduledMessages) {
+      final http.Response response = await socialsHttpClient.post(
+          Uri.parse("$commApi/reply"),
+          body: json.encode(message.toJson()),
+          headers: {'Content-Type': 'application/json'});
+      if (response.statusCode == 200) {
+        final responseJson = jsonDecode(response.body);
+        final conversation = Conversation.fromJson(responseJson);
+        message.delivered = true;
+        message.messageId = conversation.messageId;
+        message.createdAt = conversation.createdAt;
+        message.fromNumber = conversation.fromNumber;
+        message.toNumber = conversation.toNumber;
+        message.conversationId = conversation.conversationId;
+        message.userName = conversation.userName;
+        message.phoneNumberId = conversation.phoneNumberId;
+        message.businessId = conversation.businessId;
+        message.businessPhoneNumber = conversation.businessPhoneNumber;
+        isar.writeTxn(() async {
+          await isar.conversations.put(message);
+        });
+      } else {
+        throw Exception('Failed to load conversation');
+      }
     }
   }
 
