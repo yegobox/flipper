@@ -60,17 +60,18 @@ class StartUpView extends StackedView<StartupViewModel> {
   StartupViewModel viewModelBuilder(
     BuildContext context,
   ) =>
-      StartupViewModel(context: context);
+      StartupViewModel();
 
   @override
   void onViewModelReady(StartupViewModel viewModel) =>
-      SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+      SchedulerBinding.instance.addPostFrameCallback((timeStamp) async {
+        await viewModel.runStartupLogic(
+            refreshCredentials: invokeLogin ?? false);
         if (ProxyService.box.getBranchId() != null &&
             ProxyService.box.getBusinessId() != null &&
             ProxyService.box.getUserId() != null) {
           InitApp.init();
           ProxyService.remoteApi.listenToChanges();
         }
-        viewModel.runStartupLogic(invokeLogin: invokeLogin ?? false);
       });
 }

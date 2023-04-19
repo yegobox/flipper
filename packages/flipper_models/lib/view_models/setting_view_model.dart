@@ -119,11 +119,11 @@ class SettingViewModel extends ReactiveViewModel {
   void enableDailyReport(Function callback) async {
     kSetting.toggleDailyReportSetting();
     Setting? setting = await kSetting.settings();
-    if (setting != null && setting.email.isNotEmpty) {
-      if (!RegExp(r"^[\w.+\-]+@gmail\.com$").hasMatch(setting.email)) {
+    if (setting != null && setting.email!.isNotEmpty) {
+      if (!RegExp(r"^[\w.+\-]+@gmail\.com$").hasMatch(setting.email!)) {
         callback(1);
       } else {
-        await ProxyService.isarApi.createGoogleSheetDoc(email: setting.email);
+        await ProxyService.isarApi.createGoogleSheetDoc(email: setting.email!);
 
         Business? business = await ProxyService.isarApi.getBusiness();
         business!.email = setting.email;
@@ -142,14 +142,14 @@ class SettingViewModel extends ReactiveViewModel {
   Future<void> enableAttendance(Function callback) async {
     kSetting.toggleAttendanceSetting();
     Setting? setting = await kSetting.settings();
-    if (setting != null && setting.email.isNotEmpty) {
-      if (!RegExp(r"^[\w.+\-]+@gmail\.com$").hasMatch(setting.email)) {
+    if (setting != null && setting.email!.isNotEmpty) {
+      if (!RegExp(r"^[\w.+\-]+@gmail\.com$").hasMatch(setting.email!)) {
         callback(1);
       } else {
         /// the
         Business? business = await ProxyService.isarApi.getBusiness();
         ProxyService.isarApi
-            .enableAttendance(businessId: business!.id!, email: setting.email);
+            .enableAttendance(businessId: business!.id!, email: setting.email!);
       }
     } else {
       callback(2);

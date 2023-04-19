@@ -27,23 +27,26 @@ class Setting extends IJsonSerializable {
     this.businessId,
     this.createdAt,
   });
+
+  @JsonKey(includeToJson: false, includeFromJson: false)
   Id id = Isar.autoIncrement;
-  String email;
-  String hasPin;
+  String? email;
+  String? hasPin;
   @Index()
-  int userId;
+  int? userId;
   bool? openReceiptFileOSaleComplete;
   bool? autoPrint;
   bool? sendDailyReport;
   String? defaultLanguage;
   bool? attendnaceDocCreated;
   bool? isAttendanceEnabled;
-  String type;
+  String? type;
   bool? enrolledInBot;
   String? deviceToken;
   String? businessPhoneNumber;
   bool? autoRespond;
   String? bToken;
+  @JsonKey(fromJson: _toInt)
   int? businessId;
   String? createdAt;
   factory Setting.fromRecord(RecordModel record) =>
@@ -53,4 +56,8 @@ class Setting extends IJsonSerializable {
       _$SettingFromJson(json);
   @override
   Map<String, dynamic> toJson() => _$SettingToJson(this);
+
+  static int _toInt(String value) {
+    return int.parse(value);
+  }
 }

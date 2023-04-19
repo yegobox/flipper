@@ -51,7 +51,7 @@ class EventService implements EventInterface {
             loginData.userId == ProxyService.box.getUserId()) {
           await FirebaseAuth.instance.signOut();
           ProxyService.isarApi.logOut();
-          _routerService.navigateTo(LoginViewRoute());
+          _routerService.clearStackAndShow(LoginViewRoute());
         }
       });
     } catch (e, stacktrace) {

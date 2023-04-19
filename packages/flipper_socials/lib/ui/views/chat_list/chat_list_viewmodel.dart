@@ -1,9 +1,9 @@
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:stacked/stacked.dart';
 
-class ChatListViewModel extends BaseViewModel {
+class ChatListViewModel extends StartupViewModel {
   bool _focusedConversation = false;
+
   bool get focusedConversation => _focusedConversation;
 
   String? _conversationId;

@@ -167,9 +167,24 @@ int _settingEstimateSize(
       bytesCount += 3 + value.length * 3;
     }
   }
-  bytesCount += 3 + object.email.length * 3;
-  bytesCount += 3 + object.hasPin.length * 3;
-  bytesCount += 3 + object.type.length * 3;
+  {
+    final value = object.email;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.hasPin;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.type;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   return bytesCount;
 }
 
@@ -214,15 +229,15 @@ Setting _settingDeserialize(
     createdAt: reader.readStringOrNull(offsets[6]),
     defaultLanguage: reader.readStringOrNull(offsets[7]),
     deviceToken: reader.readStringOrNull(offsets[8]),
-    email: reader.readString(offsets[9]),
+    email: reader.readStringOrNull(offsets[9]),
     enrolledInBot: reader.readBoolOrNull(offsets[10]),
-    hasPin: reader.readString(offsets[11]),
+    hasPin: reader.readStringOrNull(offsets[11]),
     id: id,
     isAttendanceEnabled: reader.readBoolOrNull(offsets[12]),
     openReceiptFileOSaleComplete: reader.readBoolOrNull(offsets[13]),
     sendDailyReport: reader.readBoolOrNull(offsets[14]),
-    type: reader.readString(offsets[15]),
-    userId: reader.readLong(offsets[16]),
+    type: reader.readStringOrNull(offsets[15]),
+    userId: reader.readLongOrNull(offsets[16]),
   );
   return object;
 }
@@ -253,11 +268,11 @@ P _settingDeserializeProp<P>(
     case 8:
       return (reader.readStringOrNull(offset)) as P;
     case 9:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 10:
       return (reader.readBoolOrNull(offset)) as P;
     case 11:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 12:
       return (reader.readBoolOrNull(offset)) as P;
     case 13:
@@ -265,9 +280,9 @@ P _settingDeserializeProp<P>(
     case 14:
       return (reader.readBoolOrNull(offset)) as P;
     case 15:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 16:
-      return (reader.readLong(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -367,7 +382,27 @@ extension SettingQueryWhere on QueryBuilder<Setting, Setting, QWhereClause> {
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterWhereClause> userIdEqualTo(int userId) {
+  QueryBuilder<Setting, Setting, QAfterWhereClause> userIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'userId',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> userIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'userId',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> userIdEqualTo(int? userId) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
         indexName: r'userId',
@@ -377,7 +412,7 @@ extension SettingQueryWhere on QueryBuilder<Setting, Setting, QWhereClause> {
   }
 
   QueryBuilder<Setting, Setting, QAfterWhereClause> userIdNotEqualTo(
-      int userId) {
+      int? userId) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -412,7 +447,7 @@ extension SettingQueryWhere on QueryBuilder<Setting, Setting, QWhereClause> {
   }
 
   QueryBuilder<Setting, Setting, QAfterWhereClause> userIdGreaterThan(
-    int userId, {
+    int? userId, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -426,7 +461,7 @@ extension SettingQueryWhere on QueryBuilder<Setting, Setting, QWhereClause> {
   }
 
   QueryBuilder<Setting, Setting, QAfterWhereClause> userIdLessThan(
-    int userId, {
+    int? userId, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -440,8 +475,8 @@ extension SettingQueryWhere on QueryBuilder<Setting, Setting, QWhereClause> {
   }
 
   QueryBuilder<Setting, Setting, QAfterWhereClause> userIdBetween(
-    int lowerUserId,
-    int upperUserId, {
+    int? lowerUserId,
+    int? upperUserId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -1353,8 +1388,24 @@ extension SettingQueryFilter
     });
   }
 
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> emailIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'email',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> emailIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'email',
+      ));
+    });
+  }
+
   QueryBuilder<Setting, Setting, QAfterFilterCondition> emailEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1367,7 +1418,7 @@ extension SettingQueryFilter
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition> emailGreaterThan(
-    String value, {
+    String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -1382,7 +1433,7 @@ extension SettingQueryFilter
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition> emailLessThan(
-    String value, {
+    String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -1397,8 +1448,8 @@ extension SettingQueryFilter
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition> emailBetween(
-    String lower,
-    String upper, {
+    String? lower,
+    String? upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -1510,8 +1561,24 @@ extension SettingQueryFilter
     });
   }
 
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> hasPinIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'hasPin',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> hasPinIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'hasPin',
+      ));
+    });
+  }
+
   QueryBuilder<Setting, Setting, QAfterFilterCondition> hasPinEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1524,7 +1591,7 @@ extension SettingQueryFilter
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition> hasPinGreaterThan(
-    String value, {
+    String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -1539,7 +1606,7 @@ extension SettingQueryFilter
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition> hasPinLessThan(
-    String value, {
+    String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -1554,8 +1621,8 @@ extension SettingQueryFilter
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition> hasPinBetween(
-    String lower,
-    String upper, {
+    String? lower,
+    String? upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -1776,8 +1843,24 @@ extension SettingQueryFilter
     });
   }
 
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> typeIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'type',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> typeIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'type',
+      ));
+    });
+  }
+
   QueryBuilder<Setting, Setting, QAfterFilterCondition> typeEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1790,7 +1873,7 @@ extension SettingQueryFilter
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition> typeGreaterThan(
-    String value, {
+    String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -1805,7 +1888,7 @@ extension SettingQueryFilter
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition> typeLessThan(
-    String value, {
+    String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -1820,8 +1903,8 @@ extension SettingQueryFilter
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition> typeBetween(
-    String lower,
-    String upper, {
+    String? lower,
+    String? upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -1906,8 +1989,24 @@ extension SettingQueryFilter
     });
   }
 
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> userIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'userId',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> userIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'userId',
+      ));
+    });
+  }
+
   QueryBuilder<Setting, Setting, QAfterFilterCondition> userIdEqualTo(
-      int value) {
+      int? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'userId',
@@ -1917,7 +2016,7 @@ extension SettingQueryFilter
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition> userIdGreaterThan(
-    int value, {
+    int? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1930,7 +2029,7 @@ extension SettingQueryFilter
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition> userIdLessThan(
-    int value, {
+    int? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1943,8 +2042,8 @@ extension SettingQueryFilter
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition> userIdBetween(
-    int lower,
-    int upper, {
+    int? lower,
+    int? upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -2577,7 +2676,7 @@ extension SettingQueryProperty
     });
   }
 
-  QueryBuilder<Setting, String, QQueryOperations> emailProperty() {
+  QueryBuilder<Setting, String?, QQueryOperations> emailProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'email');
     });
@@ -2589,7 +2688,7 @@ extension SettingQueryProperty
     });
   }
 
-  QueryBuilder<Setting, String, QQueryOperations> hasPinProperty() {
+  QueryBuilder<Setting, String?, QQueryOperations> hasPinProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'hasPin');
     });
@@ -2614,13 +2713,13 @@ extension SettingQueryProperty
     });
   }
 
-  QueryBuilder<Setting, String, QQueryOperations> typeProperty() {
+  QueryBuilder<Setting, String?, QQueryOperations> typeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'type');
     });
   }
 
-  QueryBuilder<Setting, int, QQueryOperations> userIdProperty() {
+  QueryBuilder<Setting, int?, QQueryOperations> userIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'userId');
     });
@@ -2632,11 +2731,10 @@ extension SettingQueryProperty
 // **************************************************************************
 
 Setting _$SettingFromJson(Map<String, dynamic> json) => Setting(
-      id: json['id'] as int? ?? 0,
-      email: json['email'] as String,
-      hasPin: json['hasPin'] as String,
-      userId: json['userId'] as int,
-      type: json['type'] as String,
+      email: json['email'] as String?,
+      hasPin: json['hasPin'] as String?,
+      userId: json['userId'] as int?,
+      type: json['type'] as String?,
       autoPrint: json['autoPrint'] as bool?,
       openReceiptFileOSaleComplete:
           json['openReceiptFileOSaleComplete'] as bool?,
@@ -2649,12 +2747,11 @@ Setting _$SettingFromJson(Map<String, dynamic> json) => Setting(
       businessPhoneNumber: json['businessPhoneNumber'] as String?,
       autoRespond: json['autoRespond'] as bool?,
       bToken: json['bToken'] as String?,
-      businessId: json['businessId'] as int?,
+      businessId: Setting._toInt(json['businessId'] as String),
       createdAt: json['createdAt'] as String?,
     );
 
 Map<String, dynamic> _$SettingToJson(Setting instance) => <String, dynamic>{
-      'id': instance.id,
       'email': instance.email,
       'hasPin': instance.hasPin,
       'userId': instance.userId,

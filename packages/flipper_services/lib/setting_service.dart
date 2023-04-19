@@ -162,7 +162,7 @@ class SettingsService with ListenableServiceMixin {
     if (setting != null) {
       int businessId = ProxyService.box.getBusinessId()!;
       await ProxyService.isarApi
-          .enableAttendance(businessId: businessId, email: setting.email);
+          .enableAttendance(businessId: businessId, email: setting.email!);
       return callback(true);
     } else {
       return callback(false);

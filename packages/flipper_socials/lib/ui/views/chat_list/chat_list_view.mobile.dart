@@ -8,7 +8,6 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'chat_list_viewmodel.dart';
-import 'package:flipper_dashboard/init_app.dart';
 import 'package:flutter/scheduler.dart';
 
 class ChatListViewMobile extends StatefulWidget {
@@ -32,7 +31,6 @@ class _ChatListViewMobileState extends State<ChatListViewMobile> {
             if (ProxyService.box.getBranchId() != null &&
                 ProxyService.box.getBusinessId() != null &&
                 ProxyService.box.getUserId() != null) {
-              InitApp.init();
               ProxyService.remoteApi.listenToChanges();
             }
           });
@@ -59,10 +57,10 @@ class _ChatListViewMobileState extends State<ChatListViewMobile> {
                 // An icon button that shows a logout icon to sign out
                 IconButton(
                   icon: const Icon(FluentIcons.sign_out_24_regular),
-                  onPressed: () {
-                    ProxyService.isarApi.logOut();
+                  onPressed: () async {
+                    await ProxyService.isarApi.logOut();
                     // navigate to login page
-                    _routerService.navigateTo(const LoginViewRoute());
+                    _routerService.clearStackAndShow(const LoginViewRoute());
                   },
                 ),
               ],

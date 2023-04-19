@@ -18,7 +18,6 @@ import 'package:flutter/foundation.dart' as foundation;
 import 'package:isar_crdt/utils/hlc.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'flipper_http_client.dart';
-import 'view_models/gate.dart';
 import 'package:flipper_routing/receipt_types.dart';
 
 final isAndroid = UniversalPlatform.isAndroid;
@@ -1031,9 +1030,7 @@ class IsarAPI<M> implements IsarApiInterface {
     ProxyService.box.remove(key: 'UToken');
     ProxyService.box.remove(key: 'businessId');
     ProxyService.box.remove(key: 'defaultApp');
-    LoginInfo().isLoggedIn = false;
-    LoginInfo().needSignUp = false;
-    FirebaseAuth.instance.signOut();
+    await FirebaseAuth.instance.signOut();
   }
 
   @override
@@ -1142,6 +1139,13 @@ class IsarAPI<M> implements IsarApiInterface {
         value: syncF.tenants.isEmpty
             ? null
             : syncF.tenants.first.branches.first.id,
+      );
+      await ProxyService.box.write(
+        key: 'businessId',
+        // check if businesses is empty
+        value: syncF.tenants.isEmpty
+            ? null
+            : syncF.tenants.first.businesses.first.id,
       );
       await ProxyService.box.write(
         key: 'defaultApp',
@@ -2103,7 +2107,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Stream<List<Conversation>> conversations({String? conversationId}) {
-    if (conversationId == null) {
+    if (conversationId == null && ProxyService.box.getUserPhone() != null) {
       /// get all conversations addressed to me or from me
       String phone = ProxyService.box.getUserPhone()!.replaceAll("+", "");
       log(phone, name: "LoadInitialList");
@@ -2186,7 +2190,6 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<SocialToken> loginOnSocial(
       {String? phoneNumberOrEmail, String? password}) async {
-    await appService.isLoggedIn();
     final http.Response response = await socialsHttpClient.post(
         Uri.parse("$commApi/login"),
         body: json.encode({"email": phoneNumberOrEmail, "password": password}),

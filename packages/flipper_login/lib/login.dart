@@ -30,6 +30,7 @@ class _LoginViewState extends State<LoginView>
     with AutomaticKeepAliveClientMixin {
   final appService = loc.locator<AppService>();
   final _routerService = locator<RouterService>();
+  bool _isLogin = false;
   Future<void> isNetAvailable() async {
     if (!(await appService.isLoggedIn())) {
       ConnectivityResult connectivityResult =
@@ -84,67 +85,68 @@ class _LoginViewState extends State<LoginView>
   Widget build(BuildContext context) {
     super.build(context);
     return ViewModelBuilder<StartupViewModel>.reactive(
-      onViewModelReady: (model) {},
-      viewModelBuilder: () => StartupViewModel(context: context),
+      onViewModelReady: (model) {
+        FirebaseAuth.instance.userChanges().listen((User? user) {
+          if (user != null) {
+            if (_isLogin == false) {
+              setState(() {
+                _isLogin = true;
+              });
+              _routerService
+                  .clearStackAndShow(StartUpViewRoute(invokeLogin: true));
+            }
+          }
+        });
+      },
+      viewModelBuilder: () => StartupViewModel(),
       builder: (context, model, child) {
-        return StreamBuilder<User?>(
-          stream: FirebaseAuth.instance.userChanges(),
-          builder: (BuildContext context, snapshot) {
-            if (snapshot.hasData) {
-              return const StartUpView(
-                invokeLogin: true,
-              );
-            } else {
-              return isDesktopOrWeb
-                  ? const Scaffold(body: DesktopLoginView())
-                  : Scaffold(
-                      key: Key("login-page"),
-                      body: Theme(
-                        data: ThemeData(
-                          inputDecorationTheme: InputDecorationTheme(
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
+        return isDesktopOrWeb
+            ? const Scaffold(body: DesktopLoginView())
+            : Scaffold(
+                key: Key("login-page"),
+                body: Theme(
+                  data: ThemeData(
+                    inputDecorationTheme: InputDecorationTheme(
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                  child: SignInScreen(
+                    actions: [
+                      AuthStateChangeAction<SignedIn>((context, state) {
+                        //do nothing to avoid bug.
+                      }),
+                    ],
+                    headerBuilder: headerImage('assets/logo.png'),
+                    sideBuilder: sideImage('assets/logo.png'),
+                    subtitleBuilder: (context, action) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Text(
+                          action == AuthAction.signIn
+                              ? 'Welcome to Flipper Please sign in to continue.'
+                              : 'Welcome to Flipper Please create an account to continue',
+                        ),
+                      );
+                    },
+                    footerBuilder: (context, action) {
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 16),
+                          child: Text(
+                            action == AuthAction.signIn
+                                ? 'By signing in, you agree to our terms and conditions.'
+                                : 'By registering, you agree to our terms and conditions.',
+                            style: const TextStyle(color: Colors.grey),
                           ),
                         ),
-                        child: SignInScreen(
-                          actions: [
-                            AuthStateChangeAction<SignedIn>((context, state) {
-                              //do nothing to avoid bug.
-                            }),
-                          ],
-                          headerBuilder: headerImage('assets/logo.png'),
-                          sideBuilder: sideImage('assets/logo.png'),
-                          subtitleBuilder: (context, action) {
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: Text(
-                                action == AuthAction.signIn
-                                    ? 'Welcome to Flipper Please sign in to continue.'
-                                    : 'Welcome to Flipper Please create an account to continue',
-                              ),
-                            );
-                          },
-                          footerBuilder: (context, action) {
-                            return Center(
-                              child: Padding(
-                                padding: const EdgeInsets.only(top: 16),
-                                child: Text(
-                                  action == AuthAction.signIn
-                                      ? 'By signing in, you agree to our terms and conditions.'
-                                      : 'By registering, you agree to our terms and conditions.',
-                                  style: const TextStyle(color: Colors.grey),
-                                ),
-                              ),
-                            );
-                          },
-                          providers: providers(),
-                        ),
-                      ),
-                    );
-            }
-          },
-        );
+                      );
+                    },
+                    providers: providers(),
+                  ),
+                ),
+              );
       },
     );
   }
