@@ -1,17 +1,14 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_ui_localizations/firebase_ui_localizations.dart';
-import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/view_models/gate.dart';
 import 'package:flipper_routing/app.bottomsheets.dart';
 import 'package:flipper_routing/app.dialogs.dart';
-import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.locator.dart' as loc;
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_rw/flipper_localize/lib/flipper_localize.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:overlay_support/overlay_support.dart';
@@ -43,44 +40,7 @@ Future<void> onDidReceiveBackgroundNotificationResponse(
   );
 }
 
-final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-    FlutterLocalNotificationsPlugin();
-Future<void> backgroundHandler(RemoteMessage message) async {
-  int id = message.messageId.hashCode;
-  final title = message.data['title'];
-  final body = message.data['body'];
-  final type = message.data['type'];
-  if (type == "whatsapp") {
-    final conversationKey = message.data['conversation'];
-    final decodedConversationKey = base64Url.decode(conversationKey);
-    final conversationId = utf8.decode(decodedConversationKey);
-    final conversation = Conversation.fromJson(jsonDecode(conversationId));
-    Conversation? localConversation = await ProxyService.isarApi
-        .getConversation(messageId: conversation.messageId!);
-
-    if (localConversation == null) {
-      await ProxyService.isarApi.create(data: conversation);
-      // do something with conversationId
-      print('Received a new message in conversation: ${conversation.body}');
-      // log conversation on sentry
-      await Sentry.captureMessage(
-        'Received a new message in conversation in message background: ${conversation.body}',
-        level: SentryLevel.info,
-      );
-      // var date = DateTime.now();
-      ProxyService.notification.localNotification(
-          id,
-          title,
-          body,
-          tz.TZDateTime.now(tz.local).add(const Duration(seconds: 5)),
-          conversation.conversationId);
-    }
-  } else {
-    // var date = DateTime.now();
-    ProxyService.notification.localNotification(id, title, body,
-        tz.TZDateTime.now(tz.local).add(const Duration(seconds: 5)), "payload");
-  }
-}
+Future<void> backgroundHandler(RemoteMessage message) async {}
 
 void main() async {
   GoogleFonts.config.allowRuntimeFetching = false;
@@ -107,7 +67,7 @@ void main() async {
   // done init in mobile.//done separation.
   await thirdPartyLocator();
   // setPathUrlStrategy();
-  setupLocator(
+  loc.setupLocator(
     stackedRouter: stackedRouter,
   );
   setupDialogUi();
@@ -122,22 +82,13 @@ void main() async {
       FirebaseCrashlytics.instance.recordFlutterError(details);
     };
   }
-
   const InitializationSettings initializationSettings =
       InitializationSettings(android: initializationSettingsAndroid);
-  await flutterLocalNotificationsPlugin.initialize(
+  await FlutterLocalNotificationsPlugin().initialize(
     initializationSettings,
-    onDidReceiveNotificationResponse:
-        (NotificationResponse notificationResponse) async {
-      await Sentry.captureMessage(
-        'On When notification clicked: ${notificationResponse.payload}',
-        level: SentryLevel.info,
-      );
-      // _routerService.navigateTo(ConversationHistoryRoute(
-      //   conversationId: notificationResponse.payload!,
-      // ));
-    },
     onDidReceiveBackgroundNotificationResponse:
+        onDidReceiveBackgroundNotificationResponse,
+    onDidReceiveNotificationResponse:
         onDidReceiveBackgroundNotificationResponse,
   );
 
@@ -157,6 +108,8 @@ void main() async {
 
     if (!isWindows) {
       FirebaseMessaging.onBackgroundMessage(backgroundHandler);
+      // FirebaseMessaging.onMessageOpenedApp();
+      // FirebaseMessaging.getInitialMessage(backgroundHandler);
       await FirebaseMessaging.instance
           .setForegroundNotificationPresentationOptions(
         badge: true,

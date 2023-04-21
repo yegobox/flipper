@@ -40,7 +40,10 @@ class InitApp {
 
     ProxyService.event.connect();
 
-    ProxyService.messaging.init();
+    ProxyService.messaging
+        .initializeFirebaseMessagingAndSubscribeToBusinessNotifications();
+    ProxyService.messaging.listenTapOnNotificationFromBackground();
+    ProxyService.messaging.listenTapOnNotificationForeground();
     if (isDesktopOrWeb) {
       ProxyService.event.subscribeToLogoutEvent(
           channel: "${ProxyService.box.getUserId()}-logout");
