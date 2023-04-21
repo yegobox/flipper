@@ -2057,9 +2057,9 @@ class IsarAPI<M> implements IsarApiInterface {
   Future<List<BusinessType>> businessTypes() async {
     final responseJson = [
       {"id": 1, "typeName": "Supplier"},
-      {"id": 2, "typeName": "Customer Support"},
-      {"id": 3, "typeName": "Retailer"},
-      {"id": 4, "typeName": "Agent"}
+      {"id": 2, "typeName": "Connecta"},
+      // {"id": 3, "typeName": "Retailer"},
+      // {"id": 4, "typeName": "Agent"}
     ];
     Future.delayed(Duration(seconds: 5));
     final response = http.Response(jsonEncode(responseJson), 200);
@@ -2157,32 +2157,36 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<void> sendScheduleMessages() async {
-    await appService.isLoggedIn();
-    List<Conversation> scheduledMessages = await getScheduleMessages();
-    for (Conversation message in scheduledMessages) {
-      final http.Response response = await socialsHttpClient.post(
-          Uri.parse("$commApi/reply"),
-          body: json.encode(message.toJson()),
-          headers: {'Content-Type': 'application/json'});
-      if (response.statusCode == 200) {
-        final responseJson = jsonDecode(response.body);
-        final conversation = Conversation.fromJson(responseJson);
-        message.delivered = true;
-        message.messageId = conversation.messageId;
-        message.createdAt = conversation.createdAt;
-        message.fromNumber = conversation.fromNumber;
-        message.toNumber = conversation.toNumber;
-        message.conversationId = conversation.conversationId;
-        message.userName = conversation.userName;
-        message.phoneNumberId = conversation.phoneNumberId;
-        message.businessId = conversation.businessId;
-        message.businessPhoneNumber = conversation.businessPhoneNumber;
-        isar.writeTxn(() async {
-          await isar.conversations.put(message);
-        });
-      } else {
-        throw Exception('Failed to load conversation');
+    try {
+      await appService.isLoggedIn();
+      List<Conversation> scheduledMessages = await getScheduleMessages();
+      for (Conversation message in scheduledMessages) {
+        final http.Response response = await socialsHttpClient.post(
+            Uri.parse("$commApi/reply"),
+            body: json.encode(message.toJson()),
+            headers: {'Content-Type': 'application/json'});
+        if (response.statusCode == 200) {
+          final responseJson = jsonDecode(response.body);
+          final conversation = Conversation.fromJson(responseJson);
+          message.delivered = true;
+          message.messageId = conversation.messageId;
+          message.createdAt = conversation.createdAt;
+          message.fromNumber = conversation.fromNumber;
+          message.toNumber = conversation.toNumber;
+          message.conversationId = conversation.conversationId;
+          message.userName = conversation.userName;
+          message.phoneNumberId = conversation.phoneNumberId;
+          message.businessId = conversation.businessId;
+          message.businessPhoneNumber = conversation.businessPhoneNumber;
+          isar.writeTxn(() async {
+            await isar.conversations.put(message);
+          });
+        } else {
+          throw Exception('Failed to load conversation');
+        }
       }
+    } catch (e) {
+      log(e.toString(), name: "ErrorSendingMessage");
     }
   }
 
@@ -2235,11 +2239,33 @@ class IsarAPI<M> implements IsarApiInterface {
         .build()
         .findFirst();
     if (token == null) {
+      /// if there is past token saved we delete them
+      /// this code may not be exucuted in normal scenario as we will have one
+      /// entry of token of same kind, but it is kept here because when we
+      /// generate token we always create not update
+      List<Token?> tokens = await isar.tokens
+          .filter()
+          .typeEqualTo(tokenType)
+          .and()
+          .businessIdEqualTo(businessId)
+          .build()
+          .findAll();
+      List<int> ids = tokens.map((e) => e!.id).toList();
+
+      isar.writeTxn(() async {
+        await isar.tokens.deleteAll(ids);
+      });
       return false;
     }
     // compare validFrom and ValidUntil from token
     if (token.validFrom.isAfter(DateTime.now()) ||
         token.validUntil.isBefore(DateTime.now())) {
+      /// the token is expired delete the token from our local db
+      /// for next time try to get fresh token to succeed
+
+      isar.writeTxn(() async {
+        await isar.tokens.delete(token.id);
+      });
       return false;
     }
     return true;

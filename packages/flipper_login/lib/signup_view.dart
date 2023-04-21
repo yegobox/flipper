@@ -161,8 +161,7 @@ class _SignUpViewState extends State<SignUpView> {
                             ),
                           ),
                           Padding(
-                            padding: const EdgeInsets.only(
-                                left: 0.0, right: 0.0, top: 0.0),
+                            padding: EdgeInsets.zero,
                             child: TextFieldBlocBuilder(
                               textFieldBloc: formBloc.fullName,
                               suffixButton: SuffixButton.asyncValidating,
@@ -174,14 +173,14 @@ class _SignUpViewState extends State<SignUpView> {
                             ),
                           ),
                           Padding(
-                            padding: EdgeInsets.only(
-                                left: 0.0, right: 0.0, top: 0.0),
+                            padding: EdgeInsets.zero,
                             child: DropdownFieldBlocBuilder<BusinessType>(
+                              padding: EdgeInsets.zero,
                               selectFieldBloc: formBloc.businessTypes,
                               itemBuilder: (context, value) =>
                                   FieldItem(child: Text(value.typeName)),
                               decoration: InputDecoration(
-                                labelText: 'Business Types',
+                                labelText: 'Apps',
                                 prefixIcon: Icon(Icons.business),
                               ),
                               onChanged: (value) {
@@ -213,8 +212,7 @@ class _SignUpViewState extends State<SignUpView> {
                                 )
                               : SizedBox.shrink(),
                           Padding(
-                            padding: const EdgeInsets.only(
-                                left: 0.0, right: 0.0, top: 0.0),
+                            padding: EdgeInsets.zero,
                             child: TextFieldBlocBuilder(
                               readOnly: true,
                               textFieldBloc: formBloc.countryName,

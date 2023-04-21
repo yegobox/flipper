@@ -493,10 +493,10 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
   @override
   Future<List<BusinessType>> businessTypes() async {
     final responseJson = [
-      {"messageId": 1, "typeName": "Supplier"},
-      {"messageId": 2, "typeName": "Customer Support"},
-      {"messageId": 3, "typeName": "Retailer"},
-      {"messageId": 4, "typeName": "Agent"}
+      {"id": 1, "typeName": "Supplier"},
+      {"id": 2, "typeName": "Connecta"},
+      // {"id": 3, "typeName": "Retailer"},
+      // {"id": 4, "typeName": "Agent"}
     ];
     Future.delayed(Duration(seconds: 5));
     final response = http.Response(jsonEncode(responseJson), 200);
