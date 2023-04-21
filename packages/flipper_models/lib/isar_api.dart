@@ -2285,61 +2285,28 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<int> patchSocialSetting({required String token}) async {
+  Future<Setting> getSocialSetting() async {
     String phoneNumber = ProxyService.box.getUserPhone()!.replaceAll("+", "");
     final http.Response response = await socialsHttpClient
         .get(Uri.parse("$commApi/settings/$phoneNumber"));
     // convert response to Setting
     if (response.statusCode == 200) {
       Setting setting = Setting.fromJson(jsonDecode(response.body));
-      setting.deviceToken = token;
-      setting.token = setting.bToken;
-      // call patch api
-
-      final http.Response responses = await socialsHttpClient.patch(
-        Uri.parse("$commApi/settings"),
-        body: jsonEncode(
-          <String, dynamic>{
-            "deviceToken": token,
-            "businessPhoneNumber": setting.businessPhoneNumber!,
-            "token": setting.bToken!,
-            "businessId": setting.businessId,
-            "enrolledInBot": setting.enrolledInBot,
-            "autoRespond": setting.autoRespond,
-          },
-        ),
-      );
-      // log(ProxyService.box.getSocialBearerToken()!,name:"social Token");
-      // var headers = {
-      //   'Authorization':
-      //       'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IjI1MDc4ODM2MDA1OCIsImlkIjoiMjUwNzg4MzYwMDU4Iiwicm9sZXMiOlsiVVNFUiJdLCJpYXQiOjE2ODIwNTk2NTQsImV4cCI6MTY4MjE0NjA1NH0.GELy6Si38b4Jg-MVt-3_ibS4eGhHeu6HPjoEvJ-WFNU',
-      //   'Content-Type': 'application/json'
-      // };
-      // var request = http.Request('PATCH', Uri.parse("$commApi/settings"));
-      // request.body = json.encode({
-      //   "deviceToken": "Tok",
-      //   "businessPhoneNumber": 250788360058,
-      //   "token":
-      //       "EAAXFNRcTEdMBAIPCLwaNKcnfSj8Y0m70pf5HeqpiK2fxnKeMaU7KhQnxYOZCSa2fcXHYSmdQYz90oGngISCOCeZCGaANqz2ZBPOyEp4NQTNUKXHxopWnjx9XDG1mHRhviNWF3g6tGZCCQoPgDTPcl1r46bS9aQF8vFoBoHiwpG0vxsWQXyvsj3iIAewUUfw9WgH8YlZB21QZDZD",
-      //   "businessId": 1642647,
-      //   "enrolledInBot": false,
-      //   "autoRespond": false
-      // });
-      // request.headers.addAll(headers);
-
-      // http.StreamedResponse responses = await request.send();
-
-      // await responses.stream.bytesToString();
-
-      // log(encoded, name: "Patch social body");
-      if (responses.statusCode == 200) {
-        return Future.value(200);
-      } else {
-        log(responses.statusCode.toString(),
-            name: "Patch social response code");
-        return Future.value(responses.statusCode);
-      }
+      return setting;
     }
-    return Future.value(222);
+    throw Exception("Can't get social setting to patch");
+  }
+
+  @override
+  Future<Setting> patchSocialSetting({required Setting setting}) async {
+    final http.Response response = await socialsHttpClient.patch(
+        Uri.parse("$commApi/settings"),
+        body: json.encode(setting.toJson()));
+    // convert response to Setting
+    if (response.statusCode == 200) {
+      Setting setting = Setting.fromJson(jsonDecode(response.body));
+      return setting;
+    }
+    throw Exception("Can't get social setting to patch");
   }
 }

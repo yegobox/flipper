@@ -224,5 +224,6 @@ abstract class IsarApiInterface {
   Stream<List<Conversation>> getTop5RecentConversations();
 
   //
-  Future<int> patchSocialSetting({required String token});
+  Future<Setting> patchSocialSetting({required Setting setting});
+  Future<Setting> getSocialSetting();
 }
