@@ -12,10 +12,12 @@ class FlipperHttpClient extends http.BaseClient {
     String? token = ProxyService.box.getBearerToken();
     int? userId = ProxyService.box.getUserId();
 
-    request.headers['Authorization'] = token ?? "";
-    request.headers['userId'] = userId == null ? "" : userId.toString();
-    request.headers['Content-Type'] = 'application/json';
-
+    var headers = {
+      'Content-Type': 'application/json',
+      'Authorization': '$token',
+      'userId': userId == null ? "" : userId.toString()
+    };
+    request.headers.addAll(headers);
     try {
       return await _inner.send(request);
     } catch (error, stackTrace) {

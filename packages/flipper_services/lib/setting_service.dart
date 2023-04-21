@@ -50,6 +50,7 @@ class SettingsService with ListenableServiceMixin {
         userId: userId,
         hasPin: kMap['hasPin'] ?? '',
         type: kMap['type'] ?? '',
+        businessId: ProxyService.box.getBusinessId(),
         attendnaceDocCreated: kMap['attendnaceDocCreated'] ?? false,
         sendDailyReport: kMap['sendDailyReport'] ?? false,
         openReceiptFileOSaleComplete:

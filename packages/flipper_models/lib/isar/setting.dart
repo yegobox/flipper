@@ -26,6 +26,7 @@ class Setting extends IJsonSerializable {
     this.bToken,
     this.businessId,
     this.createdAt,
+    this.token,
   });
 
   @JsonKey(includeToJson: false, includeFromJson: false)
@@ -46,6 +47,7 @@ class Setting extends IJsonSerializable {
   String? businessPhoneNumber;
   bool? autoRespond;
   String? bToken;
+  String? token;
   @JsonKey(fromJson: _toInt)
   int? businessId;
   String? createdAt;

@@ -11,9 +11,11 @@ class SocialsHttpClient extends http.BaseClient {
     /// token,userId can be null when is desktop login with pin
     String? token = ProxyService.box.getSocialBearerToken();
 
-    request.headers['Authorization'] = token ?? "";
-    request.headers['Content-Type'] = 'application/json';
-
+    var headers = {
+      'Content-Type': 'application/json',
+      'Authorization': '$token'
+    };
+    request.headers.addAll(headers);
     try {
       return await _inner.send(request);
     } catch (error, stackTrace) {

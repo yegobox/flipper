@@ -92,13 +92,18 @@ const SettingSchema = CollectionSchema(
       name: r'sendDailyReport',
       type: IsarType.bool,
     ),
-    r'type': PropertySchema(
+    r'token': PropertySchema(
       id: 15,
+      name: r'token',
+      type: IsarType.string,
+    ),
+    r'type': PropertySchema(
+      id: 16,
       name: r'type',
       type: IsarType.string,
     ),
     r'userId': PropertySchema(
-      id: 16,
+      id: 17,
       name: r'userId',
       type: IsarType.long,
     )
@@ -180,6 +185,12 @@ int _settingEstimateSize(
     }
   }
   {
+    final value = object.token;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
     final value = object.type;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
@@ -209,8 +220,9 @@ void _settingSerialize(
   writer.writeBool(offsets[12], object.isAttendanceEnabled);
   writer.writeBool(offsets[13], object.openReceiptFileOSaleComplete);
   writer.writeBool(offsets[14], object.sendDailyReport);
-  writer.writeString(offsets[15], object.type);
-  writer.writeLong(offsets[16], object.userId);
+  writer.writeString(offsets[15], object.token);
+  writer.writeString(offsets[16], object.type);
+  writer.writeLong(offsets[17], object.userId);
 }
 
 Setting _settingDeserialize(
@@ -236,9 +248,10 @@ Setting _settingDeserialize(
     isAttendanceEnabled: reader.readBoolOrNull(offsets[12]),
     openReceiptFileOSaleComplete: reader.readBoolOrNull(offsets[13]),
     sendDailyReport: reader.readBoolOrNull(offsets[14]),
-    type: reader.readStringOrNull(offsets[15]),
-    userId: reader.readLongOrNull(offsets[16]),
+    type: reader.readStringOrNull(offsets[16]),
+    userId: reader.readLongOrNull(offsets[17]),
   );
+  object.token = reader.readStringOrNull(offsets[15]);
   return object;
 }
 
@@ -282,6 +295,8 @@ P _settingDeserializeProp<P>(
     case 15:
       return (reader.readStringOrNull(offset)) as P;
     case 16:
+      return (reader.readStringOrNull(offset)) as P;
+    case 17:
       return (reader.readLongOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1843,6 +1858,152 @@ extension SettingQueryFilter
     });
   }
 
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> tokenIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'token',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> tokenIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'token',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> tokenEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'token',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> tokenGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'token',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> tokenLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'token',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> tokenBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'token',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> tokenStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'token',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> tokenEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'token',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> tokenContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'token',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> tokenMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'token',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> tokenIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'token',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> tokenIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'token',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Setting, Setting, QAfterFilterCondition> typeIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -2249,6 +2410,18 @@ extension SettingQuerySortBy on QueryBuilder<Setting, Setting, QSortBy> {
     });
   }
 
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByToken() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'token', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByTokenDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'token', Sort.desc);
+    });
+  }
+
   QueryBuilder<Setting, Setting, QAfterSortBy> sortByType() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'type', Sort.asc);
@@ -2471,6 +2644,18 @@ extension SettingQuerySortThenBy
     });
   }
 
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByToken() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'token', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByTokenDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'token', Sort.desc);
+    });
+  }
+
   QueryBuilder<Setting, Setting, QAfterSortBy> thenByType() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'type', Sort.asc);
@@ -2598,6 +2783,13 @@ extension SettingQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Setting, Setting, QDistinct> distinctByToken(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'token', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<Setting, Setting, QDistinct> distinctByType(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -2713,6 +2905,12 @@ extension SettingQueryProperty
     });
   }
 
+  QueryBuilder<Setting, String?, QQueryOperations> tokenProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'token');
+    });
+  }
+
   QueryBuilder<Setting, String?, QQueryOperations> typeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'type');
@@ -2749,7 +2947,7 @@ Setting _$SettingFromJson(Map<String, dynamic> json) => Setting(
       bToken: json['bToken'] as String?,
       businessId: Setting._toInt(json['businessId'] as String),
       createdAt: json['createdAt'] as String?,
-    );
+    )..token = json['token'] as String?;
 
 Map<String, dynamic> _$SettingToJson(Setting instance) => <String, dynamic>{
       'email': instance.email,
@@ -2767,6 +2965,7 @@ Map<String, dynamic> _$SettingToJson(Setting instance) => <String, dynamic>{
       'businessPhoneNumber': instance.businessPhoneNumber,
       'autoRespond': instance.autoRespond,
       'bToken': instance.bToken,
+      'token': instance.token,
       'businessId': instance.businessId,
       'createdAt': instance.createdAt,
     };

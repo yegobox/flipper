@@ -98,8 +98,9 @@ class SignupViewModel extends ReactiveViewModel {
         if (businessType.id == 2) {
           // it is customer support then register on socials as well
           await ProxyService.isarApi.registerOnSocial(
-              password: ProxyService.box.getUserPhone()!,
-              phoneNumberOrEmail: ProxyService.box.getUserPhone()!);
+              password: ProxyService.box.getUserPhone()!.replaceAll("+", ""),
+              phoneNumberOrEmail:
+                  ProxyService.box.getUserPhone()!.replaceAll("+", ""));
         }
         Business? business = await ProxyService.isarApi
             .getBusinessById(id: jTenants.first.businesses.first.id!);

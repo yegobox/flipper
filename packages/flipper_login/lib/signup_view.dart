@@ -37,6 +37,15 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
   AsyncFieldValidationFormBloc(
       {required this.signupViewModel, required String country}) {
     countryName.updateInitialValue(country);
+    ProxyService.isarApi.businessTypes().then((data) {
+      // Update the items of the SelectFieldBloc
+      print(data);
+      businessTypes.updateItems(data);
+    }).catchError((error) {
+      // Handle the error
+      print(error);
+    });
+
     addFieldBlocs(fieldBlocs: [
       username,
       fullName,
@@ -48,14 +57,6 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
     username.addAsyncValidators(
       [_checkUsername],
     );
-    ProxyService.isarApi.businessTypes().then((data) {
-      // Update the items of the SelectFieldBloc
-      print(data);
-      businessTypes.updateItems(data);
-    }).catchError((error) {
-      // Handle the error
-      print(error);
-    });
   }
 
   static String? _min4Char(String? username) {
@@ -177,14 +178,19 @@ class _SignUpViewState extends State<SignUpView> {
                             child: DropdownFieldBlocBuilder<BusinessType>(
                               padding: EdgeInsets.zero,
                               selectFieldBloc: formBloc.businessTypes,
-                              itemBuilder: (context, value) =>
-                                  FieldItem(child: Text(value.typeName)),
+                              itemBuilder: (context, value) => FieldItem(
+                                alignment: AlignmentDirectional.topStart,
+                                child: Container(
+                                  padding: EdgeInsets.only(top: 0.0),
+                                  child: Text(value.typeName),
+                                ),
+                              ),
                               decoration: InputDecoration(
                                 labelText: 'Apps',
                                 prefixIcon: Icon(Icons.business),
                               ),
                               onChanged: (value) {
-                                if (value!.typeName != "Customer Support") {
+                                if (value!.id != 2) {
                                   setState(() {
                                     _showTinField = true;
                                   });

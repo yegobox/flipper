@@ -333,23 +333,23 @@ class IsarAPI<M> implements IsarApiInterface {
     /// or the user might scann for too long which can result into multiple checkin
     /// to avoid that we add a flag to checkin then if we fail we remove it to enable next check in attempt
     // ProxyService.box.write(key: 'checkIn', value: 'checkIn');
-    final http.Response response =
-        await flipperHttpClient.post(Uri.parse("$apihub/v2/api/attendance"),
-            body: jsonEncode({
-              "businessId": businessId,
-              "businessName": businessName,
-              "fullName": profile!.name,
-              "phoneNumber": profile.phone,
-              "checkInDate": DateTime.now().toIso8601String(),
-              "checkInTime":
-                  '${_now.hour}:${_now.minute}:${_now.second}.${_now.millisecond}',
-              "vaccinationCode": profile.vaccinationCode,
-              "livingAt": profile.livingAt,
-              "cell": profile.cell,
-              "district": profile.district,
-              "submitTo": submitTo
-            }),
-            headers: {'Content-Type': 'application/json'});
+    final http.Response response = await flipperHttpClient.post(
+      Uri.parse("$apihub/v2/api/attendance"),
+      body: jsonEncode({
+        "businessId": businessId,
+        "businessName": businessName,
+        "fullName": profile!.name,
+        "phoneNumber": profile.phone,
+        "checkInDate": DateTime.now().toIso8601String(),
+        "checkInTime":
+            '${_now.hour}:${_now.minute}:${_now.second}.${_now.millisecond}',
+        "vaccinationCode": profile.vaccinationCode,
+        "livingAt": profile.livingAt,
+        "cell": profile.cell,
+        "district": profile.district,
+        "submitTo": submitTo
+      }),
+    );
     if (response.statusCode == 200) {
       return true;
     } else {
@@ -413,12 +413,12 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<Voucher?> consumeVoucher({required int voucherCode}) async {
-    final http.Response response =
-        await flipperHttpClient.patch(Uri.parse("$apihub/v2/api/voucher"),
-            body: jsonEncode(
-              <String, int>{'id': voucherCode},
-            ),
-            headers: {'Content-Type': 'application/json'});
+    final http.Response response = await flipperHttpClient.patch(
+      Uri.parse("$apihub/v2/api/voucher"),
+      body: jsonEncode(
+        <String, int>{'id': voucherCode},
+      ),
+    );
     if (response.statusCode == 422) return null;
     return Voucher()
       ..createdAt = json.decode(response.body)['createdAt']
@@ -441,9 +441,9 @@ class IsarAPI<M> implements IsarApiInterface {
     String docName = business!.name! + '- Report';
 
     await flipperHttpClient.post(
-        Uri.parse("$apihub/v2/api/createSheetDocument"),
-        body: jsonEncode({"title": docName, "shareToEmail": email}),
-        headers: {'Content-Type': 'application/json'});
+      Uri.parse("$apihub/v2/api/createSheetDocument"),
+      body: jsonEncode({"title": docName, "shareToEmail": email}),
+    );
   }
 
   @override
@@ -460,19 +460,19 @@ class IsarAPI<M> implements IsarApiInterface {
     int businessId = ProxyService.box.getBusinessId()!;
     String phoneNumber = ProxyService.box.getUserPhone()!;
     int defaultApp = ProxyService.box.getDefaultApp();
-    final http.Response response =
-        await flipperHttpClient.post(Uri.parse("$apihub/v2/api/pin"),
-            body: jsonEncode(
-              <String, dynamic>{
-                'userId': id,
-                'branchId': branchId.toString(),
-                'businessId': businessId.toString(),
-                'phoneNumber': phoneNumber,
-                'pin': id,
-                'defaultApp': defaultApp
-              },
-            ),
-            headers: {'Content-Type': 'application/json'});
+    final http.Response response = await flipperHttpClient.post(
+      Uri.parse("$apihub/v2/api/pin"),
+      body: jsonEncode(
+        <String, dynamic>{
+          'userId': id,
+          'branchId': branchId.toString(),
+          'businessId': businessId.toString(),
+          'phoneNumber': phoneNumber,
+          'pin': id,
+          'defaultApp': defaultApp
+        },
+      ),
+    );
     if (response.statusCode == 200) {
       Pin pin = pinFromMap(response.body);
 
@@ -705,12 +705,12 @@ class IsarAPI<M> implements IsarApiInterface {
       return isar.business.get(businessId);
     });
     final http.Response response = await flipperHttpClient.post(
-        Uri.parse("$apihub/v2/api/createAttendanceDoc"),
-        body: jsonEncode({
-          "title": business!.name! + '-' + 'Attendance',
-          "shareToEmail": email
-        }),
-        headers: {'Content-Type': 'application/json'});
+      Uri.parse("$apihub/v2/api/createAttendanceDoc"),
+      body: jsonEncode({
+        "title": business!.name! + '-' + 'Attendance',
+        "shareToEmail": email
+      }),
+    );
     if (response.statusCode == 200) {
       // update settings with enableAttendance = true
       int userId = ProxyService.box.getUserId()!;
@@ -1036,21 +1036,21 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<JTenant> saveTenant(String phoneNumber, String name,
       {required Business business, required Branch branch}) async {
-    final http.Response response =
-        await flipperHttpClient.post(Uri.parse("$apihub/v2/api/tenant"),
-            body: jsonEncode({
-              "phoneNumber": phoneNumber,
-              "name": name,
-              "businessId": business.id,
-              "permissions": [
-                {
-                  "name": "cashier",
-                }
-              ],
-              "businesses": [business.toJson()],
-              "branches": [branch.toJson()]
-            }),
-            headers: {'Content-Type': 'application/json'});
+    final http.Response response = await flipperHttpClient.post(
+      Uri.parse("$apihub/v2/api/tenant"),
+      body: jsonEncode({
+        "phoneNumber": phoneNumber,
+        "name": name,
+        "businessId": business.id,
+        "permissions": [
+          {
+            "name": "cashier",
+          }
+        ],
+        "businesses": [business.toJson()],
+        "branches": [branch.toJson()]
+      }),
+    );
     if (response.statusCode == 200) {
       JTenant jTenant = jTenantFromJson(response.body);
       ITenant iTenant = ITenant(
@@ -1078,9 +1078,9 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<List<JTenant>> signup({required Map business}) async {
     final http.Response response = await flipperHttpClient.post(
-        Uri.parse("$apihub/v2/api/business"),
-        body: jsonEncode(business),
-        headers: {'Content-Type': 'application/json'});
+      Uri.parse("$apihub/v2/api/business"),
+      body: jsonEncode(business),
+    );
     if (response.statusCode == 200) {
       for (JTenant tenant in jListTenantFromJson(response.body)) {
         JTenant jTenant = tenant;
@@ -1484,9 +1484,9 @@ class IsarAPI<M> implements IsarApiInterface {
         return await isar.business.put(business);
       });
       final response = await flipperHttpClient.patch(
-          Uri.parse("$apihub/v2/api/business/${business.id}"),
-          body: jsonEncode(business.toJson()),
-          headers: {'Content-Type': 'application/json'});
+        Uri.parse("$apihub/v2/api/business/${business.id}"),
+        body: jsonEncode(business.toJson()),
+      );
       if (response.statusCode != 200) {
         throw InternalServerError(term: "error patching the business");
       }
@@ -1496,9 +1496,9 @@ class IsarAPI<M> implements IsarApiInterface {
         return await isar.branchs.put(data);
       });
       final response = await flipperHttpClient.patch(
-          Uri.parse("$apihub/v2/api/branch/${data.id}"),
-          body: jsonEncode(data.toJson()),
-          headers: {'Content-Type': 'application/json'});
+        Uri.parse("$apihub/v2/api/branch/${data.id}"),
+        body: jsonEncode(data.toJson()),
+      );
       if (response.statusCode != 200) {
         throw InternalServerError(term: "error patching the branch");
       }
@@ -1508,9 +1508,9 @@ class IsarAPI<M> implements IsarApiInterface {
         return isar.counters.put(data..backed = false);
       });
       final response = await flipperHttpClient.patch(
-          Uri.parse("$apihub/v2/api/counter/${data.id}"),
-          body: jsonEncode(data.toJson()),
-          headers: {'Content-Type': 'application/json'});
+        Uri.parse("$apihub/v2/api/counter/${data.id}"),
+        body: jsonEncode(data.toJson()),
+      );
       if (response.statusCode == 200) {
         JCounter jCounter = jSingleCounterFromJson(response.body);
         await isar.writeTxn(() async {
@@ -1533,9 +1533,9 @@ class IsarAPI<M> implements IsarApiInterface {
       });
       try {
         await flipperHttpClient.patch(
-            Uri.parse("$apihub/v2/api/branch/${data.id}"),
-            body: jsonEncode(data.toJson()),
-            headers: {'Content-Type': 'application/json'});
+          Uri.parse("$apihub/v2/api/branch/${data.id}"),
+          body: jsonEncode(data.toJson()),
+        );
       } catch (e) {}
     }
     if (data is Drawers) {
@@ -1546,9 +1546,9 @@ class IsarAPI<M> implements IsarApiInterface {
     }
     if (data is ITenant) {
       final response = await flipperHttpClient.patch(
-          Uri.parse("$apihub/v2/api/tenant/${data.id}"),
-          body: jsonEncode(data.toJson()),
-          headers: {'Content-Type': 'application/json'});
+        Uri.parse("$apihub/v2/api/tenant/${data.id}"),
+        body: jsonEncode(data.toJson()),
+      );
       if (response.statusCode == 200) {
         return await isar.writeTxn(() async {
           final result = await isar.iTenants.get(await isar.iTenants.put(data));
@@ -2076,6 +2076,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Stream<List<Conversation>> getTop5RecentConversations() {
+    if (ProxyService.box.getUserPhone() == null) return Stream.empty();
     final phone = ProxyService.box.getUserPhone()!.replaceAll("+", "");
     log(phone, name: "top5Conversations");
     return isar.conversations
@@ -2162,9 +2163,9 @@ class IsarAPI<M> implements IsarApiInterface {
       List<Conversation> scheduledMessages = await getScheduleMessages();
       for (Conversation message in scheduledMessages) {
         final http.Response response = await socialsHttpClient.post(
-            Uri.parse("$commApi/reply"),
-            body: json.encode(message.toJson()),
-            headers: {'Content-Type': 'application/json'});
+          Uri.parse("$commApi/reply"),
+          body: json.encode(message.toJson()),
+        );
         if (response.statusCode == 200) {
           final responseJson = jsonDecode(response.body);
           final conversation = Conversation.fromJson(responseJson);
@@ -2202,12 +2203,24 @@ class IsarAPI<M> implements IsarApiInterface {
   Future<int> registerOnSocial(
       {String? phoneNumberOrEmail, String? password}) async {
     final http.Response response = await socialsHttpClient.post(
-        Uri.parse("$commApi/register"),
-        body: {"email": phoneNumberOrEmail, "password": password},
-        headers: {'Content-Type': 'application/json'});
+      Uri.parse("$commApi/register"),
+      body: json.encode({"email": phoneNumberOrEmail, "password": password}),
+    );
     if (response.statusCode == 200) {
       return Future.value(200);
     }
+
+    // var headers = {'Content-Type': 'application/json'};
+    // var request = http.Request('POST', Uri.parse("$commApi/register"));
+    // request.body =
+    //     json.encode({"email": phoneNumberOrEmail, "password": password});
+    // request.headers.addAll(headers);
+
+    // http.StreamedResponse response = await request.send();
+
+    // if (response.statusCode == 200) {
+    //   print(await response.stream.bytesToString());
+    // }
     throw Exception();
   }
 
@@ -2215,9 +2228,9 @@ class IsarAPI<M> implements IsarApiInterface {
   Future<SocialToken> loginOnSocial(
       {String? phoneNumberOrEmail, String? password}) async {
     final http.Response response = await socialsHttpClient.post(
-        Uri.parse("$commApi/login"),
-        body: json.encode({"email": phoneNumberOrEmail, "password": password}),
-        headers: {'Content-Type': 'application/json'});
+      Uri.parse("$commApi/login"),
+      body: json.encode({"email": phoneNumberOrEmail, "password": password}),
+    );
 
     if (response.statusCode == 200) {
       SocialToken responseBody = SocialToken.fromRawJson(response.body);
@@ -2280,16 +2293,51 @@ class IsarAPI<M> implements IsarApiInterface {
     if (response.statusCode == 200) {
       Setting setting = Setting.fromJson(jsonDecode(response.body));
       setting.deviceToken = token;
+      setting.token = setting.bToken;
       // call patch api
-      final http.Response patch = await flipperHttpClient.patch(
-          Uri.parse("$commApi/settings"),
-          body: json.encode(setting.toJson()),
-          headers: {'Content-Type': 'application/json'});
 
-      if (patch.statusCode == 200) {
+      final http.Response responses = await socialsHttpClient.patch(
+        Uri.parse("$commApi/settings"),
+        body: jsonEncode(
+          <String, dynamic>{
+            "deviceToken": token,
+            "businessPhoneNumber": setting.businessPhoneNumber!,
+            "token": setting.bToken!,
+            "businessId": setting.businessId,
+            "enrolledInBot": setting.enrolledInBot,
+            "autoRespond": setting.autoRespond,
+          },
+        ),
+      );
+      // log(ProxyService.box.getSocialBearerToken()!,name:"social Token");
+      // var headers = {
+      //   'Authorization':
+      //       'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IjI1MDc4ODM2MDA1OCIsImlkIjoiMjUwNzg4MzYwMDU4Iiwicm9sZXMiOlsiVVNFUiJdLCJpYXQiOjE2ODIwNTk2NTQsImV4cCI6MTY4MjE0NjA1NH0.GELy6Si38b4Jg-MVt-3_ibS4eGhHeu6HPjoEvJ-WFNU',
+      //   'Content-Type': 'application/json'
+      // };
+      // var request = http.Request('PATCH', Uri.parse("$commApi/settings"));
+      // request.body = json.encode({
+      //   "deviceToken": "Tok",
+      //   "businessPhoneNumber": 250788360058,
+      //   "token":
+      //       "EAAXFNRcTEdMBAIPCLwaNKcnfSj8Y0m70pf5HeqpiK2fxnKeMaU7KhQnxYOZCSa2fcXHYSmdQYz90oGngISCOCeZCGaANqz2ZBPOyEp4NQTNUKXHxopWnjx9XDG1mHRhviNWF3g6tGZCCQoPgDTPcl1r46bS9aQF8vFoBoHiwpG0vxsWQXyvsj3iIAewUUfw9WgH8YlZB21QZDZD",
+      //   "businessId": 1642647,
+      //   "enrolledInBot": false,
+      //   "autoRespond": false
+      // });
+      // request.headers.addAll(headers);
+
+      // http.StreamedResponse responses = await request.send();
+
+      // await responses.stream.bytesToString();
+
+      // log(encoded, name: "Patch social body");
+      if (responses.statusCode == 200) {
         return Future.value(200);
       } else {
-        return Future.value(200);
+        log(responses.statusCode.toString(),
+            name: "Patch social response code");
+        return Future.value(responses.statusCode);
       }
     }
     return Future.value(222);
