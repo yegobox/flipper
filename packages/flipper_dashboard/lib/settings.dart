@@ -151,7 +151,7 @@ class SettingPage extends StatelessWidget {
                               },
                             ),
                             SettingsTile(
-                              title: "Switch to Customer Support",
+                              title: "Switch to flipper Connecta",
                               leading: CircleAvatar(
                                 backgroundColor: Colors.white,
                                 child: Icon(

@@ -53,3 +53,4 @@ flutter:
   uses-material-design: true
   assets:
     - assets/
+    - google_fonts/

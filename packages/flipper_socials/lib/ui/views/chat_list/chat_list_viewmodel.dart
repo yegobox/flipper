@@ -1,9 +1,12 @@
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.dialogs.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 class ChatListViewModel extends StartupViewModel {
   bool _focusedConversation = false;
-
+  final _dialogService = locator<DialogService>();
   bool get focusedConversation => _focusedConversation;
 
   String? _conversationId;
@@ -40,5 +43,12 @@ class ChatListViewModel extends StartupViewModel {
       businessId: ProxyService.box.getBusinessId()!.toString(),
     );
     ProxyService.isarApi.create(data: reply);
+  }
+
+  void navigateToAppCenter() {
+    _dialogService.showCustomDialog(
+      variant: DialogType.appCenter,
+      title: 'Switch apps',
+    );
   }
 }

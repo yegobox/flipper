@@ -7,10 +7,12 @@
 import 'package:stacked_services/stacked_services.dart';
 
 import 'app.locator.dart';
+import 'package:flipper_socials/ui/dialogs/app_center/app_center.dart';
 import 'package:flipper_socials/ui/dialogs/info_alert/info_alert_dialog.dart';
 
 enum DialogType {
   infoAlert,
+  appCenter,
 }
 
 void setupDialogUi() {
@@ -19,6 +21,8 @@ void setupDialogUi() {
   final Map<DialogType, DialogBuilder> builders = {
     DialogType.infoAlert: (context, request, completer) =>
         InfoAlertDialog(request: request, completer: completer),
+    DialogType.appCenter: (context, request, completer) =>
+        AppCenter(request: request, completer: completer),
   };
 
   dialogService.registerCustomDialogBuilders(builders);

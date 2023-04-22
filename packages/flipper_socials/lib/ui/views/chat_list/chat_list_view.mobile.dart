@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:custom_floating_action_button/custom_floating_action_button.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
@@ -80,7 +82,7 @@ class _ChatListViewMobileState extends State<ChatListViewMobile>
                   ),
                   // An icon button that shows a logout icon to sign out
                   IconButton(
-                    icon: const Icon(FluentIcons.x_24_regular),
+                    icon: const Icon(FluentIcons.sign_out_24_regular),
                     onPressed: () async {
                       await ProxyService.isarApi.logOut();
                       // navigate to login page
@@ -202,7 +204,17 @@ class _ChatListViewMobileState extends State<ChatListViewMobile>
                     backgroundColor: Colors.white,
                     elevation: 0,
                     animationDuration: const Duration(seconds: 2),
-                    onDestinationSelected: (index) {},
+                    onDestinationSelected: (index) {
+                      switch (index) {
+                        case 0:
+                          viewModel.navigateToAppCenter();
+                          break;
+                        case 1:
+                          log("1");
+                          break;
+                        default:
+                      }
+                    },
                     destinations: const [
                       NavigationDestination(
                         icon: Icon(FluentIcons.dialpad_24_regular),
