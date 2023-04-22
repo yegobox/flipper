@@ -140,6 +140,7 @@ class _TenantAddState extends State<TenantAdd> {
                                             log(_phoneController.text);
                                             try {
                                               await ProxyService.isarApi.login(
+                                                  skipDefaultAppSetup: false,
                                                   userPhone:
                                                       _phoneController.text);
                                               Business? business =

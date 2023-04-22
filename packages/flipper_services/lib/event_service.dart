@@ -79,9 +79,8 @@ class EventService implements EventInterface {
         await ProxyService.box
             .write(key: 'defaultApp', value: loginData.defaultApp);
 
-        await ProxyService.isarApi.login(
-          userPhone: loginData.phone,
-        );
+        await ProxyService.isarApi
+            .login(userPhone: loginData.phone, skipDefaultAppSetup: true);
 
         /// because in login.dart file we have this code
         /// if (snapshot.hasData) {

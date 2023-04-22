@@ -55,7 +55,8 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
   }
 
   @override
-  Future<IUser> login({required String userPhone}) async {
+  Future<IUser> login(
+      {required String userPhone, required bool skipDefaultAppSetup}) async {
     final jsonResponse = {
       "messageId": 1651165831880765,
       "phoneNumber": "+250783054874",

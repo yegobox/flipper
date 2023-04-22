@@ -93,8 +93,8 @@ class AppService with ListenableServiceMixin {
         user != null &&
         businessId == null) {
       await ProxyService.isarApi.login(
-        userPhone: user.phoneNumber ?? user.email!,
-      );
+          userPhone: user.phoneNumber ?? user.email!,
+          skipDefaultAppSetup: false);
     }
 
     bool value = await isSocialLoggedin();

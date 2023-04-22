@@ -6,7 +6,8 @@ abstract class IsarApiInterface {
   Future<List<Product>> products({required int branchId});
   Future<List<JTenant>> signup({required Map business});
   Future<Order?> pendingOrder({required int branchId});
-  Future<IUser> login({required String userPhone});
+  Future<IUser> login(
+      {required String userPhone, required bool skipDefaultAppSetup});
   Future<List<Business>> businesses({required int userId});
   Future<Business> getOnlineBusiness({required String userId});
   Future<List<Branch>> branches({required int businessId});

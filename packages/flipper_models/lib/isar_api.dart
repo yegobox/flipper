@@ -1115,7 +1115,8 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<IUser> login({required String userPhone}) async {
+  Future<IUser> login(
+      {required String userPhone, required bool skipDefaultAppSetup}) async {
     final response = await http.post(
       Uri.parse(apihub + '/v2/api/user'),
       headers: <String, String>{
@@ -1150,18 +1151,21 @@ class IsarAPI<M> implements IsarApiInterface {
             ? null
             : syncF.tenants.first.businesses.first.id,
       );
-      await ProxyService.box.write(
-        key: 'defaultApp',
+      if (skipDefaultAppSetup == false) {
+        await ProxyService.box.write(
+          key: 'defaultApp',
 
-        /// because we don update default app from server
-        /// because we want the ability of switching apps to be entirely offline
-        /// then if we have a default app in the box we use it if it only different from 1
-        value: syncF.tenants.isEmpty
-            ? null
-            : ProxyService.box.getDefaultApp() != 1
-                ? ProxyService.box.getDefaultApp()
-                : syncF.tenants.first.businesses.first.businessTypeId,
-      );
+          /// because we don update default app from server
+          /// because we want the ability of switching apps to be entirely offline
+          /// then if we have a default app in the box we use it if it only different from 1
+          value: syncF.tenants.isEmpty
+              ? null
+              : ProxyService.box.getDefaultApp() != 1
+                  ? ProxyService.box.getDefaultApp()
+                  : syncF.tenants.first.businesses.first.businessTypeId,
+        );
+      }
+
       await ProxyService.box.write(
         key: 'userPhone',
         value: userPhone,

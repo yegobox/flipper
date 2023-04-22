@@ -51,6 +51,7 @@ class LoginViewModel extends FormViewModel {
       ProxyService.box.write(key: 'userPhone', value: pin.phoneNumber);
       ProxyService.box.write(key: 'isAnonymous', value: true);
       await ProxyService.isarApi.login(
+        skipDefaultAppSetup: false,
         userPhone: pin.phoneNumber,
       );
       await FirebaseAuth.instance.signInAnonymously();

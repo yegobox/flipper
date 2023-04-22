@@ -171,7 +171,8 @@ class MobileUpload implements UploadT {
     } catch (e) {
       //refresh to token
       String? phone = ProxyService.box.read(key: 'userPhone');
-      await ProxyService.isarApi.login(userPhone: phone!);
+      await ProxyService.isarApi
+          .login(userPhone: phone!, skipDefaultAppSetup: false);
       onComplete(Exception(e.toString()));
     }
   }
