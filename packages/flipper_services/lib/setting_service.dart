@@ -28,7 +28,10 @@ class SettingsService with ListenableServiceMixin {
     //todo: when no setting for this user create one with given detail
     //if the setting exist then update the given detail.
     int userId = ProxyService.box.getUserId()!;
-    Setting? setting = await ProxyService.isarApi.getSetting(userId: userId);
+    int businessId = ProxyService.box.getBusinessId()!;
+
+    Setting? setting =
+        await ProxyService.isarApi.getSetting(businessId: businessId);
     if (setting != null) {
       Map<String, dynamic> settingsMap = setting.toJson();
       //replace a key in settings_map if the key match with the key from map
@@ -65,7 +68,7 @@ class SettingsService with ListenableServiceMixin {
 
   Future<Setting?> settings() async {
     return ProxyService.isarApi
-        .getSetting(userId: ProxyService.box.getUserId()!);
+        .getSetting(businessId: ProxyService.box.getBusinessId() ?? 0);
   }
 
   Future<bool> isDailyReportEnabled() async {
@@ -117,9 +120,10 @@ class SettingsService with ListenableServiceMixin {
       }
 
       Setting(
+        userId: setting.userId,
         id: setting.id,
         email: setting.email,
-        userId: setting.userId,
+        businessId: setting.businessId,
         hasPin: setting.hasPin,
         type: setting.type,
         attendnaceDocCreated: setting.attendnaceDocCreated,
@@ -143,8 +147,9 @@ class SettingsService with ListenableServiceMixin {
       }
       Setting(
         id: setting.id,
-        email: setting.email,
         userId: setting.userId,
+        email: setting.email,
+        businessId: setting.businessId,
         hasPin: setting.hasPin,
         type: setting.type,
         attendnaceDocCreated: setting.attendnaceDocCreated,

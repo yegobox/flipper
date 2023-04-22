@@ -713,8 +713,8 @@ class IsarAPI<M> implements IsarApiInterface {
     );
     if (response.statusCode == 200) {
       // update settings with enableAttendance = true
-      int userId = ProxyService.box.getUserId()!;
-      Setting? setting = await getSetting(userId: userId);
+      int businessId = ProxyService.box.getBusinessId()!;
+      Setting? setting = await getSetting(businessId: businessId);
       setting!.attendnaceDocCreated = true;
       update(data: setting);
       return true;
@@ -930,9 +930,9 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Setting?> getSetting({required int userId}) async {
+  Future<Setting?> getSetting({required int businessId}) async {
     return isar.writeTxn(() {
-      return isar.settings.where().userIdEqualTo(userId).findFirst();
+      return isar.settings.where().businessIdEqualTo(businessId).findFirst();
     });
   }
 

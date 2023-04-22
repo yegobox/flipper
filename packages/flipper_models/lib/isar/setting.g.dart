@@ -126,6 +126,19 @@ const SettingSchema = CollectionSchema(
           caseSensitive: false,
         )
       ],
+    ),
+    r'businessId': IndexSchema(
+      id: 2228048290814354584,
+      name: r'businessId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'businessId',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
     )
   },
   links: {},
@@ -248,10 +261,10 @@ Setting _settingDeserialize(
     isAttendanceEnabled: reader.readBoolOrNull(offsets[12]),
     openReceiptFileOSaleComplete: reader.readBoolOrNull(offsets[13]),
     sendDailyReport: reader.readBoolOrNull(offsets[14]),
+    token: reader.readStringOrNull(offsets[15]),
     type: reader.readStringOrNull(offsets[16]),
     userId: reader.readLongOrNull(offsets[17]),
   );
-  object.token = reader.readStringOrNull(offsets[15]);
   return object;
 }
 
@@ -326,6 +339,14 @@ extension SettingQueryWhereSort on QueryBuilder<Setting, Setting, QWhere> {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         const IndexWhereClause.any(indexName: r'userId'),
+      );
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhere> anyBusinessId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'businessId'),
       );
     });
   }
@@ -501,6 +522,116 @@ extension SettingQueryWhere on QueryBuilder<Setting, Setting, QWhereClause> {
         lower: [lowerUserId],
         includeLower: includeLower,
         upper: [upperUserId],
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> businessIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'businessId',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> businessIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'businessId',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> businessIdEqualTo(
+      int? businessId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'businessId',
+        value: [businessId],
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> businessIdNotEqualTo(
+      int? businessId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'businessId',
+              lower: [],
+              upper: [businessId],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'businessId',
+              lower: [businessId],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'businessId',
+              lower: [businessId],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'businessId',
+              lower: [],
+              upper: [businessId],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> businessIdGreaterThan(
+    int? businessId, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'businessId',
+        lower: [businessId],
+        includeLower: include,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> businessIdLessThan(
+    int? businessId, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'businessId',
+        lower: [],
+        upper: [businessId],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> businessIdBetween(
+    int? lowerBusinessId,
+    int? upperBusinessId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'businessId',
+        lower: [lowerBusinessId],
+        includeLower: includeLower,
+        upper: [upperBusinessId],
         includeUpper: includeUpper,
       ));
     });
@@ -2947,7 +3078,8 @@ Setting _$SettingFromJson(Map<String, dynamic> json) => Setting(
       bToken: json['bToken'] as String?,
       businessId: Setting._toInt(json['businessId'] as String),
       createdAt: json['createdAt'] as String?,
-    )..token = json['token'] as String?;
+      token: json['token'] as String?,
+    );
 
 Map<String, dynamic> _$SettingToJson(Setting instance) => <String, dynamic>{
       'email': instance.email,

@@ -29,15 +29,15 @@ class FirebaseMessagingDesktop implements Messaging {
   }
 
   @override
-  Future<void> listenTapOnNotificationFromBackground() {
+  Future<void> listenTapOnNotificationFromBackground() async {
     // TODO: implement listenTapOnNotificationFromBackground
-    throw UnimplementedError();
+    print("listenTapOnNotificationFromBackground");
   }
 
   @override
-  Future<void> listenTapOnNotificationForeground() {
+  Future<void> listenTapOnNotificationForeground() async {
     // TODO: implement listenTapOnNotificationForeground
-    throw UnimplementedError();
+    print("listenTapOnNotificationForeground");
   }
 }
 

@@ -48,6 +48,7 @@ class Setting extends IJsonSerializable {
   bool? autoRespond;
   String? bToken;
   String? token;
+  @Index()
   @JsonKey(fromJson: _toInt)
   int? businessId;
   String? createdAt;
