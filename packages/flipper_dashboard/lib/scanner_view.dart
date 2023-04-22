@@ -44,12 +44,14 @@ class _ScannViewState extends State<ScannView> {
     return ViewModelBuilder<BusinessHomeViewModel>.reactive(
       viewModelBuilder: () => BusinessHomeViewModel(),
       builder: (context, model, child) {
+        final size = MediaQuery.of(context).size;
+        final double aspectRatio = size.width / size.height;
+
         return Scaffold(
           body: Stack(
             children: [
-              SizedBox(
-                height: MediaQuery.of(context).size.height,
-                width: 392.7,
+              AspectRatio(
+                aspectRatio: aspectRatio,
                 child: _buildQrView(context, model),
               ),
               Positioned(
