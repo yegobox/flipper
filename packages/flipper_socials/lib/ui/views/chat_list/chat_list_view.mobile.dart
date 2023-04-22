@@ -1,5 +1,6 @@
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_socials/ui/views/chat_list/float.dart';
 import 'package:flipper_socials/ui/widgets/list_of_messages.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -18,9 +19,24 @@ class ChatListViewMobile extends StatefulWidget {
   State<ChatListViewMobile> createState() => _ChatListViewMobileState();
 }
 
-class _ChatListViewMobileState extends State<ChatListViewMobile> {
+class _ChatListViewMobileState extends State<ChatListViewMobile>
+    with SingleTickerProviderStateMixin {
   final _routerService = locator<RouterService>();
   List<Conversation>? conversations;
+  late AnimationController _progressController;
+
+  @override
+  void initState() {
+    super.initState();
+    _progressController = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 500));
+  }
+
+  @override
+  void dispose() {
+    _progressController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -158,6 +174,67 @@ class _ChatListViewMobileState extends State<ChatListViewMobile> {
                             )));
                   }
                 }),
+            floatingActionButton: FloatingActionButton(
+              backgroundColor: Colors.blue,
+              child: const Icon(Icons.add),
+              onPressed: () {},
+              heroTag: "fab",
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
+              splashColor: Colors.white.withOpacity(0.4),
+              elevation: 2,
+              // floatingActionButtonAnimator:
+            ),
+            floatingActionButtonLocation:
+                FloatingActionButtonLocation.endDocked,
+            floatingActionButtonAnimator:
+                CustomFABAnimator(progressController: _progressController),
+            bottomNavigationBar: NavigationBarTheme(
+              data: NavigationBarThemeData(
+                backgroundColor: Colors.white,
+                indicatorColor: Colors.white,
+                labelTextStyle: MaterialStateProperty.all(
+                  const TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
+                ),
+              ),
+              child: Container(
+                decoration: const BoxDecoration(
+                  border: Border(
+                    top: BorderSide(
+                      color: Colors.black26,
+                      width: 1.0,
+                    ),
+                  ),
+                ),
+                child: NavigationBar(
+                  height: 90,
+                  selectedIndex: 1,
+                  labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+                  backgroundColor: Colors.white,
+                  elevation: 0,
+                  animationDuration: const Duration(seconds: 2),
+                  onDestinationSelected: (index) {},
+                  destinations: const [
+                    NavigationDestination(
+                      icon: Icon(FluentIcons.dialpad_24_regular),
+                      label: 'App Center',
+                      selectedIcon: Icon(
+                        FluentIcons.dialpad_24_regular,
+                        color: Color(0xff006AFE),
+                      ),
+                    ),
+                    NavigationDestination(
+                      icon: Icon(FluentIcons.shopping_bag_24_regular),
+                      label: 'Requests',
+                      selectedIcon: Icon(
+                        FluentIcons.shopping_bag_24_regular,
+                        color: Color(0xff006AFE),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           );
         });
   }
