@@ -9,7 +9,6 @@ import 'package:flipper_services/app_service.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'gate.dart';
 
 // final isWeb = UniversalPlatform.isWeb;
 
@@ -23,7 +22,6 @@ class StartupViewModel extends BaseViewModel {
   Future<void> runStartupLogic({
     required bool refreshCredentials,
   }) async {
-    LoginInfo().redirecting = true;
     try {
       /// an event should be trigered from mobile not desktop as desktop is anonmous and login() func might have been called.
       if (refreshCredentials) {

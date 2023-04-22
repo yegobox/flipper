@@ -36,7 +36,7 @@ Future<Isar> tOpen({
   if (_testSync) {
     final isar = Isar.openSync(
       schemas,
-      directory: directory,
+      directory: directory!,
       name: name,
       relaxedDurability: relaxedDurability,
     );
@@ -44,7 +44,7 @@ Future<Isar> tOpen({
   } else {
     return Isar.open(
       schemas,
-      directory: directory,
+      directory: directory!,
       name: name,
       relaxedDurability: relaxedDurability,
     );

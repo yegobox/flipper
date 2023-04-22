@@ -22,6 +22,9 @@ class _DesktopLoginViewState extends State<DesktopLoginView> {
   String? loginCode;
   bool switchToPinLogin = false;
   final _routerService = locator<RouterService>();
+  final double qrSize = 200.0;
+  final String logoAsset = 'assets/logo.png';
+  final double logoSize = 100.0;
   Future<bool> internet() async {
     ConnectivityResult connectivityResult =
         await (Connectivity().checkConnectivity());
@@ -86,6 +89,11 @@ class _DesktopLoginViewState extends State<DesktopLoginView> {
                       child: QrImageView(
                         data: loginCode ?? '000',
                         version: QrVersions.auto,
+                        embeddedImage:
+                            AssetImage(logoAsset, package: "flipper_login"),
+                        embeddedImageStyle: QrEmbeddedImageStyle(
+                          size: Size(logoSize, logoSize),
+                        ),
                         size: 200.0,
                       ),
                     ),
@@ -104,7 +112,7 @@ class _DesktopLoginViewState extends State<DesktopLoginView> {
                     SizedBox(height: 10),
                     SizedBox(
                       width: 380,
-                      child: Text('1.Open Flipper on your phone',
+                      child: Text('1. Open Flipper on your phone',
                           style: GoogleFonts.poppins(
                               fontWeight: FontWeight.w400,
                               fontSize: 15,
@@ -113,7 +121,7 @@ class _DesktopLoginViewState extends State<DesktopLoginView> {
                     SizedBox(
                         width: 380,
                         child: Text(
-                            '2.Go to Settings > Devices > Link Desktop Device',
+                            '2. Go to Settings > Devices > Link Desktop Device',
                             style: GoogleFonts.poppins(
                                 fontWeight: FontWeight.w400,
                                 fontSize: 15,
@@ -121,7 +129,7 @@ class _DesktopLoginViewState extends State<DesktopLoginView> {
                     SizedBox(
                         width: 380,
                         child: Text(
-                            '3.Point your phone at this screen to confirm login',
+                            '3. Point your phone at this screen to confirm login',
                             style: GoogleFonts.poppins(
                                 fontWeight: FontWeight.w400,
                                 fontSize: 15,

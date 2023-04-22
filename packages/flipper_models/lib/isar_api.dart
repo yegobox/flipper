@@ -16,6 +16,7 @@ import 'package:http/http.dart' as http;
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:isar_crdt/utils/hlc.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'flipper_http_client.dart';
 import 'package:flipper_routing/receipt_types.dart';
@@ -30,6 +31,7 @@ class IsarAPI<M> implements IsarApiInterface {
   late Isar isar;
   Future<IsarApiInterface> getInstance({Isar? iisar}) async {
     // getEnvVariables();
+    final dir = await getApplicationDocumentsDirectory();
     if (foundation.kDebugMode && !isAndroid) {
       // apihub = "http://localhost:8082";
       apihub = "https://apihub.yegobox.com";
@@ -75,6 +77,7 @@ class IsarAPI<M> implements IsarApiInterface {
           SocialSchema,
           ConversationSchema,
         ],
+        directory: dir.path,
       );
     } else {
       isar = iisar;
