@@ -30,15 +30,13 @@ class IsarAPI<M> implements IsarApiInterface {
   late String commApi;
   late Isar isar;
   Future<IsarApiInterface> getInstance({Isar? iisar}) async {
-    // getEnvVariables();
     final dir = await getApplicationDocumentsDirectory();
     if (foundation.kDebugMode && !isAndroid) {
-      // apihub = "http://localhost:8082";
-      apihub = "https://apihub.yegobox.com";
+      apihub = "https://uat-apihub.yegobox.com";
       commApi = "https://ers84w6ehl.execute-api.us-east-1.amazonaws.com/api";
     } else if (foundation.kDebugMode && isAndroid) {
       // apihub = "http://10.0.2.2:8082";
-      apihub = "https://apihub.yegobox.com";
+      apihub = "https://uat-apihub.yegobox.com";
       commApi = "https://ers84w6ehl.execute-api.us-east-1.amazonaws.com/api";
     } else {
       apihub = "https://apihub.yegobox.com";
@@ -82,16 +80,6 @@ class IsarAPI<M> implements IsarApiInterface {
     } else {
       isar = iisar;
     }
-
-    /// pausing on crdt for now work on in-house solution
-    // final changesSync = IsarCrdt(
-    //   store: IsarMasterCrdtStore<Product>(
-    //     isar.products,
-    //     builder: () => Product(),
-    //     sidGenerator: () => Uuid().v4(),
-    //   ),
-    // );
-    // isar.setCrdt(changesSync);
     return this;
   }
 
