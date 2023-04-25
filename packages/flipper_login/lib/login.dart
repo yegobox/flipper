@@ -52,9 +52,10 @@ class _LoginViewState extends State<LoginView>
             .listen((ConnectivityResult result) {
           if (result == ConnectivityResult.mobile ||
               result == ConnectivityResult.wifi) {
-            _routerService.navigateTo(LoginViewRoute());
+            // _routerService.navigateTo(LoginViewRoute());
           } else {
-            _routerService.navigateTo(NoNetRoute());
+            // TODO: show a notification istead of going to NoNetRoute page
+            // _routerService.navigateTo(NoNetRoute());
           }
         });
       });
