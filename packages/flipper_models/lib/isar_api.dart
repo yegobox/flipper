@@ -32,11 +32,13 @@ class IsarAPI<M> implements IsarApiInterface {
   Future<IsarApiInterface> getInstance({Isar? iisar}) async {
     final dir = await getApplicationDocumentsDirectory();
     if (foundation.kDebugMode && !isAndroid) {
-      apihub = "https://uat-apihub.yegobox.com";
+      // apihub = "https://uat-apihub.yegobox.com";
+      apihub = "https://apihub.yegobox.com";
       commApi = "https://ers84w6ehl.execute-api.us-east-1.amazonaws.com/api";
     } else if (foundation.kDebugMode && isAndroid) {
       // apihub = "http://10.0.2.2:8082";
-      apihub = "https://uat-apihub.yegobox.com";
+      // apihub = "https://uat-apihub.yegobox.com";
+      apihub = "https://apihub.yegobox.com";
       commApi = "https://ers84w6ehl.execute-api.us-east-1.amazonaws.com/api";
     } else {
       apihub = "https://apihub.yegobox.com";
