@@ -148,7 +148,8 @@ class SignupViewModel extends ReactiveViewModel {
 
         //now create a default custom product
         ProxyService.forceDateEntry.caller();
-        ProxyService.whatsApp.optIn();
+        // TODO: need to figureout the purchase of credit later.
+        // ProxyService.whatsApp.optIn();
 
         LoginInfo().isLoggedIn = true;
         LoginInfo().redirecting = false;

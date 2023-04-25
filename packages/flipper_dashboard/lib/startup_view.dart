@@ -23,12 +23,18 @@ class StartUpView extends StackedView<StartupViewModel> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              'Flipper',
-              style: GoogleFonts.poppins(
+            AnimatedContainer(
+              duration: Duration(seconds: 1),
+              curve: Curves.easeInOut,
+              child: Text(
+                'Flipper',
+                style: GoogleFonts.poppins(
                   color: Colors.black,
                   fontSize: 40,
-                  fontWeight: FontWeight.w900),
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 2,
+                ),
+              ),
             ),
             Row(
               mainAxisSize: MainAxisSize.min,

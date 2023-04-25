@@ -74,7 +74,8 @@ class _ProductViewState extends State<ProductView> {
                 StreamBuilder<List<Product>>(
                   initialData: model.productService.products,
                   stream: model.productService
-                      .productStream(branchId: ProxyService.box.getBranchId()!)
+                      .productStream(
+                          branchId: ProxyService.box.getBranchId() ?? 0)
                       .transform(model.productService
                           .searchTransformer(model.searchkey!)),
                   builder: (context, snapshot) {
@@ -154,12 +155,11 @@ class _ProductViewState extends State<ProductView> {
                 ),
                 StreamBuilder<List<Discount>>(
                   stream: model.productService.discountStream(
-                      branchId: ProxyService.box.getBranchId()!),
+                      branchId: ProxyService.box.getBranchId() ?? 0),
                   builder: (context, snapshot) {
                     final discounts = snapshot.data ?? [];
                     if (!ProxyService.remoteConfig.isDiscountAvailable() ||
                         discounts.isEmpty) {
-                      // return SizedBox.shrink();
                       return SliverList(
                           delegate:
                               SliverChildListDelegate([SizedBox.shrink()]));

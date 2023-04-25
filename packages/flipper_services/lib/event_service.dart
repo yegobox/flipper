@@ -81,16 +81,6 @@ class EventService implements EventInterface {
 
         await ProxyService.isarApi
             .login(userPhone: loginData.phone, skipDefaultAppSetup: true);
-
-        /// because in login.dart file we have this code
-        /// if (snapshot.hasData) {
-        ///  return const StartUpView(
-        ///     invokeLogin: true,
-        ///   );
-        /// }
-        /// the code is triggered when the user is logged in so no need to do another
-        /// routing or redirecting here in case you want to know how it redirects
-        /// to to mentioned file and see the code
         await FirebaseAuth.instance.signInAnonymously();
       });
     } catch (e) {

@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flutter/foundation.dart';
 import 'package:pocketbase/pocketbase.dart';
 import 'dart:io';
 
@@ -20,8 +21,14 @@ abstract class RemoteInterface {
 class RemoteService implements RemoteInterface {
   late PocketBase pb;
   Future<RemoteInterface> getInstance() async {
+    late String url;
     try {
-      pb = PocketBase('https://db.yegobox.com');
+      if (kDebugMode) {
+        url = 'https://uat-db.yegobox.com';
+      } else {
+        url = 'https://db.yegobox.com';
+      }
+      pb = PocketBase(url);
       await pb.admins.authWithPassword('info@yegobox.com', '5nUeS5TjpArcSGd');
     } on SocketException catch (e) {
       log(e.toString());
