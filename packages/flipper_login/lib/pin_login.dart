@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
@@ -28,7 +26,7 @@ class _PinLoginState extends State<PinLogin> {
         return Scaffold(
           body: Stack(
             children: [
-              back.BackButton(),
+              SizedBox(width: 85, child: back.BackButton()),
               Center(
                 child: Form(
                   key: _form,
@@ -93,9 +91,17 @@ class _PinLoginState extends State<PinLogin> {
                                                         "Could not login with this pin."),
                                                   ),
                                                 );
-                                              }
-                                              if (e
+                                              } else if (e
                                                   is ErrorReadingFromYBServer) {
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                  const SnackBar(
+                                                    backgroundColor: Colors.red,
+                                                    content: Text(
+                                                        "Could not login with this pin."),
+                                                  ),
+                                                );
+                                              } else {
                                                 ScaffoldMessenger.of(context)
                                                     .showSnackBar(
                                                   const SnackBar(

@@ -41,8 +41,7 @@ class LoginViewModel extends FormViewModel {
     required String pinCode,
     required BuildContext context,
   }) async {
-    _isProceeding = true;
-    notifyListeners();
+    setIsprocessing(value: true);
     Pin? pin = await ProxyService.isarApi.getPin(pin: pinCode);
     if (pin != null) {
       ProxyService.box.write(key: 'businessId', value: pin.businessId);
@@ -64,8 +63,9 @@ class LoginViewModel extends FormViewModel {
         }
       }
     } else {
-      _isProceeding = false;
-      notifyListeners();
+      setIsprocessing(value: false);
+      // show stacked snackbar
+      throw 'Invalid pin';
     }
   }
 

@@ -900,6 +900,9 @@ class IsarAPI<M> implements IsarApiInterface {
     if (response.statusCode == 200) {
       return pinFromMap(response.body);
     }
+    if (response.statusCode == 404) {
+      return null;
+    }
     throw ErrorReadingFromYBServer(term: 'Failed to load pin');
   }
 
@@ -1002,6 +1005,7 @@ class IsarAPI<M> implements IsarApiInterface {
       await isar.branchs.clear();
       await isar.iTenants.clear();
       await isar.permissions.clear();
+      await isar.pins.clear();
     });
     if (ProxyService.box.getUserId() != null &&
         ProxyService.box.getBusinessId() != null) {
