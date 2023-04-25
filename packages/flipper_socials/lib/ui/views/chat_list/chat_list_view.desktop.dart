@@ -53,7 +53,7 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
           return StreamBuilder<List<Conversation>>(
               stream: ProxyService.isarApi.conversations(),
               builder: (context, snapshot) {
-                if (snapshot.hasData) {
+                if (snapshot.hasData && snapshot.data!.isNotEmpty) {
                   final conversations = snapshot.data ?? [];
                   return Scaffold(
                     body: Row(
@@ -240,7 +240,9 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
                     ),
                   );
                 } else {
-                  return const Center(child: Text('No conversation yet'));
+                  return const Center(
+                      child: Text(
+                          'No conversation yet! managing business has never been this easy'));
                 }
               });
         });
