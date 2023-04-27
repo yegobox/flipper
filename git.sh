@@ -2,6 +2,7 @@
 cd ./open-sources && cd cli_dialog &&  git checkout main  && git add .   &&  git commit -am "clean-up" && git push origin main
 cd .. && cd dart_console &&  git checkout main  && git add .   && git commit -am "clean-up" && git push origin main
 cd .. && cd flutter.widgets &&  git checkout main  && git add . && git commit -am "clean-up" && git push origin main
+cd .. && cd msix &&  git checkout main && git add . &&  git commit -am "clean-up" && git push origin main
 # cd .. && cd open_file &&  git checkout main && git commit -am "clean-up" && git push origin main
 cd .. && cd qr.flutter &&  git checkout main  && git add . && git commit -am "clean-up" && git push origin main
 cd .. && cd receipt &&  git checkout main  && git add .   && git commit -am "clean-up" && git push origin main

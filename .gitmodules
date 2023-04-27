@@ -72,3 +72,6 @@
 [submodule "open-sources/isar_crdt"]
 	path = open-sources/isar_crdt
 	url = https://github.com/yegobox/isar_crdt.git
+[submodule "open-sources/msix"]
+	path = open-sources/msix
+	url = https://github.com/yegobox/msix.git
