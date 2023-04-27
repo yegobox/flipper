@@ -87,7 +87,7 @@ dev_dependencies:
   flutter_launcher_icons: ^0.11.0
   # objectbox_generator: ^1.4.0
   matcher: ^0.12.10
-  msix: ^3.9.1
+  msix: ^3.11.0
   flutter_lints: ^2.0.0
 
 flutter_icons:
@@ -126,7 +126,7 @@ msix_config:
   tile_icon_path: "./assets/icon/icon.png"
   icons_background_color: #ffffff
   architecture: x64
-  store: true
+  store: false
   enable_at_startup: true
   app_uri_handler_hosts: flipper.rw
   capabilities: internetClient

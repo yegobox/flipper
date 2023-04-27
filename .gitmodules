@@ -52,9 +52,6 @@
 [submodule "open-sources/cli_dialog"]
 	path = open-sources/cli_dialog
 	url = https://github.com/yegobox/cli_dialog.git
-[submodule "open-sources/msix"]
-	path = open-sources/msix
-	url = https://github.com/yegobox/msix.git
 [submodule "open-sources/flutter_file_picker"]
 	path = open-sources/flutter_file_picker
 	url = https://github.com/yegobox/flutter_file_picker.git
