@@ -153,6 +153,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.2"
+  bidi:
+    dependency: transitive
+    description:
+      name: bidi
+      sha256: dc00274c7edabae2ab30c676e736ea1eb0b1b7a1b436cb5fe372e431ccb39ab0
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.6"
   bloc:
     dependency: transitive
     description:
@@ -2023,7 +2031,7 @@ packages:
       path: "open-sources/dart_pdf/pdf"
       relative: true
     source: path
-    version: "3.8.1"
+    version: "3.10.2"
   pedantic:
     dependency: transitive
     description:
@@ -2134,7 +2142,7 @@ packages:
       path: "open-sources/dart_pdf/printing"
       relative: true
     source: path
-    version: "5.9.2-dev"
+    version: "5.10.4"
   process:
     dependency: transitive
     description:
