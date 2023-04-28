@@ -76,7 +76,7 @@
 	path = open-sources/msix
 [submodule "open-sources/flutter_luban"]
 	path = open-sources/flutter_luban
-	url = https://github.com/crazecoder/flutter_luban.git
+	url = https://github.com/yegobox/flutter_luban.git
 [submodule "open-sources/flutter_launcher_icons"]
 	path = open-sources/flutter_launcher_icons
 	url = https://github.com/yegobox/flutter_launcher_icons.git
