@@ -24,5 +24,6 @@ cd .. && cd money_formatter &&  git checkout dev  && git add .  && git commit -a
 cd .. && cd isar_crdt &&  git checkout main  && git add .  && git commit -am "clean-up" && git push origin main
 cd .. && cd flutter_launcher_icons &&  git checkout master  && git add .  && git commit -am "clean-up" && git push origin master
 cd .. && cd flutter_datetime_picker &&  git checkout master  && git add .  && git commit -am "clean-up" && git push origin master
+cd .. && cd flutter_luban  &&  git checkout master  && git add .  && git commit -am "clean-up" && git push origin master
 
 #
