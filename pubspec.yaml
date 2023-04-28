@@ -18,7 +18,7 @@ version: 1.0.1-dev.3
 # so not referenced in the app! check each package for more real package used
 #  in the specific package.
 environment:
-  sdk: ">=2.17.0 <3.0.0"
+  sdk: ">=2.18.0 <3.0.0"
 
 dependencies:
   flutter:
@@ -47,7 +47,7 @@ dependencies:
   path_provider: ^2.0.8
   logger: ^1.1.0
   firebase_crashlytics: ^3.0.2
-  path: ^1.8.0
+  path: ^1.8.2
   flutter_riverpod: any
 
   meta: any
@@ -66,7 +66,6 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   flutter_local_notifications: ^12.0.4
-  melos: ^3.0.0
   flipper_socials: 1.0.0+1
   flutter_animate: ^4.1.0
 
@@ -84,12 +83,13 @@ dev_dependencies:
   mockito:
   test:
   hive_generator: ^1.1.0
-  flutter_launcher_icons: ^0.11.0
+  flutter_launcher_icons: ^0.13.2
   # objectbox_generator: ^1.4.0
   matcher: ^0.12.10
   msix: ^3.11.0
   flutter_lints: ^2.0.0
-
+  # Can't use this package because it depend on cli_util that is too old than what other packages use
+  # melos: ^3.0.1
 flutter_icons:
   android: "launcher_icon"
   ios: true
