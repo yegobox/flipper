@@ -541,12 +541,13 @@ packages:
     source: hosted
     version: "6.1.4"
   file_picker:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
-      path: "../../open-sources/flutter_file_picker"
-      relative: true
-    source: path
-    version: "4.6.1"
+      name: file_picker
+      sha256: e6c7ad8e572379df86ea64ef0a5395889fba3954411d47ca021b888d79f8e798
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.2.11"
   firebase_analytics:
     dependency: transitive
     description:
@@ -1880,12 +1881,13 @@ packages:
     source: hosted
     version: "2.1.6"
   pdf:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
-      path: "../../open-sources/dart_pdf/pdf"
-      relative: true
-    source: path
-    version: "3.10.2"
+      name: pdf
+      sha256: "586d3debf5432e5377044754032cfa53ab45e9abf371d4865e9ad5019570e246"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.10.1"
   pedantic:
     dependency: transitive
     description:
@@ -1991,12 +1993,13 @@ packages:
     source: hosted
     version: "1.5.1"
   printing:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
-      path: "../../open-sources/dart_pdf/printing"
-      relative: true
-    source: path
-    version: "5.10.4"
+      name: printing
+      sha256: c5c19dd852e95aa140141df13fa304f079a20c4a14a66de5275a0f811240aeec
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.10.3"
   process:
     dependency: transitive
     description:
