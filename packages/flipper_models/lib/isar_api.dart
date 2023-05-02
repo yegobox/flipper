@@ -2120,9 +2120,9 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Stream<List<Conversation>> conversations({String? conversationId}) {
     if (conversationId == null && ProxyService.box.getUserPhone() != null) {
-      /// get all conversations addressed to me or from me
+      // get all conversations addressed to me or from me
       String phone = ProxyService.box.getUserPhone()!.replaceAll("+", "");
-      log(phone, name: "LoadInitialList");
+      log(phone, name: "LoadInitialList of conversations");
       return isar.conversations
           .where()
           .toNumberEqualTo(phone)
@@ -2182,9 +2182,10 @@ class IsarAPI<M> implements IsarApiInterface {
         final conversation = Conversation.fromJson(responseJson);
         message.delivered = true;
         message.messageId = conversation.messageId;
-        message.createdAt = conversation.createdAt;
-        message.fromNumber = conversation.fromNumber;
-        message.toNumber = conversation.toNumber;
+
+        /// can not rely on remote server time using local, will fix remote later
+        /// to have same date format as here and use it
+        message.createdAt = DateTime.now().toString();
         message.conversationId = conversation.conversationId;
         message.userName = conversation.userName;
         message.phoneNumberId = conversation.phoneNumberId;

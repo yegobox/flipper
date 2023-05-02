@@ -8,7 +8,6 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:flutter/foundation.dart';
 import 'package:flipper_routing/app.locator.dart';
-import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 abstract class Messaging {
@@ -109,8 +108,9 @@ class FirebaseMessagingService implements Messaging {
       if (conversationExistOnLocal == null) {
         await ProxyService.isarApi.create(data: conversation);
       }
-      _routerService.navigateTo(ConversationHistoryRoute(
-          conversationId: conversation.conversationId!));
+      //TODO: This should be done on click of the notification
+      // _routerService.navigateTo(ConversationHistoryRoute(
+      //     conversationId: conversation.conversationId!));
     } else {
       // ProxyService.notification.sendLocalNotification(
       //   id: id,
