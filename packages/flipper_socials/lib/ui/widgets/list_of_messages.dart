@@ -1,5 +1,6 @@
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flipper_socials/ui/views/chat_list/chat_list_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -84,14 +85,50 @@ class MessageDisplayMobile extends StatelessWidget {
             fontWeight: FontWeight.w500,
             color: Colors.black,
           )),
-      subtitle: Text(conversations![index].body,
-          style: GoogleFonts.poppins(
-            fontSize: 17.0,
-            fontWeight: FontWeight.w300,
-            color: Colors.black,
-          )),
-      trailing: Text(
-          timeago.format(DateTime.parse(conversations![index].createdAt!))),
+      subtitle: StreamBuilder(
+        stream: ProxyService.isarApi.conversations(
+            conversationId: conversations![index].conversationId!),
+        builder:
+            (BuildContext context, AsyncSnapshot<List<Conversation>> snapshot) {
+          if (snapshot.hasData) {
+            final List<Conversation> conversations = snapshot.data!;
+            final Conversation? lastConversation =
+                conversations.isNotEmpty ? conversations.last : null;
+            return Text(
+              lastConversation!.body,
+              style: GoogleFonts.poppins(
+                fontSize: 17.0,
+                fontWeight: FontWeight.w300,
+                color: Colors.black,
+              ),
+            );
+          } else {
+            return const SizedBox(); // return an empty SizedBox if there is no data yet
+          }
+        },
+      ),
+      trailing: StreamBuilder(
+        stream: ProxyService.isarApi.conversations(
+            conversationId: conversations![index].conversationId!),
+        builder:
+            (BuildContext context, AsyncSnapshot<List<Conversation>> snapshot) {
+          if (snapshot.hasData) {
+            final List<Conversation> conversations = snapshot.data!;
+            final Conversation? lastConversation =
+                conversations.isNotEmpty ? conversations.last : null;
+            return Text(
+              timeago.format(DateTime.parse(lastConversation!.createdAt!)),
+              style: GoogleFonts.poppins(
+                fontSize: 17.0,
+                fontWeight: FontWeight.w300,
+                color: Colors.black,
+              ),
+            );
+          } else {
+            return const SizedBox(); // return an empty SizedBox if there is no data yet
+          }
+        },
+      ),
       onTap: () {
         if (isDesktopOrWeb) {
           viewModel.focusedConversation = true;
