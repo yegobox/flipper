@@ -84,7 +84,7 @@ class MessageDisplayMobile extends StatelessWidget {
             fontWeight: FontWeight.w500,
             color: Colors.black,
           )),
-      subtitle: Text(conversations!.last.body,
+      subtitle: Text(conversations![index].body,
           style: GoogleFonts.poppins(
             fontSize: 17.0,
             fontWeight: FontWeight.w300,

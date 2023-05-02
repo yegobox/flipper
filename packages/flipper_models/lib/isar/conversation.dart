@@ -16,9 +16,7 @@ class Conversation extends IJsonSerializable {
   String body;
   String avatar;
   String channelType;
-  @Index()
   String fromNumber;
-  @Index()
   String toNumber;
   @Index()
   String? createdAt;

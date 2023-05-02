@@ -140,9 +140,29 @@ class Devices extends StatelessWidget {
               stream: ProxyService.isarApi
                   .getDevices(businessId: ProxyService.box.getBusinessId()!),
               builder: (context, snapshot) {
-                return Container(
-                  child: Text("A"),
-                );
+                if (snapshot.hasData) {
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: snapshot.data!.length,
+                    itemBuilder: (context, index) {
+                      // I need an image at left, name of device in the middle and a button to remove the device at right
+                      return ListTile(
+                        leading: Icon(Icons.devices),
+                        title: Text(snapshot.data![index].deviceName),
+                        subtitle: Text(snapshot.data![index].deviceVersion),
+                        trailing: IconButton(
+                          icon: Icon(Icons.delete),
+                          onPressed: () {
+                            // ProxyService.isarApi.deleteDevice(
+                            //     id: snapshot.data![index].id);
+                          },
+                        ),
+                      );
+                    },
+                  );
+                } else {
+                  return Container();
+                }
               },
             ),
           ],

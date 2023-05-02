@@ -104,32 +104,6 @@ const ConversationSchema = CollectionSchema(
   deserializeProp: _conversationDeserializeProp,
   idName: r'id',
   indexes: {
-    r'fromNumber': IndexSchema(
-      id: -1237017533456422352,
-      name: r'fromNumber',
-      unique: false,
-      replace: false,
-      properties: [
-        IndexPropertySchema(
-          name: r'fromNumber',
-          type: IndexType.hash,
-          caseSensitive: true,
-        )
-      ],
-    ),
-    r'toNumber': IndexSchema(
-      id: 2796268034279569433,
-      name: r'toNumber',
-      unique: false,
-      replace: false,
-      properties: [
-        IndexPropertySchema(
-          name: r'toNumber',
-          type: IndexType.hash,
-          caseSensitive: true,
-        )
-      ],
-    ),
     r'createdAt': IndexSchema(
       id: -3433535483987302584,
       name: r'createdAt',
@@ -412,96 +386,6 @@ extension ConversationQueryWhere
         upper: upperId,
         includeUpper: includeUpper,
       ));
-    });
-  }
-
-  QueryBuilder<Conversation, Conversation, QAfterWhereClause> fromNumberEqualTo(
-      String fromNumber) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'fromNumber',
-        value: [fromNumber],
-      ));
-    });
-  }
-
-  QueryBuilder<Conversation, Conversation, QAfterWhereClause>
-      fromNumberNotEqualTo(String fromNumber) {
-    return QueryBuilder.apply(this, (query) {
-      if (query.whereSort == Sort.asc) {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'fromNumber',
-              lower: [],
-              upper: [fromNumber],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'fromNumber',
-              lower: [fromNumber],
-              includeLower: false,
-              upper: [],
-            ));
-      } else {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'fromNumber',
-              lower: [fromNumber],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'fromNumber',
-              lower: [],
-              upper: [fromNumber],
-              includeUpper: false,
-            ));
-      }
-    });
-  }
-
-  QueryBuilder<Conversation, Conversation, QAfterWhereClause> toNumberEqualTo(
-      String toNumber) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'toNumber',
-        value: [toNumber],
-      ));
-    });
-  }
-
-  QueryBuilder<Conversation, Conversation, QAfterWhereClause>
-      toNumberNotEqualTo(String toNumber) {
-    return QueryBuilder.apply(this, (query) {
-      if (query.whereSort == Sort.asc) {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'toNumber',
-              lower: [],
-              upper: [toNumber],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'toNumber',
-              lower: [toNumber],
-              includeLower: false,
-              upper: [],
-            ));
-      } else {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'toNumber',
-              lower: [toNumber],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'toNumber',
-              lower: [],
-              upper: [toNumber],
-              includeUpper: false,
-            ));
-      }
     });
   }
 

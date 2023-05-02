@@ -154,6 +154,7 @@ class EventService implements EventInterface {
       if (device == null) {
         await ProxyService.isarApi.create(
             data: Device(
+                busienssId: deviceEvent.businessId,
                 linkingCode: deviceEvent.linkingCode,
                 deviceName: deviceEvent.deviceName,
                 deviceVersion: deviceEvent.deviceVersion));

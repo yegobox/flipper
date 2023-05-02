@@ -2091,10 +2091,12 @@ class IsarAPI<M> implements IsarApiInterface {
     final phone = ProxyService.box.getUserPhone()!.replaceAll("+", "");
     log(phone, name: "top5Conversations");
     return isar.conversations
-        .where()
+        .filter()
         .toNumberEqualTo(phone)
         .or()
         .fromNumberEqualTo(phone)
+        .and()
+        .deliveredEqualTo(true)
         .sortByCreatedAtDesc()
         .build()
         .watch(fireImmediately: true)
@@ -2124,10 +2126,12 @@ class IsarAPI<M> implements IsarApiInterface {
       String phone = ProxyService.box.getUserPhone()!.replaceAll("+", "");
       log(phone, name: "LoadInitialList of conversations");
       return isar.conversations
-          .where()
+          .filter()
           .toNumberEqualTo(phone)
           .or()
           .fromNumberEqualTo(phone)
+          .and()
+          .deliveredEqualTo(true)
           .build()
           .watch(fireImmediately: true)
           .asyncMap((event) {
@@ -2176,7 +2180,6 @@ class IsarAPI<M> implements IsarApiInterface {
         Uri.parse("$commApi/reply"),
         body: json.encode(message.toJson()),
       );
-      log(json.encode(message.toJson()));
       if (response.statusCode == 200) {
         final responseJson = jsonDecode(response.body);
         final conversation = Conversation.fromJson(responseJson);
