@@ -14,11 +14,13 @@ class Device extends IJsonSerializable {
   String linkingCode;
   String deviceName;
   String deviceVersion;
+  int busienssId;
 
   Device(
       {required this.linkingCode,
       required this.deviceName,
-      required this.deviceVersion});
+      required this.deviceVersion,
+      required this.busienssId});
   factory Device.fromRecord(RecordModel record) =>
       Device.fromJson(record.toJson());
 

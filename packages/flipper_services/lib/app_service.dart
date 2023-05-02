@@ -89,6 +89,7 @@ class AppService with ListenableServiceMixin {
   Future<bool> isLoggedIn() async {
     User? user = FirebaseAuth.instance.currentUser;
     int? businessId = ProxyService.box.getBusinessId();
+
     if (ProxyService.box.getUserId() == null &&
         user != null &&
         businessId == null) {

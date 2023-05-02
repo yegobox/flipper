@@ -17,18 +17,23 @@ const DeviceSchema = CollectionSchema(
   name: r'Device',
   id: 3491430514663294648,
   properties: {
-    r'deviceName': PropertySchema(
+    r'busienssId': PropertySchema(
       id: 0,
+      name: r'busienssId',
+      type: IsarType.long,
+    ),
+    r'deviceName': PropertySchema(
+      id: 1,
       name: r'deviceName',
       type: IsarType.string,
     ),
     r'deviceVersion': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'deviceVersion',
       type: IsarType.string,
     ),
     r'linkingCode': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'linkingCode',
       type: IsarType.string,
     )
@@ -65,9 +70,10 @@ void _deviceSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeString(offsets[0], object.deviceName);
-  writer.writeString(offsets[1], object.deviceVersion);
-  writer.writeString(offsets[2], object.linkingCode);
+  writer.writeLong(offsets[0], object.busienssId);
+  writer.writeString(offsets[1], object.deviceName);
+  writer.writeString(offsets[2], object.deviceVersion);
+  writer.writeString(offsets[3], object.linkingCode);
 }
 
 Device _deviceDeserialize(
@@ -77,9 +83,10 @@ Device _deviceDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Device(
-    deviceName: reader.readString(offsets[0]),
-    deviceVersion: reader.readString(offsets[1]),
-    linkingCode: reader.readString(offsets[2]),
+    busienssId: reader.readLong(offsets[0]),
+    deviceName: reader.readString(offsets[1]),
+    deviceVersion: reader.readString(offsets[2]),
+    linkingCode: reader.readString(offsets[3]),
   );
   object.id = id;
   return object;
@@ -93,10 +100,12 @@ P _deviceDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readString(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 1:
       return (reader.readString(offset)) as P;
     case 2:
+      return (reader.readString(offset)) as P;
+    case 3:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -191,6 +200,59 @@ extension DeviceQueryWhere on QueryBuilder<Device, Device, QWhereClause> {
 }
 
 extension DeviceQueryFilter on QueryBuilder<Device, Device, QFilterCondition> {
+  QueryBuilder<Device, Device, QAfterFilterCondition> busienssIdEqualTo(
+      int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'busienssId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> busienssIdGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'busienssId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> busienssIdLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'busienssId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> busienssIdBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'busienssId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<Device, Device, QAfterFilterCondition> deviceNameEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -656,6 +718,18 @@ extension DeviceQueryObject on QueryBuilder<Device, Device, QFilterCondition> {}
 extension DeviceQueryLinks on QueryBuilder<Device, Device, QFilterCondition> {}
 
 extension DeviceQuerySortBy on QueryBuilder<Device, Device, QSortBy> {
+  QueryBuilder<Device, Device, QAfterSortBy> sortByBusienssId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'busienssId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterSortBy> sortByBusienssIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'busienssId', Sort.desc);
+    });
+  }
+
   QueryBuilder<Device, Device, QAfterSortBy> sortByDeviceName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'deviceName', Sort.asc);
@@ -694,6 +768,18 @@ extension DeviceQuerySortBy on QueryBuilder<Device, Device, QSortBy> {
 }
 
 extension DeviceQuerySortThenBy on QueryBuilder<Device, Device, QSortThenBy> {
+  QueryBuilder<Device, Device, QAfterSortBy> thenByBusienssId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'busienssId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterSortBy> thenByBusienssIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'busienssId', Sort.desc);
+    });
+  }
+
   QueryBuilder<Device, Device, QAfterSortBy> thenByDeviceName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'deviceName', Sort.asc);
@@ -744,6 +830,12 @@ extension DeviceQuerySortThenBy on QueryBuilder<Device, Device, QSortThenBy> {
 }
 
 extension DeviceQueryWhereDistinct on QueryBuilder<Device, Device, QDistinct> {
+  QueryBuilder<Device, Device, QDistinct> distinctByBusienssId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'busienssId');
+    });
+  }
+
   QueryBuilder<Device, Device, QDistinct> distinctByDeviceName(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -774,6 +866,12 @@ extension DeviceQueryProperty on QueryBuilder<Device, Device, QQueryProperty> {
     });
   }
 
+  QueryBuilder<Device, int, QQueryOperations> busienssIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'busienssId');
+    });
+  }
+
   QueryBuilder<Device, String, QQueryOperations> deviceNameProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'deviceName');
@@ -801,6 +899,7 @@ Device _$DeviceFromJson(Map<String, dynamic> json) => Device(
       linkingCode: json['linkingCode'] as String,
       deviceName: json['deviceName'] as String,
       deviceVersion: json['deviceVersion'] as String,
+      busienssId: json['busienssId'] as int,
     )..id = json['id'] as int?;
 
 Map<String, dynamic> _$DeviceToJson(Device instance) => <String, dynamic>{
@@ -808,4 +907,5 @@ Map<String, dynamic> _$DeviceToJson(Device instance) => <String, dynamic>{
       'linkingCode': instance.linkingCode,
       'deviceName': instance.deviceName,
       'deviceVersion': instance.deviceVersion,
+      'busienssId': instance.busienssId,
     };

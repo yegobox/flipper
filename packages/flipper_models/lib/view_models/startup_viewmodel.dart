@@ -30,7 +30,7 @@ class StartupViewModel extends BaseViewModel {
       await appService.appInit();
       //if we reached this far then it means we have a default business/branch make sence to check drawer
       if (await ProxyService.isarApi
-          .isDrawerOpen(cashierId: ProxyService.box.getBusinessId() ?? 0)) {
+          .isDrawerOpen(cashierId: ProxyService.box.getBusinessId()!)) {
         if (ProxyService.box.getDefaultApp() == 2) {
           _routerService.navigateTo(SocialHomeViewRoute());
         } else {

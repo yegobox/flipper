@@ -229,4 +229,5 @@ abstract class IsarApiInterface {
   Future<Setting> getSocialSetting();
 
   Future<Device?> getDevice({required String linkingCode});
+  Stream<List<Device>> getDevices({required int businessId});
 }
