@@ -6,6 +6,9 @@ class LoginData {
     required this.branchId,
     required this.phone,
     required this.defaultApp,
+    required this.linkingCode,
+    required this.deviceName,
+    required this.deviceVersion,
   });
 
   String channel;
@@ -15,6 +18,9 @@ class LoginData {
   int branchId;
   String phone;
   int defaultApp;
+  String linkingCode;
+  String deviceName;
+  String deviceVersion;
 
   factory LoginData.fromMap(Map<String, dynamic> json) => LoginData(
         channel: json["channel"],
@@ -22,7 +28,10 @@ class LoginData {
         businessId: json["businessId"],
         branchId: json["branchId"],
         phone: json["phone"],
+        linkingCode: json["linkingCode"],
         defaultApp: json["defaultApp"],
+        deviceName: json["deviceName"],
+        deviceVersion: json["deviceVersion"],
       );
 
   Map<String, dynamic> toMap() => {
@@ -32,5 +41,8 @@ class LoginData {
         "branchId": branchId,
         "phone": phone,
         "defaultApp": defaultApp,
+        "linkingCode": linkingCode,
+        "deviceName": deviceName,
+        "deviceVersion": deviceVersion,
       };
 }

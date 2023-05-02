@@ -28,8 +28,17 @@ class ChatListViewModel extends StartupViewModel {
       avatar: "https://yegobox-flipper.s3.eu-west-2.amazonaws.com/lRsBL.png",
       body: message,
       channelType: "whatsapp",
-      fromNumber: latestConversation.toNumber,
-      toNumber: latestConversation.fromNumber,
+
+      /// always from number is the user phone number i.e the business phone number
+      /// this number need to be enabled on whatsapp business to use whatsapp api
+      fromNumber: ProxyService.box.getUserPhone()!.replaceAll("+", ""),
+
+      /// the phone number of a user who sent the message to the business, this is the number
+      /// and this does not have to be registered on flipper but check to see if this from is not us
+      toNumber: latestConversation.fromNumber.replaceAll("+", "") ==
+              ProxyService.box.getUserPhone()!.replaceAll("+", "")
+          ? latestConversation.toNumber
+          : latestConversation.fromNumber,
       userName: "Yego",
       messageId: latestConversation.messageId,
       conversationId: latestConversation.conversationId,

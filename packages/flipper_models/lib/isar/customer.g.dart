@@ -69,7 +69,7 @@ const CustomerSchema = CollectionSchema(
   getId: _customerGetId,
   getLinks: _customerGetLinks,
   attach: _customerAttach,
-  version: '3.1.0',
+  version: '3.1.0+1',
 );
 
 int _customerEstimateSize(

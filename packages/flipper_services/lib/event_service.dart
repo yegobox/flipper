@@ -10,11 +10,16 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'login_event.dart';
+import 'dart:io';
 
 LoginData loginDataFromMap(String str) => LoginData.fromMap(json.decode(str));
 
 String loginDataToMap(LoginData data) => json.encode(data.toMap());
 
+/// list of channels and their purposes
+/// [login] this channel is used to send login details to other end
+/// [logout] this channel is used to send logout details to other end
+/// [device] this channel is used to send device details to other end
 class EventService implements EventInterface {
   final _routerService = locator<RouterService>();
   nub.PubNub? pubnub;
@@ -79,6 +84,26 @@ class EventService implements EventInterface {
         await ProxyService.box
             .write(key: 'defaultApp', value: loginData.defaultApp);
 
+        // get the device name and version
+        String deviceName = Platform.operatingSystem;
+
+        // Get the device version.
+        String deviceVersion = Platform.version;
+        String linkingCode = loginData.linkingCode;
+        // publish the device name and version
+        publish(
+          loginDetails: {
+            'channel': 'login',
+            'deviceName': deviceName,
+            'deviceVersion': deviceVersion,
+            'linkingCode': linkingCode,
+            'userId': loginData.userId,
+            'businessId': loginData.businessId,
+            'branchId': loginData.branchId,
+            'phone': loginData.phone,
+            'defaultApp': loginData.defaultApp,
+          },
+        );
         await ProxyService.isarApi
             .login(userPhone: loginData.phone, skipDefaultAppSetup: true);
         await FirebaseAuth.instance.signInAnonymously();
@@ -88,12 +113,15 @@ class EventService implements EventInterface {
     }
   }
 
+  /// listen to device event
+
   @override
   void subscribeToMessages({required String channel}) {
     if (pubnub == null) {
       connect();
     }
     log('subscribing to channel $channel');
+    log('userId ${ProxyService.box.getUserId()}');
     nub.Subscription subscription = pubnub!.subscribe(channels: {channel});
     subscription.messages.listen((envelope) async {
       log("received message aha!");
@@ -104,6 +132,31 @@ class EventService implements EventInterface {
 
       if (localConversation == null) {
         await ProxyService.isarApi.create(data: conversation);
+      }
+    });
+  }
+
+  @override
+  void subscribeToDeviceEvent({required String channel}) {
+    if (pubnub == null) {
+      connect();
+    }
+    log('subscribing to channel $channel');
+    log('userId ${ProxyService.box.getUserId()}');
+    nub.Subscription subscription = pubnub!.subscribe(channels: {channel});
+    subscription.messages.listen((envelope) async {
+      log("received device aha!");
+      LoginData deviceEvent = LoginData.fromMap(envelope.payload);
+
+      Device? device = await ProxyService.isarApi
+          .getDevice(linkingCode: deviceEvent.linkingCode);
+
+      if (device == null) {
+        await ProxyService.isarApi.create(
+            data: Device(
+                linkingCode: deviceEvent.linkingCode,
+                deviceName: deviceEvent.deviceName,
+                deviceVersion: deviceEvent.deviceVersion));
       }
     });
   }

@@ -1,3 +1,4 @@
+import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_ui/toast.dart';
 import 'package:flutter/foundation.dart';
@@ -155,7 +156,10 @@ class _ScannViewState extends State<ScannView> {
           'businessId': businessId,
           'branchId': branchId,
           'phone': phone,
-          'defaultApp': defaultApp
+          'defaultApp': defaultApp,
+          'deviceName': Platform.operatingSystem,
+          'deviceVersion': Platform.operatingSystemVersion,
+          'linkingCode': syncIdInt().toString()
         });
       }
     }

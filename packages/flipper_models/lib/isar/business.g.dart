@@ -238,7 +238,7 @@ const BusinessSchema = CollectionSchema(
   getId: _businessGetId,
   getLinks: _businessGetLinks,
   attach: _businessAttach,
-  version: '3.1.0',
+  version: '3.1.0+1',
 );
 
 int _businessEstimateSize(

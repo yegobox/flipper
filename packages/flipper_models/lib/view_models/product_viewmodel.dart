@@ -15,7 +15,7 @@ import 'package:flipper_services/product_service.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:isar_crdt/utils/hlc.dart';
+import 'package:flipper_models/hlc.dart';
 import 'package:stacked/stacked.dart';
 
 // class ProductViewModel extends BusinessHomeViewModel {

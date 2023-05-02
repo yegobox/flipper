@@ -96,7 +96,7 @@ const SocialSchema = CollectionSchema(
   getId: _socialGetId,
   getLinks: _socialGetLinks,
   attach: _socialAttach,
-  version: '3.1.0',
+  version: '3.1.0+1',
 );
 
 int _socialEstimateSize(

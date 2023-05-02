@@ -6,4 +6,5 @@ abstract class EventInterface {
   void subscribeToLogoutEvent({required String channel});
   nub.PubNub connect();
   void subscribeToMessages({required String channel});
+  void subscribeToDeviceEvent({required String channel});
 }

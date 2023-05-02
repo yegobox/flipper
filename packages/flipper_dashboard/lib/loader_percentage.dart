@@ -39,12 +39,7 @@ class LoadingWithPercentage extends StatelessWidget {
                         width: size,
                         height: size,
                         decoration: const BoxDecoration(
-                            shape: BoxShape.circle, color: Colors.white
-                            // image: DecorationImage(
-                            //     image: Image.asset(
-                            //             "assets/images/radial_scale.png")
-                            //         .image)
-                            ),
+                            shape: BoxShape.circle, color: Colors.white),
                       ),
                     ),
                     Center(

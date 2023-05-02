@@ -88,8 +88,7 @@ flutter:
   # the material Icons class.
   uses-material-design: true
   assets:
-    - ../../assets/
+    - ./assets/
     - ../../assets/icons/
-    - ../../assets/svg/
     - ../../google_fonts/
 generate: true

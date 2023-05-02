@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_models/data.loads/jcounter.dart';
+import 'package:flipper_models/hlc.dart';
 import 'package:flipper_models/isar/utils.dart';
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
@@ -12,10 +13,10 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:http/http.dart' as http;
-
+import 'dart:io';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:flutter/foundation.dart' as foundation;
-import 'package:isar_crdt/utils/hlc.dart';
+
 import 'package:path_provider/path_provider.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'flipper_http_client.dart';
@@ -74,6 +75,7 @@ class IsarAPI<M> implements IsarApiInterface {
           TokenSchema,
           SocialSchema,
           ConversationSchema,
+          DeviceSchema,
         ],
         directory: dir.path,
       );
@@ -1014,6 +1016,9 @@ class IsarAPI<M> implements IsarApiInterface {
         'branchId': ProxyService.box.getBranchId()!,
         'phone': ProxyService.box.getUserPhone(),
         'defaultApp': ProxyService.box.getDefaultApp(),
+        'deviceName': Platform.operatingSystem,
+        'deviceVersion': Platform.operatingSystemVersion,
+        'linkingCode': syncIdInt().toString()
       });
     }
 
@@ -1346,6 +1351,13 @@ class IsarAPI<M> implements IsarApiInterface {
             ..active = color.active
             ..branchId = color.branchId);
         }
+      });
+    }
+    if (data is Device) {
+      Device device = data;
+      return await isar.writeTxn(() async {
+        await isar.devices.put(device);
+        return Future.value(null);
       });
     }
     if (data is Conversation) {
@@ -2157,36 +2169,34 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<void> sendScheduleMessages() async {
-    try {
-      await appService.isLoggedIn();
-      List<Conversation> scheduledMessages = await getScheduleMessages();
-      for (Conversation message in scheduledMessages) {
-        final http.Response response = await socialsHttpClient.post(
-          Uri.parse("$commApi/reply"),
-          body: json.encode(message.toJson()),
-        );
-        if (response.statusCode == 200) {
-          final responseJson = jsonDecode(response.body);
-          final conversation = Conversation.fromJson(responseJson);
-          message.delivered = true;
-          message.messageId = conversation.messageId;
-          message.createdAt = conversation.createdAt;
-          message.fromNumber = conversation.fromNumber;
-          message.toNumber = conversation.toNumber;
-          message.conversationId = conversation.conversationId;
-          message.userName = conversation.userName;
-          message.phoneNumberId = conversation.phoneNumberId;
-          message.businessId = conversation.businessId;
-          message.businessPhoneNumber = conversation.businessPhoneNumber;
-          isar.writeTxn(() async {
-            await isar.conversations.put(message);
-          });
-        } else {
-          throw Exception('Failed to load conversation');
-        }
+    await appService.isLoggedIn();
+    List<Conversation> scheduledMessages = await getScheduleMessages();
+    for (Conversation message in scheduledMessages) {
+      final http.Response response = await socialsHttpClient.post(
+        Uri.parse("$commApi/reply"),
+        body: json.encode(message.toJson()),
+      );
+      log(json.encode(message.toJson()));
+      if (response.statusCode == 200) {
+        final responseJson = jsonDecode(response.body);
+        final conversation = Conversation.fromJson(responseJson);
+        message.delivered = true;
+        message.messageId = conversation.messageId;
+        message.createdAt = conversation.createdAt;
+        message.fromNumber = conversation.fromNumber;
+        message.toNumber = conversation.toNumber;
+        message.conversationId = conversation.conversationId;
+        message.userName = conversation.userName;
+        message.phoneNumberId = conversation.phoneNumberId;
+        message.businessId = conversation.businessId;
+        message.businessPhoneNumber = conversation.businessPhoneNumber;
+        isar.writeTxn(() async {
+          await isar.conversations.put(message);
+        });
+      } else if (response.statusCode == 402) {
+        // this means there is no credit
+        throw Exception('There is no available credit,can not send message');
       }
-    } catch (e) {
-      log(e.toString(), name: "ErrorSendingMessage");
     }
   }
 
@@ -2307,5 +2317,15 @@ class IsarAPI<M> implements IsarApiInterface {
       return setting;
     }
     throw Exception("Can't get social setting to patch");
+  }
+
+  @override
+  Future<Device?> getDevice({required String linkingCode}) {
+    // get device from isar with linking code and return it
+    return isar.devices
+        .filter()
+        .linkingCodeEqualTo(linkingCode)
+        .build()
+        .findFirst();
   }
 }

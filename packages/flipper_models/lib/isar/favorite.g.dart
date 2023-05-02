@@ -41,7 +41,7 @@ const FavoriteSchema = CollectionSchema(
   getId: _favoriteGetId,
   getLinks: _favoriteGetLinks,
   attach: _favoriteAttach,
-  version: '3.1.0',
+  version: '3.1.0+1',
 );
 
 int _favoriteEstimateSize(

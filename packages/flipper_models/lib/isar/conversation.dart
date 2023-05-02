@@ -12,10 +12,10 @@ part 'conversation.g.dart';
 class Conversation extends IJsonSerializable {
   @JsonKey(includeToJson: false, includeFromJson: false)
   Id? id = null;
-   String userName;
-   String body;
-   String avatar;
-   String channelType;
+  String userName;
+  String body;
+  String avatar;
+  String channelType;
   @Index()
   String fromNumber;
   @Index()

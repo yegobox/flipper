@@ -19,9 +19,11 @@ cd .. && cd flutterfire_desktop &&  git checkout main  && git add .  && git comm
 cd .. && cd plus_plugins &&  git checkout main  && git add .  && git commit -am "clean-up" && git push origin main
 cd .. && cd flutter_slidable &&  git checkout dev  && git add .  && git commit -am "clean-up" && git push origin dev
 cd .. && cd money_formatter &&  git checkout dev  && git add .  && git commit -am "clean-up" && git push origin dev
-cd .. && cd isar_crdt &&  git checkout main  && git add .  && git commit -am "clean-up" && git push origin main
 cd .. && cd flutter_launcher_icons &&  git checkout master  && git add .  && git commit -am "clean-up" && git push origin master
 cd .. && cd flutter_datetime_picker &&  git checkout master  && git add .  && git commit -am "clean-up" && git push origin master
 cd .. && cd flutter_luban  &&  git checkout master  && git add .  && git commit -am "clean-up" && git push origin master
 
-#
+# These dependencies where local and now depend on them from pubspec
+# I was doing it becase it was using permissions that were not accepted but now I believe they are removed.
+#dart_pdf
+# flutter_file_picker

@@ -1,5 +1,6 @@
-import 'package:flipper_dashboard/unitenums.dart';
 import 'package:flutter/material.dart';
+
+enum WeightUnits { Lb, Oz, Kg }
 
 class Utils {
   static GlobalKey<NavigatorState> mainListNav = GlobalKey();

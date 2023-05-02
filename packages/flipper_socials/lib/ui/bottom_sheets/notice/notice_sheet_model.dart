@@ -3,7 +3,7 @@ import 'package:flipper_models/isar/utils.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
-import 'package:isar_crdt/utils/hlc.dart';
+import 'package:flipper_models/hlc.dart';
 
 class NoticeSheetModel extends BaseViewModel {
   String _message = 'I am interested in your product';

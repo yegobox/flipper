@@ -333,7 +333,7 @@ const VariantSchema = CollectionSchema(
   getId: _variantGetId,
   getLinks: _variantGetLinks,
   attach: _variantAttach,
-  version: '3.1.0',
+  version: '3.1.0+1',
 );
 
 int _variantEstimateSize(

@@ -66,7 +66,7 @@ const VoucherSchema = CollectionSchema(
   getId: _voucherGetId,
   getLinks: _voucherGetLinks,
   attach: _voucherAttach,
-  version: '3.1.0',
+  version: '3.1.0+1',
 );
 
 int _voucherEstimateSize(

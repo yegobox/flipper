@@ -34,7 +34,7 @@ const PermissionSchema = CollectionSchema(
   getId: _permissionGetId,
   getLinks: _permissionGetLinks,
   attach: _permissionAttach,
-  version: '3.1.0',
+  version: '3.1.0+1',
 );
 
 int _permissionEstimateSize(

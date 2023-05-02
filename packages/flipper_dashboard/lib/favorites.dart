@@ -47,6 +47,7 @@ class _FavoritesState extends State<Favorites> {
                                   'assets/checkout.svg',
                                   height: 80,
                                   width: 80,
+                                  package: 'flipper_dashboard',
                                 ),
                               ),
                               SizedBox(width: 8),

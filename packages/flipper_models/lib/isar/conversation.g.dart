@@ -162,7 +162,7 @@ const ConversationSchema = CollectionSchema(
   getId: _conversationGetId,
   getLinks: _conversationGetLinks,
   attach: _conversationAttach,
-  version: '3.1.0',
+  version: '3.1.0+1',
 );
 
 int _conversationEstimateSize(

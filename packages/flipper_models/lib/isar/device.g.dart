@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'pin.dart';
+part of flipper_models;
 
 // **************************************************************************
 // IsarCollectionGenerator
@@ -9,96 +9,83 @@ part of 'pin.dart';
 // coverage:ignore-file
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
 
-extension GetPinCollection on Isar {
-  IsarCollection<Pin> get pins => this.collection();
+extension GetDeviceCollection on Isar {
+  IsarCollection<Device> get devices => this.collection();
 }
 
-const PinSchema = CollectionSchema(
-  name: r'Pin',
-  id: -7991167910665163133,
+const DeviceSchema = CollectionSchema(
+  name: r'Device',
+  id: 3491430514663294648,
   properties: {
-    r'branchId': PropertySchema(
+    r'deviceName': PropertySchema(
       id: 0,
-      name: r'branchId',
-      type: IsarType.long,
-    ),
-    r'businessId': PropertySchema(
-      id: 1,
-      name: r'businessId',
-      type: IsarType.long,
-    ),
-    r'phoneNumber': PropertySchema(
-      id: 2,
-      name: r'phoneNumber',
+      name: r'deviceName',
       type: IsarType.string,
     ),
-    r'pin': PropertySchema(
-      id: 3,
-      name: r'pin',
-      type: IsarType.long,
+    r'deviceVersion': PropertySchema(
+      id: 1,
+      name: r'deviceVersion',
+      type: IsarType.string,
     ),
-    r'userId': PropertySchema(
-      id: 4,
-      name: r'userId',
+    r'linkingCode': PropertySchema(
+      id: 2,
+      name: r'linkingCode',
       type: IsarType.string,
     )
   },
-  estimateSize: _pinEstimateSize,
-  serialize: _pinSerialize,
-  deserialize: _pinDeserialize,
-  deserializeProp: _pinDeserializeProp,
+  estimateSize: _deviceEstimateSize,
+  serialize: _deviceSerialize,
+  deserialize: _deviceDeserialize,
+  deserializeProp: _deviceDeserializeProp,
   idName: r'id',
   indexes: {},
   links: {},
   embeddedSchemas: {},
-  getId: _pinGetId,
-  getLinks: _pinGetLinks,
-  attach: _pinAttach,
+  getId: _deviceGetId,
+  getLinks: _deviceGetLinks,
+  attach: _deviceAttach,
   version: '3.1.0+1',
 );
 
-int _pinEstimateSize(
-  Pin object,
+int _deviceEstimateSize(
+  Device object,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  bytesCount += 3 + object.phoneNumber.length * 3;
-  bytesCount += 3 + object.userId.length * 3;
+  bytesCount += 3 + object.deviceName.length * 3;
+  bytesCount += 3 + object.deviceVersion.length * 3;
+  bytesCount += 3 + object.linkingCode.length * 3;
   return bytesCount;
 }
 
-void _pinSerialize(
-  Pin object,
+void _deviceSerialize(
+  Device object,
   IsarWriter writer,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeLong(offsets[0], object.branchId);
-  writer.writeLong(offsets[1], object.businessId);
-  writer.writeString(offsets[2], object.phoneNumber);
-  writer.writeLong(offsets[3], object.pin);
-  writer.writeString(offsets[4], object.userId);
+  writer.writeString(offsets[0], object.deviceName);
+  writer.writeString(offsets[1], object.deviceVersion);
+  writer.writeString(offsets[2], object.linkingCode);
 }
 
-Pin _pinDeserialize(
+Device _deviceDeserialize(
   Id id,
   IsarReader reader,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = Pin(
-    branchId: reader.readLong(offsets[0]),
-    businessId: reader.readLong(offsets[1]),
-    phoneNumber: reader.readString(offsets[2]),
-    pin: reader.readLong(offsets[3]),
-    userId: reader.readString(offsets[4]),
+  final object = Device(
+    deviceName: reader.readString(offsets[0]),
+    deviceVersion: reader.readString(offsets[1]),
+    linkingCode: reader.readString(offsets[2]),
   );
   object.id = id;
   return object;
 }
 
-P _pinDeserializeProp<P>(
+P _deviceDeserializeProp<P>(
   IsarReader reader,
   int propertyId,
   int offset,
@@ -106,42 +93,38 @@ P _pinDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readLong(offset)) as P;
-    case 1:
-      return (reader.readLong(offset)) as P;
-    case 2:
       return (reader.readString(offset)) as P;
-    case 3:
-      return (reader.readLong(offset)) as P;
-    case 4:
+    case 1:
+      return (reader.readString(offset)) as P;
+    case 2:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
 }
 
-Id _pinGetId(Pin object) {
-  return object.id;
+Id _deviceGetId(Device object) {
+  return object.id ?? Isar.autoIncrement;
 }
 
-List<IsarLinkBase<dynamic>> _pinGetLinks(Pin object) {
+List<IsarLinkBase<dynamic>> _deviceGetLinks(Device object) {
   return [];
 }
 
-void _pinAttach(IsarCollection<dynamic> col, Id id, Pin object) {
+void _deviceAttach(IsarCollection<dynamic> col, Id id, Device object) {
   object.id = id;
 }
 
-extension PinQueryWhereSort on QueryBuilder<Pin, Pin, QWhere> {
-  QueryBuilder<Pin, Pin, QAfterWhere> anyId() {
+extension DeviceQueryWhereSort on QueryBuilder<Device, Device, QWhere> {
+  QueryBuilder<Device, Device, QAfterWhere> anyId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
     });
   }
 }
 
-extension PinQueryWhere on QueryBuilder<Pin, Pin, QWhereClause> {
-  QueryBuilder<Pin, Pin, QAfterWhereClause> idEqualTo(Id id) {
+extension DeviceQueryWhere on QueryBuilder<Device, Device, QWhereClause> {
+  QueryBuilder<Device, Device, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(
         lower: id,
@@ -150,7 +133,7 @@ extension PinQueryWhere on QueryBuilder<Pin, Pin, QWhereClause> {
     });
   }
 
-  QueryBuilder<Pin, Pin, QAfterWhereClause> idNotEqualTo(Id id) {
+  QueryBuilder<Device, Device, QAfterWhereClause> idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -172,7 +155,7 @@ extension PinQueryWhere on QueryBuilder<Pin, Pin, QWhereClause> {
     });
   }
 
-  QueryBuilder<Pin, Pin, QAfterWhereClause> idGreaterThan(Id id,
+  QueryBuilder<Device, Device, QAfterWhereClause> idGreaterThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -181,7 +164,7 @@ extension PinQueryWhere on QueryBuilder<Pin, Pin, QWhereClause> {
     });
   }
 
-  QueryBuilder<Pin, Pin, QAfterWhereClause> idLessThan(Id id,
+  QueryBuilder<Device, Device, QAfterWhereClause> idLessThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -190,7 +173,7 @@ extension PinQueryWhere on QueryBuilder<Pin, Pin, QWhereClause> {
     });
   }
 
-  QueryBuilder<Pin, Pin, QAfterWhereClause> idBetween(
+  QueryBuilder<Device, Device, QAfterWhereClause> idBetween(
     Id lowerId,
     Id upperId, {
     bool includeLower = true,
@@ -207,177 +190,21 @@ extension PinQueryWhere on QueryBuilder<Pin, Pin, QWhereClause> {
   }
 }
 
-extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> branchIdEqualTo(int value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'branchId',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> branchIdGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'branchId',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> branchIdLessThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'branchId',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> branchIdBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'branchId',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> businessIdEqualTo(int value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'businessId',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> businessIdGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'businessId',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> businessIdLessThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'businessId',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> businessIdBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'businessId',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> idEqualTo(Id value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'id',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> idGreaterThan(
-    Id value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> idLessThan(
-    Id value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> idBetween(
-    Id lower,
-    Id upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'id',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> phoneNumberEqualTo(
+extension DeviceQueryFilter on QueryBuilder<Device, Device, QFilterCondition> {
+  QueryBuilder<Device, Device, QAfterFilterCondition> deviceNameEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'phoneNumber',
+        property: r'deviceName',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> phoneNumberGreaterThan(
+  QueryBuilder<Device, Device, QAfterFilterCondition> deviceNameGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -385,14 +212,14 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
-        property: r'phoneNumber',
+        property: r'deviceName',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> phoneNumberLessThan(
+  QueryBuilder<Device, Device, QAfterFilterCondition> deviceNameLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -400,14 +227,14 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
-        property: r'phoneNumber',
+        property: r'deviceName',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> phoneNumberBetween(
+  QueryBuilder<Device, Device, QAfterFilterCondition> deviceNameBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -416,7 +243,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
-        property: r'phoneNumber',
+        property: r'deviceName',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -426,140 +253,88 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> phoneNumberStartsWith(
+  QueryBuilder<Device, Device, QAfterFilterCondition> deviceNameStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'phoneNumber',
+        property: r'deviceName',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> phoneNumberEndsWith(
+  QueryBuilder<Device, Device, QAfterFilterCondition> deviceNameEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'phoneNumber',
+        property: r'deviceName',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> phoneNumberContains(
+  QueryBuilder<Device, Device, QAfterFilterCondition> deviceNameContains(
       String value,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
-        property: r'phoneNumber',
+        property: r'deviceName',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> phoneNumberMatches(
+  QueryBuilder<Device, Device, QAfterFilterCondition> deviceNameMatches(
       String pattern,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
-        property: r'phoneNumber',
+        property: r'deviceName',
         wildcard: pattern,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> phoneNumberIsEmpty() {
+  QueryBuilder<Device, Device, QAfterFilterCondition> deviceNameIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'phoneNumber',
+        property: r'deviceName',
         value: '',
       ));
     });
   }
 
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> phoneNumberIsNotEmpty() {
+  QueryBuilder<Device, Device, QAfterFilterCondition> deviceNameIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'phoneNumber',
+        property: r'deviceName',
         value: '',
       ));
     });
   }
 
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> pinEqualTo(int value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'pin',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> pinGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'pin',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> pinLessThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'pin',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> pinBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'pin',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> userIdEqualTo(
+  QueryBuilder<Device, Device, QAfterFilterCondition> deviceVersionEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'userId',
+        property: r'deviceVersion',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> userIdGreaterThan(
+  QueryBuilder<Device, Device, QAfterFilterCondition> deviceVersionGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -567,14 +342,14 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
-        property: r'userId',
+        property: r'deviceVersion',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> userIdLessThan(
+  QueryBuilder<Device, Device, QAfterFilterCondition> deviceVersionLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -582,14 +357,14 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
-        property: r'userId',
+        property: r'deviceVersion',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> userIdBetween(
+  QueryBuilder<Device, Device, QAfterFilterCondition> deviceVersionBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -598,7 +373,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
-        property: r'userId',
+        property: r'deviceVersion',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -608,281 +383,429 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> userIdStartsWith(
+  QueryBuilder<Device, Device, QAfterFilterCondition> deviceVersionStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'userId',
+        property: r'deviceVersion',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> userIdEndsWith(
+  QueryBuilder<Device, Device, QAfterFilterCondition> deviceVersionEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'userId',
+        property: r'deviceVersion',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> userIdContains(String value,
+  QueryBuilder<Device, Device, QAfterFilterCondition> deviceVersionContains(
+      String value,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
-        property: r'userId',
+        property: r'deviceVersion',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> userIdMatches(String pattern,
+  QueryBuilder<Device, Device, QAfterFilterCondition> deviceVersionMatches(
+      String pattern,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
-        property: r'userId',
+        property: r'deviceVersion',
         wildcard: pattern,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> userIdIsEmpty() {
+  QueryBuilder<Device, Device, QAfterFilterCondition> deviceVersionIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'userId',
+        property: r'deviceVersion',
         value: '',
       ));
     });
   }
 
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> userIdIsNotEmpty() {
+  QueryBuilder<Device, Device, QAfterFilterCondition>
+      deviceVersionIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'userId',
+        property: r'deviceVersion',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> idIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'id',
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> idIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'id',
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> idEqualTo(Id? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'id',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> idGreaterThan(
+    Id? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'id',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> idLessThan(
+    Id? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'id',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> idBetween(
+    Id? lower,
+    Id? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'id',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> linkingCodeEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'linkingCode',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> linkingCodeGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'linkingCode',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> linkingCodeLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'linkingCode',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> linkingCodeBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'linkingCode',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> linkingCodeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'linkingCode',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> linkingCodeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'linkingCode',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> linkingCodeContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'linkingCode',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> linkingCodeMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'linkingCode',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> linkingCodeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'linkingCode',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> linkingCodeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'linkingCode',
         value: '',
       ));
     });
   }
 }
 
-extension PinQueryObject on QueryBuilder<Pin, Pin, QFilterCondition> {}
+extension DeviceQueryObject on QueryBuilder<Device, Device, QFilterCondition> {}
 
-extension PinQueryLinks on QueryBuilder<Pin, Pin, QFilterCondition> {}
+extension DeviceQueryLinks on QueryBuilder<Device, Device, QFilterCondition> {}
 
-extension PinQuerySortBy on QueryBuilder<Pin, Pin, QSortBy> {
-  QueryBuilder<Pin, Pin, QAfterSortBy> sortByBranchId() {
+extension DeviceQuerySortBy on QueryBuilder<Device, Device, QSortBy> {
+  QueryBuilder<Device, Device, QAfterSortBy> sortByDeviceName() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'branchId', Sort.asc);
+      return query.addSortBy(r'deviceName', Sort.asc);
     });
   }
 
-  QueryBuilder<Pin, Pin, QAfterSortBy> sortByBranchIdDesc() {
+  QueryBuilder<Device, Device, QAfterSortBy> sortByDeviceNameDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'branchId', Sort.desc);
+      return query.addSortBy(r'deviceName', Sort.desc);
     });
   }
 
-  QueryBuilder<Pin, Pin, QAfterSortBy> sortByBusinessId() {
+  QueryBuilder<Device, Device, QAfterSortBy> sortByDeviceVersion() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'businessId', Sort.asc);
+      return query.addSortBy(r'deviceVersion', Sort.asc);
     });
   }
 
-  QueryBuilder<Pin, Pin, QAfterSortBy> sortByBusinessIdDesc() {
+  QueryBuilder<Device, Device, QAfterSortBy> sortByDeviceVersionDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'businessId', Sort.desc);
+      return query.addSortBy(r'deviceVersion', Sort.desc);
     });
   }
 
-  QueryBuilder<Pin, Pin, QAfterSortBy> sortByPhoneNumber() {
+  QueryBuilder<Device, Device, QAfterSortBy> sortByLinkingCode() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'phoneNumber', Sort.asc);
+      return query.addSortBy(r'linkingCode', Sort.asc);
     });
   }
 
-  QueryBuilder<Pin, Pin, QAfterSortBy> sortByPhoneNumberDesc() {
+  QueryBuilder<Device, Device, QAfterSortBy> sortByLinkingCodeDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'phoneNumber', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Pin, Pin, QAfterSortBy> sortByPin() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'pin', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Pin, Pin, QAfterSortBy> sortByPinDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'pin', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Pin, Pin, QAfterSortBy> sortByUserId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'userId', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Pin, Pin, QAfterSortBy> sortByUserIdDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'userId', Sort.desc);
+      return query.addSortBy(r'linkingCode', Sort.desc);
     });
   }
 }
 
-extension PinQuerySortThenBy on QueryBuilder<Pin, Pin, QSortThenBy> {
-  QueryBuilder<Pin, Pin, QAfterSortBy> thenByBranchId() {
+extension DeviceQuerySortThenBy on QueryBuilder<Device, Device, QSortThenBy> {
+  QueryBuilder<Device, Device, QAfterSortBy> thenByDeviceName() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'branchId', Sort.asc);
+      return query.addSortBy(r'deviceName', Sort.asc);
     });
   }
 
-  QueryBuilder<Pin, Pin, QAfterSortBy> thenByBranchIdDesc() {
+  QueryBuilder<Device, Device, QAfterSortBy> thenByDeviceNameDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'branchId', Sort.desc);
+      return query.addSortBy(r'deviceName', Sort.desc);
     });
   }
 
-  QueryBuilder<Pin, Pin, QAfterSortBy> thenByBusinessId() {
+  QueryBuilder<Device, Device, QAfterSortBy> thenByDeviceVersion() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'businessId', Sort.asc);
+      return query.addSortBy(r'deviceVersion', Sort.asc);
     });
   }
 
-  QueryBuilder<Pin, Pin, QAfterSortBy> thenByBusinessIdDesc() {
+  QueryBuilder<Device, Device, QAfterSortBy> thenByDeviceVersionDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'businessId', Sort.desc);
+      return query.addSortBy(r'deviceVersion', Sort.desc);
     });
   }
 
-  QueryBuilder<Pin, Pin, QAfterSortBy> thenById() {
+  QueryBuilder<Device, Device, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
     });
   }
 
-  QueryBuilder<Pin, Pin, QAfterSortBy> thenByIdDesc() {
+  QueryBuilder<Device, Device, QAfterSortBy> thenByIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.desc);
     });
   }
 
-  QueryBuilder<Pin, Pin, QAfterSortBy> thenByPhoneNumber() {
+  QueryBuilder<Device, Device, QAfterSortBy> thenByLinkingCode() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'phoneNumber', Sort.asc);
+      return query.addSortBy(r'linkingCode', Sort.asc);
     });
   }
 
-  QueryBuilder<Pin, Pin, QAfterSortBy> thenByPhoneNumberDesc() {
+  QueryBuilder<Device, Device, QAfterSortBy> thenByLinkingCodeDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'phoneNumber', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Pin, Pin, QAfterSortBy> thenByPin() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'pin', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Pin, Pin, QAfterSortBy> thenByPinDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'pin', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Pin, Pin, QAfterSortBy> thenByUserId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'userId', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Pin, Pin, QAfterSortBy> thenByUserIdDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'userId', Sort.desc);
+      return query.addSortBy(r'linkingCode', Sort.desc);
     });
   }
 }
 
-extension PinQueryWhereDistinct on QueryBuilder<Pin, Pin, QDistinct> {
-  QueryBuilder<Pin, Pin, QDistinct> distinctByBranchId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'branchId');
-    });
-  }
-
-  QueryBuilder<Pin, Pin, QDistinct> distinctByBusinessId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'businessId');
-    });
-  }
-
-  QueryBuilder<Pin, Pin, QDistinct> distinctByPhoneNumber(
+extension DeviceQueryWhereDistinct on QueryBuilder<Device, Device, QDistinct> {
+  QueryBuilder<Device, Device, QDistinct> distinctByDeviceName(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'phoneNumber', caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'deviceName', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Pin, Pin, QDistinct> distinctByPin() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'pin');
-    });
-  }
-
-  QueryBuilder<Pin, Pin, QDistinct> distinctByUserId(
+  QueryBuilder<Device, Device, QDistinct> distinctByDeviceVersion(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'userId', caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'deviceVersion',
+          caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Device, Device, QDistinct> distinctByLinkingCode(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'linkingCode', caseSensitive: caseSensitive);
     });
   }
 }
 
-extension PinQueryProperty on QueryBuilder<Pin, Pin, QQueryProperty> {
-  QueryBuilder<Pin, int, QQueryOperations> idProperty() {
+extension DeviceQueryProperty on QueryBuilder<Device, Device, QQueryProperty> {
+  QueryBuilder<Device, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
     });
   }
 
-  QueryBuilder<Pin, int, QQueryOperations> branchIdProperty() {
+  QueryBuilder<Device, String, QQueryOperations> deviceNameProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'branchId');
+      return query.addPropertyName(r'deviceName');
     });
   }
 
-  QueryBuilder<Pin, int, QQueryOperations> businessIdProperty() {
+  QueryBuilder<Device, String, QQueryOperations> deviceVersionProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'businessId');
+      return query.addPropertyName(r'deviceVersion');
     });
   }
 
-  QueryBuilder<Pin, String, QQueryOperations> phoneNumberProperty() {
+  QueryBuilder<Device, String, QQueryOperations> linkingCodeProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'phoneNumber');
-    });
-  }
-
-  QueryBuilder<Pin, int, QQueryOperations> pinProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'pin');
-    });
-  }
-
-  QueryBuilder<Pin, String, QQueryOperations> userIdProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'userId');
+      return query.addPropertyName(r'linkingCode');
     });
   }
 }
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+Device _$DeviceFromJson(Map<String, dynamic> json) => Device(
+      linkingCode: json['linkingCode'] as String,
+      deviceName: json['deviceName'] as String,
+      deviceVersion: json['deviceVersion'] as String,
+    )..id = json['id'] as int?;
+
+Map<String, dynamic> _$DeviceToJson(Device instance) => <String, dynamic>{
+      'id': instance.id,
+      'linkingCode': instance.linkingCode,
+      'deviceName': instance.deviceName,
+      'deviceVersion': instance.deviceVersion,
+    };
