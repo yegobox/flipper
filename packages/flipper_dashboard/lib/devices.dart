@@ -145,9 +145,11 @@ class Devices extends StatelessWidget {
                     shrinkWrap: true,
                     itemCount: snapshot.data!.length,
                     itemBuilder: (context, index) {
-                      // I need an image at left, name of device in the middle and a button to remove the device at right
                       return ListTile(
-                        leading: Icon(Icons.devices),
+                        leading: Image.asset(
+                          'assets/${snapshot.data![index].deviceName}.png',
+                          package: 'flipper_dashboard',
+                        ),
                         title: Text(snapshot.data![index].deviceName),
                         subtitle: Text(snapshot.data![index].deviceVersion),
                         trailing: IconButton(

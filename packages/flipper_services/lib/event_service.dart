@@ -93,7 +93,7 @@ class EventService implements EventInterface {
         // publish the device name and version
         publish(
           loginDetails: {
-            'channel': 'login',
+            'channel': 'device',
             'deviceName': deviceName,
             'deviceVersion': deviceVersion,
             'linkingCode': linkingCode,

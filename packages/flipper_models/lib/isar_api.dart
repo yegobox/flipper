@@ -2336,6 +2336,10 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Stream<List<Device>> getDevices({required int businessId}) {
     // get device from isar with linking code and return it
-    return isar.devices.filter().busienssIdEqualTo(businessId).build().watch();
+    return isar.devices
+        .filter()
+        .busienssIdEqualTo(businessId)
+        .build()
+        .watch(fireImmediately: true);
   }
 }
