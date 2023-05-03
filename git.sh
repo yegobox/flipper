@@ -5,14 +5,11 @@ cd .. && cd flutter.widgets &&  git checkout main  && git add . && git commit -a
 # cd .. && cd open_file &&  git checkout main && git commit -am "clean-up" && git push origin main
 cd .. && cd qr.flutter &&  git checkout main  && git add . && git commit -am "clean-up" && git push origin main
 cd .. && cd receipt &&  git checkout main  && git add .   && git commit -am "clean-up" && git push origin main
-cd .. && cd dart_pdf &&  git checkout main  && git add . && git commit -am "clean-up" && git push origin main
 cd .. && cd kds &&  git checkout master  && git add . && git commit -am "clean-up" && git push origin master
 cd .. && cd qr_code_scanner &&  git checkout master  && git add . && git commit -am "clean-up" && git push origin master
 cd .. && cd pubnub &&  git checkout master  && git add . && git commit -am "clean-up" && git push origin master
 cd .. && cd upgrader &&  git checkout master  && git add . && git commit -am "clean-up" && git push origin master
 cd .. && cd system_time_check &&  git checkout main  && git add . && git commit -am "clean-up" && git push origin main
-cd .. && cd flutter_file_picker &&  git checkout master  && git add . && git commit -am "clean-up" && git push origin master
-cd .. && cd animated_toggle_switch &&  git checkout  && git add .  && git commit -am "clean-up" && git push origin main
 cd .. && cd animated_toggle_switch &&  git checkout  && git add .  && git commit -am "clean-up" && git push origin main
 cd .. && cd flutter_list_drag_and_drop &&  git checkout main  && git add .  && git commit -am "clean-up" && git push origin main
 cd .. && cd flutterfire_desktop &&  git checkout main  && git add .  && git commit -am "clean-up" && git push origin main
