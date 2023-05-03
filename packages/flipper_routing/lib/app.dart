@@ -54,7 +54,7 @@ import 'all_routes.dart';
   dialogs: [
     StackedDialog(classType: InfoAlertDialog),
     StackedDialog(classType: AppCenter),
-    //   // @stacked-dialog
+    StackedDialog(classType: LogOut),
   ],
   logger: StackedLogger(),
 )

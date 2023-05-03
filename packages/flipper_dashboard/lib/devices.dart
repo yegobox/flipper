@@ -1,5 +1,6 @@
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
@@ -11,6 +12,7 @@ class Devices extends StatelessWidget {
   Devices({Key? key, this.pin}) : super(key: key);
   final int? pin;
   final _routerService = locator<RouterService>();
+  final _dialogService = locator<DialogService>();
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -155,8 +157,10 @@ class Devices extends StatelessWidget {
                         trailing: IconButton(
                           icon: Icon(Icons.delete),
                           onPressed: () {
-                            // ProxyService.isarApi.deleteDevice(
-                            //     id: snapshot.data![index].id);
+                            _dialogService.showCustomDialog(
+                                variant: DialogType.logOut,
+                                title: 'Log out',
+                                data: snapshot.data![index]);
                           },
                         ),
                       );

@@ -39,4 +39,5 @@ export 'package:flipper_socials/ui/views/chat_list/chat_list_view.dart';
 export 'package:flipper_socials/ui/views/conversation_historty/conversation_history.mobile.dart';
 export 'package:flipper_socials/ui/bottom_sheets/notice/notice_sheet.dart';
 export 'package:flipper_socials/ui/dialogs/app_center/app_center.dart';
+export 'package:flipper_dashboard/logout/logout.dart';
 export 'package:flipper_socials/ui/dialogs/info_alert/info_alert_dialog.dart';
