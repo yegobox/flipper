@@ -54,6 +54,8 @@ class EventService implements EventInterface {
         LoginData loginData = LoginData.fromMap(envelope.payload);
         if (ProxyService.box.getUserId() != null &&
             loginData.userId == ProxyService.box.getUserId()) {
+          ///TODO: work on making sure only specific device with specific linkingCode
+          ///is the one logged out not all device, but leaving it now as it is not top priority
           await FirebaseAuth.instance.signOut();
           ProxyService.isarApi.logOut();
           _routerService.clearStackAndShow(LoginViewRoute());
@@ -104,6 +106,17 @@ class EventService implements EventInterface {
             'defaultApp': loginData.defaultApp,
           },
         );
+        Device? device = await ProxyService.isarApi
+            .getDevice(linkingCode: loginData.linkingCode);
+
+        if (device == null) {
+          await ProxyService.isarApi.create(
+              data: Device(
+                  busienssId: loginData.businessId,
+                  linkingCode: loginData.linkingCode,
+                  deviceName: deviceName,
+                  deviceVersion: deviceVersion));
+        }
         await ProxyService.isarApi
             .login(userPhone: loginData.phone, skipDefaultAppSetup: true);
         await FirebaseAuth.instance.signInAnonymously();
