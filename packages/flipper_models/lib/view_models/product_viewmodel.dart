@@ -392,7 +392,7 @@ class ProductViewModel extends AddTenantViewModel {
       Stock? stock =
           await ProxyService.isarApi.stockByVariantId(variantId: variation.id!);
       if (stock != null) {
-        await ProxyService.isarApi.delete(id: stock.id, endPoint: 'stock');
+        await ProxyService.isarApi.delete(id: stock.id!, endPoint: 'stock');
       }
     }
     //then delete the product
