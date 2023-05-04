@@ -2313,7 +2313,7 @@ class IsarAPI<M> implements IsarApiInterface {
       Setting setting = Setting.fromJson(jsonDecode(response.body));
       return setting;
     }
-    throw Exception("Can't get social setting to patch");
+    throw Exception("Can't get social setting with phone number: $phoneNumber");
   }
 
   @override
