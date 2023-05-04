@@ -7,8 +7,6 @@ import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:flutter/foundation.dart';
-import 'package:flipper_routing/app.locator.dart';
-import 'package:stacked_services/stacked_services.dart';
 
 abstract class Messaging {
   Future<void> initializeFirebaseMessagingAndSubscribeToBusinessNotifications();
@@ -42,7 +40,7 @@ class FirebaseMessagingDesktop implements Messaging {
 
 class FirebaseMessagingService implements Messaging {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
-  final _routerService = locator<RouterService>();
+  // final _routerService = locator<RouterService>();
   final appService = loc.locator<AppService>();
   @override
   Future<void>
