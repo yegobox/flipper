@@ -122,7 +122,7 @@ void main() async {
         child: ChangeNotifierProvider(
           create: (_) => LoginInfo(),
           child: MaterialApp.router(
-            debugShowCheckedModeBanner: false,
+            debugShowCheckedModeBanner: true,
             title: 'flipper',
             // Define the light theme for the app, based on defined colors and
             // properties above.
