@@ -95,7 +95,9 @@ class MessageDisplayMobile extends StatelessWidget {
             final Conversation? lastConversation =
                 conversations.isNotEmpty ? conversations.last : null;
             return Text(
-              lastConversation!.body,
+              lastConversation!.body.length > 40
+                  ? lastConversation.body.substring(0, 40) + "..."
+                  : lastConversation.body,
               style: GoogleFonts.poppins(
                 fontSize: 17.0,
                 fontWeight: FontWeight.w300,

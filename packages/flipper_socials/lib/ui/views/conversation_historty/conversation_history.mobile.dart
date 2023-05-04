@@ -6,6 +6,7 @@ import 'package:flipper_socials/ui/widgets/chat_widget.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
 
 class ConversationHistory extends StatefulWidget {
@@ -49,7 +50,12 @@ class _ConversationHistoryState extends State<ConversationHistory>
         builder: (build, viewModel, child) {
           return Scaffold(
             appBar: AppBar(
-              title: const Text('Conversation History'),
+              title: Text('Conversation History',
+                  style: GoogleFonts.poppins(
+                    fontSize: 17.0,
+                    fontWeight: FontWeight.w300,
+                    color: Colors.black,
+                  )),
             ),
             body: Column(
               children: [
@@ -80,7 +86,8 @@ class _ConversationHistoryState extends State<ConversationHistory>
                       }
                     }),
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0, right: 10),
+                  padding:
+                      const EdgeInsets.only(bottom: 8.0, right: 10, left: 10),
                   child: TextFormField(
                       controller: _conversationController,
                       decoration: InputDecoration(
