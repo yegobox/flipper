@@ -2305,6 +2305,7 @@ class IsarAPI<M> implements IsarApiInterface {
     /// a hack to delay 20 seconds for theserver to not return forbidden as we have called the aws api before
     /// so we need to wait 20 seconds to make another call, I will need to investigate on server later
     await Future.delayed(Duration(seconds: 20));
+    int businessId = ProxyService.box.getBusinessId()!;
     final http.Response response =
         await socialsHttpClient.patch(Uri.parse("$commApi/settings"),
             body: json.encode({
@@ -2312,7 +2313,7 @@ class IsarAPI<M> implements IsarApiInterface {
               "businessPhoneNumber": setting.businessPhoneNumber,
               "enrolledInBot": setting.enrolledInBot,
               "autoRespond": setting.autoRespond,
-              "businessId": setting.businessId,
+              "businessId": businessId,
               "deviceToken": setting.deviceToken
             }));
     // convert response to Setting
