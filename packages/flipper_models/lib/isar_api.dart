@@ -2271,22 +2271,6 @@ class IsarAPI<M> implements IsarApiInterface {
         .build()
         .findFirst();
     if (token == null) {
-      /// if there is past token saved we delete them
-      /// this code may not be exucuted in normal scenario as we will have one
-      /// entry of token of same kind, but it is kept here because when we
-      /// generate token we always create not update
-      List<Token?> tokens = await isar.tokens
-          .filter()
-          .typeEqualTo(tokenType)
-          .and()
-          .businessIdEqualTo(businessId)
-          .build()
-          .findAll();
-      List<int> ids = tokens.map((e) => e!.id).toList();
-
-      isar.writeTxn(() async {
-        await isar.tokens.deleteAll(ids);
-      });
       return false;
     }
     // compare validFrom and ValidUntil from token
@@ -2317,17 +2301,25 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Setting> patchSocialSetting({required Setting setting}) async {
-    final http.Response response = await socialsHttpClient.patch(
-        Uri.parse("$commApi/settings"),
-        body: json.encode(setting.toJson()));
+  Future<void> patchSocialSetting({required Setting setting}) async {
+    /// a hack to delay 20 seconds for theserver to not return forbidden as we have called the aws api before
+    /// so we need to wait 20 seconds to make another call, I will need to investigate on server later
+    await Future.delayed(Duration(seconds: 20));
+    final http.Response response =
+        await socialsHttpClient.patch(Uri.parse("$commApi/settings"),
+            body: json.encode({
+              "token": setting.token,
+              "businessPhoneNumber": setting.businessPhoneNumber,
+              "enrolledInBot": setting.enrolledInBot,
+              "autoRespond": setting.autoRespond,
+              "businessId": setting.businessId,
+              "deviceToken": setting.deviceToken
+            }));
     // convert response to Setting
-    if (response.statusCode == 200) {
-      Setting setting = Setting.fromJson(jsonDecode(response.body));
-      return setting;
+    if (response.statusCode != 200) {
+      throw Exception(
+          "Can't  patch  settings patch ${response.body}${setting.toJson()}");
     }
-    // add more data to sentry
-    throw Exception("Can't  patch  settings patch ${response.body}${setting}");
   }
 
   @override

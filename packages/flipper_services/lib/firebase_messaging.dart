@@ -49,24 +49,24 @@ class FirebaseMessagingService implements Messaging {
         .subscribeToTopic(ProxyService.box.getBusinessId()!.toString());
     String? _token = await token();
     log(_token!, name: "deviceToken");
-    if (ProxyService.box.getIsTokenRegistered() == null) {
-      if (await appService.isSocialLoggedin() && !kDebugMode) {
-        Setting setting = await ProxyService.isarApi.getSocialSetting();
-        setting.deviceToken = _token;
-        setting.token = setting.bToken;
-        ProxyService.isarApi.patchSocialSetting(setting: setting);
-      }
-      if (!kDebugMode) {
-        try {
-          ProxyService.remoteApi.create(collection: {
-            "deviceToken": _token,
-            "businessId": ProxyService.box.getBusinessId()!
-          }, collectionName: 'messagings');
-        } catch (e) {
-          ProxyService.box.write(key: 'getIsTokenRegistered', value: true);
-        }
+    // if (ProxyService.box.getIsTokenRegistered() == null) {
+    if (await appService.isSocialLoggedin()) {
+      Setting setting = await ProxyService.isarApi.getSocialSetting();
+      setting.deviceToken = _token;
+      setting.token = setting.bToken;
+      ProxyService.isarApi.patchSocialSetting(setting: setting);
+    }
+    if (!kDebugMode) {
+      try {
+        ProxyService.remoteApi.create(collection: {
+          "deviceToken": _token,
+          "businessId": ProxyService.box.getBusinessId()!
+        }, collectionName: 'messagings');
+      } catch (e) {
+        ProxyService.box.write(key: 'getIsTokenRegistered', value: true);
       }
     }
+    // }
   }
 
   @override
