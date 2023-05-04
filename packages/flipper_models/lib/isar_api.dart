@@ -601,11 +601,17 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<bool> delete({required id, String? endPoint}) {
+  Future<bool> delete({required int id, String? endPoint}) {
     switch (endPoint) {
       case 'color':
         isar.writeTxn(() async {
           await isar.pColors.delete(id);
+          return true;
+        });
+        break;
+      case 'device':
+        isar.writeTxn(() async {
+          await isar.devices.delete(id);
           return true;
         });
         break;

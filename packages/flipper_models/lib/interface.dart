@@ -26,7 +26,7 @@ abstract class IsarApiInterface {
   Future<T?> create<T>({required T data});
   Future<T?> update<T>({required T data});
 
-  Future<bool> delete({required dynamic id, String? endPoint});
+  Future<bool> delete({required int id, String? endPoint});
   Future<PColor?> getColor({required int id, String? endPoint});
   Future<Stock?> getStock({required int branchId, required int variantId});
   Future<List<Variant>> variants({

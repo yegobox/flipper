@@ -96,3 +96,5 @@ class App {}
 // https://docs.getwidget.dev/gf-app-bar/
 // https://pub.dev/packages/getwidget
 // TODO: add profile picture on user https://firebase.google.com/docs/auth/flutter/manage-users
+// when can not install local generated msix file https://www.advancedinstaller.com/install-test-certificate-from-msix.html
+// https://github.com/YehudaKremer/msix/issues/191

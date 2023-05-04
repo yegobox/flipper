@@ -93,6 +93,11 @@ class LogOut extends StackedView<LogoutModel> {
                             'deviceVersion': device.deviceVersion,
                             'linkingCode': device.linkingCode,
                           });
+                          // delete device
+                          ProxyService.isarApi.delete(
+                            endPoint: 'device',
+                            id: device.id!,
+                          );
                         }
                       },
                       child: const Text(
