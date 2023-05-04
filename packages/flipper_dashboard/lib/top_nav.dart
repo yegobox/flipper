@@ -10,7 +10,7 @@ AppBar topNavigationBar(BuildContext context, GlobalKey<ScaffoldState> key,
                 Padding(
                   padding: const EdgeInsets.only(left: 16),
                   child: Image.asset(
-                    "assets/icons/logo.png",
+                    "assets/logo.png",
                     width: 28,
                   ),
                 ),

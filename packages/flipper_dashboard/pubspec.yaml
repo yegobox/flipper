@@ -89,6 +89,5 @@ flutter:
   uses-material-design: true
   assets:
     - ./assets/
-    - ../../assets/icons/
     - ../../google_fonts/
 generate: true

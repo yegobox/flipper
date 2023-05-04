@@ -90,24 +90,24 @@ dev_dependencies:
   flutter_lints: ^2.0.0
   # Can't use this package because it depend on cli_util that is too old than what other packages use
   # melos: ^3.0.1
-flutter_icons:
-  android: "launcher_icon"
+flutter_launcher_icons:
+  android: true
   ios: true
   remove_alpha_ios: true
-  image_path: "assets/icon/icon.png"
+  image_path: "assets/icon.png"
   min_sdk_android: 21
   web:
     generate: true
-    image_path: "assets/icon/icon.png"
-    background_color: "#1ABCFE"
-    theme_color: "#1ABCFE"
+    image_path: "assets/icon.png"
+    # background_color: "#1ABCFE"
+    # theme_color: "#1ABCFE"
   windows:
     generate: true
-    image_path: "assets/icon/icon.png"
-    icon_size: 48 # min:48, max:256, default: 48
+    # image_path: "assets/icon/icon.png"
+    # icon_size: 48 # min:48, max:256, default: 48
   macos:
     generate: true
-    image_path: "assets/icon/icon.png"
+    image_path: "assets/icon.png"
 msix_config:
   display_name: flipperApp
   app_installer: #<-- app installer configuration
@@ -119,11 +119,11 @@ msix_config:
     force_update_from_any_version: true
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
-  msix_version: 1.170.99.0
+  msix_version: 1.170.100.0
   publisher: CN=B0F98A1E-8AE8-4B2B-BD1B-F494D4F791AE
-  logo_path: "./assets/icon/icon.png"
-  start_menu_icon_path: "/assets/icon/icon.png"
-  tile_icon_path: "./assets/icon/icon.png"
+  logo_path: "./assets/icon.png"
+  start_menu_icon_path: "/assets/icon.png"
+  tile_icon_path: "./assets/icon.png"
   icons_background_color: #ffffff
   architecture: x64
   store: false
@@ -137,11 +137,11 @@ flutter:
   #     libraries:
   #       # Only one library from the loading unit is necessary.
   #       - package:flipper_finance/app.dart
+  # flutter pub run flutter_launcher_icons
   uses-material-design: true
   assets:
     - assets/logo.png
     - assets/
-    - assets/icons/
     - google_fonts/
 generate: true
 flutter_native_splash:
