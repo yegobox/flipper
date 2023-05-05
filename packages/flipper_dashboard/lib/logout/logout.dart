@@ -98,6 +98,8 @@ class LogOut extends StackedView<LogoutModel> {
                             endPoint: 'device',
                             id: device.id!,
                           );
+                          // close the dialog
+                          completer(DialogResponse(confirmed: true));
                         }
                       },
                       child: const Text(

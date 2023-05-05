@@ -2073,7 +2073,7 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<List<BusinessType>> businessTypes() async {
     final responseJson = [
-      {"id": 1, "typeName": "Flipper Supplier"},
+      {"id": 1, "typeName": "Flipper Retailer"},
       {"id": 2, "typeName": "Flipper Connecta"},
       // {"id": 3, "typeName": "Retailer"},
       // {"id": 4, "typeName": "Agent"}
