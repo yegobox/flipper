@@ -16,7 +16,6 @@ dependencies:
   universal_platform: ^1.0.0+1
   stacked_services: ^1.0.0
   firebase_auth: ^4.2.10
-
   stacked: ^3.2.0
   built_value: ^8.1.4
   azlistview: ^2.0.0
@@ -31,8 +30,8 @@ dependencies:
   pocketbase: ^0.7.2
   stock: ^1.0.1
   sentry_flutter: ^6.9.1
-
   path_provider: ^2.0.14
+  http: ^0.13.6
 dev_dependencies:
   build_runner: ^2.0.0
   json_serializable: ^6.6.0

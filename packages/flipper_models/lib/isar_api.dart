@@ -1120,11 +1120,8 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<IUser> login(
       {required String userPhone, required bool skipDefaultAppSetup}) async {
-    final response = await http.post(
+    final response = await flipperHttpClient.post(
       Uri.parse(apihub + '/v2/api/user'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
       body: jsonEncode(
         <String, String>{'phoneNumber': userPhone},
       ),

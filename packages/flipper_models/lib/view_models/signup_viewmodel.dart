@@ -147,7 +147,7 @@ class SignupViewModel extends ReactiveViewModel {
         await ProxyService.isarApi.addUnits(data: units);
 
         //now create a default custom product
-        ProxyService.forceDateEntry.caller();
+        ProxyService.forceDateEntry.dataBootstrapper();
         // TODO: need to figureout the purchase of credit later.
         // ProxyService.whatsApp.optIn();
 

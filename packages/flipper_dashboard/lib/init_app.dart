@@ -86,6 +86,6 @@ class InitApp {
     //     });
     //   }
     // }
-    ProxyService.forceDateEntry.caller();
+    ProxyService.forceDateEntry.dataBootstrapper();
   }
 }
