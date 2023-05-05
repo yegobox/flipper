@@ -22,13 +22,13 @@ class FlipperHttpClient extends http.BaseClient {
     };
     request.headers.addAll(headers);
 
-    const retries = 10;
+    const retries = 3;
 
     var retryClient = RetryClient(_inner, retries: retries);
 
     try {
       http.StreamedResponse response = await retryClient.send(request);
-      retryClient.close();
+
       return response;
     } on SocketException catch (e) {
       print('Failed to connect: ${e.message}');

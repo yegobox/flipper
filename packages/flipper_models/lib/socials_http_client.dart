@@ -26,7 +26,6 @@ class SocialsHttpClient extends http.BaseClient {
 
     try {
       http.StreamedResponse response = await retryClient.send(request);
-      retryClient.close();
       return response;
     } on SocketException catch (e) {
       print('Failed to connect: ${e.message}');

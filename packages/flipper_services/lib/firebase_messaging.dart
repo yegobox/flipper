@@ -51,7 +51,8 @@ class FirebaseMessagingService implements Messaging {
     log(_token!, name: "deviceToken");
     // if (ProxyService.box.getIsTokenRegistered() == null) {
     if (await appService.isSocialLoggedin()) {
-      Setting setting = await ProxyService.isarApi.getSocialSetting();
+      Setting? setting = await ProxyService.isarApi.getSocialSetting();
+      if (setting == null) return;
       setting.deviceToken = _token;
       setting.token = setting.bToken;
       ProxyService.isarApi.patchSocialSetting(setting: setting);

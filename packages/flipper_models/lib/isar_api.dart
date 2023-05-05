@@ -1128,7 +1128,10 @@ class IsarAPI<M> implements IsarApiInterface {
     );
     if (response.statusCode == 200 && response.body.isNotEmpty) {
       IUser syncF = IUser.fromRawJson(response.body);
-
+      await ProxyService.box.write(
+        key: 'userPhone',
+        value: userPhone,
+      );
       await ProxyService.box.write(
         key: 'bearerToken',
         value: syncF.token,
@@ -1166,10 +1169,6 @@ class IsarAPI<M> implements IsarApiInterface {
         );
       }
 
-      await ProxyService.box.write(
-        key: 'userPhone',
-        value: userPhone,
-      );
       if (syncF.tenants.isEmpty) {
         throw BusinessNotFoundException(
             term:
@@ -2285,10 +2284,13 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Setting> getSocialSetting() async {
-    String phoneNumber = ProxyService.box.getUserPhone()!.replaceAll("+", "");
+  Future<Setting?> getSocialSetting() async {
+    String? phoneNumber = ProxyService.box.getUserPhone();
+    if (phoneNumber == null) {
+      return null;
+    }
     final http.Response response = await socialsHttpClient
-        .get(Uri.parse("$commApi/settings/$phoneNumber"));
+        .get(Uri.parse("$commApi/settings/${phoneNumber.replaceAll("+", "")}"));
     // convert response to Setting
     if (response.statusCode == 200) {
       Setting setting = Setting.fromJson(jsonDecode(response.body));
