@@ -52,9 +52,6 @@ class InitApp {
       ProxyService.event.subscribeToMessages(
           channel: ProxyService.box.getBusinessId()!.toString());
     }
-    if (!isDesktopOrWeb) {
-      ProxyService.event.subscribeToDeviceEvent(channel: 'device');
-    }
 
     /// to avoid receiving the message of the contact you don't have in your book
     /// we need to load contacts when the app starts.
