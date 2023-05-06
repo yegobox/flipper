@@ -2289,14 +2289,15 @@ class IsarAPI<M> implements IsarApiInterface {
     if (phoneNumber == null) {
       return null;
     }
-    final http.Response response = await socialsHttpClient
-        .get(Uri.parse("$commApi/settings/${phoneNumber.replaceAll("+", "")}"));
+    final number = phoneNumber.replaceAll("+", "");
+    final http.Response response =
+        await socialsHttpClient.get(Uri.parse("$commApi/settings/$number"));
     // convert response to Setting
     if (response.statusCode == 200) {
       Setting setting = Setting.fromJson(jsonDecode(response.body));
       return setting;
     }
-    throw Exception("Can't get social setting with phone number: $phoneNumber");
+    throw Exception("Can't get social setting ${response.body}${number}");
   }
 
   @override
