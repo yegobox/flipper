@@ -86,6 +86,21 @@ class _DesktopLoginViewState extends State<DesktopLoginView> {
                   size: 200.0,
                 ),
               ),
+              StreamBuilder<bool>(
+                stream: ProxyService.event.isLoadingStream(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData && snapshot.data!) {
+                    // Show loader widget
+                    return Text(
+                      'Logging in ...',
+                      style: TextStyle(color: Colors.green),
+                    );
+                  } else {
+                    // Show an empty container widget
+                    return SizedBox.shrink();
+                  }
+                },
+              ),
               Padding(
                 padding: const EdgeInsets.only(left: 120.0),
                 child: SizedBox(

@@ -52,6 +52,7 @@ class CronService {
     Timer.periodic(Duration(seconds: kDebugMode ? 10 : 10), (Timer t) async {
       /// get unsynced counter and send them online for houseKeping.
       ProxyService.isarApi.sendScheduleMessages();
+      ProxyService.event.keepTryingPublishDevice();
     });
     Timer.periodic(Duration(minutes: kDebugMode ? 1 : 10), (Timer t) async {
       /// get unsynced counter and send them online for houseKeping.

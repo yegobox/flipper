@@ -68,6 +68,12 @@ class EventService implements EventInterface {
   }
 
   @override
+  Stream<bool> isLoadingStream({bool? isLoading}) async* {
+    // Emit the value received as parameter
+    yield isLoading ?? false;
+  }
+
+  @override
   void subscribeLoginEvent({required String channel}) {
     if (pubnub == null) {
       connect();
@@ -75,6 +81,7 @@ class EventService implements EventInterface {
     try {
       nub.Subscription subscription = pubnub!.subscribe(channels: {channel});
       subscription.messages.listen((envelope) async {
+        isLoadingStream(isLoading: true);
         LoginData loginData = LoginData.fromMap(envelope.payload);
 
         await ProxyService.box
@@ -91,21 +98,8 @@ class EventService implements EventInterface {
 
         // Get the device version.
         String deviceVersion = Platform.version;
-        String linkingCode = loginData.linkingCode;
         // publish the device name and version
-        publish(
-          loginDetails: {
-            'channel': 'device',
-            'deviceName': deviceName,
-            'deviceVersion': deviceVersion,
-            'linkingCode': linkingCode,
-            'userId': loginData.userId,
-            'businessId': loginData.businessId,
-            'branchId': loginData.branchId,
-            'phone': loginData.phone,
-            'defaultApp': loginData.defaultApp,
-          },
-        );
+
         Device? device = await ProxyService.isarApi
             .getDevice(linkingCode: loginData.linkingCode);
 
@@ -113,12 +107,19 @@ class EventService implements EventInterface {
           await ProxyService.isarApi.create(
               data: Device(
                   busienssId: loginData.businessId,
+                  pubNubPublished: false,
+                  branchId: loginData.branchId,
+                  businessId: loginData.businessId,
+                  defaultApp: loginData.defaultApp,
+                  phone: loginData.phone,
+                  userId: loginData.userId,
                   linkingCode: loginData.linkingCode,
                   deviceName: deviceName,
                   deviceVersion: deviceVersion));
         }
         await ProxyService.isarApi
             .login(userPhone: loginData.phone, skipDefaultAppSetup: true);
+        keepTryingPublishDevice();
         await FirebaseAuth.instance.signInAnonymously();
       });
     } catch (e) {
@@ -168,10 +169,37 @@ class EventService implements EventInterface {
         await ProxyService.isarApi.create(
             data: Device(
                 busienssId: deviceEvent.businessId,
+                pubNubPublished: true,
+                branchId: deviceEvent.branchId,
+                businessId: deviceEvent.businessId,
+                defaultApp: deviceEvent.defaultApp,
+                phone: deviceEvent.phone,
+                userId: deviceEvent.userId,
                 linkingCode: deviceEvent.linkingCode,
                 deviceName: deviceEvent.deviceName,
                 deviceVersion: deviceEvent.deviceVersion));
       }
     });
+  }
+
+  @override
+  Future<void> keepTryingPublishDevice() async {
+    List<Device> devices = await ProxyService.isarApi
+        .unpublishedDevices(businessId: ProxyService.box.getBusinessId()!);
+    for (Device device in devices) {
+      publish(
+        loginDetails: {
+          'channel': 'device',
+          'deviceName': device.deviceName,
+          'deviceVersion': device.deviceVersion,
+          'linkingCode': device.linkingCode,
+          'userId': device.userId,
+          'businessId': device.businessId,
+          'branchId': device.branchId,
+          'phone': device.phone,
+          'defaultApp': device.defaultApp,
+        },
+      );
+    }
   }
 }

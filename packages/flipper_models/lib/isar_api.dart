@@ -2342,4 +2342,15 @@ class IsarAPI<M> implements IsarApiInterface {
         .build()
         .watch(fireImmediately: true);
   }
+
+  @override
+  Future<List<Device>> unpublishedDevices({required int businessId}) async {
+    return await isar.devices
+        .filter()
+        .busienssIdEqualTo(businessId)
+        .and()
+        .pubNubPublishedEqualTo(false)
+        .build()
+        .findAll();
+  }
 }

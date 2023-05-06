@@ -7,4 +7,6 @@ abstract class EventInterface {
   nub.PubNub connect();
   void subscribeToMessages({required String channel});
   void subscribeToDeviceEvent({required String channel});
+  Stream<bool> isLoadingStream({bool? isLoading});
+  Future<void> keepTryingPublishDevice();
 }

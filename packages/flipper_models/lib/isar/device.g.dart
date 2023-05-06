@@ -17,25 +17,55 @@ const DeviceSchema = CollectionSchema(
   name: r'Device',
   id: 3491430514663294648,
   properties: {
-    r'busienssId': PropertySchema(
+    r'branchId': PropertySchema(
       id: 0,
+      name: r'branchId',
+      type: IsarType.long,
+    ),
+    r'busienssId': PropertySchema(
+      id: 1,
       name: r'busienssId',
       type: IsarType.long,
     ),
+    r'businessId': PropertySchema(
+      id: 2,
+      name: r'businessId',
+      type: IsarType.long,
+    ),
+    r'defaultApp': PropertySchema(
+      id: 3,
+      name: r'defaultApp',
+      type: IsarType.long,
+    ),
     r'deviceName': PropertySchema(
-      id: 1,
+      id: 4,
       name: r'deviceName',
       type: IsarType.string,
     ),
     r'deviceVersion': PropertySchema(
-      id: 2,
+      id: 5,
       name: r'deviceVersion',
       type: IsarType.string,
     ),
     r'linkingCode': PropertySchema(
-      id: 3,
+      id: 6,
       name: r'linkingCode',
       type: IsarType.string,
+    ),
+    r'phone': PropertySchema(
+      id: 7,
+      name: r'phone',
+      type: IsarType.string,
+    ),
+    r'pubNubPublished': PropertySchema(
+      id: 8,
+      name: r'pubNubPublished',
+      type: IsarType.bool,
+    ),
+    r'userId': PropertySchema(
+      id: 9,
+      name: r'userId',
+      type: IsarType.long,
     )
   },
   estimateSize: _deviceEstimateSize,
@@ -61,6 +91,7 @@ int _deviceEstimateSize(
   bytesCount += 3 + object.deviceName.length * 3;
   bytesCount += 3 + object.deviceVersion.length * 3;
   bytesCount += 3 + object.linkingCode.length * 3;
+  bytesCount += 3 + object.phone.length * 3;
   return bytesCount;
 }
 
@@ -70,10 +101,16 @@ void _deviceSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeLong(offsets[0], object.busienssId);
-  writer.writeString(offsets[1], object.deviceName);
-  writer.writeString(offsets[2], object.deviceVersion);
-  writer.writeString(offsets[3], object.linkingCode);
+  writer.writeLong(offsets[0], object.branchId);
+  writer.writeLong(offsets[1], object.busienssId);
+  writer.writeLong(offsets[2], object.businessId);
+  writer.writeLong(offsets[3], object.defaultApp);
+  writer.writeString(offsets[4], object.deviceName);
+  writer.writeString(offsets[5], object.deviceVersion);
+  writer.writeString(offsets[6], object.linkingCode);
+  writer.writeString(offsets[7], object.phone);
+  writer.writeBool(offsets[8], object.pubNubPublished);
+  writer.writeLong(offsets[9], object.userId);
 }
 
 Device _deviceDeserialize(
@@ -83,10 +120,16 @@ Device _deviceDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Device(
-    busienssId: reader.readLong(offsets[0]),
-    deviceName: reader.readString(offsets[1]),
-    deviceVersion: reader.readString(offsets[2]),
-    linkingCode: reader.readString(offsets[3]),
+    branchId: reader.readLong(offsets[0]),
+    busienssId: reader.readLong(offsets[1]),
+    businessId: reader.readLong(offsets[2]),
+    defaultApp: reader.readLong(offsets[3]),
+    deviceName: reader.readString(offsets[4]),
+    deviceVersion: reader.readString(offsets[5]),
+    linkingCode: reader.readString(offsets[6]),
+    phone: reader.readString(offsets[7]),
+    pubNubPublished: reader.readBool(offsets[8]),
+    userId: reader.readLong(offsets[9]),
   );
   object.id = id;
   return object;
@@ -102,11 +145,23 @@ P _deviceDeserializeProp<P>(
     case 0:
       return (reader.readLong(offset)) as P;
     case 1:
-      return (reader.readString(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 2:
-      return (reader.readString(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 3:
+      return (reader.readLong(offset)) as P;
+    case 4:
       return (reader.readString(offset)) as P;
+    case 5:
+      return (reader.readString(offset)) as P;
+    case 6:
+      return (reader.readString(offset)) as P;
+    case 7:
+      return (reader.readString(offset)) as P;
+    case 8:
+      return (reader.readBool(offset)) as P;
+    case 9:
+      return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -200,6 +255,59 @@ extension DeviceQueryWhere on QueryBuilder<Device, Device, QWhereClause> {
 }
 
 extension DeviceQueryFilter on QueryBuilder<Device, Device, QFilterCondition> {
+  QueryBuilder<Device, Device, QAfterFilterCondition> branchIdEqualTo(
+      int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'branchId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> branchIdGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'branchId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> branchIdLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'branchId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> branchIdBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'branchId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<Device, Device, QAfterFilterCondition> busienssIdEqualTo(
       int value) {
     return QueryBuilder.apply(this, (query) {
@@ -245,6 +353,112 @@ extension DeviceQueryFilter on QueryBuilder<Device, Device, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
         property: r'busienssId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> businessIdEqualTo(
+      int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'businessId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> businessIdGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'businessId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> businessIdLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'businessId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> businessIdBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'businessId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> defaultAppEqualTo(
+      int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'defaultApp',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> defaultAppGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'defaultApp',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> defaultAppLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'defaultApp',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> defaultAppBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'defaultApp',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -711,6 +925,198 @@ extension DeviceQueryFilter on QueryBuilder<Device, Device, QFilterCondition> {
       ));
     });
   }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> phoneEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'phone',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> phoneGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'phone',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> phoneLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'phone',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> phoneBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'phone',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> phoneStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'phone',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> phoneEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'phone',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> phoneContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'phone',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> phoneMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'phone',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> phoneIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'phone',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> phoneIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'phone',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> pubNubPublishedEqualTo(
+      bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'pubNubPublished',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> userIdEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'userId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> userIdGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'userId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> userIdLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'userId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> userIdBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'userId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
 }
 
 extension DeviceQueryObject on QueryBuilder<Device, Device, QFilterCondition> {}
@@ -718,6 +1124,18 @@ extension DeviceQueryObject on QueryBuilder<Device, Device, QFilterCondition> {}
 extension DeviceQueryLinks on QueryBuilder<Device, Device, QFilterCondition> {}
 
 extension DeviceQuerySortBy on QueryBuilder<Device, Device, QSortBy> {
+  QueryBuilder<Device, Device, QAfterSortBy> sortByBranchId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'branchId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterSortBy> sortByBranchIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'branchId', Sort.desc);
+    });
+  }
+
   QueryBuilder<Device, Device, QAfterSortBy> sortByBusienssId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'busienssId', Sort.asc);
@@ -727,6 +1145,30 @@ extension DeviceQuerySortBy on QueryBuilder<Device, Device, QSortBy> {
   QueryBuilder<Device, Device, QAfterSortBy> sortByBusienssIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'busienssId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterSortBy> sortByBusinessId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'businessId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterSortBy> sortByBusinessIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'businessId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterSortBy> sortByDefaultApp() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'defaultApp', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterSortBy> sortByDefaultAppDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'defaultApp', Sort.desc);
     });
   }
 
@@ -765,9 +1207,57 @@ extension DeviceQuerySortBy on QueryBuilder<Device, Device, QSortBy> {
       return query.addSortBy(r'linkingCode', Sort.desc);
     });
   }
+
+  QueryBuilder<Device, Device, QAfterSortBy> sortByPhone() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'phone', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterSortBy> sortByPhoneDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'phone', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterSortBy> sortByPubNubPublished() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'pubNubPublished', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterSortBy> sortByPubNubPublishedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'pubNubPublished', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterSortBy> sortByUserId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'userId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterSortBy> sortByUserIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'userId', Sort.desc);
+    });
+  }
 }
 
 extension DeviceQuerySortThenBy on QueryBuilder<Device, Device, QSortThenBy> {
+  QueryBuilder<Device, Device, QAfterSortBy> thenByBranchId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'branchId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterSortBy> thenByBranchIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'branchId', Sort.desc);
+    });
+  }
+
   QueryBuilder<Device, Device, QAfterSortBy> thenByBusienssId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'busienssId', Sort.asc);
@@ -777,6 +1267,30 @@ extension DeviceQuerySortThenBy on QueryBuilder<Device, Device, QSortThenBy> {
   QueryBuilder<Device, Device, QAfterSortBy> thenByBusienssIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'busienssId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterSortBy> thenByBusinessId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'businessId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterSortBy> thenByBusinessIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'businessId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterSortBy> thenByDefaultApp() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'defaultApp', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterSortBy> thenByDefaultAppDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'defaultApp', Sort.desc);
     });
   }
 
@@ -827,12 +1341,66 @@ extension DeviceQuerySortThenBy on QueryBuilder<Device, Device, QSortThenBy> {
       return query.addSortBy(r'linkingCode', Sort.desc);
     });
   }
+
+  QueryBuilder<Device, Device, QAfterSortBy> thenByPhone() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'phone', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterSortBy> thenByPhoneDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'phone', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterSortBy> thenByPubNubPublished() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'pubNubPublished', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterSortBy> thenByPubNubPublishedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'pubNubPublished', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterSortBy> thenByUserId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'userId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterSortBy> thenByUserIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'userId', Sort.desc);
+    });
+  }
 }
 
 extension DeviceQueryWhereDistinct on QueryBuilder<Device, Device, QDistinct> {
+  QueryBuilder<Device, Device, QDistinct> distinctByBranchId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'branchId');
+    });
+  }
+
   QueryBuilder<Device, Device, QDistinct> distinctByBusienssId() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'busienssId');
+    });
+  }
+
+  QueryBuilder<Device, Device, QDistinct> distinctByBusinessId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'businessId');
+    });
+  }
+
+  QueryBuilder<Device, Device, QDistinct> distinctByDefaultApp() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'defaultApp');
     });
   }
 
@@ -857,6 +1425,25 @@ extension DeviceQueryWhereDistinct on QueryBuilder<Device, Device, QDistinct> {
       return query.addDistinctBy(r'linkingCode', caseSensitive: caseSensitive);
     });
   }
+
+  QueryBuilder<Device, Device, QDistinct> distinctByPhone(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'phone', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Device, Device, QDistinct> distinctByPubNubPublished() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'pubNubPublished');
+    });
+  }
+
+  QueryBuilder<Device, Device, QDistinct> distinctByUserId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'userId');
+    });
+  }
 }
 
 extension DeviceQueryProperty on QueryBuilder<Device, Device, QQueryProperty> {
@@ -866,9 +1453,27 @@ extension DeviceQueryProperty on QueryBuilder<Device, Device, QQueryProperty> {
     });
   }
 
+  QueryBuilder<Device, int, QQueryOperations> branchIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'branchId');
+    });
+  }
+
   QueryBuilder<Device, int, QQueryOperations> busienssIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'busienssId');
+    });
+  }
+
+  QueryBuilder<Device, int, QQueryOperations> businessIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'businessId');
+    });
+  }
+
+  QueryBuilder<Device, int, QQueryOperations> defaultAppProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'defaultApp');
     });
   }
 
@@ -889,6 +1494,24 @@ extension DeviceQueryProperty on QueryBuilder<Device, Device, QQueryProperty> {
       return query.addPropertyName(r'linkingCode');
     });
   }
+
+  QueryBuilder<Device, String, QQueryOperations> phoneProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'phone');
+    });
+  }
+
+  QueryBuilder<Device, bool, QQueryOperations> pubNubPublishedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'pubNubPublished');
+    });
+  }
+
+  QueryBuilder<Device, int, QQueryOperations> userIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'userId');
+    });
+  }
 }
 
 // **************************************************************************
@@ -899,6 +1522,12 @@ Device _$DeviceFromJson(Map<String, dynamic> json) => Device(
       linkingCode: json['linkingCode'] as String,
       deviceName: json['deviceName'] as String,
       deviceVersion: json['deviceVersion'] as String,
+      pubNubPublished: json['pubNubPublished'] as bool,
+      phone: json['phone'] as String,
+      branchId: json['branchId'] as int,
+      businessId: json['businessId'] as int,
+      userId: json['userId'] as int,
+      defaultApp: json['defaultApp'] as int,
       busienssId: json['busienssId'] as int,
     )..id = json['id'] as int?;
 
@@ -908,4 +1537,10 @@ Map<String, dynamic> _$DeviceToJson(Device instance) => <String, dynamic>{
       'deviceName': instance.deviceName,
       'deviceVersion': instance.deviceVersion,
       'busienssId': instance.busienssId,
+      'pubNubPublished': instance.pubNubPublished,
+      'phone': instance.phone,
+      'branchId': instance.branchId,
+      'businessId': instance.businessId,
+      'userId': instance.userId,
+      'defaultApp': instance.defaultApp,
     };
