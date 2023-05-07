@@ -100,11 +100,14 @@ class _PreviewSaleBottomSheetState extends State<PreviewSaleBottomSheet> {
                         ],
                       ),
                     ),
-                    Container(
-                      child: ChargeButton(
-                        duePay: model.items
-                            .fold(0, (a, b) => a! + (b.price * b.qty)),
-                        model: model,
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 20.0),
+                      child: Container(
+                        child: ChargeButton(
+                          duePay: model.items
+                              .fold(0, (a, b) => a! + (b.price * b.qty)),
+                          model: model,
+                        ),
                       ),
                     )
                   ],
