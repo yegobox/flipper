@@ -9,14 +9,15 @@ import 'package:stacked/stacked.dart';
 import 'package:number_display/number_display.dart';
 
 class Payments extends StatelessWidget {
-  Payments({Key? key, required this.order}) : super(key: key);
+  Payments({Key? key, required this.order, required this.duePay})
+      : super(key: key);
   final display = createDisplay(
     length: 8,
     decimal: 0,
   );
   final Order order;
   final _routerService = locator<RouterService>();
-
+  final double duePay;
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<BusinessHomeViewModel>.reactive(
@@ -46,8 +47,7 @@ class Payments extends StatelessWidget {
                           const SizedBox(height: 40),
                           model.kOrder != null
                               ? Text(
-                                  'FRw ' +
-                                      display(model.totalPayable).toString(),
+                                  'FRw ' + display(order.subTotal).toString(),
                                   style: const TextStyle(
                                       fontSize: 20.0,
                                       fontWeight: FontWeight.bold),
