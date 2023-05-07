@@ -53,7 +53,7 @@ class ListUnits extends StatelessWidget {
             title: 'Unit Type',
             showActionButton: false,
             disableButton: false,
-            onPressedCallback: () {
+            onActionButtonClicked: () {
               _routerService.pop();
             },
             icon: Icons.close,

@@ -49,8 +49,6 @@ void main() async {
     yield foundation.LicenseEntryWithLineBreaks(['google_fonts'], license);
   });
   WidgetsFlutterBinding.ensureInitialized();
-  // imageCache.clear();
-  // HttpOverrides.global = FlipperHttpOverrides();
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,

@@ -33,7 +33,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             },
             title: 'Flipper Settings',
             showActionButton: false,
-            onPressedCallback: () async {
+            onActionButtonClicked: () async {
               _routerService.pop();
             },
             icon: Icons.close,

@@ -117,8 +117,13 @@ const OrderSchema = CollectionSchema(
       name: r'subTotal',
       type: IsarType.double,
     ),
-    r'updatedAt': PropertySchema(
+    r'ticketName': PropertySchema(
       id: 20,
+      name: r'ticketName',
+      type: IsarType.string,
+    ),
+    r'updatedAt': PropertySchema(
+      id: 21,
       name: r'updatedAt',
       type: IsarType.string,
     )
@@ -264,6 +269,12 @@ int _orderEstimateSize(
   }
   bytesCount += 3 + object.status.length * 3;
   {
+    final value = object.ticketName;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
     final value = object.updatedAt;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
@@ -298,7 +309,8 @@ void _orderSerialize(
   writer.writeBool(offsets[17], object.reported);
   writer.writeString(offsets[18], object.status);
   writer.writeDouble(offsets[19], object.subTotal);
-  writer.writeString(offsets[20], object.updatedAt);
+  writer.writeString(offsets[20], object.ticketName);
+  writer.writeString(offsets[21], object.updatedAt);
 }
 
 Order _orderDeserialize(
@@ -329,7 +341,8 @@ Order _orderDeserialize(
     reported: reader.readBool(offsets[17]),
     status: reader.readString(offsets[18]),
     subTotal: reader.readDouble(offsets[19]),
-    updatedAt: reader.readStringOrNull(offsets[20]),
+    ticketName: reader.readStringOrNull(offsets[20]),
+    updatedAt: reader.readStringOrNull(offsets[21]),
   );
   return object;
 }
@@ -382,6 +395,8 @@ P _orderDeserializeProp<P>(
     case 19:
       return (reader.readDouble(offset)) as P;
     case 20:
+      return (reader.readStringOrNull(offset)) as P;
+    case 21:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -2876,6 +2891,152 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
     });
   }
 
+  QueryBuilder<Order, Order, QAfterFilterCondition> ticketNameIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'ticketName',
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> ticketNameIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'ticketName',
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> ticketNameEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'ticketName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> ticketNameGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'ticketName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> ticketNameLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'ticketName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> ticketNameBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'ticketName',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> ticketNameStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'ticketName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> ticketNameEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'ticketName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> ticketNameContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'ticketName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> ticketNameMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'ticketName',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> ticketNameIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'ticketName',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> ticketNameIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'ticketName',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Order, Order, QAfterFilterCondition> updatedAtIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -3380,6 +3541,18 @@ extension OrderQuerySortBy on QueryBuilder<Order, Order, QSortBy> {
     });
   }
 
+  QueryBuilder<Order, Order, QAfterSortBy> sortByTicketName() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'ticketName', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterSortBy> sortByTicketNameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'ticketName', Sort.desc);
+    });
+  }
+
   QueryBuilder<Order, Order, QAfterSortBy> sortByUpdatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'updatedAt', Sort.asc);
@@ -3646,6 +3819,18 @@ extension OrderQuerySortThenBy on QueryBuilder<Order, Order, QSortThenBy> {
     });
   }
 
+  QueryBuilder<Order, Order, QAfterSortBy> thenByTicketName() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'ticketName', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterSortBy> thenByTicketNameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'ticketName', Sort.desc);
+    });
+  }
+
   QueryBuilder<Order, Order, QAfterSortBy> thenByUpdatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'updatedAt', Sort.asc);
@@ -3791,6 +3976,13 @@ extension OrderQueryWhereDistinct on QueryBuilder<Order, Order, QDistinct> {
     });
   }
 
+  QueryBuilder<Order, Order, QDistinct> distinctByTicketName(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'ticketName', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<Order, Order, QDistinct> distinctByUpdatedAt(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -3923,6 +4115,12 @@ extension OrderQueryProperty on QueryBuilder<Order, Order, QQueryProperty> {
   QueryBuilder<Order, double, QQueryOperations> subTotalProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'subTotal');
+    });
+  }
+
+  QueryBuilder<Order, String?, QQueryOperations> ticketNameProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'ticketName');
     });
   }
 

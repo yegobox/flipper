@@ -31,7 +31,7 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
               },
               title: 'Languages',
               showActionButton: false,
-              onPressedCallback: () async {
+              onActionButtonClicked: () async {
                 _routerService.pop();
               },
               icon: Icons.close,

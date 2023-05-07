@@ -16,7 +16,7 @@ class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
     this.icon,
     this.additionalText,
     this.disableButton,
-    this.onPressedCallback,
+    this.onActionButtonClicked,
     this.onPop,
     this.rightActionButtonName = "Save",
     this.leftActionButtonName = "Save",
@@ -34,7 +34,7 @@ class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
   final double? multi;
   final IconData? icon;
   final VoidCallback? onPop;
-  final VoidCallback? onPressedCallback;
+  final VoidCallback? onActionButtonClicked;
   final bool? showActionButton;
   final String? title;
   final bool useTransparentButton;
@@ -85,15 +85,15 @@ class _CustomAppBarState extends State<CustomAppBar> {
                           fontSize: 17,
                           fontWeight: FontWeight.w400),
                     ),
-              trailing:
-                  widget.showActionButton == null || !widget.showActionButton!
-                      ? const SizedBox.shrink()
-                      : FLipperButton(
-                          transparent: widget.useTransparentButton,
-                          disableButton: widget.disableButton ?? false,
-                          onPressedCallback: widget.onPressedCallback ?? () {},
-                          buttonName: widget.rightActionButtonName ?? "Save",
-                        ),
+              trailing: widget.showActionButton == null ||
+                      !widget.showActionButton!
+                  ? const SizedBox.shrink()
+                  : FLipperButton(
+                      transparent: widget.useTransparentButton,
+                      disableButton: widget.disableButton ?? false,
+                      onPressedCallback: widget.onActionButtonClicked ?? () {},
+                      buttonName: widget.rightActionButtonName ?? "Save",
+                    ),
               dense: true,
             ),
             Container(

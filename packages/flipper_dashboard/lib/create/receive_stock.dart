@@ -60,7 +60,7 @@ class _ReceiveStockState extends State<ReceiveStock> {
             },
             disableButton: false,
             title: 'Receive stock',
-            onPressedCallback: () {
+            onActionButtonClicked: () {
               if (_formKey.currentState!.validate()) {
                 model.updateStock(variantId: widget.variantId);
                 _routerService.pop();

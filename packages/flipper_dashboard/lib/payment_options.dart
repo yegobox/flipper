@@ -28,7 +28,7 @@ class Payments extends StatelessWidget {
                 onPop: () {
                   _routerService.pop();
                 },
-                onPressedCallback: () {
+                onActionButtonClicked: () {
                   _routerService.pop();
                 },
                 rightActionButtonName: 'Split payment',

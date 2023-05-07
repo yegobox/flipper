@@ -1434,6 +1434,8 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Stream<List<Order>> ticketsStreams() {
+    log(ProxyService.box.getBranchId()!.toString(),
+        name: "BranchId when stream ticket");
     return isar.orders
         .where()
         .statusBranchIdEqualTo(parkedStatus, ProxyService.box.getBranchId()!)

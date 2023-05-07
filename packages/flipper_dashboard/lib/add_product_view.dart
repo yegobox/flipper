@@ -173,7 +173,7 @@ class _AddProductViewState extends State<AddProductView> {
               title: 'Create Product',
               disableButton: model.lock,
               showActionButton: true,
-              onPressedCallback: () async {
+              onActionButtonClicked: () async {
                 if (model.productName == " ") {
                   showToast(context, 'Provide name for the product');
                   return;

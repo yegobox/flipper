@@ -502,20 +502,15 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   ///change status to parked, this allow the cashier to take another order of different client
   ///and resume this when he feel like he wants to,
   ///the note on order is served as display, therefore an order can not be parked without a note on it.
-  void saveTicket(Function callBack) async {
-    //get the current order
-    if (kOrder == null) return;
-    Order? _order = await ProxyService.isarApi.getOrderById(id: kOrder!.id!);
-    // Map map = _order.toJson();
-    _order!.status = parkedStatus;
-    if (_order.note == null || _order.note == '') {
-      callBack('noNote');
-    } else {
-      ProxyService.isarApi.update(data: _order);
-      //refresh order afterwards
-      await currentOrder();
-      callBack('saved');
-    }
+  void saveTicket(
+      {required String ticketName,
+      required String ticketNote,
+      required Order order}) async {
+    order.status = parkedStatus;
+    order.note = ticketNote;
+    order.ticketName = ticketName;
+    order.updatedAt = DateTime.now().toIso8601String();
+    await ProxyService.isarApi.update(data: order);
   }
 
   Future resumeOrder({required int ticketId}) async {

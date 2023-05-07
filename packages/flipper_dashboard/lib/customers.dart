@@ -28,7 +28,7 @@ class Customers extends StatelessWidget {
                 },
                 title: 'Add customer',
                 showActionButton: false,
-                onPressedCallback: () async {
+                onActionButtonClicked: () async {
                   _routerService.pop();
                 },
                 icon: Icons.close,
