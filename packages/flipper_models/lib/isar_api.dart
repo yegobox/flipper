@@ -803,11 +803,108 @@ class IsarAPI<M> implements IsarApiInterface {
       }
       return variant!;
     } else {
-      return await isar.variants
-          .where()
-          .productIdEqualTo(product.id!)
-          .findFirst();
+      Variant? variation =
+          await isar.variants.where().productIdEqualTo(product.id!).findFirst();
+      // if it happen that this product does not have a custom variant add it
+      variation =
+          await ifPreConditionOfSellingACustomProductDoesNotMeetAddMissings(
+              variation, product, branchId);
+      return variation;
     }
+  }
+
+  Future<Variant?> ifPreConditionOfSellingACustomProductDoesNotMeetAddMissings(
+      Variant? variation, Product product, int branchId) async {
+    if (variation == null) {
+      // add variant to this product
+      Business? business = await getBusiness();
+      String clip = 'flipper' +
+          DateTime.now().microsecondsSinceEpoch.toString().substring(0, 5);
+
+      variation = await isar.writeTxn(() async {
+        int id = await isar.variants.put(
+          Variant(
+              name: 'Custom Amount',
+              sku: 'sku',
+              action: 'create',
+              productId: product.id!,
+              unit: 'Per Item',
+              productName: product.name,
+              branchId: ProxyService.box.getBranchId()!,
+              supplyPrice: 0.0,
+              retailPrice: 0.0,
+              id: syncIdInt(),
+              isTaxExempted: false)
+            ..name = 'Regular'
+            ..productId = product.id!
+            ..unit = 'Per Item'
+            ..productName = product.name
+            ..branchId = branchId
+            ..taxName = 'N/A'
+            ..isTaxExempted = false
+            ..taxPercentage = 0
+            ..retailPrice = 0
+            // RRA fields
+            ..bhfId = business?.bhfId
+            ..prc = 0.0
+            ..sku = 'sku'
+            ..tin = business?.tinNumber
+            ..itemCd = clip
+            // TODOask about item clasification code, it seems to be static
+            ..itemClsCd = "5020230602"
+            ..itemTyCd = "1"
+            ..itemNm = "Regular"
+            ..itemStdNm = "Regular"
+            ..orgnNatCd = "RW"
+            ..pkgUnitCd = "NT"
+            ..qtyUnitCd = "U"
+            ..taxTyCd = "B"
+            ..dftPrc = 0.0
+            ..addInfo = "A"
+            ..isrcAplcbYn = "N"
+            ..useYn = "N"
+            ..regrId = clip
+            ..regrNm = "Regular"
+            ..modrId = clip
+            ..modrNm = "Regular"
+            ..pkg = "1"
+            ..itemSeq = "1"
+            ..splyAmt = 0.0
+            // RRA fields ends
+            ..supplyPrice = 0.0,
+        );
+        return isar.variants.get(id);
+      });
+      // add its stock
+      Stock stock = Stock(
+          id: syncIdInt(),
+          action: 'create',
+          branchId: branchId,
+          variantId: variation!.id!,
+          currentStock: 0.0,
+          productId: product.id!)
+        ..canTrackingStock = false
+        ..showLowStockAlert = false
+        ..currentStock = 0.0
+        ..branchId = branchId
+        ..variantId = variation.id!
+        ..lastTouched = removeTrailingDash(Hlc.fromDate(
+                DateTime.now(), ProxyService.box.getBranchId()!.toString())
+            .toString())
+        ..supplyPrice = 0.0
+        ..retailPrice = 0.0
+        ..lowStock = 10.0 // default static
+        ..canTrackingStock = true
+        ..showLowStockAlert = true
+        ..active = false
+        ..productId = product.id!
+        ..rsdQty = 0.0;
+
+      await isar.writeTxn(() async {
+        return await isar.stocks.put(stock);
+      });
+    }
+    return variation;
   }
 
   @override
@@ -2240,6 +2337,33 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
+  Future<bool> isTokenValid({
+    required String tokenType,
+    required int businessId,
+  }) async {
+    final token = await isar.tokens
+        .filter()
+        .typeEqualTo(tokenType)
+        .and()
+        .businessIdEqualTo(businessId)
+        .build()
+        .findFirst();
+
+    if (token == null) {
+      return false;
+    }
+
+    final now = DateTime.now();
+
+    if (now.isBefore(token.validFrom) || now.isAfter(token.validUntil)) {
+      isar.writeTxn(() => isar.tokens.delete(token.id));
+      return false;
+    }
+
+    return true;
+  }
+
+  @override
   Future<SocialToken> loginOnSocial(
       {String? phoneNumberOrEmail, String? password}) async {
     final http.Response response = await socialsHttpClient.post(
@@ -2253,34 +2377,6 @@ class IsarAPI<M> implements IsarApiInterface {
     } else {
       throw Exception("Failed to get token");
     }
-  }
-
-  @override
-  Future<bool> isTokenValid(
-      {required String tokenType, required int businessId}) async {
-    // get token of a type from isar
-    Token? token = await isar.tokens
-        .filter()
-        .typeEqualTo(tokenType)
-        .and()
-        .businessIdEqualTo(businessId)
-        .build()
-        .findFirst();
-    if (token == null) {
-      return false;
-    }
-    // compare validFrom and ValidUntil from token
-    if (token.validFrom.isAfter(DateTime.now()) ||
-        token.validUntil.isBefore(DateTime.now())) {
-      /// the token is expired delete the token from our local db
-      /// for next time try to get fresh token to succeed
-
-      isar.writeTxn(() async {
-        await isar.tokens.delete(token.id);
-      });
-      return false;
-    }
-    return true;
   }
 
   @override

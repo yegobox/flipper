@@ -1,6 +1,7 @@
 library flipper_models;
 
 import 'dart:async';
+import 'dart:developer';
 import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_routing/receipt_types.dart';
 import 'package:flipper_services/locator.dart';
@@ -146,6 +147,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
             await ProxyService.isarApi.orderItems(orderId: pendingOrder.id!);
         double amount = double.parse(ProxyService.keypad.key);
         Variant? variation = await ProxyService.isarApi.getCustomVariant();
+        log('variation is $variation');
         if (variation == null) return;
         if (items.isEmpty) {
           await saveOrder(

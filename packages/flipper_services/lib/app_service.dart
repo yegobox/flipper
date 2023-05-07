@@ -100,23 +100,27 @@ class AppService with ListenableServiceMixin {
 
     bool value = await isSocialLoggedin();
     if (!value) {
-      SocialToken token = await ProxyService.isarApi.loginOnSocial(
-          password: ProxyService.box.getUserPhone()!.replaceFirst("+", ""),
-          phoneNumberOrEmail:
-              ProxyService.box.getUserPhone()!.replaceFirst("+", ""));
-      ProxyService.box
-          .write(key: 'socialBearerToken', value: "Bearer " + token.body.token);
-      int? businessId = ProxyService.box.getBusinessId();
-      await ProxyService.isarApi.create(
-          data: Token(
-              businessId: businessId!,
-              token: token.body.token,
-              validFrom: token.body.validFrom,
-              validUntil: token.body.validUntil,
-              type: socialApp));
+      await logSocial();
     }
     return ProxyService.box.getUserId() != null &&
         ProxyService.box.getBusinessId() != null;
+  }
+
+  Future<void> logSocial() async {
+    SocialToken token = await ProxyService.isarApi.loginOnSocial(
+        password: ProxyService.box.getUserPhone()!.replaceFirst("+", ""),
+        phoneNumberOrEmail:
+            ProxyService.box.getUserPhone()!.replaceFirst("+", ""));
+    ProxyService.box
+        .write(key: 'socialBearerToken', value: "Bearer " + token.body.token);
+    int? businessId = ProxyService.box.getBusinessId();
+    await ProxyService.isarApi.create(
+        data: Token(
+            businessId: businessId!,
+            token: token.body.token,
+            validFrom: token.body.validFrom,
+            validUntil: token.body.validUntil,
+            type: socialApp));
   }
 
   final _contacts = ReactiveValue<List<Business>>([]);
@@ -366,15 +370,9 @@ class AppService with ListenableServiceMixin {
   Future<bool> isSocialLoggedin() async {
     if (ProxyService.box.getDefaultApp() == 2) {
       int businessId = ProxyService.box.getBusinessId()!;
-      final value = await ProxyService.isarApi
+      return await ProxyService.isarApi
           .isTokenValid(businessId: businessId, tokenType: socialApp);
-      if (value) {
-        return true;
-      } else {
-        return false;
-      }
-    } else {
-      return true;
     }
+    return true;
   }
 }

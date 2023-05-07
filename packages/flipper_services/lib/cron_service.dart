@@ -5,7 +5,6 @@ import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flipper_services/constants.dart';
 
 class CronService {
   final drive = GoogleDrive();
@@ -54,9 +53,7 @@ class CronService {
       /// get unsynced counter and send them online for houseKeping.
       ProxyService.isarApi.sendScheduleMessages();
       ProxyService.event.keepTryingPublishDevice();
-      if (!isDesktopOrWeb) {
-        ProxyService.event.subscribeToDeviceEvent(channel: 'device');
-      }
+      
     });
     Timer.periodic(Duration(minutes: kDebugMode ? 1 : 10), (Timer t) async {
       /// get unsynced counter and send them online for houseKeping.
