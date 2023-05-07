@@ -182,8 +182,6 @@ class _CollectCashViewState extends State<CollectCashView> {
                                     ),
                                   ),
                                   onPressed: () async {
-                                    double totalOrderAmount =
-                                        model.totalPayable;
                                     model.keypad.setCashReceived(
                                         amount: double.parse(_cash.text));
                                     if (_formKey.currentState!.validate()) {
@@ -194,6 +192,8 @@ class _CollectCashViewState extends State<CollectCashView> {
                                               double.parse(_cash.text),
                                         );
                                       } else {
+                                        await model.collectCashPayment();
+                                        _btnController.success();
                                         String receiptType = "ns";
                                         if (ProxyService.box
                                             .isPoroformaMode()) {
@@ -202,12 +202,12 @@ class _CollectCashViewState extends State<CollectCashView> {
                                         if (ProxyService.box.isTrainingMode()) {
                                           receiptType = ReceiptType.ts;
                                         }
-                                        await model.collectCashPayment();
-                                        _btnController.success();
-                                        // GoRouter.of(context).push(
-                                        //     Routes.afterSale +
-                                        //         "/$totalOrderAmount/$receiptType",
-                                        //     extra: widget.order);
+                                        _routerService.navigateTo(
+                                            AfterSaleRoute(
+                                                totalOrderAmount:
+                                                    model.totalPayable,
+                                                receiptType: receiptType,
+                                                order: model.kOrder!));
                                       }
                                     } else {
                                       _btnController.stop();

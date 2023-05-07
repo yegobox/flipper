@@ -3,7 +3,6 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_dashboard/customappbar.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
@@ -64,7 +63,7 @@ class Payments extends StatelessWidget {
                       ),
                     ),
                     Positioned(
-                      bottom: 0,
+                      bottom: 20.0,
                       right: 0,
                       left: 0,
                       child: Column(
@@ -90,8 +89,7 @@ class Payments extends StatelessWidget {
                               ),
                             ),
                           ),
-                          ProxyService.remoteConfig.isSpennPaymentAvailable() ||
-                                  kDebugMode
+                          ProxyService.remoteConfig.isSpennPaymentAvailable()
                               ? GestureDetector(
                                   onTap: () {
                                     _routerService.navigateTo(

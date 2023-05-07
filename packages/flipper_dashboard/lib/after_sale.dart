@@ -121,6 +121,15 @@ class _AfterSaleState extends State<AfterSale> {
                                                     fontSize: 20,
                                                     color: Colors.white)),
                                             style: ButtonStyle(
+                                              shape: MaterialStateProperty
+                                                  .resolveWith<OutlinedBorder>(
+                                                (states) =>
+                                                    RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          10.0),
+                                                ),
+                                              ),
                                               backgroundColor:
                                                   MaterialStateProperty.all<
                                                           Color>(
@@ -201,6 +210,17 @@ class _AfterSaleState extends State<AfterSale> {
                                           height: 50,
                                           width: double.infinity,
                                           child: OutlinedButton(
+                                            style: ButtonStyle(
+                                              shape: MaterialStateProperty
+                                                  .resolveWith<OutlinedBorder>(
+                                                (states) =>
+                                                    RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          10.0),
+                                                ),
+                                              ),
+                                            ),
                                             child: Text('No Receipt',
                                                 style: GoogleFonts.poppins(
                                                     fontWeight: FontWeight.w400,
