@@ -404,9 +404,25 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       );
     },
     TicketsRoute.name: (routeData) {
+      final args = routeData.argsAs<TicketsArgs>();
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i2.Tickets(),
+        child: _i2.Tickets(
+          key: args.key,
+          order: args.order,
+        ),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
+    NewTicketRoute.name: (routeData) {
+      final args = routeData.argsAs<NewTicketArgs>();
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i2.NewTicket(
+          key: args.key,
+          order: args.order,
+        ),
         opaque: true,
         barrierDismissible: false,
       );
@@ -558,6 +574,10 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         _i3.RouteConfig(
           TicketsRoute.name,
           path: '/Tickets',
+        ),
+        _i3.RouteConfig(
+          NewTicketRoute.name,
+          path: '/new-ticket',
         ),
       ];
 }
@@ -1483,12 +1503,68 @@ class ConversationHistoryArgs {
 
 /// generated route for
 /// [_i2.Tickets]
-class TicketsRoute extends _i3.PageRouteInfo<void> {
-  const TicketsRoute()
-      : super(
+class TicketsRoute extends _i3.PageRouteInfo<TicketsArgs> {
+  TicketsRoute({
+    _i4.Key? key,
+    required _i5.Order order,
+  }) : super(
           TicketsRoute.name,
           path: '/Tickets',
+          args: TicketsArgs(
+            key: key,
+            order: order,
+          ),
         );
 
   static const String name = 'Tickets';
+}
+
+class TicketsArgs {
+  const TicketsArgs({
+    this.key,
+    required this.order,
+  });
+
+  final _i4.Key? key;
+
+  final _i5.Order order;
+
+  @override
+  String toString() {
+    return 'TicketsArgs{key: $key, order: $order}';
+  }
+}
+
+/// generated route for
+/// [_i2.NewTicket]
+class NewTicketRoute extends _i3.PageRouteInfo<NewTicketArgs> {
+  NewTicketRoute({
+    _i4.Key? key,
+    required _i5.Order order,
+  }) : super(
+          NewTicketRoute.name,
+          path: '/new-ticket',
+          args: NewTicketArgs(
+            key: key,
+            order: order,
+          ),
+        );
+
+  static const String name = 'NewTicket';
+}
+
+class NewTicketArgs {
+  const NewTicketArgs({
+    this.key,
+    required this.order,
+  });
+
+  final _i4.Key? key;
+
+  final _i5.Order order;
+
+  @override
+  String toString() {
+    return 'NewTicketArgs{key: $key, order: $order}';
+  }
 }

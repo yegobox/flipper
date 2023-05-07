@@ -94,6 +94,7 @@ abstract class IsarApiInterface {
   Stream<Customer?> getCustomerByOrderId({required int id});
   Future<Order?> getOrderById({required int id});
   Future<List<Order>> tickets();
+  Stream<List<Order>> ticketsStreams();
   Future<List<Variant>> getVariantByProductId({required int productId});
 
   Future<int> sendReport({required List<OrderItem> orderItems});

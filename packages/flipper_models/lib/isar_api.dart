@@ -1433,6 +1433,15 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
+  Stream<List<Order>> ticketsStreams() {
+    return isar.orders
+        .where()
+        .statusBranchIdEqualTo(parkedStatus, ProxyService.box.getBranchId()!)
+        .build()
+        .watch(fireImmediately: true);
+  }
+
+  @override
   Future<List<IUnit>> units({required int branchId}) async {
     return isar.writeTxn(() {
       return isar.iUnits.where().branchIdEqualTo(branchId).findAll();

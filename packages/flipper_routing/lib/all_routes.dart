@@ -19,6 +19,7 @@ export 'package:flipper_dashboard/create/receive_stock.dart';
 export 'package:flipper_dashboard/customers.dart';
 export 'package:flipper_dashboard/flipper_app.dart';
 export 'package:flipper_dashboard/tickets.dart';
+export 'package:flipper_dashboard/new_ticket.dart';
 export 'package:flipper_dashboard/startup_view.dart';
 export 'package:flipper_dashboard/inapp_browser.dart';
 export 'package:flipper_dashboard/order.dart';

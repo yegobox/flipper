@@ -44,10 +44,11 @@ class _CollectCashViewState extends State<CollectCashView> {
                 onPop: () {
                   _routerService.pop();
                 },
-                title: '',
+                rightActionButtonName: "Save",
+                showActionButton: true,
                 icon: Icons.close,
-                multi: 3,
-                bottomSpacer: 52,
+                multi: 2,
+                bottomSpacer: 40,
               ),
               body: SizedBox(
                 width: double.infinity,

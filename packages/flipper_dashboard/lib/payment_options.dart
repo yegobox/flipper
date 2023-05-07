@@ -31,7 +31,6 @@ class Payments extends StatelessWidget {
                 onPressedCallback: () {
                   _routerService.pop();
                 },
-                title: '',
                 rightActionButtonName: 'Split payment',
                 icon: Icons.close,
                 multi: 3,
