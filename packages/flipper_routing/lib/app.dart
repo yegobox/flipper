@@ -41,6 +41,7 @@ import 'all_routes.dart';
     CustomRoute(page: DrawerScreen),
     CustomRoute(page: ChatListView),
     CustomRoute(page: ConversationHistory),
+    CustomRoute(page: Tickets),
   ],
   dependencies: [
     LazySingleton(classType: BottomSheetService),

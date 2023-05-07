@@ -402,6 +402,14 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         barrierDismissible: false,
       );
     },
+    TicketsRoute.name: (routeData) {
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: const _i2.Tickets(),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
   };
 
   @override
@@ -545,6 +553,10 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         _i3.RouteConfig(
           ConversationHistoryRoute.name,
           path: '/conversation-history',
+        ),
+        _i3.RouteConfig(
+          TicketsRoute.name,
+          path: '/Tickets',
         ),
       ];
 }
@@ -1461,4 +1473,16 @@ class ConversationHistoryArgs {
   String toString() {
     return 'ConversationHistoryArgs{key: $key, conversationId: $conversationId}';
   }
+}
+
+/// generated route for
+/// [_i2.Tickets]
+class TicketsRoute extends _i3.PageRouteInfo<void> {
+  const TicketsRoute()
+      : super(
+          TicketsRoute.name,
+          path: '/Tickets',
+        );
+
+  static const String name = 'Tickets';
 }

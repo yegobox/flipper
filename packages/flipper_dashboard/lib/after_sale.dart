@@ -49,7 +49,7 @@ class _AfterSaleState extends State<AfterSale> {
                 useTransparentButton: false,
                 onPop: () {
                   model.currentOrder();
-                  _routerService.navigateTo(FlipperAppRoute());
+                  _routerService.clearStackAndShow(FlipperAppRoute());
                 },
                 closeButton: CLOSEBUTTON.BUTTON,
                 disableButton: false,
@@ -231,7 +231,7 @@ class _AfterSaleState extends State<AfterSale> {
                                               model.keyboardKeyPressed(
                                                   'C'); // to clear the keyboard
                                               model.currentOrder();
-                                              _routerService.navigateTo(
+                                              _routerService.clearStackAndShow(
                                                   FlipperAppRoute());
                                             },
                                           ),
@@ -278,7 +278,7 @@ class _AfterSaleState extends State<AfterSale> {
                                               model.currentOrder();
                                               model.keyboardKeyPressed(
                                                   'C'); // to clear the keyboard
-                                              _routerService.navigateTo(
+                                              _routerService.clearStackAndShow(
                                                   FlipperAppRoute());
                                             },
                                           ),
