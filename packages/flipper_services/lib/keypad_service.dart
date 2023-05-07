@@ -99,7 +99,7 @@ class KeyPadService with ListenableServiceMixin {
   /// order can not be more than 1 lenght i.e at one instance
   /// we have one order but an order can have more than 1 orderitem(s)
   /// it is in this recard in application anywhere else it's okay to access orders[0]
-  Future<Order?> getOrder({required int branchId}) async {
+  Future<Order?> getPendingOrder({required int branchId}) async {
     Order? order = await ProxyService.isarApi.pendingOrder(branchId: branchId);
 
     if (order != null) {

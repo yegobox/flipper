@@ -419,7 +419,8 @@ class ProductViewModel extends AddTenantViewModel {
   /// a discount can not go beyond the item's price
   Future<bool> applyDiscount({required Discount discount}) async {
     int branchId = ProxyService.box.getBranchId()!;
-    Order? order = await ProxyService.keypad.getOrder(branchId: branchId);
+    Order? order =
+        await ProxyService.keypad.getPendingOrder(branchId: branchId);
 
     if (order != null) {
       for (OrderItem item in order.orderItems) {

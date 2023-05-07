@@ -35,14 +35,11 @@ class _NewTicketState extends State<NewTicket>
     _controller.dispose();
     _swipeController.dispose();
     _noteController.dispose();
-    // _sub.currentState.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // return const Placeholder();
-    // return a from with two input fields
     return SafeArea(
         child: ViewModelBuilder<BusinessHomeViewModel>.reactive(
             viewModelBuilder: () => BusinessHomeViewModel(),
@@ -54,20 +51,17 @@ class _NewTicketState extends State<NewTicket>
                     _routerService.pop();
                   },
                   onActionButtonClicked: () {
-                    // submit the form
                     if (_sub.currentState!.validate()) {
-                      // take the order with given data and save it
                       model.saveTicket(
                           ticketName: _swipeController.text,
                           order: widget.order,
                           ticketNote: _noteController.text);
-                      _routerService
-                          .clearStackAndShow(TicketsRoute(order: widget.order));
+                      _routerService.clearStackAndShow(FlipperAppRoute());
                     }
                   },
                   showActionButton: true,
                   rightActionButtonName: "Save",
-                  disableButton: !_noteValue || !_ticketNameValue,
+                  disableButton: !_noteValue && !_ticketNameValue,
                   icon: Icons.close,
                   multi: 3,
                   bottomSpacer: 48,

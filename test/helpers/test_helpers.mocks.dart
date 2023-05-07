@@ -1052,7 +1052,7 @@ class MockKeyPadService extends _i1.Mock implements _i14.KeyPadService {
         returnValueForMissingStub: null,
       );
   @override
-  _i5.Future<_i9.Order?> getOrder({required int? branchId}) =>
+  _i5.Future<_i9.Order?> getPendingOrder({required int? branchId}) =>
       (super.noSuchMethod(
         Invocation.method(
           #getOrder,

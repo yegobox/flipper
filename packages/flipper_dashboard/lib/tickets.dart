@@ -10,9 +10,9 @@ import 'package:stacked/stacked.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class Tickets extends StatefulWidget {
-  const Tickets({super.key, required this.order});
+  const Tickets({super.key, this.order});
   // final List<Order> tickets;
-  final Order order;
+  final Order? order;
   @override
   State<Tickets> createState() => _TicketsState();
 }
@@ -82,8 +82,10 @@ class _TicketsState extends State<Tickets> with SingleTickerProviderStateMixin {
                                   fontSize: 20,
                                   color: Color(0xff006AFE))),
                           onPressed: () {
-                            _routerService.navigateTo(
-                                NewTicketRoute(order: widget.order));
+                            if (widget.order != null) {
+                              _routerService.navigateTo(
+                                  NewTicketRoute(order: widget.order!));
+                            }
                           },
                         ),
                       ),
@@ -106,28 +108,35 @@ class _TicketsState extends State<Tickets> with SingleTickerProviderStateMixin {
                               List<Order> data = snapshot.data!;
                               return Column(
                                 children: data.map((e) {
-                                  return Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        e.ticketName!,
-                                        style: GoogleFonts.poppins(
-                                          fontWeight: FontWeight.w400,
-                                          fontSize: 17,
-                                          color: Colors.black,
+                                  return GestureDetector(
+                                    onTap: () async {
+                                      await model.resumeOrder(ticketId: e.id!);
+                                      _routerService
+                                          .clearStackAndShow(FlipperAppRoute());
+                                    },
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          e.ticketName!,
+                                          style: GoogleFonts.poppins(
+                                            fontWeight: FontWeight.w400,
+                                            fontSize: 17,
+                                            color: Colors.black,
+                                          ),
                                         ),
-                                      ),
-                                      Text(
-                                        timeago.format(
-                                            DateTime.parse(e.updatedAt!)),
-                                        style: GoogleFonts.poppins(
-                                          fontWeight: FontWeight.w400,
-                                          fontSize: 17,
-                                          color: Colors.black,
+                                        Text(
+                                          timeago.format(
+                                              DateTime.parse(e.updatedAt!)),
+                                          style: GoogleFonts.poppins(
+                                            fontWeight: FontWeight.w400,
+                                            fontSize: 17,
+                                            color: Colors.black,
+                                          ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   );
                                 }).toList(),
                               );

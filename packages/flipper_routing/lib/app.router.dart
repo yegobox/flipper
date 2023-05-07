@@ -404,7 +404,8 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       );
     },
     TicketsRoute.name: (routeData) {
-      final args = routeData.argsAs<TicketsArgs>();
+      final args =
+          routeData.argsAs<TicketsArgs>(orElse: () => const TicketsArgs());
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: _i2.Tickets(
@@ -1506,7 +1507,7 @@ class ConversationHistoryArgs {
 class TicketsRoute extends _i3.PageRouteInfo<TicketsArgs> {
   TicketsRoute({
     _i4.Key? key,
-    required _i5.Order order,
+    _i5.Order? order,
   }) : super(
           TicketsRoute.name,
           path: '/Tickets',
@@ -1522,12 +1523,12 @@ class TicketsRoute extends _i3.PageRouteInfo<TicketsArgs> {
 class TicketsArgs {
   const TicketsArgs({
     this.key,
-    required this.order,
+    this.order,
   });
 
   final _i4.Key? key;
 
-  final _i5.Order order;
+  final _i5.Order? order;
 
   @override
   String toString() {

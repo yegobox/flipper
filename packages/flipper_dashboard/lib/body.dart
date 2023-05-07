@@ -46,32 +46,8 @@ Widget PaymentTicketManager(
       orders: model.keypad.itemsOnSale,
       duePay: model.kOrder?.subTotal,
       ticketHandler: () async {
-        // List<Order> tickets = await model.keypad.getTickets();
-        Order? order = await model.keypad
-            .getOrder(branchId: ProxyService.box.getBranchId()!);
-        _routerService.navigateTo(TicketsRoute(order: order!));
-        // if (model.kOrder == null && model.keypad.tickets.isNotEmpty) {
-        //   //then we know we need to resume.
-        //   //TODOfix this on desktop is not showing.
-        //   FlipperBottomSheet.showTicketsToSaleBottomSheet(
-        //     model: model,
-        //     context: context,
-        //   );
-        // }
-        // model.saveTicket((handle) {
-        //   if (handle == 'noNote') {
-        //     FlipperBottomSheet.showAddNoteToSaleBottomSheet(
-        //       model: model,
-        //       context: context,
-        //     );
-        //   } else if (handle == 'saved') {
-        //     showSimpleNotification(
-        //       Text('Ticket $handle'),
-        //       background: Colors.green,
-        //       position: NotificationPosition.bottom,
-        //     );
-        //   }
-        // });
+        Order order = await ProxyService.isarApi.manageOrder();
+        _routerService.navigateTo(TicketsRoute(order: order));
       },
     ),
     controller: controller,

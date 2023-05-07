@@ -519,7 +519,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     _order!.status = pendingStatus;
     await ProxyService.isarApi.update(data: _order);
     await keypad.getTickets();
-    await keypad.getOrder(branchId: ProxyService.box.getBranchId()!);
+    await keypad.getPendingOrder(branchId: ProxyService.box.getBranchId()!);
     await currentOrder();
     await updatePayable();
   }
