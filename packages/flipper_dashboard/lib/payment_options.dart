@@ -47,7 +47,7 @@ class Payments extends StatelessWidget {
                           const SizedBox(height: 40),
                           model.kOrder != null
                               ? Text(
-                                  'FRw ' + display(order.subTotal).toString(),
+                                  'FRw ' + display(duePay).toString(),
                                   style: const TextStyle(
                                       fontSize: 20.0,
                                       fontWeight: FontWeight.bold),

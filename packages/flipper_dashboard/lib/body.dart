@@ -32,7 +32,9 @@ Widget PaymentTicketManager(
       saleCounts: model.keypad.itemsOnSale,
       onClick: () {
         if (model.kOrder != null) {
-          _routerService.navigateTo(PaymentsRoute(order: model.kOrder!));
+          _routerService.navigateTo(PaymentsRoute(
+              order: model.kOrder!,
+              duePay: model.items.fold(0, (a, b) => a + (b.price * b.qty))));
         } else {
           showSimpleNotification(
             Text(FLocalization.of(context).noPayable),
