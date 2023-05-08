@@ -24,4 +24,5 @@ abstract class UploadT {
     required int id,
     required Function(String) onUploadComplete,
   });
+  Stream<double> uploadProgress();
 }

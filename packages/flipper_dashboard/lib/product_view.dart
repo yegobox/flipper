@@ -6,6 +6,7 @@ import 'package:flipper_dashboard/sticky_search.dart';
 import 'package:flipper_dashboard/tenants_list.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
@@ -75,7 +76,9 @@ class _ProductViewState extends State<ProductView> {
                         height: kToolbarHeight,
                         child: Wrap(direction: Axis.horizontal, children: [
                           SizedBox(
-                            width: searchFieldWidth,
+                            width: isDesktopOrWeb
+                                ? searchFieldWidth
+                                : double.infinity,
                             child: SearchField(
                               controller: searchController,
                               model: model,
@@ -84,17 +87,20 @@ class _ProductViewState extends State<ProductView> {
                           SizedBox(
                             width: 5,
                           ),
-                          FutureBuilder<Business?>(
-                              future: ProxyService.isarApi.getBusiness(),
-                              builder: (a, snapshoot) {
-                                if (snapshoot.connectionState ==
-                                        ConnectionState.waiting ||
-                                    !snapshoot.hasData) {
-                                  return const SizedBox.shrink();
-                                }
-                                final data = snapshoot.data;
-                                return ProfileWidget(business: data!, size: 25);
-                              })
+                          isDesktopOrWeb
+                              ? FutureBuilder<Business?>(
+                                  future: ProxyService.isarApi.getBusiness(),
+                                  builder: (a, snapshoot) {
+                                    if (snapshoot.connectionState ==
+                                            ConnectionState.waiting ||
+                                        !snapshoot.hasData) {
+                                      return const SizedBox.shrink();
+                                    }
+                                    final data = snapshoot.data;
+                                    return ProfileWidget(
+                                        business: data!, size: 25);
+                                  })
+                              : SizedBox.shrink()
                         ]),
                       ),
                     ),
@@ -114,6 +120,9 @@ class _ProductViewState extends State<ProductView> {
                         .toList();
                     return SliverList(
                         delegate: SliverChildListDelegate([
+                      SizedBox(
+                        height: 10,
+                      ),
                       products.isEmpty
                           ? Center(
                               child: Column(

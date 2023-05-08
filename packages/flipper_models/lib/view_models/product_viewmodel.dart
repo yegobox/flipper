@@ -6,7 +6,6 @@ import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar/utils.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_routing/app.router.dart';
-import 'package:flipper_services/abstractions/upload.dart';
 import 'package:flutter/cupertino.dart';
 
 import 'package:flipper_services/proxy.dart';
@@ -219,25 +218,6 @@ class ProductViewModel extends AddTenantViewModel {
       //this will reload the variations remain
       getTempOrCreateProduct();
     }
-  }
-
-  void browsePictureFromGallery(
-      {required int productId, required Function callBack}) {
-    ProxyService.upload.browsePictureFromGallery(
-        productId: productId,
-        urlType: URLTYPE.PRODUCT,
-        onComplete: (res) {
-          callBack(res);
-        });
-  }
-
-  void takePicture({required int productId, required Function callBack}) {
-    ProxyService.upload.takePicture(
-        urlType: URLTYPE.PRODUCT,
-        id: productId,
-        onComplete: (res) {
-          callBack(res);
-        });
   }
 
   Future<void> switchColor({required PColor color}) async {

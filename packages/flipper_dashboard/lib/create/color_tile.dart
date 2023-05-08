@@ -15,7 +15,7 @@ class ColorTile extends StatelessWidget {
   final _routerService = locator<RouterService>();
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<ProductViewModel>.reactive(
+    return ViewModelBuilder<UploadViewModel>.reactive(
       builder: (context, model, child) {
         return Scaffold(
           appBar: CustomAppBar(
@@ -220,12 +220,12 @@ class ColorTile extends StatelessWidget {
           ),
         );
       },
-      viewModelBuilder: () => ProductViewModel(),
+      viewModelBuilder: () => UploadViewModel(),
     );
   }
 
   List<Widget> colorsStack(
-      BuildContext context, List<PColor> colors, ProductViewModel model) {
+      BuildContext context, List<PColor> colors, UploadViewModel model) {
     final List<Widget> stacks = [];
 
     if (colors.isNotEmpty) {

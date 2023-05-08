@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 
@@ -76,6 +77,12 @@ class HttpUpload implements UploadT {
     // TODO: implement upload
     throw UnimplementedError();
   }
+
+  @override
+  Stream<double> uploadProgress() {
+    // TODO: implement uploadProgress
+    throw UnimplementedError();
+  }
 }
 
 // end of http upload
@@ -107,6 +114,14 @@ class MobileUpload implements UploadT {
     });
   }
 
+  var processed = <String>[];
+  FlutterUploader uploader = FlutterUploader();
+
+  @override
+  Stream<double> uploadProgress() {
+    return uploader.progress.map((progress) => progress.progress!.toDouble());
+  }
+
   @override
   Future upload({
     required List<String?> paths,
@@ -114,7 +129,6 @@ class MobileUpload implements UploadT {
     required URLTYPE urlType,
     required Function(String) onUploadComplete,
   }) async {
-    final FlutterUploader uploader = FlutterUploader();
     final String? token = ProxyService.box.getBearerToken();
 
     late String url;
@@ -123,6 +137,8 @@ class MobileUpload implements UploadT {
     } else if (!kDebugMode) {
       url = 'https://apihub.yegobox.com/s3/upload';
     }
+    log(paths.length.toString(), name: 'paths');
+
     await uploader.enqueue(MultipartFormDataUpload(
       url: url,
       files: paths.map((e) => FileItem(path: e!, field: 'file')).toList(),
@@ -130,38 +146,32 @@ class MobileUpload implements UploadT {
       tag: 'file',
       headers: {'Authorization': token!},
     ));
-
-    uploader.progress.listen((UploadTaskProgress progress) {
-      // print('uploadProgress:' + progress.toString());
-    });
     uploader.result.listen((UploadTaskResponse result) async {
-      if (result.response != 'There are no items to upload' ||
-          result.response != null) {
-        try {
-          if (urlType == URLTYPE.PRODUCT) {
-            final UploadResponse uploadResponse =
-                uploadResponseFromJson(result.response!);
-            Product? product = await ProxyService.isarApi.getProduct(id: id);
-            product!.imageUrl = uploadResponse.url;
-            ProxyService.isarApi.update(data: product);
-            Product? kProduct = await ProxyService.isarApi.getProduct(id: id);
-            ProxyService.productService.setCurrentProduct(product: kProduct!);
-            onUploadComplete(uploadResponse.url);
-          }
-          if (urlType == URLTYPE.BUSINESS) {
-            final UploadResponse uploadResponse =
-                uploadResponseFromJson(result.response!);
-            Business? business =
-                await ProxyService.isarApi.getBusinessById(id: id);
-            business!.imageUrl = uploadResponse.url;
-            ProxyService.isarApi.update(data: business);
-            onUploadComplete(uploadResponse.url);
-          }
-        } catch (e) {
-          onUploadComplete("500");
+      if (result.status == UploadTaskStatus.complete) {
+        if (urlType == URLTYPE.PRODUCT) {
+          final UploadResponse uploadResponse =
+              uploadResponseFromJson(result.response!);
+          Product? product = await ProxyService.isarApi.getProduct(id: id);
+          product!.imageUrl = uploadResponse.url;
+          ProxyService.isarApi.update(data: product);
+          Product? kProduct = await ProxyService.isarApi.getProduct(id: id);
+          ProxyService.productService.setCurrentProduct(product: kProduct!);
+          onUploadComplete(uploadResponse.url);
         }
+        if (urlType == URLTYPE.BUSINESS) {
+          final UploadResponse uploadResponse =
+              uploadResponseFromJson(result.response!);
+          Business? business =
+              await ProxyService.isarApi.getBusinessById(id: id);
+          business!.imageUrl = uploadResponse.url;
+          ProxyService.isarApi.update(data: business);
+          onUploadComplete(uploadResponse.url);
+        }
+      } else {
+        onUploadComplete("500");
       }
     }, onError: (ex, stacktrace) {
+      // processed.clear();
       log(ex);
     });
   }

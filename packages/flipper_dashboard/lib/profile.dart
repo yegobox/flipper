@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:flipper_dashboard/letter.dart';
+import 'package:flipper_dashboard/progress.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/abstractions/upload.dart';
 import 'package:flipper_services/proxy.dart';
@@ -94,6 +95,23 @@ class _ProfileWidgetState extends State<ProfileWidget>
             color: Colors.red,
             iconSize: 40,
             onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  backgroundColor: Colors.white,
+                  duration: Duration(hours: 1),
+                  content: Container(
+                    color: Colors.white,
+                    padding: EdgeInsets.all(8.0),
+                    child: UploadProgressWidget(
+                        progressStream: ProxyService.upload.uploadProgress()),
+                  ),
+                ),
+              );
+              ProxyService.upload.uploadProgress().listen((progress) {
+                if (progress == 100) {
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                }
+              });
               ProxyService.upload.browsePictureFromGallery(
                   urlType: URLTYPE.BUSINESS,
                   productId: widget.business.id!,

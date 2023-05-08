@@ -41,6 +41,7 @@ export 'isar/extensions.dart';
 export 'package:flipper_models/view_models/login_viewmodel.dart';
 
 export 'package:flipper_models/view_models/business_home_viewmodel.dart';
+export 'package:flipper_models/view_models/upload_viewmodel.dart';
 export 'package:flipper_models/view_models/add_user_view_model.dart';
 export 'package:flipper_models/view_models/product_viewmodel.dart';
 export 'package:flipper_models/view_models/signup_viewmodel.dart';
