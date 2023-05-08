@@ -1160,6 +1160,7 @@ class IsarAPI<M> implements IsarApiInterface {
           name: jTenant.name,
           businessId: jTenant.businessId,
           email: jTenant.email,
+          userId: jTenant.userId,
           nfcEnabled: jTenant.nfcEnabled,
           phoneNumber: jTenant.phoneNumber);
 
@@ -1190,6 +1191,7 @@ class IsarAPI<M> implements IsarApiInterface {
         ITenant iTenant = ITenant(
             id: jTenant.id,
             name: jTenant.name,
+            userId: jTenant.userId,
             businessId: jTenant.businessId,
             nfcEnabled: jTenant.nfcEnabled,
             email: jTenant.email,
@@ -1271,13 +1273,29 @@ class IsarAPI<M> implements IsarApiInterface {
             term:
                 "No tenant added to the user, if a business is added it should have one tenant");
       }
-      await isar.writeTxn(() async {
-        return isar.business.putAll(syncF.tenants.first.businesses);
-      });
-      await isar.writeTxn(() async {
-        return isar.branchs.putAll(syncF.tenants.first.branches);
-      });
+      for (Tenant tenant in syncF.tenants) {
+        ITenant iTenant = ITenant(
+            id: tenant.id,
+            name: tenant.name,
+            businessId: tenant.businessId,
+            nfcEnabled: tenant.nfcEnabled,
+            email: tenant.email ?? '',
+            userId: syncF.id,
+            phoneNumber: tenant.phoneNumber);
 
+        await isar.writeTxn(() async {
+          return isar.business.putAll(tenant.businesses);
+        });
+        await isar.writeTxn(() async {
+          return isar.branchs.putAll(tenant.branches);
+        });
+        await isar.writeTxn(() async {
+          return isar.permissions.putAll(tenant.permissions);
+        });
+        await isar.writeTxn(() async {
+          return isar.iTenants.put(iTenant);
+        });
+      }
       return syncF;
     } else if (response.statusCode == 401) {
       throw SessionException(term: "session expired");
@@ -1612,6 +1630,7 @@ class IsarAPI<M> implements IsarApiInterface {
         throw InternalServerError(term: "error patching the business");
       }
     }
+
     if (data is Branch) {
       isar.writeTxn(() async {
         return await isar.branchs.put(data);
@@ -1671,9 +1690,8 @@ class IsarAPI<M> implements IsarApiInterface {
         body: jsonEncode(data.toJson()),
       );
       if (response.statusCode == 200) {
-        return await isar.writeTxn(() async {
-          final result = await isar.iTenants.get(await isar.iTenants.put(data));
-          return result as T?;
+        await isar.writeTxn(() async {
+          return await isar.iTenants.put(data);
         });
       }
       return null;
@@ -1906,6 +1924,7 @@ class IsarAPI<M> implements IsarApiInterface {
         ITenant iTenant = ITenant(
             id: jTenant.id,
             name: jTenant.name,
+            userId: jTenant.userId,
             businessId: jTenant.businessId,
             nfcEnabled: jTenant.nfcEnabled,
             email: jTenant.email,
@@ -2469,5 +2488,10 @@ class IsarAPI<M> implements IsarApiInterface {
         .build()
         .watch(fireImmediately: true)
         .asyncMap((event) => event.first);
+  }
+
+  @override
+  Future<ITenant?> getTenantBYUserId({required int userId}) async {
+    return isar.iTenants.filter().userIdEqualTo(userId).build().findFirst();
   }
 }

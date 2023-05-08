@@ -184,6 +184,7 @@ class EventService implements EventInterface {
 
   @override
   Future<void> keepTryingPublishDevice() async {
+    if (ProxyService.box.getBusinessId() == null) return;
     List<Device> devices = await ProxyService.isarApi
         .unpublishedDevices(businessId: ProxyService.box.getBusinessId()!);
     for (Device device in devices) {

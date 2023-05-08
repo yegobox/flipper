@@ -21,6 +21,7 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
         ITenant iTenant = ITenant(
             id: jTenant.id,
             name: jTenant.name,
+            userId: jTenant.userId,
             businessId: jTenant.businessId,
             nfcEnabled: jTenant.nfcEnabled,
             email: jTenant.email,
@@ -281,6 +282,7 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
         ITenant iTenant = ITenant(
             id: jTenant.id,
             name: jTenant.name,
+            userId: jTenant.userId,
             businessId: jTenant.businessId,
             nfcEnabled: jTenant.nfcEnabled,
             email: jTenant.email,

@@ -1,7 +1,5 @@
-import 'dart:math';
-
+import 'package:flipper_dashboard/profile.dart';
 import 'package:flipper_models/isar_models.dart';
-import 'package:flipper_services/abstractions/upload.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_settings_ui/flutter_settings_ui.dart';
@@ -11,17 +9,6 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/isar_models.dart' as isar;
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
-
-final List<Color> colors = [
-  Colors.blue,
-  Colors.green,
-  Colors.red,
-  Colors.yellow,
-  Colors.orange,
-  Colors.purple,
-  Colors.teal,
-  Colors.pink,
-];
 
 class SettingPage extends StatelessWidget {
   SettingPage({Key? key, this.business}) : super(key: key);
@@ -40,83 +27,7 @@ class SettingPage extends StatelessWidget {
               children: [
                 Padding(
                   padding: const EdgeInsets.only(top: 8.0),
-                  child: Stack(
-                    children: [
-                      StreamBuilder<Business>(
-                          stream: ProxyService.isarApi
-                              .businessStream(businessId: business!.id!),
-                          builder: (context, snapshot) {
-                            if (snapshot.hasData) {
-                              final data = snapshot.data;
-                              if (data!.imageUrl == null) {
-                                return CircleAvatar(
-                                  radius: 100,
-                                  backgroundColor: Colors.white,
-                                  child: SizedBox(
-                                    width: 100,
-                                    height: 100,
-                                    child: Container(
-                                      width: 100,
-                                      height: 100,
-                                      decoration: BoxDecoration(
-                                        color: colors[
-                                            Random().nextInt(colors.length)],
-                                        borderRadius: BorderRadius.circular(25),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.grey.shade200,
-                                            blurRadius: 5,
-                                            offset: Offset(0, 2),
-                                          ),
-                                        ],
-                                      ),
-                                      child: Center(
-                                        child: Text(
-                                          business?.name != null &&
-                                                  business!.name!.length > 0
-                                              ? business!.name!
-                                                  .substring(0, 2)
-                                                  .toUpperCase()
-                                              : '',
-                                          style: TextStyle(
-                                            fontSize: 18,
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              } else {
-                                return CircleAvatar(
-                                  radius: 100,
-                                  backgroundColor: Colors.white,
-                                  backgroundImage: NetworkImage(data.imageUrl!),
-                                );
-                              }
-                            }
-                            return SizedBox.shrink();
-                          }),
-                      Positioned(
-                        bottom: 45,
-                        right: 30,
-                        child: IconButton(
-                          icon: Icon(Icons.camera),
-                          color: Colors.white,
-                          iconSize: 40,
-                          onPressed: () {
-                            ProxyService.upload.browsePictureFromGallery(
-                                urlType: URLTYPE.BUSINESS,
-                                productId: business!.id!,
-                                onComplete: (res) {
-                                  log(res);
-                                });
-                          },
-                        ),
-                      )
-                    ],
-                  ),
+                  child: ProfileWidget(business: business!),
                 ),
                 SizedBox(height: 10),
                 Flexible(

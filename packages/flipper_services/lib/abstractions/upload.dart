@@ -15,13 +15,13 @@ abstract class UploadT {
     required File image,
     required int id,
     required URLTYPE urlType,
-    required Function(int) onUploadComplete,
+    required Function(String) onUploadComplete,
   });
   Future<bool> isInternetAvailable();
   Future upload({
     required List<String?> paths,
     required URLTYPE urlType,
     required int id,
-    required Function(int) onUploadComplete,
+    required Function(String) onUploadComplete,
   });
 }

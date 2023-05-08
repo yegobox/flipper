@@ -1,5 +1,6 @@
 import 'package:flipper_dashboard/discount_row.dart';
 import 'package:flipper_dashboard/product_row.dart';
+import 'package:flipper_dashboard/profile.dart';
 import 'package:flipper_dashboard/search_field.dart';
 import 'package:flipper_dashboard/sticky_search.dart';
 import 'package:flipper_dashboard/tenants_list.dart';
@@ -50,6 +51,12 @@ class _ProductViewState extends State<ProductView> {
       },
       viewModelBuilder: () => ProductViewModel(),
       builder: (context, model, child) {
+        MediaQuery.of(context).size.width; // retrieve device width
+        MediaQuery.of(context).size.height; // retrieve device height
+
+        double searchFieldWidth = MediaQuery.of(context).size.width *
+            0.59; // set search field width to 90% of device width
+
         return KeyboardVisibility(
             onChanged: (bool keyboardVisible) {
               if (!keyboardVisible) {
@@ -62,11 +69,33 @@ class _ProductViewState extends State<ProductView> {
                   pinned: true,
                   floating: false,
                   delegate: StickyHeader(
-                    child: Container(
-                      height: kToolbarHeight,
-                      child: SearchField(
-                        controller: searchController,
-                        model: model,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Container(
+                        height: kToolbarHeight,
+                        child: Wrap(direction: Axis.horizontal, children: [
+                          SizedBox(
+                            width: searchFieldWidth,
+                            child: SearchField(
+                              controller: searchController,
+                              model: model,
+                            ),
+                          ),
+                          SizedBox(
+                            width: 5,
+                          ),
+                          FutureBuilder<Business?>(
+                              future: ProxyService.isarApi.getBusiness(),
+                              builder: (a, snapshoot) {
+                                if (snapshoot.connectionState ==
+                                        ConnectionState.waiting ||
+                                    !snapshoot.hasData) {
+                                  return const SizedBox.shrink();
+                                }
+                                final data = snapshoot.data;
+                                return ProfileWidget(business: data!, size: 25);
+                              })
+                        ]),
                       ),
                     ),
                   ),

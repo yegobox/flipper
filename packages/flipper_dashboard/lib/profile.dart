@@ -1,0 +1,117 @@
+import 'dart:developer';
+
+import 'package:flipper_dashboard/letter.dart';
+import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_services/abstractions/upload.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flipper_routing/app.dialogs.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked_services/stacked_services.dart';
+
+/// when the user upload image
+/// we also update the business with the new image
+/// and current tenant logged in which in most cases is the same as
+/// the user logged in
+class ProfileWidget extends StatefulWidget {
+  const ProfileWidget({super.key, required this.business, this.size = 50});
+  final Business business;
+  final double? size;
+  @override
+  State<ProfileWidget> createState() => _ProfileWidgetState();
+}
+
+class _ProfileWidgetState extends State<ProfileWidget>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  final _dialogService = locator<DialogService>();
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        StreamBuilder<Business>(
+            stream: ProxyService.isarApi
+                .businessStream(businessId: widget.business.id!),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                final data = snapshot.data;
+                if (data!.imageUrl == null) {
+                  return GestureDetector(
+                    onTap: () {
+                      _dialogService.showCustomDialog(
+                          variant: DialogType.logOut, title: 'Log out');
+                    },
+                    child: GmailLikeLetter(
+                      business: widget.business,
+                      size: widget.size,
+                    ),
+                  );
+                } else {
+                  return GestureDetector(
+                    onTap: () {
+                      _dialogService.showCustomDialog(
+                          variant: DialogType.logOut, title: 'Log out');
+                    },
+                    child: ClipOval(
+                      child: CachedNetworkImage(
+                        imageUrl: data.imageUrl!,
+                        placeholder: (context, url) => GmailLikeLetter(
+                          business: widget.business,
+                          size: widget.size,
+                        ),
+                        errorWidget: (context, url, error) => GmailLikeLetter(
+                          business: widget.business,
+                          size: widget.size,
+                        ),
+                        width: 100,
+                        height: 100,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  );
+                }
+              }
+              return SizedBox.shrink();
+            }),
+        Positioned(
+          bottom: 0,
+          right: -10,
+          child: IconButton(
+            icon: Icon(Icons.camera),
+            color: Colors.red,
+            iconSize: 40,
+            onPressed: () {
+              ProxyService.upload.browsePictureFromGallery(
+                  urlType: URLTYPE.BUSINESS,
+                  productId: widget.business.id!,
+                  onComplete: (res) async {
+                    log(res, name: "uploaded tenant image");
+                    if (res == "500") return;
+                    ITenant? tenant = await ProxyService.isarApi
+                        .getTenantBYUserId(
+                            userId: ProxyService.box.getUserId()!);
+                    if (tenant != null) {
+                      tenant.imageUrl = res;
+                      ProxyService.isarApi.update(data: tenant);
+                    }
+                  });
+            },
+          ),
+        )
+      ],
+    );
+  }
+}

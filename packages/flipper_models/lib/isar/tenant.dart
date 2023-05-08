@@ -1,31 +1,37 @@
 library flipper_models;
 
 import 'package:flipper_models/isar_models.dart';
-
+import 'package:flipper_models/sync_service.dart';
+import 'package:isar/isar.dart';
+import 'package:json_annotation/json_annotation.dart';
+import 'package:pocketbase/pocketbase.dart';
 part 'tenant.g.dart';
 
+@JsonSerializable()
 @Collection()
-class ITenant {
+class ITenant extends IJsonSerializable {
   ITenant(
       {this.id,
       required this.name,
       required this.phoneNumber,
       required this.email,
       required this.nfcEnabled,
-      required this.businessId});
+      required this.businessId,
+      required this.userId});
   Id? id = Isar.autoIncrement;
-  late String name;
-  late String phoneNumber;
-  late String email;
-  late bool nfcEnabled;
-  late int businessId;
+  String name;
+  String phoneNumber;
+  String email;
+  bool nfcEnabled;
+  int businessId;
+  int userId;
+  String? imageUrl;
 
-  Map<String, dynamic> toJson() => {
-        "id": id,
-        "name": name,
-        "phoneNumber": phoneNumber,
-        "email": email,
-        "nfcEnabled": nfcEnabled,
-        "businessId": businessId
-      };
+  factory ITenant.fromRecord(RecordModel record) =>
+      ITenant.fromJson(record.toJson());
+
+  factory ITenant.fromJson(Map<String, dynamic> json) =>
+      _$ITenantFromJson(json);
+  @override
+  Map<String, dynamic> toJson() => _$ITenantToJson(this);
 }

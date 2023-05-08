@@ -27,7 +27,7 @@ class HttpUpload implements UploadT {
     required File image,
     required int id,
     required URLTYPE urlType,
-    required Function(int) onUploadComplete,
+    required Function(String) onUploadComplete,
   }) async {
     final tempDir = await getTemporaryDirectory();
     CompressObject compressObject = CompressObject(
@@ -71,7 +71,7 @@ class HttpUpload implements UploadT {
     required List<String?> paths,
     required int id,
     required URLTYPE urlType,
-    required Function(int) onUploadComplete,
+    required Function(String) onUploadComplete,
   }) {
     // TODO: implement upload
     throw UnimplementedError();
@@ -86,7 +86,7 @@ class MobileUpload implements UploadT {
       {required File image,
       required int id,
       required URLTYPE urlType,
-      required Function(int) onUploadComplete}) async {
+      required Function(String) onUploadComplete}) async {
     final tempDir = await getTemporaryDirectory();
     CompressObject compressObject = CompressObject(
       imageFile: image, //image
@@ -112,7 +112,7 @@ class MobileUpload implements UploadT {
     required List<String?> paths,
     required int id,
     required URLTYPE urlType,
-    required Function(int) onUploadComplete,
+    required Function(String) onUploadComplete,
   }) async {
     final FlutterUploader uploader = FlutterUploader();
     final String? token = ProxyService.box.getBearerToken();
@@ -146,7 +146,7 @@ class MobileUpload implements UploadT {
             ProxyService.isarApi.update(data: product);
             Product? kProduct = await ProxyService.isarApi.getProduct(id: id);
             ProxyService.productService.setCurrentProduct(product: kProduct!);
-            onUploadComplete(result.statusCode!);
+            onUploadComplete(uploadResponse.url);
           }
           if (urlType == URLTYPE.BUSINESS) {
             final UploadResponse uploadResponse =
@@ -155,10 +155,10 @@ class MobileUpload implements UploadT {
                 await ProxyService.isarApi.getBusinessById(id: id);
             business!.imageUrl = uploadResponse.url;
             ProxyService.isarApi.update(data: business);
-            onUploadComplete(result.statusCode!);
+            onUploadComplete(uploadResponse.url);
           }
         } catch (e) {
-          onUploadComplete(500);
+          onUploadComplete("500");
         }
       }
     }, onError: (ex, stacktrace) {
@@ -193,13 +193,8 @@ class MobileUpload implements UploadT {
         image: file,
         id: productId,
         urlType: urlType,
-        onUploadComplete: (int statusCode) {
-          log(statusCode.toString(), name: "uploading image");
-          if (statusCode == 200) {
-            onComplete(statusCode);
-          } else {
-            onComplete(statusCode);
-          }
+        onUploadComplete: (String statusCode) {
+          onComplete(statusCode);
         },
       );
     } catch (e) {
@@ -224,8 +219,8 @@ class MobileUpload implements UploadT {
       image: file,
       id: id,
       urlType: urlType,
-      onUploadComplete: (int statusCode) async {
-        if (statusCode == 200) {
+      onUploadComplete: (String statusCode) async {
+        if (statusCode == "200") {
           onComplete(statusCode);
         } else {
           onComplete(statusCode);
