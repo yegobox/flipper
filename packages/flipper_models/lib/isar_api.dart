@@ -2460,4 +2460,14 @@ class IsarAPI<M> implements IsarApiInterface {
         .build()
         .findAll();
   }
+
+  @override
+  Stream<Business> businessStream({required int businessId}) {
+    return isar.business
+        .filter()
+        .idEqualTo(businessId)
+        .build()
+        .watch(fireImmediately: true)
+        .asyncMap((event) => event.first);
+  }
 }

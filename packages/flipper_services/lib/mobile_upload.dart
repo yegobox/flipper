@@ -1,6 +1,8 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:flipper_services/upload_response.dart';
+import 'package:flutter/foundation.dart';
 
 import 'abstractions/upload.dart';
 import 'package:image_picker/image_picker.dart';
@@ -14,14 +16,17 @@ import 'proxy.dart';
 class HttpUpload implements UploadT {
   @override
   Future browsePictureFromGallery(
-      {required int productId, required Function onComplete}) async {
+      {required int productId,
+      required URLTYPE urlType,
+      required Function onComplete}) async {
     UnimplementedError();
   }
 
   @override
   Future handleImage({
     required File image,
-    required int productId,
+    required int id,
+    required URLTYPE urlType,
     required Function(int) onUploadComplete,
   }) async {
     final tempDir = await getTemporaryDirectory();
@@ -40,7 +45,8 @@ class HttpUpload implements UploadT {
 
       upload(
         paths: [storagePath],
-        productId: productId,
+        id: id,
+        urlType: urlType,
         onUploadComplete: onUploadComplete,
       );
     });
@@ -54,14 +60,17 @@ class HttpUpload implements UploadT {
 
   @override
   Future takePicture(
-      {required int productId, required Function onComplete}) async {
+      {required int id,
+      required URLTYPE urlType,
+      required Function onComplete}) async {
     print('no supported on this platform');
   }
 
   @override
   Future upload({
     required List<String?> paths,
-    required int productId,
+    required int id,
+    required URLTYPE urlType,
     required Function(int) onUploadComplete,
   }) {
     // TODO: implement upload
@@ -75,7 +84,8 @@ class MobileUpload implements UploadT {
   @override
   Future handleImage(
       {required File image,
-      required int productId,
+      required int id,
+      required URLTYPE urlType,
       required Function(int) onUploadComplete}) async {
     final tempDir = await getTemporaryDirectory();
     CompressObject compressObject = CompressObject(
@@ -87,23 +97,34 @@ class MobileUpload implements UploadT {
     );
     Luban.compressImage(compressObject).then((_path) {
       upload(
-        productId: productId,
+        id: id,
         paths: [_path!],
+        urlType: urlType,
         onUploadComplete: onUploadComplete,
       );
-    }).onError((error, stackTrace) {});
+    }).onError((error, stackTrace) {
+      log(error.toString(), name: "error compressing image");
+    });
   }
 
   @override
   Future upload({
     required List<String?> paths,
-    required int productId,
+    required int id,
+    required URLTYPE urlType,
     required Function(int) onUploadComplete,
   }) async {
     final FlutterUploader uploader = FlutterUploader();
     final String? token = ProxyService.box.getBearerToken();
+
+    late String url;
+    if (kDebugMode) {
+      url = 'https://uat-apihub.yegobox.com/s3/upload';
+    } else if (!kDebugMode) {
+      url = 'https://apihub.yegobox.com/s3/upload';
+    }
     await uploader.enqueue(MultipartFormDataUpload(
-      url: 'https://apihub.yegobox.com/s3/upload',
+      url: url,
       files: paths.map((e) => FileItem(path: e!, field: 'file')).toList(),
       method: UploadMethod.POST,
       tag: 'file',
@@ -117,23 +138,32 @@ class MobileUpload implements UploadT {
       if (result.response != 'There are no items to upload' ||
           result.response != null) {
         try {
-          final UploadResponse uploadResponse =
-              uploadResponseFromJson(result.response!);
-          Product? product =
-              await ProxyService.isarApi.getProduct(id: productId);
-          // Map map = product!.toJson();
-          product!.imageUrl = uploadResponse.url;
-          ProxyService.isarApi.update(data: product);
-          Product? kProduct =
-              await ProxyService.isarApi.getProduct(id: productId);
-          ProxyService.productService
-              .setCurrentProduct(product: kProduct!); //refresh data!
-          onUploadComplete(result.statusCode!);
+          if (urlType == URLTYPE.PRODUCT) {
+            final UploadResponse uploadResponse =
+                uploadResponseFromJson(result.response!);
+            Product? product = await ProxyService.isarApi.getProduct(id: id);
+            product!.imageUrl = uploadResponse.url;
+            ProxyService.isarApi.update(data: product);
+            Product? kProduct = await ProxyService.isarApi.getProduct(id: id);
+            ProxyService.productService.setCurrentProduct(product: kProduct!);
+            onUploadComplete(result.statusCode!);
+          }
+          if (urlType == URLTYPE.BUSINESS) {
+            final UploadResponse uploadResponse =
+                uploadResponseFromJson(result.response!);
+            Business? business =
+                await ProxyService.isarApi.getBusinessById(id: id);
+            business!.imageUrl = uploadResponse.url;
+            ProxyService.isarApi.update(data: business);
+            onUploadComplete(result.statusCode!);
+          }
         } catch (e) {
           onUploadComplete(500);
         }
       }
-    }, onError: (ex, stacktrace) {});
+    }, onError: (ex, stacktrace) {
+      log(ex);
+    });
   }
 
   @override
@@ -152,19 +182,23 @@ class MobileUpload implements UploadT {
 
   @override
   Future browsePictureFromGallery(
-      {required int productId, required Function onComplete}) async {
+      {required int productId,
+      required URLTYPE urlType,
+      required Function onComplete}) async {
     try {
       XFile? image = await _picker.pickImage(source: ImageSource.gallery);
       if (image == null) return;
       final File file = File(image.path);
       await handleImage(
         image: file,
-        productId: productId,
+        id: productId,
+        urlType: urlType,
         onUploadComplete: (int statusCode) {
+          log(statusCode.toString(), name: "uploading image");
           if (statusCode == 200) {
             onComplete(statusCode);
           } else {
-            onComplete(Exception('error'));
+            onComplete(statusCode);
           }
         },
       );
@@ -179,14 +213,17 @@ class MobileUpload implements UploadT {
 
   @override
   Future takePicture(
-      {required int productId, required Function onComplete}) async {
+      {required int id,
+      required URLTYPE urlType,
+      required Function onComplete}) async {
     final XFile? image = await _picker.pickImage(source: ImageSource.camera);
     if (image == null) return;
     final File file = File(image.path);
 
     await handleImage(
       image: file,
-      productId: productId,
+      id: id,
+      urlType: urlType,
       onUploadComplete: (int statusCode) async {
         if (statusCode == 200) {
           onComplete(statusCode);
