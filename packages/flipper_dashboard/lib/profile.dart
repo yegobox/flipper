@@ -1,9 +1,8 @@
-import 'dart:developer';
-
 import 'package:flipper_dashboard/letter.dart';
 import 'package:flipper_dashboard/progress.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/abstractions/upload.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -70,21 +69,31 @@ class _ProfileWidgetState extends State<ProfileWidget>
                             _dialogService.showCustomDialog(
                                 variant: DialogType.logOut, title: 'Log out');
                           },
-                          child: ClipOval(
-                            child: CachedNetworkImage(
-                              imageUrl: data.imageUrl!,
-                              placeholder: (context, url) => GmailLikeLetter(
-                                business: widget.business,
-                                size: widget.size,
+                          child: SizedBox(
+                            width: 50,
+                            height: 50,
+                            child: Container(
+                              width: 50,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                color: Colors.red,
+                                borderRadius: BorderRadius.circular(45),
                               ),
-                              errorWidget: (context, url, error) =>
-                                  GmailLikeLetter(
-                                business: widget.business,
-                                size: widget.size,
+                              child: CachedNetworkImage(
+                                imageUrl: data.imageUrl!,
+                                placeholder: (context, url) => GmailLikeLetter(
+                                  business: widget.business,
+                                  size: widget.size,
+                                ),
+                                errorWidget: (context, url, error) =>
+                                    GmailLikeLetter(
+                                  business: widget.business,
+                                  size: widget.size,
+                                ),
+                                width: 100,
+                                height: 100,
+                                fit: BoxFit.cover,
                               ),
-                              width: 100,
-                              height: 100,
-                              fit: BoxFit.cover,
                             ),
                           ),
                         );
@@ -92,48 +101,50 @@ class _ProfileWidgetState extends State<ProfileWidget>
                     }
                     return SizedBox.shrink();
                   }),
-              Positioned(
-                bottom: 0,
-                right: -10,
-                child: IconButton(
-                  icon: Icon(Icons.camera),
-                  color: Colors.red,
-                  iconSize: 40,
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        backgroundColor: Colors.white,
-                        duration: Duration(hours: 1),
-                        content: Container(
-                          color: Colors.white,
-                          padding: EdgeInsets.all(8.0),
-                          child: UploadProgressWidget(
-                              progressStream: model.uploadProgress()),
-                        ),
-                      ),
-                    );
-                    model.uploadProgress().listen((progress) {
-                      if (progress == 100) {
-                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                      }
-                    });
-                    model.browsePictureFromGallery(
-                        urlType: URLTYPE.BUSINESS,
-                        callBack: (res) async {
-                          log(res, name: "uploaded tenant image");
-                          if (res == "500") return;
-                          ITenant? tenant = await ProxyService.isarApi
-                              .getTenantBYUserId(
-                                  userId: ProxyService.box.getUserId()!);
-                          if (tenant != null) {
-                            tenant.imageUrl = res;
-                            ProxyService.isarApi.update(data: tenant);
-                          }
+              !isDesktopOrWeb
+                  ? Positioned(
+                      bottom: 0,
+                      right: -10,
+                      child: IconButton(
+                        icon: Icon(Icons.camera),
+                        color: Colors.red,
+                        iconSize: 40,
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              backgroundColor: Colors.white,
+                              duration: Duration(hours: 1),
+                              content: Container(
+                                color: Colors.white,
+                                padding: EdgeInsets.all(8.0),
+                                child: UploadProgressWidget(
+                                    progressStream: model.uploadProgress()),
+                              ),
+                            ),
+                          );
+                          model.uploadProgress().listen((progress) {
+                            if (progress == 100) {
+                              ScaffoldMessenger.of(context)
+                                  .hideCurrentSnackBar();
+                            }
+                          });
+                          model.browsePictureFromGallery(
+                              urlType: URLTYPE.BUSINESS,
+                              callBack: (res) async {
+                                if (res == "500") return;
+                                ITenant? tenant = await ProxyService.isarApi
+                                    .getTenantBYUserId(
+                                        userId: ProxyService.box.getUserId()!);
+                                if (tenant != null) {
+                                  tenant.imageUrl = res;
+                                  ProxyService.isarApi.update(data: tenant);
+                                }
+                              },
+                              id: widget.business.id!);
                         },
-                        id: widget.business.id!);
-                  },
-                ),
-              )
+                      ),
+                    )
+                  : SizedBox.shrink()
             ],
           );
         });

@@ -56,7 +56,7 @@ class _ProductViewState extends State<ProductView> {
         MediaQuery.of(context).size.height; // retrieve device height
 
         double searchFieldWidth = MediaQuery.of(context).size.width *
-            0.59; // set search field width to 90% of device width
+            0.61; // set search field width to 90% of device width
 
         return KeyboardVisibility(
             onChanged: (bool keyboardVisible) {
