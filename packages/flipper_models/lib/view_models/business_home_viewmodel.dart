@@ -226,6 +226,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   }
 
   Business get businesses => app.business;
+  ITenant? get tenant => app.tenant;
 
   void pop() {
     ProxyService.keypad.pop();
@@ -815,6 +816,12 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     } else {
       callback("Can't delete the customer");
     }
+  }
+
+  void defaultTenant() async {
+    ITenant? tenant = await ProxyService.isarApi
+        .getTenantBYUserId(userId: ProxyService.box.getUserId()!);
+    app.setTenant(tenant: tenant!);
   }
 
   void setDefaultBusiness({required Business business}) {

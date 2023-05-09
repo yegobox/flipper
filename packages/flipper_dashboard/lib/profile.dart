@@ -16,8 +16,8 @@ import 'package:stacked/stacked.dart';
 /// and current tenant logged in which in most cases is the same as
 /// the user logged in
 class ProfileWidget extends StatefulWidget {
-  const ProfileWidget({super.key, required this.business, this.size = 50});
-  final Business business;
+  const ProfileWidget({super.key, required this.tenant, this.size = 50});
+  final ITenant tenant;
   final double? size;
   @override
   State<ProfileWidget> createState() => _ProfileWidgetState();
@@ -48,7 +48,7 @@ class _ProfileWidgetState extends State<ProfileWidget>
             children: [
               StreamBuilder<Business>(
                   stream: ProxyService.isarApi
-                      .businessStream(businessId: widget.business.id!),
+                      .businessStream(businessId: widget.tenant.id!),
                   builder: (context, snapshot) {
                     if (snapshot.hasData) {
                       final data = snapshot.data;
@@ -59,7 +59,7 @@ class _ProfileWidgetState extends State<ProfileWidget>
                                 variant: DialogType.logOut, title: 'Log out');
                           },
                           child: GmailLikeLetter(
-                            business: widget.business,
+                            tenant: widget.tenant,
                             size: widget.size,
                           ),
                         );
@@ -70,29 +70,36 @@ class _ProfileWidgetState extends State<ProfileWidget>
                                 variant: DialogType.logOut, title: 'Log out');
                           },
                           child: SizedBox(
-                            width: 50,
-                            height: 50,
+                            width: isDesktopOrWeb ? 50 : 100,
+                            height: isDesktopOrWeb ? 50 : 100,
                             child: Container(
-                              width: 50,
-                              height: 50,
+                              width: isDesktopOrWeb ? 50 : 100,
+                              height: isDesktopOrWeb ? 50 : 100,
                               decoration: BoxDecoration(
-                                color: Colors.red,
+                                color: Colors.pink,
                                 borderRadius: BorderRadius.circular(45),
+                                border: Border.all(
+                                  color: Colors.pink,
+                                  width: 2.0,
+                                ),
                               ),
-                              child: CachedNetworkImage(
-                                imageUrl: data.imageUrl!,
-                                placeholder: (context, url) => GmailLikeLetter(
-                                  business: widget.business,
-                                  size: widget.size,
+                              child: ClipOval(
+                                child: CachedNetworkImage(
+                                  imageUrl: data.imageUrl!,
+                                  placeholder: (context, url) =>
+                                      GmailLikeLetter(
+                                    tenant: widget.tenant,
+                                    size: widget.size,
+                                  ),
+                                  errorWidget: (context, url, error) =>
+                                      GmailLikeLetter(
+                                    tenant: widget.tenant,
+                                    size: widget.size,
+                                  ),
+                                  width: 100,
+                                  height: 100,
+                                  fit: BoxFit.cover,
                                 ),
-                                errorWidget: (context, url, error) =>
-                                    GmailLikeLetter(
-                                  business: widget.business,
-                                  size: widget.size,
-                                ),
-                                width: 100,
-                                height: 100,
-                                fit: BoxFit.cover,
                               ),
                             ),
                           ),
@@ -140,7 +147,7 @@ class _ProfileWidgetState extends State<ProfileWidget>
                                   ProxyService.isarApi.update(data: tenant);
                                 }
                               },
-                              id: widget.business.id!);
+                              id: widget.tenant.id!);
                         },
                       ),
                     )

@@ -88,8 +88,11 @@ class _ProductViewState extends State<ProductView> {
                             width: 5,
                           ),
                           isDesktopOrWeb
-                              ? FutureBuilder<Business?>(
-                                  future: ProxyService.isarApi.getBusiness(),
+                              ? FutureBuilder<ITenant?>(
+                                  future: ProxyService.isarApi
+                                      .getTenantBYUserId(
+                                          userId:
+                                              ProxyService.box.getUserId()!),
                                   builder: (a, snapshoot) {
                                     if (snapshoot.connectionState ==
                                             ConnectionState.waiting ||
@@ -98,7 +101,7 @@ class _ProductViewState extends State<ProductView> {
                                     }
                                     final data = snapshoot.data;
                                     return ProfileWidget(
-                                        business: data!, size: 25);
+                                        tenant: data!, size: 25);
                                   })
                               : SizedBox.shrink()
                         ]),

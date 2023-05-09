@@ -27,6 +27,16 @@ class AppService with ListenableServiceMixin {
   final _business =
       ReactiveValue<isar.Business>(isar.Business(isDefault: false));
   isar.Business get business => _business.value;
+  setBusiness({required isar.Business business}) {
+    _business.value = business;
+  }
+
+  final _tenant = ReactiveValue<isar.ITenant?>(null);
+  isar.ITenant? get tenant => _tenant.value;
+
+  setTenant({required isar.ITenant tenant}) {
+    _tenant.value = tenant;
+  }
 
   final _units = ReactiveValue<List<IUnit>>([]);
   List<IUnit> get units => _units.value;
@@ -45,10 +55,6 @@ class AppService with ListenableServiceMixin {
 
   setCurrentColor({required String color}) {
     _currentColor.value = color;
-  }
-
-  setBusiness({required isar.Business business}) {
-    _business.value = business;
   }
 
   void loadCategories() async {

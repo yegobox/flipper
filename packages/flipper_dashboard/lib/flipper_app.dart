@@ -104,6 +104,9 @@ class _FlipperAppState extends State<FlipperApp>
         fireOnViewModelReadyOnce: true,
         viewModelBuilder: () => BusinessHomeViewModel(),
         onViewModelReady: (model) async {
+          //get default tenant
+          model.defaultTenant();
+
           /// if there is current order ongoing show them when the app starts
           model.currentOrder();
           ProxyService.dynamicLink.handleDynamicLink(context);

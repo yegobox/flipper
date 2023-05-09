@@ -15,8 +15,8 @@ final List<Color> colors = [
 ];
 
 class GmailLikeLetter extends StatefulWidget {
-  const GmailLikeLetter({super.key, required this.business, this.size = 100});
-  final Business business;
+  const GmailLikeLetter({super.key, required this.tenant, this.size = 100});
+  final ITenant tenant;
   final double? size;
 
   @override
@@ -63,8 +63,8 @@ class _GmailLikeLetterState extends State<GmailLikeLetter>
           ),
           child: Center(
             child: Text(
-              widget.business.name != null && widget.business.name!.length > 0
-                  ? widget.business.name!.substring(0, 2).toUpperCase()
+              widget.tenant.name != null && widget.tenant.name!.length > 0
+                  ? widget.tenant.name!.substring(0, 2).toUpperCase()
                   : '',
               style: TextStyle(
                 fontSize: 18,
