@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/customappbar.dart';
+import 'package:flipper_services/abstractions/upload.dart';
 import 'package:flipper_ui/helpers/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
@@ -163,10 +164,9 @@ class ColorTile extends StatelessWidget {
                         ),
                         onPressed: () async {
                           model.browsePictureFromGallery(
-                              productId: model.product.id!!,
-                              callBack: (int res) {
-                                // show error if any
-                              });
+                              id: model.product.id!,
+                              callBack: (e) {},
+                              urlType: URLTYPE.PRODUCT);
                         },
                       ),
                     ),
@@ -199,6 +199,7 @@ class ColorTile extends StatelessWidget {
                         ),
                         onPressed: () {
                           model.takePicture(
+                            urlType: URLTYPE.PRODUCT,
                             productId: model.product.id!!,
                             callBack: (int res) {
                               if (res == 500) {

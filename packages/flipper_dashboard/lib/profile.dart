@@ -10,6 +10,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:stacked/stacked.dart';
 
 /// when the user upload image
 /// we also update the business with the new image
@@ -41,95 +42,100 @@ class _ProfileWidgetState extends State<ProfileWidget>
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        StreamBuilder<Business>(
-            stream: ProxyService.isarApi
-                .businessStream(businessId: widget.business.id!),
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                final data = snapshot.data;
-                if (data!.imageUrl == null) {
-                  return GestureDetector(
-                    onTap: () {
-                      _dialogService.showCustomDialog(
-                          variant: DialogType.logOut, title: 'Log out');
-                    },
-                    child: GmailLikeLetter(
-                      business: widget.business,
-                      size: widget.size,
-                    ),
-                  );
-                } else {
-                  return GestureDetector(
-                    onTap: () {
-                      _dialogService.showCustomDialog(
-                          variant: DialogType.logOut, title: 'Log out');
-                    },
-                    child: ClipOval(
-                      child: CachedNetworkImage(
-                        imageUrl: data.imageUrl!,
-                        placeholder: (context, url) => GmailLikeLetter(
-                          business: widget.business,
-                          size: widget.size,
-                        ),
-                        errorWidget: (context, url, error) => GmailLikeLetter(
-                          business: widget.business,
-                          size: widget.size,
-                        ),
-                        width: 100,
-                        height: 100,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  );
-                }
-              }
-              return SizedBox.shrink();
-            }),
-        Positioned(
-          bottom: 0,
-          right: -10,
-          child: IconButton(
-            icon: Icon(Icons.camera),
-            color: Colors.red,
-            iconSize: 40,
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  backgroundColor: Colors.white,
-                  duration: Duration(hours: 1),
-                  content: Container(
-                    color: Colors.white,
-                    padding: EdgeInsets.all(8.0),
-                    child: UploadProgressWidget(
-                        progressStream: ProxyService.upload.uploadProgress()),
-                  ),
-                ),
-              );
-              ProxyService.upload.uploadProgress().listen((progress) {
-                if (progress == 100) {
-                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                }
-              });
-              ProxyService.upload.browsePictureFromGallery(
-                  urlType: URLTYPE.BUSINESS,
-                  productId: widget.business.id!,
-                  onComplete: (res) async {
-                    log(res, name: "uploaded tenant image");
-                    if (res == "500") return;
-                    ITenant? tenant = await ProxyService.isarApi
-                        .getTenantBYUserId(
-                            userId: ProxyService.box.getUserId()!);
-                    if (tenant != null) {
-                      tenant.imageUrl = res;
-                      ProxyService.isarApi.update(data: tenant);
+    return ViewModelBuilder<UploadViewModel>.reactive(
+        viewModelBuilder: () => UploadViewModel(),
+        builder: (context, model, child) {
+          return Stack(
+            children: [
+              StreamBuilder<Business>(
+                  stream: ProxyService.isarApi
+                      .businessStream(businessId: widget.business.id!),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      final data = snapshot.data;
+                      if (data!.imageUrl == null) {
+                        return GestureDetector(
+                          onTap: () {
+                            _dialogService.showCustomDialog(
+                                variant: DialogType.logOut, title: 'Log out');
+                          },
+                          child: GmailLikeLetter(
+                            business: widget.business,
+                            size: widget.size,
+                          ),
+                        );
+                      } else {
+                        return GestureDetector(
+                          onTap: () {
+                            _dialogService.showCustomDialog(
+                                variant: DialogType.logOut, title: 'Log out');
+                          },
+                          child: ClipOval(
+                            child: CachedNetworkImage(
+                              imageUrl: data.imageUrl!,
+                              placeholder: (context, url) => GmailLikeLetter(
+                                business: widget.business,
+                                size: widget.size,
+                              ),
+                              errorWidget: (context, url, error) =>
+                                  GmailLikeLetter(
+                                business: widget.business,
+                                size: widget.size,
+                              ),
+                              width: 100,
+                              height: 100,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        );
+                      }
                     }
-                  });
-            },
-          ),
-        )
-      ],
-    );
+                    return SizedBox.shrink();
+                  }),
+              Positioned(
+                bottom: 0,
+                right: -10,
+                child: IconButton(
+                  icon: Icon(Icons.camera),
+                  color: Colors.red,
+                  iconSize: 40,
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        backgroundColor: Colors.white,
+                        duration: Duration(hours: 1),
+                        content: Container(
+                          color: Colors.white,
+                          padding: EdgeInsets.all(8.0),
+                          child: UploadProgressWidget(
+                              progressStream: model.uploadProgress()),
+                        ),
+                      ),
+                    );
+                    model.uploadProgress().listen((progress) {
+                      if (progress == 100) {
+                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                      }
+                    });
+                    model.browsePictureFromGallery(
+                        urlType: URLTYPE.BUSINESS,
+                        callBack: (res) async {
+                          log(res, name: "uploaded tenant image");
+                          if (res == "500") return;
+                          ITenant? tenant = await ProxyService.isarApi
+                              .getTenantBYUserId(
+                                  userId: ProxyService.box.getUserId()!);
+                          if (tenant != null) {
+                            tenant.imageUrl = res;
+                            ProxyService.isarApi.update(data: tenant);
+                          }
+                        },
+                        id: widget.business.id!);
+                  },
+                ),
+              )
+            ],
+          );
+        });
   }
 }
