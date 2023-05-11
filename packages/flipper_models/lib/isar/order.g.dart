@@ -205,20 +205,7 @@ const OrderSchema = CollectionSchema(
       ],
     )
   },
-  links: {
-    r'orderItems': LinkSchema(
-      id: -2882418569269634219,
-      name: r'orderItems',
-      target: r'OrderItem',
-      single: false,
-    ),
-    r'discounts': LinkSchema(
-      id: 5408291939349920316,
-      name: r'discounts',
-      target: r'Discount',
-      single: false,
-    )
-  },
+  links: {},
   embeddedSchemas: {},
   getId: _orderGetId,
   getLinks: _orderGetLinks,
@@ -408,15 +395,11 @@ Id _orderGetId(Order object) {
 }
 
 List<IsarLinkBase<dynamic>> _orderGetLinks(Order object) {
-  return [object.orderItems, object.discounts];
+  return [];
 }
 
 void _orderAttach(IsarCollection<dynamic> col, Id id, Order object) {
   object.id = id;
-  object.orderItems
-      .attach(col, col.isar.collection<OrderItem>(), r'orderItems', id);
-  object.discounts
-      .attach(col, col.isar.collection<Discount>(), r'discounts', id);
 }
 
 extension OrderQueryWhereSort on QueryBuilder<Order, Order, QWhere> {
@@ -3186,119 +3169,7 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
 
 extension OrderQueryObject on QueryBuilder<Order, Order, QFilterCondition> {}
 
-extension OrderQueryLinks on QueryBuilder<Order, Order, QFilterCondition> {
-  QueryBuilder<Order, Order, QAfterFilterCondition> orderItems(
-      FilterQuery<OrderItem> q) {
-    return QueryBuilder.apply(this, (query) {
-      return query.link(q, r'orderItems');
-    });
-  }
-
-  QueryBuilder<Order, Order, QAfterFilterCondition> orderItemsLengthEqualTo(
-      int length) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'orderItems', length, true, length, true);
-    });
-  }
-
-  QueryBuilder<Order, Order, QAfterFilterCondition> orderItemsIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'orderItems', 0, true, 0, true);
-    });
-  }
-
-  QueryBuilder<Order, Order, QAfterFilterCondition> orderItemsIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'orderItems', 0, false, 999999, true);
-    });
-  }
-
-  QueryBuilder<Order, Order, QAfterFilterCondition> orderItemsLengthLessThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'orderItems', 0, true, length, include);
-    });
-  }
-
-  QueryBuilder<Order, Order, QAfterFilterCondition> orderItemsLengthGreaterThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'orderItems', length, include, 999999, true);
-    });
-  }
-
-  QueryBuilder<Order, Order, QAfterFilterCondition> orderItemsLengthBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(
-          r'orderItems', lower, includeLower, upper, includeUpper);
-    });
-  }
-
-  QueryBuilder<Order, Order, QAfterFilterCondition> discounts(
-      FilterQuery<Discount> q) {
-    return QueryBuilder.apply(this, (query) {
-      return query.link(q, r'discounts');
-    });
-  }
-
-  QueryBuilder<Order, Order, QAfterFilterCondition> discountsLengthEqualTo(
-      int length) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'discounts', length, true, length, true);
-    });
-  }
-
-  QueryBuilder<Order, Order, QAfterFilterCondition> discountsIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'discounts', 0, true, 0, true);
-    });
-  }
-
-  QueryBuilder<Order, Order, QAfterFilterCondition> discountsIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'discounts', 0, false, 999999, true);
-    });
-  }
-
-  QueryBuilder<Order, Order, QAfterFilterCondition> discountsLengthLessThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'discounts', 0, true, length, include);
-    });
-  }
-
-  QueryBuilder<Order, Order, QAfterFilterCondition> discountsLengthGreaterThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'discounts', length, include, 999999, true);
-    });
-  }
-
-  QueryBuilder<Order, Order, QAfterFilterCondition> discountsLengthBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(
-          r'discounts', lower, includeLower, upper, includeUpper);
-    });
-  }
-}
+extension OrderQueryLinks on QueryBuilder<Order, Order, QFilterCondition> {}
 
 extension OrderQuerySortBy on QueryBuilder<Order, Order, QSortBy> {
   QueryBuilder<Order, Order, QAfterSortBy> sortByAction() {

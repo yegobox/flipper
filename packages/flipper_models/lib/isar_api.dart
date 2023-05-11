@@ -902,7 +902,6 @@ class IsarAPI<M> implements IsarApiInterface {
         ..currentStock = 0.0
         ..branchId = branchId
         ..variantId = variation.id!
-      
         ..supplyPrice = 0.0
         ..retailPrice = 0.0
         ..lowStock = 10.0 // default static
@@ -1006,6 +1005,12 @@ class IsarAPI<M> implements IsarApiInterface {
         .where()
         .variantIdOrderIdEqualTo(variantId, orderId ?? 0)
         .findFirst();
+  }
+
+  @override
+  Future<List<OrderItem>> getOrderItemsByOrderId(
+      {required int? orderId}) async {
+    return isar.orderItems.where().orderIdEqualTo(orderId!).findAll();
   }
 
   @override

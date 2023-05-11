@@ -103,6 +103,7 @@ abstract class IsarApiInterface {
   Future<Business?> getBusinessById({required int id});
   Future<OrderItem?> getOrderItemByVariantId(
       {required int variantId, required int? orderId});
+  Future<List<OrderItem>> getOrderItemsByOrderId({required int? orderId});
   //abstract method to update business
   // Future<void> updateBusiness({required int id, required Map business});
 

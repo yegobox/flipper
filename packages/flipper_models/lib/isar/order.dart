@@ -39,9 +39,6 @@ class Order extends IJsonSerializable {
 
   String? ticketName;
 
-  final orderItems = IsarLinks<OrderItem>();
-  final discounts = IsarLinks<Discount>();
-
   Order(
       {required this.reference,
       required this.orderNumber,

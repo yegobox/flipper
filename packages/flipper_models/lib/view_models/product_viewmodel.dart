@@ -278,6 +278,7 @@ class ProductViewModel extends AddTenantViewModel {
         if (variation.name == "Regular") {
           variation.supplyPrice = supplyPrice;
           variation.productName = product!.name;
+          variation.action = actions["update"];
           variation.productId = variation.productId;
           ProxyService.isarApi.update(data: variation);
           Stock? stock = await ProxyService.isarApi
@@ -297,6 +298,7 @@ class ProductViewModel extends AddTenantViewModel {
           variation.retailPrice = retailPrice;
           variation.productId = variation.productId;
           variation.prc = retailPrice;
+          variation.action = actions["update"];
           variation.productName = product!.name;
           ProxyService.isarApi.update(data: variation);
           Stock? stock = await ProxyService.isarApi
@@ -404,7 +406,9 @@ class ProductViewModel extends AddTenantViewModel {
         await ProxyService.keypad.getPendingOrder(branchId: branchId);
 
     if (order != null) {
-      for (OrderItem item in order.orderItems) {
+      List<OrderItem> orderItems =
+          await ProxyService.isarApi.getOrderItemsByOrderId(orderId: order.id!);
+      for (OrderItem item in orderItems) {
         if (item.price.toInt() <= discount.amount! && item.discount == null) {
           item.discount = item.price;
 
