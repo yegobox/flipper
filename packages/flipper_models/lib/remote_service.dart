@@ -8,10 +8,10 @@ import 'dart:io';
 
 abstract class RemoteInterface {
   Future<List<RecordModel>> getCollection({required String collectionName});
-  Future<RecordModel> create(
+  Future<RecordModel?> create(
       {required Map<String, dynamic> collection,
       required String collectionName});
-  Future<RecordModel> update(
+  Future<RecordModel?> update(
       {required Map<String, dynamic> data,
       required String collectionName,
       required String recordId});
@@ -44,23 +44,25 @@ class RemoteService implements RemoteInterface {
   }
 
   @override
-  Future<RecordModel> create({
+  Future<RecordModel?> create({
     required Map<String, dynamic> collection,
     required String collectionName,
   }) async {
     try {
       return await pb.collection(collectionName).create(body: collection);
     } on SocketException catch (e) {
-      return Future.error(e);
+      log(e.toString());
+      return null;
     } on ClientException catch (e) {
-      return Future.error(e);
+      log(e.toString());
+      return null;
     } catch (e) {
       rethrow;
     }
   }
 
   @override
-  Future<RecordModel> update({
+  Future<RecordModel?> update({
     required Map<String, dynamic> data,
     required String collectionName,
     required String recordId,
@@ -68,9 +70,11 @@ class RemoteService implements RemoteInterface {
     try {
       return await pb.collection(collectionName).update(recordId, body: data);
     } on SocketException catch (e) {
-      return Future.error(e);
+      log(e.toString());
+      return null;
     } on ClientException catch (e) {
-      return Future.error(e);
+      log(e.toString());
+      return null;
     } catch (e) {
       rethrow;
     }
