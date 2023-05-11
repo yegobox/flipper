@@ -47,7 +47,7 @@ class ProductViewModel extends AddTenantViewModel {
   /// Create a temporal product to use during this session of product creation
   /// the same product will be use if it is still temp product
   String kProductName = 'null';
-  Future<int> getTempOrCreateProduct({int? productId}) async {
+  Future<Product> getTempOrCreateProduct({int? productId}) async {
     if (productId != null) {
       inUpdateProcess = true;
       Product? product = await ProxyService.isarApi.getProduct(id: productId);
@@ -56,7 +56,7 @@ class ProductViewModel extends AddTenantViewModel {
 
       productService.variantsProduct(productId: product.id!);
       notifyListeners();
-      return product.id!;
+      return product;
     }
     int branchId = ProxyService.box.getBranchId()!;
     int businessId = ProxyService.box.getBusinessId()!;
@@ -81,12 +81,12 @@ class ProductViewModel extends AddTenantViewModel {
       productService.setCurrentProduct(product: product);
       kProductName = product.name;
       rebuildUi();
-      return product.id!;
+      return product;
     }
     productService.setCurrentProduct(product: isTemp);
     await productService.variantsProduct(productId: isTemp.id!);
     rebuildUi();
-    return isTemp.id!;
+    return isTemp;
   }
 
   void setName({String? name}) {
@@ -322,19 +322,13 @@ class ProductViewModel extends AddTenantViewModel {
     mproduct.barCode = productService.barCode.toString();
     mproduct.color = app.currentColor;
     mproduct.color = app.currentColor;
+    mproduct.action = actions["update"];
 
-    /// we negate where remoteID is null because we want to change action to update
-    /// only if the product is already synced with the server
-    if (inUpdateProcess != null &&
-        inUpdateProcess! &&
-        mproduct.remoteID != null) {
-      mproduct.action = actions["update"];
-
-      /// since we have action update, then we can also update lastTouched
-      mproduct.lastTouched = removeTrailingDash(Hlc.fromDate(
-              DateTime.now(), ProxyService.box.getBranchId()!.toString())
-          .toString());
-    }
+    /// since we have action update, then we can also update lastTouched
+    /// always a product is in update state as we start with temp product initially
+    mproduct.lastTouched = removeTrailingDash(
+        Hlc.fromDate(DateTime.now(), ProxyService.box.getBranchId()!.toString())
+            .toString());
 
     final response = await ProxyService.isarApi.update(data: mproduct);
     List<Variant> variants = await ProxyService.isarApi

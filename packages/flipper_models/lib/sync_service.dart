@@ -37,25 +37,30 @@ class SynchronizationService<M extends IJsonSerializable>
       if (endpoint == "variants" && json["retailPrice"] == null) {
         throw Exception("variant has null retail price");
       }
-      if (json["name"] != "temp" || json["productName"] != "temp") {
-        /// remove trailing dashes to sent lastTouched
-        json["lastTouched"] = removeTrailingDash(Hlc.fromDate(
-                DateTime.now(), ProxyService.box.getBranchId()!.toString())
-            .toString());
-        json["id"] = syncId();
 
-        RecordModel? result;
-        if (json['action'] == 'create') {
+      /// remove trailing dashes to sent lastTouched
+      json["lastTouched"] = removeTrailingDash(Hlc.fromDate(
+              DateTime.now(), ProxyService.box.getBranchId()!.toString())
+          .toString());
+      json["id"] = syncId();
+
+      RecordModel? result;
+      // Assume that `json` is a variable holding a JSON object
+      //because there is a case where I might update yet there is no equivalent
+      //object remote, in this case we will fallback in create
+      if (json['action'] == 'update') {
+        var remoteID = json["remoteID"];
+        if (remoteID != null) {
+          json["id"] = remoteID;
           result = await ProxyService.remoteApi
-              .create(collection: json, collectionName: endpoint);
-        } else if (json['action'] == 'update' && json["remoteID"] != null) {
-          json["id"] = json["remoteID"];
-          result = await ProxyService.remoteApi.update(
-              data: json, collectionName: endpoint, recordId: json["remoteID"]);
-          print(endpoint);
+              .update(data: json, collectionName: endpoint, recordId: remoteID);
         }
-        return result;
+      } else if (json['action'] == 'create' || result == null) {
+        result = await ProxyService.remoteApi
+            .create(collection: json, collectionName: endpoint);
       }
+
+      return result;
     }
     return null;
   }

@@ -148,10 +148,12 @@ class RemoteService implements RemoteInterface {
     Variant remoteVariant = Variant.fromJson(item.toJson());
     Variant? localVariant =
         await ProxyService.isarApi.getVariantById(id: remoteVariant.localId!);
+
     if (localVariant == null && remoteVariant.branchId == branchId) {
       await ProxyService.isarApi.create(data: remoteVariant);
       lastTouched = remoteVariant.lastTouched;
     } else if (localVariant != null &&
+        localVariant.lastTouched != null &&
         remoteVariant.lastTouched!
             .isFutureDateCompareTo(localVariant.lastTouched!)) {
       await ProxyService.isarApi.update(data: remoteVariant);
@@ -188,6 +190,7 @@ class RemoteService implements RemoteInterface {
       await ProxyService.isarApi.create(data: remoteStock);
       lastTouched = remoteStock.lastTouched;
     } else if (localStock != null &&
+        localStock.lastTouched != null &&
         remoteStock.lastTouched!
             .isFutureDateCompareTo(localStock.lastTouched!)) {
       await ProxyService.isarApi.update(data: remoteStock);
@@ -204,8 +207,8 @@ class RemoteService implements RemoteInterface {
     if (localProduct == null && remoteProduct.branchId == branchId) {
       await ProxyService.isarApi.create(data: remoteProduct);
       lastTouched = remoteProduct.lastTouched;
-      //
     } else if (localProduct != null &&
+        localProduct.lastTouched != null &&
         remoteProduct.lastTouched!
             .isFutureDateCompareTo(localProduct.lastTouched!)) {
       await ProxyService.isarApi.update(data: remoteProduct);

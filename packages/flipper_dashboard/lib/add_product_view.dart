@@ -178,8 +178,9 @@ class _AddProductViewState extends State<AddProductView> {
                   showToast(context, 'Provide name for the product');
                   return;
                 }
-
-                await model.addProduct(mproduct: model.product);
+                Product product = await model.getTempOrCreateProduct(
+                    productId: widget.productId);
+                await model.addProduct(mproduct: product);
                 // then re-update the product default variant with retail price
                 // retailPriceController this is to present missing out key stroke.
                 await model.updateRegularVariant(
