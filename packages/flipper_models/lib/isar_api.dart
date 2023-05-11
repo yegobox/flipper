@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:intl/intl.dart';
+import 'package:html_unescape/html_unescape.dart';
 import 'dart:convert';
 import 'dart:developer';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -2511,6 +2513,12 @@ class IsarAPI<M> implements IsarApiInterface {
     return isar.iTenants.filter().userIdEqualTo(userId).build().findFirst();
   }
 
+  String decodeUrl(String url) {
+    var decodedUrl = Uri.parse(url).replace(
+        pathSegments: url.split('&#x2F;&#x2F;').map((e) => Uri.encodeFull(e)));
+    return decodedUrl.toString();
+  }
+
   @override
   Future<void> loadConversations(
       {required int businessId,
@@ -2525,8 +2533,6 @@ class IsarAPI<M> implements IsarApiInterface {
 
     if (response.statusCode == 200) {
       final messagesJson = jsonDecode(response.body)['messages'];
-      String pk = jsonDecode(response.body)['lastKey']['PK'] as String;
-      String sk = jsonDecode(response.body)['lastKey']['SK'] as String;
       List<Conversation> messages = (messagesJson as List<dynamic>)
           .map((e) => Conversation.fromJson(e))
           .toList();
@@ -2534,16 +2540,27 @@ class IsarAPI<M> implements IsarApiInterface {
       for (Conversation conversation in messages) {
         Conversation? localConversation = await ProxyService.isarApi
             .getConversation(messageId: conversation.messageId!);
-
+        // if date is improperly formatted then format it right
+        final DateFormat formatter = DateFormat('EEE MMM dd yyyy');
+        final DateTime createdAt = formatter.parse(conversation.createdAt!);
+        conversation.createdAt = createdAt.toIso8601String();
+        conversation.avatar = HtmlUnescape().convert(conversation.avatar);
+        log(conversation.avatar, name: "converted URL");
         if (localConversation == null) {
           await ProxyService.isarApi.create(data: conversation);
         }
+      }
+      if (jsonDecode(response.body)['lastKey'] != null) {
+        // Set lastKey to the value returned by the API
+        String pk = jsonDecode(response.body)['lastKey']['PK'] as String;
+        String sk = jsonDecode(response.body)['lastKey']['SK'] as String;
         ProxyService.box
             .write(key: 'pk', value: pk.replaceAll("messages#", ""));
         ProxyService.box
             .write(key: 'sk', value: sk.replaceAll("messages#", ""));
       }
     }
+
     // TODO: today
     // 1. Update business contact when profile is update, this will help in start showing
     // real business or user image in chat
