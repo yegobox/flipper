@@ -18,4 +18,3 @@ String char = DateTime.now()
 //  - what is the difference of taxblAmtB and totTaxblAmt
 //  - what is the difference of taxAmtB and totTaxAmt
 //  - How to calculate taxAmtB, taxblAmtB and totTaxblAmt
-

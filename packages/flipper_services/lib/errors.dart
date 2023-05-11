@@ -3,7 +3,6 @@ class FlipperError {
 
   /// Safely convert a value to a [String] description.
   ///
-
 }
 
 /// Thrown by operations that have not been implemented yet.

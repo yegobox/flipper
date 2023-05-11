@@ -133,4 +133,14 @@ class LocalStorageImpl implements LocalStorage {
   String? getSocialBearerToken() {
     return box.read('socialBearerToken');
   }
+
+  @override
+  String? getPk() {
+    return box.read('pk') ?? '';
+  }
+
+  @override
+  String? getSk() {
+    return box.read('sk') ?? '';
+  }
 }

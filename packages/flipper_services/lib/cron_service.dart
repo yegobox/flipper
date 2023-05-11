@@ -27,10 +27,13 @@ class CronService {
     //save the device token to firestore if it is not already there
     Business? business = await ProxyService.isarApi.getBusiness();
     String? token;
-    Timer.periodic(Duration(minutes: kDebugMode ? 1 : 20), (Timer t) async {
+    Timer.periodic(Duration(minutes: kDebugMode ? 1 : 5), (Timer t) async {
       /// get a list of local copy of product to sync
       ProxyService.appService.pushDataToServer();
       ProxyService.sync.pull();
+      // in case pubnub did not get latest message load them forcefully
+      ProxyService.isarApi
+          .loadConversations(businessId: ProxyService.box.getBranchId()!);
     });
     if (!Platform.isWindows) {
       token = await FirebaseMessaging.instance.getToken();
@@ -53,7 +56,6 @@ class CronService {
       /// get unsynced counter and send them online for houseKeping.
       ProxyService.isarApi.sendScheduleMessages();
       ProxyService.event.keepTryingPublishDevice();
-      
     });
     Timer.periodic(Duration(minutes: kDebugMode ? 1 : 10), (Timer t) async {
       /// get unsynced counter and send them online for houseKeping.

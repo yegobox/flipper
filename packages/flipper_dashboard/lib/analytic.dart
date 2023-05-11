@@ -6,7 +6,7 @@
 // import 'package:ionicons/ionicons.dart';
 
 // import 'package:stacked/stacked.dart';
-// 
+//
 // import 'analytics/lineF.dart';
 
 // // ignore: use_key_in_widget_constructors

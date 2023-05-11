@@ -5,7 +5,6 @@ library flipper_models;
 
 import 'dart:convert';
 
-
 /// A business object. which in some case act as contact
 /// in flipper we believe that to talk to business should be as easy as walk to the business to shop
 /// the conversation should be open and easy to track
@@ -63,7 +62,6 @@ class LBusiness {
   String? userId;
   String? typeId;
   String? timeZone;
-
 
   List<String>? channels;
   String? table;

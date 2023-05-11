@@ -11,7 +11,8 @@ import 'package:flipper_models/isar_models.dart' as isar;
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 
 class SettingPage extends StatelessWidget {
-  SettingPage({Key? key,required this.business, required this.tenant}) : super(key: key);
+  SettingPage({Key? key, required this.business, required this.tenant})
+      : super(key: key);
   final isar.Business business;
   final isar.ITenant tenant;
   final _routerService = locator<RouterService>();

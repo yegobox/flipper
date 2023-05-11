@@ -34,7 +34,6 @@ class Conversation extends IJsonSerializable {
   DateTime? scheduledAt;
 
   bool? delivered;
-  
 
   Conversation(
       {required this.userName,

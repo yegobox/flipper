@@ -1,4 +1,3 @@
-
 import 'package:googleapis_auth/auth_io.dart';
 
 class SecureStorage {
@@ -17,5 +16,5 @@ class SecureStorage {
     // var result = await storage.readAll();
     // if (result.length == 0) return null;
     // return result;
-  }  
+  }
 }

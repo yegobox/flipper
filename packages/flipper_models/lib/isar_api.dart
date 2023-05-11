@@ -2510,4 +2510,44 @@ class IsarAPI<M> implements IsarApiInterface {
   Future<ITenant?> getTenantBYUserId({required int userId}) async {
     return isar.iTenants.filter().userIdEqualTo(userId).build().findFirst();
   }
+
+  @override
+  Future<void> loadConversations(
+      {required int businessId,
+      int? pageSize = 10,
+      String? pk,
+      String? sk}) async {
+    String? lastPk = ProxyService.box.getPk();
+    String? lastSk = ProxyService.box.getSk();
+
+    final response = await socialsHttpClient.get(Uri.parse(
+        '${commApi}/messages/${businessId}?pageSize=${pageSize}&pk=${lastPk}&sk=${lastSk}'));
+
+    if (response.statusCode == 200) {
+      final messagesJson = jsonDecode(response.body)['messages'];
+      String pk = jsonDecode(response.body)['lastKey']['PK'] as String;
+      String sk = jsonDecode(response.body)['lastKey']['SK'] as String;
+      List<Conversation> messages = (messagesJson as List<dynamic>)
+          .map((e) => Conversation.fromJson(e))
+          .toList();
+
+      for (Conversation conversation in messages) {
+        Conversation? localConversation = await ProxyService.isarApi
+            .getConversation(messageId: conversation.messageId!);
+
+        if (localConversation == null) {
+          await ProxyService.isarApi.create(data: conversation);
+        }
+        ProxyService.box
+            .write(key: 'pk', value: pk.replaceAll("messages#", ""));
+        ProxyService.box
+            .write(key: 'sk', value: sk.replaceAll("messages#", ""));
+      }
+    }
+    // TODO: today
+    // 1. Update business contact when profile is update, this will help in start showing
+    // real business or user image in chat
+    // 2. Test the above code, this is part of improvement to guarantee that messages will always reach
+    // to device or user they are intended to
+  }
 }

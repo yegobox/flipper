@@ -20,4 +20,6 @@ abstract class LocalStorage {
   String? getBearerToken();
   int getDefaultApp();
   String? getSocialBearerToken();
+  String? getPk();
+  String? getSk();
 }

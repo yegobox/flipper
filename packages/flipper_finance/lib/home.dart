@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-
-
 import 'package:flutter/material.dart';
 // import 'package:flutter_gen/gen_l10n/gallery_localizations.dart';
 import 'package:flipper_finance/gallery_options.dart';
@@ -174,7 +172,9 @@ class _HomePageState extends State<HomePage>
   }
 
   List<Widget> _buildTabs(
-      {BuildContext? context, required ThemeData theme, bool isVertical = false}) {
+      {BuildContext? context,
+      required ThemeData theme,
+      bool isVertical = false}) {
     return [
       _RallyTab(
         theme: theme,

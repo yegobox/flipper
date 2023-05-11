@@ -5,11 +5,10 @@ class Chat {
   final String source;
   final String from;
 
-  Chat({
-    required this.name,
-    required this.message,
-    required this.avatar,
-    required this.source,
-    required this.from
-  });
+  Chat(
+      {required this.name,
+      required this.message,
+      required this.avatar,
+      required this.source,
+      required this.from});
 }
