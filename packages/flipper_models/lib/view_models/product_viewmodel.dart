@@ -329,6 +329,8 @@ class ProductViewModel extends AddTenantViewModel {
         inUpdateProcess! &&
         mproduct.remoteID != null) {
       mproduct.action = actions["update"];
+
+      /// since we have action update, then we can also update lastTouched
       mproduct.lastTouched = removeTrailingDash(Hlc.fromDate(
               DateTime.now(), ProxyService.box.getBranchId()!.toString())
           .toString());
@@ -350,6 +352,8 @@ class ProductViewModel extends AddTenantViewModel {
           inUpdateProcess! &&
           variant.remoteID != null) {
         variant.action = actions["update"];
+
+        /// since we have action update, then we can also update lastTouched
         variant.lastTouched = removeTrailingDash(Hlc.fromDate(
                 DateTime.now(), ProxyService.box.getBranchId()!.toString())
             .toString());

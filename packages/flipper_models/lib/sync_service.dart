@@ -30,14 +30,15 @@ class SynchronizationService<M extends IJsonSerializable>
             .join(',');
         json["itemName"] = namesString;
       }
-      if (endpoint == "stocks" && json["retailPrice"] == null ||
-          json["retailPrice"] == 0) {
-        return null;
+      if (endpoint == "stocks" && json["retailPrice"] == null) {
+        throw Exception("stocks has null retail price");
       }
-      // if (endpoint == "products" && json["name"] == "Custom Amount") {
-      //   return null;
-      // }
+
+      if (endpoint == "variants" && json["retailPrice"] == null) {
+        throw Exception("variant has null retail price");
+      }
       if (json["name"] != "temp" || json["productName"] != "temp") {
+        /// remove trailing dashes to sent lastTouched
         json["lastTouched"] = removeTrailingDash(Hlc.fromDate(
                 DateTime.now(), ProxyService.box.getBranchId()!.toString())
             .toString());

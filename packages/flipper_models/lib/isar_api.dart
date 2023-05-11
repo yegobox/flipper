@@ -39,7 +39,7 @@ class IsarAPI<M> implements IsarApiInterface {
       // apihub = "http://10.0.2.2:8082";
       apihub = "https://uat-apihub.yegobox.com";
       commApi = "https://ers84w6ehl.execute-api.us-east-1.amazonaws.com/api";
-    } else {
+    } else if (!foundation.kDebugMode) {
       apihub = "https://apihub.yegobox.com";
       commApi = "https://ers84w6ehl.execute-api.us-east-1.amazonaws.com/api";
     }
@@ -477,6 +477,16 @@ class IsarAPI<M> implements IsarApiInterface {
     return null;
   }
 
+  Future<Product?> isCustomProductExist({required int businessId}) async {
+    return isar.products
+        .filter()
+        .businessIdEqualTo(businessId)
+        .and()
+        .nameEqualTo('Custom Amount')
+        .build()
+        .findFirst();
+  }
+
   @override
   Future<Product> createProduct({required Product product}) async {
     Business? business = await getBusiness();
@@ -491,7 +501,14 @@ class IsarAPI<M> implements IsarApiInterface {
     product.branchId = ProxyService.box.getBranchId()!;
 
     final int branchId = ProxyService.box.getBranchId()!;
-
+    // check if the product created custom amount exist and do not re-create
+    if (product.name == "Custom Amount") {
+      Product? existingProduct = await isCustomProductExist(
+          businessId: ProxyService.box.getBusinessId()!);
+      if (existingProduct != null) {
+        return existingProduct;
+      }
+    }
     Product? kProduct = await isar.writeTxn(() async {
       int id = await isar.products.put(product);
       return isar.products.get(id);
@@ -566,9 +583,6 @@ class IsarAPI<M> implements IsarApiInterface {
       ..currentStock = 0.0
       ..branchId = branchId
       ..variantId = variant.id!
-      ..lastTouched = removeTrailingDash(Hlc.fromDate(
-              DateTime.now(), ProxyService.box.getBranchId()!.toString())
-          .toString())
       ..supplyPrice = 0.0
       ..retailPrice = 0.0
       ..lowStock = 10.0 // default static
@@ -888,9 +902,7 @@ class IsarAPI<M> implements IsarApiInterface {
         ..currentStock = 0.0
         ..branchId = branchId
         ..variantId = variation.id!
-        ..lastTouched = removeTrailingDash(Hlc.fromDate(
-                DateTime.now(), ProxyService.box.getBranchId()!.toString())
-            .toString())
+      
         ..supplyPrice = 0.0
         ..retailPrice = 0.0
         ..lowStock = 10.0 // default static
@@ -2125,11 +2137,24 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<List<Stock>> getLocalStocks() async {
+    log(ProxyService.box.getBranchId().toString(), name: 'getLocalStocks');
     if (ProxyService.box.getBranchId() == null) return [];
     return await isar.stocks
         .filter()
-        .retailPriceGreaterThan(0)
+        .lastTouchedIsNull()
         .or()
+        .actionEqualTo('update')
+        .and()
+        .branchIdEqualTo(ProxyService.box.getBranchId()!)
+        .findAll();
+  }
+
+  @override
+  Future<List<Variant>> getLocalVariants() async {
+    log(ProxyService.box.getBranchId().toString(), name: 'getLocalVariants');
+    if (ProxyService.box.getBranchId() == null) return [];
+    return await isar.variants
+        .filter()
         .lastTouchedIsNull()
         .or()
         .actionEqualTo('update')
@@ -2143,20 +2168,6 @@ class IsarAPI<M> implements IsarApiInterface {
     if (ProxyService.box.getBranchId() == null) return [];
     return await isar.products
         .filter()
-        .lastTouchedIsNull()
-        .or()
-        .actionEqualTo('update')
-        .and()
-        .branchIdEqualTo(ProxyService.box.getBranchId()!)
-        .findAll();
-  }
-
-  @override
-  Future<List<Variant>> getLocalVariants() async {
-    if (ProxyService.box.getBranchId() == null) return [];
-    return await isar.variants
-        .filter()
-        .retailPriceGreaterThan(0)
         .lastTouchedIsNull()
         .or()
         .actionEqualTo('update')

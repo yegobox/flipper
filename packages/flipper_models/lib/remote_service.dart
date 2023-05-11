@@ -25,7 +25,7 @@ class RemoteService implements RemoteInterface {
     try {
       if (kDebugMode) {
         url = 'https://uat-db.yegobox.com';
-      } else {
+      } else if (!kDebugMode) {
         url = 'https://db.yegobox.com';
       }
       pb = PocketBase(url);

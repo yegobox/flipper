@@ -100,3 +100,5 @@ class App {}
 // TODO: add profile picture on user https://firebase.google.com/docs/auth/flutter/manage-users
 // when can not install local generated msix file https://www.advancedinstaller.com/install-test-certificate-from-msix.html
 // https://github.com/YehudaKremer/msix/issues/191
+// TODO: reading visa card, master card
+// https://github.com/jordanliu/flutter-emv-reader
