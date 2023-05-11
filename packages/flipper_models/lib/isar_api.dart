@@ -2433,6 +2433,7 @@ class IsarAPI<M> implements IsarApiInterface {
     if (phoneNumber == null) {
       return null;
     }
+    await Future.delayed(Duration(seconds: 20));
     final number = phoneNumber.replaceAll("+", "");
     final http.Response response =
         await socialsHttpClient.get(Uri.parse("$commApi/settings/$number"));
