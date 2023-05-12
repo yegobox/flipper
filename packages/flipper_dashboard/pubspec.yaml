@@ -25,11 +25,11 @@ dependencies:
   pubnub: ^4.2.2
   feather_icons: ^1.1.0-nullsafety.0
   flex_color_scheme: ^4.2.0
-  image_picker: ^0.8.0+4
+  image_picker: ^0.8.7+5
   firebase_storage: ^11.0.2
   file_picker: ^5.2.11
 
-  stacked: ^3.2.0
+  stacked: ^3.2.5
   azlistview: ^2.0.0
   qr_code_scanner: ^1.0.1
   cached_network_image: ^3.2.1
@@ -39,7 +39,7 @@ dependencies:
   upgrader: ^4.2.2-dev
   universal_platform: ^1.0.0+1
   ionicons: ^0.1.2
-  overlay_support: ^2.0.0-beta.0
+  overlay_support: ^2.1.0
   flutter_settings_ui: ^2.0.1
   flutter_inappwebview: ^5.4.3+7
   url_launcher: ^6.0.18
@@ -54,7 +54,7 @@ dependencies:
 
   uuid: ^3.0.5
   flipper_login: ^0.0.1-dev.5
-  intl: ^0.17.0
+  intl: ^0.18.0
   flutter_riverpod: ^1.0.1
 
   connectivity_plus: ^2.2.0

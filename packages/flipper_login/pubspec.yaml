@@ -7,7 +7,7 @@ repository: https://github.com/yegobox/packages
 # publish_to: "none"
 
 environment:
-  sdk: ">=2.18.0 <3.0.0"
+  sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
   flutter:
@@ -22,15 +22,15 @@ dependencies:
   flipper_dashboard: ^0.0.1-dev.5
   universal_platform: ^1.0.0+1
   flipper_models: ^0.0.1-dev.7
-  overlay_support: ^2.0.0-beta.0
+  overlay_support: ^2.1.0
   flutter_settings_ui: ^2.0.1
-  stacked: ^3.2.0
+  stacked: ^3.2.5
   google_fonts: ^4.0.3
   firebase_auth: ^4.2.5
 
   flipper_routing: ^0.0.1-dev.3
   connectivity_plus: ^2.2.0
-  firebase_ui_localizations: ^1.2.0
+  firebase_ui_localizations: ^1.5.0
   firebase_ui_oauth: ^1.1.8
   firebase_ui_oauth_google: ^1.0.21
   flutter_svg: ^1.1.6

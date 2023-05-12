@@ -8,7 +8,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  intl: ^0.17.0
+  intl: ^0.18.0
   adaptive_breakpoints: ^0.1.0
   animations: ^2.0.0
   google_fonts: ^4.0.3

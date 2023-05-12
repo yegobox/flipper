@@ -6,13 +6,13 @@ version: 0.0.1-dev.6
 repository: https://github.com/yegobox/packages
 
 environment:
-  sdk: ">=2.18.0 <3.0.0"
+  sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
 
-  stacked: ^3.2.0
+  stacked: ^3.2.5
   firebase_remote_config: ^3.0.2
   share_plus: ^4.0.3
   in_app_review: ^2.0.4
@@ -39,9 +39,9 @@ dependencies:
   google_sign_in: ^5.0.0
   firebase_dynamic_links: ^5.0.2
   http: ^0.13.6
-  intl: ^0.17.0
-  image_picker: ^0.8.4+6
-  path_provider: ^2.0.8
+  intl: ^0.18.0
+  image_picker: ^0.8.7+5
+  path_provider: ^2.0.15
   path: ^1.8.2
   googleapis: ^8.1.0
 

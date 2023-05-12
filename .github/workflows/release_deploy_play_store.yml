@@ -26,7 +26,6 @@ jobs:
           java-version: "8.x"
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.7.12"
           channel: "stable"
       - run: git submodule update --init
       - name: Configure Missing files
@@ -51,7 +50,6 @@ jobs:
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.7.12"
           channel: stable
       - run: flutter doctor -v
 
