@@ -237,4 +237,5 @@ abstract class IsarApiInterface {
   Future<List<Device>> unpublishedDevices({required int businessId});
   Future<void> loadConversations(
       {required int businessId, int? pageSize = 10, String? pk, String? sk});
+  Future<bool> updateContact({required Map<String, dynamic> contact, required int businessId});
 }

@@ -2561,11 +2561,18 @@ class IsarAPI<M> implements IsarApiInterface {
             .write(key: 'sk', value: sk.replaceAll("messages#", ""));
       }
     }
+  }
 
-    // TODO: today
-    // 1. Update business contact when profile is update, this will help in start showing
-    // real business or user image in chat
-    // 2. Test the above code, this is part of improvement to guarantee that messages will always reach
-    // to device or user they are intended to
+  @override
+  Future<bool> updateContact(
+      {required Map<String, dynamic> contact, required int businessId}) async {
+    final response = await flipperHttpClient.patch(
+      Uri.parse("$commApi/contacts/${businessId}"),
+      body: jsonEncode(contact),
+    );
+    if (response.statusCode != 200) {
+      throw InternalServerError(term: "error patching the business");
+    }
+    return true;
   }
 }
