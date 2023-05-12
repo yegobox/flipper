@@ -78,22 +78,21 @@ class _ReceiveStockState extends State<ReceiveStock> {
                     textDirection: TextDirection.rtl,
                     autofocus: true,
                     style: const TextStyle(color: Colors.black),
-                    onTap: () {
-                      if (controller.text.startsWith('0')) {
-                        controller.text = "";
-                      }
-                    },
-                    onChanged: (String? count) async {
+                    onChanged: (String? count) {
                       if (count != null) {
                         double? parsedValue = double.tryParse(count);
                         if (parsedValue != null) {
                           if (count.startsWith('0')) {
-                            controller.text = "";
+                            controller.value = TextEditingValue(
+                              text: count.substring(1),
+                              selection: TextSelection.collapsed(
+                                  offset: count.length - 1),
+                            );
                           } else {
                             model.setStockValue(value: parsedValue);
                           }
-                        } else {}
-                      } else {}
+                        }
+                      }
                     },
                   ),
                   Container(

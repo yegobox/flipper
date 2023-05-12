@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/create/retail_price.dart';
 import 'package:flipper_dashboard/product_form.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -12,7 +13,6 @@ import 'create/build_image_holder.dart';
 import 'package:flipper_services/constants.dart';
 import 'create/category_selector.dart';
 import 'create/divider.dart';
-import 'create/retail_price.dart';
 import 'create/section_select_unit.dart';
 import 'create/supply_price_widget.dart';
 import 'create/variation_list.dart';
@@ -270,7 +270,6 @@ class _AddProductViewState extends State<AddProductView> {
                                   productId: model.product.id!);
                             } else {
                               model.lockButton(true);
-                              return '.';
                             }
                           } else {
                             model.lockButton(true);
