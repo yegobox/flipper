@@ -2566,12 +2566,12 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<bool> updateContact(
       {required Map<String, dynamic> contact, required int businessId}) async {
-    final response = await flipperHttpClient.patch(
+    final response = await socialsHttpClient.patch(
       Uri.parse("$commApi/contacts/${businessId}"),
       body: jsonEncode(contact),
     );
     if (response.statusCode != 200) {
-      throw InternalServerError(term: "error patching the business");
+      return false;
     }
     return true;
   }

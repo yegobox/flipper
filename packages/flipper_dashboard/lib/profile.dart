@@ -139,15 +139,8 @@ class _ProfileWidgetState extends State<ProfileWidget>
                               urlType: URLTYPE.BUSINESS,
                               callBack: (res) async {
                                 if (res == "500") return;
-                                ITenant? tenant = await ProxyService.isarApi
-                                    .getTenantBYUserId(
-                                        userId: ProxyService.box.getUserId()!);
-                                if (tenant != null) {
-                                  tenant.imageUrl = res;
-                                  ProxyService.isarApi.update(data: tenant);
-                                }
                               },
-                              id: widget.tenant.id!);
+                              id: widget.tenant.businessId);
                         },
                       ),
                     )

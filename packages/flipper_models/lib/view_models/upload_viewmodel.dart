@@ -10,21 +10,20 @@ import 'package:flipper_services/app_service.dart';
 
 class UploadViewModel extends ProductViewModel {
   FlutterUploader uploader = FlutterUploader();
-  List<String> processed = <String>[];
+
   final appService = loc.locator<AppService>();
   void browsePictureFromGallery(
       {required int id,
       required Function(String) callBack,
       required URLTYPE urlType}) {
+    uploader.clearUploads();
     ProxyService.upload.browsePictureFromGallery(
         productId: id, urlType: urlType, uploader: uploader);
     uploader.result.listen((UploadTaskResponse result) async {
-      if (processed.contains(result.taskId)) {
-        return;
-      }
-
-      processed.add(result.taskId);
-      if (result.status == UploadTaskStatus.complete) {
+      log(result.status.toString(), name: "status");
+      log(result.status!.description.toString(), name: "status description");
+      if (result.status?.description == "Completed") {
+        // uploader.clearUploads();
         if (urlType == URLTYPE.PRODUCT) {
           final UploadResponse uploadResponse =
               uploadResponseFromJson(result.response!);
@@ -42,13 +41,11 @@ class UploadViewModel extends ProductViewModel {
               await ProxyService.isarApi.getBusinessById(id: id);
           business!.imageUrl = uploadResponse.url;
           ProxyService.isarApi.update(data: business);
+          updateBusinessProfile(url: uploadResponse.url);
           callBack(uploadResponse.url);
         }
-      } else {
-        callBack("500");
       }
     }, onError: (ex, stacktrace) {
-      // processed.clear();
       log(ex);
     });
   }
@@ -68,6 +65,8 @@ class UploadViewModel extends ProductViewModel {
   void updateBusinessProfile({required String url}) async {
     ITenant? tenant = await ProxyService.isarApi
         .getTenantBYUserId(userId: ProxyService.box.getUserId()!);
+    // update business as well as for this time tenant is the same as busienss
+
     if (tenant != null) {
       tenant.imageUrl = url;
       ProxyService.isarApi.update(data: tenant);
@@ -80,7 +79,7 @@ class UploadViewModel extends ProductViewModel {
         "phoneNumber": ProxyService.box.getUserPhone(),
         "avatar": url,
         "entity": "contacts",
-        "businessId": ProxyService.box.getBusinessId
+        "businessId": ProxyService.box.getBusinessId()
       }, businessId: ProxyService.box.getBusinessId()!);
     }
   }
