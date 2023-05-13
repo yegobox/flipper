@@ -79,12 +79,14 @@ class _ChatListViewMobileState extends State<ChatListViewMobile>
                           intent: "login", useLatestImplementation: false));
                     },
                   ),
-                  IconButton(
-                    icon: const Icon(FluentIcons.add_24_regular),
-                    onPressed: () {
-                      // TODO: implement the logic to initiate a new chat
-                    },
-                  ),
+                  // TODO: when we add the ability for flipper connecta users to chat
+                  // then we shall add the ability to initiate conversation
+                  // IconButton(
+                  //   icon: const Icon(FluentIcons.add_24_regular),
+                  //   onPressed: () {
+                  //     // TODO: implement the logic to initiate a new chat
+                  //   },
+                  // ),
                 ],
               ),
               body: StreamBuilder<List<Conversation>>(
