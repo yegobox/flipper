@@ -75,8 +75,8 @@ class _ChatListViewMobileState extends State<ChatListViewMobile>
                   IconButton(
                     icon: const Icon(FluentIcons.qr_code_24_regular),
                     onPressed: () {
-                      _routerService
-                          .navigateTo(ScannViewRoute(intent: "login"));
+                      _routerService.navigateTo(ScannViewRoute(
+                          intent: "login", useLatestImplementation: false));
                     },
                   ),
                   IconButton(

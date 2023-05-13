@@ -255,6 +255,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         child: _i2.ScannView(
           key: args.key,
           intent: args.intent,
+          useLatestImplementation: args.useLatestImplementation,
         ),
         opaque: true,
         barrierDismissible: false,
@@ -1164,12 +1165,14 @@ class ScannViewRoute extends _i3.PageRouteInfo<ScannViewArgs> {
   ScannViewRoute({
     _i4.Key? key,
     String intent = 'selling',
+    bool useLatestImplementation = false,
   }) : super(
           ScannViewRoute.name,
           path: '/scann-view',
           args: ScannViewArgs(
             key: key,
             intent: intent,
+            useLatestImplementation: useLatestImplementation,
           ),
         );
 
@@ -1180,15 +1183,18 @@ class ScannViewArgs {
   const ScannViewArgs({
     this.key,
     this.intent = 'selling',
+    this.useLatestImplementation = false,
   });
 
   final _i4.Key? key;
 
   final String intent;
 
+  final bool useLatestImplementation;
+
   @override
   String toString() {
-    return 'ScannViewArgs{key: $key, intent: $intent}';
+    return 'ScannViewArgs{key: $key, intent: $intent, useLatestImplementation: $useLatestImplementation}';
   }
 }
 
