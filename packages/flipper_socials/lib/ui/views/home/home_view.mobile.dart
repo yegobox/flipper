@@ -17,8 +17,7 @@ class HomeViewMobile extends ViewModelWidget<HomeViewModel> {
   Widget build(BuildContext context, HomeViewModel viewModel) {
     return Padding(
       padding: const EdgeInsets.only(top: 20.0),
-      child: SafeArea(
-          child: Scaffold(
+      child: Scaffold(
         body: StreamBuilder<Social>(
             stream: ProxyService.isarApi.socialsStream(
                 businessId: ProxyService.box.getBusinessId() ?? 0),
@@ -200,7 +199,7 @@ class HomeViewMobile extends ViewModelWidget<HomeViewModel> {
                 );
               }
             }),
-      )),
+      ),
     );
   }
 }
