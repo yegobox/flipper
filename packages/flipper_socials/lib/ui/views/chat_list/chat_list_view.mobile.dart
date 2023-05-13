@@ -45,7 +45,7 @@ class _ChatListViewMobileState extends State<ChatListViewMobile>
         viewModelBuilder: () => ChatListViewModel(),
         onViewModelReady: (viewModel) {
           ProxyService.isarApi
-              .loadConversations(businessId: ProxyService.box.getBranchId()!);
+              .loadConversations(businessId: ProxyService.box.getBusinessId()!);
           SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
             if (ProxyService.box.getBranchId() != null &&
                 ProxyService.box.getBusinessId() != null &&
