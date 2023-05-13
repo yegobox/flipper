@@ -31,7 +31,7 @@ dependencies:
   getwidget: ^3.0.1
   timeago: ^3.2.1
   fast_cached_network_image: ^1.1.1
-  custom_floating_action_button: ^0.0.3
+  # custom_floating_action_button: ^0.0.3
   readmore: ^2.1.0
 dev_dependencies:
   flutter_test:
