@@ -85,15 +85,6 @@ class _ChatListViewMobileState extends State<ChatListViewMobile>
                       // TODO: implement the logic to initiate a new chat
                     },
                   ),
-                  // An icon button that shows a logout icon to sign out
-                  IconButton(
-                    icon: const Icon(FluentIcons.sign_out_24_regular),
-                    onPressed: () async {
-                      await ProxyService.isarApi.logOut();
-                      // navigate to login page
-                      _routerService.clearStackAndShow(const LoginViewRoute());
-                    },
-                  ),
                 ],
               ),
               body: StreamBuilder<List<Conversation>>(
