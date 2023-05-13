@@ -48,7 +48,7 @@ class _ProfileWidgetState extends State<ProfileWidget>
             children: [
               StreamBuilder<Business>(
                   stream: ProxyService.isarApi
-                      .businessStream(businessId: widget.tenant.id!),
+                      .businessStream(businessId: widget.tenant.businessId),
                   builder: (context, snapshot) {
                     if (snapshot.hasData) {
                       final data = snapshot.data;
@@ -106,7 +106,16 @@ class _ProfileWidgetState extends State<ProfileWidget>
                         );
                       }
                     }
-                    return SizedBox.shrink();
+                    return GestureDetector(
+                      onTap: () {
+                        _dialogService.showCustomDialog(
+                            variant: DialogType.logOut, title: 'Log out');
+                      },
+                      child: GmailLikeLetter(
+                        tenant: widget.tenant,
+                        size: widget.size,
+                      ),
+                    );
                   }),
               !isDesktopOrWeb
                   ? Positioned(
