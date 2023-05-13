@@ -8,7 +8,7 @@ import Foundation
 import battery_plus
 import connectivity_plus_macos
 import desktop_webview_auth
-import device_info_plus_macos
+import device_info_plus
 import firebase_analytics
 import firebase_auth
 import firebase_core
@@ -22,7 +22,7 @@ import geolocator_apple
 import in_app_review
 import isar_flutter_libs
 import location_macos
-import package_info_plus_macos
+import package_info_plus
 import path_provider_foundation
 import printing
 import sentry_flutter

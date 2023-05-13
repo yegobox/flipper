@@ -43,54 +43,54 @@ Future<void> onDidReceiveBackgroundNotificationResponse(
 Future<void> backgroundHandler(RemoteMessage message) async {}
 
 void main() async {
-  GoogleFonts.config.allowRuntimeFetching = false;
-  foundation.LicenseRegistry.addLicense(() async* {
-    final license = await rootBundle.loadString('google_fonts/OFL.txt');
-    yield foundation.LicenseEntryWithLineBreaks(['google_fonts'], license);
-  });
-  WidgetsFlutterBinding.ensureInitialized();
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
-  if (isAndroid || isIos) {
-    final String timeZoneName = await FlutterNativeTimezone.getLocalTimezone();
-    tz.initializeTimeZones();
-    tz.setLocalLocation(tz.getLocation(timeZoneName));
-  }
-  const AndroidInitializationSettings initializationSettingsAndroid =
-      AndroidInitializationSettings('@mipmap/launcher_icon');
-
-  await GetStorage.init();
-  // done init in mobile.//done separation.
-  await thirdPartyLocator();
-  // setPathUrlStrategy();
-  loc.setupLocator(
-    stackedRouter: stackedRouter,
-  );
-  setupDialogUi();
-  setupBottomSheetUi();
-  await initDb();
-  if (!isWindows && !isWeb) {
-    FlutterError.onError = (FlutterErrorDetails details) {
-      // Log the error to the console.
-      FlutterError.dumpErrorToConsole(details);
-
-      // Send the error to Firebase Crashlytics.
-      FirebaseCrashlytics.instance.recordFlutterError(details);
-    };
-  }
-  const InitializationSettings initializationSettings =
-      InitializationSettings(android: initializationSettingsAndroid);
-  await FlutterLocalNotificationsPlugin().initialize(
-    initializationSettings,
-    onDidReceiveBackgroundNotificationResponse:
-        onDidReceiveBackgroundNotificationResponse,
-    onDidReceiveNotificationResponse:
-        onDidReceiveBackgroundNotificationResponse,
-  );
-
   runZonedGuarded<Future<void>>(() async {
+    GoogleFonts.config.allowRuntimeFetching = false;
+    foundation.LicenseRegistry.addLicense(() async* {
+      final license = await rootBundle.loadString('google_fonts/OFL.txt');
+      yield foundation.LicenseEntryWithLineBreaks(['google_fonts'], license);
+    });
+    WidgetsFlutterBinding.ensureInitialized();
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+    if (isAndroid || isIos) {
+      final String timeZoneName =
+          await FlutterNativeTimezone.getLocalTimezone();
+      tz.initializeTimeZones();
+      tz.setLocalLocation(tz.getLocation(timeZoneName));
+    }
+    const AndroidInitializationSettings initializationSettingsAndroid =
+        AndroidInitializationSettings('@mipmap/launcher_icon');
+
+    await GetStorage.init();
+    // done init in mobile.//done separation.
+    await thirdPartyLocator();
+    // setPathUrlStrategy();
+    loc.setupLocator(
+      stackedRouter: stackedRouter,
+    );
+    setupDialogUi();
+    setupBottomSheetUi();
+    await initDb();
+    if (!isWindows && !isWeb) {
+      FlutterError.onError = (FlutterErrorDetails details) {
+        // Log the error to the console.
+        FlutterError.dumpErrorToConsole(details);
+
+        // Send the error to Firebase Crashlytics.
+        FirebaseCrashlytics.instance.recordFlutterError(details);
+      };
+    }
+    const InitializationSettings initializationSettings =
+        InitializationSettings(android: initializationSettingsAndroid);
+    await FlutterLocalNotificationsPlugin().initialize(
+      initializationSettings,
+      onDidReceiveBackgroundNotificationResponse:
+          onDidReceiveBackgroundNotificationResponse,
+      onDidReceiveNotificationResponse:
+          onDidReceiveBackgroundNotificationResponse,
+    );
     if (foundation.kReleaseMode) {
       await SentryFlutter.init(
         (options) {

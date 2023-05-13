@@ -3,9 +3,7 @@
 	url =https://github.com/yegobox/designDocs.git
 	branch = main
 	
-[submodule "open-sources/animated_toggle_switch"]
-	path = open-sources/animated_toggle_switch
-	url = https://github.com/yegobox/animated_toggle_switch.git
+
 [submodule "open-sources/firestore_cache"]
 	path = open-sources/firestore_cache
 	url = https://github.com/yegobox/firestore_cache.git
@@ -15,9 +13,6 @@
 [submodule "open-sources/flutter_list_drag_and_drop"]
 	path = open-sources/flutter_list_drag_and_drop
 	url = https://github.com/yegobox/flutter_list_drag_and_drop.git
-[submodule "open-sources/money_formatter"]
-	path = open-sources/money_formatter
-	url = https://github.com/yegobox/money_formatter.git
 [submodule "open-sources/qr.flutter"]
 	path = open-sources/qr.flutter
 	url = https://github.com/yegobox/qr.flutter.git
@@ -72,3 +67,6 @@
 [submodule "open-sources/form_block"]
 	path = open-sources/form_block
 	url = https://github.com/GiancarloCode/form_bloc.git
+[submodule "open-sources/dart_pdf"]
+	path = open-sources/dart_pdf
+	url = https://github.com/yegobox/dart_pdf.git

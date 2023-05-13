@@ -27,7 +27,7 @@ dependencies:
   isar_flutter_libs: ^3.1.0+1
   universal_platform: ^1.0.0+1
   animations: ^2.0.0
-  sentry_flutter: ^6.9.1
+  sentry_flutter: ^7.5.2
   fluent_ui:
   system_theme: ^2.0.0
   flutter_acrylic: ^0.1.0
