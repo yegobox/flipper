@@ -1,7 +1,6 @@
 library flipper_models;
 
 import 'dart:async';
-import 'dart:developer';
 import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_routing/receipt_types.dart';
 import 'package:flipper_services/locator.dart';
@@ -89,7 +88,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     _tab = tab;
   }
 
-  void keyboardKeyPressed(String key) async {
+  void keyboardKeyPressed({required String key, Variant? variant}) async {
     ProxyService.analytics.trackEvent("keypad", {'feature_name': 'keypad_tab'});
     if (key == 'C') {
       Order pendingOrder = await ProxyService.isarApi.manageOrder();
@@ -128,7 +127,8 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       /// don't keep adding item to the order
       if (double.parse(ProxyService.keypad.key) != 0.0 &&
           ProxyService.keypad.key.length == 1) {
-        Variant? variation = await ProxyService.isarApi.getCustomVariant();
+        Variant? variation =
+            variant ?? await ProxyService.isarApi.getCustomVariant();
         if (variation == null) return;
         double amount = double.parse(ProxyService.keypad.key);
         await saveOrder(
@@ -146,8 +146,9 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         items =
             await ProxyService.isarApi.orderItems(orderId: pendingOrder.id!);
         double amount = double.parse(ProxyService.keypad.key);
-        Variant? variation = await ProxyService.isarApi.getCustomVariant();
-        log('variation is $variation');
+        Variant? variation =
+            variant ?? await ProxyService.isarApi.getCustomVariant();
+
         if (variation == null) return;
         if (items.isEmpty) {
           await saveOrder(
@@ -305,31 +306,33 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   }) async {
     Variant? variation =
         await ProxyService.isarApi.variant(variantId: variationId);
-    Stock? stock =
-        await ProxyService.isarApi.stockByVariantId(variantId: variation!.id!);
-
-    String name = variation.productName != 'Custom Amount'
-        ? '${variation.productName}(${variation.name})'
-        : variation.productName;
-
-    /// if variation  given it exist in the orderItems of currentPending order then we update the order with new count
-    Order? pendingOrder = await ProxyService.isarApi.manageOrder();
-
-    OrderItem? existOrderItem = await ProxyService.isarApi
-        .getOrderItemByVariantId(
-            variantId: variationId, orderId: pendingOrder.id!);
-    await addOrderItems(
-      variationId: variationId,
-      pendingOrder: pendingOrder,
-      name: name,
-      variation: variation,
-      stock: stock!,
-      amountTotal: amountTotal,
-      isCustom: customItem,
-      item: existOrderItem,
-    );
-    currentOrder();
+    keyboardKeyPressed(key: amountTotal.toString(), variant: variation);
     return true;
+    // Stock? stock =
+    //     await ProxyService.isarApi.stockByVariantId(variantId: variation!.id!);
+
+    // String name = variation.productName != 'Custom Amount'
+    //     ? '${variation.productName}(${variation.name})'
+    //     : variation.productName;
+
+    // /// if variation  given it exist in the orderItems of currentPending order then we update the order with new count
+    // Order? pendingOrder = await ProxyService.isarApi.manageOrder();
+
+    // OrderItem? existOrderItem = await ProxyService.isarApi
+    //     .getOrderItemByVariantId(
+    //         variantId: variationId, orderId: pendingOrder.id!);
+    // await addOrderItems(
+    //   variationId: variationId,
+    //   pendingOrder: pendingOrder,
+    //   name: name,
+    //   variation: variation,
+    //   stock: stock!,
+    //   amountTotal: amountTotal,
+    //   isCustom: customItem,
+    //   item: existOrderItem,
+    // );
+    // currentOrder();
+    // return true;
   }
 
   /// adding item to current order,

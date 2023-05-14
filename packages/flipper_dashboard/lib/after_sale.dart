@@ -158,7 +158,8 @@ class _AfterSaleState extends State<AfterSale> {
                                             ),
                                             onPressed: () async {
                                               model.keyboardKeyPressed(
-                                                  'C'); // to clear the keyboard
+                                                  key:
+                                                      'C'); // to clear the keyboard
                                               if (await ProxyService.isarApi
                                                   .isTaxEnabled()) {
                                                 if (model.receiptReady) {
@@ -229,7 +230,8 @@ class _AfterSaleState extends State<AfterSale> {
                                             onPressed: () {
                                               // refresh orders
                                               model.keyboardKeyPressed(
-                                                  'C'); // to clear the keyboard
+                                                  key:
+                                                      'C'); // to clear the keyboard
                                               model.currentOrder();
                                               _routerService.clearStackAndShow(
                                                   FlipperAppRoute());
@@ -259,7 +261,8 @@ class _AfterSaleState extends State<AfterSale> {
                                                       ')',
                                                   onTap: () {
                                                     model.keyboardKeyPressed(
-                                                        'C'); // to clear the keyboard
+                                                        key:
+                                                            'C'); // to clear the keyboard
                                                   },
                                                 ),
                                               ),
@@ -277,7 +280,8 @@ class _AfterSaleState extends State<AfterSale> {
                                               // refresh orders
                                               model.currentOrder();
                                               model.keyboardKeyPressed(
-                                                  'C'); // to clear the keyboard
+                                                  key:
+                                                      'C'); // to clear the keyboard
                                               _routerService.clearStackAndShow(
                                                   FlipperAppRoute());
                                             },
