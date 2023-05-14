@@ -204,7 +204,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     keypad.setOrder(order);
     List<OrderItem> items =
         await ProxyService.isarApi.orderItems(orderId: order.id!);
-
+    await ProxyService.isarApi.update(data: order);
     keypad.setItemsOnSale(count: items.length);
     rebuildUi();
   }
