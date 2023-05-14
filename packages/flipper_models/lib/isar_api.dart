@@ -1824,11 +1824,6 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<List<OrderItem>> orderItems({required int orderId}) async {
-    return await isar.orderItems.where().orderIdEqualTo(orderId).findAll();
-  }
-
-  @override
   Future<Variant?> getVariantById({required int id}) async {
     return isar.writeTxn(() async {
       return await isar.variants.get(id);
@@ -2542,7 +2537,8 @@ class IsarAPI<M> implements IsarApiInterface {
         Conversation? localConversation = await ProxyService.isarApi
             .getConversation(messageId: conversation.messageId!);
         // if date is improperly formatted then format it right
-        final DateFormat formatter = DateFormat('EEE MMM dd yyyy');
+        final DateFormat formatter =
+            DateFormat('EEE MMM dd yyyy HH:mm:ss.SSSZ');
         final DateTime createdAt = formatter.parse(conversation.createdAt!);
         conversation.createdAt = createdAt.toIso8601String();
         conversation.avatar = HtmlUnescape().convert(conversation.avatar);
@@ -2574,5 +2570,19 @@ class IsarAPI<M> implements IsarApiInterface {
       return false;
     }
     return true;
+  }
+
+  @override
+  Future<List<OrderItem>> orderItems({required int orderId}) async {
+    return await isar.orderItems.where().orderIdEqualTo(orderId).findAll();
+  }
+
+  @override
+  Stream<List<OrderItem>> orderItemsStream({required int orderId}) {
+    return isar.orderItems
+        .where()
+        .orderIdEqualTo(orderId)
+        .watch()
+        .map((event) => event.toList());
   }
 }

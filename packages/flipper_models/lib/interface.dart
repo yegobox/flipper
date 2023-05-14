@@ -172,6 +172,7 @@ abstract class IsarApiInterface {
 
   /// get a list of orderItems given orderId
   Future<List<OrderItem>> orderItems({required int orderId});
+  Stream<List<OrderItem>> orderItemsStream({required int orderId});
   Future<Variant?> getVariantById({required int id});
   Future<bool> isTaxEnabled();
   Future<Receipt?> createReceipt(
@@ -237,5 +238,6 @@ abstract class IsarApiInterface {
   Future<List<Device>> unpublishedDevices({required int businessId});
   Future<void> loadConversations(
       {required int businessId, int? pageSize = 10, String? pk, String? sk});
-  Future<bool> updateContact({required Map<String, dynamic> contact, required int businessId});
+  Future<bool> updateContact(
+      {required Map<String, dynamic> contact, required int businessId});
 }
