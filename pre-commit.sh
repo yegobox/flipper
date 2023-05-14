@@ -1,13 +1,14 @@
 #!/bin/bash
+# pre-commit.sh
 
-# Get the current build number
-build_number=$(grep -Po "(?<=version:\s)\d+" pubspec.yaml)
+# get the current version number from pubspec.yaml
+version=$(grep 'version' pubspec.yaml | awk '{print $2}' | sed -e 's/^"//' -e 's/"$//')
 
-# Increment the build number
-build_number=$(($build_number + 1))
+# increment the version number
+new_version=$(echo $version | awk -F. '{$NF = $NF + 1;} 1' | sed 's/ /./g')
 
-# Update the build number in pubspec.yaml
-sed -i "s/(?<=version:\s)\d+/$build_number/g" pubspec.yaml
+# replace the old version number with the new one in pubspec.yaml
+sed -i "s/version: $version/version: $new_version/g" pubspec.yaml
 
-# Commit the changes
-git commit -m "Incremented build number"
+# add the modified pubspec.yaml file to the commit
+git add pubspec.yaml
