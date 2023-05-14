@@ -95,7 +95,7 @@ jobs:
         with:
           distribution: "zulu"
           java-version: "11" #defines the java version
-      # pause seeding
+      # pause seedings
       # - name: Update version in YAML
       #   run: sed -i 's/1.0.1-dev.3/1.170.149+1111010349/g' pubspec.yaml
       - name: submodule init
