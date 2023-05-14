@@ -306,33 +306,32 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   }) async {
     Variant? variation =
         await ProxyService.isarApi.variant(variantId: variationId);
-    keyboardKeyPressed(key: amountTotal.toString(), variant: variation);
+    Stock? stock =
+        await ProxyService.isarApi.stockByVariantId(variantId: variation!.id!);
+
+    String name = variation.productName != 'Custom Amount'
+        ? '${variation.productName}(${variation.name})'
+        : variation.productName;
+
+    /// if variation  given it exist in the orderItems of currentPending order then we update the order with new count
+    Order? pendingOrder = await ProxyService.isarApi.manageOrder();
+
+    OrderItem? existOrderItem = await ProxyService.isarApi
+        .getOrderItemByVariantId(
+            variantId: variationId, orderId: pendingOrder.id!);
+    await addOrderItems(
+      variationId: variationId,
+      pendingOrder: pendingOrder,
+      name: name,
+      variation: variation,
+      stock: stock!,
+      amountTotal: amountTotal,
+      isCustom: customItem,
+      item: existOrderItem,
+    );
+    currentOrder();
+    rebuildUi();
     return true;
-    // Stock? stock =
-    //     await ProxyService.isarApi.stockByVariantId(variantId: variation!.id!);
-
-    // String name = variation.productName != 'Custom Amount'
-    //     ? '${variation.productName}(${variation.name})'
-    //     : variation.productName;
-
-    // /// if variation  given it exist in the orderItems of currentPending order then we update the order with new count
-    // Order? pendingOrder = await ProxyService.isarApi.manageOrder();
-
-    // OrderItem? existOrderItem = await ProxyService.isarApi
-    //     .getOrderItemByVariantId(
-    //         variantId: variationId, orderId: pendingOrder.id!);
-    // await addOrderItems(
-    //   variationId: variationId,
-    //   pendingOrder: pendingOrder,
-    //   name: name,
-    //   variation: variation,
-    //   stock: stock!,
-    //   amountTotal: amountTotal,
-    //   isCustom: customItem,
-    //   item: existOrderItem,
-    // );
-    // currentOrder();
-    // return true;
   }
 
   /// adding item to current order,

@@ -2537,6 +2537,7 @@ class IsarAPI<M> implements IsarApiInterface {
         Conversation? localConversation = await ProxyService.isarApi
             .getConversation(messageId: conversation.messageId!);
         // if date is improperly formatted then format it right
+        // the bellow date format will be like 5th May converter
         final DateFormat formatter = DateFormat('EEE MMM dd yyyy');
         DateTime createdAt;
         try {
