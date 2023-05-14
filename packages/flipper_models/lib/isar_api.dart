@@ -2537,9 +2537,14 @@ class IsarAPI<M> implements IsarApiInterface {
         Conversation? localConversation = await ProxyService.isarApi
             .getConversation(messageId: conversation.messageId!);
         // if date is improperly formatted then format it right
-        final DateFormat formatter =
-            DateFormat('EEE MMM dd yyyy HH:mm:ss.SSSZ');
-        final DateTime createdAt = formatter.parse(conversation.createdAt!);
+        final DateFormat formatter = DateFormat('EEE MMM dd yyyy');
+        DateTime createdAt;
+        try {
+          createdAt = formatter.parse(conversation.createdAt!);
+        } on FormatException {
+          /// in case it fail to format set fake date
+          createdAt = DateTime.now();
+        }
         conversation.createdAt = createdAt.toIso8601String();
         conversation.avatar = HtmlUnescape().convert(conversation.avatar);
         log(conversation.avatar, name: "converted URL");
@@ -2547,6 +2552,7 @@ class IsarAPI<M> implements IsarApiInterface {
           await ProxyService.isarApi.create(data: conversation);
         }
       }
+
       if (jsonDecode(response.body)['lastKey'] != null) {
         // Set lastKey to the value returned by the API
         String pk = jsonDecode(response.body)['lastKey']['PK'] as String;
