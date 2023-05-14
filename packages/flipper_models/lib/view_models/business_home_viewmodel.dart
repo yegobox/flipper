@@ -88,7 +88,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     _tab = tab;
   }
 
-  void keyboardKeyPressed({required String key, Variant? variant}) async {
+  void keyboardKeyPressed({required String key}) async {
     ProxyService.analytics.trackEvent("keypad", {'feature_name': 'keypad_tab'});
     if (key == 'C') {
       Order pendingOrder = await ProxyService.isarApi.manageOrder();
@@ -127,8 +127,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       /// don't keep adding item to the order
       if (double.parse(ProxyService.keypad.key) != 0.0 &&
           ProxyService.keypad.key.length == 1) {
-        Variant? variation =
-            variant ?? await ProxyService.isarApi.getCustomVariant();
+        Variant? variation = await ProxyService.isarApi.getCustomVariant();
         if (variation == null) return;
         double amount = double.parse(ProxyService.keypad.key);
         await saveOrder(
@@ -146,8 +145,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         items =
             await ProxyService.isarApi.orderItems(orderId: pendingOrder.id!);
         double amount = double.parse(ProxyService.keypad.key);
-        Variant? variation =
-            variant ?? await ProxyService.isarApi.getCustomVariant();
+        Variant? variation = await ProxyService.isarApi.getCustomVariant();
 
         if (variation == null) return;
         if (items.isEmpty) {
