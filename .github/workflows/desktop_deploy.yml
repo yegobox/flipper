@@ -21,7 +21,6 @@ jobs:
           java-version: "8.x"
       - uses: subosito/flutter-action@master
         with:
-          flutter-version: "2.8.1"
           channel: "stable"
       - run: git submodule update --init
       - name: Configure Missing files
