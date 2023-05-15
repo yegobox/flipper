@@ -1,4 +1,3 @@
-name: Deploy MSIX to GitHub
 on:
   # Enable manual run
   workflow_dispatch:
@@ -24,9 +23,9 @@ jobs:
           channel: "stable"
       - run: git submodule update --init
       - run: |
-          echo "$INDEX" >> web/index.html
-          echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
-          echo "$FIREBASEOPTIONS" >> lib/firebase_options.dart
+          echo "$INDEX" | tee -a web/index.html
+          echo "$CONFIGDART" | tee -a packages/flipper_login/lib/config.dart
+          echo "$FIREBASEOPTIONS" | tee -a lib/firebase_options.dart
         env:
           INDEX: ${{ secrets.INDEX }}
           CONFIGDART: ${{ secrets.CONFIGDART }}
@@ -95,10 +94,3 @@ jobs:
         uses: actions/upload-release-asset@v2
         with:
           asset_path: build/windows/runner/Release/winInstaller.exe
-          asset_name: winInstaller.exe
-          release: ${{ github.event.release.name }}
-          token: ${{ secrets.GH_TOKEN }}
-      - name: Slack Notification
-        uses: rtCamp/action-slack-notify@v2
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
