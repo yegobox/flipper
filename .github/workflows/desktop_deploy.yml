@@ -23,8 +23,7 @@ jobs:
         with:
           channel: "stable"
       - run: git submodule update --init
-      - name: Configure Missing files
-        run: |
+      - run: |
           echo "$INDEX" >> web/index.html
           echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
           echo "$FIREBASEOPTIONS" >> lib/firebase_options.dart
