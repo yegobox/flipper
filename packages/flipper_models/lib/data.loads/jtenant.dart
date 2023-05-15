@@ -20,6 +20,7 @@ class JTenant {
     required this.businesses,
     required this.businessId,
     required this.nfcEnabled,
+    required this.userId,
   });
 
   int id;
@@ -30,6 +31,7 @@ class JTenant {
   List<Branch> branches;
   List<Business> businesses;
   int businessId;
+  int userId;
   bool nfcEnabled;
 
   factory JTenant.fromJson(Map<dynamic, dynamic> json) => JTenant(
@@ -44,7 +46,8 @@ class JTenant {
       businesses: List<Business>.from(
           json["businesses"].map((x) => Business.fromJson(x))),
       businessId: json["businessId"],
-      nfcEnabled: json["nfcEnabled"]);
+      nfcEnabled: json["nfcEnabled"],
+      userId: json["userId"]);
 
   Map<String, dynamic> toJson() => {
         "id": id,
@@ -55,6 +58,7 @@ class JTenant {
         "branches": List<dynamic>.from(branches.map((x) => x.toJson())),
         "businesses": List<dynamic>.from(businesses.map((x) => x.toJson())),
         "businessId": businessId,
-        "nfcEnabled": nfcEnabled
+        "nfcEnabled": nfcEnabled,
+        "userId": userId
       };
 }

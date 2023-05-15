@@ -1,15 +1,16 @@
 import 'package:flipper_models/isar_models.dart';
+
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:flipper_routing/routes.router.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_routing/app.router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class CategorySelector extends StatelessWidget {
-  const CategorySelector({Key? key, required this.categories})
-      : super(key: key);
+  CategorySelector({Key? key, required this.categories}) : super(key: key);
   final List<Category> categories;
-
+  final _routerService = locator<RouterService>();
   Widget categorySelector(
       {required List<Category> categories, required BuildContext context}) {
     late Text text;
@@ -51,7 +52,8 @@ class CategorySelector extends StatelessWidget {
           width: double.infinity,
           child: GestureDetector(
             onTap: () {
-              GoRouter.of(context).push(Routes.categories, extra: categories);
+              _routerService
+                  .replaceWith(ListCategoriesRoute(categories: categories));
             },
             child: ListTile(
               contentPadding: const EdgeInsets.symmetric(horizontal: 0.3),

@@ -1,16 +1,19 @@
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/box_models.dart';
-import 'package:flipper_routing/routes.router.dart';
+import 'package:flipper_routing/app.router.dart';
+
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:number_display/number_display.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 class ChargeButton extends StatelessWidget {
   ChargeButton({Key? key, required this.duePay, required this.model})
       : super(key: key);
   final double? duePay;
   final BusinessHomeViewModel model;
+  final _routerService = locator<RouterService>();
   final display = createDisplay(
     length: 8,
     decimal: 4,
@@ -45,7 +48,8 @@ class ChargeButton extends StatelessWidget {
               ),
             ),
             onPressed: () {
-              GoRouter.of(context).push(Routes.pay, extra: model.kOrder);
+              _routerService.navigateTo(
+                  PaymentsRoute(order: model.kOrder!, duePay: duePay!));
             },
             child: Text(
               FLocalization.of(context).charge +

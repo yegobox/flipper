@@ -1,27 +1,52 @@
+import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart';
-import 'package:universal_platform/universal_platform.dart';
 
-final isWindows = UniversalPlatform.isWindows;
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
 
 abstract class LNotification {
-  void localNotification(int id, String title, String body, TZDateTime? date);
+  Future<void> sendLocalNotification(
+      {required int id,
+      required String title,
+      required String body,
+      required TZDateTime? date,
+      Conversation? payload});
 }
 
 class UnSupportedLocalNotification implements LNotification {
   @override
-  void localNotification(int id, String title, String body, TZDateTime? date) {
-    // TODO: implement localNotification
+  Future<void> sendLocalNotification(
+      {required int id,
+      required String title,
+      required String body,
+      required TZDateTime? date,
+      Conversation? payload}) {
+    throw UnimplementedError();
   }
 }
 
 class LocalNotificationService implements LNotification {
   @override
-  void localNotification(int id, String title, String body, TZDateTime? date) {
+  Future<void> sendLocalNotification(
+      {required int id,
+      required String title,
+      required String body,
+      required TZDateTime? date,
+      Conversation? payload}) async {
     if (date == null) {
       return;
+    }
+    if (payload != null) {
+      await ProxyService.isarApi.create(data: payload);
+      // do something with payloadId
+      print('Received a new message in payload: ${payload.body}');
+      Conversation? localConversation = await ProxyService.isarApi
+          .getConversation(messageId: payload.messageId!);
+      if (localConversation == null) {
+        await ProxyService.isarApi.create(data: payload);
+      }
     }
     AndroidNotificationDetails androidNotificationDetails =
         const AndroidNotificationDetails(
@@ -41,7 +66,7 @@ class LocalNotificationService implements LNotification {
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
       androidAllowWhileIdle: true,
-      payload: 'notlification-payload',
+      payload: payload != null ? payload.messageId : null,
     );
   }
 }

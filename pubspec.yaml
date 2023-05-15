@@ -11,24 +11,23 @@ description: A super app for africans
 # Read more about Android versioning at https://developer.android.com/studio/publish/versioning
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
-# https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.0.1-dev.3
-
+# https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundatversion:
+version: 1.170.4479172796+1684121406
+#
 # The packages below are just refrences for what packages being used
 # so not referenced in the app! check each package for more real package used
 #  in the specific package.
 environment:
-  sdk: ">=2.17.0 <3.0.0"
+  sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  isar: ^3.0.6-dev.0
-  isar_flutter_libs: ^3.0.6-dev.0
-  loading: ^1.0.2
+  isar: ^3.1.0+1
+  isar_flutter_libs: ^3.1.0+1
   universal_platform: ^1.0.0+1
   animations: ^2.0.0
-  sentry_flutter: ^6.9.1
+  sentry_flutter: ^7.5.2
   fluent_ui:
   system_theme: ^2.0.0
   flutter_acrylic: ^0.1.0
@@ -40,19 +39,18 @@ dependencies:
   get_storage: ^2.0.3
   firebase_auth: ^4.2.10
   google_fonts: ^4.0.3
-  stacked: ^3.1.0+2
-  firebase_messaging: ^14.0.2
-  overlay_support: ^2.0.0-beta.0
+  stacked: ^3.2.5
+  firebase_messaging: ^14.6.0
+  overlay_support: ^2.1.0
   flex_color_scheme: ^4.2.0
-  path_provider: ^2.0.8
+  path_provider: ^2.0.15
   logger: ^1.1.0
   firebase_crashlytics: ^3.0.2
-  path: ^1.8.0
+  path: ^1.8.2
   flutter_riverpod: any
-  go_router: ^3.0.1
+
   meta: any
   flipper_dashboard: ^0.0.1-dev.5
-  # flipper_ui: ^1.0.3
   flipper_models: ^0.0.1-dev.7
   flipper_login: ^0.0.1-dev.5
   flipper_services: ^0.0.1-dev.6
@@ -60,13 +58,14 @@ dependencies:
   flipper_localize: ^0.0.4-dev
   flipper_data_table: 1.0.0-dev.2
   flutter_native_splash: ^2.2.2
-  firebase_ui_localizations: ^1.2.0
+  firebase_ui_localizations: ^1.5.0
   timezone: ^0.9.1
   flutter_native_timezone: ^2.0.0
   flutter_localizations:
     sdk: flutter
   flutter_local_notifications: ^12.0.4
-  melos: ^3.0.0
+  flipper_socials: 1.0.0+1
+  flutter_animate: ^4.1.0
 
 dev_dependencies:
   flutter_test:
@@ -81,31 +80,31 @@ dev_dependencies:
   stacked_generator:
   mockito:
   test:
-  hive_generator: ^1.1.0
-  flutter_launcher_icons: ^0.11.0
+  flutter_launcher_icons: ^0.13.2
   # objectbox_generator: ^1.4.0
   matcher: ^0.12.10
-  msix: ^3.9.1
+  msix: ^3.11.0
   flutter_lints: ^2.0.0
-
-flutter_icons:
-  android: "launcher_icon"
+  # Can't use this package because it depend on cli_util that is too old than what other packages use
+  # melos: ^3.0.1
+flutter_launcher_icons:
+  android: true
   ios: true
   remove_alpha_ios: true
-  image_path: "assets/icon/icon.png"
+  image_path: "assets/icon.png"
   min_sdk_android: 21
   web:
     generate: true
-    image_path: "assets/icon/icon.png"
-    background_color: "#1ABCFE"
-    theme_color: "#1ABCFE"
+    image_path: "assets/icon.png"
+    # background_color: "#1ABCFE"
+    # theme_color: "#1ABCFE"
   windows:
     generate: true
-    image_path: "assets/icon/icon.png"
-    icon_size: 48 # min:48, max:256, default: 48
+    # image_path: "assets/icon/icon.png"
+    # icon_size: 48 # min:48, max:256, default: 48
   macos:
     generate: true
-    image_path: "assets/icon/icon.png"
+    image_path: "assets/icon.png"
 msix_config:
   display_name: flipperApp
   app_installer: #<-- app installer configuration
@@ -117,11 +116,12 @@ msix_config:
     force_update_from_any_version: true
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
-  msix_version: 1.170.93.0
+  msix_version: 1.170.110.0
+
   publisher: CN=B0F98A1E-8AE8-4B2B-BD1B-F494D4F791AE
-  logo_path: "./assets/icon/icon.png"
-  start_menu_icon_path: "/assets/icon/icon.png"
-  tile_icon_path: "./assets/icon/icon.png"
+  logo_path: "./assets/icon.png"
+  start_menu_icon_path: "/assets/icon.png"
+  tile_icon_path: "./assets/icon.png"
   icons_background_color: #ffffff
   architecture: x64
   store: true
@@ -135,11 +135,11 @@ flutter:
   #     libraries:
   #       # Only one library from the loading unit is necessary.
   #       - package:flipper_finance/app.dart
+  # flutter pub run flutter_launcher_icons
   uses-material-design: true
   assets:
     - assets/logo.png
     - assets/
-    - assets/icons/
     - google_fonts/
 generate: true
 flutter_native_splash:
@@ -162,7 +162,7 @@ flutter_native_splash:
 
   # The image parameter allows you to specify an image used in the splash screen.  It must be a
   # png file and should be sized for 4x pixel density.
-  image: assets/logo.png
+  image: assets/icon.png
 
   # The branding property allows you to specify an image used as branding in the splash screen.
   # It must be a png file. Currently, it is only supported for Android < v12 and iOS.
@@ -179,7 +179,7 @@ flutter_native_splash:
   # set.
   color_dark: "##FFFFFF"
   #background_image_dark: "assets/dark-background.png"
-  image_dark: assets/logo.png
+  image_dark: assets/icon.png
   #branding_dark: assets/dart_dark.png
 
   # Android 12 handles the splash screen differently than previous versions.  Please visit

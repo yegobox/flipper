@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/customappbar.dart';
+import 'package:flipper_services/abstractions/upload.dart';
 import 'package:flipper_ui/helpers/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
@@ -7,18 +8,20 @@ import 'package:stacked/stacked.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'list_divider.dart';
 import 'package:overlay_support/overlay_support.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 class ColorTile extends StatelessWidget {
-  const ColorTile({Key? key}) : super(key: key);
+  ColorTile({Key? key}) : super(key: key);
+  final _routerService = locator<RouterService>();
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<ProductViewModel>.reactive(
+    return ViewModelBuilder<UploadViewModel>.reactive(
       builder: (context, model, child) {
         return Scaffold(
           appBar: CustomAppBar(
             onPop: () {
-              GoRouter.of(context).pop();
+              _routerService.pop();
             },
             title: 'Edit product Tiles',
             icon: Icons.keyboard_backspace,
@@ -161,10 +164,9 @@ class ColorTile extends StatelessWidget {
                         ),
                         onPressed: () async {
                           model.browsePictureFromGallery(
-                              productId: model.product.id!!,
-                              callBack: (int res) {
-                                // show error if any
-                              });
+                              id: model.product.id!,
+                              callBack: (e) {},
+                              urlType: URLTYPE.PRODUCT);
                         },
                       ),
                     ),
@@ -197,6 +199,7 @@ class ColorTile extends StatelessWidget {
                         ),
                         onPressed: () {
                           model.takePicture(
+                            urlType: URLTYPE.PRODUCT,
                             productId: model.product.id!!,
                             callBack: (int res) {
                               if (res == 500) {
@@ -218,12 +221,12 @@ class ColorTile extends StatelessWidget {
           ),
         );
       },
-      viewModelBuilder: () => ProductViewModel(),
+      viewModelBuilder: () => UploadViewModel(),
     );
   }
 
   List<Widget> colorsStack(
-      BuildContext context, List<PColor> colors, ProductViewModel model) {
+      BuildContext context, List<PColor> colors, UploadViewModel model) {
     final List<Widget> stacks = [];
 
     if (colors.isNotEmpty) {

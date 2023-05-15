@@ -1,19 +1,20 @@
 import 'package:flipper_models/isar/pin.dart';
-import 'package:flipper_models/view_models/gate.dart';
+import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/app_service.dart';
+import 'package:flipper_services/locator.dart' as loc;
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_routing/routes.logger.dart';
-
+import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_routing/app.locator.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flipper_routing/routes.locator.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'dart:async';
 
 class LoginViewModel extends FormViewModel {
   LoginViewModel();
-  final log = getLogger('LoginViewModel');
-  final appService = locator<AppService>();
-
+  final appService = loc.locator<AppService>();
+  final _routerService = locator<RouterService>();
   bool loginStart = false;
   bool otpStart = false;
 
@@ -33,19 +34,6 @@ class LoginViewModel extends FormViewModel {
     ProxyService.box.write(key: 'otp', value: ot);
   }
 
-  /// this method log-in user using anonmous login
-  /// and it is used when logging on desktop app,
-  /// the mobile will send the phone number wanting to login and a signal to the desktop app to log-in
-  /// then the desktop sill log-in the user using anonmous login
-  Future<void> scanToLogin({required String phoneNumber}) async {
-    /// when logging on desktop app, the mobile will send the phone number wanting to login and a signal to the desktop app to log-in
-
-    // await pullEvent?.acknowledge();
-
-    /// once we get the user credential we can get the user
-    // ProxyService.auth.confirmOtp();
-  }
-
   @override
   void setFormStatus() {}
   bool _isProceeding = false;
@@ -55,34 +43,31 @@ class LoginViewModel extends FormViewModel {
     required String pinCode,
     required BuildContext context,
   }) async {
-    _isProceeding = true;
-    notifyListeners();
+    setIsprocessing(value: true);
     Pin? pin = await ProxyService.isarApi.getPin(pin: pinCode);
     if (pin != null) {
-      log.i(pin.userId);
       ProxyService.box.write(key: 'businessId', value: pin.businessId);
       ProxyService.box.write(key: 'branchId', value: pin.branchId);
       ProxyService.box.write(key: 'userId', value: pin.userId);
       ProxyService.box.write(key: 'userPhone', value: pin.phoneNumber);
       ProxyService.box.write(key: 'isAnonymous', value: true);
       await ProxyService.isarApi.login(
+        skipDefaultAppSetup: false,
         userPhone: pin.phoneNumber,
       );
-      // await appService.appInit();
       await FirebaseAuth.instance.signInAnonymously();
       final auth = FirebaseAuth.instance;
       if (auth.currentUser != null) {
-        loginInfo.isLoggedIn = true;
-        // we are logged in but there is a chance that this number is a tenant
-        // that is given access to this business's branch
-        // TODOtenant's is not useful when sync is not supported.
-        loginInfo.redirecting = false;
-
-        notifyListeners();
-        //TODOSubmit this data in Device model to know which device is logged in
-        //I will work on this when sync on isar is complete I don't want to use firestoreanymore!
-        // final deviceInfoPlugin = DeviceInfoPlugin();
+        if (ProxyService.box.getDefaultApp() == 2) {
+          _routerService.navigateTo(SocialHomeViewRoute());
+        } else {
+          _routerService.navigateTo(DrawerScreenRoute(open: "open"));
+        }
       }
+    } else {
+      setIsprocessing(value: false);
+      // show stacked snackbar
+      throw 'Invalid pin';
     }
   }
 

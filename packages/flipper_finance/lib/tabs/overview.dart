@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-
-
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -279,8 +277,8 @@ class _FinancialView extends StatelessWidget {
                 ],
               ),
             ),
-            ...financialItemViews!.sublist(
-                0, math.min(financialItemViews!.length, 3)),
+            ...financialItemViews!
+                .sublist(0, math.min(financialItemViews!.length, 3)),
             TextButton(
               style: TextButton.styleFrom(primary: Colors.white),
               onPressed: () {},

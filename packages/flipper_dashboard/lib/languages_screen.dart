@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_settings_ui/flutter_settings_ui.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/view_models/setting_view_model.dart';
-import 'package:flipper_routing/routes.logger.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 class LanguagesScreen extends StatefulWidget {
   const LanguagesScreen({Key? key}) : super(key: key);
@@ -15,26 +15,24 @@ class LanguagesScreen extends StatefulWidget {
 
 class _LanguagesScreenState extends State<LanguagesScreen> {
   int languageIndex = 0;
-  final log = getLogger('LanguagesScreen');
-
+  final _routerService = locator<RouterService>();
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<SettingViewModel>.reactive(
         viewModelBuilder: () => SettingViewModel(),
         onViewModelReady: (model) {
           model.getSetting();
-          log.i(model.getSetting());
         },
         builder: (context, model, child) {
           return Scaffold(
             appBar: CustomAppBar(
               onPop: () {
-                GoRouter.of(context).pop();
+                _routerService.pop();
               },
               title: 'Languages',
               showActionButton: false,
-              onPressedCallback: () async {
-                GoRouter.of(context).pop();
+              onActionButtonClicked: () async {
+                _routerService.pop();
               },
               icon: Icons.close,
               multi: 3,

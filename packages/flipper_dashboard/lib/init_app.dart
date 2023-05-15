@@ -1,8 +1,6 @@
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'package:universal_platform/universal_platform.dart';
-
-final isWindows = UniversalPlatform.isWindows;
 
 class InitApp {
   static void init() {
@@ -40,7 +38,23 @@ class InitApp {
 
     ProxyService.appService.appBarColor(Colors.black);
 
-    ProxyService.messaging.init();
+    ProxyService.event.connect();
+
+    ProxyService.messaging
+        .initializeFirebaseMessagingAndSubscribeToBusinessNotifications();
+    ProxyService.messaging.listenTapOnNotificationFromBackground();
+    ProxyService.messaging.listenTapOnNotificationForeground();
+    if (isDesktopOrWeb) {
+      ProxyService.event.subscribeToLogoutEvent(
+          channel: "${ProxyService.box.getUserId()}-logout");
+    }
+    if (ProxyService.box.getBusinessId() != null) {
+      ProxyService.event.subscribeToMessages(
+          channel: ProxyService.box.getBusinessId()!.toString());
+    }
+    if (!isDesktopOrWeb) {
+      ProxyService.event.subscribeToDeviceEvent(channel: 'device');
+    }
 
     /// to avoid receiving the message of the contact you don't have in your book
     /// we need to load contacts when the app starts.
@@ -72,6 +86,6 @@ class InitApp {
     //     });
     //   }
     // }
-    ProxyService.forceDateEntry.caller();
+    ProxyService.forceDateEntry.dataBootstrapper();
   }
 }

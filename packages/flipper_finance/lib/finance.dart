@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-
-
 import 'dart:math' as math;
 
 import 'package:animations/animations.dart';
@@ -265,8 +263,8 @@ FinancialEntityCategoryView buildFinancialEntityFromBudgetData(
 ) {
   final amountUsed = usdWithSignFormat(context).format(model.amountUsed);
   final primaryAmount = usdWithSignFormat(context).format(model.primaryAmount);
-  final amount =
-      usdWithSignFormat(context).format(model.primaryAmount! - model.amountUsed!);
+  final amount = usdWithSignFormat(context)
+      .format(model.primaryAmount! - model.amountUsed!);
 
   return FinancialEntityCategoryView(
     suffix: Text("Left"
@@ -339,7 +337,8 @@ class FinancialEntityCategoryDetailsPage extends StatelessWidget {
           centerTitle: true,
           title: Text(
             "Current",
-            style: Theme.of(context).textTheme.bodyText2!.copyWith(fontSize: 18),
+            style:
+                Theme.of(context).textTheme.bodyText2!.copyWith(fontSize: 18),
           ),
         ),
         body: Column(

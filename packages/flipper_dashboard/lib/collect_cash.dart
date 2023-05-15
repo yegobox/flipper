@@ -1,14 +1,15 @@
 import 'package:flipper_models/isar_models.dart';
-import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_dashboard/customappbar.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_routing/receipt_types.dart';
 import 'package:flipper_ui/helpers/utils.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
 import 'package:pubnub/pubnub.dart' as nub;
-import 'package:flipper_routing/routes.router.dart';
-import 'package:go_router/go_router.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 import 'rounded_loading_button.dart';
 
@@ -31,8 +32,7 @@ class _CollectCashViewState extends State<CollectCashView> {
   String message = '';
   final TextEditingController _phone = TextEditingController();
   final TextEditingController _cash = TextEditingController();
-
-  final log = getLogger('CollectCashView');
+  final _routerService = locator<RouterService>();
 
   @override
   Widget build(BuildContext context) {
@@ -42,12 +42,13 @@ class _CollectCashViewState extends State<CollectCashView> {
             child: Scaffold(
               appBar: CustomAppBar(
                 onPop: () {
-                  GoRouter.of(context).pop();
+                  _routerService.pop();
                 },
-                title: '',
+                rightActionButtonName: "Save",
+                showActionButton: true,
                 icon: Icons.close,
-                multi: 3,
-                bottomSpacer: 52,
+                multi: 2,
+                bottomSpacer: 40,
               ),
               body: SizedBox(
                 width: double.infinity,
@@ -182,8 +183,6 @@ class _CollectCashViewState extends State<CollectCashView> {
                                     ),
                                   ),
                                   onPressed: () async {
-                                    double totalOrderAmount =
-                                        model.totalPayable;
                                     model.keypad.setCashReceived(
                                         amount: double.parse(_cash.text));
                                     if (_formKey.currentState!.validate()) {
@@ -194,7 +193,9 @@ class _CollectCashViewState extends State<CollectCashView> {
                                               double.parse(_cash.text),
                                         );
                                       } else {
-                                        String receiptType = ReceiptType.ns;
+                                        await model.collectCashPayment();
+                                        _btnController.success();
+                                        String receiptType = "ns";
                                         if (ProxyService.box
                                             .isPoroformaMode()) {
                                           receiptType = ReceiptType.ps;
@@ -202,12 +203,12 @@ class _CollectCashViewState extends State<CollectCashView> {
                                         if (ProxyService.box.isTrainingMode()) {
                                           receiptType = ReceiptType.ts;
                                         }
-                                        await model.collectCashPayment();
-                                        _btnController.success();
-                                        GoRouter.of(context).push(
-                                            Routes.afterSale +
-                                                "/$totalOrderAmount/$receiptType",
-                                            extra: widget.order);
+                                        _routerService.navigateTo(
+                                            AfterSaleRoute(
+                                                totalOrderAmount:
+                                                    model.totalPayable,
+                                                receiptType: receiptType,
+                                                order: model.kOrder!));
                                       }
                                     } else {
                                       _btnController.stop();
@@ -236,9 +237,9 @@ class _CollectCashViewState extends State<CollectCashView> {
             if (payment.userId.toString() == ProxyService.box.getUserId()) {
               double totalOrderAmount = model.keypad.totalPayable;
               _btnController.success();
-              GoRouter.of(context).push(
-                Routes.afterSale + "/$totalOrderAmount",
-              );
+
+              _routerService.navigateTo(AfterSaleRoute(
+                  totalOrderAmount: totalOrderAmount, order: model.kOrder!));
             }
           });
         },

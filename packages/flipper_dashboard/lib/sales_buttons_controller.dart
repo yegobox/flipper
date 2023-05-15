@@ -1,6 +1,5 @@
 import 'package:flipper_dashboard/preview_sale_button.dart';
 import 'package:flipper_models/isar_models.dart';
-import 'package:flipper_routing/routes.logger.dart';
 import 'package:flutter/material.dart';
 
 class SalesButtonsController extends StatelessWidget {
@@ -22,7 +21,6 @@ class SalesButtonsController extends StatelessWidget {
   final int tab;
   final int saleCounts;
   final bool ticketsEnabled;
-  final log = getLogger('KeyPadHead');
   final BusinessHomeViewModel model;
 
   @override

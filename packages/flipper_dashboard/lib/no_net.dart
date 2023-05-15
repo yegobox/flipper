@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'gerror_message.dart';
 
 class NoNet extends StatelessWidget {
-  const NoNet({Key? key}) : super(key: key);
-
+  NoNet({Key? key}) : super(key: key);
+  final _routerService = locator<RouterService>();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -15,8 +16,7 @@ class NoNet extends StatelessWidget {
         subtitle:
             "Can't connect to the internet.\nPlease check your internet connection",
         onPressed: () async {
-          GoRouter.of(context).push("/login");
-          GoRouter.of(context).refresh();
+          _routerService.clearStackAndShow(LoginViewRoute());
         },
       ),
     );

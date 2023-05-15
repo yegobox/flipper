@@ -7,7 +7,7 @@ part of 'conversation.dart';
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
 
 extension GetConversationCollection on Isar {
   IsarCollection<Conversation> get conversations => this.collection();
@@ -17,44 +17,84 @@ const ConversationSchema = CollectionSchema(
   name: r'Conversation',
   id: 7261696243536555740,
   properties: {
-    r'createdAt': PropertySchema(
+    r'avatar': PropertySchema(
       id: 0,
-      name: r'createdAt',
-      type: IsarType.long,
+      name: r'avatar',
+      type: IsarType.string,
     ),
-    r'dbAvatars': PropertySchema(
+    r'body': PropertySchema(
       id: 1,
-      name: r'dbAvatars',
+      name: r'body',
+      type: IsarType.string,
+    ),
+    r'businessId': PropertySchema(
+      id: 2,
+      name: r'businessId',
+      type: IsarType.string,
+    ),
+    r'businessPhoneNumber': PropertySchema(
+      id: 3,
+      name: r'businessPhoneNumber',
+      type: IsarType.string,
+    ),
+    r'channelType': PropertySchema(
+      id: 4,
+      name: r'channelType',
+      type: IsarType.string,
+    ),
+    r'conversationId': PropertySchema(
+      id: 5,
+      name: r'conversationId',
+      type: IsarType.string,
+    ),
+    r'createdAt': PropertySchema(
+      id: 6,
+      name: r'createdAt',
       type: IsarType.string,
     ),
     r'delivered': PropertySchema(
-      id: 2,
+      id: 7,
       name: r'delivered',
       type: IsarType.bool,
     ),
-    r'lastMessage': PropertySchema(
-      id: 3,
-      name: r'lastMessage',
+    r'fromNumber': PropertySchema(
+      id: 8,
+      name: r'fromNumber',
       type: IsarType.string,
     ),
-    r'receiverId': PropertySchema(
-      id: 4,
-      name: r'receiverId',
-      type: IsarType.long,
-    ),
-    r'senderId': PropertySchema(
-      id: 5,
-      name: r'senderId',
-      type: IsarType.long,
-    ),
-    r'senderName': PropertySchema(
-      id: 6,
-      name: r'senderName',
+    r'messageId': PropertySchema(
+      id: 9,
+      name: r'messageId',
       type: IsarType.string,
     ),
-    r'status': PropertySchema(
-      id: 7,
-      name: r'status',
+    r'messageType': PropertySchema(
+      id: 10,
+      name: r'messageType',
+      type: IsarType.string,
+    ),
+    r'phoneNumberId': PropertySchema(
+      id: 11,
+      name: r'phoneNumberId',
+      type: IsarType.string,
+    ),
+    r'respondedBy': PropertySchema(
+      id: 12,
+      name: r'respondedBy',
+      type: IsarType.string,
+    ),
+    r'scheduledAt': PropertySchema(
+      id: 13,
+      name: r'scheduledAt',
+      type: IsarType.dateTime,
+    ),
+    r'toNumber': PropertySchema(
+      id: 14,
+      name: r'toNumber',
+      type: IsarType.string,
+    ),
+    r'userName': PropertySchema(
+      id: 15,
+      name: r'userName',
       type: IsarType.string,
     )
   },
@@ -63,13 +103,40 @@ const ConversationSchema = CollectionSchema(
   deserialize: _conversationDeserialize,
   deserializeProp: _conversationDeserializeProp,
   idName: r'id',
-  indexes: {},
+  indexes: {
+    r'createdAt': IndexSchema(
+      id: -3433535483987302584,
+      name: r'createdAt',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'createdAt',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
+    ),
+    r'messageId': IndexSchema(
+      id: -635287409172016016,
+      name: r'messageId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'messageId',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
+    )
+  },
   links: {},
   embeddedSchemas: {},
   getId: _conversationGetId,
   getLinks: _conversationGetLinks,
   attach: _conversationAttach,
-  version: '3.0.6-dev.0',
+  version: '3.1.0+1',
 );
 
 int _conversationEstimateSize(
@@ -78,20 +145,60 @@ int _conversationEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  bytesCount += 3 + object.avatar.length * 3;
+  bytesCount += 3 + object.body.length * 3;
   {
-    final value = object.dbAvatars;
+    final value = object.businessId;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
     }
   }
   {
-    final value = object.lastMessage;
+    final value = object.businessPhoneNumber;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
     }
   }
-  bytesCount += 3 + object.senderName.length * 3;
-  bytesCount += 3 + object.status.length * 3;
+  bytesCount += 3 + object.channelType.length * 3;
+  {
+    final value = object.conversationId;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.createdAt;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  bytesCount += 3 + object.fromNumber.length * 3;
+  {
+    final value = object.messageId;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.messageType;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.phoneNumberId;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.respondedBy;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  bytesCount += 3 + object.toNumber.length * 3;
+  bytesCount += 3 + object.userName.length * 3;
   return bytesCount;
 }
 
@@ -101,14 +208,22 @@ void _conversationSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeLong(offsets[0], object.createdAt);
-  writer.writeString(offsets[1], object.dbAvatars);
-  writer.writeBool(offsets[2], object.delivered);
-  writer.writeString(offsets[3], object.lastMessage);
-  writer.writeLong(offsets[4], object.receiverId);
-  writer.writeLong(offsets[5], object.senderId);
-  writer.writeString(offsets[6], object.senderName);
-  writer.writeString(offsets[7], object.status);
+  writer.writeString(offsets[0], object.avatar);
+  writer.writeString(offsets[1], object.body);
+  writer.writeString(offsets[2], object.businessId);
+  writer.writeString(offsets[3], object.businessPhoneNumber);
+  writer.writeString(offsets[4], object.channelType);
+  writer.writeString(offsets[5], object.conversationId);
+  writer.writeString(offsets[6], object.createdAt);
+  writer.writeBool(offsets[7], object.delivered);
+  writer.writeString(offsets[8], object.fromNumber);
+  writer.writeString(offsets[9], object.messageId);
+  writer.writeString(offsets[10], object.messageType);
+  writer.writeString(offsets[11], object.phoneNumberId);
+  writer.writeString(offsets[12], object.respondedBy);
+  writer.writeDateTime(offsets[13], object.scheduledAt);
+  writer.writeString(offsets[14], object.toNumber);
+  writer.writeString(offsets[15], object.userName);
 }
 
 Conversation _conversationDeserialize(
@@ -117,15 +232,25 @@ Conversation _conversationDeserialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = Conversation();
-  object.createdAt = reader.readLong(offsets[0]);
-  object.delivered = reader.readBool(offsets[2]);
+  final object = Conversation(
+    avatar: reader.readString(offsets[0]),
+    body: reader.readString(offsets[1]),
+    businessId: reader.readStringOrNull(offsets[2]),
+    businessPhoneNumber: reader.readStringOrNull(offsets[3]),
+    channelType: reader.readString(offsets[4]),
+    conversationId: reader.readStringOrNull(offsets[5]),
+    createdAt: reader.readStringOrNull(offsets[6]),
+    delivered: reader.readBoolOrNull(offsets[7]),
+    fromNumber: reader.readString(offsets[8]),
+    messageId: reader.readStringOrNull(offsets[9]),
+    messageType: reader.readStringOrNull(offsets[10]),
+    phoneNumberId: reader.readStringOrNull(offsets[11]),
+    respondedBy: reader.readStringOrNull(offsets[12]),
+    scheduledAt: reader.readDateTimeOrNull(offsets[13]),
+    toNumber: reader.readString(offsets[14]),
+    userName: reader.readString(offsets[15]),
+  );
   object.id = id;
-  object.lastMessage = reader.readStringOrNull(offsets[3]);
-  object.receiverId = reader.readLong(offsets[4]);
-  object.senderId = reader.readLong(offsets[5]);
-  object.senderName = reader.readString(offsets[6]);
-  object.status = reader.readString(offsets[7]);
   return object;
 }
 
@@ -137,20 +262,36 @@ P _conversationDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readLong(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 1:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 2:
-      return (reader.readBool(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 3:
       return (reader.readStringOrNull(offset)) as P;
     case 4:
-      return (reader.readLong(offset)) as P;
-    case 5:
-      return (reader.readLong(offset)) as P;
-    case 6:
       return (reader.readString(offset)) as P;
+    case 5:
+      return (reader.readStringOrNull(offset)) as P;
+    case 6:
+      return (reader.readStringOrNull(offset)) as P;
     case 7:
+      return (reader.readBoolOrNull(offset)) as P;
+    case 8:
+      return (reader.readString(offset)) as P;
+    case 9:
+      return (reader.readStringOrNull(offset)) as P;
+    case 10:
+      return (reader.readStringOrNull(offset)) as P;
+    case 11:
+      return (reader.readStringOrNull(offset)) as P;
+    case 12:
+      return (reader.readStringOrNull(offset)) as P;
+    case 13:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 14:
+      return (reader.readString(offset)) as P;
+    case 15:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -158,7 +299,7 @@ P _conversationDeserializeProp<P>(
 }
 
 Id _conversationGetId(Conversation object) {
-  return object.id;
+  return object.id ?? Isar.autoIncrement;
 }
 
 List<IsarLinkBase<dynamic>> _conversationGetLinks(Conversation object) {
@@ -247,92 +388,216 @@ extension ConversationQueryWhere
       ));
     });
   }
+
+  QueryBuilder<Conversation, Conversation, QAfterWhereClause>
+      createdAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'createdAt',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterWhereClause>
+      createdAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'createdAt',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterWhereClause> createdAtEqualTo(
+      String? createdAt) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'createdAt',
+        value: [createdAt],
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterWhereClause>
+      createdAtNotEqualTo(String? createdAt) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'createdAt',
+              lower: [],
+              upper: [createdAt],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'createdAt',
+              lower: [createdAt],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'createdAt',
+              lower: [createdAt],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'createdAt',
+              lower: [],
+              upper: [createdAt],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterWhereClause>
+      messageIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'messageId',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterWhereClause>
+      messageIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'messageId',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterWhereClause> messageIdEqualTo(
+      String? messageId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'messageId',
+        value: [messageId],
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterWhereClause>
+      messageIdNotEqualTo(String? messageId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'messageId',
+              lower: [],
+              upper: [messageId],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'messageId',
+              lower: [messageId],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'messageId',
+              lower: [messageId],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'messageId',
+              lower: [],
+              upper: [messageId],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
 }
 
 extension ConversationQueryFilter
     on QueryBuilder<Conversation, Conversation, QFilterCondition> {
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      createdAtEqualTo(int value) {
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition> avatarEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'createdAt',
+        property: r'avatar',
         value: value,
+        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      createdAtGreaterThan(
-    int value, {
+      avatarGreaterThan(
+    String value, {
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
-        property: r'createdAt',
+        property: r'avatar',
         value: value,
+        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      createdAtLessThan(
-    int value, {
+      avatarLessThan(
+    String value, {
     bool include = false,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
-        property: r'createdAt',
+        property: r'avatar',
         value: value,
+        caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      createdAtBetween(
-    int lower,
-    int upper, {
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition> avatarBetween(
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
-        property: r'createdAt',
+        property: r'avatar',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      dbAvatarsIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'dbAvatars',
-      ));
-    });
-  }
-
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      dbAvatarsIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'dbAvatars',
-      ));
-    });
-  }
-
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      dbAvatarsEqualTo(
-    String? value, {
+      avatarStartsWith(
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'dbAvatars',
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'avatar',
         value: value,
         caseSensitive: caseSensitive,
       ));
@@ -340,7 +605,230 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      dbAvatarsGreaterThan(
+      avatarEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'avatar',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      avatarContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'avatar',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition> avatarMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'avatar',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      avatarIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'avatar',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      avatarIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'avatar',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition> bodyEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'body',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      bodyGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'body',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition> bodyLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'body',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition> bodyBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'body',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      bodyStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'body',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition> bodyEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'body',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition> bodyContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'body',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition> bodyMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'body',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      bodyIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'body',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      bodyIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'body',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      businessIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'businessId',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      businessIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'businessId',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      businessIdEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'businessId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      businessIdGreaterThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
@@ -348,7 +836,7 @@ extension ConversationQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
-        property: r'dbAvatars',
+        property: r'businessId',
         value: value,
         caseSensitive: caseSensitive,
       ));
@@ -356,7 +844,7 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      dbAvatarsLessThan(
+      businessIdLessThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
@@ -364,7 +852,7 @@ extension ConversationQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
-        property: r'dbAvatars',
+        property: r'businessId',
         value: value,
         caseSensitive: caseSensitive,
       ));
@@ -372,7 +860,7 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      dbAvatarsBetween(
+      businessIdBetween(
     String? lower,
     String? upper, {
     bool includeLower = true,
@@ -381,7 +869,7 @@ extension ConversationQueryFilter
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
-        property: r'dbAvatars',
+        property: r'businessId',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -392,13 +880,13 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      dbAvatarsStartsWith(
+      businessIdStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'dbAvatars',
+        property: r'businessId',
         value: value,
         caseSensitive: caseSensitive,
       ));
@@ -406,13 +894,13 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      dbAvatarsEndsWith(
+      businessIdEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'dbAvatars',
+        property: r'businessId',
         value: value,
         caseSensitive: caseSensitive,
       ));
@@ -420,10 +908,10 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      dbAvatarsContains(String value, {bool caseSensitive = true}) {
+      businessIdContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
-        property: r'dbAvatars',
+        property: r'businessId',
         value: value,
         caseSensitive: caseSensitive,
       ));
@@ -431,10 +919,10 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      dbAvatarsMatches(String pattern, {bool caseSensitive = true}) {
+      businessIdMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
-        property: r'dbAvatars',
+        property: r'businessId',
         wildcard: pattern,
         caseSensitive: caseSensitive,
       ));
@@ -442,27 +930,643 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      dbAvatarsIsEmpty() {
+      businessIdIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'dbAvatars',
+        property: r'businessId',
         value: '',
       ));
     });
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      dbAvatarsIsNotEmpty() {
+      businessIdIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'dbAvatars',
+        property: r'businessId',
         value: '',
       ));
     });
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      deliveredEqualTo(bool value) {
+      businessPhoneNumberIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'businessPhoneNumber',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      businessPhoneNumberIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'businessPhoneNumber',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      businessPhoneNumberEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'businessPhoneNumber',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      businessPhoneNumberGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'businessPhoneNumber',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      businessPhoneNumberLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'businessPhoneNumber',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      businessPhoneNumberBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'businessPhoneNumber',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      businessPhoneNumberStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'businessPhoneNumber',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      businessPhoneNumberEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'businessPhoneNumber',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      businessPhoneNumberContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'businessPhoneNumber',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      businessPhoneNumberMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'businessPhoneNumber',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      businessPhoneNumberIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'businessPhoneNumber',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      businessPhoneNumberIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'businessPhoneNumber',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      channelTypeEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'channelType',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      channelTypeGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'channelType',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      channelTypeLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'channelType',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      channelTypeBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'channelType',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      channelTypeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'channelType',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      channelTypeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'channelType',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      channelTypeContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'channelType',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      channelTypeMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'channelType',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      channelTypeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'channelType',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      channelTypeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'channelType',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      conversationIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'conversationId',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      conversationIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'conversationId',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      conversationIdEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'conversationId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      conversationIdGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'conversationId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      conversationIdLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'conversationId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      conversationIdBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'conversationId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      conversationIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'conversationId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      conversationIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'conversationId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      conversationIdContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'conversationId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      conversationIdMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'conversationId',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      conversationIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'conversationId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      conversationIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'conversationId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      createdAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'createdAt',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      createdAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'createdAt',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      createdAtEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'createdAt',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      createdAtGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'createdAt',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      createdAtLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'createdAt',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      createdAtBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'createdAt',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      createdAtStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'createdAt',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      createdAtEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'createdAt',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      createdAtContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'createdAt',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      createdAtMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'createdAt',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      createdAtIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'createdAt',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      createdAtIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'createdAt',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      deliveredIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'delivered',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      deliveredIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'delivered',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      deliveredEqualTo(bool? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'delivered',
@@ -471,8 +1575,161 @@ extension ConversationQueryFilter
     });
   }
 
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      fromNumberEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'fromNumber',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      fromNumberGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'fromNumber',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      fromNumberLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'fromNumber',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      fromNumberBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'fromNumber',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      fromNumberStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'fromNumber',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      fromNumberEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'fromNumber',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      fromNumberContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'fromNumber',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      fromNumberMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'fromNumber',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      fromNumberIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'fromNumber',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      fromNumberIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'fromNumber',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition> idIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'id',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      idIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'id',
+      ));
+    });
+  }
+
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition> idEqualTo(
-      Id value) {
+      Id? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -482,7 +1739,7 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition> idGreaterThan(
-    Id value, {
+    Id? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -495,7 +1752,7 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition> idLessThan(
-    Id value, {
+    Id? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -508,8 +1765,8 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition> idBetween(
-    Id lower,
-    Id upper, {
+    Id? lower,
+    Id? upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -525,31 +1782,31 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      lastMessageIsNull() {
+      messageIdIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'lastMessage',
+        property: r'messageId',
       ));
     });
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      lastMessageIsNotNull() {
+      messageIdIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'lastMessage',
+        property: r'messageId',
       ));
     });
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      lastMessageEqualTo(
+      messageIdEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'lastMessage',
+        property: r'messageId',
         value: value,
         caseSensitive: caseSensitive,
       ));
@@ -557,7 +1814,7 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      lastMessageGreaterThan(
+      messageIdGreaterThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
@@ -565,7 +1822,7 @@ extension ConversationQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
-        property: r'lastMessage',
+        property: r'messageId',
         value: value,
         caseSensitive: caseSensitive,
       ));
@@ -573,7 +1830,7 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      lastMessageLessThan(
+      messageIdLessThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
@@ -581,7 +1838,7 @@ extension ConversationQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
-        property: r'lastMessage',
+        property: r'messageId',
         value: value,
         caseSensitive: caseSensitive,
       ));
@@ -589,7 +1846,7 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      lastMessageBetween(
+      messageIdBetween(
     String? lower,
     String? upper, {
     bool includeLower = true,
@@ -598,7 +1855,7 @@ extension ConversationQueryFilter
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
-        property: r'lastMessage',
+        property: r'messageId',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -609,13 +1866,13 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      lastMessageStartsWith(
+      messageIdStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'lastMessage',
+        property: r'messageId',
         value: value,
         caseSensitive: caseSensitive,
       ));
@@ -623,13 +1880,13 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      lastMessageEndsWith(
+      messageIdEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'lastMessage',
+        property: r'messageId',
         value: value,
         caseSensitive: caseSensitive,
       ));
@@ -637,10 +1894,10 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      lastMessageContains(String value, {bool caseSensitive = true}) {
+      messageIdContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
-        property: r'lastMessage',
+        property: r'messageId',
         value: value,
         caseSensitive: caseSensitive,
       ));
@@ -648,10 +1905,10 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      lastMessageMatches(String pattern, {bool caseSensitive = true}) {
+      messageIdMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
-        property: r'lastMessage',
+        property: r'messageId',
         wildcard: pattern,
         caseSensitive: caseSensitive,
       ));
@@ -659,73 +1916,553 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      lastMessageIsEmpty() {
+      messageIdIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'lastMessage',
+        property: r'messageId',
         value: '',
       ));
     });
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      lastMessageIsNotEmpty() {
+      messageIdIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'lastMessage',
+        property: r'messageId',
         value: '',
       ));
     });
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      receiverIdEqualTo(int value) {
+      messageTypeIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'messageType',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      messageTypeIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'messageType',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      messageTypeEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'receiverId',
+        property: r'messageType',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      messageTypeGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'messageType',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      messageTypeLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'messageType',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      messageTypeBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'messageType',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      messageTypeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'messageType',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      messageTypeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'messageType',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      messageTypeContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'messageType',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      messageTypeMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'messageType',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      messageTypeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'messageType',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      messageTypeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'messageType',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      phoneNumberIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'phoneNumberId',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      phoneNumberIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'phoneNumberId',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      phoneNumberIdEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'phoneNumberId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      phoneNumberIdGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'phoneNumberId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      phoneNumberIdLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'phoneNumberId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      phoneNumberIdBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'phoneNumberId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      phoneNumberIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'phoneNumberId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      phoneNumberIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'phoneNumberId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      phoneNumberIdContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'phoneNumberId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      phoneNumberIdMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'phoneNumberId',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      phoneNumberIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'phoneNumberId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      phoneNumberIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'phoneNumberId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      respondedByIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'respondedBy',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      respondedByIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'respondedBy',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      respondedByEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'respondedBy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      respondedByGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'respondedBy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      respondedByLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'respondedBy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      respondedByBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'respondedBy',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      respondedByStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'respondedBy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      respondedByEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'respondedBy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      respondedByContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'respondedBy',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      respondedByMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'respondedBy',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      respondedByIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'respondedBy',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      respondedByIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'respondedBy',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      scheduledAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'scheduledAt',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      scheduledAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'scheduledAt',
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      scheduledAtEqualTo(DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'scheduledAt',
         value: value,
       ));
     });
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      receiverIdGreaterThan(
-    int value, {
+      scheduledAtGreaterThan(
+    DateTime? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
-        property: r'receiverId',
+        property: r'scheduledAt',
         value: value,
       ));
     });
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      receiverIdLessThan(
-    int value, {
+      scheduledAtLessThan(
+    DateTime? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
-        property: r'receiverId',
+        property: r'scheduledAt',
         value: value,
       ));
     });
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      receiverIdBetween(
-    int lower,
-    int upper, {
+      scheduledAtBetween(
+    DateTime? lower,
+    DateTime? upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
-        property: r'receiverId',
+        property: r'scheduledAt',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -735,69 +2472,13 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      senderIdEqualTo(int value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'senderId',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      senderIdGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'senderId',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      senderIdLessThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'senderId',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      senderIdBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'senderId',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      senderNameEqualTo(
+      toNumberEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'senderName',
+        property: r'toNumber',
         value: value,
         caseSensitive: caseSensitive,
       ));
@@ -805,7 +2486,7 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      senderNameGreaterThan(
+      toNumberGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -813,7 +2494,7 @@ extension ConversationQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
-        property: r'senderName',
+        property: r'toNumber',
         value: value,
         caseSensitive: caseSensitive,
       ));
@@ -821,7 +2502,7 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      senderNameLessThan(
+      toNumberLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -829,7 +2510,7 @@ extension ConversationQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
-        property: r'senderName',
+        property: r'toNumber',
         value: value,
         caseSensitive: caseSensitive,
       ));
@@ -837,7 +2518,7 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      senderNameBetween(
+      toNumberBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -846,7 +2527,7 @@ extension ConversationQueryFilter
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
-        property: r'senderName',
+        property: r'toNumber',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -857,13 +2538,13 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      senderNameStartsWith(
+      toNumberStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'senderName',
+        property: r'toNumber',
         value: value,
         caseSensitive: caseSensitive,
       ));
@@ -871,13 +2552,13 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      senderNameEndsWith(
+      toNumberEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'senderName',
+        property: r'toNumber',
         value: value,
         caseSensitive: caseSensitive,
       ));
@@ -885,10 +2566,10 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      senderNameContains(String value, {bool caseSensitive = true}) {
+      toNumberContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
-        property: r'senderName',
+        property: r'toNumber',
         value: value,
         caseSensitive: caseSensitive,
       ));
@@ -896,10 +2577,10 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      senderNameMatches(String pattern, {bool caseSensitive = true}) {
+      toNumberMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
-        property: r'senderName',
+        property: r'toNumber',
         wildcard: pattern,
         caseSensitive: caseSensitive,
       ));
@@ -907,32 +2588,33 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      senderNameIsEmpty() {
+      toNumberIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'senderName',
+        property: r'toNumber',
         value: '',
       ));
     });
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      senderNameIsNotEmpty() {
+      toNumberIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'senderName',
+        property: r'toNumber',
         value: '',
       ));
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition> statusEqualTo(
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      userNameEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'status',
+        property: r'userName',
         value: value,
         caseSensitive: caseSensitive,
       ));
@@ -940,7 +2622,7 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      statusGreaterThan(
+      userNameGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -948,7 +2630,7 @@ extension ConversationQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
-        property: r'status',
+        property: r'userName',
         value: value,
         caseSensitive: caseSensitive,
       ));
@@ -956,7 +2638,7 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      statusLessThan(
+      userNameLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -964,14 +2646,15 @@ extension ConversationQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
-        property: r'status',
+        property: r'userName',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition> statusBetween(
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      userNameBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -980,7 +2663,7 @@ extension ConversationQueryFilter
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
-        property: r'status',
+        property: r'userName',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -991,13 +2674,13 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      statusStartsWith(
+      userNameStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'status',
+        property: r'userName',
         value: value,
         caseSensitive: caseSensitive,
       ));
@@ -1005,13 +2688,13 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      statusEndsWith(
+      userNameEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'status',
+        property: r'userName',
         value: value,
         caseSensitive: caseSensitive,
       ));
@@ -1019,22 +2702,21 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      statusContains(String value, {bool caseSensitive = true}) {
+      userNameContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
-        property: r'status',
+        property: r'userName',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition> statusMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      userNameMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
-        property: r'status',
+        property: r'userName',
         wildcard: pattern,
         caseSensitive: caseSensitive,
       ));
@@ -1042,20 +2724,20 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      statusIsEmpty() {
+      userNameIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'status',
+        property: r'userName',
         value: '',
       ));
     });
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      statusIsNotEmpty() {
+      userNameIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'status',
+        property: r'userName',
         value: '',
       ));
     });
@@ -1070,6 +2752,84 @@ extension ConversationQueryLinks
 
 extension ConversationQuerySortBy
     on QueryBuilder<Conversation, Conversation, QSortBy> {
+  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByAvatar() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'avatar', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByAvatarDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'avatar', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByBody() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'body', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByBodyDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'body', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByBusinessId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'businessId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+      sortByBusinessIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'businessId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+      sortByBusinessPhoneNumber() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'businessPhoneNumber', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+      sortByBusinessPhoneNumberDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'businessPhoneNumber', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByChannelType() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'channelType', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+      sortByChannelTypeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'channelType', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+      sortByConversationId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'conversationId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+      sortByConversationIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'conversationId', Sort.desc);
+    });
+  }
+
   QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.asc);
@@ -1079,18 +2839,6 @@ extension ConversationQuerySortBy
   QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByCreatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByDbAvatars() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'dbAvatars', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByDbAvatarsDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'dbAvatars', Sort.desc);
     });
   }
 
@@ -1106,72 +2854,188 @@ extension ConversationQuerySortBy
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByLastMessage() {
+  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByFromNumber() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'lastMessage', Sort.asc);
+      return query.addSortBy(r'fromNumber', Sort.asc);
     });
   }
 
   QueryBuilder<Conversation, Conversation, QAfterSortBy>
-      sortByLastMessageDesc() {
+      sortByFromNumberDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'lastMessage', Sort.desc);
+      return query.addSortBy(r'fromNumber', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByReceiverId() {
+  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByMessageId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'receiverId', Sort.asc);
+      return query.addSortBy(r'messageId', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy>
-      sortByReceiverIdDesc() {
+  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByMessageIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'receiverId', Sort.desc);
+      return query.addSortBy(r'messageId', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortBySenderId() {
+  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByMessageType() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'senderId', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortBySenderIdDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'senderId', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortBySenderName() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'senderName', Sort.asc);
+      return query.addSortBy(r'messageType', Sort.asc);
     });
   }
 
   QueryBuilder<Conversation, Conversation, QAfterSortBy>
-      sortBySenderNameDesc() {
+      sortByMessageTypeDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'senderName', Sort.desc);
+      return query.addSortBy(r'messageType', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByStatus() {
+  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByPhoneNumberId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'status', Sort.asc);
+      return query.addSortBy(r'phoneNumberId', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByStatusDesc() {
+  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+      sortByPhoneNumberIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'status', Sort.desc);
+      return query.addSortBy(r'phoneNumberId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByRespondedBy() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'respondedBy', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+      sortByRespondedByDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'respondedBy', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByScheduledAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'scheduledAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+      sortByScheduledAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'scheduledAt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByToNumber() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'toNumber', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByToNumberDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'toNumber', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByUserName() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'userName', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByUserNameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'userName', Sort.desc);
     });
   }
 }
 
 extension ConversationQuerySortThenBy
     on QueryBuilder<Conversation, Conversation, QSortThenBy> {
+  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByAvatar() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'avatar', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByAvatarDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'avatar', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByBody() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'body', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByBodyDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'body', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByBusinessId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'businessId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+      thenByBusinessIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'businessId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+      thenByBusinessPhoneNumber() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'businessPhoneNumber', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+      thenByBusinessPhoneNumberDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'businessPhoneNumber', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByChannelType() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'channelType', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+      thenByChannelTypeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'channelType', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+      thenByConversationId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'conversationId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+      thenByConversationIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'conversationId', Sort.desc);
+    });
+  }
+
   QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.asc);
@@ -1181,18 +3045,6 @@ extension ConversationQuerySortThenBy
   QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByCreatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByDbAvatars() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'dbAvatars', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByDbAvatarsDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'dbAvatars', Sort.desc);
     });
   }
 
@@ -1208,6 +3060,19 @@ extension ConversationQuerySortThenBy
     });
   }
 
+  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByFromNumber() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'fromNumber', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+      thenByFromNumberDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'fromNumber', Sort.desc);
+    });
+  }
+
   QueryBuilder<Conversation, Conversation, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
@@ -1220,82 +3085,145 @@ extension ConversationQuerySortThenBy
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByLastMessage() {
+  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByMessageId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'lastMessage', Sort.asc);
+      return query.addSortBy(r'messageId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByMessageIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'messageId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByMessageType() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'messageType', Sort.asc);
     });
   }
 
   QueryBuilder<Conversation, Conversation, QAfterSortBy>
-      thenByLastMessageDesc() {
+      thenByMessageTypeDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'lastMessage', Sort.desc);
+      return query.addSortBy(r'messageType', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByReceiverId() {
+  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByPhoneNumberId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'receiverId', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Conversation, Conversation, QAfterSortBy>
-      thenByReceiverIdDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'receiverId', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenBySenderId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'senderId', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenBySenderIdDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'senderId', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenBySenderName() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'senderName', Sort.asc);
+      return query.addSortBy(r'phoneNumberId', Sort.asc);
     });
   }
 
   QueryBuilder<Conversation, Conversation, QAfterSortBy>
-      thenBySenderNameDesc() {
+      thenByPhoneNumberIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'senderName', Sort.desc);
+      return query.addSortBy(r'phoneNumberId', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByStatus() {
+  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByRespondedBy() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'status', Sort.asc);
+      return query.addSortBy(r'respondedBy', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByStatusDesc() {
+  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+      thenByRespondedByDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'status', Sort.desc);
+      return query.addSortBy(r'respondedBy', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByScheduledAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'scheduledAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+      thenByScheduledAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'scheduledAt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByToNumber() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'toNumber', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByToNumberDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'toNumber', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByUserName() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'userName', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByUserNameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'userName', Sort.desc);
     });
   }
 }
 
 extension ConversationQueryWhereDistinct
     on QueryBuilder<Conversation, Conversation, QDistinct> {
-  QueryBuilder<Conversation, Conversation, QDistinct> distinctByCreatedAt() {
+  QueryBuilder<Conversation, Conversation, QDistinct> distinctByAvatar(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'createdAt');
+      return query.addDistinctBy(r'avatar', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QDistinct> distinctByDbAvatars(
+  QueryBuilder<Conversation, Conversation, QDistinct> distinctByBody(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'dbAvatars', caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'body', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QDistinct> distinctByBusinessId(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'businessId', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QDistinct>
+      distinctByBusinessPhoneNumber({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'businessPhoneNumber',
+          caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QDistinct> distinctByChannelType(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'channelType', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QDistinct> distinctByConversationId(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'conversationId',
+          caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QDistinct> distinctByCreatedAt(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'createdAt', caseSensitive: caseSensitive);
     });
   }
 
@@ -1305,36 +3233,59 @@ extension ConversationQueryWhereDistinct
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QDistinct> distinctByLastMessage(
+  QueryBuilder<Conversation, Conversation, QDistinct> distinctByFromNumber(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'lastMessage', caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'fromNumber', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QDistinct> distinctByReceiverId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'receiverId');
-    });
-  }
-
-  QueryBuilder<Conversation, Conversation, QDistinct> distinctBySenderId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'senderId');
-    });
-  }
-
-  QueryBuilder<Conversation, Conversation, QDistinct> distinctBySenderName(
+  QueryBuilder<Conversation, Conversation, QDistinct> distinctByMessageId(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'senderName', caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'messageId', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QDistinct> distinctByStatus(
+  QueryBuilder<Conversation, Conversation, QDistinct> distinctByMessageType(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'status', caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'messageType', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QDistinct> distinctByPhoneNumberId(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'phoneNumberId',
+          caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QDistinct> distinctByRespondedBy(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'respondedBy', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QDistinct> distinctByScheduledAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'scheduledAt');
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QDistinct> distinctByToNumber(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'toNumber', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QDistinct> distinctByUserName(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'userName', caseSensitive: caseSensitive);
     });
   }
 }
@@ -1347,51 +3298,148 @@ extension ConversationQueryProperty
     });
   }
 
-  QueryBuilder<Conversation, int, QQueryOperations> createdAtProperty() {
+  QueryBuilder<Conversation, String, QQueryOperations> avatarProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'avatar');
+    });
+  }
+
+  QueryBuilder<Conversation, String, QQueryOperations> bodyProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'body');
+    });
+  }
+
+  QueryBuilder<Conversation, String?, QQueryOperations> businessIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'businessId');
+    });
+  }
+
+  QueryBuilder<Conversation, String?, QQueryOperations>
+      businessPhoneNumberProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'businessPhoneNumber');
+    });
+  }
+
+  QueryBuilder<Conversation, String, QQueryOperations> channelTypeProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'channelType');
+    });
+  }
+
+  QueryBuilder<Conversation, String?, QQueryOperations>
+      conversationIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'conversationId');
+    });
+  }
+
+  QueryBuilder<Conversation, String?, QQueryOperations> createdAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'createdAt');
     });
   }
 
-  QueryBuilder<Conversation, String?, QQueryOperations> dbAvatarsProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'dbAvatars');
-    });
-  }
-
-  QueryBuilder<Conversation, bool, QQueryOperations> deliveredProperty() {
+  QueryBuilder<Conversation, bool?, QQueryOperations> deliveredProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'delivered');
     });
   }
 
-  QueryBuilder<Conversation, String?, QQueryOperations> lastMessageProperty() {
+  QueryBuilder<Conversation, String, QQueryOperations> fromNumberProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'lastMessage');
+      return query.addPropertyName(r'fromNumber');
     });
   }
 
-  QueryBuilder<Conversation, int, QQueryOperations> receiverIdProperty() {
+  QueryBuilder<Conversation, String?, QQueryOperations> messageIdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'receiverId');
+      return query.addPropertyName(r'messageId');
     });
   }
 
-  QueryBuilder<Conversation, int, QQueryOperations> senderIdProperty() {
+  QueryBuilder<Conversation, String?, QQueryOperations> messageTypeProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'senderId');
+      return query.addPropertyName(r'messageType');
     });
   }
 
-  QueryBuilder<Conversation, String, QQueryOperations> senderNameProperty() {
+  QueryBuilder<Conversation, String?, QQueryOperations>
+      phoneNumberIdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'senderName');
+      return query.addPropertyName(r'phoneNumberId');
     });
   }
 
-  QueryBuilder<Conversation, String, QQueryOperations> statusProperty() {
+  QueryBuilder<Conversation, String?, QQueryOperations> respondedByProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'status');
+      return query.addPropertyName(r'respondedBy');
+    });
+  }
+
+  QueryBuilder<Conversation, DateTime?, QQueryOperations>
+      scheduledAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'scheduledAt');
+    });
+  }
+
+  QueryBuilder<Conversation, String, QQueryOperations> toNumberProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'toNumber');
+    });
+  }
+
+  QueryBuilder<Conversation, String, QQueryOperations> userNameProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'userName');
     });
   }
 }
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+Conversation _$ConversationFromJson(Map<String, dynamic> json) => Conversation(
+      userName: json['userName'] as String,
+      body: json['body'] as String,
+      avatar: json['avatar'] as String,
+      channelType: json['channelType'] as String,
+      fromNumber: json['fromNumber'] as String,
+      toNumber: json['toNumber'] as String,
+      createdAt: json['createdAt'] as String?,
+      respondedBy: json['respondedBy'] as String?,
+      messageType: json['messageType'] as String?,
+      phoneNumberId: json['phoneNumberId'] as String?,
+      conversationId: json['conversationId'] as String?,
+      businessPhoneNumber: json['businessPhoneNumber'] as String?,
+      businessId: json['businessId'] as String?,
+      scheduledAt: json['scheduledAt'] == null
+          ? null
+          : DateTime.parse(json['scheduledAt'] as String),
+      delivered: json['delivered'] as bool?,
+      messageId: json['messageId'] as String?,
+    );
+
+Map<String, dynamic> _$ConversationToJson(Conversation instance) =>
+    <String, dynamic>{
+      'userName': instance.userName,
+      'body': instance.body,
+      'avatar': instance.avatar,
+      'channelType': instance.channelType,
+      'fromNumber': instance.fromNumber,
+      'toNumber': instance.toNumber,
+      'createdAt': instance.createdAt,
+      'messageType': instance.messageType,
+      'phoneNumberId': instance.phoneNumberId,
+      'messageId': instance.messageId,
+      'respondedBy': instance.respondedBy,
+      'conversationId': instance.conversationId,
+      'businessPhoneNumber': instance.businessPhoneNumber,
+      'businessId': instance.businessId,
+      'scheduledAt': instance.scheduledAt?.toIso8601String(),
+      'delivered': instance.delivered,
+    };

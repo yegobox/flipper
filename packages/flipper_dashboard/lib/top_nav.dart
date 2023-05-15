@@ -1,8 +1,6 @@
 import 'package:flipper_dashboard/reponsiveness.dart';
 import 'package:flutter/material.dart';
 
-import 'custom_text.dart';
-
 AppBar topNavigationBar(BuildContext context, GlobalKey<ScaffoldState> key,
         String userName, String userProfileImg) =>
     AppBar(
@@ -12,7 +10,7 @@ AppBar topNavigationBar(BuildContext context, GlobalKey<ScaffoldState> key,
                 Padding(
                   padding: const EdgeInsets.only(left: 16),
                   child: Image.asset(
-                    "assets/icons/logo.png",
+                    "assets/logo.png",
                     width: 28,
                   ),
                 ),
@@ -27,13 +25,15 @@ AppBar topNavigationBar(BuildContext context, GlobalKey<ScaffoldState> key,
         child: Row(
           children: [
             Visibility(
-                visible: !ResponsiveWidget.isSmallScreen(context),
-                child: CustomText(
-                  text: "Flipper",
-                  color: Color(0xFFA4A6B3),
-                  size: 20,
-                  weight: FontWeight.bold,
-                )),
+              visible: !ResponsiveWidget.isSmallScreen(context),
+              child: Text(
+                'Flipper',
+                style: TextStyle(
+                    color: Color(0xFFA4A6B3),
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold),
+              ),
+            ),
             Expanded(child: Container()),
             IconButton(
                 icon: Icon(
@@ -72,10 +72,10 @@ AppBar topNavigationBar(BuildContext context, GlobalKey<ScaffoldState> key,
             SizedBox(
               width: 24,
             ),
-            CustomText(
-              text: userName,
-              color: Color(0xFFA4A6B3),
-            ),
+            Text(userName,
+                style: TextStyle(
+                  color: Color(0xFFA4A6B3),
+                )),
             SizedBox(
               width: 16,
             ),

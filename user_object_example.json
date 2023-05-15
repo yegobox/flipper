@@ -1,0 +1,106 @@
+{
+    "id": 16511658318807659,
+    "phoneNumber": "+250783054874",
+    "token": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJodHRwczovL3llZ29ib3guY29tL2lzc3VlciIsInVwbiI6ImFkbWluQHllZ29ib3guY29tIiwiZ3JvdXBzIjpbIlVzZXIiLCJBZG1pbiJdLCJiaXJ0aGRhdGUiOjE2NTExNjU4MzE4ODA3NjU5LCJpYXQiOjE2ODA1ODIxODcsImV4cCI6MTcxMjExODE4NywianRpIjoiOTZkZGMwMTYtN2QyMC00NTVhLWFmNGItNjAyZDlkYjc0YjY2In0.fLrYhMt2DfWTCEc33AeGVWGiQ5Sd4NTkvEfVAXyojkhV-c-lSmjVxw1EQnIczXbwv0p2vPubsajINUzmNewqmE2LwAfDih-z1EGto8eFR3D6152yIPf3Abt0EoAtkb95CKsT-QIL4b6cfyeJv2JbEWM0BkjW44ZbquwzLXb5fBuTzY65wRkRoebe399Inb9pXfyFmR5TdqpA_PFg2nRir_AMm5T6rDe0O4d1vx6Ld4IfqXQFGdkkk_Jf1yMQe3EYgoYyo8OFP1QPyZl_uTN6eAsA7ArsZLRNC7UJGvpUJmxCeAHDB-kPo8lwSg0CUGNrCyi27EUBWg30_iYbPT6ong",
+    "tenants": [
+        {
+            "id": 49,
+            "name": "Richard",
+            "phoneNumber": "+250783054874",
+            "email": "murag.richard@gmail.com",
+            "permissions": [
+                {
+                    "id": 49,
+                    "name": "admin"
+                },
+                {
+                    "id": 206,
+                    "name": "billing"
+                }
+            ],
+            "branches": [
+                {
+                    "id": 76,
+                    "active": true,
+                    "description": "desc",
+                    "name": "Richard",
+                    "businessId": 68,
+                    "longitude": "0",
+                    "latitude": "0",
+                    "createdAt": "2021-10-05T19:28:08.612022",
+                    "updatedAt": null,
+                    "isDefault": false,
+                    "default": false
+                },
+                {
+                    "id": 223,
+                    "active": true,
+                    "description": "desc",
+                    "name": "RichieBuzz",
+                    "businessId": 1642636,
+                    "longitude": "0",
+                    "latitude": "0",
+                    "createdAt": "2022-04-18T13:23:40.586735",
+                    "updatedAt": null,
+                    "isDefault": false,
+                    "default": false
+                }
+            ],
+            "businesses": [
+                {
+                    "id": 1642636,
+                    "name": "RichieBuzz",
+                    "currency": "RW",
+                    "categoryId": null,
+                    "latitude": "37.4219983",
+                    "longitude": "-122.084",
+                    "userId": "16511658318807659",
+                    "timeZone": null,
+                    "channels": null,
+                    "country": "Rwanda",
+                    "businessUrl": null,
+                    "hexColor": null,
+                    "imageUrl": null,
+                    "type": "Business",
+                    "referredBy": "Organic",
+                    "createdAt": "2022-04-18T13:23:40.586735",
+                    "updatedAt": null,
+                    "metadata": null,
+                    "role": null,
+                    "lastSeen": 0,
+                    "firstName": null,
+                    "lastName": null,
+                    "reported": "true",
+                    "phoneNumber": "+250783054874",
+                    "deviceToken": "dEgxPWFhRcWhB_Mh2xp6Pk:APA91bHqbvpguGfSCSr9K_QaNP3eGJo-yGodXx2SC01Euej9-wLvIznSzkGyzaee8OEXKs1M_q6-3zPMmhzJLWgsmnlJbwAuUIifUp-Epbc8gygs45zLqS8IP982axSI0X1M6Mu8PaoD",
+                    "chatUid": null,
+                    "backUpEnabled": false,
+                    "subscriptionPlan": null,
+                    "nextBillingDate": null,
+                    "previousBillingDate": null,
+                    "isLastSubscriptionPaymentSucceeded": false,
+                    "backupFileId": "1pnRXFVy3r7I2lwnR0sasA0SWCd8KMQmLRlcf1VeYmoRXZ1ngzA",
+                    "email": null,
+                    "lastDbBackup": null,
+                    "fullName": "Murag",
+                    "referralCode": null,
+                    "authId": null,
+                    "tinNumber": 999909695,
+                    "dvcSrlNo": "vsdcyegoboxltd",
+                    "bhfId": "00",
+                    "adrs": null,
+                    "taxEnabled": true,
+                    "isDefault": true,
+                    "businessTypeId": 1,
+                    "default": true,
+                    "lastSubscriptionPaymentSucceeded": false
+                }
+            ],
+            "businessId": 1642636,
+            "nfcEnabled": false
+        }
+    ],
+    "channels": [
+        "16511658318807659"
+    ]
+}

@@ -1,11 +1,12 @@
 import 'dart:developer';
 
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/toast.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'package:stacked/stacked.dart';
 import 'customappbar.dart';
 
@@ -21,6 +22,7 @@ class _TenantAddState extends State<TenantAdd> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   int _steps = 0;
+  final _routerService = locator<RouterService>();
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +36,7 @@ class _TenantAddState extends State<TenantAdd> {
             appBar: CustomAppBar(
               title: 'Add a user',
               onPop: () async {
-                GoRouter.of(context).pop();
+                _routerService.pop();
               },
             ),
             body: SafeArea(
@@ -137,7 +139,8 @@ class _TenantAddState extends State<TenantAdd> {
                                           if (_sub.currentState!.validate()) {
                                             log(_phoneController.text);
                                             try {
-                                              await ProxyService.isarApi.user(
+                                              await ProxyService.isarApi.login(
+                                                  skipDefaultAppSetup: false,
                                                   userPhone:
                                                       _phoneController.text);
                                               Business? business =

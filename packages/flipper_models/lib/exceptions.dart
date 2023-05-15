@@ -62,10 +62,18 @@ class InternalServerError implements Exception {
   InternalServerError({required this.term});
 }
 
-class NotFoundException implements Exception {
+class BusinessNotFoundException implements Exception {
   String term;
 
   String errMsg() => 'SessionException: $term';
 
-  NotFoundException({required this.term});
+  BusinessNotFoundException({required this.term});
+}
+
+class TenantNotFoundException implements Exception {
+  String term;
+
+  String errMsg() => 'SessionException: $term';
+
+  TenantNotFoundException({required this.term});
 }

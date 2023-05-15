@@ -2,24 +2,22 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart'
     hide PhoneAuthProvider, EmailAuthProvider;
 import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
-import 'package:flipper_dashboard/startup_view.dart';
-import 'package:flipper_models/view_models/gate.dart';
-import 'package:go_router/go_router.dart';
+
+import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_routing/all_routes.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/locator.dart' as loc;
+import 'package:stacked/stacked.dart';
 import 'config.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'decorations.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_routing/routes.logger.dart';
-import 'package:universal_platform/universal_platform.dart';
-import 'package:flipper_routing/routes.locator.dart';
 import 'package:flutter/scheduler.dart';
-
-import 'desktop_login_view.dart';
-
-final isWindows = UniversalPlatform.isWindows;
-final isWeb = UniversalPlatform.isWeb;
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({Key? key}) : super(key: key);
@@ -30,47 +28,49 @@ class LoginView extends StatefulWidget {
 
 class _LoginViewState extends State<LoginView>
     with AutomaticKeepAliveClientMixin {
-  final log = getLogger('LoginView');
-  final appService = locator<AppService>();
-
+  final appService = loc.locator<AppService>();
+  final _routerService = locator<RouterService>();
+  bool _isLogin = false;
   Future<void> isNetAvailable() async {
-    if (!appService.isLoggedIn()) {
+    if (!(await appService.isLoggedIn())) {
       ConnectivityResult connectivityResult =
           await (Connectivity().checkConnectivity());
       if (connectivityResult == ConnectivityResult.mobile ||
           connectivityResult == ConnectivityResult.wifi) {
-        loginInfo.noNet = false;
+        LoginInfo().noNet = false;
       } else {
-        loginInfo.noNet = true;
+        LoginInfo().noNet = true;
       }
     }
   }
 
+  Future<void> futures() async {
+    if (!(await appService.isLoggedIn())) {
+      SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+        Connectivity()
+            .onConnectivityChanged
+            .listen((ConnectivityResult result) {
+          if (result == ConnectivityResult.mobile ||
+              result == ConnectivityResult.wifi) {
+            // _routerService.navigateTo(LoginViewRoute());
+          } else {
+            // TODO: show a notification istead of going to NoNetRoute page
+            // _routerService.navigateTo(NoNetRoute());
+          }
+        });
+      });
+    }
+  }
+
   @override
-  void initState() {
+  initState() {
     ProxyService.remoteConfig.config();
     ProxyService.remoteConfig.setDefault();
     ProxyService.remoteConfig.fetch();
     SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
       isNetAvailable();
     });
-    if (!appService.isLoggedIn()) {
-      SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
-        Connectivity()
-            .onConnectivityChanged
-            .listen((ConnectivityResult result) {
-          // Got a new connectivity status!
-          if (result == ConnectivityResult.mobile ||
-              result == ConnectivityResult.wifi) {
-            loginInfo.noNet = false;
-            GoRouter.of(context).refresh();
-          } else {
-            loginInfo.noNet = true;
-            GoRouter.of(context).refresh();
-          }
-        });
-      });
-    }
+    futures();
     super.initState();
   }
 
@@ -85,62 +85,69 @@ class _LoginViewState extends State<LoginView>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.userChanges(),
-      builder: (BuildContext context, snapshot) {
-        if (snapshot.hasData) {
-          return const StartUpView(
-            invokeLogin: true,
-          );
-        } else {
-          return isWindows || isWeb
-              ? const Scaffold(body: DesktopLoginView())
-              : Scaffold(
-                  key: Key("login-page"),
-                  body: Theme(
-                    data: ThemeData(
-                      inputDecorationTheme: InputDecorationTheme(
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+    return ViewModelBuilder<StartupViewModel>.reactive(
+      onViewModelReady: (model) {
+        FirebaseAuth.instance.userChanges().listen((User? user) {
+          if (user != null) {
+            if (_isLogin == false) {
+              setState(() {
+                _isLogin = true;
+              });
+              _routerService
+                  .clearStackAndShow(StartUpViewRoute(invokeLogin: true));
+            }
+          }
+        });
+      },
+      viewModelBuilder: () => StartupViewModel(),
+      builder: (context, model, child) {
+        return isDesktopOrWeb
+            ? const Scaffold(body: DesktopLoginView())
+            : Scaffold(
+                key: Key("login-page"),
+                body: Theme(
+                  data: ThemeData(
+                    inputDecorationTheme: InputDecorationTheme(
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: SignInScreen(
-                      actions: [
-                        AuthStateChangeAction<SignedIn>((context, state) {
-                          //do nothing to avoid bug.
-                        }),
-                      ],
-                      headerBuilder: headerImage('assets/logo.png'),
-                      sideBuilder: sideImage('assets/logo.png'),
-                      subtitleBuilder: (context, action) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
+                  ),
+                  child: SignInScreen(
+                    actions: [
+                      AuthStateChangeAction<SignedIn>((context, state) {
+                        //do nothing to avoid bug.
+                      }),
+                    ],
+                    headerBuilder: headerImage('assets/logo.png'),
+                    sideBuilder: sideImage('assets/logo.png'),
+                    subtitleBuilder: (context, action) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Text(
+                          action == AuthAction.signIn
+                              ? 'Welcome to Flipper Please sign in to continue.'
+                              : 'Welcome to Flipper Please create an account to continue',
+                        ),
+                      );
+                    },
+                    footerBuilder: (context, action) {
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 16),
                           child: Text(
                             action == AuthAction.signIn
-                                ? 'Welcome to Flipper Please sign in to continue.'
-                                : 'Welcome to Flipper Please create an account to continue',
+                                ? 'By signing in, you agree to our terms and conditions.'
+                                : 'By registering, you agree to our terms and conditions.',
+                            style: const TextStyle(color: Colors.grey),
                           ),
-                        );
-                      },
-                      footerBuilder: (context, action) {
-                        return Center(
-                          child: Padding(
-                            padding: const EdgeInsets.only(top: 16),
-                            child: Text(
-                              action == AuthAction.signIn
-                                  ? 'By signing in, you agree to our terms and conditions.'
-                                  : 'By registering, you agree to our terms and conditions.',
-                              style: const TextStyle(color: Colors.grey),
-                            ),
-                          ),
-                        );
-                      },
-                      providers: providers(),
-                    ),
+                        ),
+                      );
+                    },
+                    providers: providers(),
                   ),
-                );
-        }
+                ),
+              );
       },
     );
   }

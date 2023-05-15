@@ -1,5 +1,4 @@
-import 'package:flipper_routing/routes.logger.dart';
-import 'package:flipper_routing/routes.locator.dart';
+import 'package:flipper_services/locator.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_services/language_service.dart';
@@ -15,13 +14,12 @@ class SettingViewModel extends ReactiveViewModel {
   Setting? _setting;
   Setting? get setting => _setting;
   bool get updateStart => _updateStarted;
-  final log = getLogger('SettingViewModel');
 
   Business? _business;
   Business? get business => _business;
   getBusiness() async {
     _business = await ProxyService.isarApi
-        .getBusinessById(id: ProxyService.box.read(key: 'businessId'));
+        .getBusinessById(id: ProxyService.box.getBusinessId()!);
     notifyListeners();
   }
 
@@ -46,7 +44,6 @@ class SettingViewModel extends ReactiveViewModel {
     klocale = Locale(lang);
     ProxyService.box.write(key: 'defaultLanguage', value: lang);
     defaultLanguage = lang;
-    log.i(defaultLanguage);
     languageService.setLocale(lang: defaultLanguage!);
     notifyListeners();
   }
@@ -62,8 +59,8 @@ class SettingViewModel extends ReactiveViewModel {
   }
 
   loadUserSettings() async {
-    String userId = ProxyService.box.read(key: 'userId');
-    _setting = await ProxyService.isarApi.getSetting(userId: int.parse(userId));
+    int businessId = ProxyService.box.getBusinessId()!;
+    _setting = await ProxyService.isarApi.getSetting(businessId: businessId);
     notifyListeners();
   }
 
@@ -75,10 +72,10 @@ class SettingViewModel extends ReactiveViewModel {
 
   bool isSubscribedOnSync() {
     int businessId = 0;
-    if (ProxyService.box.read(key: 'businessId').runtimeType is int) {
-      businessId = ProxyService.box.read(key: 'businessId');
-    } else if (ProxyService.box.read(key: 'businessId').runtimeType is String) {
-      businessId = int.parse(ProxyService.box.read(key: 'businessId'));
+    if (ProxyService.box.getBusinessId().runtimeType is int) {
+      businessId = ProxyService.box.getBusinessId()!;
+    } else if (ProxyService.box.getBusinessId().runtimeType is String) {
+      businessId = ProxyService.box.getBusinessId()!;
     }
     return ProxyService.isarApi
         .isSubscribed(feature: 'sync', businessId: businessId);
@@ -94,7 +91,7 @@ class SettingViewModel extends ReactiveViewModel {
     required Function callback,
   }) {
     // settingService.enableSync(bool: !settingService.enableSync);
-    int businessId = int.parse(ProxyService.box.read(key: 'businessId'));
+    int businessId = ProxyService.box.getBusinessId()!;
     bool isSubscribed = false;
 
     /// do we have a subscription on the feature
@@ -122,11 +119,11 @@ class SettingViewModel extends ReactiveViewModel {
   void enableDailyReport(Function callback) async {
     kSetting.toggleDailyReportSetting();
     Setting? setting = await kSetting.settings();
-    if (setting != null && setting.email.isNotEmpty) {
-      if (!RegExp(r"^[\w.+\-]+@gmail\.com$").hasMatch(setting.email)) {
+    if (setting != null && setting.email!.isNotEmpty) {
+      if (!RegExp(r"^[\w.+\-]+@gmail\.com$").hasMatch(setting.email!)) {
         callback(1);
       } else {
-        await ProxyService.isarApi.createGoogleSheetDoc(email: setting.email);
+        await ProxyService.isarApi.createGoogleSheetDoc(email: setting.email!);
 
         Business? business = await ProxyService.isarApi.getBusiness();
         business!.email = setting.email;
@@ -145,14 +142,14 @@ class SettingViewModel extends ReactiveViewModel {
   Future<void> enableAttendance(Function callback) async {
     kSetting.toggleAttendanceSetting();
     Setting? setting = await kSetting.settings();
-    if (setting != null && setting.email.isNotEmpty) {
-      if (!RegExp(r"^[\w.+\-]+@gmail\.com$").hasMatch(setting.email)) {
+    if (setting != null && setting.email!.isNotEmpty) {
+      if (!RegExp(r"^[\w.+\-]+@gmail\.com$").hasMatch(setting.email!)) {
         callback(1);
       } else {
         /// the
         Business? business = await ProxyService.isarApi.getBusiness();
         ProxyService.isarApi
-            .enableAttendance(businessId: business!.id!, email: setting.email);
+            .enableAttendance(businessId: business!.id!, email: setting.email!);
       }
     } else {
       callback(2);
@@ -179,9 +176,10 @@ class SettingViewModel extends ReactiveViewModel {
         List<Feature> features = [];
         // TODOvoucher.features will not work on isar
         // need to tweak it.
-        for (Feature feature in voucher.features) {
-          features.add(feature);
-        }
+        // TODO: fix the bellow commented code
+        // for (Feature feature in voucher.features) {
+        //   features.add(feature);
+        // }
         ProxyService.billing.updateSubscription(
           descriptor: voucher.descriptor,
           userId: userId,
@@ -198,7 +196,6 @@ class SettingViewModel extends ReactiveViewModel {
         success(1);
       }
     } catch (e) {
-      log.d(e);
       _isProceeding = false;
       notifyListeners();
       success(1);

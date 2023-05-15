@@ -7,7 +7,7 @@ part of 'voucher.dart';
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
 
 extension GetVoucherCollection on Isar {
   IsarCollection<Voucher> get vouchers => this.collection();
@@ -54,19 +54,12 @@ const VoucherSchema = CollectionSchema(
   deserializeProp: _voucherDeserializeProp,
   idName: r'id',
   indexes: {},
-  links: {
-    r'features': LinkSchema(
-      id: -7255176189479997051,
-      name: r'features',
-      target: r'Feature',
-      single: false,
-    )
-  },
+  links: {},
   embeddedSchemas: {},
   getId: _voucherGetId,
   getLinks: _voucherGetLinks,
   attach: _voucherAttach,
-  version: '3.0.6-dev.0',
+  version: '3.1.0+1',
 );
 
 int _voucherEstimateSize(
@@ -139,12 +132,11 @@ Id _voucherGetId(Voucher object) {
 }
 
 List<IsarLinkBase<dynamic>> _voucherGetLinks(Voucher object) {
-  return [object.features];
+  return [];
 }
 
 void _voucherAttach(IsarCollection<dynamic> col, Id id, Voucher object) {
   object.id = id;
-  object.features.attach(col, col.isar.collection<Feature>(), r'features', id);
 }
 
 extension VoucherQueryWhereSort on QueryBuilder<Voucher, Voucher, QWhere> {
@@ -633,64 +625,7 @@ extension VoucherQueryObject
     on QueryBuilder<Voucher, Voucher, QFilterCondition> {}
 
 extension VoucherQueryLinks
-    on QueryBuilder<Voucher, Voucher, QFilterCondition> {
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> features(
-      FilterQuery<Feature> q) {
-    return QueryBuilder.apply(this, (query) {
-      return query.link(q, r'features');
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> featuresLengthEqualTo(
-      int length) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'features', length, true, length, true);
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> featuresIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'features', 0, true, 0, true);
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> featuresIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'features', 0, false, 999999, true);
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> featuresLengthLessThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'features', 0, true, length, include);
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition>
-      featuresLengthGreaterThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'features', length, include, 999999, true);
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> featuresLengthBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(
-          r'features', lower, includeLower, upper, includeUpper);
-    });
-  }
-}
+    on QueryBuilder<Voucher, Voucher, QFilterCondition> {}
 
 extension VoucherQuerySortBy on QueryBuilder<Voucher, Voucher, QSortBy> {
   QueryBuilder<Voucher, Voucher, QAfterSortBy> sortByCreatedAt() {

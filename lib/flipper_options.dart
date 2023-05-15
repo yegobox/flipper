@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart' show timeDilation;
 import 'package:flutter/services.dart' show SystemUiOverlayStyle;
@@ -57,10 +56,8 @@ class FlipperOptions {
   // default, return the actual text scale factor, otherwise return the
   // sentinel value.
   double textScaleFactor(BuildContext context, {bool useSentinel = false}) {
-    if (_textScaleFactor == systemTextScaleFactorOption) {
-      return useSentinel
-          ? systemTextScaleFactorOption
-          : MediaQuery.of(context).textScaleFactor;
+    if (_textScaleFactor == -1) {
+      return useSentinel ? -1 : MediaQuery.of(context).textScaleFactor;
     } else {
       return _textScaleFactor!;
     }

@@ -1,15 +1,16 @@
-import 'package:flipper_routing/routes.router.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:stacked_services/stacked_services.dart';
 // import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class VariationList extends StatelessWidget {
-  const VariationList({
+  VariationList({
     Key? key,
     required this.variations,
     required this.deleteVariant,
@@ -18,6 +19,7 @@ class VariationList extends StatelessWidget {
   final List<Variant> variations;
   final ProductViewModel model;
   final Function deleteVariant;
+  final _routerService = locator<RouterService>();
   Widget _buildVariationsList({required List<Variant> variations}) {
     final List<Widget> list = <Widget>[];
 
@@ -61,8 +63,11 @@ class VariationList extends StatelessWidget {
                                     fontWeight: FontWeight.w400),
                               ),
                               onPressed: () {
-                                GoRouter.of(context).push(Routes.stock +
-                                    "/${variations[i].id}/${stock!.currentStock.toInt().toString()}");
+                                _routerService.navigateTo(ReceiveStockRoute(
+                                    variantId: variations[i].id!,
+                                    existingStock: stock!.currentStock
+                                        .toInt()
+                                        .toString()));
                               },
                             ),
                           ],

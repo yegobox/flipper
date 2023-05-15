@@ -1,16 +1,16 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flipper_login/colors.dart';
-import 'package:flipper_routing/routes.router.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flutter_text_drawable/flutter_text_drawable.dart';
 
-import 'package:go_router/go_router.dart';
-
 class ProductRow extends StatelessWidget {
-  const ProductRow({
+  ProductRow({
     Key? key,
     required this.color,
     required this.name,
@@ -33,17 +33,17 @@ class ProductRow extends StatelessWidget {
   final Function enableNfc;
   final ProductViewModel model;
   final List<Stock?> stocks;
-
+  final _routerService = locator<RouterService>();
   @override
   Widget build(BuildContext context) {
     return Slidable(
       key: Key('slidable-${product.id!}'),
       child: GestureDetector(
         onTap: () {
-          GoRouter.of(context).push(Routes.sell, extra: product);
+          _routerService.navigateTo(SellRoute(product: product));
         },
         onLongPress: () {
-          GoRouter.of(context).push(Routes.sell, extra: product);
+          _routerService.navigateTo(SellRoute(product: product));
         },
         child: Container(
           padding: EdgeInsets.zero,

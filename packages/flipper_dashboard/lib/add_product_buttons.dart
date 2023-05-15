@@ -1,10 +1,12 @@
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_routing/routes.router.dart';
+
 import 'package:google_fonts/google_fonts.dart';
 import 'package:universal_platform/universal_platform.dart';
-import 'package:go_router/go_router.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 final isAndroid = UniversalPlatform.isAndroid;
 final isIos = UniversalPlatform.isIOS;
@@ -17,6 +19,8 @@ class AddProductButtons extends StatefulWidget {
 }
 
 class _AddProductButtonsState extends State<AddProductButtons> {
+  final _routerService = locator<RouterService>();
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -60,7 +64,7 @@ class _AddProductButtonsState extends State<AddProductButtons> {
                       ),
                     ),
                     onPressed: () {
-                      GoRouter.of(context).push(Routes.create + "/product");
+                      _routerService.navigateTo(AddProductViewRoute());
                     },
                   ),
                 ),
@@ -103,7 +107,7 @@ class _AddProductButtonsState extends State<AddProductButtons> {
                         ),
                       ),
                       onPressed: () {
-                        GoRouter.of(context).push(Routes.discount);
+                        _routerService.navigateTo(AddDiscountRoute());
                       },
                     ),
                   ),

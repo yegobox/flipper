@@ -1,12 +1,12 @@
-import 'package:flipper_routing/routes.logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'customappbar.dart';
 import 'package:stacked/stacked.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:go_router/go_router.dart';
-import 'package:overlay_support/overlay_support.dart';
 
+import 'package:overlay_support/overlay_support.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'widgets/quantity_widget.dart';
 import 'widgets/title_widget.dart';
 import 'widgets/variant_widget.dart';
@@ -14,9 +14,7 @@ import 'widgets/variant_widget.dart';
 class Sell extends StatelessWidget {
   Sell({Key? key, required this.product}) : super(key: key);
   final Product product;
-
-  final log = getLogger('Sell');
-
+  final _routerService = locator<RouterService>();
   final TextEditingController quantityController =
       TextEditingController(text: "1");
 
@@ -35,7 +33,7 @@ class Sell extends StatelessWidget {
           backgroundColor: Colors.white,
           appBar: CustomAppBar(
             onPop: () {
-              GoRouter.of(context).pop();
+              _routerService.pop();
             },
             title: titleWidget(
               model: model,
@@ -44,8 +42,7 @@ class Sell extends StatelessWidget {
             rightActionButtonName: 'Save',
             disableButton: false,
             showActionButton: true,
-            onPressedCallback: () async {
-              log.w(model.checked);
+            onActionButtonClicked: () async {
               bool saved = await model.saveOrder(
                 variationId: model.checked,
                 amountTotal: model.amountTotal,
@@ -55,7 +52,7 @@ class Sell extends StatelessWidget {
                 showSimpleNotification(const Text('No item selected'),
                     background: Colors.red);
               }
-              GoRouter.of(context).pop();
+              _routerService.pop();
             },
             icon: Icons.close,
             multi: 1,

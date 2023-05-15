@@ -7,8 +7,8 @@ import 'home_view.tablet.dart';
 import 'home_view.mobile.dart';
 import 'home_viewmodel.dart';
 
-class HomeView extends StackedView<HomeViewModel> {
-  const HomeView({super.key});
+class SocialHomeView extends StackedView<HomeViewModel> {
+  const SocialHomeView({super.key});
 
   @override
   Widget builder(

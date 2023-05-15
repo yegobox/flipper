@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-
-
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -259,8 +257,8 @@ class _RallyPieChartOutlineBoxPainter extends BoxPainter {
     final remaining = wholeAmount! - cumulativeTotal;
     if (remaining > 0) {
       final paint = Paint()..color = Colors.black;
-      final startAngle =
-          _calculateStartAngle(cumulativeTotal, spaceRadians * segments!.length);
+      final startAngle = _calculateStartAngle(
+          cumulativeTotal, spaceRadians * segments!.length);
       final sweepAngle = _calculateSweepAngle(remaining, -spaceRadians);
       canvas.drawArc(outerRect, startAngle, sweepAngle, true, paint);
     }

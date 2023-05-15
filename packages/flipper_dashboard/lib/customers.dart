@@ -1,4 +1,3 @@
-import 'package:flipper_routing/routes.logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
 import 'add_customer.dart';
@@ -8,13 +7,14 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_text_drawable/flutter_text_drawable.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 class Customers extends StatelessWidget {
   Customers({Key? key, required this.orderId}) : super(key: key);
   final int orderId;
   final TextEditingController _seach = TextEditingController();
-  final log = getLogger('Customers');
+  final _routerService = locator<RouterService>();
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<BusinessHomeViewModel>.reactive(
@@ -24,12 +24,12 @@ class Customers extends StatelessWidget {
             child: Scaffold(
               appBar: CustomAppBar(
                 onPop: () {
-                  GoRouter.of(context).pop();
+                  _routerService.pop();
                 },
                 title: 'Add customer',
                 showActionButton: false,
-                onPressedCallback: () async {
-                  GoRouter.of(context).pop();
+                onActionButtonClicked: () async {
+                  _routerService.pop();
                 },
                 icon: Icons.close,
                 multi: 3,
@@ -68,7 +68,7 @@ class Customers extends StatelessWidget {
                                       );
                                       model.app.setCustomer(snapshot.data!);
                                       model.getOrderById();
-                                      GoRouter.of(context).pop();
+                                      _routerService.pop();
                                     },
                                     onLongPress: () {},
                                     child: Column(children: <Widget>[

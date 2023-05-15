@@ -1,10 +1,13 @@
-import 'package:flipper_routing/routes.router.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 class AddCustomerButton extends StatelessWidget {
-  const AddCustomerButton({Key? key, required this.orderId}) : super(key: key);
+  AddCustomerButton({Key? key, required this.orderId}) : super(key: key);
+  final _routerService = locator<RouterService>();
+
   final int orderId;
   @override
   Widget build(BuildContext context) {
@@ -36,8 +39,9 @@ class AddCustomerButton extends StatelessWidget {
               ),
             ),
             onPressed: () {
-              GoRouter.of(context)
-                  .push(Routes.customers + '/' + orderId.toString());
+              _routerService.navigateTo(CustomersRoute(
+                orderId: orderId,
+              ));
             },
             child: Text("Add Customer",
                 style: GoogleFonts.poppins(

@@ -1,12 +1,10 @@
 import 'package:flipper_ui/helpers/stack.dart';
-import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/isar_models.dart';
 
 class KeyPadService with ListenableServiceMixin {
   final _key = ReactiveValue<String>("0.00");
-  final log = getLogger('KeyPadService');
   Stack stack = Stack<String>();
 
   final _itemsOnSale = ReactiveValue<int>(0);
@@ -62,12 +60,14 @@ class KeyPadService with ListenableServiceMixin {
 
   List<Order> get tickets => _tickets.value;
   Future<List<Order>> getTickets() async {
-    List<Order> ticket = await ProxyService.isarApi.tickets();
+    List<Order> tickets = await ProxyService.isarApi.tickets();
     //NOTE: we assume index[0] as pending order can not be more than one at the moment
-    if (ticket.isNotEmpty) {
-      _countOrderItems.value = ticket.first.orderItems.length;
+    if (tickets.isNotEmpty) {
+      List<OrderItem> orderItems = await ProxyService.isarApi
+          .getOrderItemsByOrderId(orderId: tickets.first.id!);
+      _countOrderItems.value = orderItems.length;
     }
-    _tickets.value = ticket;
+    _tickets.value = tickets;
     notifyListeners();
     return _tickets.value;
   }
@@ -101,9 +101,9 @@ class KeyPadService with ListenableServiceMixin {
   /// order can not be more than 1 lenght i.e at one instance
   /// we have one order but an order can have more than 1 orderitem(s)
   /// it is in this recard in application anywhere else it's okay to access orders[0]
-  Future<Order?> getOrder({required int branchId}) async {
+  Future<Order?> getPendingOrder({required int branchId}) async {
     Order? order = await ProxyService.isarApi.pendingOrder(branchId: branchId);
-    log.d('getOrder: $order');
+
     if (order != null) {
       List<OrderItem> items =
           await ProxyService.isarApi.orderItems(orderId: order.id!);
@@ -117,8 +117,9 @@ class KeyPadService with ListenableServiceMixin {
   /// it is very important to not fonfuse these functions. later on.
   Future<Order?> getOrderById({required int id}) async {
     Order? od = await ProxyService.isarApi.getOrderById(id: id);
-
-    _countOrderItems.value = od!.orderItems.length;
+    List<OrderItem> orderItems =
+        await ProxyService.isarApi.getOrderItemsByOrderId(orderId: od!.id!);
+    _countOrderItems.value = orderItems.length;
 
     _order.value = od;
     return _order.value!;

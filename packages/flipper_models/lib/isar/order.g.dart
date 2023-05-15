@@ -7,7 +7,7 @@ part of 'order.dart';
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
 
 extension GetOrderCollection on Isar {
   IsarCollection<Order> get orders => this.collection();
@@ -117,8 +117,13 @@ const OrderSchema = CollectionSchema(
       name: r'subTotal',
       type: IsarType.double,
     ),
-    r'updatedAt': PropertySchema(
+    r'ticketName': PropertySchema(
       id: 20,
+      name: r'ticketName',
+      type: IsarType.string,
+    ),
+    r'updatedAt': PropertySchema(
+      id: 21,
       name: r'updatedAt',
       type: IsarType.string,
     )
@@ -200,25 +205,12 @@ const OrderSchema = CollectionSchema(
       ],
     )
   },
-  links: {
-    r'orderItems': LinkSchema(
-      id: -2882418569269634219,
-      name: r'orderItems',
-      target: r'OrderItem',
-      single: false,
-    ),
-    r'discounts': LinkSchema(
-      id: 5408291939349920316,
-      name: r'discounts',
-      target: r'Discount',
-      single: false,
-    )
-  },
+  links: {},
   embeddedSchemas: {},
   getId: _orderGetId,
   getLinks: _orderGetLinks,
   attach: _orderAttach,
-  version: '3.0.6-dev.0',
+  version: '3.1.0+1',
 );
 
 int _orderEstimateSize(
@@ -264,6 +256,12 @@ int _orderEstimateSize(
   }
   bytesCount += 3 + object.status.length * 3;
   {
+    final value = object.ticketName;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
     final value = object.updatedAt;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
@@ -298,7 +296,8 @@ void _orderSerialize(
   writer.writeBool(offsets[17], object.reported);
   writer.writeString(offsets[18], object.status);
   writer.writeDouble(offsets[19], object.subTotal);
-  writer.writeString(offsets[20], object.updatedAt);
+  writer.writeString(offsets[20], object.ticketName);
+  writer.writeString(offsets[21], object.updatedAt);
 }
 
 Order _orderDeserialize(
@@ -329,7 +328,8 @@ Order _orderDeserialize(
     reported: reader.readBool(offsets[17]),
     status: reader.readString(offsets[18]),
     subTotal: reader.readDouble(offsets[19]),
-    updatedAt: reader.readStringOrNull(offsets[20]),
+    ticketName: reader.readStringOrNull(offsets[20]),
+    updatedAt: reader.readStringOrNull(offsets[21]),
   );
   return object;
 }
@@ -383,6 +383,8 @@ P _orderDeserializeProp<P>(
       return (reader.readDouble(offset)) as P;
     case 20:
       return (reader.readStringOrNull(offset)) as P;
+    case 21:
+      return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -393,15 +395,11 @@ Id _orderGetId(Order object) {
 }
 
 List<IsarLinkBase<dynamic>> _orderGetLinks(Order object) {
-  return [object.orderItems, object.discounts];
+  return [];
 }
 
 void _orderAttach(IsarCollection<dynamic> col, Id id, Order object) {
   object.id = id;
-  object.orderItems
-      .attach(col, col.isar.collection<OrderItem>(), r'orderItems', id);
-  object.discounts
-      .attach(col, col.isar.collection<Discount>(), r'discounts', id);
 }
 
 extension OrderQueryWhereSort on QueryBuilder<Order, Order, QWhere> {
@@ -2876,6 +2874,152 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
     });
   }
 
+  QueryBuilder<Order, Order, QAfterFilterCondition> ticketNameIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'ticketName',
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> ticketNameIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'ticketName',
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> ticketNameEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'ticketName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> ticketNameGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'ticketName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> ticketNameLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'ticketName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> ticketNameBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'ticketName',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> ticketNameStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'ticketName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> ticketNameEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'ticketName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> ticketNameContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'ticketName',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> ticketNameMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'ticketName',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> ticketNameIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'ticketName',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterFilterCondition> ticketNameIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'ticketName',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Order, Order, QAfterFilterCondition> updatedAtIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -3025,119 +3169,7 @@ extension OrderQueryFilter on QueryBuilder<Order, Order, QFilterCondition> {
 
 extension OrderQueryObject on QueryBuilder<Order, Order, QFilterCondition> {}
 
-extension OrderQueryLinks on QueryBuilder<Order, Order, QFilterCondition> {
-  QueryBuilder<Order, Order, QAfterFilterCondition> orderItems(
-      FilterQuery<OrderItem> q) {
-    return QueryBuilder.apply(this, (query) {
-      return query.link(q, r'orderItems');
-    });
-  }
-
-  QueryBuilder<Order, Order, QAfterFilterCondition> orderItemsLengthEqualTo(
-      int length) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'orderItems', length, true, length, true);
-    });
-  }
-
-  QueryBuilder<Order, Order, QAfterFilterCondition> orderItemsIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'orderItems', 0, true, 0, true);
-    });
-  }
-
-  QueryBuilder<Order, Order, QAfterFilterCondition> orderItemsIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'orderItems', 0, false, 999999, true);
-    });
-  }
-
-  QueryBuilder<Order, Order, QAfterFilterCondition> orderItemsLengthLessThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'orderItems', 0, true, length, include);
-    });
-  }
-
-  QueryBuilder<Order, Order, QAfterFilterCondition> orderItemsLengthGreaterThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'orderItems', length, include, 999999, true);
-    });
-  }
-
-  QueryBuilder<Order, Order, QAfterFilterCondition> orderItemsLengthBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(
-          r'orderItems', lower, includeLower, upper, includeUpper);
-    });
-  }
-
-  QueryBuilder<Order, Order, QAfterFilterCondition> discounts(
-      FilterQuery<Discount> q) {
-    return QueryBuilder.apply(this, (query) {
-      return query.link(q, r'discounts');
-    });
-  }
-
-  QueryBuilder<Order, Order, QAfterFilterCondition> discountsLengthEqualTo(
-      int length) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'discounts', length, true, length, true);
-    });
-  }
-
-  QueryBuilder<Order, Order, QAfterFilterCondition> discountsIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'discounts', 0, true, 0, true);
-    });
-  }
-
-  QueryBuilder<Order, Order, QAfterFilterCondition> discountsIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'discounts', 0, false, 999999, true);
-    });
-  }
-
-  QueryBuilder<Order, Order, QAfterFilterCondition> discountsLengthLessThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'discounts', 0, true, length, include);
-    });
-  }
-
-  QueryBuilder<Order, Order, QAfterFilterCondition> discountsLengthGreaterThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'discounts', length, include, 999999, true);
-    });
-  }
-
-  QueryBuilder<Order, Order, QAfterFilterCondition> discountsLengthBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(
-          r'discounts', lower, includeLower, upper, includeUpper);
-    });
-  }
-}
+extension OrderQueryLinks on QueryBuilder<Order, Order, QFilterCondition> {}
 
 extension OrderQuerySortBy on QueryBuilder<Order, Order, QSortBy> {
   QueryBuilder<Order, Order, QAfterSortBy> sortByAction() {
@@ -3377,6 +3409,18 @@ extension OrderQuerySortBy on QueryBuilder<Order, Order, QSortBy> {
   QueryBuilder<Order, Order, QAfterSortBy> sortBySubTotalDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'subTotal', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterSortBy> sortByTicketName() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'ticketName', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterSortBy> sortByTicketNameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'ticketName', Sort.desc);
     });
   }
 
@@ -3646,6 +3690,18 @@ extension OrderQuerySortThenBy on QueryBuilder<Order, Order, QSortThenBy> {
     });
   }
 
+  QueryBuilder<Order, Order, QAfterSortBy> thenByTicketName() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'ticketName', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Order, Order, QAfterSortBy> thenByTicketNameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'ticketName', Sort.desc);
+    });
+  }
+
   QueryBuilder<Order, Order, QAfterSortBy> thenByUpdatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'updatedAt', Sort.asc);
@@ -3791,6 +3847,13 @@ extension OrderQueryWhereDistinct on QueryBuilder<Order, Order, QDistinct> {
     });
   }
 
+  QueryBuilder<Order, Order, QDistinct> distinctByTicketName(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'ticketName', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<Order, Order, QDistinct> distinctByUpdatedAt(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -3923,6 +3986,12 @@ extension OrderQueryProperty on QueryBuilder<Order, Order, QQueryProperty> {
   QueryBuilder<Order, double, QQueryOperations> subTotalProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'subTotal');
+    });
+  }
+
+  QueryBuilder<Order, String?, QQueryOperations> ticketNameProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'ticketName');
     });
   }
 

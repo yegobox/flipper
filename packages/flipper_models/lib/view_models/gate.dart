@@ -1,8 +1,15 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 class LoginInfo extends ChangeNotifier {
   var _isLoggedIn = false;
   bool get isLoggedIn => _isLoggedIn;
+
+  bool isDrawerOpen = false;
+  void setDrawerOpen(bool drawerOpen) {
+    isDrawerOpen = drawerOpen;
+    notifyListeners();
+  }
+
   set isLoggedIn(bool value) {
     _isLoggedIn = value;
     notifyListeners();
@@ -50,5 +57,3 @@ class LoginInfo extends ChangeNotifier {
     notifyListeners();
   }
 }
-
-final loginInfo = LoginInfo();

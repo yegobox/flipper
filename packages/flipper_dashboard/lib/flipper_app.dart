@@ -4,29 +4,24 @@ import 'dart:developer';
 import 'package:easy_sidemenu/easy_sidemenu.dart';
 import 'package:flipper_dashboard/product_view.dart';
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/app_service.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/toast.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
-import 'package:universal_platform/universal_platform.dart';
+
 import 'package:permission_handler/permission_handler.dart' as perm;
 import 'badge_icon.dart';
-import 'init_app.dart';
 import 'page_switcher.dart';
 import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:nfc_manager/nfc_manager.dart';
-
-final isWindows = UniversalPlatform.isWindows;
-final isMacOs = UniversalPlatform.isMacOS;
-final isIos = UniversalPlatform.isIOS;
-final isAndroid = UniversalPlatform.isAndroid;
-final isWeb = UniversalPlatform.isWeb;
-
-final isDesktopOrWeb = UniversalPlatform.isDesktopOrWeb;
 
 class FlipperApp extends StatefulWidget {
   const FlipperApp({Key? key}) : super(key: key);
@@ -41,12 +36,13 @@ class _FlipperAppState extends State<FlipperApp>
   PageController page = PageController();
   final TextEditingController controller = TextEditingController();
   SideMenuController sideMenu = SideMenuController();
+  final _routerService = locator<RouterService>();
   int tabselected = 0;
   Future<void> _disableScreenshots() async {
-    await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
+    if (!kDebugMode) {
+      await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
+    }
   }
-
-  bool _initialized = false;
 
   @override
   void initState() {
@@ -54,13 +50,6 @@ class _FlipperAppState extends State<FlipperApp>
     if (isAndroid) {
       _disableScreenshots();
     }
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!_initialized) {
-        // ProxyService.isarApi.deleteAllProducts();
-        InitApp.init();
-        _initialized = true;
-      }
-    });
     if (mounted) {
       WidgetsBinding.instance.addObserver(this);
       _tabController = TabController(length: 3, vsync: this);
@@ -115,6 +104,9 @@ class _FlipperAppState extends State<FlipperApp>
         fireOnViewModelReadyOnce: true,
         viewModelBuilder: () => BusinessHomeViewModel(),
         onViewModelReady: (model) async {
+          //get default tenant
+          model.defaultTenant();
+
           /// if there is current order ongoing show them when the app starts
           model.currentOrder();
           ProxyService.dynamicLink.handleDynamicLink(context);
@@ -400,8 +392,9 @@ class _FlipperAppState extends State<FlipperApp>
       // Handle leaving  the app
       // ...
       Drawers? drawer = await ProxyService.isarApi
-          .isDrawerOpen(cashierId: ProxyService.box.getBusinessId()!);
-      GoRouter.of(context).push("/drawer/close", extra: drawer);
+          .getDrawer(cashierId: ProxyService.box.getBusinessId()!);
+      _routerService
+          .replaceWith(DrawerScreenRoute(open: "close", drawer: drawer));
       //we return again false to be able to go to close a day page
       return false;
     } else {

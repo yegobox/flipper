@@ -6,7 +6,7 @@
 // import 'package:ionicons/ionicons.dart';
 
 // import 'package:stacked/stacked.dart';
-// import 'package:go_router/go_router.dart';
+//
 // import 'analytics/lineF.dart';
 
 // // ignore: use_key_in_widget_constructors
@@ -20,7 +20,7 @@
 //     return Scaffold(
 //       appBar: CustomAppBar(
 //         onPop: () async {
-//           GoRouter.of(context).pop();
+//           _routerService.pop();
 //         },
 //         title: 'Analytics',
 //         disableButton: false,

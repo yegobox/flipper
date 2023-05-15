@@ -10,6 +10,5 @@ class Voucher {
   late bool used;
   late int createdAt;
   late int usedAt;
-  final features = IsarLinks<Feature>();
   late String descriptor;
 }

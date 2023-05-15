@@ -1,74 +1,47 @@
 import 'dart:async';
+import 'package:intl/intl.dart';
+import 'package:html_unescape/html_unescape.dart';
 import 'dart:convert';
+import 'dart:developer';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_models/data.loads/jcounter.dart';
+import 'package:flipper_models/hlc.dart';
 import 'package:flipper_models/isar/utils.dart';
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
-import 'package:flipper_routing/routes.logger.dart';
-import 'package:flipper_routing/routes.router.dart';
+import 'package:flipper_models/socials_http_client.dart';
+import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:http/http.dart' as http;
+import 'dart:io';
+import 'package:flipper_services/locator.dart' as loc;
 import 'package:flutter/foundation.dart' as foundation;
-import 'package:isar_crdt/utils/hlc.dart';
+
+import 'package:path_provider/path_provider.dart';
 import 'package:universal_platform/universal_platform.dart';
-import 'view_models/gate.dart';
-// import StreamZip
+import 'flipper_http_client.dart';
+import 'package:flipper_routing/receipt_types.dart';
 
 final isAndroid = UniversalPlatform.isAndroid;
 
-class ExtendedClient extends http.BaseClient {
-  final http.Client _inner;
-  // ignore: sort_constructors_first
-  ExtendedClient(this._inner);
-
-  @override
-  Future<http.StreamedResponse> send(http.BaseRequest request) async {
-    String token = ProxyService.box.read(key: 'bearerToken');
-    String userId = ProxyService.box.read(key: 'userId');
-    request.headers['Authorization'] = token;
-    request.headers['userId'] = userId;
-    request.headers['Content-Type'] = 'application/json';
-
-    try {
-      return await _inner.send(request);
-    } catch (error, stackTrace) {
-      if (error is http.ClientException) {
-        // Handle network errors
-        ProxyService.crash.reportError(error, stackTrace);
-        throw Exception('Network error: ${error.message}');
-      } else if (error is http.Response) {
-        // Handle server errors
-        ProxyService.crash.reportError(error, stackTrace);
-        throw Exception('Server error: ${error.statusCode}');
-      } else {
-        // Handle any other errors
-        ProxyService.crash.reportError(error, stackTrace);
-        throw Exception('Unknown error: ${error.toString()}');
-      }
-    }
-  }
-}
-
 class IsarAPI<M> implements IsarApiInterface {
-  final log = getLogger('IsarAPI');
-  ExtendedClient client = ExtendedClient(http.Client());
+  FlipperHttpClient flipperHttpClient = FlipperHttpClient(http.Client());
+  SocialsHttpClient socialsHttpClient = SocialsHttpClient(http.Client());
   late String apihub;
   late String commApi;
   late Isar isar;
   Future<IsarApiInterface> getInstance({Isar? iisar}) async {
-    // getEnvVariables();
+    final dir = await getApplicationDocumentsDirectory();
     if (foundation.kDebugMode && !isAndroid) {
-      // apihub = "http://localhost:8082";
-      apihub = "https://apihub.yegobox.com";
+      apihub = "https://uat-apihub.yegobox.com";
       commApi = "https://ers84w6ehl.execute-api.us-east-1.amazonaws.com/api";
     } else if (foundation.kDebugMode && isAndroid) {
-      // apihub = "http://10.0.2.2:8082";
-      apihub = "https://apihub.yegobox.com";
+      apihub = "http://10.0.2.2:8083";
+      // apihub = "https://uat-apihub.yegobox.com";
       commApi = "https://ers84w6ehl.execute-api.us-east-1.amazonaws.com/api";
-    } else {
+    } else if (!foundation.kDebugMode) {
       apihub = "https://apihub.yegobox.com";
       commApi = "https://ers84w6ehl.execute-api.us-east-1.amazonaws.com/api";
     }
@@ -102,28 +75,22 @@ class IsarAPI<M> implements IsarApiInterface {
           PermissionSchema,
           CounterSchema,
           TokenSchema,
+          SocialSchema,
+          ConversationSchema,
+          DeviceSchema,
         ],
+        directory: dir.path,
       );
     } else {
       isar = iisar;
     }
-
-    /// pausing on crdt for now work on in-house solution
-    // final changesSync = IsarCrdt(
-    //   store: IsarMasterCrdtStore<Product>(
-    //     isar.products,
-    //     builder: () => Product(),
-    //     sidGenerator: () => Uuid().v4(),
-    //   ),
-    // );
-    // isar.setCrdt(changesSync);
     return this;
   }
 
   @override
   Future<Customer?> addCustomer(
       {required Map customer, required int orderId}) async {
-    int branchId = ProxyService.box.read(key: 'branchId');
+    int branchId = ProxyService.box.getBranchId()!;
     Customer kCustomer = Customer()
       ..name = customer['name']
       ..updatedAt = DateTime.now().toString()
@@ -149,7 +116,6 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Stream<Order?> pendingOrderStream() {
     int? currentOrderId = ProxyService.box.currentOrderId();
-    log.d('currentOrderId: $currentOrderId');
     return isar.orders.watchObject(currentOrderId ?? 0, fireImmediately: true);
   }
 
@@ -158,9 +124,6 @@ class IsarAPI<M> implements IsarApiInterface {
     String orderType = 'custom',
   }) async {
     int branchId = ProxyService.box.getBranchId()!;
-
-    String desiredDate = removeTrailingDash(
-        Hlc.fromDate(DateTime.now(), branchId.toString()).toString());
 
     Order? existOrder = await pendingOrder(branchId: branchId);
 
@@ -340,10 +303,8 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<List<Branch>> branches({required int businessId}) async {
-    List<Branch> kBranches =
-        await isar.branchs.filter().businessIdEqualTo(businessId).findAll();
-    log.i(kBranches.length);
-    return kBranches;
+    // if in local db we have no branch fetch it from online
+    return await isar.branchs.filter().businessIdEqualTo(businessId).findAll();
   }
 
   @override
@@ -367,23 +328,23 @@ class IsarAPI<M> implements IsarApiInterface {
     /// or the user might scann for too long which can result into multiple checkin
     /// to avoid that we add a flag to checkin then if we fail we remove it to enable next check in attempt
     // ProxyService.box.write(key: 'checkIn', value: 'checkIn');
-    final http.Response response =
-        await client.post(Uri.parse("$apihub/v2/api/attendance"),
-            body: jsonEncode({
-              "businessId": businessId,
-              "businessName": businessName,
-              "fullName": profile!.name,
-              "phoneNumber": profile.phone,
-              "checkInDate": DateTime.now().toIso8601String(),
-              "checkInTime":
-                  '${_now.hour}:${_now.minute}:${_now.second}.${_now.millisecond}',
-              "vaccinationCode": profile.vaccinationCode,
-              "livingAt": profile.livingAt,
-              "cell": profile.cell,
-              "district": profile.district,
-              "submitTo": submitTo
-            }),
-            headers: {'Content-Type': 'application/json'});
+    final http.Response response = await flipperHttpClient.post(
+      Uri.parse("$apihub/v2/api/attendance"),
+      body: jsonEncode({
+        "businessId": businessId,
+        "businessName": businessName,
+        "fullName": profile!.name,
+        "phoneNumber": profile.phone,
+        "checkInDate": DateTime.now().toIso8601String(),
+        "checkInTime":
+            '${_now.hour}:${_now.minute}:${_now.second}.${_now.millisecond}',
+        "vaccinationCode": profile.vaccinationCode,
+        "livingAt": profile.livingAt,
+        "cell": profile.cell,
+        "district": profile.district,
+        "submitTo": submitTo
+      }),
+    );
     if (response.statusCode == 200) {
       return true;
     } else {
@@ -447,12 +408,12 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<Voucher?> consumeVoucher({required int voucherCode}) async {
-    final http.Response response =
-        await client.patch(Uri.parse("$apihub/v2/api/voucher"),
-            body: jsonEncode(
-              <String, int>{'id': voucherCode},
-            ),
-            headers: {'Content-Type': 'application/json'});
+    final http.Response response = await flipperHttpClient.patch(
+      Uri.parse("$apihub/v2/api/voucher"),
+      body: jsonEncode(
+        <String, int>{'id': voucherCode},
+      ),
+    );
     if (response.statusCode == 422) return null;
     return Voucher()
       ..createdAt = json.decode(response.body)['createdAt']
@@ -474,14 +435,15 @@ class IsarAPI<M> implements IsarApiInterface {
     Business? business = await getBusiness();
     String docName = business!.name! + '- Report';
 
-    await client.post(Uri.parse("$apihub/v2/api/createSheetDocument"),
-        body: jsonEncode({"title": docName, "shareToEmail": email}),
-        headers: {'Content-Type': 'application/json'});
+    await flipperHttpClient.post(
+      Uri.parse("$apihub/v2/api/createSheetDocument"),
+      body: jsonEncode({"title": docName, "shareToEmail": email}),
+    );
   }
 
   @override
   Future<Pin?> createPin() async {
-    String id = ProxyService.box.getUserId()!;
+    String id = ProxyService.box.getUserId()!.toString();
     //get existing pin where userId =1
     // if pin is null then create new pin
     Pin? pin = await isar.pins.filter().userIdEqualTo(id).findFirst();
@@ -492,18 +454,20 @@ class IsarAPI<M> implements IsarApiInterface {
     int branchId = ProxyService.box.getBranchId()!;
     int businessId = ProxyService.box.getBusinessId()!;
     String phoneNumber = ProxyService.box.getUserPhone()!;
-    final http.Response response =
-        await client.post(Uri.parse("$apihub/v2/api/pin"),
-            body: jsonEncode(
-              <String, String>{
-                'userId': id,
-                'branchId': branchId.toString(),
-                'businessId': businessId.toString(),
-                'phoneNumber': phoneNumber,
-                'pin': id
-              },
-            ),
-            headers: {'Content-Type': 'application/json'});
+    int defaultApp = ProxyService.box.getDefaultApp();
+    final http.Response response = await flipperHttpClient.post(
+      Uri.parse("$apihub/v2/api/pin"),
+      body: jsonEncode(
+        <String, dynamic>{
+          'userId': id,
+          'branchId': branchId.toString(),
+          'businessId': businessId.toString(),
+          'phoneNumber': phoneNumber,
+          'pin': id,
+          'defaultApp': defaultApp
+        },
+      ),
+    );
     if (response.statusCode == 200) {
       Pin pin = pinFromMap(response.body);
 
@@ -513,6 +477,16 @@ class IsarAPI<M> implements IsarApiInterface {
       });
     }
     return null;
+  }
+
+  Future<Product?> isCustomProductExist({required int businessId}) async {
+    return isar.products
+        .filter()
+        .businessIdEqualTo(businessId)
+        .and()
+        .nameEqualTo('Custom Amount')
+        .build()
+        .findFirst();
   }
 
   @override
@@ -529,10 +503,14 @@ class IsarAPI<M> implements IsarApiInterface {
     product.branchId = ProxyService.box.getBranchId()!;
 
     final int branchId = ProxyService.box.getBranchId()!;
-
-    String lastTouched = removeTrailingDash(
-        Hlc.fromDate(DateTime.now(), branchId.toString()).toString());
-
+    // check if the product created custom amount exist and do not re-create
+    if (product.name == "Custom Amount") {
+      Product? existingProduct = await isCustomProductExist(
+          businessId: ProxyService.box.getBusinessId()!);
+      if (existingProduct != null) {
+        return existingProduct;
+      }
+    }
     Product? kProduct = await isar.writeTxn(() async {
       int id = await isar.products.put(product);
       return isar.products.get(id);
@@ -546,7 +524,6 @@ class IsarAPI<M> implements IsarApiInterface {
             action: 'create',
             productId: kProduct!.id!,
             unit: 'Per Item',
-            table: AppTables.variation,
             productName: product.name,
             branchId: ProxyService.box.getBranchId()!,
             supplyPrice: 0.0,
@@ -556,7 +533,6 @@ class IsarAPI<M> implements IsarApiInterface {
           ..name = 'Regular'
           ..productId = kProduct.id!
           ..unit = 'Per Item'
-          ..table = 'variants'
           ..productName = product.name
           ..branchId = branchId
           ..taxName = 'N/A'
@@ -609,9 +585,6 @@ class IsarAPI<M> implements IsarApiInterface {
       ..currentStock = 0.0
       ..branchId = branchId
       ..variantId = variant.id!
-      ..lastTouched = removeTrailingDash(Hlc.fromDate(
-              DateTime.now(), ProxyService.box.getBranchId()!.toString())
-          .toString())
       ..supplyPrice = 0.0
       ..retailPrice = 0.0
       ..lowStock = 10.0 // default static
@@ -644,11 +617,17 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<bool> delete({required id, String? endPoint}) {
+  Future<bool> delete({required int id, String? endPoint}) {
     switch (endPoint) {
       case 'color':
         isar.writeTxn(() async {
           await isar.pColors.delete(id);
+          return true;
+        });
+        break;
+      case 'device':
+        isar.writeTxn(() async {
+          await isar.devices.delete(id);
           return true;
         });
         break;
@@ -740,18 +719,17 @@ class IsarAPI<M> implements IsarApiInterface {
     Business? business = await isar.writeTxn(() {
       return isar.business.get(businessId);
     });
-    final http.Response response = await client.post(
-        Uri.parse("$apihub/v2/api/createAttendanceDoc"),
-        body: jsonEncode({
-          "title": business!.name! + '-' + 'Attendance',
-          "shareToEmail": email
-        }),
-        headers: {'Content-Type': 'application/json'});
+    final http.Response response = await flipperHttpClient.post(
+      Uri.parse("$apihub/v2/api/createAttendanceDoc"),
+      body: jsonEncode({
+        "title": business!.name! + '-' + 'Attendance',
+        "shareToEmail": email
+      }),
+    );
     if (response.statusCode == 200) {
-      log.d('created attendance document');
       // update settings with enableAttendance = true
-      String userId = ProxyService.box.read(key: 'userId');
-      Setting? setting = await getSetting(userId: int.parse(userId));
+      int businessId = ProxyService.box.getBusinessId()!;
+      Setting? setting = await getSetting(businessId: businessId);
       setting!.attendnaceDocCreated = true;
       update(data: setting);
       return true;
@@ -762,9 +740,12 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<Business?> getBusiness() {
-    String? userId = ProxyService.box.getUserId();
+    int? userId = ProxyService.box.getUserId();
     return isar.writeTxn(() {
-      return isar.business.filter().userIdEqualTo(userId!).findFirst();
+      return isar.business
+          .filter()
+          .userIdEqualTo(userId?.toString())
+          .findFirst();
     });
   }
 
@@ -780,7 +761,7 @@ class IsarAPI<M> implements IsarApiInterface {
     });
     if (business != null) return business;
     final http.Response response =
-        await client.get(Uri.parse("$apihub/v2/api/business/$id"));
+        await flipperHttpClient.get(Uri.parse("$apihub/v2/api/business/$id"));
     if (response.statusCode == 200) {
       Business business = Business.fromJson(json.decode(response.body));
       return isar.writeTxn(() async {
@@ -838,11 +819,105 @@ class IsarAPI<M> implements IsarApiInterface {
       }
       return variant!;
     } else {
-      return await isar.variants
-          .where()
-          .productIdEqualTo(product.id!)
-          .findFirst();
+      Variant? variation =
+          await isar.variants.where().productIdEqualTo(product.id!).findFirst();
+      // if it happen that this product does not have a custom variant add it
+      variation =
+          await ifPreConditionOfSellingACustomProductDoesNotMeetAddMissings(
+              variation, product, branchId);
+      return variation;
     }
+  }
+
+  Future<Variant?> ifPreConditionOfSellingACustomProductDoesNotMeetAddMissings(
+      Variant? variation, Product product, int branchId) async {
+    if (variation == null) {
+      // add variant to this product
+      Business? business = await getBusiness();
+      String clip = 'flipper' +
+          DateTime.now().microsecondsSinceEpoch.toString().substring(0, 5);
+
+      variation = await isar.writeTxn(() async {
+        int id = await isar.variants.put(
+          Variant(
+              name: 'Custom Amount',
+              sku: 'sku',
+              action: 'create',
+              productId: product.id!,
+              unit: 'Per Item',
+              productName: product.name,
+              branchId: ProxyService.box.getBranchId()!,
+              supplyPrice: 0.0,
+              retailPrice: 0.0,
+              id: syncIdInt(),
+              isTaxExempted: false)
+            ..name = 'Regular'
+            ..productId = product.id!
+            ..unit = 'Per Item'
+            ..productName = product.name
+            ..branchId = branchId
+            ..taxName = 'N/A'
+            ..isTaxExempted = false
+            ..taxPercentage = 0
+            ..retailPrice = 0
+            // RRA fields
+            ..bhfId = business?.bhfId
+            ..prc = 0.0
+            ..sku = 'sku'
+            ..tin = business?.tinNumber
+            ..itemCd = clip
+            // TODOask about item clasification code, it seems to be static
+            ..itemClsCd = "5020230602"
+            ..itemTyCd = "1"
+            ..itemNm = "Regular"
+            ..itemStdNm = "Regular"
+            ..orgnNatCd = "RW"
+            ..pkgUnitCd = "NT"
+            ..qtyUnitCd = "U"
+            ..taxTyCd = "B"
+            ..dftPrc = 0.0
+            ..addInfo = "A"
+            ..isrcAplcbYn = "N"
+            ..useYn = "N"
+            ..regrId = clip
+            ..regrNm = "Regular"
+            ..modrId = clip
+            ..modrNm = "Regular"
+            ..pkg = "1"
+            ..itemSeq = "1"
+            ..splyAmt = 0.0
+            // RRA fields ends
+            ..supplyPrice = 0.0,
+        );
+        return isar.variants.get(id);
+      });
+      // add its stock
+      Stock stock = Stock(
+          id: syncIdInt(),
+          action: 'create',
+          branchId: branchId,
+          variantId: variation!.id!,
+          currentStock: 0.0,
+          productId: product.id!)
+        ..canTrackingStock = false
+        ..showLowStockAlert = false
+        ..currentStock = 0.0
+        ..branchId = branchId
+        ..variantId = variation.id!
+        ..supplyPrice = 0.0
+        ..retailPrice = 0.0
+        ..lowStock = 10.0 // default static
+        ..canTrackingStock = true
+        ..showLowStockAlert = true
+        ..active = false
+        ..productId = product.id!
+        ..rsdQty = 0.0;
+
+      await isar.writeTxn(() async {
+        return await isar.stocks.put(stock);
+      });
+    }
+    return variation;
   }
 
   @override
@@ -879,23 +954,23 @@ class IsarAPI<M> implements IsarApiInterface {
   // get list of Business from isar where userId = userId
   // if list is empty then get list from online
   @override
-  Future<List<Business>> businesses({required String userId}) async {
+  Future<List<Business>> businesses({required int userId}) async {
     List<Business> businesses =
-        await isar.business.filter().userIdEqualTo(userId).findAll();
+        await isar.business.filter().userIdEqualTo(userId.toString()).findAll();
 
     return businesses;
   }
 
   @override
   Future<Business> getOnlineBusiness({required String userId}) async {
-    final response =
-        await client.get(Uri.parse("$apihub/v2/api/businessUserId/$userId"));
+    final response = await flipperHttpClient
+        .get(Uri.parse("$apihub/v2/api/businessUserId/$userId"));
 
     if (response.statusCode == 401) {
       throw SessionException(term: "session expired");
     }
     if (response.statusCode == 404) {
-      throw NotFoundException(term: "Business not found");
+      throw BusinessNotFoundException(term: "Business not found");
     }
 
     Business? business = await isar.writeTxn(() {
@@ -935,11 +1010,20 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
+  Future<List<OrderItem>> getOrderItemsByOrderId(
+      {required int? orderId}) async {
+    return isar.orderItems.where().orderIdEqualTo(orderId!).findAll();
+  }
+
+  @override
   Future<Pin?> getPin({required String pin}) async {
     final http.Response response =
-        await client.get(Uri.parse("$apihub/v2/api/pin/$pin"));
+        await flipperHttpClient.get(Uri.parse("$apihub/v2/api/pin/$pin"));
     if (response.statusCode == 200) {
       return pinFromMap(response.body);
+    }
+    if (response.statusCode == 404) {
+      return null;
     }
     throw ErrorReadingFromYBServer(term: 'Failed to load pin');
   }
@@ -964,9 +1048,9 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Setting?> getSetting({required int userId}) async {
+  Future<Setting?> getSetting({required int businessId}) async {
     return isar.writeTxn(() {
-      return isar.settings.where().userIdEqualTo(userId).findFirst();
+      return isar.settings.where().businessIdEqualTo(businessId).findFirst();
     });
   }
 
@@ -987,8 +1071,8 @@ class IsarAPI<M> implements IsarApiInterface {
       return isar.subscriptions.where().userIdEqualTo(userId).findFirst();
     });
     if (local == null) {
-      final response =
-          await client.get(Uri.parse("$apihub/v2/api/subscription/$userId"));
+      final response = await flipperHttpClient
+          .get(Uri.parse("$apihub/v2/api/subscription/$userId"));
       if (response.statusCode == 200) {
         Subscription? sub = Subscription.fromJson(json.decode(response.body));
 
@@ -1029,20 +1113,13 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Tenant?> isTenant({required String phoneNumber}) {
-    // TODO: implement isTenant
-    throw UnimplementedError();
-  }
-
-  @override
   int lifeTimeCustomersForbranch({required int branchId}) {
     // TODO: implement lifeTimeCustomersForbranch
     throw UnimplementedError();
   }
 
   @override
-  Future<bool> logOut() async {
-    log.i("logging out");
+  Future<void> logOut() async {
     // delete all business and branches from isar db for
     // potential next business that can log-in to not mix data.
     await isar.writeTxn(() async {
@@ -1050,43 +1127,59 @@ class IsarAPI<M> implements IsarApiInterface {
       await isar.branchs.clear();
       await isar.iTenants.clear();
       await isar.permissions.clear();
+      await isar.pins.clear();
     });
+    if (ProxyService.box.getUserId() != null &&
+        ProxyService.box.getBusinessId() != null) {
+      ProxyService.event.publish(loginDetails: {
+        'channel': "${ProxyService.box.getUserId()!}-logout",
+        'userId': ProxyService.box.getUserId()!,
+        'businessId': ProxyService.box.getBusinessId()!,
+        'branchId': ProxyService.box.getBranchId()!,
+        'phone': ProxyService.box.getUserPhone(),
+        'defaultApp': ProxyService.box.getDefaultApp(),
+        'deviceName': Platform.operatingSystem,
+        'deviceVersion': Platform.operatingSystemVersion,
+        'linkingCode': syncIdInt().toString()
+      });
+    }
+
     ProxyService.box.remove(key: 'userId');
+    ProxyService.box.remove(key: 'getIsTokenRegistered');
     ProxyService.box.remove(key: 'bearerToken');
     ProxyService.box.remove(key: 'branchId');
     ProxyService.box.remove(key: 'userPhone');
     ProxyService.box.remove(key: 'UToken');
     ProxyService.box.remove(key: 'businessId');
-    loginInfo.isLoggedIn = false;
-    loginInfo.needSignUp = false;
-    FirebaseAuth.instance.signOut();
-    return await Future.value(true);
+    ProxyService.box.remove(key: 'defaultApp');
+    await FirebaseAuth.instance.signOut();
   }
 
   @override
   Future<JTenant> saveTenant(String phoneNumber, String name,
       {required Business business, required Branch branch}) async {
-    final http.Response response =
-        await client.post(Uri.parse("$apihub/v2/api/tenant"),
-            body: jsonEncode({
-              "phoneNumber": phoneNumber,
-              "name": name,
-              "businessId": business.id,
-              "permissions": [
-                {
-                  "name": "cashier",
-                }
-              ],
-              "businesses": [business.toJson()],
-              "branches": [branch.toJson()]
-            }),
-            headers: {'Content-Type': 'application/json'});
+    final http.Response response = await flipperHttpClient.post(
+      Uri.parse("$apihub/v2/api/tenant"),
+      body: jsonEncode({
+        "phoneNumber": phoneNumber,
+        "name": name,
+        "businessId": business.id,
+        "permissions": [
+          {
+            "name": "cashier",
+          }
+        ],
+        "businesses": [business.toJson()],
+        "branches": [branch.toJson()]
+      }),
+    );
     if (response.statusCode == 200) {
       JTenant jTenant = jTenantFromJson(response.body);
       ITenant iTenant = ITenant(
           name: jTenant.name,
           businessId: jTenant.businessId,
           email: jTenant.email,
+          userId: jTenant.userId,
           nfcEnabled: jTenant.nfcEnabled,
           phoneNumber: jTenant.phoneNumber);
 
@@ -1107,16 +1200,17 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<List<JTenant>> signup({required Map business}) async {
-    final http.Response response = await client.post(
-        Uri.parse("$apihub/v2/api/business"),
-        body: jsonEncode(business),
-        headers: {'Content-Type': 'application/json'});
+    final http.Response response = await flipperHttpClient.post(
+      Uri.parse("$apihub/v2/api/business"),
+      body: jsonEncode(business),
+    );
     if (response.statusCode == 200) {
       for (JTenant tenant in jListTenantFromJson(response.body)) {
         JTenant jTenant = tenant;
         ITenant iTenant = ITenant(
             id: jTenant.id,
             name: jTenant.name,
+            userId: jTenant.userId,
             businessId: jTenant.businessId,
             nfcEnabled: jTenant.nfcEnabled,
             email: jTenant.email,
@@ -1142,73 +1236,90 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<SyncF> login({required String userPhone}) async {
-    final response = await http.post(
+  Future<IUser> login(
+      {required String userPhone, required bool skipDefaultAppSetup}) async {
+    final response = await flipperHttpClient.post(
       Uri.parse(apihub + '/v2/api/user'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
       body: jsonEncode(
         <String, String>{'phoneNumber': userPhone},
       ),
     );
-    if (response.statusCode == 200) {
-      await ProxyService.box.write(
-        key: 'bearerToken',
-        value: syncFFromJson(response.body).token,
-      );
-      await ProxyService.box.write(
-        key: 'userId',
-        value: syncFFromJson(response.body).id.toString(),
-      );
+    if (response.statusCode == 200 && response.body.isNotEmpty) {
+      IUser syncF = IUser.fromRawJson(response.body);
       await ProxyService.box.write(
         key: 'userPhone',
         value: userPhone,
       );
-      if (syncFFromJson(response.body).tenants.isEmpty) {
-        throw NotFoundException(term: "Not found");
-      }
-      await isar.writeTxn(() async {
-        return isar.business
-            .putAll(syncFFromJson(response.body).tenants.first.businesses);
-      });
-      await isar.writeTxn(() async {
-        return isar.branchs
-            .putAll(syncFFromJson(response.body).tenants.first.branches);
-      });
+      await ProxyService.box.write(
+        key: 'bearerToken',
+        value: syncF.token,
+      );
+      await ProxyService.box.write(
+        key: 'userId',
+        value: syncF.id,
+      );
+      await ProxyService.box.write(
+        key: 'branchId',
+        // check if branches is empty
+        value: syncF.tenants.isEmpty
+            ? null
+            : syncF.tenants.first.branches.first.id,
+      );
+      await ProxyService.box.write(
+        key: 'businessId',
+        // check if businesses is empty
+        value: syncF.tenants.isEmpty
+            ? null
+            : syncF.tenants.first.businesses.first.id,
+      );
+      if (skipDefaultAppSetup == false) {
+        await ProxyService.box.write(
+          key: 'defaultApp',
 
-      return syncFFromJson(response.body);
+          /// because we don update default app from server
+          /// because we want the ability of switching apps to be entirely offline
+          /// then if we have a default app in the box we use it if it only different from 1
+          value: syncF.tenants.isEmpty
+              ? null
+              : ProxyService.box.getDefaultApp() != 1
+                  ? ProxyService.box.getDefaultApp()
+                  : syncF.tenants.first.businesses.first.businessTypeId,
+        );
+      }
+
+      if (syncF.tenants.isEmpty) {
+        throw BusinessNotFoundException(
+            term:
+                "No tenant added to the user, if a business is added it should have one tenant");
+      }
+      for (Tenant tenant in syncF.tenants) {
+        ITenant iTenant = ITenant(
+            id: tenant.id,
+            name: tenant.name,
+            businessId: tenant.businessId,
+            nfcEnabled: tenant.nfcEnabled,
+            email: tenant.email ?? '',
+            userId: syncF.id,
+            phoneNumber: tenant.phoneNumber);
+
+        await isar.writeTxn(() async {
+          return isar.business.putAll(tenant.businesses);
+        });
+        await isar.writeTxn(() async {
+          return isar.branchs.putAll(tenant.branches);
+        });
+        await isar.writeTxn(() async {
+          return isar.permissions.putAll(tenant.permissions);
+        });
+        await isar.writeTxn(() async {
+          return isar.iTenants.put(iTenant);
+        });
+      }
+      return syncF;
     } else if (response.statusCode == 401) {
       throw SessionException(term: "session expired");
     } else if (response.statusCode == 500) {
       throw ErrorReadingFromYBServer(term: "Not found");
-    } else {
-      throw Exception('403 Error');
-    }
-  }
-
-  /// when adding a user call this endPoint to create a user first.
-  /// then call add this user to tenants of specific business/branch.
-  @override
-  Future<SyncF> user({required String userPhone}) async {
-    log.i(userPhone);
-    final response = await http.post(
-      Uri.parse(apihub + '/v2/api/user'),
-      headers: <String, String>{
-        'Content-Type': 'application/json',
-      },
-      body: json.encode(
-        {"phoneNumber": userPhone},
-      ),
-    );
-    if (response.statusCode == 200) {
-      log.d(response.body);
-      return syncFFromJson(response.body);
-    } else if (response.statusCode == 401) {
-      throw SessionException(term: "session expired");
-    } else if (response.statusCode == 500) {
-      log.d(response.body);
-      throw ErrorReadingFromYBServer(term: "Error from server");
     } else {
       throw Exception('403 Error');
     }
@@ -1270,7 +1381,7 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<Spenn> spennPayment(
       {required double amount, required phoneNumber}) async {
-    String userId = ProxyService.box.read(key: 'userId');
+    int userId = ProxyService.box.getUserId()!;
     var headers = {'Content-Type': 'application/x-www-form-urlencoded'};
     Business? bu = await getBusiness();
     // ignore: fixme
@@ -1280,7 +1391,7 @@ class IsarAPI<M> implements IsarApiInterface {
         http.Request('POST', Uri.parse('https://flipper.yegobox.com/pay'));
     request.bodyFields = {
       'amount': amount.toString(),
-      'userId': userId,
+      'userId': userId.toString(),
       'RequestGuid': '00HK-KLJS',
       'paymentType': 'SPENN',
       'itemName': ' N/A',
@@ -1359,6 +1470,17 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
+  Stream<List<Order>> ticketsStreams() {
+    log(ProxyService.box.getBranchId()!.toString(),
+        name: "BranchId when stream ticket");
+    return isar.orders
+        .where()
+        .statusBranchIdEqualTo(parkedStatus, ProxyService.box.getBranchId()!)
+        .build()
+        .watch(fireImmediately: true);
+  }
+
+  @override
   Future<List<IUnit>> units({required int branchId}) async {
     return isar.writeTxn(() {
       return isar.iUnits.where().branchIdEqualTo(branchId).findAll();
@@ -1376,6 +1498,20 @@ class IsarAPI<M> implements IsarApiInterface {
             ..active = color.active
             ..branchId = color.branchId);
         }
+      });
+    }
+    if (data is Device) {
+      Device device = data;
+      return await isar.writeTxn(() async {
+        await isar.devices.put(device);
+        return Future.value(null);
+      });
+    }
+    if (data is Conversation) {
+      Conversation conversation = data;
+      return await isar.writeTxn(() async {
+        await isar.conversations.put(conversation);
+        return Future.value(null);
       });
     }
     if (data is Category) {
@@ -1402,6 +1538,18 @@ class IsarAPI<M> implements IsarApiInterface {
         return Future.value(null);
       });
     }
+    if (data is Social) {
+      await isar.writeTxn(() async {
+        await isar.socials.put(data);
+        return Future.value(null);
+      });
+    }
+    if (data is Token) {
+      await isar.writeTxn(() async {
+        await isar.tokens.put(data);
+        return Future.value(null);
+      });
+    }
     return Future.value(null);
   }
 
@@ -1410,6 +1558,13 @@ class IsarAPI<M> implements IsarApiInterface {
   Future<T?> update<T>({required T data}) async {
     // int branchId = ProxyService.box.getBranchId()!;
 
+    if (data is Social) {
+      Social product = data;
+
+      await isar.writeTxn(() async {
+        return await isar.socials.put(product);
+      });
+    }
     if (data is Product) {
       Product product = data;
 
@@ -1475,45 +1630,34 @@ class IsarAPI<M> implements IsarApiInterface {
     }
     if (data is Token) {
       final token = data;
-      await isar.writeTxn(() async {
-        Token? ttoken =
-            await isar.tokens.where().userIdEqualTo(token.userId).findFirst();
-        if (ttoken == null) {
-          ttoken = Token()
-            ..token = token.token
-            ..userId = token.userId
-            ..type = token.type;
-          return await isar.tokens.put(ttoken);
-        } else {
-          ttoken
-            ..token = token.token
-            ..userId = token.userId
-            ..type = token.type;
-          return await isar.tokens.put(ttoken);
-        }
-      });
+      token
+        ..token = token.token
+        ..businessId = token.businessId
+        ..type = token.type;
+      await isar.tokens.put(token);
     }
     if (data is Business) {
       final business = data;
       await isar.writeTxn(() async {
         return await isar.business.put(business);
       });
-      final response = await client.patch(
-          Uri.parse("$apihub/v2/api/business/${business.id}"),
-          body: jsonEncode(business.toJson()),
-          headers: {'Content-Type': 'application/json'});
+      final response = await flipperHttpClient.patch(
+        Uri.parse("$apihub/v2/api/business/${business.id}"),
+        body: jsonEncode(business.toJson()),
+      );
       if (response.statusCode != 200) {
         throw InternalServerError(term: "error patching the business");
       }
     }
+
     if (data is Branch) {
       isar.writeTxn(() async {
         return await isar.branchs.put(data);
       });
-      final response = await client.patch(
-          Uri.parse("$apihub/v2/api/branch/${data.id}"),
-          body: jsonEncode(data.toJson()),
-          headers: {'Content-Type': 'application/json'});
+      final response = await flipperHttpClient.patch(
+        Uri.parse("$apihub/v2/api/branch/${data.id}"),
+        body: jsonEncode(data.toJson()),
+      );
       if (response.statusCode != 200) {
         throw InternalServerError(term: "error patching the branch");
       }
@@ -1522,10 +1666,10 @@ class IsarAPI<M> implements IsarApiInterface {
       await isar.writeTxn(() async {
         return isar.counters.put(data..backed = false);
       });
-      final response = await client.patch(
-          Uri.parse("$apihub/v2/api/counter/${data.id}"),
-          body: jsonEncode(data.toJson()),
-          headers: {'Content-Type': 'application/json'});
+      final response = await flipperHttpClient.patch(
+        Uri.parse("$apihub/v2/api/counter/${data.id}"),
+        body: jsonEncode(data.toJson()),
+      );
       if (response.statusCode == 200) {
         JCounter jCounter = jSingleCounterFromJson(response.body);
         await isar.writeTxn(() async {
@@ -1547,12 +1691,11 @@ class IsarAPI<M> implements IsarApiInterface {
         return await isar.branchs.put(data);
       });
       try {
-        await client.patch(Uri.parse("$apihub/v2/api/branch/${data.id}"),
-            body: jsonEncode(data.toJson()),
-            headers: {'Content-Type': 'application/json'});
-      } catch (e) {
-        log.e(e);
-      }
+        await flipperHttpClient.patch(
+          Uri.parse("$apihub/v2/api/branch/${data.id}"),
+          body: jsonEncode(data.toJson()),
+        );
+      } catch (e) {}
     }
     if (data is Drawers) {
       final drawer = data;
@@ -1561,14 +1704,13 @@ class IsarAPI<M> implements IsarApiInterface {
       });
     }
     if (data is ITenant) {
-      final response = await client.patch(
-          Uri.parse("$apihub/v2/api/tenant/${data.id}"),
-          body: jsonEncode(data.toJson()),
-          headers: {'Content-Type': 'application/json'});
+      final response = await flipperHttpClient.patch(
+        Uri.parse("$apihub/v2/api/tenant/${data.id}"),
+        body: jsonEncode(data.toJson()),
+      );
       if (response.statusCode == 200) {
-        return await isar.writeTxn(() async {
-          final result = await isar.iTenants.get(await isar.iTenants.put(data));
-          return result as T?;
+        await isar.writeTxn(() async {
+          return await isar.iTenants.put(data);
         });
       }
       return null;
@@ -1587,8 +1729,8 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<int> userNameAvailable({required String name}) async {
-    log.d("$apihub/search?name=$name");
-    final response = await client.get(Uri.parse("$apihub/search?name=$name"));
+    final response =
+        await flipperHttpClient.get(Uri.parse("$apihub/search?name=$name"));
     return response.statusCode;
   }
 
@@ -1682,11 +1824,6 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<List<OrderItem>> orderItems({required int orderId}) async {
-    return await isar.orderItems.where().orderIdEqualTo(orderId).findAll();
-  }
-
-  @override
   Future<Variant?> getVariantById({required int id}) async {
     return isar.writeTxn(() async {
       return await isar.variants.get(id);
@@ -1738,14 +1875,21 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Drawers?> isDrawerOpen({required int cashierId}) {
-    return isar.writeTxn(() async {
-      Drawers? drawer = await isar.drawers
-          .where()
-          .openCashierIdEqualTo(true, cashierId)
-          .findFirst();
-      return drawer;
-    });
+  Future<bool> isDrawerOpen({required int cashierId}) async {
+    Drawers? drawer = await isar.drawers
+        .where()
+        .openCashierIdEqualTo(true, cashierId)
+        .findFirst();
+    return drawer != null;
+  }
+
+  @override
+  Future<Drawers?> getDrawer({required int cashierId}) async {
+    Drawers? drawer = await isar.drawers
+        .where()
+        .openCashierIdEqualTo(true, cashierId)
+        .findFirst();
+    return drawer;
   }
 
   @override
@@ -1785,14 +1929,16 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<List<ITenant>> tenantsFromOnline({required int businessId}) async {
+    String id = businessId.toString();
     final http.Response response =
-        await client.get(Uri.parse("$apihub/v2/api/tenant/$businessId"));
+        await flipperHttpClient.get(Uri.parse("$apihub/v2/api/tenant/$id"));
     if (response.statusCode == 200) {
       for (JTenant tenant in jListTenantFromJson(response.body)) {
         JTenant jTenant = tenant;
         ITenant iTenant = ITenant(
             id: jTenant.id,
             name: jTenant.name,
+            userId: jTenant.userId,
             businessId: jTenant.businessId,
             nfcEnabled: jTenant.nfcEnabled,
             email: jTenant.email,
@@ -1851,7 +1997,7 @@ class IsarAPI<M> implements IsarApiInterface {
         .filter()
         .branchIdEqualTo(branchId)
         .and()
-        .receiptTypeEqualTo(ReceiptType.ns)
+        .receiptTypeEqualTo("ns")
         .findFirst();
   }
 
@@ -1877,8 +2023,8 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<void> loadCounterFromOnline({required int businessId}) async {
-    final http.Response response =
-        await client.get(Uri.parse("$apihub/v2/api/counter/$businessId"));
+    final http.Response response = await flipperHttpClient
+        .get(Uri.parse("$apihub/v2/api/counter/$businessId"));
     if (response.statusCode == 200) {
       List<JCounter> counters = jCounterFromJson(response.body);
       for (JCounter jCounter in counters) {
@@ -1914,23 +2060,6 @@ class IsarAPI<M> implements IsarApiInterface {
   // String public() {
   //   // return isar.j
   // }
-
-  @override
-  Future<String> whatsAppToken() async {
-    final http.Response response = await client.post(
-        Uri.parse("$commApi/api/login"),
-        body: json.encode(
-            {"email": "murag.richard@gmail.com", "password": "love@123"}),
-        headers: {'Content-Type': 'application/json'});
-
-    if (response.statusCode == 200) {
-      Map<String, dynamic> responseBody = json.decode(response.body);
-      String token = responseBody["body"]["token"];
-      return token;
-    } else {
-      throw Exception("Failed to get token");
-    }
-  }
 
   @override
   Future<bool> bindProduct(
@@ -2010,21 +2139,9 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<List<Stock>> getLocalStocks() async {
+    log(ProxyService.box.getBranchId().toString(), name: 'getLocalStocks');
+    if (ProxyService.box.getBranchId() == null) return [];
     return await isar.stocks
-        .filter()
-        .retailPriceGreaterThan(0)
-        .or()
-        .lastTouchedIsNull()
-        .or()
-        .actionEqualTo('update')
-        .and()
-        .branchIdEqualTo(ProxyService.box.getBranchId()!)
-        .findAll();
-  }
-
-  @override
-  Future<List<Product>> getLocalProducts() async {
-    return await isar.products
         .filter()
         .lastTouchedIsNull()
         .or()
@@ -2036,9 +2153,23 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<List<Variant>> getLocalVariants() async {
+    log(ProxyService.box.getBranchId().toString(), name: 'getLocalVariants');
+    if (ProxyService.box.getBranchId() == null) return [];
     return await isar.variants
         .filter()
-        .retailPriceGreaterThan(0)
+        .lastTouchedIsNull()
+        .or()
+        .actionEqualTo('update')
+        .and()
+        .branchIdEqualTo(ProxyService.box.getBranchId()!)
+        .findAll();
+  }
+
+  @override
+  Future<List<Product>> getLocalProducts() async {
+    if (ProxyService.box.getBranchId() == null) return [];
+    return await isar.products
+        .filter()
         .lastTouchedIsNull()
         .or()
         .actionEqualTo('update')
@@ -2049,6 +2180,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<List<Order>> getLocalOrders() async {
+    if (ProxyService.box.getBranchId() == null) return [];
     return await isar.orders
         .filter()
         .statusEqualTo(completeStatus)
@@ -2058,5 +2190,406 @@ class IsarAPI<M> implements IsarApiInterface {
         .and()
         .branchIdEqualTo(ProxyService.box.getBranchId()!)
         .findAll();
+  }
+
+  @override
+  Stream<Social> socialsStream({required int businessId}) {
+    log("socialsStream called", name: "${businessId}");
+    return isar.socials
+        .filter()
+        .businessIdEqualTo(businessId)
+        .and()
+        .isAccountSetEqualTo(true)
+        .build()
+        .watch(fireImmediately: true)
+        .asyncMap((event) => event.first);
+  }
+
+  /// sincd this type does not change no point of getting it from the server
+  @override
+  Future<List<BusinessType>> businessTypes() async {
+    final responseJson = [
+      {"id": 1, "typeName": "Flipper Retailer"},
+      {"id": 2, "typeName": "Flipper Connecta"},
+      // {"id": 3, "typeName": "Retailer"},
+      // {"id": 4, "typeName": "Agent"}
+    ];
+    Future.delayed(Duration(seconds: 5));
+    final response = http.Response(jsonEncode(responseJson), 200);
+    if (response.statusCode == 200) {
+      return BusinessType.fromJsonList(jsonEncode(responseJson));
+    }
+    return BusinessType.fromJsonList(jsonEncode(responseJson));
+  }
+
+  @override
+  Future<Social?> getSocialById({required int id}) async {
+    return await isar.socials.get(id);
+  }
+
+  @override
+  Stream<List<Conversation>> getTop5RecentConversations() {
+    if (ProxyService.box.getUserPhone() == null) return Stream.empty();
+    final phone = ProxyService.box.getUserPhone()!.replaceAll("+", "");
+    log(phone, name: "top5Conversations");
+    return isar.conversations
+        .filter()
+        .toNumberEqualTo(phone)
+        .or()
+        .fromNumberEqualTo(phone)
+        .and()
+        .deliveredEqualTo(true)
+        .sortByCreatedAtDesc()
+        .build()
+        .watch(fireImmediately: true)
+        .map((event) {
+      final uniqueUserNames = <String>{};
+      final uniqueConversations = <Conversation>[];
+
+      for (final message in event) {
+        if (!uniqueUserNames.contains(message.userName)) {
+          uniqueUserNames.add(message.userName);
+          uniqueConversations.add(message);
+        }
+      }
+
+      // Sort conversations by creation date in descending order
+      uniqueConversations.sort((a, b) => b.createdAt!.compareTo(a.createdAt!));
+
+      // Return the top 5 recent conversations
+      return uniqueConversations.take(5).toList();
+    });
+  }
+
+  @override
+  Stream<List<Conversation>> conversations({String? conversationId}) {
+    if (conversationId == null && ProxyService.box.getUserPhone() != null) {
+      // get all conversations addressed to me or from me
+      String phone = ProxyService.box.getUserPhone()!.replaceAll("+", "");
+      log(phone, name: "LoadInitialList of conversations");
+      return isar.conversations
+          .filter()
+          .toNumberEqualTo(phone)
+          .or()
+          .fromNumberEqualTo(phone)
+          .and()
+          .deliveredEqualTo(true)
+          .build()
+          .watch(fireImmediately: true)
+          .asyncMap((event) {
+        final uniqueUserNames = <String>{};
+
+        // Create a list to store the unique conversations
+        final uniqueConversations = <Conversation>[];
+
+        // Loop through each message in the responseJson
+        for (final message in event) {
+          // Check if the username of the message is already in the set
+          if (!uniqueUserNames.contains(message.userName)) {
+            // If not, add the username to the set and add the message to the uniqueConversations list
+            uniqueUserNames.add(message.userName);
+            uniqueConversations.add(message);
+          }
+        }
+        // Return the list of unique conversations
+        return uniqueConversations;
+      });
+    } else {
+      return isar.conversations
+          .filter()
+          .conversationIdEqualTo(conversationId)
+          .build()
+          .watch(fireImmediately: true);
+    }
+  }
+
+  final appService = loc.locator<AppService>();
+  @override
+  Future<List<Conversation>> getScheduleMessages() async {
+    return isar.conversations
+        .filter()
+        .deliveredEqualTo(false)
+        .build()
+        .findAll();
+  }
+
+  @override
+  Future<void> sendScheduleMessages() async {
+    await appService.isLoggedIn();
+    List<Conversation> scheduledMessages = await getScheduleMessages();
+    for (Conversation message in scheduledMessages) {
+      final http.Response response = await socialsHttpClient.post(
+        Uri.parse("$commApi/reply"),
+        body: json.encode(message.toJson()),
+      );
+      if (response.statusCode == 200) {
+        final responseJson = jsonDecode(response.body);
+        final conversation = Conversation.fromJson(responseJson);
+        message.delivered = true;
+        message.messageId = conversation.messageId;
+
+        /// can not rely on remote server time using local, will fix remote later
+        /// to have same date format as here and use it
+        message.createdAt = DateTime.now().toString();
+        message.conversationId = conversation.conversationId;
+        message.userName = conversation.userName;
+        message.phoneNumberId = conversation.phoneNumberId;
+        message.businessId = conversation.businessId;
+        message.businessPhoneNumber = conversation.businessPhoneNumber;
+        isar.writeTxn(() async {
+          await isar.conversations.put(message);
+        });
+      } else if (response.statusCode == 402) {
+        // this means there is no credit
+        throw Exception('There is no available credit,can not send message');
+      }
+    }
+  }
+
+  @override
+  Future<Conversation?> getConversation({required String messageId}) async {
+    return await isar.conversations
+        .where()
+        .messageIdEqualTo(messageId)
+        .findFirst();
+  }
+
+  @override
+  Future<int> registerOnSocial(
+      {String? phoneNumberOrEmail, String? password}) async {
+    final http.Response response = await socialsHttpClient.post(
+      Uri.parse("$commApi/register"),
+      body: json.encode({"email": phoneNumberOrEmail, "password": password}),
+    );
+    if (response.statusCode == 200) {
+      return Future.value(200);
+    }
+
+    // var headers = {'Content-Type': 'application/json'};
+    // var request = http.Request('POST', Uri.parse("$commApi/register"));
+    // request.body =
+    //     json.encode({"email": phoneNumberOrEmail, "password": password});
+    // request.headers.addAll(headers);
+
+    // http.StreamedResponse response = await request.send();
+
+    // if (response.statusCode == 200) {
+    //   print(await response.stream.bytesToString());
+    // }
+    throw Exception();
+  }
+
+  @override
+  Future<bool> isTokenValid({
+    required String tokenType,
+    required int businessId,
+  }) async {
+    final token = await isar.tokens
+        .filter()
+        .typeEqualTo(tokenType)
+        .and()
+        .businessIdEqualTo(businessId)
+        .build()
+        .findFirst();
+
+    if (token == null) {
+      return false;
+    }
+
+    final now = DateTime.now();
+
+    if (now.isBefore(token.validFrom) || now.isAfter(token.validUntil)) {
+      isar.writeTxn(() => isar.tokens.delete(token.id));
+      return false;
+    }
+
+    return true;
+  }
+
+  @override
+  Future<SocialToken> loginOnSocial(
+      {String? phoneNumberOrEmail, String? password}) async {
+    final http.Response response = await socialsHttpClient.post(
+      Uri.parse("$commApi/login"),
+      body: json.encode({"email": phoneNumberOrEmail, "password": password}),
+    );
+
+    if (response.statusCode == 200) {
+      SocialToken responseBody = SocialToken.fromRawJson(response.body);
+      return responseBody;
+    } else {
+      throw Exception("Failed to get token");
+    }
+  }
+
+  @override
+  Future<Setting?> getSocialSetting() async {
+    String? phoneNumber = ProxyService.box.getUserPhone();
+    if (phoneNumber == null) {
+      return null;
+    }
+    await Future.delayed(Duration(seconds: 20));
+    final number = phoneNumber.replaceAll("+", "");
+    final http.Response response =
+        await socialsHttpClient.get(Uri.parse("$commApi/settings/$number"));
+    // convert response to Setting
+    if (response.statusCode == 200) {
+      Setting setting = Setting.fromJson(jsonDecode(response.body));
+      return setting;
+    }
+    throw Exception("Can't get social setting ${response.body}${number}");
+  }
+
+  @override
+  Future<void> patchSocialSetting({required Setting setting}) async {
+    /// a hack to delay 20 seconds for theserver to not return forbidden as we have called the aws api before
+    /// so we need to wait 20 seconds to make another call, I will need to investigate on server later
+    await Future.delayed(Duration(seconds: 20));
+    int businessId = ProxyService.box.getBusinessId()!;
+    final http.Response response =
+        await socialsHttpClient.patch(Uri.parse("$commApi/settings"),
+            body: json.encode({
+              "token": setting.token,
+              "businessPhoneNumber": setting.businessPhoneNumber,
+              "enrolledInBot": setting.enrolledInBot,
+              "autoRespond": setting.autoRespond,
+              "businessId": businessId,
+              "deviceToken": setting.deviceToken
+            }));
+    // convert response to Setting
+    if (response.statusCode != 200) {
+      throw Exception(
+          "Can't  patch  settings patch ${response.body}${setting.toJson()}");
+    }
+  }
+
+  @override
+  Future<Device?> getDevice({required String linkingCode}) {
+    // get device from isar with linking code and return it
+    return isar.devices
+        .filter()
+        .linkingCodeEqualTo(linkingCode)
+        .build()
+        .findFirst();
+  }
+
+  @override
+  Stream<List<Device>> getDevices({required int businessId}) {
+    // get device from isar with linking code and return it
+    return isar.devices
+        .filter()
+        .busienssIdEqualTo(businessId)
+        .build()
+        .watch(fireImmediately: true);
+  }
+
+  @override
+  Future<List<Device>> unpublishedDevices({required int businessId}) async {
+    return await isar.devices
+        .filter()
+        .busienssIdEqualTo(businessId)
+        .and()
+        .pubNubPublishedEqualTo(false)
+        .build()
+        .findAll();
+  }
+
+  @override
+  Stream<Business> businessStream({required int businessId}) {
+    return isar.business
+        .filter()
+        .idEqualTo(businessId)
+        .build()
+        .watch(fireImmediately: true)
+        .asyncMap((event) => event.first);
+  }
+
+  @override
+  Future<ITenant?> getTenantBYUserId({required int userId}) async {
+    return isar.iTenants.filter().userIdEqualTo(userId).build().findFirst();
+  }
+
+  String decodeUrl(String url) {
+    var decodedUrl = Uri.parse(url).replace(
+        pathSegments: url.split('&#x2F;&#x2F;').map((e) => Uri.encodeFull(e)));
+    return decodedUrl.toString();
+  }
+
+  @override
+  Future<void> loadConversations(
+      {required int businessId,
+      int? pageSize = 10,
+      String? pk,
+      String? sk}) async {
+    String? lastPk = ProxyService.box.getPk();
+    String? lastSk = ProxyService.box.getSk();
+
+    final response = await socialsHttpClient.get(Uri.parse(
+        '${commApi}/messages/${businessId}?pageSize=${pageSize}&pk=${lastPk}&sk=${lastSk}'));
+
+    if (response.statusCode == 200) {
+      final messagesJson = jsonDecode(response.body)['messages'];
+      List<Conversation> messages = (messagesJson as List<dynamic>)
+          .map((e) => Conversation.fromJson(e))
+          .toList();
+
+      for (Conversation conversation in messages) {
+        Conversation? localConversation = await ProxyService.isarApi
+            .getConversation(messageId: conversation.messageId!);
+        // if date is improperly formatted then format it right
+        // the bellow date format will be like 5th May converter
+        final DateFormat formatter = DateFormat('EEE MMM dd yyyy');
+        DateTime createdAt;
+        try {
+          createdAt = formatter.parse(conversation.createdAt!);
+        } on FormatException {
+          /// in case it fail to format set fake date
+          createdAt = DateTime.now();
+        }
+        conversation.createdAt = createdAt.toIso8601String();
+        conversation.avatar = HtmlUnescape().convert(conversation.avatar);
+        log(conversation.avatar, name: "converted URL");
+        if (localConversation == null) {
+          await ProxyService.isarApi.create(data: conversation);
+        }
+      }
+
+      if (jsonDecode(response.body)['lastKey'] != null) {
+        // Set lastKey to the value returned by the API
+        String pk = jsonDecode(response.body)['lastKey']['PK'] as String;
+        String sk = jsonDecode(response.body)['lastKey']['SK'] as String;
+        ProxyService.box
+            .write(key: 'pk', value: pk.replaceAll("messages#", ""));
+        ProxyService.box
+            .write(key: 'sk', value: sk.replaceAll("messages#", ""));
+      }
+    }
+  }
+
+  @override
+  Future<bool> updateContact(
+      {required Map<String, dynamic> contact, required int businessId}) async {
+    final response = await socialsHttpClient.patch(
+      Uri.parse("$commApi/contacts/${businessId}"),
+      body: jsonEncode(contact),
+    );
+    if (response.statusCode != 200) {
+      return false;
+    }
+    return true;
+  }
+
+  @override
+  Future<List<OrderItem>> orderItems({required int orderId}) async {
+    return await isar.orderItems.where().orderIdEqualTo(orderId).findAll();
+  }
+
+  @override
+  Stream<List<OrderItem>> orderItemsStream({required int orderId}) {
+    return isar.orderItems
+        .where()
+        .orderIdEqualTo(orderId)
+        .watch()
+        .map((event) => event.toList());
   }
 }

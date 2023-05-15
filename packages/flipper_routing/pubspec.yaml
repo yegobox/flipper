@@ -4,18 +4,26 @@ version: 0.0.1-dev.3
 repository: https://github.com/yegobox/packages
 
 environment:
-  sdk: ">=2.17.0 <3.0.0"
+  sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  go_router: ^3.0.1
+
   flipper_dashboard: ^0.0.1-dev.5
   flipper_login: ^0.0.1-dev.5
   flipper_models: ^0.0.1-dev.7
   stacked_services: ^1.0.0
-  stacked: ^3.1.0+2
-
+  stacked: ^3.2.5
+  url_strategy: ^0.2.0
   flipper_finance: ^0.0.1
   logger: ^1.1.0
   firebase_ui_auth: ^1.1.16
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^1.0.0
+  build_runner: ^2.2.0
+
+  stacked_generator: 1.0.0
+  mockito: ^5.3.2

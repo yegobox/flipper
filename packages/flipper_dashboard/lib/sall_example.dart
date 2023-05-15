@@ -1,4 +1,3 @@
-import 'package:flipper_routing/routes.logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
@@ -6,7 +5,6 @@ import 'customappbar.dart';
 import 'package:stacked/stacked.dart';
 import 'package:google_fonts/google_fonts.dart';
 // import 'package:easy_debounce/easy_debounce.dart';
-import 'package:go_router/go_router.dart';
 
 enum ForHere { lafayette, jefferson }
 
@@ -21,7 +19,6 @@ class Sell extends StatelessWidget {
   final Product product;
   final ForHere forHere = ForHere.lafayette;
   final ToGo toGo = ToGo.lafayette;
-  final log = getLogger('Sell');
 
   final Delivery delivery = Delivery.lafayette;
   final Pickup pick = Pickup.lafayette;
@@ -518,10 +515,10 @@ class Sell extends StatelessWidget {
         child: InkWell(
           onTap: () {
             //load stock of this variant
-            model.loadVariantStock(variantId: variant.id!!);
+            model.loadVariantStock(variantId: variant.id!);
             model.keypad
                 .setAmount(amount: variant.retailPrice * model.quantity);
-            model.toggleCheckbox(variantId: variant.id!!);
+            model.toggleCheckbox(variantId: variant.id!);
           },
           child: Container(
             child: Padding(
@@ -535,7 +532,7 @@ class Sell extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       FutureBuilder<Variant?>(
-                          future: model.getVariant(variantId: variant.id!!),
+                          future: model.getVariant(variantId: variant.id!),
                           builder: (context, snapshot) {
                             return snapshot.hasData
                                 ? Expanded(
@@ -598,19 +595,19 @@ class Sell extends StatelessWidget {
             backgroundColor: Colors.white,
             appBar: CustomAppBar(
               onPop: () {
-                GoRouter.of(context).pop();
+                // _routerService.pop();
               },
               title: buildTitle(model),
               rightActionButtonName: 'Save',
               disableButton: false,
               showActionButton: true,
-              onPressedCallback: () async {
+              onActionButtonClicked: () async {
                 await model.saveOrder(
                   variationId: model.checked,
                   amountTotal: model.amountTotal,
                   customItem: false,
                 );
-                GoRouter.of(context).pop();
+                // _routerService.pop();
               },
               // actionButtonName: 'Add',
               icon: Icons.close,

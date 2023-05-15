@@ -5,27 +5,26 @@ library flipper_models;
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar/utils.dart';
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_routing/app.router.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:go_router/go_router.dart';
-import 'package:flipper_routing/routes.logger.dart';
 
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/locator.dart' as loc;
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/product_service.dart';
-
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:isar_crdt/utils/hlc.dart';
+import 'package:flipper_models/hlc.dart';
 import 'package:stacked/stacked.dart';
 
 // class ProductViewModel extends BusinessHomeViewModel {
 class ProductViewModel extends AddTenantViewModel {
   // extends ReactiveViewModel
-  final AppService app = locator<AppService>();
+  final AppService app = loc.locator<AppService>();
   // ignore: annotate_overrides, overridden_fields
-  final log = getLogger('ProductViewModel');
-  final ProductService productService = locator<ProductService>();
-
+  final ProductService productService = loc.locator<ProductService>();
+  final _routerService = locator<RouterService>();
   List<PColor> get colors => app.colors;
 
   List<IUnit> get units => app.units;
@@ -48,7 +47,7 @@ class ProductViewModel extends AddTenantViewModel {
   /// Create a temporal product to use during this session of product creation
   /// the same product will be use if it is still temp product
   String kProductName = 'null';
-  Future<int> getTempOrCreateProduct({int? productId}) async {
+  Future<Product> getTempOrCreateProduct({int? productId}) async {
     if (productId != null) {
       inUpdateProcess = true;
       Product? product = await ProxyService.isarApi.getProduct(id: productId);
@@ -57,7 +56,7 @@ class ProductViewModel extends AddTenantViewModel {
 
       productService.variantsProduct(productId: product.id!);
       notifyListeners();
-      return product.id!;
+      return product;
     }
     int branchId = ProxyService.box.getBranchId()!;
     int businessId = ProxyService.box.getBusinessId()!;
@@ -82,12 +81,12 @@ class ProductViewModel extends AddTenantViewModel {
       productService.setCurrentProduct(product: product);
       kProductName = product.name;
       rebuildUi();
-      return product.id!;
+      return product;
     }
     productService.setCurrentProduct(product: isTemp);
     await productService.variantsProduct(productId: isTemp.id!);
     rebuildUi();
-    return isTemp.id!;
+    return isTemp;
   }
 
   void setName({String? name}) {
@@ -116,13 +115,12 @@ class ProductViewModel extends AddTenantViewModel {
 
   ///create a new category and refresh list of categories
   Future<void> createCategory() async {
-    final int? branchId = ProxyService.box.read(key: 'branchId');
+    final int? branchId = ProxyService.box.getBranchId();
     final categoryId = DateTime.now().millisecondsSinceEpoch;
     if (productName == null) return;
     final Category category = Category()
       ..id = categoryId
       ..active = true
-      ..table = AppTables.category
       ..focused = false
       ..name = productName!
       ..branchId = branchId!;
@@ -131,7 +129,7 @@ class ProductViewModel extends AddTenantViewModel {
   }
 
   void updateCategory({required Category category}) async {
-    int branchId = ProxyService.box.read(key: 'branchId');
+    int branchId = ProxyService.box.getBranchId()!;
     for (Category category in categories) {
       if (category.focused) {
         Category cat = category;
@@ -222,25 +220,8 @@ class ProductViewModel extends AddTenantViewModel {
     }
   }
 
-  void browsePictureFromGallery(
-      {required int productId, required Function callBack}) {
-    ProxyService.upload.browsePictureFromGallery(
-        productId: productId,
-        onComplete: (res) {
-          callBack(res);
-        });
-  }
-
-  void takePicture({required int productId, required Function callBack}) {
-    ProxyService.upload.takePicture(
-        productId: productId,
-        onComplete: (res) {
-          callBack(res);
-        });
-  }
-
   Future<void> switchColor({required PColor color}) async {
-    int branchId = ProxyService.box.read(key: 'branchId');
+    int branchId = ProxyService.box.getBranchId()!;
     for (PColor c in colors) {
       if (c.active) {
         final PColor? _color = await ProxyService.isarApi.getColor(id: c.id);
@@ -284,7 +265,7 @@ class ProductViewModel extends AddTenantViewModel {
 
   void navigateAddVariation(
       {required int productId, required BuildContext context}) {
-    GoRouter.of(context).push("/variation/$productId");
+    _routerService.navigateTo(AddVariationRoute(productId: productId));
   }
 
   /// When called should check the related product's variant and set the retail and or supply price
@@ -297,6 +278,7 @@ class ProductViewModel extends AddTenantViewModel {
         if (variation.name == "Regular") {
           variation.supplyPrice = supplyPrice;
           variation.productName = product!.name;
+          variation.action = actions["update"];
           variation.productId = variation.productId;
           ProxyService.isarApi.update(data: variation);
           Stock? stock = await ProxyService.isarApi
@@ -316,6 +298,7 @@ class ProductViewModel extends AddTenantViewModel {
           variation.retailPrice = retailPrice;
           variation.productId = variation.productId;
           variation.prc = retailPrice;
+          variation.action = actions["update"];
           variation.productName = product!.name;
           ProxyService.isarApi.update(data: variation);
           Stock? stock = await ProxyService.isarApi
@@ -341,17 +324,13 @@ class ProductViewModel extends AddTenantViewModel {
     mproduct.barCode = productService.barCode.toString();
     mproduct.color = app.currentColor;
     mproduct.color = app.currentColor;
+    mproduct.action = actions["update"];
 
-    /// we negate where remoteID is null because we want to change action to update
-    /// only if the product is already synced with the server
-    if (inUpdateProcess != null &&
-        inUpdateProcess! &&
-        mproduct.remoteID != null) {
-      mproduct.action = actions["update"];
-      mproduct.lastTouched = removeTrailingDash(Hlc.fromDate(
-              DateTime.now(), ProxyService.box.getBranchId()!.toString())
-          .toString());
-    }
+    /// since we have action update, then we can also update lastTouched
+    /// always a product is in update state as we start with temp product initially
+    mproduct.lastTouched = removeTrailingDash(
+        Hlc.fromDate(DateTime.now(), ProxyService.box.getBranchId()!.toString())
+            .toString());
 
     final response = await ProxyService.isarApi.update(data: mproduct);
     List<Variant> variants = await ProxyService.isarApi
@@ -369,6 +348,8 @@ class ProductViewModel extends AddTenantViewModel {
           inUpdateProcess! &&
           variant.remoteID != null) {
         variant.action = actions["update"];
+
+        /// since we have action update, then we can also update lastTouched
         variant.lastTouched = removeTrailingDash(Hlc.fromDate(
                 DateTime.now(), ProxyService.box.getBranchId()!.toString())
             .toString());
@@ -385,7 +366,7 @@ class ProductViewModel extends AddTenantViewModel {
 
   void deleteProduct({required int productId}) async {
     //get variants->delete
-    int branchId = ProxyService.box.read(key: 'branchId');
+    int branchId = ProxyService.box.getBranchId()!;
     List<Variant> variations = await ProxyService.isarApi
         .variants(branchId: branchId, productId: productId);
     for (Variant variation in variations) {
@@ -394,7 +375,7 @@ class ProductViewModel extends AddTenantViewModel {
       Stock? stock =
           await ProxyService.isarApi.stockByVariantId(variantId: variation.id!);
       if (stock != null) {
-        await ProxyService.isarApi.delete(id: stock.id, endPoint: 'stock');
+        await ProxyService.isarApi.delete(id: stock.id!, endPoint: 'stock');
       }
     }
     //then delete the product
@@ -421,10 +402,13 @@ class ProductViewModel extends AddTenantViewModel {
   /// a discount can not go beyond the item's price
   Future<bool> applyDiscount({required Discount discount}) async {
     int branchId = ProxyService.box.getBranchId()!;
-    Order? order = await ProxyService.keypad.getOrder(branchId: branchId);
+    Order? order =
+        await ProxyService.keypad.getPendingOrder(branchId: branchId);
 
     if (order != null) {
-      for (OrderItem item in order.orderItems) {
+      List<OrderItem> orderItems =
+          await ProxyService.isarApi.getOrderItemsByOrderId(orderId: order.id!);
+      for (OrderItem item in orderItems) {
         if (item.price.toInt() <= discount.amount! && item.discount == null) {
           item.discount = item.price;
 

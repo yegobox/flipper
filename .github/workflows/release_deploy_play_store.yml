@@ -9,7 +9,7 @@ on:
         default: "beta"
   # Refs/tags push events to matching v*, i.e. v1.0, v20.15.10
   push:
-    branches: [main, dev]
+    branches: [main, dev, socials]
     # tags:
     # - 'v*'
 env:
@@ -20,11 +20,11 @@ jobs:
     name: Integration Testing
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
       - uses: actions/setup-java@v1
         with:
           java-version: "8.x"
-      - uses: subosito/flutter-action@master
+      - uses: subosito/flutter-action@v2
         with:
           channel: "stable"
       - run: git submodule update --init
@@ -41,6 +41,41 @@ jobs:
           dart pub global activate melos 2.9.0
           melos bootstrap
           flutter test --dart-define=Test=true
+      # android_integration_test:
+      #   runs-on: macos-13
+      #   timeout-minutes: 30
+      #   strategy:
+      #     matrix:
+      #       android-api-level: [ 21, 26, 32 ]
+
+      #   steps:
+      #     - name: "Checkout repository"
+      #       uses: actions/checkout@v3
+      #     - name: "Install Flutter"
+      #       run: ./.github/workflows/scripts/install-flutter.sh stable
+      #     - name: "Install Tools"
+      #       run: ./.github/workflows/scripts/install-tools.sh
+
+      #     # Required for Android builds
+      #     - uses: actions/setup-java@v3
+      #       with:
+      #         distribution: "temurin"
+      #         java-version: "11"
+
+      #     - name: "Bootstrap Workspace"
+      #       run: melos bootstrap --scope="$PLUGIN_SCOPE"
+
+      #     - name: "Android Integration Test"
+      #       uses: reactivecircus/android-emulator-runner@v2
+      #       with:
+      #         api-level: ${{ matrix.android-api-level }}
+      #         cores: 3
+      #         target: google_apis
+      #         arch: x86_64
+      #         force-avd-creation: false
+      #         profile: Nexus 5X
+      #         script: ./.github/workflows/scripts/integration-test.sh android share_plus_example
+
   fastlane-deploy:
     name: "Google Deploy"
     needs: [testing]
@@ -55,14 +90,14 @@ jobs:
 
       # Checkout gallery code and get packages.
       - name: Checkout flipper code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - uses: actions/setup-java@v2 #plugin for setting up the java
         with:
           distribution: "zulu"
           java-version: "11" #defines the java version
-      - name: Update version in YAML
-        # run: sed -i 's/1.0.1-dev.3/1.170.28+1111010198/g' pubspec.yaml
-        run: sed -i 's/1.0.1-dev.3/1.170.81+1111010281/g' pubspec.yaml
+      # pause seedings
+      # - name: Update version in YAML
+      #   run: sed -i 's/1.0.1-dev.3/1.170.149+1111010349/g' pubspec.yaml
       - name: submodule init
         run: git submodule update --init
       - name: Configure Missing files
@@ -114,7 +149,7 @@ jobs:
     needs: [fastlane-deploy]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Slack Notification
         uses: rtCamp/action-slack-notify@v2
         env:

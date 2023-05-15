@@ -1,9 +1,11 @@
 import 'package:flipper_models/isar_models.dart';
-import 'package:flipper_routing/routes.router.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_routing/receipt_types.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:go_router/go_router.dart';
 import 'package:stacked/stacked.dart';
 
 class TransactionDetail extends StatefulWidget {
@@ -75,6 +77,7 @@ class _TransactionDetailState extends State<TransactionDetail> {
         .toList();
   }
 
+  final _routerService = locator<RouterService>();
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<BusinessHomeViewModel>.reactive(
@@ -96,19 +99,19 @@ class _TransactionDetailState extends State<TransactionDetail> {
               children: [
                 OutlinedButton(
                   onPressed: () {
-                    GoRouter.of(context).push(
-                        Routes.afterSale +
-                            "/${widget.order.subTotal}/${ReceiptType.nr}",
-                        extra: widget.order);
+                    _routerService.navigateTo(AfterSaleRoute(
+                        totalOrderAmount: widget.order.subTotal,
+                        receiptType: ReceiptType.nr,
+                        order: widget.order));
                   },
                   child: const Text('Issue Refund'),
                 ),
                 OutlinedButton(
                   onPressed: () {
-                    GoRouter.of(context).push(
-                        Routes.afterSale +
-                            "/${widget.order.subTotal}/${ReceiptType.cs}",
-                        extra: widget.order);
+                    _routerService.navigateTo(AfterSaleRoute(
+                        totalOrderAmount: widget.order.subTotal,
+                        receiptType: ReceiptType.cs,
+                        order: widget.order));
                   },
                   child: const Text('New receipt'),
                 ),

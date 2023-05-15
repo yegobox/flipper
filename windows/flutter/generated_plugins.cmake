@@ -6,6 +6,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   battery_plus
   connectivity_plus_windows
   desktop_webview_auth
+  firebase_core
   flutter_acrylic
   geolocator_windows
   isar_flutter_libs

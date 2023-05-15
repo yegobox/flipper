@@ -1,12 +1,12 @@
 library flipper_services;
 
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/cupertino.dart';
 import 'abstractions/dynamic_link.dart';
-import 'package:flipper_routing/routes.logger.dart';
-import 'package:flipper_routing/routes.router.dart';
-import 'package:go_router/go_router.dart';
 
 class UnSupportedDynamicLink implements DynamicLink {
   @override
@@ -19,8 +19,8 @@ class UnSupportedDynamicLink implements DynamicLink {
 }
 
 class DynamicLinkService implements DynamicLink {
-  final log = getLogger('DynamicLinkService');
   FirebaseDynamicLinks dynamicLinks = FirebaseDynamicLinks.instance;
+  final _routerService = locator<RouterService>();
   @override
   Future handleDynamicLink(BuildContext context) async {
     // if the app is opened with the link
@@ -42,7 +42,6 @@ class DynamicLinkService implements DynamicLink {
     if (data == null) return;
     final Uri deepLink = data.link;
 
-    log.i('_deepLink: $deepLink');
     bool isRefer = deepLink.pathSegments.contains('refer');
     if (isRefer) {
       String? code = deepLink.queryParameters['code'];
@@ -51,14 +50,15 @@ class DynamicLinkService implements DynamicLink {
       }
       //save the code in localstorage to be used later
       ProxyService.box.write(key: 'referralCode', value: code.toString());
-      GoRouter.of(context).go(Routes.boot);
+
+      _routerService.navigateTo(StartUpViewRoute());
     }
   }
 
   @override
   Future<String> createDynamicLink() async {
     // get minimum version from firestore to keep up with update
-    final userId = ProxyService.box.read(key: 'userId');
+    final userId = ProxyService.box.getUserId();
     final DynamicLinkParameters parameters = DynamicLinkParameters(
       uriPrefix: 'https://flipper.page.link',
       link: Uri.parse("https://flipper.rw/refer?code=$userId"),
@@ -80,7 +80,7 @@ class DynamicLinkService implements DynamicLink {
     try {
       ShortDynamicLink shortLink =
           await dynamicLinks.buildShortLink(parameters);
-      log.d(shortLink.shortUrl.toString());
+
       return shortLink.shortUrl.toString(); //as ShortDynamicLink
     } catch (e) {
       return "https://play.google.com/store/apps/details?id=rw.flipper";

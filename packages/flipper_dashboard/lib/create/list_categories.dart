@@ -1,18 +1,21 @@
-import 'package:flipper_routing/routes.router.dart';
 import 'package:flipper_dashboard/customappbar.dart';
+import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_ui/helpers/utils.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
+
+import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_routing/app.router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
 import 'divider.dart';
-import 'package:go_router/go_router.dart';
 
 class ListCategories extends StatelessWidget {
-  const ListCategories({Key? key, required this.categories}) : super(key: key);
+  ListCategories({Key? key, required this.categories}) : super(key: key);
   final List<Category> categories;
+  final _routerService = locator<RouterService>();
   Wrap categoryList(
       {required List<Category> categories,
       required BuildContext context,
@@ -69,7 +72,7 @@ class ListCategories extends StatelessWidget {
         return Scaffold(
           appBar: CustomAppBar(
             onPop: () {
-              GoRouter.of(context).pop();
+              _routerService.pop();
             },
             showActionButton: false,
             title: 'Category',
@@ -99,7 +102,9 @@ class ListCategories extends StatelessWidget {
                     ),
                     GestureDetector(
                       onTap: () {
-                        GoRouter.of(context).push(Routes.category);
+                        // GoRouter.of(context).push(Routes.category);
+                        _routerService.navigateTo(
+                            ListCategoriesRoute(categories: categories));
                       },
                       child: ListTile(
                         title: Text('Create Category ',

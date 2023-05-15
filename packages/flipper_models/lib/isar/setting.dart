@@ -1,58 +1,66 @@
+import 'package:flipper_models/sync_service.dart';
 import 'package:isar/isar.dart';
+import 'package:json_annotation/json_annotation.dart';
+import 'package:pocketbase/pocketbase.dart';
 part 'setting.g.dart';
 
+@JsonSerializable()
 @Collection()
-class Setting {
+class Setting extends IJsonSerializable {
   Setting({
     this.id = 0,
     required this.email,
     required this.hasPin,
+    required this.userId,
+    required this.type,
     this.autoPrint,
     this.openReceiptFileOSaleComplete,
     this.sendDailyReport,
     this.defaultLanguage,
-    this.googleSheetDocCreated,
-    required this.userId,
     this.attendnaceDocCreated,
     this.isAttendanceEnabled,
+    this.enrolledInBot,
+    this.deviceToken,
+    this.businessPhoneNumber,
+    this.autoRespond,
+    this.bToken,
+    this.businessId,
+    this.createdAt,
+    this.token,
   });
-  Id id = Isar.autoIncrement;
-  late String email;
-  late String hasPin;
-  @Index()
-  late int userId;
-  late bool? openReceiptFileOSaleComplete;
-  late bool? autoPrint;
-  late bool? sendDailyReport;
-  late String? defaultLanguage;
-  late bool? googleSheetDocCreated;
-  late bool? attendnaceDocCreated;
-  late bool? isAttendanceEnabled;
 
-  factory Setting.fromJson(Map<String, dynamic> json) => Setting(
-        id: json["id"],
-        openReceiptFileOSaleComplete: json["openReceiptFileOSaleComplete"],
-        autoPrint: json["autoPrint"],
-        defaultLanguage: json["defaultLanguage"],
-        email: json["email"],
-        googleSheetDocCreated: json["googleSheetDocCreated"],
-        hasPin: json["hasPin"],
-        sendDailyReport: json["sendDailyReport"],
-        userId: json["userId"],
-        attendnaceDocCreated: json["attendnaceDocCreated"],
-        isAttendanceEnabled: json["isAttendanceEnabled"],
-      );
-  Map<String, dynamic> toJson() => {
-        "id": id,
-        "openReceiptFileOSaleComplete": openReceiptFileOSaleComplete,
-        "autoPrint": autoPrint,
-        "defaultLanguage": defaultLanguage,
-        "email": email,
-        "googleSheetDocCreated": googleSheetDocCreated,
-        "sendDailyReport": sendDailyReport,
-        "hasPin": hasPin,
-        "userId": userId,
-        "attendnaceDocCreated": attendnaceDocCreated,
-        "isAttendanceEnabled": isAttendanceEnabled,
-      };
+  @JsonKey(includeToJson: false, includeFromJson: false)
+  Id id = Isar.autoIncrement;
+  String? email;
+  String? hasPin;
+  @Index()
+  int? userId;
+  bool? openReceiptFileOSaleComplete;
+  bool? autoPrint;
+  bool? sendDailyReport;
+  String? defaultLanguage;
+  bool? attendnaceDocCreated;
+  bool? isAttendanceEnabled;
+  String? type;
+  bool? enrolledInBot;
+  String? deviceToken;
+  String? businessPhoneNumber;
+  bool? autoRespond;
+  String? bToken;
+  String? token;
+  @Index()
+  @JsonKey(fromJson: _toInt)
+  int? businessId;
+  String? createdAt;
+  factory Setting.fromRecord(RecordModel record) =>
+      Setting.fromJson(record.toJson());
+
+  factory Setting.fromJson(Map<String, dynamic> json) =>
+      _$SettingFromJson(json);
+  @override
+  Map<String, dynamic> toJson() => _$SettingToJson(this);
+
+  static int _toInt(String value) {
+    return int.parse(value);
+  }
 }

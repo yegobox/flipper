@@ -27,10 +27,10 @@ class FirebaseAnalyticsService with ListenableServiceMixin implements Analytic {
   void addContext() {
     // Set the user ID
     FirebaseAnalytics.instance
-        .setUserId(id: ProxyService.box.read(key: 'userId'));
+        .setUserId(id: ProxyService.box.getUserId()!.toString());
 
     // Set the "user" user property to the user ID
     FirebaseAnalytics.instance.setUserProperty(
-        name: "user", value: ProxyService.box.read(key: 'userId'));
+        name: "user", value: ProxyService.box.getUserId()!.toString());
   }
 }

@@ -3,12 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
 import 'package:flipper_models/isar_models.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 class ListUnits extends StatelessWidget {
-  const ListUnits({Key? key, required this.type}) : super(key: key);
+  ListUnits({Key? key, required this.type}) : super(key: key);
   final String type;
-
+  final _routerService = locator<RouterService>();
   List<Widget> _getUnitsWidgets(ProductViewModel model) {
     final List<Widget> list = <Widget>[];
     for (var i = 0; i < model.units.length; i++) {
@@ -47,13 +48,13 @@ class ListUnits extends StatelessWidget {
         return Scaffold(
           appBar: CustomAppBar(
             onPop: () {
-              GoRouter.of(context).pop();
+              _routerService.pop();
             },
             title: 'Unit Type',
             showActionButton: false,
             disableButton: false,
-            onPressedCallback: () {
-              GoRouter.of(context).pop();
+            onActionButtonClicked: () {
+              _routerService.pop();
             },
             icon: Icons.close,
             multi: 3,

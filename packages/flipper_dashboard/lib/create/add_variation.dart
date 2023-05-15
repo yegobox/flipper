@@ -1,13 +1,13 @@
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_localize/flipper_localize.dart';
-import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_dashboard/create/section_select_unit.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:stacked/stacked.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'divider.dart';
 
 class AddVariation extends StatefulWidget {
@@ -26,7 +26,7 @@ class _AddVariationState extends State<AddVariation> {
 
   TextEditingController nameController = TextEditingController();
   bool isTaxExempted = false;
-  final log = getLogger('AddVariation');
+  final _routerService = locator<RouterService>();
   String sku = '';
   @override
   void dispose() {
@@ -41,13 +41,13 @@ class _AddVariationState extends State<AddVariation> {
           return Scaffold(
             appBar: CustomAppBar(
               onPop: () {
-                GoRouter.of(context).pop();
+                _routerService.pop();
               },
               title: 'Add Variation',
               showActionButton: true,
               disableButton: model.lock,
               rightActionButtonName: 'Save',
-              onPressedCallback: () async {
+              onActionButtonClicked: () async {
                 Business? business = await ProxyService.isarApi.getBusiness();
                 String itemPrefix = "flip-";
                 String clip = itemPrefix +
@@ -64,7 +64,6 @@ class _AddVariationState extends State<AddVariation> {
                       action: "create",
                       productId: model.product.id!,
                       unit: model.productService.currentUnit!,
-                      table: AppTables.variation,
                       productName: nameController.text,
                       branchId: ProxyService.box.getBranchId()!,
                       supplyPrice: double.parse(costController.text),
@@ -82,7 +81,6 @@ class _AddVariationState extends State<AddVariation> {
                     ..id = variantId
                     ..branchId = ProxyService.box.getBranchId()!
                     ..taxPercentage = 0.0
-                    ..table = AppTables.variation
                     // RRA fields
                     ..bhfId = business?.bhfId
                     ..tin = business?.tinNumber
@@ -122,7 +120,7 @@ class _AddVariationState extends State<AddVariation> {
                   );
                   model.productService
                       .variantsProduct(productId: model.product.id!!);
-                  GoRouter.of(context).pop();
+                  _routerService.pop();
                 }
               },
               icon: Icons.close,

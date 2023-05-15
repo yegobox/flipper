@@ -1,5 +1,4 @@
-import 'package:flipper_routing/routes.logger.dart';
-import 'package:flipper_routing/routes.router.dart';
+import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_ui/toast.dart';
 import 'package:flutter/foundation.dart';
@@ -7,16 +6,24 @@ import 'package:flipper_models/isar_models.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:stacked/stacked.dart';
-import 'package:go_router/go_router.dart';
+
 import 'package:flipper_services/proxy.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'dart:io';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
-// import 'package:go_router/go_router.dart';
+import 'package:mobile_scanner/mobile_scanner.dart' as newKid;
+
+//
 
 class ScannView extends StatefulWidget {
-  const ScannView({Key? key, this.intent = 'selling'}) : super(key: key);
+  const ScannView(
+      {Key? key, this.intent = 'selling', this.useLatestImplementation = false})
+      : super(key: key);
   final String intent;
+  final bool useLatestImplementation;
 
   @override
   State<StatefulWidget> createState() => _ScannViewState();
@@ -24,10 +31,11 @@ class ScannView extends StatefulWidget {
 
 class _ScannViewState extends State<ScannView> {
   Barcode? result;
+  newKid.Barcode? resultForNewKid;
+  List<Offset> points = [];
   QRViewController? controller;
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
-  final log = getLogger('_ScannViewState');
-
+  final _routerService = locator<RouterService>();
   // In order to get hot reload to work we need to pause the camera if the platform
   // is android, or resume the camera if the platform is iOS.
   @override
@@ -44,24 +52,29 @@ class _ScannViewState extends State<ScannView> {
     return ViewModelBuilder<BusinessHomeViewModel>.reactive(
       viewModelBuilder: () => BusinessHomeViewModel(),
       builder: (context, model, child) {
+        final size = MediaQuery.of(context).size;
+        final double aspectRatio = size.width / size.height;
+
         return Scaffold(
           body: Stack(
             children: [
-              SizedBox(
-                height: MediaQuery.of(context).size.height,
-                width: 392.7,
+              AspectRatio(
+                aspectRatio: aspectRatio,
                 child: _buildQrView(context, model),
               ),
               Positioned(
-                bottom: MediaQuery.of(context).size.height / 1 - 120,
-                left: MediaQuery.of(context).size.width / 2 - 30,
-                right: MediaQuery.of(context).size.width / 2 - 20,
+                top: MediaQuery.of(context).size.height / 2 -
+                    (40 - 0.5 * 80) -
+                    340,
+                left: MediaQuery.of(context).size.width / 2 - 40,
                 child: IconButton(
-                  iconSize: 40,
-                  onPressed: () => GoRouter.of(context).pop(),
+                  iconSize: 80,
+                  onPressed: () => _routerService.pop(),
                   icon: const CircleAvatar(
+                    backgroundColor: Color(0xff006AFE),
                     child: Icon(
                       Icons.close,
+                      color: Colors.white,
                     ),
                   ),
                 ),
@@ -107,23 +120,37 @@ class _ScannViewState extends State<ScannView> {
         : 300.0;
     // To ensure the Scanner view is properly sizes after rotation
     // we need to listen for Flutter SizeChanged notification and update controller
-    return QRView(
-      key: qrKey,
-      onQRViewCreated: (controller) {
-        _onQRViewCreated(controller, model);
-      },
-      overlay: QrScannerOverlayShape(
-          borderColor: const Color(0xFF375778),
-          borderRadius: 10,
-          borderLength: 30,
-          borderWidth: 10,
-          cutOutSize: scanArea),
-      onPermissionSet: (ctrl, p) => _onPermissionSet(context, ctrl, p),
-    );
+    if (widget.useLatestImplementation) {
+      // TODO: waiting for this PR: https://github.com/juliansteenbakker/mobile_scanner/pull/586
+      return Stack(
+        children: [
+          newKid.MobileScanner(
+            fit: BoxFit.fill,
+            onDetect: (capture) {
+              final List<newKid.Barcode> barcodes = capture.barcodes;
+              performIntentForNewKid(barcodes.first, model);
+            },
+          ),
+        ],
+      );
+    } else {
+      return QRView(
+        key: qrKey,
+        onQRViewCreated: (controller) {
+          _onQRViewCreated(controller, model);
+        },
+        overlay: QrScannerOverlayShape(
+            borderColor: const Color(0xFF375778),
+            borderRadius: 10,
+            borderLength: 30,
+            borderWidth: 10,
+            cutOutSize: scanArea),
+        onPermissionSet: (ctrl, p) => _onPermissionSet(context, ctrl, p),
+      );
+    }
   }
 
   void _onPermissionSet(BuildContext context, QRViewController ctrl, bool p) {
-    log.i('${DateTime.now().toIso8601String()}_onPermissionSet $p');
     if (!p) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('no Permission')),
@@ -139,10 +166,11 @@ class _ScannViewState extends State<ScannView> {
       final split = result.split('-');
       if (split.length > 1 && split[0] == 'login') {
         /// send the login detail to pubnub
-        String userId = ProxyService.box.read(key: 'userId');
-        int businessId = ProxyService.box.read(key: 'businessId');
-        int branchId = ProxyService.box.read(key: 'branchId');
-        String phone = ProxyService.box.read(key: 'userPhone');
+        int userId = ProxyService.box.getUserId()!;
+        int businessId = ProxyService.box.getBusinessId()!;
+        int branchId = ProxyService.box.getBranchId()!;
+        String phone = ProxyService.box.getUserPhone()!;
+        int defaultApp = ProxyService.box.getDefaultApp();
         ProxyService.event.publish(loginDetails: {
           // this avoid users to log in to unintended device!
           'channel': split[1],
@@ -150,6 +178,10 @@ class _ScannViewState extends State<ScannView> {
           'businessId': businessId,
           'branchId': branchId,
           'phone': phone,
+          'defaultApp': defaultApp,
+          'deviceName': Platform.operatingSystem,
+          'deviceVersion': Platform.operatingSystemVersion,
+          'linkingCode': syncIdInt().toString()
         });
       }
     }
@@ -168,47 +200,78 @@ class _ScannViewState extends State<ScannView> {
 
     controller.scannedDataStream.first.then((scanData) {
       if (result == null) {
-        setState(() async {
-          result = scanData;
-          if (widget.intent == addBarCode) {
-            model.productService.setBarcode(scanData.code);
-          }
-          // split result on - if first part is login then
-          // it is a login request
-          scanToLogin(result: scanData.code);
-          if (widget.intent == attendance) {
-            // pull my bio data and asign them to the scan business.
-            bool isCheckInDone =
-                await ProxyService.isarApi.checkIn(checkInCode: scanData.code);
-            if (isCheckInDone) {
-              showSimpleNotification(
-                const Text('Check In Successful'),
-                background: Colors.green,
-                position: NotificationPosition.bottom,
-              );
-              GoRouter.of(context).pop();
-            }
-          }
-
-          navigate(scanData.code, model);
-        });
+        performIntent(scanData, model);
       }
     }).catchError((error) {
       // Handle the error here
     });
   }
 
+  void performIntentForNewKid(
+      newKid.Barcode scanData, BusinessHomeViewModel model) {
+    return setState(() async {
+      resultForNewKid = scanData;
+      if (widget.intent == addBarCode) {
+        model.productService.setBarcode(scanData.displayValue);
+      }
+      // split result on - if first part is login then
+      // it is a login request
+      scanToLogin(result: scanData.displayValue);
+      if (widget.intent == attendance) {
+        // pull my bio data and asign them to the scan business.
+        bool isCheckInDone = await ProxyService.isarApi
+            .checkIn(checkInCode: scanData.displayValue);
+        if (isCheckInDone) {
+          showSimpleNotification(
+            const Text('Check In Successful'),
+            background: Colors.green,
+            position: NotificationPosition.bottom,
+          );
+          _routerService.pop();
+        }
+      }
+
+      navigate(scanData.displayValue, model);
+    });
+  }
+
+  void performIntent(Barcode scanData, BusinessHomeViewModel model) {
+    return setState(() async {
+      result = scanData;
+      if (widget.intent == addBarCode) {
+        model.productService.setBarcode(scanData.code);
+      }
+      // split result on - if first part is login then
+      // it is a login request
+      scanToLogin(result: scanData.code);
+      if (widget.intent == attendance) {
+        // pull my bio data and asign them to the scan business.
+        bool isCheckInDone =
+            await ProxyService.isarApi.checkIn(checkInCode: scanData.code);
+        if (isCheckInDone) {
+          showSimpleNotification(
+            const Text('Check In Successful'),
+            background: Colors.green,
+            position: NotificationPosition.bottom,
+          );
+          _routerService.pop();
+        }
+      }
+
+      navigate(scanData.code, model);
+    });
+  }
+
   void navigate(String? code, BusinessHomeViewModel model) async {
     if (widget.intent == addBarCode) {
-      GoRouter.of(context).pop();
+      _routerService.pop();
       return;
     }
     if (widget.intent == selling) {
       Product? product =
           await model.productService.getProductByBarCode(code: code);
       if (product != null) {
-        GoRouter.of(context).go(Routes.sell + "/${product.id!}");
-
+        _routerService.navigateTo(SellRoute(product: product));
         return;
       }
       showSimpleNotification(
@@ -216,7 +279,7 @@ class _ScannViewState extends State<ScannView> {
         background: Colors.green,
         position: NotificationPosition.bottom,
       );
-      GoRouter.of(context).pop();
+      _routerService.pop();
       return;
     }
     if (widget.intent == attendance) {

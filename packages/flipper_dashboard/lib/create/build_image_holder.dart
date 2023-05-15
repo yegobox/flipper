@@ -1,18 +1,20 @@
 import 'package:flipper_models/isar_models.dart';
-import 'package:flipper_routing/routes.router.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_ui/helpers/utils.dart';
 import 'package:flutter/material.dart';
 import 'close_button.dart';
 import 'package:feather_icons/feather_icons.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flipper_routing/app.router.dart';
 
 class ColorAndImagePlaceHolder extends StatelessWidget {
-  const ColorAndImagePlaceHolder(
+  ColorAndImagePlaceHolder(
       {Key? key, required this.product, required this.currentColor})
       : super(key: key);
   final Product? product;
   final String currentColor;
+  final _routerService = locator<RouterService>();
   Future<Product?> getProduct() async {
     return product;
   }
@@ -21,7 +23,7 @@ class ColorAndImagePlaceHolder extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        GoRouter.of(context).push(Routes.colors);
+        _routerService.navigateTo(ColorTileRoute());
       },
       child: FutureBuilder<Product?>(
         future: getProduct(),

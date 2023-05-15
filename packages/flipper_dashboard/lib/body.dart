@@ -1,18 +1,17 @@
 import 'package:flipper_dashboard/transactions.dart';
 import 'package:flipper_localize/flipper_localize.dart';
-import 'package:flipper_ui/bottom_sheets/general_bottom_sheet.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_dashboard/sales_buttons_controller.dart';
 import 'package:flipper_dashboard/keypad_view.dart';
 import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flipper_dashboard/product_view.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
-import 'package:flipper_services/proxy.dart';
-import 'package:flipper_routing/routes.router.dart';
 import 'package:overlay_support/overlay_support.dart';
-import 'package:go_router/go_router.dart';
 import 'package:universal_platform/universal_platform.dart';
-
+import 'package:stacked_services/stacked_services.dart';
 import 'settings.dart';
 
 final isDesktopOrWeb = UniversalPlatform.isDesktopOrWeb;
@@ -22,6 +21,7 @@ Widget PaymentTicketManager(
     required BusinessHomeViewModel model,
     required TextEditingController controller,
     required bool nodeDisabled}) {
+  final _routerService = locator<RouterService>();
   return SalesButtonsController(
     tab: model.tab,
     model: model,
@@ -31,7 +31,9 @@ Widget PaymentTicketManager(
       saleCounts: model.keypad.itemsOnSale,
       onClick: () {
         if (model.kOrder != null) {
-          GoRouter.of(context).push(Routes.pay, extra: model.kOrder);
+          _routerService.navigateTo(PaymentsRoute(
+              order: model.kOrder!,
+              duePay: model.items.fold(0, (a, b) => a + (b.price * b.qty))));
         } else {
           showSimpleNotification(
             Text(FLocalization.of(context).noPayable),
@@ -44,30 +46,8 @@ Widget PaymentTicketManager(
       orders: model.keypad.itemsOnSale,
       duePay: model.kOrder?.subTotal,
       ticketHandler: () async {
-        await model.keypad.getTickets();
-        await model.keypad.getOrder(branchId: ProxyService.box.getBranchId()!);
-        if (model.kOrder == null && model.keypad.tickets.isNotEmpty) {
-          //then we know we need to resume.
-          //TODOfix this on desktop is not showing.
-          FlipperBottomSheet.showTicketsToSaleBottomSheet(
-            model: model,
-            context: context,
-          );
-        }
-        model.saveTicket((handle) {
-          if (handle == 'noNote') {
-            FlipperBottomSheet.showAddNoteToSaleBottomSheet(
-              model: model,
-              context: context,
-            );
-          } else if (handle == 'saved') {
-            showSimpleNotification(
-              Text('Ticket $handle'),
-              background: Colors.green,
-              position: NotificationPosition.bottom,
-            );
-          }
-        });
+        Order order = await ProxyService.isarApi.manageOrder();
+        _routerService.navigateTo(TicketsRoute(order: order));
       },
     ),
     controller: controller,
@@ -113,14 +93,14 @@ class _BodyWidgetState extends State<BodyWidget> {
           if (widget.model.tab == 3)
             Flexible(
               child: SettingPage(
-                business: widget.model.businesses,
-              ),
+                  business: widget.model.businesses,
+                  tenant: widget.model.tenant!),
             ),
           if (widget.model.tab == 4)
             Flexible(
               child: SettingPage(
-                business: widget.model.businesses,
-              ),
+                  business: widget.model.businesses,
+                  tenant: widget.model.tenant!),
             )
         ],
       ),

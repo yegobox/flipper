@@ -12,7 +12,8 @@ import 'package:flipper_models/sync.dart';
 import 'package:flipper_services/abstractions/system_time.dart';
 import 'package:flipper_services/billing_service.dart';
 import 'package:flipper_services/blue_thooth_service.dart';
-import 'package:flipper_services/common.dart';
+import 'package:flipper_services/event_interface.dart';
+import 'package:flipper_services/fake_local_storage.dart';
 import 'package:flipper_services/firebase_analytics_service.dart';
 import 'package:flipper_services/force_data_service.dart';
 import 'package:flipper_services/in_app_review.dart';
@@ -26,6 +27,7 @@ import 'package:flipper_services/cron_service.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_services/sharing_service.dart';
 import 'package:flipper_services/system_time_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'abstractions/dynamic_link.dart';
@@ -195,43 +197,69 @@ abstract class ThirdPartyServicesModule {
     return await RemoteService().getInstance();
   }
 
+  // @lazySingleton
+  // NavigationService get nav;
+  @lazySingleton
+  LocalStorage get box {
+    LocalStorage box;
+    if (kDebugMode) {
+      box = FakeLocalStorage();
+    } else {
+      box = LocalStorageImpl();
+    }
+    return box;
+  }
+
+  @lazySingleton
+  EventInterface get event {
+    EventInterface event;
+
+    event = EventService();
+
+    return event;
+  }
+
   @preResolve
   Future<IsarApiInterface> get isarApi async {
     //first check if we are in testing mode.
-    if (const bool.fromEnvironment('Test', defaultValue: false) == false) {
+    if ((const bool.fromEnvironment('Test', defaultValue: false) == false) &&
+        !kDebugMode) {
       log('in prod mode');
       return await IsarAPI().getInstance();
     } else {
       log("in test mode");
-      late Isar isar;
-      isar = await openTempIsar([
-        OrderSchema,
-        BusinessSchema,
-        BranchSchema,
-        OrderItemSchema,
-        ProductSchema,
-        VariantSchema,
-        ProfileSchema,
-        SubscriptionSchema,
-        IPointSchema,
-        StockSchema,
-        FeatureSchema,
-        VoucherSchema,
-        PColorSchema,
-        CategorySchema,
-        IUnitSchema,
-        SettingSchema,
-        DiscountSchema,
-        CustomerSchema,
-        PinSchema,
-        ReceiptSchema,
-        DrawersSchema,
-        ITenantSchema,
-        PermissionSchema,
-        CounterSchema,
-        TokenSchema
-      ]);
-      return await IsarAPI().getInstance(iisar: isar);
+      // late Isar isar;
+      // isar = await openTempIsar([
+      //   OrderSchema,
+      //   BusinessSchema,
+      //   BranchSchema,
+      //   OrderItemSchema,
+      //   ProductSchema,
+      //   VariantSchema,
+      //   ProfileSchema,
+      //   SubscriptionSchema,
+      //   IPointSchema,
+      //   StockSchema,
+      //   FeatureSchema,
+      //   VoucherSchema,
+      //   PColorSchema,
+      //   CategorySchema,
+      //   IUnitSchema,
+      //   SettingSchema,
+      //   DiscountSchema,
+      //   CustomerSchema,
+      //   PinSchema,
+      //   ReceiptSchema,
+      //   DrawersSchema,
+      //   ITenantSchema,
+      //   PermissionSchema,
+      //   CounterSchema,
+      //   TokenSchema
+      // ]);
+
+      /// removed iisar: isar bellow will add it back when we have a test relying on isar database
+      // return await FakeApi().getInstance();
+      return await IsarAPI().getInstance();
     }
   }
 
@@ -286,26 +314,8 @@ abstract class ThirdPartyServicesModule {
     return location;
   }
 
-  // @lazySingleton
-  // NavigationService get nav;
-  @lazySingleton
-  LocalStorage get box {
-    LocalStorage box;
-    switch (platform) {
-      case "windows":
-        box = LocalStorageImpl();
-        break;
-      default:
-        box = LocalStorageImpl();
-    }
-    return box;
-  }
-
   @lazySingleton
   AppService get appService;
-
-  @lazySingleton
-  EventService get loginService;
 
   @lazySingleton
   ProductService get productService;

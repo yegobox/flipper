@@ -5,10 +5,10 @@ version: 1.0.3
 repository: https://github.com/yegobox/packages
 
 environment:
-  sdk: ">=2.17.0 <3.0.0"
+  sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
   flipper_loading: ^2.0.0
-  overlay_support: ^2.0.0-beta.0
+  overlay_support: ^2.1.0

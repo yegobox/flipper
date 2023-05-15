@@ -3,9 +3,7 @@
 	url =https://github.com/yegobox/designDocs.git
 	branch = main
 	
-[submodule "open-sources/animated_toggle_switch"]
-	path = open-sources/animated_toggle_switch
-	url = https://github.com/yegobox/animated_toggle_switch.git
+
 [submodule "open-sources/firestore_cache"]
 	path = open-sources/firestore_cache
 	url = https://github.com/yegobox/firestore_cache.git
@@ -15,9 +13,6 @@
 [submodule "open-sources/flutter_list_drag_and_drop"]
 	path = open-sources/flutter_list_drag_and_drop
 	url = https://github.com/yegobox/flutter_list_drag_and_drop.git
-[submodule "open-sources/money_formatter"]
-	path = open-sources/money_formatter
-	url = https://github.com/yegobox/money_formatter.git
 [submodule "open-sources/qr.flutter"]
 	path = open-sources/qr.flutter
 	url = https://github.com/yegobox/qr.flutter.git
@@ -40,9 +35,6 @@
 [submodule "open-sources/system_time_check"]
 	path = open-sources/system_time_check
 	url = https://github.com/yegobox/system_time_check.git
-[submodule "open-sources/win32"]
-	path = open-sources/win32
-	url = https://github.com/yegobox/win32.git
 [submodule "open-sources/upgrader"]
 	path = open-sources/upgrader
 	url = https://github.com/yegobox/upgrader.git
@@ -52,16 +44,7 @@
 [submodule "open-sources/cli_dialog"]
 	path = open-sources/cli_dialog
 	url = https://github.com/yegobox/cli_dialog.git
-[submodule "open-sources/msix"]
-	path = open-sources/msix
-	url = https://github.com/yegobox/msix.git
-[submodule "open-sources/flutter_file_picker"]
-	path = open-sources/flutter_file_picker
-	url = https://github.com/yegobox/flutter_file_picker.git
-[submodule "open-sources/dart_pdf"]
-	path = open-sources/dart_pdf
-	url = https://github.com/yegobox/dart_pdf.git
-	branch = main
+
 	
 [submodule "open-sources/plus_plugins"]
 	path = open-sources/plus_plugins
@@ -72,6 +55,18 @@
 [submodule "open-sources/flutterfire_desktop"]
 	path = open-sources/flutterfire_desktop
 	url = https://github.com/yegobox/flutterfire_desktop.git
-[submodule "open-sources/isar_crdt"]
-	path = open-sources/isar_crdt
-	url = https://github.com/yegobox/isar_crdt.git
+
+[submodule "open-sources/msix"]
+	path = open-sources/msix
+[submodule "open-sources/flutter_luban"]
+	path = open-sources/flutter_luban
+	url = https://github.com/yegobox/flutter_luban.git
+[submodule "open-sources/flutter_launcher_icons"]
+	path = open-sources/flutter_launcher_icons
+	url = https://github.com/yegobox/flutter_launcher_icons.git
+[submodule "open-sources/form_block"]
+	path = open-sources/form_block
+	url = https://github.com/GiancarloCode/form_bloc.git
+[submodule "open-sources/dart_pdf"]
+	path = open-sources/dart_pdf
+	url = https://github.com/yegobox/dart_pdf.git

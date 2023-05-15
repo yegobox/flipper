@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'package:flipper_models/sms.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
+import 'isar_models.dart';
 import 'whatsapp.dart';
 
 class Marketing implements WhatsApp, SMS {
@@ -18,10 +19,12 @@ class Marketing implements WhatsApp, SMS {
   @override
   Future optIn() async {
     String phoneNumber = ProxyService.box.getUserPhone()!;
-    String token = await ProxyService.isarApi.whatsAppToken();
+    SocialToken? token = await ProxyService.isarApi.loginOnSocial(
+        password: phoneNumber.replaceAll("+", ""),
+        phoneNumberOrEmail: phoneNumber.replaceAll("+", ""));
     var headers = {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer ${token}'
+      'Authorization': 'Bearer ${token.body.token}'
     };
     var request = http.Request(
         'POST',

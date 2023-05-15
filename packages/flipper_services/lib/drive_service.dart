@@ -7,7 +7,6 @@ import 'package:flipper_models/isar_models.dart';
 import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:path/path.dart' as path;
 import 'package:http/http.dart' as http;
-import 'package:flipper_routing/routes.logger.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'extension_google_sign_in_as_googleapis_auth.dart';
 
@@ -51,7 +50,6 @@ final List<String> _scopes = [
 
 class GoogleDrive {
   final storage = SecureStorage();
-  final log = getLogger('GoogleDrive');
 
   /// if the  var credentials = await storage.getCredentials();
   /// has some data i.e we authenticated and we have some token,
@@ -90,9 +88,6 @@ class GoogleDrive {
     AuthClient httpClient = (await _googleSignIn.authenticatedClient())!;
     //Save Credentials
     // log.i(httpClient.credentials.accessToken);
-    log.i(httpClient.credentials.refreshToken);
-    // TODOlearn if the refresher token is given.
-    log.i(httpClient.credentials.accessToken);
 
     await storage.saveCredentials(httpClient.credentials.accessToken,
         httpClient.credentials.refreshToken ?? '');
@@ -108,7 +103,6 @@ class GoogleDrive {
   Future<void> updateBusiness(Business business) async {
     business.backUpEnabled = true;
     business.lastDbBackup = DateTime.now().toIso8601String();
-    log.i(business.toJson());
 
     /// notify the online that user has enabled the backup
     /// also update the property locally.
@@ -145,14 +139,12 @@ class GoogleDrive {
       ),
     );
 
-    log.w("Result ${response.toJson()}");
     FileUploaded fileUploaded = FileUploaded.fromJson(response.toJson());
     Business? business = await ProxyService.isarApi.getBusiness();
     business!.backupFileId = fileUploaded.id;
     await ProxyService.isarApi.update(data: business);
     ProxyService.isarApi.update(data: business);
     ProxyService.box.write(key: 'gdID', value: fileUploaded.id);
-    log.i("File uploaded");
   }
 
   /// file stream will always be available if the dgId is not null
@@ -183,9 +175,7 @@ class GoogleDrive {
       // log.w("Task Done");
       await saveFile.writeAsBytes(dataStore);
       // changeFileNameOnlySync(file, 'mdbx.dat');
-    }, onError: (error) {
-      log.e("Some Error");
-    });
+    }, onError: (error) {});
   }
 
   File changeFileNameOnlySync(File file, String newFileName) {

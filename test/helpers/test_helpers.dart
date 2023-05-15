@@ -4,7 +4,6 @@ import 'package:flipper_models/isar_api.dart';
 import 'package:flipper_services/abstractions/location.dart';
 import 'package:flipper_services/abstractions/remote.dart';
 import 'package:flipper_services/billing_service.dart';
-import 'package:flipper_services/constants.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/abstractions/storage.dart';
 import 'package:flipper_services/app_service.dart';
@@ -85,10 +84,8 @@ AppService getAndRegisterAppService(
   final service = MockAppService();
   when(service.hasLoggedInUser).thenReturn(hasLoggedInUser);
   when(service.branchId).thenReturn(branchId);
-  when(service.userid).thenReturn(userid);
   when(service.businessId).thenReturn(businessId);
   when(service.currentColor).thenReturn('#ee5253');
-  when(service.isLoggedIn()).thenAnswer((realInvocation) => hasLoggedInUser);
   locator.registerSingleton<AppService>(service);
 
   return service;
@@ -106,7 +103,7 @@ ProductService getAndRegisterProductService() {
   final service = MockProductService();
   when(service.currentUnit).thenReturn('kg');
   when(service.branchId).thenReturn(10);
-  when(service.userId).thenReturn("300");
+  when(service.userId).thenReturn(300);
   locator.registerSingleton<ProductService>(service);
   return service;
 }
@@ -160,14 +157,13 @@ MockSettingsService getAndRegisterSettingsService() {
 MockLocalStorage getAndRegisterLocalStorage() {
   _removeRegistrationIfExists<LocalStorage>();
   final service = MockLocalStorage();
-  when(service.getUserId()).thenAnswer((_) => '300');
+  when(service.getUserId()).thenAnswer((_) => 300);
   when(service.getBusinessId()).thenAnswer((_) => 10);
   when(service.getBranchId()).thenAnswer((_) => 11);
   when(service.read(key: 'bearerToken')).thenAnswer((_) => 'TOKEN');
   when(service.read(key: 'branchId')).thenAnswer((_) => 11);
   when(service.read(key: 'referralCode')).thenAnswer((_) => "11");
   when(service.read(key: 'businessId')).thenAnswer((_) => 10);
-  when(service.read(key: pageKey)).thenAnswer((_) => 'XXX');
 
   // when(service.write(key: pageKey, value: 'key')).thenAnswer((_) => true);
   // when(service.write(key: 'branchId', value: anyNamed("value")))

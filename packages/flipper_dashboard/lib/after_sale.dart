@@ -1,5 +1,5 @@
-import 'package:flipper_routing/routes.logger.dart';
-import 'package:flipper_routing/routes.router.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -10,14 +10,14 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'customappbar.dart';
-import 'package:go_router/go_router.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 class AfterSale extends StatefulWidget {
   const AfterSale(
       {Key? key,
       required this.totalOrderAmount,
       required this.order,
-      this.receiptType = ReceiptType.ns})
+      this.receiptType = "ns"})
       : super(key: key);
   final double totalOrderAmount;
   final Order order;
@@ -32,8 +32,7 @@ class _AfterSaleState extends State<AfterSale> {
     length: 8,
     decimal: 0,
   );
-  final log = getLogger('AfterSale');
-
+  final _routerService = locator<RouterService>();
   @override
   void initState() {
     super.initState();
@@ -50,7 +49,7 @@ class _AfterSaleState extends State<AfterSale> {
                 useTransparentButton: false,
                 onPop: () {
                   model.currentOrder();
-                  GoRouter.of(context).push(Routes.home);
+                  _routerService.clearStackAndShow(FlipperAppRoute());
                 },
                 closeButton: CLOSEBUTTON.BUTTON,
                 disableButton: false,
@@ -98,9 +97,7 @@ class _AfterSaleState extends State<AfterSale> {
                       left: 0,
                       child: StreamBuilder<Customer?>(
                           stream: ProxyService.isarApi.getCustomerByOrderId(
-                              id: model.kOrder == null
-                                  ? 0
-                                  : model.kOrder!.id!!),
+                              id: model.kOrder == null ? 0 : model.kOrder!.id!),
                           builder: (context, snapshot) {
                             return snapshot.data == null
                                 ? Column(
@@ -124,6 +121,15 @@ class _AfterSaleState extends State<AfterSale> {
                                                     fontSize: 20,
                                                     color: Colors.white)),
                                             style: ButtonStyle(
+                                              shape: MaterialStateProperty
+                                                  .resolveWith<OutlinedBorder>(
+                                                (states) =>
+                                                    RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          10.0),
+                                                ),
+                                              ),
                                               backgroundColor:
                                                   MaterialStateProperty.all<
                                                           Color>(
@@ -152,7 +158,8 @@ class _AfterSaleState extends State<AfterSale> {
                                             ),
                                             onPressed: () async {
                                               model.keyboardKeyPressed(
-                                                  'C'); // to clear the keyboard
+                                                  key:
+                                                      'C'); // to clear the keyboard
                                               if (await ProxyService.isarApi
                                                   .isTaxEnabled()) {
                                                 if (model.receiptReady) {
@@ -162,7 +169,7 @@ class _AfterSaleState extends State<AfterSale> {
                                                   List<OrderItem> items =
                                                       await ProxyService.isarApi
                                                           .orderItems(
-                                                    orderId: widget.order.id!!,
+                                                    orderId: widget.order.id!,
                                                   );
                                                   model.printReceipt(
                                                       items: items,
@@ -204,6 +211,17 @@ class _AfterSaleState extends State<AfterSale> {
                                           height: 50,
                                           width: double.infinity,
                                           child: OutlinedButton(
+                                            style: ButtonStyle(
+                                              shape: MaterialStateProperty
+                                                  .resolveWith<OutlinedBorder>(
+                                                (states) =>
+                                                    RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          10.0),
+                                                ),
+                                              ),
+                                            ),
                                             child: Text('No Receipt',
                                                 style: GoogleFonts.poppins(
                                                     fontWeight: FontWeight.w400,
@@ -212,10 +230,11 @@ class _AfterSaleState extends State<AfterSale> {
                                             onPressed: () {
                                               // refresh orders
                                               model.keyboardKeyPressed(
-                                                  'C'); // to clear the keyboard
+                                                  key:
+                                                      'C'); // to clear the keyboard
                                               model.currentOrder();
-                                              GoRouter.of(context)
-                                                  .push(Routes.home);
+                                              _routerService.clearStackAndShow(
+                                                  FlipperAppRoute());
                                             },
                                           ),
                                         ),
@@ -242,7 +261,8 @@ class _AfterSaleState extends State<AfterSale> {
                                                       ')',
                                                   onTap: () {
                                                     model.keyboardKeyPressed(
-                                                        'C'); // to clear the keyboard
+                                                        key:
+                                                            'C'); // to clear the keyboard
                                                   },
                                                 ),
                                               ),
@@ -260,9 +280,10 @@ class _AfterSaleState extends State<AfterSale> {
                                               // refresh orders
                                               model.currentOrder();
                                               model.keyboardKeyPressed(
-                                                  'C'); // to clear the keyboard
-                                              GoRouter.of(context)
-                                                  .pushNamed(Routes.home);
+                                                  key:
+                                                      'C'); // to clear the keyboard
+                                              _routerService.clearStackAndShow(
+                                                  FlipperAppRoute());
                                             },
                                           ),
                                         ),
@@ -302,7 +323,7 @@ class _AfterSaleState extends State<AfterSale> {
           if (await ProxyService.isarApi.isTaxEnabled()) {
             Business? business = await ProxyService.isarApi.getBusiness();
             List<OrderItem> items = await ProxyService.isarApi
-                .orderItems(orderId: widget.order.id!!);
+                .orderItems(orderId: widget.order.id!);
 
             final bool isDone = await model.generateRRAReceipt(
                 items: items,

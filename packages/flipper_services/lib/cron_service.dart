@@ -3,12 +3,10 @@ import 'dart:io';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_routing/routes.logger.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 
 class CronService {
-  final log = getLogger('CronService');
   final drive = GoogleDrive();
 
   void companyWideReport() {}
@@ -29,16 +27,20 @@ class CronService {
     //save the device token to firestore if it is not already there
     Business? business = await ProxyService.isarApi.getBusiness();
     String? token;
-    Timer.periodic(Duration(minutes: kDebugMode ? 1 : 20), (Timer t) async {
+    Timer.periodic(Duration(minutes: kDebugMode ? 5 : 5), (Timer t) async {
       /// get a list of local copy of product to sync
       ProxyService.appService.pushDataToServer();
       ProxyService.sync.pull();
+      // in case pubnub did not get latest message load them forcefully
+      ProxyService.isarApi
+          .loadConversations(businessId: ProxyService.box.getBranchId()!);
     });
     if (!Platform.isWindows) {
       token = await FirebaseMessaging.instance.getToken();
-
-      Map updatedBusiness = business!.toJson();
-      updatedBusiness['deviceToken'] = token.toString();
+      if (business != null) {
+        Map updatedBusiness = business.toJson();
+        updatedBusiness['deviceToken'] = token.toString();
+      }
     }
     Timer.periodic(Duration(hours: 5), (Timer t) async {
       if (ProxyService.box.hasSignedInForAutoBackup()) {
@@ -50,12 +52,19 @@ class CronService {
     // for the case like that the token needs to be updated, but not covered now
     // this sill make more sence once we implement the sync that is when we will implement such solution
 
-    Timer.periodic(Duration(minutes: 10), (Timer t) async {
+    Timer.periodic(Duration(seconds: kDebugMode ? 10 : 10), (Timer t) async {
       /// get unsynced counter and send them online for houseKeping.
-      List<Counter> counters = await ProxyService.isarApi
-          .unSyncedCounters(branchId: ProxyService.box.getBranchId()!);
-      for (Counter counter in counters) {
-        ProxyService.isarApi.update(data: counter..backed = true);
+      ProxyService.isarApi.sendScheduleMessages();
+      ProxyService.event.keepTryingPublishDevice();
+    });
+    Timer.periodic(Duration(minutes: kDebugMode ? 1 : 10), (Timer t) async {
+      /// get unsynced counter and send them online for houseKeping.
+      if (ProxyService.box.getBranchId() != null) {
+        List<Counter> counters = await ProxyService.isarApi
+            .unSyncedCounters(branchId: ProxyService.box.getBranchId()!);
+        for (Counter counter in counters) {
+          ProxyService.isarApi.update(data: counter..backed = true);
+        }
       }
     });
   }

@@ -1,11 +1,9 @@
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/isar_models.dart';
-import 'package:flipper_routing/routes.logger.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
 class SettingsService with ListenableServiceMixin {
-  final log = getLogger('SettingsService');
   //  bool sendDailReport = false;
   final _enablePrinter = ReactiveValue<bool>(false);
 
@@ -29,9 +27,11 @@ class SettingsService with ListenableServiceMixin {
   Future<bool> updateSettings({required Map map}) async {
     //todo: when no setting for this user create one with given detail
     //if the setting exist then update the given detail.
-    String userId = ProxyService.box.read(key: 'userId');
+    int userId = ProxyService.box.getUserId()!;
+    int businessId = ProxyService.box.getBusinessId()!;
+
     Setting? setting =
-        await ProxyService.isarApi.getSetting(userId: int.parse(userId));
+        await ProxyService.isarApi.getSetting(businessId: businessId);
     if (setting != null) {
       Map<String, dynamic> settingsMap = setting.toJson();
       //replace a key in settings_map if the key match with the key from map
@@ -50,9 +50,10 @@ class SettingsService with ListenableServiceMixin {
       });
       Setting setting = Setting(
         email: kMap['email'] ?? '',
-        userId: int.parse(userId),
+        userId: userId,
         hasPin: kMap['hasPin'] ?? '',
-        googleSheetDocCreated: kMap['googleSheetDocCreated'] ?? false,
+        type: kMap['type'] ?? '',
+        businessId: ProxyService.box.getBusinessId(),
         attendnaceDocCreated: kMap['attendnaceDocCreated'] ?? false,
         sendDailyReport: kMap['sendDailyReport'] ?? false,
         openReceiptFileOSaleComplete:
@@ -66,8 +67,8 @@ class SettingsService with ListenableServiceMixin {
   }
 
   Future<Setting?> settings() async {
-    return ProxyService.isarApi.getSetting(
-        userId: int.parse(ProxyService.box.read(key: 'userId') ?? '0'));
+    return ProxyService.isarApi
+        .getSetting(businessId: ProxyService.box.getBusinessId() ?? 0);
   }
 
   Future<bool> isDailyReportEnabled() async {
@@ -119,11 +120,12 @@ class SettingsService with ListenableServiceMixin {
       }
 
       Setting(
+        userId: setting.userId,
         id: setting.id,
         email: setting.email,
-        userId: setting.userId,
+        businessId: setting.businessId,
         hasPin: setting.hasPin,
-        googleSheetDocCreated: setting.googleSheetDocCreated,
+        type: setting.type,
         attendnaceDocCreated: setting.attendnaceDocCreated,
         sendDailyReport: setting.sendDailyReport!,
         openReceiptFileOSaleComplete: setting.openReceiptFileOSaleComplete,
@@ -145,10 +147,11 @@ class SettingsService with ListenableServiceMixin {
       }
       Setting(
         id: setting.id,
-        email: setting.email,
         userId: setting.userId,
+        email: setting.email,
+        businessId: setting.businessId,
         hasPin: setting.hasPin,
-        googleSheetDocCreated: setting.googleSheetDocCreated,
+        type: setting.type,
         attendnaceDocCreated: setting.attendnaceDocCreated,
         sendDailyReport: _sendDailReport.value,
         openReceiptFileOSaleComplete: setting.openReceiptFileOSaleComplete,
@@ -163,9 +166,9 @@ class SettingsService with ListenableServiceMixin {
       {required bool bool, required Function callback}) async {
     Setting? setting = await settings();
     if (setting != null) {
-      int businessId = ProxyService.box.read(key: 'businessId');
+      int businessId = ProxyService.box.getBusinessId()!;
       await ProxyService.isarApi
-          .enableAttendance(businessId: businessId, email: setting.email);
+          .enableAttendance(businessId: businessId, email: setting.email!);
       return callback(true);
     } else {
       return callback(false);

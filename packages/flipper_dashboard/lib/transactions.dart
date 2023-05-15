@@ -2,7 +2,9 @@ import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:stacked/stacked.dart';
@@ -21,6 +23,7 @@ class _TransactionsState extends State<Transactions> {
     super.initState();
   }
 
+  final _routerService = locator<RouterService>();
   String lastSeen = "";
   bool defaultTransactions = true;
   List<Widget> list = [];
@@ -169,7 +172,8 @@ class _TransactionsState extends State<Transactions> {
         Container(
           margin: const EdgeInsets.all(4),
           child: GestureDetector(
-            onTap: () => GoRouter.of(context).push("/trDetail", extra: order),
+            onTap: () => _routerService
+                .replaceWith(TransactionDetailRoute(order: order)),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
@@ -194,7 +198,7 @@ class _TransactionsState extends State<Transactions> {
           List<Order> completedOrders = await ProxyService.isarApi
               .completedOrders(branchId: ProxyService.box.getBranchId()!);
           Drawers? drawer = await ProxyService.isarApi
-              .isDrawerOpen(cashierId: ProxyService.box.getBusinessId()!);
+              .getDrawer(cashierId: ProxyService.box.getBusinessId()!);
 
           model.completedOrdersList = completedOrders;
 

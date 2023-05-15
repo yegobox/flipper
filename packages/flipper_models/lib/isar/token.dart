@@ -1,18 +1,33 @@
 library flipper_models;
 
+import 'package:flipper_models/sync_service.dart';
 import 'package:isar/isar.dart';
+import 'package:json_annotation/json_annotation.dart';
+import 'package:pocketbase/pocketbase.dart';
 
 part 'token.g.dart';
 
+@JsonSerializable()
 @Collection()
-class Token {
-  Token({this.type, this.token, this.userId});
+class Token extends IJsonSerializable {
+  Token(
+      {required this.type,
+      required this.token,
+      required this.businessId,
+      required this.validFrom,
+      required this.validUntil});
   Id id = Isar.autoIncrement;
-  String? type;
-  String? token;
+  String type;
+  String token;
+  DateTime validFrom;
+  DateTime validUntil;
   @Index()
-  String? userId;
+  int businessId;
 
-  factory Token.fromJson(Map<String, dynamic> json) =>
-      Token(type: json["type"], token: json["token"], userId: json["userId"]);
+  factory Token.fromRecord(RecordModel record) =>
+      Token.fromJson(record.toJson());
+
+  factory Token.fromJson(Map<String, dynamic> json) => _$TokenFromJson(json);
+  @override
+  Map<String, dynamic> toJson() => _$TokenToJson(this);
 }

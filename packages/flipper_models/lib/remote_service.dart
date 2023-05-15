@@ -2,15 +2,16 @@ import 'dart:developer';
 
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flutter/foundation.dart';
 import 'package:pocketbase/pocketbase.dart';
 import 'dart:io';
 
 abstract class RemoteInterface {
   Future<List<RecordModel>> getCollection({required String collectionName});
-  Future<RecordModel> create(
+  Future<RecordModel?> create(
       {required Map<String, dynamic> collection,
       required String collectionName});
-  Future<RecordModel> update(
+  Future<RecordModel?> update(
       {required Map<String, dynamic> data,
       required String collectionName,
       required String recordId});
@@ -20,8 +21,14 @@ abstract class RemoteInterface {
 class RemoteService implements RemoteInterface {
   late PocketBase pb;
   Future<RemoteInterface> getInstance() async {
+    late String url;
     try {
-      pb = PocketBase('https://db.yegobox.com');
+      if (kDebugMode) {
+        url = 'https://uat-db.yegobox.com';
+      } else if (!kDebugMode) {
+        url = 'https://db.yegobox.com';
+      }
+      pb = PocketBase(url);
       await pb.admins.authWithPassword('info@yegobox.com', '5nUeS5TjpArcSGd');
     } on SocketException catch (e) {
       log(e.toString());
@@ -37,23 +44,25 @@ class RemoteService implements RemoteInterface {
   }
 
   @override
-  Future<RecordModel> create({
+  Future<RecordModel?> create({
     required Map<String, dynamic> collection,
     required String collectionName,
   }) async {
     try {
       return await pb.collection(collectionName).create(body: collection);
     } on SocketException catch (e) {
-      return Future.error(e);
+      log(e.toString());
+      return null;
     } on ClientException catch (e) {
-      return Future.error(e);
+      log(e.toString());
+      return null;
     } catch (e) {
       rethrow;
     }
   }
 
   @override
-  Future<RecordModel> update({
+  Future<RecordModel?> update({
     required Map<String, dynamic> data,
     required String collectionName,
     required String recordId,
@@ -61,9 +70,11 @@ class RemoteService implements RemoteInterface {
     try {
       return await pb.collection(collectionName).update(recordId, body: data);
     } on SocketException catch (e) {
-      return Future.error(e);
+      log(e.toString());
+      return null;
     } on ClientException catch (e) {
-      return Future.error(e);
+      log(e.toString());
+      return null;
     } catch (e) {
       rethrow;
     }
@@ -86,7 +97,20 @@ class RemoteService implements RemoteInterface {
 
   Future<void> gettingDataFirstTime() async {
     try {
-      int branchId = ProxyService.box.getBranchId()!;
+      int branchId = ProxyService.box.getBranchId() ?? 0;
+      int businessId = ProxyService.box.getBusinessId() ?? 0;
+      if (branchId == 0 || businessId == 0) {
+        return;
+      }
+      List<RecordModel> socialItems = await pb
+          .collection('socials')
+          .getList(page: 1, perPage: 2, filter: 'businessId = ${businessId}')
+          .then((event) => event.items);
+      await Future.forEach(socialItems, (RecordModel item) async {
+        Social remoteStock = Social.fromJson(item.toJson());
+        await handleSocial(
+            item, businessId, remoteStock.lastTouched, 'socials');
+      });
 
       List<RecordModel> stockItems = await pb
           .collection('stocks')
@@ -124,14 +148,35 @@ class RemoteService implements RemoteInterface {
     Variant remoteVariant = Variant.fromJson(item.toJson());
     Variant? localVariant =
         await ProxyService.isarApi.getVariantById(id: remoteVariant.localId!);
+
     if (localVariant == null && remoteVariant.branchId == branchId) {
       await ProxyService.isarApi.create(data: remoteVariant);
       lastTouched = remoteVariant.lastTouched;
     } else if (localVariant != null &&
+        localVariant.lastTouched != null &&
         remoteVariant.lastTouched!
             .isFutureDateCompareTo(localVariant.lastTouched!)) {
       await ProxyService.isarApi.update(data: remoteVariant);
       lastTouched = remoteVariant.lastTouched;
+    }
+    return lastTouched;
+  }
+
+  Future<String?> handleSocial(RecordModel item, int businessId,
+      String? lastTouched, String model) async {
+    Social remoteSocial = Social.fromJson(item.toJson());
+    Social? localSocial =
+        await ProxyService.isarApi.getSocialById(id: remoteSocial.localId!);
+    if (localSocial == null && remoteSocial.businessId == businessId) {
+      remoteSocial.id = remoteSocial.localId;
+      await ProxyService.isarApi.create(data: remoteSocial);
+      lastTouched = remoteSocial.lastTouched;
+    } else if (localSocial != null &&
+        remoteSocial.lastTouched!
+            .isFutureDateCompareTo(localSocial.lastTouched!)) {
+      remoteSocial.id = remoteSocial.localId;
+      await ProxyService.isarApi.update(data: remoteSocial);
+      lastTouched = remoteSocial.lastTouched;
     }
     return lastTouched;
   }
@@ -145,6 +190,7 @@ class RemoteService implements RemoteInterface {
       await ProxyService.isarApi.create(data: remoteStock);
       lastTouched = remoteStock.lastTouched;
     } else if (localStock != null &&
+        localStock.lastTouched != null &&
         remoteStock.lastTouched!
             .isFutureDateCompareTo(localStock.lastTouched!)) {
       await ProxyService.isarApi.update(data: remoteStock);
@@ -161,8 +207,8 @@ class RemoteService implements RemoteInterface {
     if (localProduct == null && remoteProduct.branchId == branchId) {
       await ProxyService.isarApi.create(data: remoteProduct);
       lastTouched = remoteProduct.lastTouched;
-      //
     } else if (localProduct != null &&
+        localProduct.lastTouched != null &&
         remoteProduct.lastTouched!
             .isFutureDateCompareTo(localProduct.lastTouched!)) {
       await ProxyService.isarApi.update(data: remoteProduct);
@@ -171,7 +217,39 @@ class RemoteService implements RemoteInterface {
   }
 
   void gettingRealTimeData() {
-    int branchId = ProxyService.box.getBranchId()!;
+    int branchId = ProxyService.box.getBranchId() ?? 0;
+    int businessId = ProxyService.box.getBusinessId() ?? 0;
+    if (branchId == 0 || businessId == 0) {
+      return;
+    }
+    pb.collection('socials').subscribe("*", (socialEvent) async {
+      if (socialEvent.action == "create") {
+        Social socialFromRecord = Social.fromRecord(socialEvent.record!);
+        Social? localSocial = await ProxyService.isarApi
+            .getSocialById(id: socialFromRecord.localId!);
+        if (localSocial == null && socialFromRecord.businessId == businessId) {
+          socialFromRecord.id = socialFromRecord.localId;
+          await ProxyService.isarApi.create(data: socialFromRecord);
+        }
+      } else if (socialEvent.action == "update") {
+        Social socialFromRecord = Social.fromRecord(socialEvent.record!);
+        Social? localSocial = await ProxyService.isarApi
+            .getSocialById(id: socialFromRecord.localId!);
+        if (localSocial == null && socialFromRecord.businessId == businessId) {
+          socialFromRecord.id = socialFromRecord.localId;
+          await ProxyService.isarApi.create(data: socialFromRecord);
+        }
+        Social a = Social.fromRecord(socialEvent.record!);
+        Social? b = await ProxyService.isarApi.getSocialById(id: a.localId!);
+        String lastTouched = a.lastTouched!;
+        if (b != null &&
+            a.businessId == businessId &&
+            lastTouched.isFutureDateCompareTo(b.lastTouched!)) {
+          await ProxyService.isarApi.update(data: a);
+        }
+      }
+    });
+
     pb.collection('stocks').subscribe("*", (stockEvent) async {
       if (stockEvent.action == "create") {
         Stock stockFromRecord = Stock.fromRecord(stockEvent.record!);

@@ -6,9 +6,9 @@ abstract class IsarApiInterface {
   Future<List<Product>> products({required int branchId});
   Future<List<JTenant>> signup({required Map business});
   Future<Order?> pendingOrder({required int branchId});
-  Future<SyncF> login({required String userPhone});
-  Future<SyncF> user({required String userPhone});
-  Future<List<Business>> businesses({required String userId});
+  Future<IUser> login(
+      {required String userPhone, required bool skipDefaultAppSetup});
+  Future<List<Business>> businesses({required int userId});
   Future<Business> getOnlineBusiness({required String userId});
   Future<List<Branch>> branches({required int businessId});
   Future<List<Stock?>> stocks({required int productId});
@@ -16,6 +16,7 @@ abstract class IsarApiInterface {
   Stream<Order?> completedOrdersStream(
       {required String status, required int branchId});
   Stream<List<Product>> productStreams({required int branchId});
+  Stream<Business> businessStream({required int businessId});
   Stream<List<Discount>> discountStreams({required int branchId});
   Future<Stock?> stockByVariantId({required int variantId});
   Future<List<PColor>> colors({required int branchId});
@@ -26,7 +27,7 @@ abstract class IsarApiInterface {
   Future<T?> create<T>({required T data});
   Future<T?> update<T>({required T data});
 
-  Future<bool> delete({required dynamic id, String? endPoint});
+  Future<bool> delete({required int id, String? endPoint});
   Future<PColor?> getColor({required int id, String? endPoint});
   Future<Stock?> getStock({required int branchId, required int variantId});
   Future<List<Variant>> variants({
@@ -48,7 +49,7 @@ abstract class IsarApiInterface {
   //this function for now figure out what is the business id on backend side.
   Future<Product> createProduct({required Product product});
   Future<Product?> isTempProductExist({required int branchId});
-  Future<bool> logOut();
+  Future<void> logOut();
 
   Future<Voucher?> consumeVoucher({required int voucherCode});
 
@@ -68,7 +69,7 @@ abstract class IsarApiInterface {
       {required double cashReceived, required Order order});
 
 // app settings and users settings
-  Future<Setting?> getSetting({required int userId});
+  Future<Setting?> getSetting({required int businessId});
 
   Future<Setting?> createSetting({required Setting setting});
   // Stream<List<Conversation>> conversationStreamList({int? receiverId});
@@ -94,6 +95,7 @@ abstract class IsarApiInterface {
   Stream<Customer?> getCustomerByOrderId({required int id});
   Future<Order?> getOrderById({required int id});
   Future<List<Order>> tickets();
+  Stream<List<Order>> ticketsStreams();
   Future<List<Variant>> getVariantByProductId({required int productId});
 
   Future<int> sendReport({required List<OrderItem> orderItems});
@@ -101,6 +103,7 @@ abstract class IsarApiInterface {
   Future<Business?> getBusinessById({required int id});
   Future<OrderItem?> getOrderItemByVariantId(
       {required int variantId, required int? orderId});
+  Future<List<OrderItem>> getOrderItemsByOrderId({required int? orderId});
   //abstract method to update business
   // Future<void> updateBusiness({required int id, required Map business});
 
@@ -128,8 +131,8 @@ abstract class IsarApiInterface {
 
   Future<int> userNameAvailable({required String name});
 
-  Future<Tenant?> isTenant({required String phoneNumber});
   Future<List<ITenant>> tenants({required int businessId});
+  Future<ITenant?> getTenantBYUserId({required int userId});
   Future<List<ITenant>> tenantsFromOnline({required int businessId});
   Future<Business?> getBusinessFromOnlineGivenId({required int id});
 
@@ -169,6 +172,7 @@ abstract class IsarApiInterface {
 
   /// get a list of orderItems given orderId
   Future<List<OrderItem>> orderItems({required int orderId});
+  Stream<List<OrderItem>> orderItemsStream({required int orderId});
   Future<Variant?> getVariantById({required int id});
   Future<bool> isTaxEnabled();
   Future<Receipt?> createReceipt(
@@ -180,7 +184,8 @@ abstract class IsarApiInterface {
   Future<Receipt?> getReceipt({required int orderId});
 
   Future<void> refund({required int itemId});
-  Future<Drawers?> isDrawerOpen({required int cashierId});
+  Future<bool> isDrawerOpen({required int cashierId});
+  Future<Drawers?> getDrawer({required int cashierId});
   Future<Branch?> defaultBranch();
   Future<Business?> defaultBusiness();
   Future<Drawers?> openDrawer({required Drawers drawer});
@@ -196,7 +201,6 @@ abstract class IsarApiInterface {
 
   String dbPath();
   Future<Customer?> nGetCustomerByOrderId({required int id});
-  Future<String> whatsAppToken();
   Future<bool> bindProduct({required int productId, required int tenantId});
   Future<Product?> findProductByTenantId({required int tenantId});
   Future<List<Product>> getLocalProducts();
@@ -205,4 +209,35 @@ abstract class IsarApiInterface {
   Future<void> deleteAllProducts();
   Future<Stock?> getStockById({required int id});
   Future<List<Order>> getLocalOrders();
+
+  /// socials methods
+  Stream<Social> socialsStream({required int businessId});
+  Future<Social?> getSocialById({required int id});
+
+  Future<List<BusinessType>> businessTypes();
+
+  /// list messages
+  Stream<List<Conversation>> conversations({String conversationId});
+  Future<void> sendScheduleMessages();
+  Future<Conversation?> getConversation({required String messageId});
+  Future<List<Conversation>> getScheduleMessages();
+  Future<int> registerOnSocial({String phoneNumberOrEmail, String password});
+  Future<SocialToken> loginOnSocial(
+      {String phoneNumberOrEmail, String password});
+  Future<bool> isTokenValid(
+      {required String tokenType, required int businessId});
+
+  Stream<List<Conversation>> getTop5RecentConversations();
+
+  //
+  Future<void> patchSocialSetting({required Setting setting});
+  Future<Setting?> getSocialSetting();
+
+  Future<Device?> getDevice({required String linkingCode});
+  Stream<List<Device>> getDevices({required int businessId});
+  Future<List<Device>> unpublishedDevices({required int businessId});
+  Future<void> loadConversations(
+      {required int businessId, int? pageSize = 10, String? pk, String? sk});
+  Future<bool> updateContact(
+      {required Map<String, dynamic> contact, required int businessId});
 }

@@ -1,4 +1,4 @@
-// ignore_for_file: constant_identifier_names
+// ignoreforfile: constantidentifiernames
 
 library customappbar;
 
@@ -8,104 +8,96 @@ import 'flipper_ui.dart';
 
 enum CLOSEBUTTON { ICON, BUTTON }
 
-class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
+class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
   const CustomAppBar({
-    Widget? action,
-    bool? showActionButton,
-    String? title,
-    IconData? icon,
-    double? multi,
-    double? bottomSpacer,
-    bool? disableButton,
-    VoidCallback? onPressedCallback,
-    VoidCallback? onPop,
-    String? rightActionButtonName,
-    String? leftActionButtonName,
-    CLOSEBUTTON closeButton = CLOSEBUTTON.ICON,
-    bool useTransparentButton = false,
-    Key? key,
-  })  : _additionalText = action,
-        _showActionButton = showActionButton,
-        _title = title,
-        _icon = icon,
-        _headerMultiplier = multi,
-        _bottomSpacer = bottomSpacer,
-        _disableButton = disableButton,
-        _onPressedCallback = onPressedCallback,
-        _onPop = onPop,
-        _rightActionButtonName = rightActionButtonName,
-        _leftActionButtonName = leftActionButtonName,
-        _closeButton = closeButton,
-        _useTransparentButton = useTransparentButton,
-        super(key: key);
+    super.key,
+    this.showActionButton,
+    this.title,
+    this.icon,
+    this.additionalText,
+    this.disableButton,
+    this.onActionButtonClicked,
+    this.onPop,
+    this.rightActionButtonName = "Save",
+    this.leftActionButtonName = "Save",
+    this.closeButton = CLOSEBUTTON.ICON,
+    this.useTransparentButton = false,
+    this.multi,
+    this.bottomSpacer,
+  });
 
-  final String? _rightActionButtonName;
-  final String? _leftActionButtonName;
-  final CLOSEBUTTON _closeButton;
-  final double? _bottomSpacer;
-  final bool? _disableButton;
-  final double? _headerMultiplier;
-  final IconData? _icon;
-  final VoidCallback? _onPop;
-  final VoidCallback? _onPressedCallback;
-  final bool? _showActionButton;
-  final String? _title;
-  final bool _useTransparentButton;
+  final String? rightActionButtonName;
+  final String? leftActionButtonName;
+  final CLOSEBUTTON closeButton;
+  final double? bottomSpacer;
+  final bool? disableButton;
+  final double? multi;
+  final IconData? icon;
+  final VoidCallback? onPop;
+  final VoidCallback? onActionButtonClicked;
+  final bool? showActionButton;
+  final String? title;
+  final bool useTransparentButton;
+
+  final Widget? additionalText;
 
   @override
-  Size get preferredSize => Size.fromHeight(
-      64.0 * (_headerMultiplier == null ? 0.8 : _headerMultiplier!));
+  State<CustomAppBar> createState() => _CustomAppBarState();
 
-  // @Deprecated("_action will be removed soon")
-  final Widget? _additionalText;
+  @override
+  Size get preferredSize =>
+      Size.fromHeight(64.0 * (multi == null ? 0.8 : multi!));
+}
 
+class _CustomAppBarState extends State<CustomAppBar> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       top: true,
       child: SizedBox(
-        height: _bottomSpacer,
+        height: widget.bottomSpacer,
         child: Column(
           children: <Widget>[
             ListTile(
               contentPadding: const EdgeInsets.symmetric(horizontal: 0),
-              leading: _closeButton == CLOSEBUTTON.ICON
+              leading: widget.closeButton == CLOSEBUTTON.ICON
                   ? IconButton(
                       icon: Icon(
-                        _icon ?? Icons.close,
+                        widget.icon ?? Icons.close,
                         color: Colors.black,
                         size: 30,
                       ),
-                      onPressed: _onPop,
+                      onPressed: widget.onPop,
                     )
                   : FLipperButton(
-                      transparent: _useTransparentButton,
-                      disableButton: _disableButton ?? false,
-                      onPressedCallback: _onPop ?? () {},
-                      buttonName: _leftActionButtonName ?? '',
+                      transparent: widget.useTransparentButton,
+                      disableButton: widget.disableButton ?? false,
+                      onPressedCallback: widget.onPop ?? () {},
+                      buttonName: widget.leftActionButtonName ?? '',
                     ),
-              title: _title == null
+              title: widget.title == null
                   ? const SizedBox.shrink()
                   : Text(
-                      _title ?? '',
+                      widget.title ?? '',
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
                           color: Colors.black,
                           fontSize: 17,
                           fontWeight: FontWeight.w400),
                     ),
-              trailing: _showActionButton == null || !_showActionButton!
+              trailing: widget.showActionButton == null ||
+                      !widget.showActionButton!
                   ? const SizedBox.shrink()
                   : FLipperButton(
-                      transparent: _useTransparentButton,
-                      disableButton: _disableButton ?? false,
-                      onPressedCallback: _onPressedCallback ?? () {},
-                      buttonName: _rightActionButtonName ?? '',
+                      transparent: widget.useTransparentButton,
+                      disableButton: widget.disableButton ?? false,
+                      onPressedCallback: widget.onActionButtonClicked ?? () {},
+                      buttonName: widget.rightActionButtonName ?? "Save",
                     ),
               dense: true,
             ),
             Container(
-              child: _additionalText,
+              child: widget.additionalText,
             ),
             const Expanded(
               child: Divider(),

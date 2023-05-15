@@ -1,22 +1,21 @@
 import 'package:flipper_dashboard/discount_row.dart';
 import 'package:flipper_dashboard/product_row.dart';
+import 'package:flipper_dashboard/profile.dart';
 import 'package:flipper_dashboard/search_field.dart';
 import 'package:flipper_dashboard/sticky_search.dart';
 import 'package:flipper_dashboard/tenants_list.dart';
-import 'package:flipper_routing/routes.router.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_services/constants.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
-import 'package:go_router/go_router.dart';
 import 'package:keyboard_visibility_pro/keyboard_visibility_pro.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:universal_platform/universal_platform.dart';
-import 'package:flipper_routing/routes.logger.dart';
-
-final isWindows = UniversalPlatform.isWindows;
-final isMacOs = UniversalPlatform.isMacOS;
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 
 class ProductView extends StatefulWidget {
   const ProductView({
@@ -28,9 +27,9 @@ class ProductView extends StatefulWidget {
 }
 
 class _ProductViewState extends State<ProductView> {
-  final log = getLogger('_onCreate');
   final searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
+  final _routerService = locator<RouterService>();
 
   @override
   void initState() {
@@ -53,6 +52,12 @@ class _ProductViewState extends State<ProductView> {
       },
       viewModelBuilder: () => ProductViewModel(),
       builder: (context, model, child) {
+        MediaQuery.of(context).size.width; // retrieve device width
+        MediaQuery.of(context).size.height; // retrieve device height
+
+        double searchFieldWidth = MediaQuery.of(context).size.width *
+            0.61; // set search field width to 90% of device width
+
         return KeyboardVisibility(
             onChanged: (bool keyboardVisible) {
               if (!keyboardVisible) {
@@ -65,11 +70,41 @@ class _ProductViewState extends State<ProductView> {
                   pinned: true,
                   floating: false,
                   delegate: StickyHeader(
-                    child: Container(
-                      height: kToolbarHeight,
-                      child: SearchField(
-                        controller: searchController,
-                        model: model,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Container(
+                        height: kToolbarHeight,
+                        child: Wrap(direction: Axis.horizontal, children: [
+                          SizedBox(
+                            width: isDesktopOrWeb
+                                ? searchFieldWidth
+                                : double.infinity,
+                            child: SearchField(
+                              controller: searchController,
+                              model: model,
+                            ),
+                          ),
+                          SizedBox(
+                            width: 5,
+                          ),
+                          isDesktopOrWeb
+                              ? FutureBuilder<ITenant?>(
+                                  future: ProxyService.isarApi
+                                      .getTenantBYUserId(
+                                          userId:
+                                              ProxyService.box.getUserId()!),
+                                  builder: (a, snapshoot) {
+                                    if (snapshoot.connectionState ==
+                                            ConnectionState.waiting ||
+                                        !snapshoot.hasData) {
+                                      return const SizedBox.shrink();
+                                    }
+                                    final data = snapshoot.data;
+                                    return ProfileWidget(
+                                        tenant: data!, size: 25);
+                                  })
+                              : SizedBox.shrink()
+                        ]),
                       ),
                     ),
                   ),
@@ -77,7 +112,8 @@ class _ProductViewState extends State<ProductView> {
                 StreamBuilder<List<Product>>(
                   initialData: model.productService.products,
                   stream: model.productService
-                      .productStream(branchId: ProxyService.box.getBranchId()!)
+                      .productStream(
+                          branchId: ProxyService.box.getBranchId() ?? 0)
                       .transform(model.productService
                           .searchTransformer(model.searchkey!)),
                   builder: (context, snapshot) {
@@ -87,6 +123,23 @@ class _ProductViewState extends State<ProductView> {
                         .toList();
                     return SliverList(
                         delegate: SliverChildListDelegate([
+                      SizedBox(
+                        height: 10,
+                      ),
+                      products.isEmpty
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    FluentIcons.calendar_cancel_20_filled,
+                                    size: 48,
+                                  ),
+                                  Text('No items found'),
+                                ],
+                              ),
+                            )
+                          : SizedBox.shrink(),
                       ...products.map((product) {
                         return FutureBuilder<List<Stock?>>(
                             future: model.productService
@@ -105,8 +158,8 @@ class _ProductViewState extends State<ProductView> {
                                 name: product.name,
                                 imageUrl: product.imageUrl,
                                 edit: (productId) {
-                                  GoRouter.of(context)
-                                      .push("/edit/product/$productId");
+                                  _routerService.navigateTo(AddProductViewRoute(
+                                      productId: productId));
                                 },
                                 addToMenu: (productId) {
                                   // ignore: todo
@@ -143,12 +196,11 @@ class _ProductViewState extends State<ProductView> {
                 ),
                 StreamBuilder<List<Discount>>(
                   stream: model.productService.discountStream(
-                      branchId: ProxyService.box.getBranchId()!),
+                      branchId: ProxyService.box.getBranchId() ?? 0),
                   builder: (context, snapshot) {
                     final discounts = snapshot.data ?? [];
                     if (!ProxyService.remoteConfig.isDiscountAvailable() ||
                         discounts.isEmpty) {
-                      // return SizedBox.shrink();
                       return SliverList(
                           delegate:
                               SliverChildListDelegate([SizedBox.shrink()]));
@@ -167,7 +219,7 @@ class _ProductViewState extends State<ProductView> {
                               model.deleteDiscount(id: id);
                             },
                             edit: (discount) {
-                              GoRouter.of(context).push(Routes.discount);
+                              _routerService.navigateTo(AddDiscountRoute());
                             },
                             applyDiscount: (discount) async {
                               await model.applyDiscount(discount: discount);

@@ -3,8 +3,9 @@ import 'package:flipper_models/isar_models.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_ui/flipper_ui.dart';
-import 'package:go_router/go_router.dart';
 
 class AddDiscount extends StatefulWidget {
   const AddDiscount({Key? key, this.discount}) : super(key: key);
@@ -30,6 +31,7 @@ class _AddDiscountState extends State<AddDiscount> {
     super.initState();
   }
 
+  final _routerService = locator<RouterService>();
   @override
   Widget build(BuildContext context) {
     return Material(
@@ -61,7 +63,8 @@ class _AddDiscountState extends State<AddDiscount> {
                             id: widget.discount!.id,
                           );
                         }
-                        GoRouter.of(context).pop();
+                        _routerService.pop();
+                        ;
                       }
                     },
                   ),
@@ -74,7 +77,7 @@ class _AddDiscountState extends State<AddDiscount> {
                     key: _formKey,
                     child: Column(
                       children: [
-                        const ColorAndImagePlaceHolder(
+                        ColorAndImagePlaceHolder(
                           currentColor: '#ee5253',
                           product: null,
                         ),

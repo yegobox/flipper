@@ -23,48 +23,46 @@ List<Business> listFromJson(String str) =>
 
 @Collection()
 class Business {
-  Business({
-    this.name,
-    this.currency,
-    this.categoryId = "1",
-    this.latitude,
-    this.longitude,
-    this.userId,
-    this.typeId,
-    this.timeZone,
-    this.channels,
-    this.table = "businesses",
-    this.country,
-    this.businessUrl,
-    this.hexColor,
-    this.imageUrl,
-    this.type,
-    this.active = false,
-    this.metadata,
-    this.lastSeen,
-    this.firstName,
-    this.lastName,
-    this.deviceToken,
-    this.chatUid,
-    this.backUpEnabled = false,
-    this.subscriptionPlan,
-    this.nextBillingDate,
-    this.previousBillingDate,
-    this.isLastSubscriptionPaymentSucceeded,
-    this.backupFileId,
-    this.email,
-    this.lastDbBackup,
-    this.fullName,
-    this.role,
-    this.tinNumber,
-    this.bhfId,
-    this.dvcSrlNo,
-    this.adrs,
-    this.taxEnabled,
-    this.taxServerUrl,
-    this.isDefault,
-    this.id,
-  });
+  Business(
+      {this.name,
+      this.currency,
+      this.categoryId = "1",
+      this.latitude,
+      this.longitude,
+      this.userId,
+      this.timeZone,
+      this.channels,
+      this.country,
+      this.businessUrl,
+      this.hexColor,
+      this.imageUrl,
+      this.type,
+      this.active = false,
+      this.metadata,
+      this.lastSeen,
+      this.firstName,
+      this.lastName,
+      this.deviceToken,
+      this.chatUid,
+      this.backUpEnabled = false,
+      this.subscriptionPlan,
+      this.nextBillingDate,
+      this.previousBillingDate,
+      this.isLastSubscriptionPaymentSucceeded,
+      this.backupFileId,
+      this.email,
+      this.lastDbBackup,
+      this.fullName,
+      this.role,
+      this.tinNumber,
+      this.bhfId,
+      this.dvcSrlNo,
+      this.adrs,
+      this.taxEnabled,
+      this.taxServerUrl,
+      this.isDefault,
+      this.id,
+      this.businessTypeId});
   Id? id = Isar.autoIncrement;
   String? name;
   String? currency;
@@ -73,10 +71,8 @@ class Business {
   String? longitude;
   @Index()
   String? userId;
-  String? typeId;
   String? timeZone;
   List<String>? channels;
-  String? table;
   String? country;
   String? businessUrl;
   String? hexColor;
@@ -108,6 +104,7 @@ class Business {
   bool? taxEnabled;
   String? taxServerUrl;
   bool? isDefault;
+  int? businessTypeId;
   Map<String, dynamic> toJson() => {
         "id": int.parse(id.toString()),
         "name": name,
@@ -128,7 +125,6 @@ class Business {
         "latitude": latitude,
         "longitude": longitude,
         "userId": userId.toString(),
-        "typeId": typeId,
         "timeZone": timeZone,
         "metadata": metadata,
         "lastName": name,
@@ -136,7 +132,6 @@ class Business {
         "imageUrl": imageUrl,
         "role": role,
         "lastSeen": lastSeen,
-        "table": table,
         "country": country,
         "businessUrl": businessUrl,
         "hexColor": hexColor,
@@ -148,7 +143,8 @@ class Business {
         "adrs": adrs,
         "taxEnabled": taxEnabled,
         "taxServerUrl": taxServerUrl,
-        "isDefault": isDefault
+        "isDefault": isDefault,
+        "businessTypeId": businessTypeId,
       };
   Business.fromJson(Map<dynamic, dynamic> json)
       : id = json["id"],
@@ -168,10 +164,8 @@ class Business {
         backUpEnabled = json["backUpEnabled"],
         latitude = json["latitude"] ?? '1',
         longitude = json["longitude"] ?? '1',
-        userId = json["userId"].toString(),
-        typeId = json["typeId"],
+        userId = json["userId"],
         timeZone = json["timeZone"],
-        table = json["table"],
         country = json["country"],
         businessUrl = json["businessUrl"],
         hexColor = json["hexColor"],
@@ -189,5 +183,6 @@ class Business {
         adrs = json["adrs"],
         taxEnabled = json["taxEnabled"],
         taxServerUrl = json["taxServerUrl"],
+        businessTypeId = json["businessTypeId"],
         isDefault = json["isDefault"];
 }

@@ -7,22 +7,19 @@ import 'package:pocketbase/pocketbase.dart';
 import 'package:stacked/stacked.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flipper_models/isar_models.dart';
-import 'package:flipper_routing/routes.logger.dart';
 import 'proxy.dart';
 import 'package:flutter_statusbarcolor_ns/flutter_statusbarcolor_ns.dart';
 import 'package:flipper_nfc/flipper_nfc.dart';
 import 'package:flutter/services.dart';
-import 'package:universal_platform/universal_platform.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-final isWindows = UniversalPlatform.isWindows;
+const socialApp = "socials";
 
 class AppService with ListenableServiceMixin {
   // required constants
-  String? get userid => ProxyService.box.read(key: 'userId');
-  int? get businessId => ProxyService.box.read(key: 'businessId');
-  int? get branchId => ProxyService.box.read(key: 'branchId');
-
-  final log = getLogger('AppService');
+  int? get userid => ProxyService.box.getUserId();
+  int? get businessId => ProxyService.box.getBusinessId();
+  int? get branchId => ProxyService.box.getBranchId();
 
   final _categories = ReactiveValue<List<Category>>([]);
   List<Category> get categories => _categories.value;
@@ -30,6 +27,16 @@ class AppService with ListenableServiceMixin {
   final _business =
       ReactiveValue<isar.Business>(isar.Business(isDefault: false));
   isar.Business get business => _business.value;
+  setBusiness({required isar.Business business}) {
+    _business.value = business;
+  }
+
+  final _tenant = ReactiveValue<isar.ITenant?>(null);
+  isar.ITenant? get tenant => _tenant.value;
+
+  setTenant({required isar.ITenant tenant}) {
+    _tenant.value = tenant;
+  }
 
   final _units = ReactiveValue<List<IUnit>>([]);
   List<IUnit> get units => _units.value;
@@ -50,22 +57,18 @@ class AppService with ListenableServiceMixin {
     _currentColor.value = color;
   }
 
-  setBusiness({required isar.Business business}) {
-    _business.value = business;
-  }
-
   void loadCategories() async {
-    int? branchId = ProxyService.box.read(key: 'branchId');
+    int? branchId = ProxyService.box.getBranchId();
 
     final List<Category> result =
-        await ProxyService.isarApi.categories(branchId: branchId!);
+        await ProxyService.isarApi.categories(branchId: branchId ?? 0);
 
     _categories.value = result;
     notifyListeners();
   }
 
   Future<void> loadUnits() async {
-    int? branchId = ProxyService.box.read(key: 'branchId');
+    int? branchId = ProxyService.box.getBranchId();
     final List<IUnit> result =
         await ProxyService.isarApi.units(branchId: branchId!);
 
@@ -73,12 +76,12 @@ class AppService with ListenableServiceMixin {
   }
 
   Future<void> loadColors() async {
-    int? branchId = ProxyService.box.read(key: 'branchId');
+    int? branchId = ProxyService.box.getBranchId();
 
     List<PColor> result =
         await ProxyService.isarApi.colors(branchId: branchId!);
     _colors.value = result;
-    log.i(result.length);
+
     for (PColor color in result) {
       if (color.active) {
         setCurrentColor(color: color.name!);
@@ -86,12 +89,44 @@ class AppService with ListenableServiceMixin {
     }
   }
 
-  bool _loggedIn = false;
-  bool get hasLoggedInUser => _loggedIn;
+  /// we fist log in to the business portal
+  /// before we log to other apps as the business portal
+  /// is the mother of all apps
+  Future<bool> isLoggedIn() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    int? businessId = ProxyService.box.getBusinessId();
 
-  bool isLoggedIn() {
-    _loggedIn = ProxyService.box.read(key: 'userId') == null ? false : true;
-    return _loggedIn;
+    if (ProxyService.box.getUserId() == null &&
+        user != null &&
+        businessId == null) {
+      await ProxyService.isarApi.login(
+          userPhone: user.phoneNumber ?? user.email!,
+          skipDefaultAppSetup: false);
+    }
+
+    bool value = await isSocialLoggedin();
+    if (!value) {
+      await logSocial();
+    }
+    return ProxyService.box.getUserId() != null &&
+        ProxyService.box.getBusinessId() != null;
+  }
+
+  Future<void> logSocial() async {
+    SocialToken token = await ProxyService.isarApi.loginOnSocial(
+        password: ProxyService.box.getUserPhone()!.replaceFirst("+", ""),
+        phoneNumberOrEmail:
+            ProxyService.box.getUserPhone()!.replaceFirst("+", ""));
+    ProxyService.box
+        .write(key: 'socialBearerToken', value: "Bearer " + token.body.token);
+    int? businessId = ProxyService.box.getBusinessId();
+    await ProxyService.isarApi.create(
+        data: Token(
+            businessId: businessId!,
+            token: token.body.token,
+            validFrom: token.body.validFrom,
+            validUntil: token.body.validUntil,
+            type: socialApp));
   }
 
   final _contacts = ReactiveValue<List<Business>>([]);
@@ -110,17 +145,25 @@ class AppService with ListenableServiceMixin {
   /// set the env the current user is operating in.
 
   Future<void> appInit() async {
-    String? userId = ProxyService.box.getUserId();
+    int? userId = ProxyService.box.getUserId();
+    if (userId == null) return;
     List<isar.Business> businesses =
-        await ProxyService.isarApi.businesses(userId: userId!);
+        await ProxyService.isarApi.businesses(userId: userId);
     if (businesses.isEmpty) {
-      businesses
-          .add(await ProxyService.isarApi.getOnlineBusiness(userId: userId));
+      try {
+        Business b = await ProxyService.isarApi
+            .getOnlineBusiness(userId: userId.toString());
+        businesses.add(b);
+      } catch (e) {
+        rethrow;
+      }
     }
     if (businesses.length == 1) {
       await setActiveBusiness(businesses);
       await loadTenants(businesses);
       await loadCounters(businesses.first);
+
+      ProxyService.box.write(key: 'businessId', value: businesses.first.id);
       bool defaultBranch = await setActiveBranch(businesses: businesses.first);
 
       if (!defaultBranch) {
@@ -132,6 +175,7 @@ class AppService with ListenableServiceMixin {
       bool defaultBusiness = false;
       for (Business business in businesses) {
         if (business.isDefault != null && business.isDefault == true) {
+          ProxyService.box.write(key: 'businessId', value: business.id);
           await setActiveBusiness(businesses);
           await loadTenants(businesses);
           await loadCounters(businesses.first);
@@ -139,7 +183,7 @@ class AppService with ListenableServiceMixin {
         }
       }
       if (!defaultBusiness) {
-        throw LoginChoicesException(term: "choose default business");
+        throw LoginChoicesException(term: "Choose default business");
       }
     }
   }
@@ -327,5 +371,14 @@ class AppService with ListenableServiceMixin {
   AppService() {
     listenToReactiveValues(
         [_categories, _units, _colors, _currentColor, _business, _contacts]);
+  }
+
+  Future<bool> isSocialLoggedin() async {
+    if (ProxyService.box.getDefaultApp() == 2) {
+      int businessId = ProxyService.box.getBusinessId()!;
+      return await ProxyService.isarApi
+          .isTokenValid(businessId: businessId, tokenType: socialApp);
+    }
+    return true;
   }
 }

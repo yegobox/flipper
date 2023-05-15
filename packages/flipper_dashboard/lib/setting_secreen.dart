@@ -4,10 +4,10 @@ import 'package:flutter_settings_ui/flutter_settings_ui.dart';
 import 'package:flipper_login/update_email.dart';
 import 'package:flipper_login/update_printer_settings.dart';
 import 'languages_screen.dart';
-import 'package:go_router/go_router.dart';
-import 'package:stacked/stacked.dart';
 import 'package:overlay_support/overlay_support.dart';
-
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked/stacked.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_models/isar_models.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -18,7 +18,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   bool lockInBackground = false;
   bool notificationsEnabled = true;
-
+  final _routerService = locator<RouterService>();
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<SettingViewModel>.reactive(
@@ -29,12 +29,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
         return Scaffold(
           appBar: CustomAppBar(
             onPop: () {
-              GoRouter.of(context).pop();
+              _routerService.pop();
             },
             title: 'Flipper Settings',
             showActionButton: false,
-            onPressedCallback: () async {
-              GoRouter.of(context).pop();
+            onActionButtonClicked: () async {
+              _routerService.pop();
             },
             icon: Icons.close,
             multi: 3,

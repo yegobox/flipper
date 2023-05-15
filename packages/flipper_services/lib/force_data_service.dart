@@ -1,8 +1,6 @@
 import 'package:flipper_models/mocks.dart';
-import 'package:flipper_routing/routes.locator.dart';
-import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_services/app_service.dart';
-import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
 
 import 'package:flipper_models/isar_models.dart';
@@ -12,13 +10,12 @@ import 'package:flipper_models/isar_models.dart';
 
 class ForceDataEntryService {
   final appService = locator<AppService>();
-  final log = getLogger('ForceDataEntryService');
-  void caller() {
+  void dataBootstrapper() {
     addData();
   }
 
   Future<void> addData() async {
-    int? branchId = ProxyService.box.read(key: 'branchId');
+    int? branchId = ProxyService.box.getBranchId();
 
     if (branchId == null) {
       return;
@@ -39,7 +36,6 @@ class ForceDataEntryService {
             ..branchId = branchId
             ..businessId = businessId);
     }
-    final String? userId = ProxyService.box.getUserId();
     final List<String> colors = [
       '#d63031',
       '#0984e3',
@@ -54,13 +50,11 @@ class ForceDataEntryService {
     final PColor color = PColor()
       ..id = DateTime.now().millisecondsSinceEpoch
       ..colors = colors
-      ..table = AppTables.color
-      ..channels = [userId!]
       ..active = false
       ..branchId = branchId
       ..name = '#d63031';
 
-    int branchid = ProxyService.box.read(key: 'branchId');
+    int branchid = ProxyService.box.getBranchId()!;
     List<PColor> kColors =
         await ProxyService.isarApi.colors(branchId: branchid);
     if (kColors.isEmpty) {

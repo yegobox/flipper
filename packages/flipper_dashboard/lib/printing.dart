@@ -1,8 +1,9 @@
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_models/view_models/setting_view_model.dart';
+import 'package:flipper_routing/app.locator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:go_router/go_router.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'package:stacked/stacked.dart';
 
 class Printing extends StatefulWidget {
@@ -14,6 +15,7 @@ class Printing extends StatefulWidget {
 
 class _PrintingState extends State<Printing> {
   bool isAutoPrint = false;
+  final _routerService = locator<RouterService>();
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<SettingViewModel>.reactive(
@@ -34,7 +36,7 @@ class _PrintingState extends State<Printing> {
         return Scaffold(
           appBar: CustomAppBar(
             onPop: () async {
-              GoRouter.of(context).pop();
+              _routerService.pop();
             },
             title: 'Printing Configuration',
             disableButton: false,

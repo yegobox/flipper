@@ -1,21 +1,23 @@
 import 'package:flipper_models/isar_models.dart';
-import 'package:flipper_routing/routes.router.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_dashboard/customappbar.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 import 'package:number_display/number_display.dart';
-import 'package:go_router/go_router.dart';
 
 class Payments extends StatelessWidget {
-  Payments({Key? key, required this.order}) : super(key: key);
+  Payments({Key? key, required this.order, required this.duePay})
+      : super(key: key);
   final display = createDisplay(
     length: 8,
     decimal: 0,
   );
   final Order order;
-
+  final _routerService = locator<RouterService>();
+  final double duePay;
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<BusinessHomeViewModel>.reactive(
@@ -24,12 +26,11 @@ class Payments extends StatelessWidget {
             child: Scaffold(
               appBar: CustomAppBar(
                 onPop: () {
-                  GoRouter.of(context).pop();
+                  _routerService.pop();
                 },
-                onPressedCallback: () {
-                  GoRouter.of(context).pop();
+                onActionButtonClicked: () {
+                  _routerService.pop();
                 },
-                title: '',
                 rightActionButtonName: 'Split payment',
                 icon: Icons.close,
                 multi: 3,
@@ -45,8 +46,7 @@ class Payments extends StatelessWidget {
                           const SizedBox(height: 40),
                           model.kOrder != null
                               ? Text(
-                                  'FRw ' +
-                                      display(model.totalPayable).toString(),
+                                  'FRw ' + display(duePay).toString(),
                                   style: const TextStyle(
                                       fontSize: 20.0,
                                       fontWeight: FontWeight.bold),
@@ -62,17 +62,15 @@ class Payments extends StatelessWidget {
                       ),
                     ),
                     Positioned(
-                      bottom: 0,
+                      bottom: 20.0,
                       right: 0,
                       left: 0,
                       child: Column(
                         children: [
                           GestureDetector(
                             onTap: () {
-                              GoRouter.of(context).push(
-                                Routes.collect + "/cash",
-                                extra: order,
-                              );
+                              _routerService.navigateTo(CollectCashViewRoute(
+                                  order: order, paymentType: "cash"));
                             },
                             child: const ListTile(
                               leading: Text(
@@ -90,14 +88,13 @@ class Payments extends StatelessWidget {
                               ),
                             ),
                           ),
-                          ProxyService.remoteConfig.isSpennPaymentAvailable() ||
-                                  kDebugMode
+                          ProxyService.remoteConfig.isSpennPaymentAvailable()
                               ? GestureDetector(
                                   onTap: () {
-                                    GoRouter.of(context).push(
-                                      Routes.collect + "/spenn",
-                                      extra: order,
-                                    );
+                                    _routerService.navigateTo(
+                                        CollectCashViewRoute(
+                                            order: order,
+                                            paymentType: "spenn"));
                                   },
                                   child: const ListTile(
                                     leading: Text(

@@ -20,7 +20,6 @@ class Variant extends IJsonSerializable {
   @Index()
   late int productId;
   late String unit;
-  late String table;
   late String productName;
   late int branchId;
   late String? taxName;
@@ -94,7 +93,6 @@ class Variant extends IJsonSerializable {
       required this.sku,
       required this.productId,
       required this.unit,
-      required this.table,
       required this.productName,
       required this.branchId,
       required this.supplyPrice,
@@ -145,7 +143,6 @@ class Variant extends IJsonSerializable {
         'sku': sku,
         'productId': productId,
         'unit': unit,
-        'table': table,
         'productName': productName,
         'branchId': branchId,
         'taxName': taxName,
@@ -195,7 +192,6 @@ class Variant extends IJsonSerializable {
         localId: json['localId'],
         productId: json['productId'],
         unit: json['unit'],
-        table: json['table'],
         productName: json['productName'],
         branchId: json['branchId'],
         taxName: json['taxName'],

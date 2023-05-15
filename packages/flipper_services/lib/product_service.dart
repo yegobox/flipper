@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flipper_routing/routes.logger.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
@@ -8,7 +7,6 @@ import 'package:stacked/stacked.dart';
 class ProductService with ListenableServiceMixin {
   String? _currentUnit = 'Kg'; //set default to kg
   String? get currentUnit => _currentUnit;
-  final log = getLogger('ProductService');
 
   final _barCode = ReactiveValue<String>('');
   String get barCode => _barCode.value;
@@ -35,7 +33,7 @@ class ProductService with ListenableServiceMixin {
     notifyListeners();
   }
 
-  String? get userId => ProxyService.box.getUserId();
+  int? get userId => ProxyService.box.getUserId();
   int? get branchId => ProxyService.box.getBranchId()!;
 
   setProductUnit({required String unit}) {

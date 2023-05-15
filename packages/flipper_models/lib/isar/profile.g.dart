@@ -7,7 +7,7 @@ part of flipper_models;
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
 
 extension GetProfileCollection on Isar {
   IsarCollection<Profile> get profiles => this.collection();
@@ -128,7 +128,7 @@ const ProfileSchema = CollectionSchema(
   getId: _profileGetId,
   getLinks: _profileGetLinks,
   attach: _profileAttach,
-  version: '3.0.6-dev.0',
+  version: '3.1.0+1',
 );
 
 int _profileEstimateSize(
@@ -164,11 +164,31 @@ int _profileEstimateSize(
     }
   }
   bytesCount += 3 + object.district.length * 3;
-  bytesCount += 3 + object.email.length * 3;
+  {
+    final value = object.email;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.livingAt.length * 3;
-  bytesCount += 3 + object.name.length * 3;
-  bytesCount += 3 + object.nationalId.length * 3;
-  bytesCount += 3 + object.phone.length * 3;
+  {
+    final value = object.name;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.nationalId;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.phone;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   {
     final value = object.pincode;
     if (value != null) {
@@ -231,12 +251,12 @@ Profile _profileDeserialize(
     country: reader.readString(offsets[5]),
     coverPic: reader.readStringOrNull(offsets[6]),
     district: reader.readString(offsets[7]),
-    email: reader.readString(offsets[8]),
+    email: reader.readStringOrNull(offsets[8]),
     id: id,
     livingAt: reader.readString(offsets[9]),
-    name: reader.readString(offsets[10]),
-    nationalId: reader.readString(offsets[11]),
-    phone: reader.readString(offsets[12]),
+    name: reader.readStringOrNull(offsets[10]),
+    nationalId: reader.readStringOrNull(offsets[11]),
+    phone: reader.readStringOrNull(offsets[12]),
     pincode: reader.readStringOrNull(offsets[13]),
     profilePic: reader.readStringOrNull(offsets[14]),
     state: reader.readStringOrNull(offsets[15]),
@@ -269,15 +289,15 @@ P _profileDeserializeProp<P>(
     case 7:
       return (reader.readString(offset)) as P;
     case 8:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 9:
       return (reader.readString(offset)) as P;
     case 10:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 11:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 12:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 13:
       return (reader.readStringOrNull(offset)) as P;
     case 14:
@@ -1505,8 +1525,24 @@ extension ProfileQueryFilter
     });
   }
 
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> emailIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'email',
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> emailIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'email',
+      ));
+    });
+  }
+
   QueryBuilder<Profile, Profile, QAfterFilterCondition> emailEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1519,7 +1555,7 @@ extension ProfileQueryFilter
   }
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> emailGreaterThan(
-    String value, {
+    String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -1534,7 +1570,7 @@ extension ProfileQueryFilter
   }
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> emailLessThan(
-    String value, {
+    String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -1549,8 +1585,8 @@ extension ProfileQueryFilter
   }
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> emailBetween(
-    String lower,
-    String upper, {
+    String? lower,
+    String? upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -1817,8 +1853,24 @@ extension ProfileQueryFilter
     });
   }
 
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> nameIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'name',
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> nameIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'name',
+      ));
+    });
+  }
+
   QueryBuilder<Profile, Profile, QAfterFilterCondition> nameEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1831,7 +1883,7 @@ extension ProfileQueryFilter
   }
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> nameGreaterThan(
-    String value, {
+    String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -1846,7 +1898,7 @@ extension ProfileQueryFilter
   }
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> nameLessThan(
-    String value, {
+    String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -1861,8 +1913,8 @@ extension ProfileQueryFilter
   }
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> nameBetween(
-    String lower,
-    String upper, {
+    String? lower,
+    String? upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -1947,8 +1999,24 @@ extension ProfileQueryFilter
     });
   }
 
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> nationalIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'nationalId',
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> nationalIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'nationalId',
+      ));
+    });
+  }
+
   QueryBuilder<Profile, Profile, QAfterFilterCondition> nationalIdEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1961,7 +2029,7 @@ extension ProfileQueryFilter
   }
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> nationalIdGreaterThan(
-    String value, {
+    String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -1976,7 +2044,7 @@ extension ProfileQueryFilter
   }
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> nationalIdLessThan(
-    String value, {
+    String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -1991,8 +2059,8 @@ extension ProfileQueryFilter
   }
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> nationalIdBetween(
-    String lower,
-    String upper, {
+    String? lower,
+    String? upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -2077,8 +2145,24 @@ extension ProfileQueryFilter
     });
   }
 
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> phoneIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'phone',
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> phoneIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'phone',
+      ));
+    });
+  }
+
   QueryBuilder<Profile, Profile, QAfterFilterCondition> phoneEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -2091,7 +2175,7 @@ extension ProfileQueryFilter
   }
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> phoneGreaterThan(
-    String value, {
+    String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -2106,7 +2190,7 @@ extension ProfileQueryFilter
   }
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> phoneLessThan(
-    String value, {
+    String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -2121,8 +2205,8 @@ extension ProfileQueryFilter
   }
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> phoneBetween(
-    String lower,
-    String upper, {
+    String? lower,
+    String? upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -3389,7 +3473,7 @@ extension ProfileQueryProperty
     });
   }
 
-  QueryBuilder<Profile, String, QQueryOperations> emailProperty() {
+  QueryBuilder<Profile, String?, QQueryOperations> emailProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'email');
     });
@@ -3401,19 +3485,19 @@ extension ProfileQueryProperty
     });
   }
 
-  QueryBuilder<Profile, String, QQueryOperations> nameProperty() {
+  QueryBuilder<Profile, String?, QQueryOperations> nameProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'name');
     });
   }
 
-  QueryBuilder<Profile, String, QQueryOperations> nationalIdProperty() {
+  QueryBuilder<Profile, String?, QQueryOperations> nationalIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'nationalId');
     });
   }
 
-  QueryBuilder<Profile, String, QQueryOperations> phoneProperty() {
+  QueryBuilder<Profile, String?, QQueryOperations> phoneProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'phone');
     });
@@ -3443,3 +3527,49 @@ extension ProfileQueryProperty
     });
   }
 }
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+Profile _$ProfileFromJson(Map<String, dynamic> json) => Profile(
+      id: json['id'] as int? ?? 0,
+      name: json['name'] as String?,
+      email: json['email'] as String?,
+      phone: json['phone'] as String?,
+      address: json['address'] as String?,
+      city: json['city'] as String?,
+      state: json['state'] as String?,
+      country: json['country'] as String,
+      pincode: json['pincode'] as String?,
+      profilePic: json['profilePic'] as String?,
+      coverPic: json['coverPic'] as String?,
+      about: json['about'] as String?,
+      vaccinationCode: json['vaccinationCode'] as String,
+      livingAt: json['livingAt'] as String,
+      cell: json['cell'] as String,
+      district: json['district'] as String,
+      businessId: json['businessId'] as int,
+      nationalId: json['nationalId'] as String?,
+    );
+
+Map<String, dynamic> _$ProfileToJson(Profile instance) => <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+      'email': instance.email,
+      'phone': instance.phone,
+      'address': instance.address,
+      'city': instance.city,
+      'state': instance.state,
+      'country': instance.country,
+      'pincode': instance.pincode,
+      'profilePic': instance.profilePic,
+      'coverPic': instance.coverPic,
+      'about': instance.about,
+      'vaccinationCode': instance.vaccinationCode,
+      'livingAt': instance.livingAt,
+      'cell': instance.cell,
+      'district': instance.district,
+      'businessId': instance.businessId,
+      'nationalId': instance.nationalId,
+    };

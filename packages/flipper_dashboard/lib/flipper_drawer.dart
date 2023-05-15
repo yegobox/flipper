@@ -6,9 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:flipper_models/isar_models.dart' as model;
-import 'package:go_router/go_router.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_routing/routes.router.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 class FlipperDrawer extends StatefulWidget {
   const FlipperDrawer(
@@ -29,6 +30,7 @@ class FlipperDrawer extends StatefulWidget {
 }
 
 class _FlipperDrawerState extends State<FlipperDrawer> {
+  final _routerService = locator<RouterService>();
   @override
   void dispose() {
     super.dispose();
@@ -130,8 +132,8 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                                                   onTap: () async {
                                                     await ProxyService.isarApi
                                                         .logOut();
-                                                    GoRouter.of(context)
-                                                        .go(Routes.boot);
+                                                    _routerService.navigateTo(
+                                                        StartUpViewRoute());
                                                   },
                                                   child:
                                                       const BoxButton.outline(
@@ -189,8 +191,7 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                     Icons.help,
                   ),
                   onTap: () async {
-                    // ProxyService.nav.navigateTo(Routes.inappBrowser);
-                    GoRouter.of(context).go(Routes.inappBrowser);
+                    _routerService.navigateTo(InAppBrowserRoute());
                   },
                 ),
               ],

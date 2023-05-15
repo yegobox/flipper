@@ -1,11 +1,15 @@
 library flipper_models;
 
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/sync_service.dart';
+import 'package:json_annotation/json_annotation.dart';
+import 'package:pocketbase/pocketbase.dart';
 
 part 'profile.g.dart';
 
+@JsonSerializable()
 @Collection()
-class Profile {
+class Profile extends IJsonSerializable {
   Profile({
     this.id = 0,
     required this.name,
@@ -28,9 +32,9 @@ class Profile {
   });
 
   Id id = Isar.autoIncrement;
-  String name;
-  String email;
-  String phone;
+  String? name;
+  String? email;
+  String? phone;
   String? address;
   String? city;
   String? state;
@@ -45,46 +49,13 @@ class Profile {
   String district;
   @Index()
   int businessId;
-  String nationalId;
+  String? nationalId;
 
-  factory Profile.fromJson(Map<dynamic, dynamic> json) => Profile(
-        id: json["id"],
-        name: json["name"],
-        email: json["email"],
-        phone: json["phone"],
-        address: json["address"],
-        city: json["city"],
-        state: json["state"],
-        country: json["country"],
-        pincode: json["pincode"],
-        profilePic: json["profilePic"],
-        coverPic: json["coverPic"],
-        about: json["about"],
-        vaccinationCode: json["vaccinationCode"],
-        livingAt: json["livingAt"],
-        cell: json["cell"],
-        district: json["district"],
-        businessId: json["businessId"],
-        nationalId: json["nationalId"],
-      );
-  Map<String, dynamic> toJson() => {
-        "id": id,
-        "name": name,
-        "email": email,
-        "phone": phone,
-        "address": address,
-        "city": city,
-        "state": state,
-        "country": country,
-        "pincode": pincode,
-        "profilePic": profilePic,
-        "coverPic": coverPic,
-        "about": about,
-        "vaccinationCode": vaccinationCode,
-        "livingAt": livingAt,
-        "cell": cell,
-        "district": district,
-        "businessId": businessId,
-        "nationalId": nationalId,
-      };
+  factory Profile.fromRecord(RecordModel record) =>
+      Profile.fromJson(record.toJson());
+
+  factory Profile.fromJson(Map<String, dynamic> json) =>
+      _$ProfileFromJson(json);
+  @override
+  Map<String, dynamic> toJson() => _$ProfileToJson(this);
 }

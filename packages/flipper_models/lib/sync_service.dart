@@ -3,7 +3,7 @@ import 'package:flipper_models/isar/utils.dart';
 import 'package:flipper_models/server_definitions.dart';
 import 'package:flipper_models/sync.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:isar_crdt/utils/hlc.dart';
+import 'package:flipper_models/hlc.dart';
 import 'package:pocketbase/pocketbase.dart';
 
 abstract class IJsonSerializable {
@@ -30,31 +30,37 @@ class SynchronizationService<M extends IJsonSerializable>
             .join(',');
         json["itemName"] = namesString;
       }
-      if (endpoint == "stocks" && json["retailPrice"] == null ||
-          json["retailPrice"] == 0) {
-        return null;
+      if (endpoint == "stocks" && json["retailPrice"] == null) {
+        throw Exception("stocks has null retail price");
       }
-      // if (endpoint == "products" && json["name"] == "Custom Amount") {
-      //   return null;
-      // }
-      if (json["name"] != "temp" || json["productName"] != "temp") {
-        json["lastTouched"] = removeTrailingDash(Hlc.fromDate(
-                DateTime.now(), ProxyService.box.getBranchId()!.toString())
-            .toString());
-        json["id"] = syncId();
 
-        RecordModel? result;
-        if (json['action'] == 'create') {
-          result = await ProxyService.remoteApi
-              .create(collection: json, collectionName: endpoint);
-        } else if (json['action'] == 'update' && json["remoteID"] != null) {
-          json["id"] = json["remoteID"];
-          result = await ProxyService.remoteApi.update(
-              data: json, collectionName: endpoint, recordId: json["remoteID"]);
-          print(endpoint);
-        }
-        return result;
+      if (endpoint == "variants" && json["retailPrice"] == null) {
+        throw Exception("variant has null retail price");
       }
+
+      /// remove trailing dashes to sent lastTouched
+      json["lastTouched"] = removeTrailingDash(Hlc.fromDate(
+              DateTime.now(), ProxyService.box.getBranchId()!.toString())
+          .toString());
+      json["id"] = syncId();
+
+      RecordModel? result;
+      // Assume that `json` is a variable holding a JSON object
+      //because there is a case where I might update yet there is no equivalent
+      //object remote, in this case we will fallback in create
+      if (json['action'] == 'update') {
+        var remoteID = json["remoteID"];
+        if (remoteID != null) {
+          json["id"] = remoteID;
+          result = await ProxyService.remoteApi
+              .update(data: json, collectionName: endpoint, recordId: remoteID);
+        }
+      } else if (json['action'] == 'create' || result == null) {
+        result = await ProxyService.remoteApi
+            .create(collection: json, collectionName: endpoint);
+      }
+
+      return result;
     }
     return null;
   }

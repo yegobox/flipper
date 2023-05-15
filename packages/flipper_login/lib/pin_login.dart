@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
@@ -28,7 +26,7 @@ class _PinLoginState extends State<PinLogin> {
         return Scaffold(
           body: Stack(
             children: [
-              const back.BackButton(),
+              SizedBox(width: 85, child: back.BackButton()),
               Center(
                 child: Form(
                   key: _form,
@@ -72,44 +70,68 @@ class _PinLoginState extends State<PinLogin> {
                                 color: Colors.white70,
                                 width: double.infinity,
                                 height: 40,
-                                child: BoxButton(
-                                  borderRadius: 2,
-                                  onTap: () async {
-                                    if (_form.currentState!.validate()) {
-                                      try {
-                                        await model.desktopLogin(
-                                          pinCode: _pin.text,
-                                          context: context,
-                                        );
-                                      } catch (e) {
-                                        log("PinLogin" + e.toString());
-                                        if (e is NotFoundException) {
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            const SnackBar(
-                                              backgroundColor: Colors.red,
-                                              content: Text(
-                                                  "Failed to authenticate try again, Business not found."),
-                                            ),
-                                          );
-                                        }
-                                        if (e is ErrorReadingFromYBServer) {
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            const SnackBar(
-                                              backgroundColor: Colors.red,
-                                              content: Text(
-                                                  "Failed to read server! try again"),
-                                            ),
-                                          );
-                                        }
-                                        model.setIsprocessing(value: false);
-                                      }
-                                    }
-                                  },
-                                  title: 'Log in',
-                                  busy: model.isProcessing,
-                                ),
+                                child: !model.isProcessing
+                                    ? BoxButton(
+                                        borderRadius: 2,
+                                        onTap: () async {
+                                          if (_form.currentState!.validate()) {
+                                            try {
+                                              await model.desktopLogin(
+                                                pinCode: _pin.text,
+                                                context: context,
+                                              );
+                                            } catch (e) {
+                                              if (e
+                                                  is BusinessNotFoundException) {
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                  const SnackBar(
+                                                    backgroundColor: Colors.red,
+                                                    content: Text(
+                                                        "Could not login with this pin."),
+                                                  ),
+                                                );
+                                              } else if (e
+                                                  is ErrorReadingFromYBServer) {
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                  const SnackBar(
+                                                    backgroundColor: Colors.red,
+                                                    content: Text(
+                                                        "Could not login with this pin."),
+                                                  ),
+                                                );
+                                              } else {
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                  const SnackBar(
+                                                    backgroundColor: Colors.red,
+                                                    content: Text(
+                                                        "Could not login with this pin."),
+                                                  ),
+                                                );
+                                              }
+                                              model.setIsprocessing(
+                                                  value: false);
+                                            }
+                                          }
+                                        },
+                                        title: 'Log in',
+                                        busy: model.isProcessing,
+                                      )
+                                    : const Padding(
+                                        key: Key('busyButton'),
+                                        padding:
+                                            EdgeInsets.only(left: 0, right: 0),
+                                        child: SizedBox(
+                                          width: double.infinity,
+                                          height: 50,
+                                          child: BoxButton(
+                                            title: 'Log in',
+                                            busy: true,
+                                          ),
+                                        ),
+                                      ),
                               )
                             ],
                           ),

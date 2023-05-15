@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:universal_platform/universal_platform.dart';
 
-String appFont = 'HelveticaNeuea';
-String dbName = 'main';
+const String defaultApp = 'defaultApp';
 String parkedStatus = 'parked';
 const String pendingStatus = 'pending';
 const String postPonedStatus = 'postponed';
@@ -18,50 +18,6 @@ String attendance = 'attendance';
 String login = 'login';
 String selling = 'selling';
 const String completeStatus = 'completed';
-const double kPadding = 10.0;
-const Color purpleLight = Color(0XFF1e224c);
-
-/// the constants for chat
-const Color primary = Color(0xFF399df8);
-const Color bgColor = Color(0xFF010101);
-const Color white = Color(0xFFFFFFFF);
-const Color black = Color(0xFF000000);
-const Color textfieldColor = Color(0xFF1c1d1f);
-const Color greyColor = Color(0xFF161616);
-const Color chatBoxOther = Color(0xFF3d3d3f);
-const Color chatBoxMe = Color(0xFF066162);
-
-/// the end of chat colors but can also be used for other things
-
-const Color purpleDark = Color(0XFF0d193e);
-const Color orange = Color(0XFFec8d2f);
-const Color red = Color(0XFFf44336);
-// Copyright 2019 The Flutter team. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
-// Only put constants shared between files here.
-
-// height of the 'Gallery' header
-const double galleryHeaderHeight = 64;
-
-// The font size delta for headline4 font.
-const double desktopDisplay1FontDelta = 16;
-
-// The width of the settingsDesktop.
-const double desktopSettingsWidth = 520;
-
-// Sentinel value for the system text scale factor option.
-const double systemTextScaleFactorOption = -1;
-
-// The splash page animation duration.
-const splashPageAnimationDurationInMilliseconds = 300;
-
-// The desktop top padding for a page's first header (e.g. Gallery, Settings)
-const firstHeaderDesktopTopPadding = 5.0;
-
-// Pages
-const String pageKey = 'page';
 bool isNumeric(String? s) {
   if (s == null) {
     return false;
@@ -69,27 +25,11 @@ bool isNumeric(String? s) {
   return double.tryParse(s) != null;
 }
 
-// ignore: avoid_classes_with_only_static_members
-// @Deprecated use app_services constants
-class AppTables {
-  //table name used to query couchbase_lite data
-  static const String business = 'businesses';
-  static const String branch = 'branches';
-  static const String tax = 'taxes';
-  static const String category = 'categories';
-  static const String variation = 'variants';
-  static const String product = 'products';
-  static const String stockHistories = 'stocks_histories';
-  static const String order = 'orders';
-  static const String orderDetail = 'orderDetails';
-  static const String branchProduct = 'branchProducts';
-  static const String unit = 'units';
-  static const String stock = 'stocks';
-  static const String drawerHistories = 'drawerHistories';
-  static const String cart = 'cart';
-  static const String color = 'colors';
+const Color primary = Color(0xFF399df8);
+bool isMacOs = UniversalPlatform.isMacOS;
+bool isIos = UniversalPlatform.isIOS;
+bool isAndroid = UniversalPlatform.isAndroid;
+bool isWeb = UniversalPlatform.isWeb;
+bool isWindows = UniversalPlatform.isWindows;
 
-  static const String user = 'users';
-
-  static const String tickets = 'tickets';
-}
+bool isDesktopOrWeb = UniversalPlatform.isDesktopOrWeb;

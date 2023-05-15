@@ -1,11 +1,11 @@
+import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
 
-import 'package:flipper_routing/routes.logger.dart';
-import 'package:flipper_services/upload_response.dart';
+import 'package:flutter/foundation.dart';
 
 import 'abstractions/upload.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:flipper_models/isar_models.dart';
 
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_uploader/flutter_uploader.dart';
@@ -13,44 +13,15 @@ import 'package:flutter_luban/flutter_luban.dart';
 import 'proxy.dart';
 
 class HttpUpload implements UploadT {
-  final log = getLogger('HttpUpload');
-  @override
-  Future browsePictureFromGallery(
-      {required int productId, required Function onComplete}) async {
-    UnimplementedError();
-  }
+  var processed = <String>[];
 
   @override
-  Future handleImage({
-    required File image,
+  Future browsePictureFromGallery({
     required int productId,
-    required Function(int) onUploadComplete,
+    required URLTYPE urlType,
+    required FlutterUploader uploader,
   }) async {
-    final tempDir = await getTemporaryDirectory();
-    CompressObject compressObject = CompressObject(
-      imageFile: image, //image
-      path: tempDir.path, //compress to path
-      //first compress quality, default 80
-      //compress quality step, The bigger the fast, Smaller is more accurate, default 6
-      quality: 85,
-      step: 9,
-      mode: CompressMode.LARGE2SMALL, //default AUTO
-    );
-    Luban.compressImage(compressObject).then((_path) {
-      final String fileName = _path!.split('/').removeLast();
-      final String storagePath = _path.replaceAll('/' + fileName, '');
-      // final Document productUpdated = _databaseService.getById(id: product.id!!);
-      // _state.setProduct(product: Product.fromMap(productUpdated.map));
-      // final bool internetAvailable = await isInternetAvailable();
-      log.i('we got here');
-      log.i(fileName);
-      log.i(storagePath);
-      upload(
-        paths: [storagePath],
-        productId: productId,
-        onUploadComplete: onUploadComplete,
-      );
-    });
+    UnimplementedError();
   }
 
   @override
@@ -60,16 +31,20 @@ class HttpUpload implements UploadT {
   }
 
   @override
-  Future takePicture(
-      {required int productId, required Function onComplete}) async {
+  Future takePicture({
+    required int id,
+    required URLTYPE urlType,
+    required FlutterUploader uploader,
+  }) async {
     print('no supported on this platform');
   }
 
   @override
   Future upload({
     required List<String?> paths,
-    required int productId,
-    required Function(int) onUploadComplete,
+    required int id,
+    required FlutterUploader uploader,
+    required URLTYPE urlType,
   }) {
     // TODO: implement upload
     throw UnimplementedError();
@@ -79,74 +54,31 @@ class HttpUpload implements UploadT {
 // end of http upload
 class MobileUpload implements UploadT {
   final _picker = ImagePicker();
-  final log = getLogger('MobileUpload');
-  @override
-  Future handleImage(
-      {required File image,
-      required int productId,
-      required Function(int) onUploadComplete}) async {
-    final tempDir = await getTemporaryDirectory();
-    CompressObject compressObject = CompressObject(
-      imageFile: image, //image
-      path: tempDir.path, //compress to path
-      quality: 85,
-      step: 9,
-      mode: CompressMode.LARGE2SMALL, //default AUTO
-    );
-    Luban.compressImage(compressObject).then((_path) {
-      upload(
-        productId: productId,
-        paths: [_path!],
-        onUploadComplete: onUploadComplete,
-      );
-    }).onError((error, stackTrace) {
-      log.i(error);
-    });
-  }
 
   @override
   Future upload({
     required List<String?> paths,
-    required int productId,
-    required Function(int) onUploadComplete,
+    required int id,
+    required URLTYPE urlType,
+    required FlutterUploader uploader,
   }) async {
-    final FlutterUploader uploader = FlutterUploader();
     final String? token = ProxyService.box.getBearerToken();
+
+    late String url;
+    if (kDebugMode) {
+      url = 'https://uat-apihub.yegobox.com/s3/upload';
+    } else if (!kDebugMode) {
+      url = 'https://apihub.yegobox.com/s3/upload';
+    }
+    log(paths.length.toString(), name: 'paths');
+    uploader.clearUploads();
     await uploader.enqueue(MultipartFormDataUpload(
-      url: 'https://apihub.yegobox.com/s3/upload',
-      files: paths.map((e) => FileItem(path: e!, field: 'file')).toList(),
+      url: url,
+      files: [FileItem(path: paths.first!, field: 'file')],
       method: UploadMethod.POST,
       tag: 'file',
       headers: {'Authorization': token!},
     ));
-
-    uploader.progress.listen((UploadTaskProgress progress) {
-      // print('uploadProgress:' + progress.toString());
-    });
-    uploader.result.listen((UploadTaskResponse result) async {
-      if (result.response != 'There are no items to upload' ||
-          result.response != null) {
-        try {
-          final UploadResponse uploadResponse =
-              uploadResponseFromJson(result.response!);
-          Product? product =
-              await ProxyService.isarApi.getProduct(id: productId);
-          // Map map = product!.toJson();
-          product!.imageUrl = uploadResponse.url;
-          log.i(productId);
-          ProxyService.isarApi.update(data: product);
-          Product? kProduct =
-              await ProxyService.isarApi.getProduct(id: productId);
-          ProxyService.productService
-              .setCurrentProduct(product: kProduct!); //refresh data!
-          onUploadComplete(result.statusCode!);
-        } catch (e) {
-          onUploadComplete(500);
-        }
-      }
-    }, onError: (ex, stacktrace) {
-      log.i('error' + stacktrace.toString());
-    });
   }
 
   @override
@@ -164,48 +96,67 @@ class MobileUpload implements UploadT {
   }
 
   @override
-  Future browsePictureFromGallery(
-      {required int productId, required Function onComplete}) async {
+  Future browsePictureFromGallery({
+    required int productId,
+    required URLTYPE urlType,
+    required FlutterUploader uploader,
+  }) async {
     try {
       XFile? image = await _picker.pickImage(source: ImageSource.gallery);
       if (image == null) return;
+      log(image.path, name: "Path choosen");
       final File file = File(image.path);
-      await handleImage(
-        image: file,
-        productId: productId,
-        onUploadComplete: (int statusCode) {
-          if (statusCode == 200) {
-            onComplete(statusCode);
-          } else {
-            onComplete(Exception('error'));
-          }
-        },
+      final tempDir = await getTemporaryDirectory();
+      CompressObject compressObject = CompressObject(
+        imageFile: file, //image
+        path: tempDir.path, //compress to path
+        quality: 85,
+        step: 9,
+        mode: CompressMode.LARGE2SMALL, //default AUTO
       );
+      Luban.compressImage(compressObject).then((_path) {
+        upload(
+          id: productId,
+          paths: [_path!],
+          urlType: urlType,
+          uploader: uploader,
+        );
+      }).onError((error, stackTrace) {
+        log(error.toString(), name: "error compressing image");
+      });
     } catch (e) {
       //refresh to token
       String? phone = ProxyService.box.read(key: 'userPhone');
-      await ProxyService.isarApi.login(userPhone: phone!);
-      onComplete(Exception(e.toString()));
+      await ProxyService.isarApi
+          .login(userPhone: phone!, skipDefaultAppSetup: false);
     }
   }
 
   @override
   Future takePicture(
-      {required int productId, required Function onComplete}) async {
+      {required int id,
+      required URLTYPE urlType,
+      required FlutterUploader uploader}) async {
     final XFile? image = await _picker.pickImage(source: ImageSource.camera);
     if (image == null) return;
     final File file = File(image.path);
-
-    await handleImage(
-      image: file,
-      productId: productId,
-      onUploadComplete: (int statusCode) async {
-        if (statusCode == 200) {
-          onComplete(statusCode);
-        } else {
-          onComplete(statusCode);
-        }
-      },
+    final tempDir = await getTemporaryDirectory();
+    CompressObject compressObject = CompressObject(
+      imageFile: file, //image
+      path: tempDir.path, //compress to path
+      quality: 85,
+      step: 9,
+      mode: CompressMode.LARGE2SMALL, //default AUTO
     );
+    Luban.compressImage(compressObject).then((_path) {
+      upload(
+        id: id,
+        paths: [_path!],
+        urlType: urlType,
+        uploader: uploader,
+      );
+    }).onError((error, stackTrace) {
+      log(error.toString(), name: "error compressing image");
+    });
   }
 }

@@ -37,8 +37,7 @@ class Order extends IJsonSerializable {
 
   String? action;
 
-  final orderItems = IsarLinks<OrderItem>();
-  final discounts = IsarLinks<Discount>();
+  String? ticketName;
 
   Order(
       {required this.reference,
@@ -62,7 +61,8 @@ class Order extends IJsonSerializable {
       this.lastTouched,
       this.action,
       this.localId,
-      this.remoteID});
+      this.remoteID,
+      this.ticketName});
   factory Order.fromRecord(RecordModel record) =>
       Order.fromJson(record.toJson());
   factory Order.fromJson(Map<String, dynamic> json) {
@@ -87,7 +87,8 @@ class Order extends IJsonSerializable {
         lastTouched: json['lastTouched'],
         id: json['localId'],
         action: json['action'],
-        remoteID: json['id']);
+        remoteID: json['id'],
+        ticketName: json['ticketName']);
   }
 
   @override
@@ -112,5 +113,6 @@ class Order extends IJsonSerializable {
         'businessId': ProxyService.box.getBusinessId()!,
         "localId": id,
         "action": action,
+        'ticketName': ticketName,
       };
 }
