@@ -40,6 +40,9 @@ Future<void> onDidReceiveBackgroundNotificationResponse(
   );
 }
 
+//The reason why I did not use this method is the fact that
+// I can not access _routerService.navigateTo here on top level
+// hence I don't even know how to accept a notification when tapped
 Future<void> backgroundHandler(RemoteMessage message) async {}
 
 void main() async {

@@ -119,8 +119,8 @@ class _LoginViewState extends State<LoginView>
                         //do nothing to avoid bug.
                       }),
                     ],
-                    headerBuilder: headerImage('assets/logo.png'),
-                    sideBuilder: sideImage('assets/logo.png'),
+                    headerBuilder: headerImage('assets/icon.png'),
+                    sideBuilder: sideImage('assets/icon.png'),
                     subtitleBuilder: (context, action) {
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 8),
