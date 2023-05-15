@@ -5,8 +5,6 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_models/data.loads/jcounter.dart';
-import 'package:flipper_models/hlc.dart';
-import 'package:flipper_models/isar/utils.dart';
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_models/socials_http_client.dart';
@@ -364,9 +362,6 @@ class IsarAPI<M> implements IsarApiInterface {
     order.customerChangeDue = (cashReceived - totalPayable!);
 
     order.cashReceived = cashReceived;
-    order.lastTouched = removeTrailingDash(
-        Hlc.fromDate(DateTime.now(), ProxyService.box.getBranchId()!.toString())
-            .toString());
 
     await update(data: order);
 
@@ -374,9 +369,6 @@ class IsarAPI<M> implements IsarApiInterface {
       Stock? stock = await stockByVariantId(variantId: item.variantId);
       stock?.currentStock = stock.currentStock - item.qty;
       stock?.action = actions["update"];
-      stock?.lastTouched = removeTrailingDash(Hlc.fromDate(
-              DateTime.now(), ProxyService.box.getBranchId()!.toString())
-          .toString());
       update(data: stock);
     }
     // remove currentOrderId from local storage to leave a room

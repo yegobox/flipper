@@ -56,7 +56,8 @@ class FirebaseMessagingService implements Messaging {
   @override
   Future<void>
       initializeFirebaseMessagingAndSubscribeToBusinessNotifications() async {
-    FirebaseMessaging.onBackgroundMessage(backgroundHandler);
+    // This is not working..
+    // FirebaseMessaging.onBackgroundMessage(backgroundHandler);
     await FirebaseMessaging.instance
         .subscribeToTopic(ProxyService.box.getBusinessId()!.toString());
     String? _token = await token();

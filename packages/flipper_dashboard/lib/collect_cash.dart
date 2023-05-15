@@ -48,7 +48,7 @@ class _CollectCashViewState extends State<CollectCashView> {
                 showActionButton: true,
                 icon: Icons.close,
                 multi: 2,
-                bottomSpacer: 40,
+                bottomSpacer: 50,
               ),
               body: SizedBox(
                 width: double.infinity,

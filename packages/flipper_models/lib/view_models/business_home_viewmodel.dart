@@ -627,11 +627,13 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     int branchId = ProxyService.box.getBranchId()!;
     List<Order> completedOrders =
         await ProxyService.isarApi.completedOrders(branchId: branchId);
+    Set<OrderItem> allItems = {};
     for (Order completedOrder in completedOrders) {
       List<OrderItem> orderItems = await ProxyService.isarApi
           .getOrderItemsByOrderId(orderId: completedOrder.id!);
-      orderItems.addAll(orderItems);
+      allItems.addAll(orderItems.toSet());
     }
+    orderItems = allItems.toList();
     notifyListeners();
   }
 

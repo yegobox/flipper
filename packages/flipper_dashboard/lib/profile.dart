@@ -138,6 +138,12 @@ class _ProfileWidgetState extends State<ProfileWidget>
                               ),
                             ),
                           );
+                          model.uploadProgress().listen((progress) {
+                            if (progress == 100) {
+                              ScaffoldMessenger.of(context)
+                                  .hideCurrentSnackBar();
+                            }
+                          });
                           model.browsePictureFromGallery(
                               urlType: URLTYPE.BUSINESS,
                               callBack: (res) async {
