@@ -2327,7 +2327,8 @@ class IsarAPI<M> implements IsarApiInterface {
         message.userName = conversation.userName;
         message.phoneNumberId = conversation.phoneNumberId;
         message.businessId = conversation.businessId;
-        message.businessPhoneNumber = conversation.businessPhoneNumber;
+        message.businessPhoneNumber =
+            ProxyService.box.getUserPhone()!.replaceAll("+", "");
         isar.writeTxn(() async {
           await isar.conversations.put(message);
         });

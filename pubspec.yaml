@@ -12,7 +12,7 @@ description: A super app for africans
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundatversion:
-version: 1.170.17952317588+1684176013
+version: 1.170.21320669933+1684433267
 #
 # The packages below are just refrences for what packages being used
 # so not referenced in the app! check each package for more real package used
@@ -33,8 +33,10 @@ dependencies:
   flutter_acrylic: ^0.1.0
   provider: ^6.0.1
   firebase_auth_desktop: ^1.0.2
+  # FIXME: check if this usse https://github.com/firebase/flutterfire/issues/10931
+  # is solved to update to latest release
   firebase_core: ^2.7.1
-  firebase_core_desktop: ^1.0.2-dev
+  firebase_core_desktop: ^1.0.2
   firebase_ui_auth: ^1.1.16
   get_storage: ^2.0.3
   firebase_auth: ^4.2.10
@@ -83,7 +85,7 @@ dev_dependencies:
   flutter_launcher_icons: ^0.13.2
   # objectbox_generator: ^1.4.0
   matcher: ^0.12.10
-  msix: ^3.11.0
+  msix: ^3.12.2
   flutter_lints: ^2.0.0
   # Can't use this package because it depend on cli_util that is too old than what other packages use
   # melos: ^3.0.1
@@ -116,7 +118,7 @@ msix_config:
     force_update_from_any_version: true
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
-  msix_version: 1.170.110.0
+  msix_version: 1.170.111.0
 
   publisher: CN=B0F98A1E-8AE8-4B2B-BD1B-F494D4F791AE
   logo_path: "./assets/icon.png"
@@ -124,7 +126,7 @@ msix_config:
   tile_icon_path: "./assets/icon.png"
   icons_background_color: #ffffff
   architecture: x64
-  store: true
+  store: false
   enable_at_startup: true
   app_uri_handler_hosts: flipper.rw
   capabilities: internetClient

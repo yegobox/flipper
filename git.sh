@@ -17,8 +17,6 @@ cd .. && cd flutter_launcher_icons &&  git checkout master  && git add .  && git
 cd .. && cd flutter_datetime_picker &&  git checkout master  && git add .  && git commit -am "clean-up" && git push origin master
 cd .. && cd flutter_luban  &&  git checkout master  && git add .  && git commit -am "clean-up" && git push origin master
 cd .. && cd form_block  &&  git checkout master  && git add .  && git commit -am "clean-up" && git push origin master
-cd .. && cd dart_pdf  &&  git checkout master  && git add .  && git commit -am "clean-up" && git push origin master
-
 # These dependencies where local and now depend on them from pubspec
 # I was doing it becase it was using permissions that were not accepted but now I believe they are removed.
 #dart_pdf

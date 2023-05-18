@@ -102,3 +102,6 @@ class App {}
 // https://github.com/YehudaKremer/msix/issues/191
 // TODO: reading visa card, master card
 // https://github.com/jordanliu/flutter-emv-reader
+// TODO: on my todos
+// -https://pub.dev/packages/tray_manager
+// -ref: https://github.com/Merrit/adventure_list/blob/main/lib/src/system_tray/system_tray_manager.dart

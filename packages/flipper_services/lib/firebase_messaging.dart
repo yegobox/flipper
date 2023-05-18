@@ -120,6 +120,8 @@ class FirebaseMessagingService implements Messaging {
       Map<String, dynamic> conversationMap = json.decode(conversationKey);
 
       Conversation conversation = Conversation.fromJson(conversationMap);
+      // delay so if there is other transaction going on to complete first e.g from pubnub
+      Future.delayed(Duration(seconds: 20));
       Conversation? conversationExistOnLocal = await ProxyService.isarApi
           .getConversation(messageId: conversation.messageId!);
       if (conversationExistOnLocal == null) {
