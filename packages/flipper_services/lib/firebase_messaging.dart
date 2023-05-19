@@ -12,7 +12,6 @@ import 'package:stacked_services/stacked_services.dart';
 
 abstract class Messaging {
   Future<void> initializeFirebaseMessagingAndSubscribeToBusinessNotifications();
-  Future<void> listenTapOnNotificationFromBackground();
   Future<void> listenTapOnNotificationForeground();
   Future<String?> token();
 }
@@ -25,12 +24,6 @@ class FirebaseMessagingDesktop implements Messaging {
   @override
   Future<String> token() async {
     return "fakeToken";
-  }
-
-  @override
-  Future<void> listenTapOnNotificationFromBackground() async {
-    // TODO: implement listenTapOnNotificationFromBackground
-    print("listenTapOnNotificationFromBackground");
   }
 
   @override
@@ -56,8 +49,6 @@ class FirebaseMessagingService implements Messaging {
   @override
   Future<void>
       initializeFirebaseMessagingAndSubscribeToBusinessNotifications() async {
-    // This is not working..
-    // FirebaseMessaging.onBackgroundMessage(backgroundHandler);
     await FirebaseMessaging.instance
         .subscribeToTopic(ProxyService.box.getBusinessId()!.toString());
     String? _token = await token();
@@ -91,13 +82,6 @@ class FirebaseMessagingService implements Messaging {
   }
 
   @override
-  Future<void> listenTapOnNotificationFromBackground() async {
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
-      await handleTapOnNotification(message);
-    });
-  }
-
-  @override
   Future<void> listenTapOnNotificationForeground() async {
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
       await handleTapOnNotification(message);
@@ -105,9 +89,6 @@ class FirebaseMessagingService implements Messaging {
   }
 
   Future<void> handleTapOnNotification(RemoteMessage message) async {
-    // int id = message.messageId.hashCode;
-    // final title = message.data['title'];
-    // final body = message.data['body'];
     await handleMessage(message: message);
   }
 

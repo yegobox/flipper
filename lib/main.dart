@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_ui_localizations/firebase_ui_localizations.dart';
+import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/view_models/gate.dart';
 import 'package:flipper_routing/app.bottomsheets.dart';
 import 'package:flipper_routing/app.dialogs.dart';
@@ -9,6 +11,7 @@ import 'package:flipper_routing/app.locator.dart' as loc;
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_rw/flipper_localize/lib/flipper_localize.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:overlay_support/overlay_support.dart';
@@ -40,6 +43,23 @@ Future<void> onDidReceiveBackgroundNotificationResponse(
   );
 }
 
+Future<void> backgroundHandler(RemoteMessage message) async {
+  final type = message.data['type'];
+  if (type == "whatsapp") {
+    final conversationKey = message.data['conversation'];
+    Map<String, dynamic> conversationMap = json.decode(conversationKey);
+
+    Conversation conversation = Conversation.fromJson(conversationMap);
+    // delay so if there is other transaction going on to complete first e.g from pubnub
+    Future.delayed(const Duration(seconds: 20));
+    Conversation? conversationExistOnLocal = await ProxyService.isarApi
+        .getConversation(messageId: conversation.messageId!);
+    if (conversationExistOnLocal == null) {
+      await ProxyService.isarApi.create(data: conversation);
+    }
+  }
+}
+
 void main() async {
   runZonedGuarded<Future<void>>(() async {
     GoogleFonts.config.allowRuntimeFetching = false;
@@ -61,16 +81,6 @@ void main() async {
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/launcher_icon');
 
-    await GetStorage.init();
-    // done init in mobile.//done separation.
-    await thirdPartyLocator();
-    // setPathUrlStrategy();
-    loc.setupLocator(
-      stackedRouter: stackedRouter,
-    );
-    setupDialogUi();
-    setupBottomSheetUi();
-    await initDb();
     if (!isWindows && !isWeb) {
       FlutterError.onError = (FlutterErrorDetails details) {
         // Log the error to the console.
@@ -102,16 +112,25 @@ void main() async {
       );
     }
 
+    WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+    await GetStorage.init();
+    // done init in mobile.//done separation.
+    await thirdPartyLocator();
+    // setPathUrlStrategy();
+    loc.setupLocator(
+      stackedRouter: stackedRouter,
+    );
+    setupDialogUi();
+    setupBottomSheetUi();
+    await initDb();
+    FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
     if (!isWindows) {
-      // FirebaseMessaging.onMessageOpenedApp();
-      // FirebaseMessaging.getInitialMessage(backgroundHandler);
+      FirebaseMessaging.onBackgroundMessage(backgroundHandler);
       await FirebaseMessaging.instance
           .setForegroundNotificationPresentationOptions(
         badge: true,
       );
     } else if (isWindows) {}
-    WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
-    FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
     runApp(
       OverlaySupport.global(
         child: ChangeNotifierProvider(
