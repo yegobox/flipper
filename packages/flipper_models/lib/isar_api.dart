@@ -2522,6 +2522,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
     if (response.statusCode == 200) {
       final messagesJson = jsonDecode(response.body)['messages'];
+      if (messagesJson == null) return;
       List<Conversation> messages = (messagesJson as List<dynamic>)
           .map((e) => Conversation.fromJson(e))
           .toList();
