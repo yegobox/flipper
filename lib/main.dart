@@ -126,6 +126,16 @@ void main() async {
     FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
     if (!isWindows) {
       FirebaseMessaging.onBackgroundMessage(backgroundHandler);
+
+      // Check if the app was launched from a terminated state due to a background message
+      FirebaseMessaging.instance
+          .getInitialMessage()
+          .then((RemoteMessage? initialMessage) {
+        if (initialMessage != null) {
+          // Handle the initial message
+          backgroundHandler(initialMessage);
+        }
+      });
       await FirebaseMessaging.instance
           .setForegroundNotificationPresentationOptions(
         badge: true,

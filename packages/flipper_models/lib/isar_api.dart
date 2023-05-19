@@ -2502,12 +2502,6 @@ class IsarAPI<M> implements IsarApiInterface {
     return isar.iTenants.filter().userIdEqualTo(userId).build().findFirst();
   }
 
-  String decodeUrl(String url) {
-    var decodedUrl = Uri.parse(url).replace(
-        pathSegments: url.split('&#x2F;&#x2F;').map((e) => Uri.encodeFull(e)));
-    return decodedUrl.toString();
-  }
-
   @override
   Future<void> loadConversations(
       {required int businessId,
