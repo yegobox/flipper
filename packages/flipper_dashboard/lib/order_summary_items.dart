@@ -1,13 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:number_display/number_display.dart';
+import 'package:intl/intl.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-
-final display = createDisplay(
-  length: 8,
-  decimal: 0,
-);
 
 List<Widget> buildItems(
     {required Function callback,
@@ -67,7 +62,8 @@ List<Widget> buildItems(
         child: ListTile(
           contentPadding: const EdgeInsets.only(left: 40.0, right: 40.0),
           trailing: Text(
-            'RWF ' + display(item.price * item.qty).toString(),
+            'RWF ' +
+                NumberFormat('#,###').format(item.price * item.qty).toString(),
             style: GoogleFonts.poppins(
                 fontWeight: FontWeight.w400, fontSize: 15, color: Colors.black),
           ),

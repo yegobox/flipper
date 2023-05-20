@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_models/isar_models.dart';
+import 'package:intl/intl.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 final isMacOs = UniversalPlatform.isMacOS;
@@ -32,7 +33,7 @@ class KeyPadView extends StatelessWidget {
           Padding(
             padding: EdgeInsets.symmetric(vertical: paddingHeight),
             child: Text(
-              "${model.keypad.key} RWF",
+              NumberFormat('#,###').format(model.keypad.key) + " RWF",
               style: GoogleFonts.poppins(
                 fontSize: 35,
                 fontWeight: FontWeight.w500,
