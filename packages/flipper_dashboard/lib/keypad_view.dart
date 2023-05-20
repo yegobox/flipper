@@ -33,7 +33,8 @@ class KeyPadView extends StatelessWidget {
           Padding(
             padding: EdgeInsets.symmetric(vertical: paddingHeight),
             child: Text(
-              NumberFormat('#,###').format(model.keypad.key) + " RWF",
+              NumberFormat('#,###').format(double.parse(model.keypad.key)) +
+                  " RWF",
               style: GoogleFonts.poppins(
                 fontSize: 35,
                 fontWeight: FontWeight.w500,

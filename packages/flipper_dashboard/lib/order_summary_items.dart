@@ -62,8 +62,7 @@ List<Widget> buildItems(
         child: ListTile(
           contentPadding: const EdgeInsets.only(left: 40.0, right: 40.0),
           trailing: Text(
-            'RWF ' +
-                NumberFormat('#,###').format(item.price * item.qty).toString(),
+            'RWF ' + NumberFormat('#,###').format(item.price * item.qty),
             style: GoogleFonts.poppins(
                 fontWeight: FontWeight.w400, fontSize: 15, color: Colors.black),
           ),
