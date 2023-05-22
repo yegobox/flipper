@@ -1,10 +1,14 @@
-name: Deploy MSIX to GitHub
-
 on:
-  release:
-    types:
-      - published
-
+  # Enable manual run
+  workflow_dispatch:
+    inputs:
+      lane:
+        description: "Fastlane lane to use (beta OR promote_to_production OR production)"
+        required: true
+        default: "beta"
+  # Refs/tags push events to matching v*, i.e. v1.0, v20.15.10
+  push:
+    branches: [stables]
 jobs:
   build-msix:
     name: Build MSIX
@@ -16,14 +20,12 @@ jobs:
           java-version: "8.x"
       - uses: subosito/flutter-action@master
         with:
-          flutter-version: "2.8.1"
           channel: "stable"
       - run: git submodule update --init
-      - name: Configure Missing files
-        run: |
-          echo "$INDEX" >> web/index.html
-          echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
-          echo "$FIREBASEOPTIONS" >> lib/firebase_options.dart
+      - run: |
+          echo "$INDEX" | tee -a web/index.html
+          echo "$CONFIGDART" | tee -a packages/flipper_login/lib/config.dart
+          echo "$FIREBASEOPTIONS" | tee -a lib/firebase_options.dart
         env:
           INDEX: ${{ secrets.INDEX }}
           CONFIGDART: ${{ secrets.CONFIGDART }}
@@ -92,10 +94,3 @@ jobs:
         uses: actions/upload-release-asset@v2
         with:
           asset_path: build/windows/runner/Release/winInstaller.exe
-          asset_name: winInstaller.exe
-          release: ${{ github.event.release.name }}
-          token: ${{ secrets.GH_TOKEN }}
-      - name: Slack Notification
-        uses: rtCamp/action-slack-notify@v2
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}

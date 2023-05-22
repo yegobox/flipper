@@ -620,10 +620,10 @@ packages:
     dependency: "direct main"
     description:
       name: firebase_core
-      sha256: "4491238f4fddc885bc994e304a035eb8aba2c935816b2c0b31d87f3ec6e96682"
+      sha256: "250678b816279b3240c3a33e1f76bf712c00718f1fbeffc85873a5da8c077379"
       url: "https://pub.dev"
     source: hosted
-    version: "2.12.0"
+    version: "2.13.0"
   firebase_core_dart:
     dependency: "direct overridden"
     description:
@@ -1772,10 +1772,10 @@ packages:
     dependency: "direct dev"
     description:
       name: msix
-      sha256: "254594e8ede1902122f5a98fe5c0623c531edb346fd35d91575546e8f7e93570"
+      sha256: "88ee83949d87dc635ffd51d7c17ef222390e5067693cc248046661b12a353d13"
       url: "https://pub.dev"
     source: hosted
-    version: "3.12.1"
+    version: "3.12.2"
   mutex:
     dependency: transitive
     description:
@@ -1816,14 +1816,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.2"
-  number_display:
-    dependency: transitive
-    description:
-      name: number_display
-      sha256: c465e6a3dd00f56532fa585c2085a593372279ecb3179fa86357c203f7c6bd59
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.0.0"
   octo_image:
     dependency: transitive
     description:
@@ -1953,11 +1945,12 @@ packages:
     source: hosted
     version: "2.1.6"
   pdf:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
-      path: "open-sources/dart_pdf/pdf"
-      relative: true
-    source: path
+      name: pdf
+      sha256: "70d84154dc5b6ddf28eee6c012510a4cbbebb3a1879c0957e05364a95e8f3832"
+      url: "https://pub.dev"
+    source: hosted
     version: "3.10.3"
   pedantic:
     dependency: transitive
@@ -2064,11 +2057,13 @@ packages:
     source: hosted
     version: "1.5.1"
   printing:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
-      path: "open-sources/dart_pdf/printing"
-      relative: true
-    source: path
+      path: printing
+      ref: master
+      resolved-ref: "7f10234bd60c4461058bdd4df915134f88e383d0"
+      url: "https://github.com/DavBfr/dart_pdf"
+    source: git
     version: "5.11.0"
   process:
     dependency: transitive
@@ -2166,10 +2161,10 @@ packages:
     dependency: transitive
     description:
       name: responsive_builder
-      sha256: e23ef8ce1191f878dd50d28f1496d659fc923718dbfd407b121bb167f95ba090
+      sha256: a38ba9ba86c9daf08904674553034b651377b1d685d10ee450d8350ae51f76ec
       url: "https://pub.dev"
     source: hosted
-    version: "0.6.4"
+    version: "0.7.0"
   riverpod:
     dependency: transitive
     description:

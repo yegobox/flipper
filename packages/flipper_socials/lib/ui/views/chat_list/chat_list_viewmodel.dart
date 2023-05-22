@@ -35,10 +35,7 @@ class ChatListViewModel extends StartupViewModel {
 
       /// the phone number of a user who sent the message to the business, this is the number
       /// and this does not have to be registered on flipper but check to see if this from is not us
-      toNumber: latestConversation.fromNumber.replaceAll("+", "") ==
-              ProxyService.box.getUserPhone()!.replaceAll("+", "")
-          ? latestConversation.toNumber
-          : latestConversation.fromNumber,
+      toNumber: latestConversation.fromNumber,
       userName: "Yego",
       messageId: latestConversation.messageId,
       conversationId: latestConversation.conversationId,

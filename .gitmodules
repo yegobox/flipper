@@ -67,6 +67,6 @@
 [submodule "open-sources/form_block"]
 	path = open-sources/form_block
 	url = https://github.com/GiancarloCode/form_bloc.git
-[submodule "open-sources/dart_pdf"]
-	path = open-sources/dart_pdf
-	url = https://github.com/yegobox/dart_pdf.git
+# [submodule "open-sources/dart_pdf"]
+# 	path = open-sources/dart_pdf
+# 	url = https://github.com/yegobox/dart_pdf.git

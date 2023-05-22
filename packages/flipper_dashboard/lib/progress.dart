@@ -9,20 +9,17 @@ class UploadProgressWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return StreamBuilder<double>(
       stream: progressStream,
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          double progress = snapshot.data!;
-          return SizedBox(
-            height: 4.0,
-            child: LinearProgressIndicator(
-              value: progress,
-              backgroundColor: Colors.grey[300],
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
-            ),
-          );
-        } else {
-          return Container(); // Return an empty container while waiting for data
-        }
+      builder: (context, AsyncSnapshot<double> snapshot) {
+        final progress = snapshot.data ?? 0;
+        return progress < 100
+            ? SizedBox(
+                height: 4.0,
+                child: CircularProgressIndicator(
+                  backgroundColor: Colors.grey[300],
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
+                ),
+              )
+            : Container();
       },
     );
   }

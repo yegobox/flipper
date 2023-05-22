@@ -102,3 +102,8 @@ class App {}
 // https://github.com/YehudaKremer/msix/issues/191
 // TODO: reading visa card, master card
 // https://github.com/jordanliu/flutter-emv-reader
+// TODO: on my todos
+// -https://pub.dev/packages/tray_manager
+// -ref: https://github.com/Merrit/adventure_list/blob/main/lib/src/system_tray/system_tray_manager.dart
+// TODO:  packages we can use
+// - https://github.com/luckysmg/flutter_swipe_action_cell(if we choose to use this, then we will need to remove the one we use on while showing product item)
