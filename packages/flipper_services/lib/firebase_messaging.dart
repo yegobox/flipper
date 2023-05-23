@@ -56,7 +56,9 @@ class FirebaseMessagingService implements Messaging {
       bool isSocialLoggedIn = await appService.isSocialLoggedin();
       if (isSocialLoggedIn == true) {
         Setting? setting = await ProxyService.isarApi.getSocialSetting();
-        if (setting == null) return;
+        if (setting == null) {
+          throw Exception("Was about to patch settings but failed");
+        }
         setting.deviceToken = _token;
         setting.token = setting.bToken;
         ProxyService.isarApi.patchSocialSetting(setting: setting);
