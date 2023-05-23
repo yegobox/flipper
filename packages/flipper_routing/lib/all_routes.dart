@@ -31,10 +31,17 @@ export 'package:flipper_dashboard/switch_branch_view.dart';
 export 'package:flipper_dashboard/transactions_details.dart';
 export 'package:flipper_dashboard/drawer.dart';
 export 'package:flipper_dashboard/tenant_add.dart';
+
 export 'package:flipper_login/pin_login.dart';
 export 'package:flipper_login/login.dart';
 export 'package:flipper_login/desktop_login_view.dart';
 export 'package:flipper_login/signup_view.dart';
+
+export 'package:flipper_login/landing.dart';
+export 'package:flipper_login/signin_page.dart';
+export 'package:flipper_login/country_picking_page.dart';
+export 'package:flipper_login/phone_input_view.dart';
+
 export 'package:flipper_models/view_models/gate.dart';
 export 'package:flipper_socials/ui/views/home/home_view.dart';
 export 'package:flipper_socials/ui/views/chat_list/chat_list_view.dart';

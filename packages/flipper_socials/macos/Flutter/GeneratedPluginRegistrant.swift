@@ -6,7 +6,7 @@ import FlutterMacOS
 import Foundation
 
 import battery_plus
-import connectivity_plus_macos
+import connectivity_plus
 import desktop_webview_auth
 import device_info_plus
 import firebase_analytics
@@ -27,7 +27,7 @@ import package_info_plus
 import path_provider_foundation
 import printing
 import sentry_flutter
-import share_plus_macos
+import share_plus
 import shared_preferences_foundation
 import sqflite
 import url_launcher_macos

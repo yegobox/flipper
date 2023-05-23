@@ -6,7 +6,7 @@ import FlutterMacOS
 import Foundation
 
 import battery_plus
-import connectivity_plus_macos
+import connectivity_plus
 import desktop_webview_auth
 import device_info_plus
 import firebase_analytics
@@ -17,6 +17,7 @@ import firebase_messaging
 import firebase_remote_config
 import firebase_storage
 import flutter_local_notifications
+import flutter_localization
 import flutter_native_timezone
 import geolocator_apple
 import in_app_review
@@ -27,7 +28,7 @@ import package_info_plus
 import path_provider_foundation
 import printing
 import sentry_flutter
-import share_plus_macos
+import share_plus
 import shared_preferences_foundation
 import sqflite
 import system_theme
@@ -46,6 +47,7 @@ func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   FLTFirebaseRemoteConfigPlugin.register(with: registry.registrar(forPlugin: "FLTFirebaseRemoteConfigPlugin"))
   FLTFirebaseStoragePlugin.register(with: registry.registrar(forPlugin: "FLTFirebaseStoragePlugin"))
   FlutterLocalNotificationsPlugin.register(with: registry.registrar(forPlugin: "FlutterLocalNotificationsPlugin"))
+  FlutterLocalizationPlugin.register(with: registry.registrar(forPlugin: "FlutterLocalizationPlugin"))
   FlutterNativeTimezonePlugin.register(with: registry.registrar(forPlugin: "FlutterNativeTimezonePlugin"))
   GeolocatorPlugin.register(with: registry.registrar(forPlugin: "GeolocatorPlugin"))
   InAppReviewPlugin.register(with: registry.registrar(forPlugin: "InAppReviewPlugin"))

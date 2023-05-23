@@ -33,7 +33,7 @@ class _LoginChoicesState extends State<LoginChoices> {
               await ProxyService.isarApi.businesses(userId: userId!);
           if (_b.isEmpty) {
             await ProxyService.isarApi.logOut();
-            _routerService.clearStackAndShow(LoginViewRoute());
+            _routerService.clearStackAndShow(LandingRoute());
           }
 
           setState(() {

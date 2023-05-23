@@ -29,6 +29,7 @@ import 'init.dart'
     if (dart.library.html) 'web_init.dart'
     if (dart.library.io) 'io_init.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import 'package:flutter_animate/flutter_animate.dart';
@@ -164,6 +165,7 @@ void main() async {
               const FlipperLocalizationsDelegate(),
               GlobalMaterialLocalizations.delegate,
               GlobalWidgetsLocalizations.delegate,
+              CountryLocalizations.delegate,
             ],
             supportedLocales: const [
               Locale('en'), // English

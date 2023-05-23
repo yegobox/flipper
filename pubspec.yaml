@@ -68,6 +68,8 @@ dependencies:
   flutter_local_notifications: ^12.0.4
   flipper_socials: 1.0.0+1
   flutter_animate: ^4.1.0
+  flutter_localization: ^0.1.11
+  country_code_picker: ^3.0.0
 
 dev_dependencies:
   flutter_test:
