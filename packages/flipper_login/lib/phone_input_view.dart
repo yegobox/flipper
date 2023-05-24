@@ -1,9 +1,11 @@
-import 'dart:developer';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:firebase_ui_localizations/firebase_ui_localizations.dart';
+import 'package:flipper_routing/app.router.dart';
 import 'package:flutter/widgets.dart' hide Title;
+
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 import './widgets/internal/title.dart';
 import 'universal_button.dart';
@@ -114,6 +116,10 @@ class _PhoneInputViewState extends State<PhoneInputView> {
             widget.flowKey,
             PhoneInput.getPhoneNumber(phoneInputKey)!,
           );
+        }
+        if (newState is SignedIn) {
+          final _routerService = locator<RouterService>();
+          _routerService.clearStackAndShow(StartUpViewRoute(invokeLogin: true));
         }
       },
       builder: (context, state, ctrl, child) {
