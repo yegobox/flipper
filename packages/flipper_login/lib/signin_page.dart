@@ -34,40 +34,61 @@ class AuthOptionPage extends StatelessWidget {
           ),
         ),
         SizedBox(height: screenHeight * 0.1),
-        MaterialButton(
-          onPressed: () {
-            final _routerService = locator<RouterService>();
-            _routerService.clearStackAndShow(CountryPickerRoute());
-          },
-          color: Colors.blue,
-          textColor: Colors.white,
-          //height: screenHeight * 0.07,
-          minWidth: screenWidth * 0.8,
-          //minwidth fits parent width
-
-          child: Text(
-            'Phone Number',
-            style:
-                GoogleFonts.roboto(fontSize: 16, fontWeight: FontWeight.bold),
+        SizedBox(
+          width: 368,
+          height: 68,
+          child: OutlinedButton(
+            style: ButtonStyle(
+              shape: MaterialStateProperty.all<OutlinedBorder>(
+                RoundedRectangleBorder(
+                  borderRadius: BorderRadius.zero,
+                ),
+              ),
+              backgroundColor:
+                  MaterialStateProperty.all<Color>(Colors.blue.shade300),
+              overlayColor: MaterialStateProperty.resolveWith<Color?>(
+                (Set<MaterialState> states) {
+                  if (states.contains(MaterialState.hovered)) {
+                    return const Color(0xffD07A2A).withOpacity(0.04);
+                  }
+                  if (states.contains(MaterialState.focused) ||
+                      states.contains(MaterialState.pressed)) {
+                    return const Color(0xffD07A2A).withOpacity(0.12);
+                  }
+                  return null;
+                },
+              ),
+            ),
+            onPressed: () async {
+              final _routerService = locator<RouterService>();
+              _routerService.clearStackAndShow(CountryPickerRoute());
+            },
+            child: Text(
+              "Phone Number",
+              style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w400,
+                  fontSize: 20,
+                  color: Colors.white),
+            ),
           ),
         ),
         SizedBox(height: screenHeight * 0.02),
-        AuthStateListener<OAuthController>(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 42.0),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: AuthStateListener<OAuthController>(
             child: OAuthProviderButton(
               provider: GoogleProvider(clientId: _googleClientId),
             ),
+            listener: (oldState, newState, ctrl) {
+              if (newState is SignedIn) {
+                final _routerService = locator<RouterService>();
+                _routerService
+                    .clearStackAndShow(StartUpViewRoute(invokeLogin: true));
+              }
+              return null;
+            },
           ),
-          listener: (oldState, newState, ctrl) {
-            if (newState is SignedIn) {
-              final _routerService = locator<RouterService>();
-              _routerService
-                  .clearStackAndShow(StartUpViewRoute(invokeLogin: true));
-            }
-            return null;
-          },
-        )
+        ),
       ]),
     ));
   }

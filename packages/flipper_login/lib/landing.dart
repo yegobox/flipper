@@ -37,9 +37,9 @@ class _LandingState extends State<Landing> {
       padding: EdgeInsets.symmetric(horizontal: 16.0),
       child: Text(
         "Everything you need to run your business in the modern age",
-        style: GoogleFonts.roboto(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
+        style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
             color: Colors.white,
             decoration: TextDecoration.none),
         textAlign: TextAlign.center,
@@ -49,9 +49,9 @@ class _LandingState extends State<Landing> {
       padding: EdgeInsets.symmetric(horizontal: 16.0),
       child: Text(
         "Signup and sell in minutes - no commitments or hidden fees",
-        style: GoogleFonts.roboto(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
+        style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
             color: Colors.white,
             decoration: TextDecoration.none),
         textAlign: TextAlign.center,
@@ -61,9 +61,9 @@ class _LandingState extends State<Landing> {
       padding: EdgeInsets.symmetric(horizontal: 16.0),
       child: Text(
         "Simple and useful reports to help you grow your business",
-        style: GoogleFonts.roboto(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
+        style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
             color: Colors.white,
             decoration: TextDecoration.none),
         textAlign: TextAlign.center,
@@ -73,10 +73,10 @@ class _LandingState extends State<Landing> {
       padding: EdgeInsets.symmetric(horizontal: 16.0),
       child: Text(
         "Engage with your customer wherever you can find them",
-        style: GoogleFonts.roboto(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+        style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: Colors.white,  
             decoration: TextDecoration.none),
         textAlign: TextAlign.center,
       ),
@@ -140,6 +140,11 @@ class _LandingState extends State<Landing> {
                   height: 68,
                   child: OutlinedButton(
                     style: ButtonStyle(
+                      shape: MaterialStateProperty.all<OutlinedBorder>(
+                        RoundedRectangleBorder(
+                          borderRadius: BorderRadius.zero,
+                        ),
+                      ),
                       side: MaterialStateProperty.resolveWith(
                           (states) => const BorderSide(color: Colors.white)),
                       backgroundColor:
@@ -178,6 +183,11 @@ class _LandingState extends State<Landing> {
                   height: 68,
                   child: OutlinedButton(
                     style: ButtonStyle(
+                      shape: MaterialStateProperty.all<OutlinedBorder>(
+                        RoundedRectangleBorder(
+                          borderRadius: BorderRadius.zero,
+                        ),
+                      ),
                       backgroundColor:
                           MaterialStateProperty.all<Color>(Colors.blue),
                       overlayColor: MaterialStateProperty.resolveWith<Color?>(

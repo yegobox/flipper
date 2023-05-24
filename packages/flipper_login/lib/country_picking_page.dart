@@ -1,12 +1,10 @@
-import 'package:flipper_login/phone_input_screen.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:country_code_picker/country_code_picker.dart';
-import 'package:flipper_login/signin_page.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
+
 class CountryPicker extends StatefulWidget {
   const CountryPicker({super.key});
 
@@ -59,18 +57,19 @@ class _CountryPickerState extends State<CountryPicker> {
                     Text('Select the country where your business is located',
                         style: GoogleFonts.poppins(
                             fontSize: 24, fontWeight: FontWeight.bold)),
-                    SizedBox(height: screenHeight * 0.02),
+                    SizedBox(height: screenHeight * 0.03),
                     SizedBox(
                       width: 400,
                       height: 60,
                       child: CountryCodePicker(
                         hideSearch: true,
+                        alignLeft: false,
                         onChanged: (element) => {
                           pickedCountry = element.code.toString(),
                           print(pickedCountry)
                         },
                         initialSelection: pickedCountry,
-                        showCountryOnly: true,
+                        showCountryOnly: false,
                         showOnlyCountryWhenClosed: true,
                         textStyle: GoogleFonts.poppins(
                             fontSize: 20, color: Colors.black),
@@ -82,7 +81,7 @@ class _CountryPickerState extends State<CountryPicker> {
                         Flexible(
                           child: Text(
                               'I agree to flipper’s Seller Agreement and Privacy Policy.',
-                              style: GoogleFonts.poppins(fontSize: 24)),
+                              style: GoogleFonts.poppins(fontSize: 20)),
                         ),
                         Checkbox(
                           value: termsAndCondValue,
@@ -94,20 +93,25 @@ class _CountryPickerState extends State<CountryPicker> {
                         ),
                       ],
                     ),
-                    SizedBox(height: screenHeight * 0.05),
+                    SizedBox(height: screenHeight * 0.1),
                     Wrap(children: <Widget>[
                       Text(
                           'This app is protected by reCAPTCHA Enterprise and Google Privacy Policy and Terms of Service apply.',
-                          style: GoogleFonts.poppins(fontSize: 20)),
+                          style: GoogleFonts.poppins(fontSize: 18)),
                     ]),
-                    SizedBox(height: screenHeight * 0.2),
+                    SizedBox(height: screenHeight * 0.1),
                     SizedBox(
                       width: 368,
                       height: 68,
                       child: OutlinedButton(
                         style: ButtonStyle(
-                          backgroundColor:
-                              MaterialStateProperty.all<Color>(Colors.blue),
+                          shape: MaterialStateProperty.all<OutlinedBorder>(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.zero,
+                            ),
+                          ),
+                          backgroundColor: MaterialStateProperty.all<Color>(
+                              Colors.blue.shade300),
                           overlayColor:
                               MaterialStateProperty.resolveWith<Color?>(
                             (Set<MaterialState> states) {
@@ -128,8 +132,9 @@ class _CountryPickerState extends State<CountryPicker> {
                           if (termsAndCondValue) {
                             //Navigate to signinpage.dart
                             final _routerService = locator<RouterService>();
-                            _routerService.clearStackAndShow(PhoneInputScreenRoute(countryCode: pickedCountry));
-                            
+                            _routerService.clearStackAndShow(
+                                PhoneInputScreenRoute(
+                                    countryCode: pickedCountry));
                           } else {
                             final snackBar = SnackBar(
                               content: const Text(

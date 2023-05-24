@@ -46,7 +46,7 @@ class StartupViewModel extends BaseViewModel {
       }
     } catch (e, stackTrace) {
       if (e is LoginChoicesException) {
-        _routerService.navigateTo(AuthOptionPageRoute());
+        _routerService.navigateTo(LoginChoicesRoute());
       } else if (e is SessionException || e is ErrorReadingFromYBServer) {
         _routerService.clearStackAndShow(LandingRoute());
       } else if (e is BusinessNotFoundException) {
