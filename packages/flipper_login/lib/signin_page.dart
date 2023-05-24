@@ -61,9 +61,9 @@ class AuthOptionPage extends StatelessWidget {
           ),
           listener: (oldState, newState, ctrl) {
             if (newState is SignedIn) {
-              // Navigator.push(context, MaterialPageRoute(builder: (context) {
-              //   return HomePage();
-              // }));
+              final _routerService = locator<RouterService>();
+              _routerService
+                  .clearStackAndShow(StartUpViewRoute(invokeLogin: true));
             }
             return null;
           },
