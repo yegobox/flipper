@@ -822,10 +822,17 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     }
   }
 
+  /// This function gets the default tenant for the current user.
+  ///
+  /// The function first gets the user ID from the `ProxyService`.
+  /// Then, it calls the `getTenantBYUserId` method on the `ProxyService` to get the tenant for the user ID.
+  /// If the tenant is not found, the function throws an exception. because every default business owner should have
+  /// one default tenant
+  /// Finally, the function sets the tenant on the `app` object.
+
   void defaultTenant() async {
-    int userId = ProxyService.box.getUserId()!;
-    ITenant? tenant =
-        await ProxyService.isarApi.getTenantBYUserId(userId: userId);
+    final userId = ProxyService.box.getUserId()!;
+    final tenant = await ProxyService.isarApi.getTenantBYUserId(userId: userId);
     if (tenant == null) {
       throw Exception("could not find tenant with ${userId}");
     }
