@@ -1,8 +1,11 @@
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
+import 'package:flipper_routing/app.router.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'country_picking_page.dart';
+
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 const _googleClientId =
     '455580464649-3nhpbm3bp02stjuh0g01ovfr0kemi00j.apps.googleusercontent.com';
@@ -16,7 +19,10 @@ class AuthOptionPage extends StatelessWidget {
         body: Center(
       child: Column(children: [
         SizedBox(height: screenHeight * 0.1),
-        Image.asset('assets/flipper_logo.png'),
+        Image.asset(
+          'assets/flipper_logo.png',
+          package: 'flipper_login',
+        ),
         SizedBox(height: screenHeight * 0.1),
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 16.0),
@@ -30,9 +36,8 @@ class AuthOptionPage extends StatelessWidget {
         SizedBox(height: screenHeight * 0.1),
         MaterialButton(
           onPressed: () {
-            Navigator.push(context, MaterialPageRoute(builder: (context) {
-              return CountryPicker();
-            }));
+            final _routerService = locator<RouterService>();
+            _routerService.clearStackAndShow(CountryPickerRoute());
           },
           color: Colors.blue,
           textColor: Colors.white,

@@ -1,10 +1,12 @@
 import 'package:flipper_login/phone_input_screen.dart';
+import 'package:flipper_routing/app.router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flipper_login/signin_page.dart';
 import 'package:google_fonts/google_fonts.dart';
-
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked_services/stacked_services.dart';
 class CountryPicker extends StatefulWidget {
   const CountryPicker({super.key});
 
@@ -31,10 +33,8 @@ class _CountryPickerState extends State<CountryPicker> {
                 child: MaterialButton(
                   minWidth: 10,
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => AuthOptionPage()),
-                    );
+                    final _routerService = locator<RouterService>();
+                    _routerService.clearStackAndShow(AuthOptionPageRoute());
                   },
                   child: Text("<",
                       style: TextStyle(
@@ -127,13 +127,9 @@ class _CountryPickerState extends State<CountryPicker> {
                         onPressed: () async {
                           if (termsAndCondValue) {
                             //Navigate to signinpage.dart
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => PhoneInputScreen(
-                                    countryCode: pickedCountry),
-                              ),
-                            );
+                            final _routerService = locator<RouterService>();
+                            _routerService.clearStackAndShow(PhoneInputScreenRoute(countryCode: pickedCountry));
+                            
                           } else {
                             final snackBar = SnackBar(
                               content: const Text(

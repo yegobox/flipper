@@ -13,30 +13,29 @@
 // ignore_for_file: type=lint
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:ui' as _i8;
+import 'dart:ui' as _i7;
 
-import 'package:firebase_auth/firebase_auth.dart' as _i7;
-import 'package:firebase_ui_auth/firebase_ui_auth.dart' as _i3;
-import 'package:flipper_models/isar_models.dart' as _i9;
-import 'package:flutter/material.dart' as _i5;
-import 'package:flutter/widgets.dart' as _i6;
-import 'package:stacked/stacked.dart' as _i4;
+import 'package:firebase_auth/firebase_auth.dart' as _i6;
+import 'package:firebase_ui_auth/firebase_ui_auth.dart' as _i5;
+import 'package:flipper_models/isar_models.dart' as _i8;
+import 'package:flutter/material.dart' as _i4;
+import 'package:stacked/stacked.dart' as _i3;
 import 'package:stacked_services/stacked_services.dart' as _i1;
 
 import 'all_routes.dart' as _i2;
 
 final stackedRouter = StackedRouterWeb(_i1.StackedService.navigatorKey);
 
-class StackedRouterWeb extends _i4.RootStackRouter {
-  StackedRouterWeb([_i5.GlobalKey<_i5.NavigatorState>? navigatorKey])
+class StackedRouterWeb extends _i3.RootStackRouter {
+  StackedRouterWeb([_i4.GlobalKey<_i4.NavigatorState>? navigatorKey])
       : super(navigatorKey);
 
   @override
-  final Map<String, _i4.PageFactory> pagesMap = {
+  final Map<String, _i3.PageFactory> pagesMap = {
     StartUpViewRoute.name: (routeData) {
       final args = routeData.argsAs<StartUpViewArgs>(
           orElse: () => const StartUpViewArgs());
-      return _i4.CustomPage<dynamic>(
+      return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: _i2.StartUpView(
           key: args.key,
@@ -49,7 +48,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
     SignUpViewRoute.name: (routeData) {
       final args = routeData.argsAs<SignUpViewArgs>(
           orElse: () => const SignUpViewArgs());
-      return _i4.CustomPage<dynamic>(
+      return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: _i2.SignUpView(
           key: args.key,
@@ -60,7 +59,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
       );
     },
     FlipperAppRoute.name: (routeData) {
-      return _i4.CustomPage<dynamic>(
+      return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: const _i2.FlipperApp(),
         opaque: true,
@@ -68,15 +67,17 @@ class StackedRouterWeb extends _i4.RootStackRouter {
       );
     },
     LandingRoute.name: (routeData) {
-      return _i4.CustomPage<dynamic>(
+      final args =
+          routeData.argsAs<LandingArgs>(orElse: () => const LandingArgs());
+      return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i2.Landing(),
+        child: _i2.Landing(key: args.key),
         opaque: true,
         barrierDismissible: false,
       );
     },
     AuthOptionPageRoute.name: (routeData) {
-      return _i4.CustomPage<dynamic>(
+      return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: _i2.AuthOptionPage(),
         opaque: true,
@@ -84,7 +85,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
       );
     },
     CountryPickerRoute.name: (routeData) {
-      return _i4.CustomPage<dynamic>(
+      return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: const _i2.CountryPicker(),
         opaque: true,
@@ -92,15 +93,15 @@ class StackedRouterWeb extends _i4.RootStackRouter {
       );
     },
     PhoneInputScreenRoute.name: (routeData) {
-      final args = routeData.argsAs<PhoneInputScreenArgs>(
-          orElse: () => const PhoneInputScreenArgs());
-      return _i4.CustomPage<dynamic>(
+      final args = routeData.argsAs<PhoneInputScreenArgs>();
+      return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i3.PhoneInputScreen(
+        child: _i2.PhoneInputScreen(
           key: args.key,
           action: args.action,
           actions: args.actions,
           auth: args.auth,
+          countryCode: args.countryCode,
           subtitleBuilder: args.subtitleBuilder,
           footerBuilder: args.footerBuilder,
           headerBuilder: args.headerBuilder,
@@ -118,7 +119,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
     AddProductViewRoute.name: (routeData) {
       final args = routeData.argsAs<AddProductViewArgs>(
           orElse: () => const AddProductViewArgs());
-      return _i4.CustomPage<dynamic>(
+      return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: _i2.AddProductView(
           key: args.key,
@@ -131,7 +132,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
     AddDiscountRoute.name: (routeData) {
       final args = routeData.argsAs<AddDiscountArgs>(
           orElse: () => const AddDiscountArgs());
-      return _i4.CustomPage<dynamic>(
+      return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: _i2.AddDiscount(
           key: args.key,
@@ -143,7 +144,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
     },
     ListCategoriesRoute.name: (routeData) {
       final args = routeData.argsAs<ListCategoriesArgs>();
-      return _i4.CustomPage<dynamic>(
+      return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: _i2.ListCategories(
           key: args.key,
@@ -156,7 +157,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
     ColorTileRoute.name: (routeData) {
       final args =
           routeData.argsAs<ColorTileArgs>(orElse: () => const ColorTileArgs());
-      return _i4.CustomPage<dynamic>(
+      return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: _i2.ColorTile(key: args.key),
         opaque: true,
@@ -165,7 +166,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
     },
     ReceiveStockRoute.name: (routeData) {
       final args = routeData.argsAs<ReceiveStockArgs>();
-      return _i4.CustomPage<dynamic>(
+      return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: _i2.ReceiveStock(
           key: args.key,
@@ -178,7 +179,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
     },
     AddVariationRoute.name: (routeData) {
       final args = routeData.argsAs<AddVariationArgs>();
-      return _i4.CustomPage<dynamic>(
+      return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: _i2.AddVariation(
           key: args.key,
@@ -191,7 +192,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
     AddCategoryRoute.name: (routeData) {
       final args = routeData.argsAs<AddCategoryArgs>(
           orElse: () => const AddCategoryArgs());
-      return _i4.CustomPage<dynamic>(
+      return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: _i2.AddCategory(key: args.key),
         opaque: true,
@@ -200,7 +201,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
     },
     ListUnitsRoute.name: (routeData) {
       final args = routeData.argsAs<ListUnitsArgs>();
-      return _i4.CustomPage<dynamic>(
+      return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: _i2.ListUnits(
           key: args.key,
@@ -212,7 +213,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
     },
     SellRoute.name: (routeData) {
       final args = routeData.argsAs<SellArgs>();
-      return _i4.CustomPage<dynamic>(
+      return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: _i2.Sell(
           key: args.key,
@@ -224,7 +225,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
     },
     PaymentsRoute.name: (routeData) {
       final args = routeData.argsAs<PaymentsArgs>();
-      return _i4.CustomPage<dynamic>(
+      return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: _i2.Payments(
           key: args.key,
@@ -237,7 +238,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
     },
     CollectCashViewRoute.name: (routeData) {
       final args = routeData.argsAs<CollectCashViewArgs>();
-      return _i4.CustomPage<dynamic>(
+      return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: _i2.CollectCashView(
           key: args.key,
@@ -250,7 +251,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
     },
     AfterSaleRoute.name: (routeData) {
       final args = routeData.argsAs<AfterSaleArgs>();
-      return _i4.CustomPage<dynamic>(
+      return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: _i2.AfterSale(
           key: args.key,
@@ -264,7 +265,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
     },
     TransactionDetailRoute.name: (routeData) {
       final args = routeData.argsAs<TransactionDetailArgs>();
-      return _i4.CustomPage<dynamic>(
+      return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: _i2.TransactionDetail(
           key: args.key,
@@ -275,7 +276,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
       );
     },
     SettingsScreenRoute.name: (routeData) {
-      return _i4.CustomPage<dynamic>(
+      return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: _i2.SettingsScreen(),
         opaque: true,
@@ -285,7 +286,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
     SwitchBranchViewRoute.name: (routeData) {
       final args = routeData.argsAs<SwitchBranchViewArgs>(
           orElse: () => const SwitchBranchViewArgs());
-      return _i4.CustomPage<dynamic>(
+      return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: _i2.SwitchBranchView(key: args.key),
         opaque: true,
@@ -295,7 +296,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
     ScannViewRoute.name: (routeData) {
       final args =
           routeData.argsAs<ScannViewArgs>(orElse: () => const ScannViewArgs());
-      return _i4.CustomPage<dynamic>(
+      return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: _i2.ScannView(
           key: args.key,
@@ -309,7 +310,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
     OrderViewRoute.name: (routeData) {
       final args =
           routeData.argsAs<OrderViewArgs>(orElse: () => const OrderViewArgs());
-      return _i4.CustomPage<dynamic>(
+      return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: _i2.OrderView(key: args.key),
         opaque: true,
@@ -317,7 +318,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
       );
     },
     InAppBrowserRoute.name: (routeData) {
-      return _i4.CustomPage<dynamic>(
+      return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: const _i2.InAppBrowser(),
         opaque: true,
@@ -326,7 +327,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
     },
     CustomersRoute.name: (routeData) {
       final args = routeData.argsAs<CustomersArgs>();
-      return _i4.CustomPage<dynamic>(
+      return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: _i2.Customers(
           key: args.key,
@@ -338,7 +339,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
     },
     NoNetRoute.name: (routeData) {
       final args = routeData.argsAs<NoNetArgs>(orElse: () => const NoNetArgs());
-      return _i4.CustomPage<dynamic>(
+      return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: _i2.NoNet(key: args.key),
         opaque: true,
@@ -348,7 +349,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
     PinLoginRoute.name: (routeData) {
       final args =
           routeData.argsAs<PinLoginArgs>(orElse: () => const PinLoginArgs());
-      return _i4.CustomPage<dynamic>(
+      return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: _i2.PinLogin(key: args.key),
         opaque: true,
@@ -358,7 +359,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
     DevicesRoute.name: (routeData) {
       final args =
           routeData.argsAs<DevicesArgs>(orElse: () => const DevicesArgs());
-      return _i4.CustomPage<dynamic>(
+      return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: _i2.Devices(
           key: args.key,
@@ -369,7 +370,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
       );
     },
     TaxConfigurationRoute.name: (routeData) {
-      return _i4.CustomPage<dynamic>(
+      return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: const _i2.TaxConfiguration(),
         opaque: true,
@@ -377,7 +378,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
       );
     },
     PrintingRoute.name: (routeData) {
-      return _i4.CustomPage<dynamic>(
+      return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: const _i2.Printing(),
         opaque: true,
@@ -385,7 +386,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
       );
     },
     BackUpRoute.name: (routeData) {
-      return _i4.CustomPage<dynamic>(
+      return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: const _i2.BackUp(),
         opaque: true,
@@ -393,7 +394,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
       );
     },
     LoginChoicesRoute.name: (routeData) {
-      return _i4.CustomPage<dynamic>(
+      return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: const _i2.LoginChoices(),
         opaque: true,
@@ -401,7 +402,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
       );
     },
     TenantAddRoute.name: (routeData) {
-      return _i4.CustomPage<dynamic>(
+      return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: const _i2.TenantAdd(),
         opaque: true,
@@ -409,7 +410,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
       );
     },
     SocialHomeViewRoute.name: (routeData) {
-      return _i4.CustomPage<dynamic>(
+      return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: const _i2.SocialHomeView(),
         opaque: true,
@@ -418,7 +419,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
     },
     DrawerScreenRoute.name: (routeData) {
       final args = routeData.argsAs<DrawerScreenArgs>();
-      return _i4.CustomPage<dynamic>(
+      return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: _i2.DrawerScreen(
           key: args.key,
@@ -430,7 +431,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
       );
     },
     ChatListViewRoute.name: (routeData) {
-      return _i4.CustomPage<dynamic>(
+      return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: const _i2.ChatListView(),
         opaque: true,
@@ -439,7 +440,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
     },
     ConversationHistoryRoute.name: (routeData) {
       final args = routeData.argsAs<ConversationHistoryArgs>();
-      return _i4.CustomPage<dynamic>(
+      return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: _i2.ConversationHistory(
           key: args.key,
@@ -452,7 +453,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
     TicketsRoute.name: (routeData) {
       final args =
           routeData.argsAs<TicketsArgs>(orElse: () => const TicketsArgs());
-      return _i4.CustomPage<dynamic>(
+      return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: _i2.Tickets(
           key: args.key,
@@ -464,7 +465,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
     },
     NewTicketRoute.name: (routeData) {
       final args = routeData.argsAs<NewTicketArgs>();
-      return _i4.CustomPage<dynamic>(
+      return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: _i2.NewTicket(
           key: args.key,
@@ -477,164 +478,164 @@ class StackedRouterWeb extends _i4.RootStackRouter {
   };
 
   @override
-  List<_i4.RouteConfig> get routes => [
-        _i4.RouteConfig(
+  List<_i3.RouteConfig> get routes => [
+        _i3.RouteConfig(
           StartUpViewRoute.name,
           path: '/',
         ),
-        _i4.RouteConfig(
+        _i3.RouteConfig(
           SignUpViewRoute.name,
           path: '/sign-up-view',
         ),
-        _i4.RouteConfig(
+        _i3.RouteConfig(
           FlipperAppRoute.name,
           path: '/flipper-app',
         ),
-        _i4.RouteConfig(
+        _i3.RouteConfig(
           LandingRoute.name,
           path: '/Landing',
         ),
-        _i4.RouteConfig(
+        _i3.RouteConfig(
           AuthOptionPageRoute.name,
           path: '/auth-option-page',
         ),
-        _i4.RouteConfig(
+        _i3.RouteConfig(
           CountryPickerRoute.name,
           path: '/country-picker',
         ),
-        _i4.RouteConfig(
+        _i3.RouteConfig(
           PhoneInputScreenRoute.name,
           path: '/phone-input-screen',
         ),
-        _i4.RouteConfig(
+        _i3.RouteConfig(
           AddProductViewRoute.name,
           path: '/add-product-view',
         ),
-        _i4.RouteConfig(
+        _i3.RouteConfig(
           AddDiscountRoute.name,
           path: '/add-discount',
         ),
-        _i4.RouteConfig(
+        _i3.RouteConfig(
           ListCategoriesRoute.name,
           path: '/list-categories',
         ),
-        _i4.RouteConfig(
+        _i3.RouteConfig(
           ColorTileRoute.name,
           path: '/color-tile',
         ),
-        _i4.RouteConfig(
+        _i3.RouteConfig(
           ReceiveStockRoute.name,
           path: '/receive-stock',
         ),
-        _i4.RouteConfig(
+        _i3.RouteConfig(
           AddVariationRoute.name,
           path: '/add-variation',
         ),
-        _i4.RouteConfig(
+        _i3.RouteConfig(
           AddCategoryRoute.name,
           path: '/add-category',
         ),
-        _i4.RouteConfig(
+        _i3.RouteConfig(
           ListUnitsRoute.name,
           path: '/list-units',
         ),
-        _i4.RouteConfig(
+        _i3.RouteConfig(
           SellRoute.name,
           path: '/Sell',
         ),
-        _i4.RouteConfig(
+        _i3.RouteConfig(
           PaymentsRoute.name,
           path: '/Payments',
         ),
-        _i4.RouteConfig(
+        _i3.RouteConfig(
           CollectCashViewRoute.name,
           path: '/collect-cash-view',
         ),
-        _i4.RouteConfig(
+        _i3.RouteConfig(
           AfterSaleRoute.name,
           path: '/after-sale',
         ),
-        _i4.RouteConfig(
+        _i3.RouteConfig(
           TransactionDetailRoute.name,
           path: '/transaction-detail',
         ),
-        _i4.RouteConfig(
+        _i3.RouteConfig(
           SettingsScreenRoute.name,
           path: '/settings-screen',
         ),
-        _i4.RouteConfig(
+        _i3.RouteConfig(
           SwitchBranchViewRoute.name,
           path: '/switch-branch-view',
         ),
-        _i4.RouteConfig(
+        _i3.RouteConfig(
           ScannViewRoute.name,
           path: '/scann-view',
         ),
-        _i4.RouteConfig(
+        _i3.RouteConfig(
           OrderViewRoute.name,
           path: '/order-view',
         ),
-        _i4.RouteConfig(
+        _i3.RouteConfig(
           InAppBrowserRoute.name,
           path: '/in-app-browser',
         ),
-        _i4.RouteConfig(
+        _i3.RouteConfig(
           CustomersRoute.name,
           path: '/Customers',
         ),
-        _i4.RouteConfig(
+        _i3.RouteConfig(
           NoNetRoute.name,
           path: '/no-net',
         ),
-        _i4.RouteConfig(
+        _i3.RouteConfig(
           PinLoginRoute.name,
           path: '/pin-login',
         ),
-        _i4.RouteConfig(
+        _i3.RouteConfig(
           DevicesRoute.name,
           path: '/Devices',
         ),
-        _i4.RouteConfig(
+        _i3.RouteConfig(
           TaxConfigurationRoute.name,
           path: '/tax-configuration',
         ),
-        _i4.RouteConfig(
+        _i3.RouteConfig(
           PrintingRoute.name,
           path: '/Printing',
         ),
-        _i4.RouteConfig(
+        _i3.RouteConfig(
           BackUpRoute.name,
           path: '/back-up',
         ),
-        _i4.RouteConfig(
+        _i3.RouteConfig(
           LoginChoicesRoute.name,
           path: '/login-choices',
         ),
-        _i4.RouteConfig(
+        _i3.RouteConfig(
           TenantAddRoute.name,
           path: '/tenant-add',
         ),
-        _i4.RouteConfig(
+        _i3.RouteConfig(
           SocialHomeViewRoute.name,
           path: '/social-home-view',
         ),
-        _i4.RouteConfig(
+        _i3.RouteConfig(
           DrawerScreenRoute.name,
           path: '/drawer-screen',
         ),
-        _i4.RouteConfig(
+        _i3.RouteConfig(
           ChatListViewRoute.name,
           path: '/chat-list-view',
         ),
-        _i4.RouteConfig(
+        _i3.RouteConfig(
           ConversationHistoryRoute.name,
           path: '/conversation-history',
         ),
-        _i4.RouteConfig(
+        _i3.RouteConfig(
           TicketsRoute.name,
           path: '/Tickets',
         ),
-        _i4.RouteConfig(
+        _i3.RouteConfig(
           NewTicketRoute.name,
           path: '/new-ticket',
         ),
@@ -643,9 +644,9 @@ class StackedRouterWeb extends _i4.RootStackRouter {
 
 /// generated route for
 /// [_i2.StartUpView]
-class StartUpViewRoute extends _i4.PageRouteInfo<StartUpViewArgs> {
+class StartUpViewRoute extends _i3.PageRouteInfo<StartUpViewArgs> {
   StartUpViewRoute({
-    _i6.Key? key,
+    _i4.Key? key,
     bool? invokeLogin,
   }) : super(
           StartUpViewRoute.name,
@@ -665,7 +666,7 @@ class StartUpViewArgs {
     this.invokeLogin,
   });
 
-  final _i6.Key? key;
+  final _i4.Key? key;
 
   final bool? invokeLogin;
 
@@ -677,9 +678,9 @@ class StartUpViewArgs {
 
 /// generated route for
 /// [_i2.SignUpView]
-class SignUpViewRoute extends _i4.PageRouteInfo<SignUpViewArgs> {
+class SignUpViewRoute extends _i3.PageRouteInfo<SignUpViewArgs> {
   SignUpViewRoute({
-    _i6.Key? key,
+    _i4.Key? key,
     String? countryNm = "Rwanda",
   }) : super(
           SignUpViewRoute.name,
@@ -699,7 +700,7 @@ class SignUpViewArgs {
     this.countryNm = "Rwanda",
   });
 
-  final _i6.Key? key;
+  final _i4.Key? key;
 
   final String? countryNm;
 
@@ -711,7 +712,7 @@ class SignUpViewArgs {
 
 /// generated route for
 /// [_i2.FlipperApp]
-class FlipperAppRoute extends _i4.PageRouteInfo<void> {
+class FlipperAppRoute extends _i3.PageRouteInfo<void> {
   const FlipperAppRoute()
       : super(
           FlipperAppRoute.name,
@@ -723,19 +724,31 @@ class FlipperAppRoute extends _i4.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i2.Landing]
-class LandingRoute extends _i4.PageRouteInfo<void> {
-  const LandingRoute()
+class LandingRoute extends _i3.PageRouteInfo<LandingArgs> {
+  LandingRoute({_i4.Key? key})
       : super(
           LandingRoute.name,
           path: '/Landing',
+          args: LandingArgs(key: key),
         );
 
   static const String name = 'Landing';
 }
 
+class LandingArgs {
+  const LandingArgs({this.key});
+
+  final _i4.Key? key;
+
+  @override
+  String toString() {
+    return 'LandingArgs{key: $key}';
+  }
+}
+
 /// generated route for
 /// [_i2.AuthOptionPage]
-class AuthOptionPageRoute extends _i4.PageRouteInfo<void> {
+class AuthOptionPageRoute extends _i3.PageRouteInfo<void> {
   const AuthOptionPageRoute()
       : super(
           AuthOptionPageRoute.name,
@@ -747,7 +760,7 @@ class AuthOptionPageRoute extends _i4.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i2.CountryPicker]
-class CountryPickerRoute extends _i4.PageRouteInfo<void> {
+class CountryPickerRoute extends _i3.PageRouteInfo<void> {
   const CountryPickerRoute()
       : super(
           CountryPickerRoute.name,
@@ -758,29 +771,30 @@ class CountryPickerRoute extends _i4.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i3.PhoneInputScreen]
-class PhoneInputScreenRoute extends _i4.PageRouteInfo<PhoneInputScreenArgs> {
+/// [_i2.PhoneInputScreen]
+class PhoneInputScreenRoute extends _i3.PageRouteInfo<PhoneInputScreenArgs> {
   PhoneInputScreenRoute({
-    _i6.Key? key,
-    _i3.AuthAction? action,
-    List<_i3.FirebaseUIAction>? actions,
-    _i7.FirebaseAuth? auth,
-    _i6.Widget Function(_i6.BuildContext)? subtitleBuilder,
-    _i6.Widget Function(_i6.BuildContext)? footerBuilder,
-    _i6.Widget Function(
-      _i6.BuildContext,
-      _i6.BoxConstraints,
+    _i4.Key? key,
+    _i5.AuthAction? action,
+    List<_i5.FirebaseUIAction>? actions,
+    _i6.FirebaseAuth? auth,
+    required String countryCode,
+    _i4.Widget Function(_i4.BuildContext)? subtitleBuilder,
+    _i4.Widget Function(_i4.BuildContext)? footerBuilder,
+    _i4.Widget Function(
+      _i4.BuildContext,
+      _i4.BoxConstraints,
       double,
     )? headerBuilder,
     double? headerMaxExtent,
-    _i6.Widget Function(
-      _i6.BuildContext,
-      _i6.BoxConstraints,
+    _i4.Widget Function(
+      _i4.BuildContext,
+      _i4.BoxConstraints,
     )? sideBuilder,
-    _i8.TextDirection? desktopLayoutDirection,
+    _i7.TextDirection? desktopLayoutDirection,
     double breakpoint = 500,
-    _i7.MultiFactorSession? multiFactorSession,
-    _i7.PhoneMultiFactorInfo? mfaHint,
+    _i6.MultiFactorSession? multiFactorSession,
+    _i6.PhoneMultiFactorInfo? mfaHint,
   }) : super(
           PhoneInputScreenRoute.name,
           path: '/phone-input-screen',
@@ -789,6 +803,7 @@ class PhoneInputScreenRoute extends _i4.PageRouteInfo<PhoneInputScreenArgs> {
             action: action,
             actions: actions,
             auth: auth,
+            countryCode: countryCode,
             subtitleBuilder: subtitleBuilder,
             footerBuilder: footerBuilder,
             headerBuilder: headerBuilder,
@@ -810,6 +825,7 @@ class PhoneInputScreenArgs {
     this.action,
     this.actions,
     this.auth,
+    required this.countryCode,
     this.subtitleBuilder,
     this.footerBuilder,
     this.headerBuilder,
@@ -821,50 +837,52 @@ class PhoneInputScreenArgs {
     this.mfaHint,
   });
 
-  final _i6.Key? key;
+  final _i4.Key? key;
 
-  final _i3.AuthAction? action;
+  final _i5.AuthAction? action;
 
-  final List<_i3.FirebaseUIAction>? actions;
+  final List<_i5.FirebaseUIAction>? actions;
 
-  final _i7.FirebaseAuth? auth;
+  final _i6.FirebaseAuth? auth;
 
-  final _i6.Widget Function(_i6.BuildContext)? subtitleBuilder;
+  final String countryCode;
 
-  final _i6.Widget Function(_i6.BuildContext)? footerBuilder;
+  final _i4.Widget Function(_i4.BuildContext)? subtitleBuilder;
 
-  final _i6.Widget Function(
-    _i6.BuildContext,
-    _i6.BoxConstraints,
+  final _i4.Widget Function(_i4.BuildContext)? footerBuilder;
+
+  final _i4.Widget Function(
+    _i4.BuildContext,
+    _i4.BoxConstraints,
     double,
   )? headerBuilder;
 
   final double? headerMaxExtent;
 
-  final _i6.Widget Function(
-    _i6.BuildContext,
-    _i6.BoxConstraints,
+  final _i4.Widget Function(
+    _i4.BuildContext,
+    _i4.BoxConstraints,
   )? sideBuilder;
 
-  final _i8.TextDirection? desktopLayoutDirection;
+  final _i7.TextDirection? desktopLayoutDirection;
 
   final double breakpoint;
 
-  final _i7.MultiFactorSession? multiFactorSession;
+  final _i6.MultiFactorSession? multiFactorSession;
 
-  final _i7.PhoneMultiFactorInfo? mfaHint;
+  final _i6.PhoneMultiFactorInfo? mfaHint;
 
   @override
   String toString() {
-    return 'PhoneInputScreenArgs{key: $key, action: $action, actions: $actions, auth: $auth, subtitleBuilder: $subtitleBuilder, footerBuilder: $footerBuilder, headerBuilder: $headerBuilder, headerMaxExtent: $headerMaxExtent, sideBuilder: $sideBuilder, desktopLayoutDirection: $desktopLayoutDirection, breakpoint: $breakpoint, multiFactorSession: $multiFactorSession, mfaHint: $mfaHint}';
+    return 'PhoneInputScreenArgs{key: $key, action: $action, actions: $actions, auth: $auth, countryCode: $countryCode, subtitleBuilder: $subtitleBuilder, footerBuilder: $footerBuilder, headerBuilder: $headerBuilder, headerMaxExtent: $headerMaxExtent, sideBuilder: $sideBuilder, desktopLayoutDirection: $desktopLayoutDirection, breakpoint: $breakpoint, multiFactorSession: $multiFactorSession, mfaHint: $mfaHint}';
   }
 }
 
 /// generated route for
 /// [_i2.AddProductView]
-class AddProductViewRoute extends _i4.PageRouteInfo<AddProductViewArgs> {
+class AddProductViewRoute extends _i3.PageRouteInfo<AddProductViewArgs> {
   AddProductViewRoute({
-    _i6.Key? key,
+    _i4.Key? key,
     int? productId,
   }) : super(
           AddProductViewRoute.name,
@@ -884,7 +902,7 @@ class AddProductViewArgs {
     this.productId,
   });
 
-  final _i6.Key? key;
+  final _i4.Key? key;
 
   final int? productId;
 
@@ -896,10 +914,10 @@ class AddProductViewArgs {
 
 /// generated route for
 /// [_i2.AddDiscount]
-class AddDiscountRoute extends _i4.PageRouteInfo<AddDiscountArgs> {
+class AddDiscountRoute extends _i3.PageRouteInfo<AddDiscountArgs> {
   AddDiscountRoute({
-    _i6.Key? key,
-    _i9.Discount? discount,
+    _i4.Key? key,
+    _i8.Discount? discount,
   }) : super(
           AddDiscountRoute.name,
           path: '/add-discount',
@@ -918,9 +936,9 @@ class AddDiscountArgs {
     this.discount,
   });
 
-  final _i6.Key? key;
+  final _i4.Key? key;
 
-  final _i9.Discount? discount;
+  final _i8.Discount? discount;
 
   @override
   String toString() {
@@ -930,10 +948,10 @@ class AddDiscountArgs {
 
 /// generated route for
 /// [_i2.ListCategories]
-class ListCategoriesRoute extends _i4.PageRouteInfo<ListCategoriesArgs> {
+class ListCategoriesRoute extends _i3.PageRouteInfo<ListCategoriesArgs> {
   ListCategoriesRoute({
-    _i6.Key? key,
-    required List<_i9.Category> categories,
+    _i4.Key? key,
+    required List<_i8.Category> categories,
   }) : super(
           ListCategoriesRoute.name,
           path: '/list-categories',
@@ -952,9 +970,9 @@ class ListCategoriesArgs {
     required this.categories,
   });
 
-  final _i6.Key? key;
+  final _i4.Key? key;
 
-  final List<_i9.Category> categories;
+  final List<_i8.Category> categories;
 
   @override
   String toString() {
@@ -964,8 +982,8 @@ class ListCategoriesArgs {
 
 /// generated route for
 /// [_i2.ColorTile]
-class ColorTileRoute extends _i4.PageRouteInfo<ColorTileArgs> {
-  ColorTileRoute({_i6.Key? key})
+class ColorTileRoute extends _i3.PageRouteInfo<ColorTileArgs> {
+  ColorTileRoute({_i4.Key? key})
       : super(
           ColorTileRoute.name,
           path: '/color-tile',
@@ -978,7 +996,7 @@ class ColorTileRoute extends _i4.PageRouteInfo<ColorTileArgs> {
 class ColorTileArgs {
   const ColorTileArgs({this.key});
 
-  final _i6.Key? key;
+  final _i4.Key? key;
 
   @override
   String toString() {
@@ -988,9 +1006,9 @@ class ColorTileArgs {
 
 /// generated route for
 /// [_i2.ReceiveStock]
-class ReceiveStockRoute extends _i4.PageRouteInfo<ReceiveStockArgs> {
+class ReceiveStockRoute extends _i3.PageRouteInfo<ReceiveStockArgs> {
   ReceiveStockRoute({
-    _i6.Key? key,
+    _i4.Key? key,
     required int variantId,
     String? existingStock,
   }) : super(
@@ -1013,7 +1031,7 @@ class ReceiveStockArgs {
     this.existingStock,
   });
 
-  final _i6.Key? key;
+  final _i4.Key? key;
 
   final int variantId;
 
@@ -1027,9 +1045,9 @@ class ReceiveStockArgs {
 
 /// generated route for
 /// [_i2.AddVariation]
-class AddVariationRoute extends _i4.PageRouteInfo<AddVariationArgs> {
+class AddVariationRoute extends _i3.PageRouteInfo<AddVariationArgs> {
   AddVariationRoute({
-    _i6.Key? key,
+    _i4.Key? key,
     required int productId,
   }) : super(
           AddVariationRoute.name,
@@ -1049,7 +1067,7 @@ class AddVariationArgs {
     required this.productId,
   });
 
-  final _i6.Key? key;
+  final _i4.Key? key;
 
   final int productId;
 
@@ -1061,8 +1079,8 @@ class AddVariationArgs {
 
 /// generated route for
 /// [_i2.AddCategory]
-class AddCategoryRoute extends _i4.PageRouteInfo<AddCategoryArgs> {
-  AddCategoryRoute({_i6.Key? key})
+class AddCategoryRoute extends _i3.PageRouteInfo<AddCategoryArgs> {
+  AddCategoryRoute({_i4.Key? key})
       : super(
           AddCategoryRoute.name,
           path: '/add-category',
@@ -1075,7 +1093,7 @@ class AddCategoryRoute extends _i4.PageRouteInfo<AddCategoryArgs> {
 class AddCategoryArgs {
   const AddCategoryArgs({this.key});
 
-  final _i6.Key? key;
+  final _i4.Key? key;
 
   @override
   String toString() {
@@ -1085,9 +1103,9 @@ class AddCategoryArgs {
 
 /// generated route for
 /// [_i2.ListUnits]
-class ListUnitsRoute extends _i4.PageRouteInfo<ListUnitsArgs> {
+class ListUnitsRoute extends _i3.PageRouteInfo<ListUnitsArgs> {
   ListUnitsRoute({
-    _i6.Key? key,
+    _i4.Key? key,
     required String type,
   }) : super(
           ListUnitsRoute.name,
@@ -1107,7 +1125,7 @@ class ListUnitsArgs {
     required this.type,
   });
 
-  final _i6.Key? key;
+  final _i4.Key? key;
 
   final String type;
 
@@ -1119,10 +1137,10 @@ class ListUnitsArgs {
 
 /// generated route for
 /// [_i2.Sell]
-class SellRoute extends _i4.PageRouteInfo<SellArgs> {
+class SellRoute extends _i3.PageRouteInfo<SellArgs> {
   SellRoute({
-    _i6.Key? key,
-    required _i9.Product product,
+    _i4.Key? key,
+    required _i8.Product product,
   }) : super(
           SellRoute.name,
           path: '/Sell',
@@ -1141,9 +1159,9 @@ class SellArgs {
     required this.product,
   });
 
-  final _i6.Key? key;
+  final _i4.Key? key;
 
-  final _i9.Product product;
+  final _i8.Product product;
 
   @override
   String toString() {
@@ -1153,10 +1171,10 @@ class SellArgs {
 
 /// generated route for
 /// [_i2.Payments]
-class PaymentsRoute extends _i4.PageRouteInfo<PaymentsArgs> {
+class PaymentsRoute extends _i3.PageRouteInfo<PaymentsArgs> {
   PaymentsRoute({
-    _i6.Key? key,
-    required _i9.Order order,
+    _i4.Key? key,
+    required _i8.Order order,
     required double duePay,
   }) : super(
           PaymentsRoute.name,
@@ -1178,9 +1196,9 @@ class PaymentsArgs {
     required this.duePay,
   });
 
-  final _i6.Key? key;
+  final _i4.Key? key;
 
-  final _i9.Order order;
+  final _i8.Order order;
 
   final double duePay;
 
@@ -1192,11 +1210,11 @@ class PaymentsArgs {
 
 /// generated route for
 /// [_i2.CollectCashView]
-class CollectCashViewRoute extends _i4.PageRouteInfo<CollectCashViewArgs> {
+class CollectCashViewRoute extends _i3.PageRouteInfo<CollectCashViewArgs> {
   CollectCashViewRoute({
-    _i6.Key? key,
+    _i4.Key? key,
     required String paymentType,
-    required _i9.Order order,
+    required _i8.Order order,
   }) : super(
           CollectCashViewRoute.name,
           path: '/collect-cash-view',
@@ -1217,11 +1235,11 @@ class CollectCashViewArgs {
     required this.order,
   });
 
-  final _i6.Key? key;
+  final _i4.Key? key;
 
   final String paymentType;
 
-  final _i9.Order order;
+  final _i8.Order order;
 
   @override
   String toString() {
@@ -1231,11 +1249,11 @@ class CollectCashViewArgs {
 
 /// generated route for
 /// [_i2.AfterSale]
-class AfterSaleRoute extends _i4.PageRouteInfo<AfterSaleArgs> {
+class AfterSaleRoute extends _i3.PageRouteInfo<AfterSaleArgs> {
   AfterSaleRoute({
-    _i6.Key? key,
+    _i4.Key? key,
     required double totalOrderAmount,
-    required _i9.Order order,
+    required _i8.Order order,
     String? receiptType = "ns",
   }) : super(
           AfterSaleRoute.name,
@@ -1259,11 +1277,11 @@ class AfterSaleArgs {
     this.receiptType = "ns",
   });
 
-  final _i6.Key? key;
+  final _i4.Key? key;
 
   final double totalOrderAmount;
 
-  final _i9.Order order;
+  final _i8.Order order;
 
   final String? receiptType;
 
@@ -1275,10 +1293,10 @@ class AfterSaleArgs {
 
 /// generated route for
 /// [_i2.TransactionDetail]
-class TransactionDetailRoute extends _i4.PageRouteInfo<TransactionDetailArgs> {
+class TransactionDetailRoute extends _i3.PageRouteInfo<TransactionDetailArgs> {
   TransactionDetailRoute({
-    _i6.Key? key,
-    required _i9.Order order,
+    _i4.Key? key,
+    required _i8.Order order,
   }) : super(
           TransactionDetailRoute.name,
           path: '/transaction-detail',
@@ -1297,9 +1315,9 @@ class TransactionDetailArgs {
     required this.order,
   });
 
-  final _i6.Key? key;
+  final _i4.Key? key;
 
-  final _i9.Order order;
+  final _i8.Order order;
 
   @override
   String toString() {
@@ -1309,7 +1327,7 @@ class TransactionDetailArgs {
 
 /// generated route for
 /// [_i2.SettingsScreen]
-class SettingsScreenRoute extends _i4.PageRouteInfo<void> {
+class SettingsScreenRoute extends _i3.PageRouteInfo<void> {
   const SettingsScreenRoute()
       : super(
           SettingsScreenRoute.name,
@@ -1321,8 +1339,8 @@ class SettingsScreenRoute extends _i4.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i2.SwitchBranchView]
-class SwitchBranchViewRoute extends _i4.PageRouteInfo<SwitchBranchViewArgs> {
-  SwitchBranchViewRoute({_i6.Key? key})
+class SwitchBranchViewRoute extends _i3.PageRouteInfo<SwitchBranchViewArgs> {
+  SwitchBranchViewRoute({_i4.Key? key})
       : super(
           SwitchBranchViewRoute.name,
           path: '/switch-branch-view',
@@ -1335,7 +1353,7 @@ class SwitchBranchViewRoute extends _i4.PageRouteInfo<SwitchBranchViewArgs> {
 class SwitchBranchViewArgs {
   const SwitchBranchViewArgs({this.key});
 
-  final _i6.Key? key;
+  final _i4.Key? key;
 
   @override
   String toString() {
@@ -1345,9 +1363,9 @@ class SwitchBranchViewArgs {
 
 /// generated route for
 /// [_i2.ScannView]
-class ScannViewRoute extends _i4.PageRouteInfo<ScannViewArgs> {
+class ScannViewRoute extends _i3.PageRouteInfo<ScannViewArgs> {
   ScannViewRoute({
-    _i6.Key? key,
+    _i4.Key? key,
     String intent = 'selling',
     bool useLatestImplementation = false,
   }) : super(
@@ -1370,7 +1388,7 @@ class ScannViewArgs {
     this.useLatestImplementation = false,
   });
 
-  final _i6.Key? key;
+  final _i4.Key? key;
 
   final String intent;
 
@@ -1384,8 +1402,8 @@ class ScannViewArgs {
 
 /// generated route for
 /// [_i2.OrderView]
-class OrderViewRoute extends _i4.PageRouteInfo<OrderViewArgs> {
-  OrderViewRoute({_i6.Key? key})
+class OrderViewRoute extends _i3.PageRouteInfo<OrderViewArgs> {
+  OrderViewRoute({_i4.Key? key})
       : super(
           OrderViewRoute.name,
           path: '/order-view',
@@ -1398,7 +1416,7 @@ class OrderViewRoute extends _i4.PageRouteInfo<OrderViewArgs> {
 class OrderViewArgs {
   const OrderViewArgs({this.key});
 
-  final _i6.Key? key;
+  final _i4.Key? key;
 
   @override
   String toString() {
@@ -1408,7 +1426,7 @@ class OrderViewArgs {
 
 /// generated route for
 /// [_i2.InAppBrowser]
-class InAppBrowserRoute extends _i4.PageRouteInfo<void> {
+class InAppBrowserRoute extends _i3.PageRouteInfo<void> {
   const InAppBrowserRoute()
       : super(
           InAppBrowserRoute.name,
@@ -1420,9 +1438,9 @@ class InAppBrowserRoute extends _i4.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i2.Customers]
-class CustomersRoute extends _i4.PageRouteInfo<CustomersArgs> {
+class CustomersRoute extends _i3.PageRouteInfo<CustomersArgs> {
   CustomersRoute({
-    _i6.Key? key,
+    _i4.Key? key,
     required int orderId,
   }) : super(
           CustomersRoute.name,
@@ -1442,7 +1460,7 @@ class CustomersArgs {
     required this.orderId,
   });
 
-  final _i6.Key? key;
+  final _i4.Key? key;
 
   final int orderId;
 
@@ -1454,8 +1472,8 @@ class CustomersArgs {
 
 /// generated route for
 /// [_i2.NoNet]
-class NoNetRoute extends _i4.PageRouteInfo<NoNetArgs> {
-  NoNetRoute({_i6.Key? key})
+class NoNetRoute extends _i3.PageRouteInfo<NoNetArgs> {
+  NoNetRoute({_i4.Key? key})
       : super(
           NoNetRoute.name,
           path: '/no-net',
@@ -1468,7 +1486,7 @@ class NoNetRoute extends _i4.PageRouteInfo<NoNetArgs> {
 class NoNetArgs {
   const NoNetArgs({this.key});
 
-  final _i6.Key? key;
+  final _i4.Key? key;
 
   @override
   String toString() {
@@ -1478,8 +1496,8 @@ class NoNetArgs {
 
 /// generated route for
 /// [_i2.PinLogin]
-class PinLoginRoute extends _i4.PageRouteInfo<PinLoginArgs> {
-  PinLoginRoute({_i6.Key? key})
+class PinLoginRoute extends _i3.PageRouteInfo<PinLoginArgs> {
+  PinLoginRoute({_i4.Key? key})
       : super(
           PinLoginRoute.name,
           path: '/pin-login',
@@ -1492,7 +1510,7 @@ class PinLoginRoute extends _i4.PageRouteInfo<PinLoginArgs> {
 class PinLoginArgs {
   const PinLoginArgs({this.key});
 
-  final _i6.Key? key;
+  final _i4.Key? key;
 
   @override
   String toString() {
@@ -1502,9 +1520,9 @@ class PinLoginArgs {
 
 /// generated route for
 /// [_i2.Devices]
-class DevicesRoute extends _i4.PageRouteInfo<DevicesArgs> {
+class DevicesRoute extends _i3.PageRouteInfo<DevicesArgs> {
   DevicesRoute({
-    _i6.Key? key,
+    _i4.Key? key,
     int? pin,
   }) : super(
           DevicesRoute.name,
@@ -1524,7 +1542,7 @@ class DevicesArgs {
     this.pin,
   });
 
-  final _i6.Key? key;
+  final _i4.Key? key;
 
   final int? pin;
 
@@ -1536,7 +1554,7 @@ class DevicesArgs {
 
 /// generated route for
 /// [_i2.TaxConfiguration]
-class TaxConfigurationRoute extends _i4.PageRouteInfo<void> {
+class TaxConfigurationRoute extends _i3.PageRouteInfo<void> {
   const TaxConfigurationRoute()
       : super(
           TaxConfigurationRoute.name,
@@ -1548,7 +1566,7 @@ class TaxConfigurationRoute extends _i4.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i2.Printing]
-class PrintingRoute extends _i4.PageRouteInfo<void> {
+class PrintingRoute extends _i3.PageRouteInfo<void> {
   const PrintingRoute()
       : super(
           PrintingRoute.name,
@@ -1560,7 +1578,7 @@ class PrintingRoute extends _i4.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i2.BackUp]
-class BackUpRoute extends _i4.PageRouteInfo<void> {
+class BackUpRoute extends _i3.PageRouteInfo<void> {
   const BackUpRoute()
       : super(
           BackUpRoute.name,
@@ -1572,7 +1590,7 @@ class BackUpRoute extends _i4.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i2.LoginChoices]
-class LoginChoicesRoute extends _i4.PageRouteInfo<void> {
+class LoginChoicesRoute extends _i3.PageRouteInfo<void> {
   const LoginChoicesRoute()
       : super(
           LoginChoicesRoute.name,
@@ -1584,7 +1602,7 @@ class LoginChoicesRoute extends _i4.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i2.TenantAdd]
-class TenantAddRoute extends _i4.PageRouteInfo<void> {
+class TenantAddRoute extends _i3.PageRouteInfo<void> {
   const TenantAddRoute()
       : super(
           TenantAddRoute.name,
@@ -1596,7 +1614,7 @@ class TenantAddRoute extends _i4.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i2.SocialHomeView]
-class SocialHomeViewRoute extends _i4.PageRouteInfo<void> {
+class SocialHomeViewRoute extends _i3.PageRouteInfo<void> {
   const SocialHomeViewRoute()
       : super(
           SocialHomeViewRoute.name,
@@ -1608,11 +1626,11 @@ class SocialHomeViewRoute extends _i4.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i2.DrawerScreen]
-class DrawerScreenRoute extends _i4.PageRouteInfo<DrawerScreenArgs> {
+class DrawerScreenRoute extends _i3.PageRouteInfo<DrawerScreenArgs> {
   DrawerScreenRoute({
-    _i6.Key? key,
+    _i4.Key? key,
     required String open,
-    _i9.Drawers? drawer,
+    _i8.Drawers? drawer,
   }) : super(
           DrawerScreenRoute.name,
           path: '/drawer-screen',
@@ -1633,11 +1651,11 @@ class DrawerScreenArgs {
     this.drawer,
   });
 
-  final _i6.Key? key;
+  final _i4.Key? key;
 
   final String open;
 
-  final _i9.Drawers? drawer;
+  final _i8.Drawers? drawer;
 
   @override
   String toString() {
@@ -1647,7 +1665,7 @@ class DrawerScreenArgs {
 
 /// generated route for
 /// [_i2.ChatListView]
-class ChatListViewRoute extends _i4.PageRouteInfo<void> {
+class ChatListViewRoute extends _i3.PageRouteInfo<void> {
   const ChatListViewRoute()
       : super(
           ChatListViewRoute.name,
@@ -1660,9 +1678,9 @@ class ChatListViewRoute extends _i4.PageRouteInfo<void> {
 /// generated route for
 /// [_i2.ConversationHistory]
 class ConversationHistoryRoute
-    extends _i4.PageRouteInfo<ConversationHistoryArgs> {
+    extends _i3.PageRouteInfo<ConversationHistoryArgs> {
   ConversationHistoryRoute({
-    _i6.Key? key,
+    _i4.Key? key,
     required String conversationId,
   }) : super(
           ConversationHistoryRoute.name,
@@ -1682,7 +1700,7 @@ class ConversationHistoryArgs {
     required this.conversationId,
   });
 
-  final _i6.Key? key;
+  final _i4.Key? key;
 
   final String conversationId;
 
@@ -1694,10 +1712,10 @@ class ConversationHistoryArgs {
 
 /// generated route for
 /// [_i2.Tickets]
-class TicketsRoute extends _i4.PageRouteInfo<TicketsArgs> {
+class TicketsRoute extends _i3.PageRouteInfo<TicketsArgs> {
   TicketsRoute({
-    _i6.Key? key,
-    _i9.Order? order,
+    _i4.Key? key,
+    _i8.Order? order,
   }) : super(
           TicketsRoute.name,
           path: '/Tickets',
@@ -1716,9 +1734,9 @@ class TicketsArgs {
     this.order,
   });
 
-  final _i6.Key? key;
+  final _i4.Key? key;
 
-  final _i9.Order? order;
+  final _i8.Order? order;
 
   @override
   String toString() {
@@ -1728,10 +1746,10 @@ class TicketsArgs {
 
 /// generated route for
 /// [_i2.NewTicket]
-class NewTicketRoute extends _i4.PageRouteInfo<NewTicketArgs> {
+class NewTicketRoute extends _i3.PageRouteInfo<NewTicketArgs> {
   NewTicketRoute({
-    _i6.Key? key,
-    required _i9.Order order,
+    _i4.Key? key,
+    required _i8.Order order,
   }) : super(
           NewTicketRoute.name,
           path: '/new-ticket',
@@ -1750,9 +1768,9 @@ class NewTicketArgs {
     required this.order,
   });
 
-  final _i6.Key? key;
+  final _i4.Key? key;
 
-  final _i9.Order order;
+  final _i8.Order order;
 
   @override
   String toString() {

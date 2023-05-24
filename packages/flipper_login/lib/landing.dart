@@ -1,13 +1,16 @@
+import 'package:flipper_routing/app.router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_carousel_slider/carousel_slider.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'auth_page_desktop.dart';
 import 'responsive_layout.dart';
-import 'signin_page.dart';
+
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 class Landing extends StatefulWidget {
-  const Landing({Key? key}) : super(key: key);
+  Landing({Key? key}) : super(key: key);
 
   @override
   State<Landing> createState() => _LandingState();
@@ -15,10 +18,18 @@ class Landing extends StatefulWidget {
 
 class _LandingState extends State<Landing> {
   final List<Widget> _pages = [
-    Image.asset("assets/main.png", height: 321, width: 321),
-    Image.asset("assets/image_2.png", height: 321, width: 321),
-    Image.asset("assets/image_3.png", height: 321, width: 321),
-    Image.asset("assets/image_4.png", height: 321, width: 321),
+    Image.asset("assets/main.png",
+        height: 321, width: 321, package: 'flipper_login'),
+    Image.asset(
+      "assets/image_2.png",
+      height: 321,
+      width: 321,
+      package: 'flipper_login',
+    ),
+    Image.asset("assets/image_3.png",
+        height: 321, width: 321, package: 'flipper_login'),
+    Image.asset("assets/image_4.png",
+        height: 321, width: 321, package: 'flipper_login'),
   ];
 
   final List<Widget> _pagesText = [
@@ -70,6 +81,7 @@ class _LandingState extends State<Landing> {
             'assets/flipper_logo.png',
             height: 82,
             width: 82,
+            package: 'flipper_login',
           ),
           CarouselSlider.builder(
               unlimitedMode: true,
@@ -134,12 +146,9 @@ class _LandingState extends State<Landing> {
                       ),
                     ),
                     onPressed: () async {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => AuthOptionPage(),
-                        ),
-                      );
+                      
+                      final _routerService = locator<RouterService>();
+                      _routerService.clearStackAndShow(AuthOptionPageRoute());
                     },
                     child: Text(
                       "Create Account",
@@ -175,12 +184,8 @@ class _LandingState extends State<Landing> {
                     ),
                     onPressed: () async {
                       //Navigate to signinpage.dart
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => AuthOptionPage(),
-                        ),
-                      );
+                      final _routerService = locator<RouterService>();
+                      _routerService.clearStackAndShow(AuthOptionPageRoute());
                     },
                     child: Text(
                       "Login",
