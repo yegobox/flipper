@@ -823,9 +823,13 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   }
 
   void defaultTenant() async {
-    ITenant? tenant = await ProxyService.isarApi
-        .getTenantBYUserId(userId: ProxyService.box.getUserId()!);
-    app.setTenant(tenant: tenant!);
+    int userId = ProxyService.box.getUserId()!;
+    ITenant? tenant =
+        await ProxyService.isarApi.getTenantBYUserId(userId: userId);
+    if (tenant == null) {
+      throw Exception("could not find tenant with ${userId}");
+    }
+    app.setTenant(tenant: tenant);
   }
 
   void setDefaultBusiness({required Business business}) {
