@@ -15,7 +15,7 @@ dependencies:
   firebase_auth_desktop: ^1.0.2
   universal_platform: ^1.0.0+1
   stacked_services: ^1.0.0
-  firebase_auth: ^4.2.10
+  firebase_auth: ^4.6.1-flipper
   stacked: ^3.2.5
   built_value: ^8.1.4
   azlistview: ^2.0.0

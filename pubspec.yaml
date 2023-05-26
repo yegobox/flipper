@@ -33,11 +33,11 @@ dependencies:
   flutter_acrylic: ^0.1.0
   provider: ^6.0.1
   firebase_auth_desktop: ^1.0.2
-  firebase_core: ^2.7.1
+  firebase_core: ^2.13.0-flipper
   firebase_core_desktop: ^1.0.2-dev
   firebase_ui_auth: ^1.1.16
   get_storage: ^2.0.3
-  firebase_auth: ^4.2.10
+  firebase_auth: ^4.6.1-flipper
   google_fonts: ^4.0.3
   stacked: ^3.2.5
   firebase_messaging: ^14.6.0
