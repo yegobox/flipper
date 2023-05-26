@@ -410,21 +410,47 @@ packages:
     source: hosted
     version: "0.0.12"
   device_info_plus:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: device_info_plus
-      sha256: "9b1a0c32b2a503f8fe9f8764fac7b5fcd4f6bd35d8f49de5350bccf9e2a33b8a"
-      url: "https://pub.dev"
-    source: hosted
-    version: "9.0.0"
+      path: "../../open-sources/plus_plugins/packages/device_info_plus/device_info_plus"
+      relative: true
+    source: path
+    version: "4.0.0-dev"
+  device_info_plus_linux:
+    dependency: "direct overridden"
+    description:
+      path: "../../open-sources/plus_plugins/packages/device_info_plus/device_info_plus_linux"
+      relative: true
+    source: path
+    version: "2.1.1-dev"
+  device_info_plus_macos:
+    dependency: "direct overridden"
+    description:
+      path: "../../open-sources/plus_plugins/packages/device_info_plus/device_info_plus_macos"
+      relative: true
+    source: path
+    version: "2.2.3-dev"
   device_info_plus_platform_interface:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: device_info_plus_platform_interface
-      sha256: d3b01d5868b50ae571cd1dc6e502fc94d956b665756180f7b16ead09e836fd64
-      url: "https://pub.dev"
-    source: hosted
-    version: "7.0.0"
+      path: "../../open-sources/plus_plugins/packages/device_info_plus/device_info_plus_platform_interface"
+      relative: true
+    source: path
+    version: "2.3.0+1"
+  device_info_plus_web:
+    dependency: "direct overridden"
+    description:
+      path: "../../open-sources/plus_plugins/packages/device_info_plus/device_info_plus_web"
+      relative: true
+    source: path
+    version: "2.1.0-dev"
+  device_info_plus_windows:
+    dependency: "direct overridden"
+    description:
+      path: "../../open-sources/plus_plugins/packages/device_info_plus/device_info_plus_windows"
+      relative: true
+    source: path
+    version: "3.0.0-dev"
   dio:
     dependency: transitive
     description:
@@ -869,7 +895,7 @@ packages:
     source: hosted
     version: "1.1.200"
   flutter:
-    dependency: "direct main"
+    dependency: transitive
     description: flutter
     source: sdk
     version: "0.0.0"
@@ -1740,21 +1766,47 @@ packages:
     source: hosted
     version: "2.1.0"
   package_info_plus:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: package_info_plus
-      sha256: "10259b111176fba5c505b102e3a5b022b51dd97e30522e906d6922c745584745"
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.1.2"
+      path: "../../open-sources/plus_plugins/packages/package_info_plus/package_info_plus"
+      relative: true
+    source: path
+    version: "1.4.2-dev"
+  package_info_plus_linux:
+    dependency: "direct overridden"
+    description:
+      path: "../../open-sources/plus_plugins/packages/package_info_plus/package_info_plus_linux"
+      relative: true
+    source: path
+    version: "1.0.5"
+  package_info_plus_macos:
+    dependency: "direct overridden"
+    description:
+      path: "../../open-sources/plus_plugins/packages/package_info_plus/package_info_plus_macos"
+      relative: true
+    source: path
+    version: "1.3.0"
   package_info_plus_platform_interface:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: package_info_plus_platform_interface
-      sha256: "9bc8ba46813a4cc42c66ab781470711781940780fd8beddd0c3da62506d3a6c6"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.1"
+      path: "../../open-sources/plus_plugins/packages/package_info_plus/package_info_plus_platform_interface"
+      relative: true
+    source: path
+    version: "1.0.2"
+  package_info_plus_web:
+    dependency: "direct overridden"
+    description:
+      path: "../../open-sources/plus_plugins/packages/package_info_plus/package_info_plus_web"
+      relative: true
+    source: path
+    version: "1.0.5"
+  package_info_plus_windows:
+    dependency: "direct overridden"
+    description:
+      path: "../../open-sources/plus_plugins/packages/package_info_plus/package_info_plus_windows"
+      relative: true
+    source: path
+    version: "1.0.5-dev"
   path:
     dependency: transitive
     description:
@@ -2033,10 +2085,10 @@ packages:
     dependency: transitive
     description:
       name: responsive_builder
-      sha256: e23ef8ce1191f878dd50d28f1496d659fc923718dbfd407b121bb167f95ba090
+      sha256: a38ba9ba86c9daf08904674553034b651377b1d685d10ee450d8350ae51f76ec
       url: "https://pub.dev"
     source: hosted
-    version: "0.6.4"
+    version: "0.7.0"
   riverpod:
     dependency: transitive
     description:
@@ -2512,14 +2564,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.1.4"
-  win32_registry:
-    dependency: transitive
-    description:
-      name: win32_registry
-      sha256: "1c52f994bdccb77103a6231ad4ea331a244dbcef5d1f37d8462f713143b0bfae"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.1.0"
   xdg_directories:
     dependency: transitive
     description:
@@ -2545,5 +2589,5 @@ packages:
     source: hosted
     version: "3.1.2"
 sdks:
-  dart: "3.0.0"
+  dart: ">=3.0.0 <4.0.0"
   flutter: ">=3.7.0"
