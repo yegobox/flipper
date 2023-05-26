@@ -11,6 +11,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   geolocator_windows
   isar_flutter_libs
   permission_handler_windows
+  printing
   sentry_flutter
   share_plus
   system_theme
