@@ -4,15 +4,15 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   battery_plus
-  connectivity_plus_windows
+  connectivity_plus
   desktop_webview_auth
   firebase_core
   flutter_acrylic
   geolocator_windows
   isar_flutter_libs
   permission_handler_windows
-  printing
   sentry_flutter
+  share_plus
   system_theme
   url_launcher_windows
 )

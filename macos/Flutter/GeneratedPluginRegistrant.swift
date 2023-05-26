@@ -6,9 +6,9 @@ import FlutterMacOS
 import Foundation
 
 import battery_plus
-import connectivity_plus_macos
+import connectivity_plus
 import desktop_webview_auth
-import device_info_plus_macos
+import device_info_plus
 import firebase_analytics
 import firebase_auth
 import firebase_core
@@ -23,11 +23,10 @@ import in_app_review
 import isar_flutter_libs
 import location_macos
 import mobile_scanner
-import package_info_plus_macos
+import package_info_plus
 import path_provider_foundation
-import printing
 import sentry_flutter
-import share_plus_macos
+import share_plus
 import shared_preferences_foundation
 import sqflite
 import system_theme
@@ -54,7 +53,6 @@ func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   MobileScannerPlugin.register(with: registry.registrar(forPlugin: "MobileScannerPlugin"))
   FLTPackageInfoPlusPlugin.register(with: registry.registrar(forPlugin: "FLTPackageInfoPlusPlugin"))
   PathProviderPlugin.register(with: registry.registrar(forPlugin: "PathProviderPlugin"))
-  PrintingPlugin.register(with: registry.registrar(forPlugin: "PrintingPlugin"))
   SentryFlutterPlugin.register(with: registry.registrar(forPlugin: "SentryFlutterPlugin"))
   SharePlusMacosPlugin.register(with: registry.registrar(forPlugin: "SharePlusMacosPlugin"))
   SharedPreferencesPlugin.register(with: registry.registrar(forPlugin: "SharedPreferencesPlugin"))
