@@ -39,7 +39,7 @@ class _FlipperAppState extends State<FlipperApp>
   final _routerService = locator<RouterService>();
   int tabselected = 0;
   Future<void> _disableScreenshots() async {
-    if (!kDebugMode) {
+    if (!kDebugMode && !isDesktopOrWeb) {
       await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
     }
   }
@@ -66,17 +66,19 @@ class _FlipperAppState extends State<FlipperApp>
   }
 
   Future<void> nfc() async {
-    if ((isAndroid || isIos) && await NfcManager.instance.isAvailable()) {
-      // This code will run every 1 second while the app is in the foreground
-      AppService().nfc.stopNfc();
-      AppService().nfc.startNFC(
-            callback: (nfcData) {
-              AppService.cleanedDataController
-                  .add(nfcData.split(RegExp(r"(NFC_DATA:|en|\\x02)")).last);
-            },
-            textData: "",
-            write: false,
-          );
+    if (!isDesktopOrWeb) {
+      if ((isAndroid || isIos) && await NfcManager.instance.isAvailable()) {
+        // This code will run every 1 second while the app is in the foreground
+        AppService().nfc.stopNfc();
+        AppService().nfc.startNFC(
+              callback: (nfcData) {
+                AppService.cleanedDataController
+                    .add(nfcData.split(RegExp(r"(NFC_DATA:|en|\\x02)")).last);
+              },
+              textData: "",
+              write: false,
+            );
+      }
     }
   }
 

@@ -1,5 +1,7 @@
 library flipper_models;
 
+import 'dart:developer';
+
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:flipper_services/proxy.dart';
@@ -22,6 +24,7 @@ class StartupViewModel extends BaseViewModel {
   Future<void> runStartupLogic({
     required bool refreshCredentials,
   }) async {
+    log("on startup..");
     try {
       /// an event should be trigered from mobile not desktop as desktop is anonmous and login() func might have been called.
       if (refreshCredentials) {

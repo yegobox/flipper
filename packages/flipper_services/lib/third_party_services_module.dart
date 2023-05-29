@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:flipper_models/fake_api.dart';
 import 'package:flipper_models/marketing.dart';
 import 'package:flipper_models/remote_service.dart';
 import 'package:flipper_models/tax_api.dart';

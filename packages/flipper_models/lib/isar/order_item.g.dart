@@ -13,237 +13,237 @@ extension GetOrderItemCollection on Isar {
   IsarCollection<OrderItem> get orderItems => this.collection();
 }
 
-const OrderItemSchema = CollectionSchema(
+final OrderItemSchema = CollectionSchema(
   name: r'OrderItem',
-  id: -5113141332666578860,
+  id: BigInt.parse("-5113141332666578860").toInt(),
   properties: {
     r'addInfo': PropertySchema(
-      id: 0,
+      id: BigInt.parse("0").toInt(),
       name: r'addInfo',
       type: IsarType.string,
     ),
     r'bcd': PropertySchema(
-      id: 1,
+      id: BigInt.parse("1").toInt(),
       name: r'bcd',
       type: IsarType.string,
     ),
     r'bhfId': PropertySchema(
-      id: 2,
+      id: BigInt.parse("2").toInt(),
       name: r'bhfId',
       type: IsarType.string,
     ),
     r'createdAt': PropertySchema(
-      id: 3,
+      id: BigInt.parse("3").toInt(),
       name: r'createdAt',
       type: IsarType.string,
     ),
     r'dcAmt': PropertySchema(
-      id: 4,
+      id: BigInt.parse("4").toInt(),
       name: r'dcAmt',
       type: IsarType.double,
     ),
     r'dcRt': PropertySchema(
-      id: 5,
+      id: BigInt.parse("5").toInt(),
       name: r'dcRt',
       type: IsarType.double,
     ),
     r'dftPrc': PropertySchema(
-      id: 6,
+      id: BigInt.parse("6").toInt(),
       name: r'dftPrc',
       type: IsarType.double,
     ),
     r'discount': PropertySchema(
-      id: 7,
+      id: BigInt.parse("7").toInt(),
       name: r'discount',
       type: IsarType.double,
     ),
     r'isRefunded': PropertySchema(
-      id: 8,
+      id: BigInt.parse("8").toInt(),
       name: r'isRefunded',
       type: IsarType.bool,
     ),
     r'isTaxExempted': PropertySchema(
-      id: 9,
+      id: BigInt.parse("9").toInt(),
       name: r'isTaxExempted',
       type: IsarType.bool,
     ),
     r'isrcAmt': PropertySchema(
-      id: 10,
+      id: BigInt.parse("10").toInt(),
       name: r'isrcAmt',
       type: IsarType.string,
     ),
     r'isrcAplcbYn': PropertySchema(
-      id: 11,
+      id: BigInt.parse("11").toInt(),
       name: r'isrcAplcbYn',
       type: IsarType.string,
     ),
     r'isrcRt': PropertySchema(
-      id: 12,
+      id: BigInt.parse("12").toInt(),
       name: r'isrcRt',
       type: IsarType.string,
     ),
     r'isrccCd': PropertySchema(
-      id: 13,
+      id: BigInt.parse("13").toInt(),
       name: r'isrccCd',
       type: IsarType.string,
     ),
     r'isrccNm': PropertySchema(
-      id: 14,
+      id: BigInt.parse("14").toInt(),
       name: r'isrccNm',
       type: IsarType.string,
     ),
     r'itemCd': PropertySchema(
-      id: 15,
+      id: BigInt.parse("15").toInt(),
       name: r'itemCd',
       type: IsarType.string,
     ),
     r'itemClsCd': PropertySchema(
-      id: 16,
+      id: BigInt.parse("16").toInt(),
       name: r'itemClsCd',
       type: IsarType.string,
     ),
     r'itemNm': PropertySchema(
-      id: 17,
+      id: BigInt.parse("17").toInt(),
       name: r'itemNm',
       type: IsarType.string,
     ),
     r'itemSeq': PropertySchema(
-      id: 18,
+      id: BigInt.parse("18").toInt(),
       name: r'itemSeq',
       type: IsarType.string,
     ),
     r'itemStdNm': PropertySchema(
-      id: 19,
+      id: BigInt.parse("19").toInt(),
       name: r'itemStdNm',
       type: IsarType.string,
     ),
     r'itemTyCd': PropertySchema(
-      id: 20,
+      id: BigInt.parse("20").toInt(),
       name: r'itemTyCd',
       type: IsarType.string,
     ),
     r'modrId': PropertySchema(
-      id: 21,
+      id: BigInt.parse("21").toInt(),
       name: r'modrId',
       type: IsarType.string,
     ),
     r'modrNm': PropertySchema(
-      id: 22,
+      id: BigInt.parse("22").toInt(),
       name: r'modrNm',
       type: IsarType.string,
     ),
     r'name': PropertySchema(
-      id: 23,
+      id: BigInt.parse("23").toInt(),
       name: r'name',
       type: IsarType.string,
     ),
     r'orderId': PropertySchema(
-      id: 24,
+      id: BigInt.parse("24").toInt(),
       name: r'orderId',
       type: IsarType.long,
     ),
     r'orgnNatCd': PropertySchema(
-      id: 25,
+      id: BigInt.parse("25").toInt(),
       name: r'orgnNatCd',
       type: IsarType.string,
     ),
     r'pkg': PropertySchema(
-      id: 26,
+      id: BigInt.parse("26").toInt(),
       name: r'pkg',
       type: IsarType.string,
     ),
     r'pkgUnitCd': PropertySchema(
-      id: 27,
+      id: BigInt.parse("27").toInt(),
       name: r'pkgUnitCd',
       type: IsarType.string,
     ),
     r'prc': PropertySchema(
-      id: 28,
+      id: BigInt.parse("28").toInt(),
       name: r'prc',
       type: IsarType.double,
     ),
     r'price': PropertySchema(
-      id: 29,
+      id: BigInt.parse("29").toInt(),
       name: r'price',
       type: IsarType.double,
     ),
     r'qty': PropertySchema(
-      id: 30,
+      id: BigInt.parse("30").toInt(),
       name: r'qty',
       type: IsarType.double,
     ),
     r'qtyUnitCd': PropertySchema(
-      id: 31,
+      id: BigInt.parse("31").toInt(),
       name: r'qtyUnitCd',
       type: IsarType.string,
     ),
     r'regrId': PropertySchema(
-      id: 32,
+      id: BigInt.parse("32").toInt(),
       name: r'regrId',
       type: IsarType.string,
     ),
     r'regrNm': PropertySchema(
-      id: 33,
+      id: BigInt.parse("33").toInt(),
       name: r'regrNm',
       type: IsarType.string,
     ),
     r'remainingStock': PropertySchema(
-      id: 34,
+      id: BigInt.parse("34").toInt(),
       name: r'remainingStock',
       type: IsarType.double,
     ),
     r'reported': PropertySchema(
-      id: 35,
+      id: BigInt.parse("35").toInt(),
       name: r'reported',
       type: IsarType.bool,
     ),
     r'splyAmt': PropertySchema(
-      id: 36,
+      id: BigInt.parse("36").toInt(),
       name: r'splyAmt',
       type: IsarType.double,
     ),
     r'taxAmt': PropertySchema(
-      id: 37,
+      id: BigInt.parse("37").toInt(),
       name: r'taxAmt',
       type: IsarType.double,
     ),
     r'taxTyCd': PropertySchema(
-      id: 38,
+      id: BigInt.parse("38").toInt(),
       name: r'taxTyCd',
       type: IsarType.string,
     ),
     r'taxblAmt': PropertySchema(
-      id: 39,
+      id: BigInt.parse("39").toInt(),
       name: r'taxblAmt',
       type: IsarType.double,
     ),
     r'tin': PropertySchema(
-      id: 40,
+      id: BigInt.parse("40").toInt(),
       name: r'tin',
       type: IsarType.long,
     ),
     r'totAmt': PropertySchema(
-      id: 41,
+      id: BigInt.parse("41").toInt(),
       name: r'totAmt',
       type: IsarType.double,
     ),
     r'type': PropertySchema(
-      id: 42,
+      id: BigInt.parse("42").toInt(),
       name: r'type',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 43,
+      id: BigInt.parse("43").toInt(),
       name: r'updatedAt',
       type: IsarType.string,
     ),
     r'useYn': PropertySchema(
-      id: 44,
+      id: BigInt.parse("44").toInt(),
       name: r'useYn',
       type: IsarType.string,
     ),
     r'variantId': PropertySchema(
-      id: 45,
+      id: BigInt.parse("45").toInt(),
       name: r'variantId',
       type: IsarType.long,
     )
@@ -255,7 +255,7 @@ const OrderItemSchema = CollectionSchema(
   idName: r'id',
   indexes: {
     r'orderId': IndexSchema(
-      id: -6176610178429382285,
+      id: BigInt.parse("-6176610178429382285").toInt(),
       name: r'orderId',
       unique: false,
       replace: false,
@@ -268,7 +268,7 @@ const OrderItemSchema = CollectionSchema(
       ],
     ),
     r'variantId_orderId': IndexSchema(
-      id: 1795974761994964438,
+      id: BigInt.parse("1795974761994964438").toInt(),
       name: r'variantId_orderId',
       unique: false,
       replace: false,
@@ -291,7 +291,7 @@ const OrderItemSchema = CollectionSchema(
   getId: _orderItemGetId,
   getLinks: _orderItemGetLinks,
   attach: _orderItemAttach,
-  version: '3.1.0+1',
+  version: '3.1.0',
 );
 
 int _orderItemEstimateSize(

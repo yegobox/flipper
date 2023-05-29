@@ -13,37 +13,37 @@ extension GetVoucherCollection on Isar {
   IsarCollection<Voucher> get vouchers => this.collection();
 }
 
-const VoucherSchema = CollectionSchema(
+final VoucherSchema = CollectionSchema(
   name: r'Voucher',
-  id: 6548118931563840322,
+  id: BigInt.parse("6548118931563840322").toInt(),
   properties: {
     r'createdAt': PropertySchema(
-      id: 0,
+      id: BigInt.parse("0").toInt(),
       name: r'createdAt',
       type: IsarType.long,
     ),
     r'descriptor': PropertySchema(
-      id: 1,
+      id: BigInt.parse("1").toInt(),
       name: r'descriptor',
       type: IsarType.string,
     ),
     r'interval': PropertySchema(
-      id: 2,
+      id: BigInt.parse("2").toInt(),
       name: r'interval',
       type: IsarType.long,
     ),
     r'used': PropertySchema(
-      id: 3,
+      id: BigInt.parse("3").toInt(),
       name: r'used',
       type: IsarType.bool,
     ),
     r'usedAt': PropertySchema(
-      id: 4,
+      id: BigInt.parse("4").toInt(),
       name: r'usedAt',
       type: IsarType.long,
     ),
     r'value': PropertySchema(
-      id: 5,
+      id: BigInt.parse("5").toInt(),
       name: r'value',
       type: IsarType.long,
     )
@@ -59,7 +59,7 @@ const VoucherSchema = CollectionSchema(
   getId: _voucherGetId,
   getLinks: _voucherGetLinks,
   attach: _voucherAttach,
-  version: '3.1.0+1',
+  version: '3.1.0',
 );
 
 int _voucherEstimateSize(

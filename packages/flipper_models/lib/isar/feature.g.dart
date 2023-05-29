@@ -13,12 +13,12 @@ extension GetFeatureCollection on Isar {
   IsarCollection<Feature> get features => this.collection();
 }
 
-const FeatureSchema = CollectionSchema(
+final FeatureSchema = CollectionSchema(
   name: r'Feature',
-  id: -8329400988643063949,
+  id: BigInt.parse("-8329400988643063949").toInt(),
   properties: {
     r'name': PropertySchema(
-      id: 0,
+      id: BigInt.parse("0").toInt(),
       name: r'name',
       type: IsarType.string,
     )
@@ -34,7 +34,7 @@ const FeatureSchema = CollectionSchema(
   getId: _featureGetId,
   getLinks: _featureGetLinks,
   attach: _featureAttach,
-  version: '3.1.0+1',
+  version: '3.1.0',
 );
 
 int _featureEstimateSize(

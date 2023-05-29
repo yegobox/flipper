@@ -102,3 +102,4 @@ class App {}
 // https://github.com/YehudaKremer/msix/issues/191
 // TODO: reading visa card, master card
 // https://github.com/jordanliu/flutter-emv-reader
+// TODO: https://github.com/juliansteenbakker/mobile_scanner/issues/622

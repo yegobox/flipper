@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of flipper_models;
+part of 'favorite.dart';
 
 // **************************************************************************
 // IsarCollectionGenerator
@@ -13,12 +13,12 @@ extension GetFavoriteCollection on Isar {
   IsarCollection<Favorite> get favorites => this.collection();
 }
 
-const FavoriteSchema = CollectionSchema(
+final FavoriteSchema = CollectionSchema(
   name: r'Favorite',
-  id: 5577971995748139032,
+  id: BigInt.parse("5577971995748139032").toInt(),
   properties: {
     r'name': PropertySchema(
-      id: 0,
+      id: BigInt.parse("0").toInt(),
       name: r'name',
       type: IsarType.string,
     )
@@ -31,7 +31,7 @@ const FavoriteSchema = CollectionSchema(
   indexes: {},
   links: {
     r'product': LinkSchema(
-      id: -7956638849048948629,
+      id: BigInt.parse("-7956638849048948629").toInt(),
       name: r'product',
       target: r'Product',
       single: true,
@@ -41,7 +41,7 @@ const FavoriteSchema = CollectionSchema(
   getId: _favoriteGetId,
   getLinks: _favoriteGetLinks,
   attach: _favoriteAttach,
-  version: '3.1.0+1',
+  version: '3.1.0',
 );
 
 int _favoriteEstimateSize(

@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of flipper_models;
+part of 'business.dart';
 
 // **************************************************************************
 // IsarCollectionGenerator
@@ -13,202 +13,202 @@ extension GetBusinessCollection on Isar {
   IsarCollection<Business> get business => this.collection();
 }
 
-const BusinessSchema = CollectionSchema(
+final BusinessSchema = CollectionSchema(
   name: r'Business',
-  id: -8587991543652827682,
+  id: BigInt.parse("-8587991543652827682").toInt(),
   properties: {
     r'active': PropertySchema(
-      id: 0,
+      id: BigInt.parse("0").toInt(),
       name: r'active',
       type: IsarType.bool,
     ),
     r'adrs': PropertySchema(
-      id: 1,
+      id: BigInt.parse("1").toInt(),
       name: r'adrs',
       type: IsarType.string,
     ),
     r'backUpEnabled': PropertySchema(
-      id: 2,
+      id: BigInt.parse("2").toInt(),
       name: r'backUpEnabled',
       type: IsarType.bool,
     ),
     r'backupFileId': PropertySchema(
-      id: 3,
+      id: BigInt.parse("3").toInt(),
       name: r'backupFileId',
       type: IsarType.string,
     ),
     r'bhfId': PropertySchema(
-      id: 4,
+      id: BigInt.parse("4").toInt(),
       name: r'bhfId',
       type: IsarType.string,
     ),
     r'businessTypeId': PropertySchema(
-      id: 5,
+      id: BigInt.parse("5").toInt(),
       name: r'businessTypeId',
       type: IsarType.long,
     ),
     r'businessUrl': PropertySchema(
-      id: 6,
+      id: BigInt.parse("6").toInt(),
       name: r'businessUrl',
       type: IsarType.string,
     ),
     r'categoryId': PropertySchema(
-      id: 7,
+      id: BigInt.parse("7").toInt(),
       name: r'categoryId',
       type: IsarType.string,
     ),
     r'channels': PropertySchema(
-      id: 8,
+      id: BigInt.parse("8").toInt(),
       name: r'channels',
       type: IsarType.stringList,
     ),
     r'chatUid': PropertySchema(
-      id: 9,
+      id: BigInt.parse("9").toInt(),
       name: r'chatUid',
       type: IsarType.string,
     ),
     r'country': PropertySchema(
-      id: 10,
+      id: BigInt.parse("10").toInt(),
       name: r'country',
       type: IsarType.string,
     ),
     r'createdAt': PropertySchema(
-      id: 11,
+      id: BigInt.parse("11").toInt(),
       name: r'createdAt',
       type: IsarType.string,
     ),
     r'currency': PropertySchema(
-      id: 12,
+      id: BigInt.parse("12").toInt(),
       name: r'currency',
       type: IsarType.string,
     ),
     r'deviceToken': PropertySchema(
-      id: 13,
+      id: BigInt.parse("13").toInt(),
       name: r'deviceToken',
       type: IsarType.string,
     ),
     r'dvcSrlNo': PropertySchema(
-      id: 14,
+      id: BigInt.parse("14").toInt(),
       name: r'dvcSrlNo',
       type: IsarType.string,
     ),
     r'email': PropertySchema(
-      id: 15,
+      id: BigInt.parse("15").toInt(),
       name: r'email',
       type: IsarType.string,
     ),
     r'firstName': PropertySchema(
-      id: 16,
+      id: BigInt.parse("16").toInt(),
       name: r'firstName',
       type: IsarType.string,
     ),
     r'fullName': PropertySchema(
-      id: 17,
+      id: BigInt.parse("17").toInt(),
       name: r'fullName',
       type: IsarType.string,
     ),
     r'hexColor': PropertySchema(
-      id: 18,
+      id: BigInt.parse("18").toInt(),
       name: r'hexColor',
       type: IsarType.string,
     ),
     r'imageUrl': PropertySchema(
-      id: 19,
+      id: BigInt.parse("19").toInt(),
       name: r'imageUrl',
       type: IsarType.string,
     ),
     r'isDefault': PropertySchema(
-      id: 20,
+      id: BigInt.parse("20").toInt(),
       name: r'isDefault',
       type: IsarType.bool,
     ),
     r'isLastSubscriptionPaymentSucceeded': PropertySchema(
-      id: 21,
+      id: BigInt.parse("21").toInt(),
       name: r'isLastSubscriptionPaymentSucceeded',
       type: IsarType.bool,
     ),
     r'lastDbBackup': PropertySchema(
-      id: 22,
+      id: BigInt.parse("22").toInt(),
       name: r'lastDbBackup',
       type: IsarType.string,
     ),
     r'lastName': PropertySchema(
-      id: 23,
+      id: BigInt.parse("23").toInt(),
       name: r'lastName',
       type: IsarType.string,
     ),
     r'lastSeen': PropertySchema(
-      id: 24,
+      id: BigInt.parse("24").toInt(),
       name: r'lastSeen',
       type: IsarType.long,
     ),
     r'latitude': PropertySchema(
-      id: 25,
+      id: BigInt.parse("25").toInt(),
       name: r'latitude',
       type: IsarType.string,
     ),
     r'longitude': PropertySchema(
-      id: 26,
+      id: BigInt.parse("26").toInt(),
       name: r'longitude',
       type: IsarType.string,
     ),
     r'metadata': PropertySchema(
-      id: 27,
+      id: BigInt.parse("27").toInt(),
       name: r'metadata',
       type: IsarType.string,
     ),
     r'name': PropertySchema(
-      id: 28,
+      id: BigInt.parse("28").toInt(),
       name: r'name',
       type: IsarType.string,
     ),
     r'nextBillingDate': PropertySchema(
-      id: 29,
+      id: BigInt.parse("29").toInt(),
       name: r'nextBillingDate',
       type: IsarType.string,
     ),
     r'previousBillingDate': PropertySchema(
-      id: 30,
+      id: BigInt.parse("30").toInt(),
       name: r'previousBillingDate',
       type: IsarType.string,
     ),
     r'role': PropertySchema(
-      id: 31,
+      id: BigInt.parse("31").toInt(),
       name: r'role',
       type: IsarType.string,
     ),
     r'subscriptionPlan': PropertySchema(
-      id: 32,
+      id: BigInt.parse("32").toInt(),
       name: r'subscriptionPlan',
       type: IsarType.string,
     ),
     r'taxEnabled': PropertySchema(
-      id: 33,
+      id: BigInt.parse("33").toInt(),
       name: r'taxEnabled',
       type: IsarType.bool,
     ),
     r'taxServerUrl': PropertySchema(
-      id: 34,
+      id: BigInt.parse("34").toInt(),
       name: r'taxServerUrl',
       type: IsarType.string,
     ),
     r'timeZone': PropertySchema(
-      id: 35,
+      id: BigInt.parse("35").toInt(),
       name: r'timeZone',
       type: IsarType.string,
     ),
     r'tinNumber': PropertySchema(
-      id: 36,
+      id: BigInt.parse("36").toInt(),
       name: r'tinNumber',
       type: IsarType.long,
     ),
     r'type': PropertySchema(
-      id: 37,
+      id: BigInt.parse("37").toInt(),
       name: r'type',
       type: IsarType.string,
     ),
     r'userId': PropertySchema(
-      id: 38,
+      id: BigInt.parse("38").toInt(),
       name: r'userId',
       type: IsarType.string,
     )
@@ -220,7 +220,7 @@ const BusinessSchema = CollectionSchema(
   idName: r'id',
   indexes: {
     r'userId': IndexSchema(
-      id: -2005826577402374815,
+      id: BigInt.parse("-2005826577402374815").toInt(),
       name: r'userId',
       unique: false,
       replace: false,
@@ -238,7 +238,7 @@ const BusinessSchema = CollectionSchema(
   getId: _businessGetId,
   getLinks: _businessGetLinks,
   attach: _businessAttach,
-  version: '3.1.0+1',
+  version: '3.1.0',
 );
 
 int _businessEstimateSize(

@@ -13,22 +13,22 @@ extension GetDiscountCollection on Isar {
   IsarCollection<Discount> get discounts => this.collection();
 }
 
-const DiscountSchema = CollectionSchema(
+final DiscountSchema = CollectionSchema(
   name: r'Discount',
-  id: -5682473105823550468,
+  id: BigInt.parse("-5682473105823550468").toInt(),
   properties: {
     r'amount': PropertySchema(
-      id: 0,
+      id: BigInt.parse("0").toInt(),
       name: r'amount',
       type: IsarType.double,
     ),
     r'branchId': PropertySchema(
-      id: 1,
+      id: BigInt.parse("1").toInt(),
       name: r'branchId',
       type: IsarType.long,
     ),
     r'name': PropertySchema(
-      id: 2,
+      id: BigInt.parse("2").toInt(),
       name: r'name',
       type: IsarType.string,
     )
@@ -40,7 +40,7 @@ const DiscountSchema = CollectionSchema(
   idName: r'id',
   indexes: {
     r'branchId': IndexSchema(
-      id: 2037049677925728410,
+      id: BigInt.parse("2037049677925728410").toInt(),
       name: r'branchId',
       unique: false,
       replace: false,
@@ -58,7 +58,7 @@ const DiscountSchema = CollectionSchema(
   getId: _discountGetId,
   getLinks: _discountGetLinks,
   attach: _discountAttach,
-  version: '3.1.0+1',
+  version: '3.1.0',
 );
 
 int _discountEstimateSize(

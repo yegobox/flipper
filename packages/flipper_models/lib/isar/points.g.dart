@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of flipper_models;
+part of 'points.dart';
 
 // **************************************************************************
 // IsarCollectionGenerator
@@ -13,17 +13,17 @@ extension GetIPointCollection on Isar {
   IsarCollection<IPoint> get iPoints => this.collection();
 }
 
-const IPointSchema = CollectionSchema(
+final IPointSchema = CollectionSchema(
   name: r'IPoint',
-  id: 2434498374590124328,
+  id: BigInt.parse("2434498374590124328").toInt(),
   properties: {
     r'userId': PropertySchema(
-      id: 0,
+      id: BigInt.parse("0").toInt(),
       name: r'userId',
       type: IsarType.int,
     ),
     r'value': PropertySchema(
-      id: 1,
+      id: BigInt.parse("1").toInt(),
       name: r'value',
       type: IsarType.long,
     )
@@ -35,7 +35,7 @@ const IPointSchema = CollectionSchema(
   idName: r'id',
   indexes: {
     r'userId': IndexSchema(
-      id: -2005826577402374815,
+      id: BigInt.parse("-2005826577402374815").toInt(),
       name: r'userId',
       unique: false,
       replace: false,
@@ -53,7 +53,7 @@ const IPointSchema = CollectionSchema(
   getId: _iPointGetId,
   getLinks: _iPointGetLinks,
   attach: _iPointAttach,
-  version: '3.1.0+1',
+  version: '3.1.0',
 );
 
 int _iPointEstimateSize(

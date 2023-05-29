@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of flipper_models;
+part of 'category.dart';
 
 // **************************************************************************
 // IsarCollectionGenerator
@@ -13,32 +13,32 @@ extension GetCategoryCollection on Isar {
   IsarCollection<Category> get categorys => this.collection();
 }
 
-const CategorySchema = CollectionSchema(
+final CategorySchema = CollectionSchema(
   name: r'Category',
-  id: 5751694338128944171,
+  id: BigInt.parse("5751694338128944171").toInt(),
   properties: {
     r'active': PropertySchema(
-      id: 0,
+      id: BigInt.parse("0").toInt(),
       name: r'active',
       type: IsarType.bool,
     ),
     r'branchId': PropertySchema(
-      id: 1,
+      id: BigInt.parse("1").toInt(),
       name: r'branchId',
       type: IsarType.long,
     ),
     r'focused': PropertySchema(
-      id: 2,
+      id: BigInt.parse("2").toInt(),
       name: r'focused',
       type: IsarType.bool,
     ),
     r'name': PropertySchema(
-      id: 3,
+      id: BigInt.parse("3").toInt(),
       name: r'name',
       type: IsarType.string,
     ),
     r'table': PropertySchema(
-      id: 4,
+      id: BigInt.parse("4").toInt(),
       name: r'table',
       type: IsarType.string,
     )
@@ -50,7 +50,7 @@ const CategorySchema = CollectionSchema(
   idName: r'id',
   indexes: {
     r'branchId': IndexSchema(
-      id: 2037049677925728410,
+      id: BigInt.parse("2037049677925728410").toInt(),
       name: r'branchId',
       unique: false,
       replace: false,
@@ -68,7 +68,7 @@ const CategorySchema = CollectionSchema(
   getId: _categoryGetId,
   getLinks: _categoryGetLinks,
   attach: _categoryAttach,
-  version: '3.1.0+1',
+  version: '3.1.0',
 );
 
 int _categoryEstimateSize(

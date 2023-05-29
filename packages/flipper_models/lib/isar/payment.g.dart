@@ -13,52 +13,52 @@ extension GetPaymentCollection on Isar {
   IsarCollection<Payment> get payments => this.collection();
 }
 
-const PaymentSchema = CollectionSchema(
+final PaymentSchema = CollectionSchema(
   name: r'Payment',
-  id: -6533700744042574122,
+  id: BigInt.parse("-6533700744042574122").toInt(),
   properties: {
     r'amount': PropertySchema(
-      id: 0,
+      id: BigInt.parse("0").toInt(),
       name: r'amount',
       type: IsarType.long,
     ),
     r'createdAt': PropertySchema(
-      id: 1,
+      id: BigInt.parse("1").toInt(),
       name: r'createdAt',
       type: IsarType.long,
     ),
     r'interval': PropertySchema(
-      id: 2,
+      id: BigInt.parse("2").toInt(),
       name: r'interval',
       type: IsarType.long,
     ),
     r'itemName': PropertySchema(
-      id: 3,
+      id: BigInt.parse("3").toInt(),
       name: r'itemName',
       type: IsarType.string,
     ),
     r'note': PropertySchema(
-      id: 4,
+      id: BigInt.parse("4").toInt(),
       name: r'note',
       type: IsarType.string,
     ),
     r'paymentType': PropertySchema(
-      id: 5,
+      id: BigInt.parse("5").toInt(),
       name: r'paymentType',
       type: IsarType.string,
     ),
     r'phoneNumber': PropertySchema(
-      id: 6,
+      id: BigInt.parse("6").toInt(),
       name: r'phoneNumber',
       type: IsarType.string,
     ),
     r'requestGuid': PropertySchema(
-      id: 7,
+      id: BigInt.parse("7").toInt(),
       name: r'requestGuid',
       type: IsarType.string,
     ),
     r'userId': PropertySchema(
-      id: 8,
+      id: BigInt.parse("8").toInt(),
       name: r'userId',
       type: IsarType.long,
     )
@@ -74,7 +74,7 @@ const PaymentSchema = CollectionSchema(
   getId: _paymentGetId,
   getLinks: _paymentGetLinks,
   attach: _paymentAttach,
-  version: '3.1.0+1',
+  version: '3.1.0',
 );
 
 int _paymentEstimateSize(

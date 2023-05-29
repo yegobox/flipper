@@ -23,8 +23,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  isar: ^3.1.0+1
-  isar_flutter_libs: ^3.1.0+1
+  isar: ^3.1.0
+  isar_flutter_libs: ^3.1.0
   universal_platform: ^1.0.0+1
   animations: ^2.0.0
   sentry_flutter: ^7.5.2
@@ -33,22 +33,21 @@ dependencies:
   flutter_acrylic: ^0.1.0
   provider: ^6.0.1
   firebase_auth_desktop: ^1.0.2
-  firebase_core: ^2.13.0-flipper
+  firebase_core: ^2.13.0
   firebase_core_desktop: ^1.0.2-dev
   firebase_ui_auth: ^1.1.16
   get_storage: ^2.0.3
-  firebase_auth: ^4.6.1-flipper
+  firebase_auth: ^4.6.1
   google_fonts: ^4.0.3
   stacked: ^3.2.5
-  firebase_messaging: ^14.6.0
+  firebase_messaging: ^14.6.1
   overlay_support: ^2.1.0
   flex_color_scheme: ^4.2.0
   path_provider: ^2.0.15
   logger: ^1.1.0
-  firebase_crashlytics: ^3.0.2
+  firebase_crashlytics: ^3.3.1
   path: ^1.8.2
   flutter_riverpod: any
-
   meta: any
   flipper_dashboard: ^0.0.1-dev.5
   flipper_models: ^0.0.1-dev.7
@@ -57,7 +56,7 @@ dependencies:
   flipper_routing: ^0.0.1-dev.3
   flipper_localize: ^0.0.4-dev
   flipper_data_table: 1.0.0-dev.2
-  flutter_native_splash: ^2.2.2
+  flutter_native_splash: ^2.3.0
   firebase_ui_localizations: ^1.5.0
   timezone: ^0.9.1
   flutter_native_timezone: ^2.0.0

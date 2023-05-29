@@ -70,12 +70,12 @@
 [submodule "open-sources/dart_pdf"]
 	path = open-sources/dart_pdf
 	url = https://github.com/yegobox/dart_pdf.git
-[submodule "open-sources/firebase_auth"]
-	path = open-sources/firebase_auth
-	url = https://github.com/yegobox/firebase_auth.git
-[submodule "open-sources/flutterfire_internal"]
-	path = open-sources/flutterfire_internal
-	url = https://github.com/yegobox/flutterfire_internal.git
-[submodule "open-sources/firebase_core"]
-	path = open-sources/firebase_core
-	url = https://github.com/yegobox/firebase_core.git
+# [submodule "open-sources/firebase_auth"]
+# 	path = open-sources/firebase_auth
+# 	url = https://github.com/yegobox/firebase_auth.git
+# [submodule "open-sources/flutterfire_internal"]
+# 	path = open-sources/flutterfire_internal
+# 	url = https://github.com/yegobox/flutterfire_internal.git
+# [submodule "open-sources/firebase_core"]
+# 	path = open-sources/firebase_core
+# 	url = https://github.com/yegobox/firebase_core.git

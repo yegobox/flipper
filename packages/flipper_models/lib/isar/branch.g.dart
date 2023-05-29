@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of flipper_models;
+part of 'branch.dart';
 
 // **************************************************************************
 // IsarCollectionGenerator
@@ -13,47 +13,47 @@ extension GetBranchCollection on Isar {
   IsarCollection<Branch> get branchs => this.collection();
 }
 
-const BranchSchema = CollectionSchema(
+final BranchSchema = CollectionSchema(
   name: r'Branch',
-  id: 7089804700259644623,
+  id: BigInt.parse("7089804700259644623").toInt(),
   properties: {
     r'active': PropertySchema(
-      id: 0,
+      id: BigInt.parse("0").toInt(),
       name: r'active',
       type: IsarType.bool,
     ),
     r'businessId': PropertySchema(
-      id: 1,
+      id: BigInt.parse("1").toInt(),
       name: r'businessId',
       type: IsarType.long,
     ),
     r'description': PropertySchema(
-      id: 2,
+      id: BigInt.parse("2").toInt(),
       name: r'description',
       type: IsarType.string,
     ),
     r'isDefault': PropertySchema(
-      id: 3,
+      id: BigInt.parse("3").toInt(),
       name: r'isDefault',
       type: IsarType.bool,
     ),
     r'latitude': PropertySchema(
-      id: 4,
+      id: BigInt.parse("4").toInt(),
       name: r'latitude',
       type: IsarType.string,
     ),
     r'longitude': PropertySchema(
-      id: 5,
+      id: BigInt.parse("5").toInt(),
       name: r'longitude',
       type: IsarType.string,
     ),
     r'name': PropertySchema(
-      id: 6,
+      id: BigInt.parse("6").toInt(),
       name: r'name',
       type: IsarType.string,
     ),
     r'table': PropertySchema(
-      id: 7,
+      id: BigInt.parse("7").toInt(),
       name: r'table',
       type: IsarType.string,
     )
@@ -69,7 +69,7 @@ const BranchSchema = CollectionSchema(
   getId: _branchGetId,
   getLinks: _branchGetLinks,
   attach: _branchAttach,
-  version: '3.1.0+1',
+  version: '3.1.0',
 );
 
 int _branchEstimateSize(

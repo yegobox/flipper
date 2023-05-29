@@ -3,9 +3,9 @@
     "short_name": "flipper",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#1ABCFE",
-    "theme_color": "#1ABCFE",
-    "description": "A new Flutter project.",
+    "background_color": "#0175C2",
+    "theme_color": "#0175C2",
+    "description": "An african point of sale.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

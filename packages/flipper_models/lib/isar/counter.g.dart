@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of flipper_models;
+part of 'counter.dart';
 
 // **************************************************************************
 // IsarCollectionGenerator
@@ -13,37 +13,37 @@ extension GetCounterCollection on Isar {
   IsarCollection<Counter> get counters => this.collection();
 }
 
-const CounterSchema = CollectionSchema(
+final CounterSchema = CollectionSchema(
   name: r'Counter',
-  id: -8560901831524329398,
+  id: BigInt.parse("-8560901831524329398").toInt(),
   properties: {
     r'backed': PropertySchema(
-      id: 0,
+      id: BigInt.parse("0").toInt(),
       name: r'backed',
       type: IsarType.bool,
     ),
     r'branchId': PropertySchema(
-      id: 1,
+      id: BigInt.parse("1").toInt(),
       name: r'branchId',
       type: IsarType.long,
     ),
     r'businessId': PropertySchema(
-      id: 2,
+      id: BigInt.parse("2").toInt(),
       name: r'businessId',
       type: IsarType.long,
     ),
     r'curRcptNo': PropertySchema(
-      id: 3,
+      id: BigInt.parse("3").toInt(),
       name: r'curRcptNo',
       type: IsarType.long,
     ),
     r'receiptType': PropertySchema(
-      id: 4,
+      id: BigInt.parse("4").toInt(),
       name: r'receiptType',
       type: IsarType.string,
     ),
     r'totRcptNo': PropertySchema(
-      id: 5,
+      id: BigInt.parse("5").toInt(),
       name: r'totRcptNo',
       type: IsarType.long,
     )
@@ -59,7 +59,7 @@ const CounterSchema = CollectionSchema(
   getId: _counterGetId,
   getLinks: _counterGetLinks,
   attach: _counterAttach,
-  version: '3.1.0+1',
+  version: '3.1.0',
 );
 
 int _counterEstimateSize(

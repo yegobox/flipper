@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of flipper_models;
+part of 'token.dart';
 
 // **************************************************************************
 // IsarCollectionGenerator
@@ -13,32 +13,32 @@ extension GetTokenCollection on Isar {
   IsarCollection<Token> get tokens => this.collection();
 }
 
-const TokenSchema = CollectionSchema(
+final TokenSchema = CollectionSchema(
   name: r'Token',
-  id: 1141055021699684464,
+  id: BigInt.parse("1141055021699684464").toInt(),
   properties: {
     r'businessId': PropertySchema(
-      id: 0,
+      id: BigInt.parse("0").toInt(),
       name: r'businessId',
       type: IsarType.long,
     ),
     r'token': PropertySchema(
-      id: 1,
+      id: BigInt.parse("1").toInt(),
       name: r'token',
       type: IsarType.string,
     ),
     r'type': PropertySchema(
-      id: 2,
+      id: BigInt.parse("2").toInt(),
       name: r'type',
       type: IsarType.string,
     ),
     r'validFrom': PropertySchema(
-      id: 3,
+      id: BigInt.parse("3").toInt(),
       name: r'validFrom',
       type: IsarType.dateTime,
     ),
     r'validUntil': PropertySchema(
-      id: 4,
+      id: BigInt.parse("4").toInt(),
       name: r'validUntil',
       type: IsarType.dateTime,
     )
@@ -50,7 +50,7 @@ const TokenSchema = CollectionSchema(
   idName: r'id',
   indexes: {
     r'businessId': IndexSchema(
-      id: 2228048290814354584,
+      id: BigInt.parse("2228048290814354584").toInt(),
       name: r'businessId',
       unique: false,
       replace: false,
@@ -68,7 +68,7 @@ const TokenSchema = CollectionSchema(
   getId: _tokenGetId,
   getLinks: _tokenGetLinks,
   attach: _tokenAttach,
-  version: '3.1.0+1',
+  version: '3.1.0',
 );
 
 int _tokenEstimateSize(

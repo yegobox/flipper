@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of flipper_models;
+part of 'device.dart';
 
 // **************************************************************************
 // IsarCollectionGenerator
@@ -13,57 +13,57 @@ extension GetDeviceCollection on Isar {
   IsarCollection<Device> get devices => this.collection();
 }
 
-const DeviceSchema = CollectionSchema(
+final DeviceSchema = CollectionSchema(
   name: r'Device',
-  id: 3491430514663294648,
+  id: BigInt.parse("3491430514663294648").toInt(),
   properties: {
     r'branchId': PropertySchema(
-      id: 0,
+      id: BigInt.parse("0").toInt(),
       name: r'branchId',
       type: IsarType.long,
     ),
     r'busienssId': PropertySchema(
-      id: 1,
+      id: BigInt.parse("1").toInt(),
       name: r'busienssId',
       type: IsarType.long,
     ),
     r'businessId': PropertySchema(
-      id: 2,
+      id: BigInt.parse("2").toInt(),
       name: r'businessId',
       type: IsarType.long,
     ),
     r'defaultApp': PropertySchema(
-      id: 3,
+      id: BigInt.parse("3").toInt(),
       name: r'defaultApp',
       type: IsarType.long,
     ),
     r'deviceName': PropertySchema(
-      id: 4,
+      id: BigInt.parse("4").toInt(),
       name: r'deviceName',
       type: IsarType.string,
     ),
     r'deviceVersion': PropertySchema(
-      id: 5,
+      id: BigInt.parse("5").toInt(),
       name: r'deviceVersion',
       type: IsarType.string,
     ),
     r'linkingCode': PropertySchema(
-      id: 6,
+      id: BigInt.parse("6").toInt(),
       name: r'linkingCode',
       type: IsarType.string,
     ),
     r'phone': PropertySchema(
-      id: 7,
+      id: BigInt.parse("7").toInt(),
       name: r'phone',
       type: IsarType.string,
     ),
     r'pubNubPublished': PropertySchema(
-      id: 8,
+      id: BigInt.parse("8").toInt(),
       name: r'pubNubPublished',
       type: IsarType.bool,
     ),
     r'userId': PropertySchema(
-      id: 9,
+      id: BigInt.parse("9").toInt(),
       name: r'userId',
       type: IsarType.long,
     )
@@ -79,7 +79,7 @@ const DeviceSchema = CollectionSchema(
   getId: _deviceGetId,
   getLinks: _deviceGetLinks,
   attach: _deviceAttach,
-  version: '3.1.0+1',
+  version: '3.1.0',
 );
 
 int _deviceEstimateSize(

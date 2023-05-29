@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of flipper_models;
+part of 'subscription.dart';
 
 // **************************************************************************
 // IsarCollectionGenerator
@@ -13,37 +13,37 @@ extension GetSubscriptionCollection on Isar {
   IsarCollection<Subscription> get subscriptions => this.collection();
 }
 
-const SubscriptionSchema = CollectionSchema(
+final SubscriptionSchema = CollectionSchema(
   name: r'Subscription',
-  id: -3426239935225026138,
+  id: BigInt.parse("-3426239935225026138").toInt(),
   properties: {
     r'descriptor': PropertySchema(
-      id: 0,
+      id: BigInt.parse("0").toInt(),
       name: r'descriptor',
       type: IsarType.string,
     ),
     r'interval': PropertySchema(
-      id: 1,
+      id: BigInt.parse("1").toInt(),
       name: r'interval',
       type: IsarType.long,
     ),
     r'lastBillingDate': PropertySchema(
-      id: 2,
+      id: BigInt.parse("2").toInt(),
       name: r'lastBillingDate',
       type: IsarType.string,
     ),
     r'nextBillingDate': PropertySchema(
-      id: 3,
+      id: BigInt.parse("3").toInt(),
       name: r'nextBillingDate',
       type: IsarType.string,
     ),
     r'recurring': PropertySchema(
-      id: 4,
+      id: BigInt.parse("4").toInt(),
       name: r'recurring',
       type: IsarType.double,
     ),
     r'userId': PropertySchema(
-      id: 5,
+      id: BigInt.parse("5").toInt(),
       name: r'userId',
       type: IsarType.long,
     )
@@ -55,7 +55,7 @@ const SubscriptionSchema = CollectionSchema(
   idName: r'id',
   indexes: {
     r'userId': IndexSchema(
-      id: -2005826577402374815,
+      id: BigInt.parse("-2005826577402374815").toInt(),
       name: r'userId',
       unique: false,
       replace: false,
@@ -70,7 +70,7 @@ const SubscriptionSchema = CollectionSchema(
   },
   links: {
     r'features': LinkSchema(
-      id: -3702405399721331688,
+      id: BigInt.parse("-3702405399721331688").toInt(),
       name: r'features',
       target: r'Feature',
       single: true,
@@ -80,7 +80,7 @@ const SubscriptionSchema = CollectionSchema(
   getId: _subscriptionGetId,
   getLinks: _subscriptionGetLinks,
   attach: _subscriptionAttach,
-  version: '3.1.0+1',
+  version: '3.1.0',
 );
 
 int _subscriptionEstimateSize(

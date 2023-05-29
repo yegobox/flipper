@@ -13,47 +13,47 @@ extension GetSocialCollection on Isar {
   IsarCollection<Social> get socials => this.collection();
 }
 
-const SocialSchema = CollectionSchema(
+final SocialSchema = CollectionSchema(
   name: r'Social',
-  id: -7903313734955614803,
+  id: BigInt.parse("-7903313734955614803").toInt(),
   properties: {
     r'businessId': PropertySchema(
-      id: 0,
+      id: BigInt.parse("0").toInt(),
       name: r'businessId',
       type: IsarType.long,
     ),
     r'isAccountSet': PropertySchema(
-      id: 1,
+      id: BigInt.parse("1").toInt(),
       name: r'isAccountSet',
       type: IsarType.bool,
     ),
     r'lastTouched': PropertySchema(
-      id: 2,
+      id: BigInt.parse("2").toInt(),
       name: r'lastTouched',
       type: IsarType.string,
     ),
     r'localId': PropertySchema(
-      id: 3,
+      id: BigInt.parse("3").toInt(),
       name: r'localId',
       type: IsarType.long,
     ),
     r'message': PropertySchema(
-      id: 4,
+      id: BigInt.parse("4").toInt(),
       name: r'message',
       type: IsarType.string,
     ),
     r'remoteID': PropertySchema(
-      id: 5,
+      id: BigInt.parse("5").toInt(),
       name: r'remoteID',
       type: IsarType.string,
     ),
     r'socialType': PropertySchema(
-      id: 6,
+      id: BigInt.parse("6").toInt(),
       name: r'socialType',
       type: IsarType.string,
     ),
     r'socialUrl': PropertySchema(
-      id: 7,
+      id: BigInt.parse("7").toInt(),
       name: r'socialUrl',
       type: IsarType.string,
     )
@@ -65,7 +65,7 @@ const SocialSchema = CollectionSchema(
   idName: r'id',
   indexes: {
     r'lastTouched': IndexSchema(
-      id: -1197289422054722944,
+      id: BigInt.parse("-1197289422054722944").toInt(),
       name: r'lastTouched',
       unique: false,
       replace: false,
@@ -78,7 +78,7 @@ const SocialSchema = CollectionSchema(
       ],
     ),
     r'remoteID': IndexSchema(
-      id: 8280972950722306723,
+      id: BigInt.parse("8280972950722306723").toInt(),
       name: r'remoteID',
       unique: false,
       replace: false,
@@ -96,7 +96,7 @@ const SocialSchema = CollectionSchema(
   getId: _socialGetId,
   getLinks: _socialGetLinks,
   attach: _socialAttach,
-  version: '3.1.0+1',
+  version: '3.1.0',
 );
 
 int _socialEstimateSize(
