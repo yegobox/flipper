@@ -850,7 +850,7 @@ packages:
       path: "lib/flipper_localize"
       relative: true
     source: path
-    version: "1.0.0-dev"
+    version: "1.0.0"
   flipper_login:
     dependency: "direct main"
     description:

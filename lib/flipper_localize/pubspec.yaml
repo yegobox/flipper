@@ -1,6 +1,6 @@
 name: flipper_localize
-description: A new Flutter package project.
-version: 1.0.0-dev
+description: Flipper localization
+version: 1.0.0
 repository: https://github.com/yegobox/packages
 
 environment:
