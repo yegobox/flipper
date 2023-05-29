@@ -13,27 +13,27 @@ extension GetIUnitCollection on Isar {
   IsarCollection<IUnit> get iUnits => this.collection();
 }
 
-final IUnitSchema = CollectionSchema(
+const IUnitSchema = CollectionSchema(
   name: r'IUnit',
-  id: BigInt.parse("8808868791555578677").toInt(),
+  id: 8808868791555578677,
   properties: {
     r'active': PropertySchema(
-      id: BigInt.parse("0").toInt(),
+      id: 0,
       name: r'active',
       type: IsarType.bool,
     ),
     r'branchId': PropertySchema(
-      id: BigInt.parse("1").toInt(),
+      id: 1,
       name: r'branchId',
       type: IsarType.long,
     ),
     r'name': PropertySchema(
-      id: BigInt.parse("2").toInt(),
+      id: 2,
       name: r'name',
       type: IsarType.string,
     ),
     r'value': PropertySchema(
-      id: BigInt.parse("3").toInt(),
+      id: 3,
       name: r'value',
       type: IsarType.string,
     )
@@ -45,7 +45,7 @@ final IUnitSchema = CollectionSchema(
   idName: r'id',
   indexes: {
     r'branchId': IndexSchema(
-      id: BigInt.parse("2037049677925728410").toInt(),
+      id: 2037049677925728410,
       name: r'branchId',
       unique: false,
       replace: false,
@@ -63,7 +63,7 @@ final IUnitSchema = CollectionSchema(
   getId: _iUnitGetId,
   getLinks: _iUnitGetLinks,
   attach: _iUnitAttach,
-  version: '3.1.0',
+  version: '3.1.0+1',
 );
 
 int _iUnitEstimateSize(

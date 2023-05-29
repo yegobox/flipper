@@ -13,37 +13,37 @@ extension GetSubscriptionCollection on Isar {
   IsarCollection<Subscription> get subscriptions => this.collection();
 }
 
-final SubscriptionSchema = CollectionSchema(
+const SubscriptionSchema = CollectionSchema(
   name: r'Subscription',
-  id: BigInt.parse("-3426239935225026138").toInt(),
+  id: -3426239935225026138,
   properties: {
     r'descriptor': PropertySchema(
-      id: BigInt.parse("0").toInt(),
+      id: 0,
       name: r'descriptor',
       type: IsarType.string,
     ),
     r'interval': PropertySchema(
-      id: BigInt.parse("1").toInt(),
+      id: 1,
       name: r'interval',
       type: IsarType.long,
     ),
     r'lastBillingDate': PropertySchema(
-      id: BigInt.parse("2").toInt(),
+      id: 2,
       name: r'lastBillingDate',
       type: IsarType.string,
     ),
     r'nextBillingDate': PropertySchema(
-      id: BigInt.parse("3").toInt(),
+      id: 3,
       name: r'nextBillingDate',
       type: IsarType.string,
     ),
     r'recurring': PropertySchema(
-      id: BigInt.parse("4").toInt(),
+      id: 4,
       name: r'recurring',
       type: IsarType.double,
     ),
     r'userId': PropertySchema(
-      id: BigInt.parse("5").toInt(),
+      id: 5,
       name: r'userId',
       type: IsarType.long,
     )
@@ -55,7 +55,7 @@ final SubscriptionSchema = CollectionSchema(
   idName: r'id',
   indexes: {
     r'userId': IndexSchema(
-      id: BigInt.parse("-2005826577402374815").toInt(),
+      id: -2005826577402374815,
       name: r'userId',
       unique: false,
       replace: false,
@@ -70,7 +70,7 @@ final SubscriptionSchema = CollectionSchema(
   },
   links: {
     r'features': LinkSchema(
-      id: BigInt.parse("-3702405399721331688").toInt(),
+      id: -3702405399721331688,
       name: r'features',
       target: r'Feature',
       single: true,
@@ -80,7 +80,7 @@ final SubscriptionSchema = CollectionSchema(
   getId: _subscriptionGetId,
   getLinks: _subscriptionGetLinks,
   attach: _subscriptionAttach,
-  version: '3.1.0',
+  version: '3.1.0+1',
 );
 
 int _subscriptionEstimateSize(

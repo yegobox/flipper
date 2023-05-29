@@ -13,32 +13,32 @@ extension GetTokenCollection on Isar {
   IsarCollection<Token> get tokens => this.collection();
 }
 
-final TokenSchema = CollectionSchema(
+const TokenSchema = CollectionSchema(
   name: r'Token',
-  id: BigInt.parse("1141055021699684464").toInt(),
+  id: 1141055021699684464,
   properties: {
     r'businessId': PropertySchema(
-      id: BigInt.parse("0").toInt(),
+      id: 0,
       name: r'businessId',
       type: IsarType.long,
     ),
     r'token': PropertySchema(
-      id: BigInt.parse("1").toInt(),
+      id: 1,
       name: r'token',
       type: IsarType.string,
     ),
     r'type': PropertySchema(
-      id: BigInt.parse("2").toInt(),
+      id: 2,
       name: r'type',
       type: IsarType.string,
     ),
     r'validFrom': PropertySchema(
-      id: BigInt.parse("3").toInt(),
+      id: 3,
       name: r'validFrom',
       type: IsarType.dateTime,
     ),
     r'validUntil': PropertySchema(
-      id: BigInt.parse("4").toInt(),
+      id: 4,
       name: r'validUntil',
       type: IsarType.dateTime,
     )
@@ -50,7 +50,7 @@ final TokenSchema = CollectionSchema(
   idName: r'id',
   indexes: {
     r'businessId': IndexSchema(
-      id: BigInt.parse("2228048290814354584").toInt(),
+      id: 2228048290814354584,
       name: r'businessId',
       unique: false,
       replace: false,
@@ -68,7 +68,7 @@ final TokenSchema = CollectionSchema(
   getId: _tokenGetId,
   getLinks: _tokenGetLinks,
   attach: _tokenAttach,
-  version: '3.1.0',
+  version: '3.1.0+1',
 );
 
 int _tokenEstimateSize(

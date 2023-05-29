@@ -13,87 +13,87 @@ extension GetStockCollection on Isar {
   IsarCollection<Stock> get stocks => this.collection();
 }
 
-final StockSchema = CollectionSchema(
+const StockSchema = CollectionSchema(
   name: r'Stock',
-  id: BigInt.parse("6740185341894042082").toInt(),
+  id: 6740185341894042082,
   properties: {
     r'action': PropertySchema(
-      id: BigInt.parse("0").toInt(),
+      id: 0,
       name: r'action',
       type: IsarType.string,
     ),
     r'active': PropertySchema(
-      id: BigInt.parse("1").toInt(),
+      id: 1,
       name: r'active',
       type: IsarType.bool,
     ),
     r'branchId': PropertySchema(
-      id: BigInt.parse("2").toInt(),
+      id: 2,
       name: r'branchId',
       type: IsarType.long,
     ),
     r'canTrackingStock': PropertySchema(
-      id: BigInt.parse("3").toInt(),
+      id: 3,
       name: r'canTrackingStock',
       type: IsarType.bool,
     ),
     r'currentStock': PropertySchema(
-      id: BigInt.parse("4").toInt(),
+      id: 4,
       name: r'currentStock',
       type: IsarType.double,
     ),
     r'lastTouched': PropertySchema(
-      id: BigInt.parse("5").toInt(),
+      id: 5,
       name: r'lastTouched',
       type: IsarType.string,
     ),
     r'localId': PropertySchema(
-      id: BigInt.parse("6").toInt(),
+      id: 6,
       name: r'localId',
       type: IsarType.long,
     ),
     r'lowStock': PropertySchema(
-      id: BigInt.parse("7").toInt(),
+      id: 7,
       name: r'lowStock',
       type: IsarType.double,
     ),
     r'productId': PropertySchema(
-      id: BigInt.parse("8").toInt(),
+      id: 8,
       name: r'productId',
       type: IsarType.long,
     ),
     r'remoteID': PropertySchema(
-      id: BigInt.parse("9").toInt(),
+      id: 9,
       name: r'remoteID',
       type: IsarType.string,
     ),
     r'retailPrice': PropertySchema(
-      id: BigInt.parse("10").toInt(),
+      id: 10,
       name: r'retailPrice',
       type: IsarType.double,
     ),
     r'rsdQty': PropertySchema(
-      id: BigInt.parse("11").toInt(),
+      id: 11,
       name: r'rsdQty',
       type: IsarType.double,
     ),
     r'showLowStockAlert': PropertySchema(
-      id: BigInt.parse("12").toInt(),
+      id: 12,
       name: r'showLowStockAlert',
       type: IsarType.bool,
     ),
     r'supplyPrice': PropertySchema(
-      id: BigInt.parse("13").toInt(),
+      id: 13,
       name: r'supplyPrice',
       type: IsarType.double,
     ),
     r'value': PropertySchema(
-      id: BigInt.parse("14").toInt(),
+      id: 14,
       name: r'value',
       type: IsarType.double,
     ),
     r'variantId': PropertySchema(
-      id: BigInt.parse("15").toInt(),
+      id: 15,
       name: r'variantId',
       type: IsarType.long,
     )
@@ -105,7 +105,7 @@ final StockSchema = CollectionSchema(
   idName: r'id',
   indexes: {
     r'branchId': IndexSchema(
-      id: BigInt.parse("2037049677925728410").toInt(),
+      id: 2037049677925728410,
       name: r'branchId',
       unique: false,
       replace: false,
@@ -118,7 +118,7 @@ final StockSchema = CollectionSchema(
       ],
     ),
     r'variantId_branchId': IndexSchema(
-      id: BigInt.parse("5862302395168623880").toInt(),
+      id: 5862302395168623880,
       name: r'variantId_branchId',
       unique: false,
       replace: false,
@@ -136,7 +136,7 @@ final StockSchema = CollectionSchema(
       ],
     ),
     r'productId': IndexSchema(
-      id: BigInt.parse("5580769080710688203").toInt(),
+      id: 5580769080710688203,
       name: r'productId',
       unique: false,
       replace: false,
@@ -149,7 +149,7 @@ final StockSchema = CollectionSchema(
       ],
     ),
     r'supplyPrice': IndexSchema(
-      id: BigInt.parse("8174864618802235989").toInt(),
+      id: 8174864618802235989,
       name: r'supplyPrice',
       unique: false,
       replace: false,
@@ -162,7 +162,7 @@ final StockSchema = CollectionSchema(
       ],
     ),
     r'retailPrice': IndexSchema(
-      id: BigInt.parse("-8613481562858074064").toInt(),
+      id: -8613481562858074064,
       name: r'retailPrice',
       unique: false,
       replace: false,
@@ -175,7 +175,7 @@ final StockSchema = CollectionSchema(
       ],
     ),
     r'lastTouched': IndexSchema(
-      id: BigInt.parse("-1197289422054722944").toInt(),
+      id: -1197289422054722944,
       name: r'lastTouched',
       unique: false,
       replace: false,
@@ -188,7 +188,7 @@ final StockSchema = CollectionSchema(
       ],
     ),
     r'remoteID': IndexSchema(
-      id: BigInt.parse("8280972950722306723").toInt(),
+      id: 8280972950722306723,
       name: r'remoteID',
       unique: false,
       replace: false,
@@ -206,7 +206,7 @@ final StockSchema = CollectionSchema(
   getId: _stockGetId,
   getLinks: _stockGetLinks,
   attach: _stockAttach,
-  version: '3.1.0',
+  version: '3.1.0+1',
 );
 
 int _stockEstimateSize(

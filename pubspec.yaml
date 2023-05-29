@@ -32,7 +32,7 @@ dependencies:
   system_theme: ^2.0.0
   flutter_acrylic: ^0.1.0
   provider: ^6.0.1
-  firebase_auth_desktop: ^1.0.2
+  firebase_auth_desktop: ^1.0.2-flipper
   firebase_core: ^2.13.0
   firebase_core_desktop: ^1.0.2-dev
   firebase_ui_auth: ^1.4.1
@@ -49,13 +49,6 @@ dependencies:
   path: ^1.8.2
   flutter_riverpod: any
   meta: any
-  flipper_dashboard: ^0.0.1-dev.5
-  flipper_models: ^0.0.1-dev.7
-  flipper_login: ^0.0.1-dev.5
-  flipper_services: ^0.0.1-dev.6
-  flipper_routing: ^0.0.1-dev.3
-  flipper_localize: ^1.0.0
-  flipper_data_table: 1.0.0-dev.2
   flutter_native_splash: ^2.3.0
   firebase_ui_localizations: ^1.5.0
   timezone: ^0.9.1
@@ -64,6 +57,13 @@ dependencies:
     sdk: flutter
   flutter_local_notifications: ^12.0.4
   flipper_socials: 1.0.0+1
+  flipper_dashboard: ^0.0.1-dev.5
+  flipper_models: ^0.0.1-dev.7
+  flipper_login: ^0.0.1-dev.5
+  flipper_services: ^0.0.1-dev.6
+  flipper_routing: ^0.0.1-dev.3
+  flipper_localize: ^1.0.0
+  flipper_data_table: 1.0.0-dev.2
   flutter_animate: ^4.1.0
 
 dev_dependencies:
@@ -79,7 +79,7 @@ dev_dependencies:
   stacked_generator:
   mockito:
   test:
-  flutter_launcher_icons: ^0.13.2
+  flutter_launcher_icons: ^0.13.1
   # objectbox_generator: ^1.4.0
   matcher: ^0.12.10
   msix: ^3.11.0

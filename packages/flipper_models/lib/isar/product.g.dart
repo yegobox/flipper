@@ -13,107 +13,107 @@ extension GetProductCollection on Isar {
   IsarCollection<Product> get products => this.collection();
 }
 
-final ProductSchema = CollectionSchema(
+const ProductSchema = CollectionSchema(
   name: r'Product',
-  id: BigInt.parse("-6222113721139403729").toInt(),
+  id: -6222113721139403729,
   properties: {
     r'action': PropertySchema(
-      id: BigInt.parse("0").toInt(),
+      id: 0,
       name: r'action',
       type: IsarType.string,
     ),
     r'barCode': PropertySchema(
-      id: BigInt.parse("1").toInt(),
+      id: 1,
       name: r'barCode',
       type: IsarType.string,
     ),
     r'bindedToTenantId': PropertySchema(
-      id: BigInt.parse("2").toInt(),
+      id: 2,
       name: r'bindedToTenantId',
       type: IsarType.long,
     ),
     r'branchId': PropertySchema(
-      id: BigInt.parse("3").toInt(),
+      id: 3,
       name: r'branchId',
       type: IsarType.long,
     ),
     r'businessId': PropertySchema(
-      id: BigInt.parse("4").toInt(),
+      id: 4,
       name: r'businessId',
       type: IsarType.long,
     ),
     r'categoryId': PropertySchema(
-      id: BigInt.parse("5").toInt(),
+      id: 5,
       name: r'categoryId',
       type: IsarType.string,
     ),
     r'color': PropertySchema(
-      id: BigInt.parse("6").toInt(),
+      id: 6,
       name: r'color',
       type: IsarType.string,
     ),
     r'createdAt': PropertySchema(
-      id: BigInt.parse("7").toInt(),
+      id: 7,
       name: r'createdAt',
       type: IsarType.string,
     ),
     r'description': PropertySchema(
-      id: BigInt.parse("8").toInt(),
+      id: 8,
       name: r'description',
       type: IsarType.string,
     ),
     r'expiryDate': PropertySchema(
-      id: BigInt.parse("9").toInt(),
+      id: 9,
       name: r'expiryDate',
       type: IsarType.string,
     ),
     r'imageUrl': PropertySchema(
-      id: BigInt.parse("10").toInt(),
+      id: 10,
       name: r'imageUrl',
       type: IsarType.string,
     ),
     r'isFavorite': PropertySchema(
-      id: BigInt.parse("11").toInt(),
+      id: 11,
       name: r'isFavorite',
       type: IsarType.bool,
     ),
     r'lastTouched': PropertySchema(
-      id: BigInt.parse("12").toInt(),
+      id: 12,
       name: r'lastTouched',
       type: IsarType.string,
     ),
     r'localId': PropertySchema(
-      id: BigInt.parse("13").toInt(),
+      id: 13,
       name: r'localId',
       type: IsarType.long,
     ),
     r'name': PropertySchema(
-      id: BigInt.parse("14").toInt(),
+      id: 14,
       name: r'name',
       type: IsarType.string,
     ),
     r'nfcEnabled': PropertySchema(
-      id: BigInt.parse("15").toInt(),
+      id: 15,
       name: r'nfcEnabled',
       type: IsarType.bool,
     ),
     r'remoteID': PropertySchema(
-      id: BigInt.parse("16").toInt(),
+      id: 16,
       name: r'remoteID',
       type: IsarType.string,
     ),
     r'supplierId': PropertySchema(
-      id: BigInt.parse("17").toInt(),
+      id: 17,
       name: r'supplierId',
       type: IsarType.string,
     ),
     r'taxId': PropertySchema(
-      id: BigInt.parse("18").toInt(),
+      id: 18,
       name: r'taxId',
       type: IsarType.string,
     ),
     r'unit': PropertySchema(
-      id: BigInt.parse("19").toInt(),
+      id: 19,
       name: r'unit',
       type: IsarType.string,
     )
@@ -125,7 +125,7 @@ final ProductSchema = CollectionSchema(
   idName: r'id',
   indexes: {
     r'name': IndexSchema(
-      id: BigInt.parse("879695947855722453").toInt(),
+      id: 879695947855722453,
       name: r'name',
       unique: false,
       replace: false,
@@ -138,7 +138,7 @@ final ProductSchema = CollectionSchema(
       ],
     ),
     r'branchId': IndexSchema(
-      id: BigInt.parse("2037049677925728410").toInt(),
+      id: 2037049677925728410,
       name: r'branchId',
       unique: false,
       replace: false,
@@ -151,7 +151,7 @@ final ProductSchema = CollectionSchema(
       ],
     ),
     r'barCode': IndexSchema(
-      id: BigInt.parse("5426034840582382881").toInt(),
+      id: 5426034840582382881,
       name: r'barCode',
       unique: false,
       replace: false,
@@ -164,7 +164,7 @@ final ProductSchema = CollectionSchema(
       ],
     ),
     r'bindedToTenantId': IndexSchema(
-      id: BigInt.parse("5346648829333150212").toInt(),
+      id: 5346648829333150212,
       name: r'bindedToTenantId',
       unique: false,
       replace: false,
@@ -177,7 +177,7 @@ final ProductSchema = CollectionSchema(
       ],
     ),
     r'lastTouched': IndexSchema(
-      id: BigInt.parse("-1197289422054722944").toInt(),
+      id: -1197289422054722944,
       name: r'lastTouched',
       unique: false,
       replace: false,
@@ -190,7 +190,7 @@ final ProductSchema = CollectionSchema(
       ],
     ),
     r'remoteID': IndexSchema(
-      id: BigInt.parse("8280972950722306723").toInt(),
+      id: 8280972950722306723,
       name: r'remoteID',
       unique: false,
       replace: false,
@@ -205,7 +205,7 @@ final ProductSchema = CollectionSchema(
   },
   links: {
     r'variants': LinkSchema(
-      id: BigInt.parse("-6238971154009720285").toInt(),
+      id: -6238971154009720285,
       name: r'variants',
       target: r'Variant',
       single: false,
@@ -215,7 +215,7 @@ final ProductSchema = CollectionSchema(
   getId: _productGetId,
   getLinks: _productGetLinks,
   attach: _productAttach,
-  version: '3.1.0',
+  version: '3.1.0+1',
 );
 
 int _productEstimateSize(

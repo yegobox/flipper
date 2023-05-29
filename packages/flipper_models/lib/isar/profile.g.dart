@@ -13,92 +13,92 @@ extension GetProfileCollection on Isar {
   IsarCollection<Profile> get profiles => this.collection();
 }
 
-final ProfileSchema = CollectionSchema(
+const ProfileSchema = CollectionSchema(
   name: r'Profile',
-  id: BigInt.parse("1266279811925214857").toInt(),
+  id: 1266279811925214857,
   properties: {
     r'about': PropertySchema(
-      id: BigInt.parse("0").toInt(),
+      id: 0,
       name: r'about',
       type: IsarType.string,
     ),
     r'address': PropertySchema(
-      id: BigInt.parse("1").toInt(),
+      id: 1,
       name: r'address',
       type: IsarType.string,
     ),
     r'businessId': PropertySchema(
-      id: BigInt.parse("2").toInt(),
+      id: 2,
       name: r'businessId',
       type: IsarType.long,
     ),
     r'cell': PropertySchema(
-      id: BigInt.parse("3").toInt(),
+      id: 3,
       name: r'cell',
       type: IsarType.string,
     ),
     r'city': PropertySchema(
-      id: BigInt.parse("4").toInt(),
+      id: 4,
       name: r'city',
       type: IsarType.string,
     ),
     r'country': PropertySchema(
-      id: BigInt.parse("5").toInt(),
+      id: 5,
       name: r'country',
       type: IsarType.string,
     ),
     r'coverPic': PropertySchema(
-      id: BigInt.parse("6").toInt(),
+      id: 6,
       name: r'coverPic',
       type: IsarType.string,
     ),
     r'district': PropertySchema(
-      id: BigInt.parse("7").toInt(),
+      id: 7,
       name: r'district',
       type: IsarType.string,
     ),
     r'email': PropertySchema(
-      id: BigInt.parse("8").toInt(),
+      id: 8,
       name: r'email',
       type: IsarType.string,
     ),
     r'livingAt': PropertySchema(
-      id: BigInt.parse("9").toInt(),
+      id: 9,
       name: r'livingAt',
       type: IsarType.string,
     ),
     r'name': PropertySchema(
-      id: BigInt.parse("10").toInt(),
+      id: 10,
       name: r'name',
       type: IsarType.string,
     ),
     r'nationalId': PropertySchema(
-      id: BigInt.parse("11").toInt(),
+      id: 11,
       name: r'nationalId',
       type: IsarType.string,
     ),
     r'phone': PropertySchema(
-      id: BigInt.parse("12").toInt(),
+      id: 12,
       name: r'phone',
       type: IsarType.string,
     ),
     r'pincode': PropertySchema(
-      id: BigInt.parse("13").toInt(),
+      id: 13,
       name: r'pincode',
       type: IsarType.string,
     ),
     r'profilePic': PropertySchema(
-      id: BigInt.parse("14").toInt(),
+      id: 14,
       name: r'profilePic',
       type: IsarType.string,
     ),
     r'state': PropertySchema(
-      id: BigInt.parse("15").toInt(),
+      id: 15,
       name: r'state',
       type: IsarType.string,
     ),
     r'vaccinationCode': PropertySchema(
-      id: BigInt.parse("16").toInt(),
+      id: 16,
       name: r'vaccinationCode',
       type: IsarType.string,
     )
@@ -110,7 +110,7 @@ final ProfileSchema = CollectionSchema(
   idName: r'id',
   indexes: {
     r'businessId': IndexSchema(
-      id: BigInt.parse("2228048290814354584").toInt(),
+      id: 2228048290814354584,
       name: r'businessId',
       unique: false,
       replace: false,
@@ -128,7 +128,7 @@ final ProfileSchema = CollectionSchema(
   getId: _profileGetId,
   getLinks: _profileGetLinks,
   attach: _profileAttach,
-  version: '3.1.0',
+  version: '3.1.0+1',
 );
 
 int _profileEstimateSize(

@@ -13,32 +13,32 @@ extension GetCategoryCollection on Isar {
   IsarCollection<Category> get categorys => this.collection();
 }
 
-final CategorySchema = CollectionSchema(
+const CategorySchema = CollectionSchema(
   name: r'Category',
-  id: BigInt.parse("5751694338128944171").toInt(),
+  id: 5751694338128944171,
   properties: {
     r'active': PropertySchema(
-      id: BigInt.parse("0").toInt(),
+      id: 0,
       name: r'active',
       type: IsarType.bool,
     ),
     r'branchId': PropertySchema(
-      id: BigInt.parse("1").toInt(),
+      id: 1,
       name: r'branchId',
       type: IsarType.long,
     ),
     r'focused': PropertySchema(
-      id: BigInt.parse("2").toInt(),
+      id: 2,
       name: r'focused',
       type: IsarType.bool,
     ),
     r'name': PropertySchema(
-      id: BigInt.parse("3").toInt(),
+      id: 3,
       name: r'name',
       type: IsarType.string,
     ),
     r'table': PropertySchema(
-      id: BigInt.parse("4").toInt(),
+      id: 4,
       name: r'table',
       type: IsarType.string,
     )
@@ -50,7 +50,7 @@ final CategorySchema = CollectionSchema(
   idName: r'id',
   indexes: {
     r'branchId': IndexSchema(
-      id: BigInt.parse("2037049677925728410").toInt(),
+      id: 2037049677925728410,
       name: r'branchId',
       unique: false,
       replace: false,
@@ -68,7 +68,7 @@ final CategorySchema = CollectionSchema(
   getId: _categoryGetId,
   getLinks: _categoryGetLinks,
   attach: _categoryAttach,
-  version: '3.1.0',
+  version: '3.1.0+1',
 );
 
 int _categoryEstimateSize(

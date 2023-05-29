@@ -13,17 +13,17 @@ extension GetIPointCollection on Isar {
   IsarCollection<IPoint> get iPoints => this.collection();
 }
 
-final IPointSchema = CollectionSchema(
+const IPointSchema = CollectionSchema(
   name: r'IPoint',
-  id: BigInt.parse("2434498374590124328").toInt(),
+  id: 2434498374590124328,
   properties: {
     r'userId': PropertySchema(
-      id: BigInt.parse("0").toInt(),
+      id: 0,
       name: r'userId',
       type: IsarType.int,
     ),
     r'value': PropertySchema(
-      id: BigInt.parse("1").toInt(),
+      id: 1,
       name: r'value',
       type: IsarType.long,
     )
@@ -35,7 +35,7 @@ final IPointSchema = CollectionSchema(
   idName: r'id',
   indexes: {
     r'userId': IndexSchema(
-      id: BigInt.parse("-2005826577402374815").toInt(),
+      id: -2005826577402374815,
       name: r'userId',
       unique: false,
       replace: false,
@@ -53,7 +53,7 @@ final IPointSchema = CollectionSchema(
   getId: _iPointGetId,
   getLinks: _iPointGetLinks,
   attach: _iPointAttach,
-  version: '3.1.0',
+  version: '3.1.0+1',
 );
 
 int _iPointEstimateSize(
