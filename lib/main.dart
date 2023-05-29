@@ -6,6 +6,7 @@ import 'package:flipper_routing/app.bottomsheets.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/locator.dart';
 import 'package:flutter/foundation.dart' as foundation;
 // import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
@@ -70,14 +71,13 @@ void main() async {
 
     await GetStorage.init();
     // done init in mobile.//done separation.
-    // await thirdPartyLocator();
+    configureDependencies();
     // setPathUrlStrategy();
     loc.setupLocator(
       stackedRouter: stackedRouter,
     );
     setupDialogUi();
     setupBottomSheetUi();
-    // await initDb();
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );

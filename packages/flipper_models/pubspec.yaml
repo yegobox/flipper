@@ -34,7 +34,7 @@ dependencies:
   http: ^0.13.6
   html_unescape: ^2.0.0
 dev_dependencies:
-  build_runner: ^2.0.0
+  build_runner: ^2.4.4
   json_serializable: ^6.6.0
   isar_generator:
     git:

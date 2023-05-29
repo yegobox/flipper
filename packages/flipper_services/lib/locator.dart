@@ -6,8 +6,11 @@ import 'locator.config.dart';
 
 final GetIt locator = GetIt.instance;
 
-@injectableInit
-Future<void> thirdPartyLocator() async {
-  // Initialize injectable dependencies
-  await $initGetIt(locator);
+@InjectableInit(
+  initializerName: 'init', // default
+  preferRelativeImports: true, // default
+  asExtension: true, // default
+)
+Future<void> configureDependencies() async {
+  await locator.init();
 }
