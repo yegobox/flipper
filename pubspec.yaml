@@ -23,8 +23,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  isar: ^3.1.0
-  isar_flutter_libs: ^3.1.0
+  isar: ^3.1.0+1
+  isar_flutter_libs: ^3.1.0+1
   universal_platform: ^1.0.0+1
   animations: ^2.0.0
   sentry_flutter: ^7.5.2
@@ -35,7 +35,7 @@ dependencies:
   firebase_auth_desktop: ^1.0.2
   firebase_core: ^2.13.0
   firebase_core_desktop: ^1.0.2-dev
-  firebase_ui_auth: ^1.1.16
+  firebase_ui_auth: ^1.4.1
   get_storage: ^2.1.1
   firebase_auth: ^4.6.1
   google_fonts: ^4.0.3
@@ -54,7 +54,7 @@ dependencies:
   flipper_login: ^0.0.1-dev.5
   flipper_services: ^0.0.1-dev.6
   flipper_routing: ^0.0.1-dev.3
-  flipper_localize: ^0.0.4-dev
+  flipper_localize: ^1.0.0-dev
   flipper_data_table: 1.0.0-dev.2
   flutter_native_splash: ^2.3.0
   firebase_ui_localizations: ^1.5.0
@@ -84,8 +84,7 @@ dev_dependencies:
   matcher: ^0.12.10
   msix: ^3.11.0
   flutter_lints: ^2.0.0
-  # Can't use this package because it depend on cli_util that is too old than what other packages use
-  # melos: ^3.0.1
+  melos: ^3.1.0
 flutter_launcher_icons:
   android: true
   ios: true

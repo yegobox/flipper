@@ -13,7 +13,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  firebase_ui_auth: ^1.1.16
+  firebase_ui_auth: ^1.4.1
   flutter_form_bloc: ^0.30.1
   firebase_auth_desktop: ^1.0.2
   firebase_core: ^2.13.0
@@ -33,7 +33,7 @@ dependencies:
   firebase_ui_localizations: ^1.5.0
   firebase_ui_oauth: ^1.1.8
   firebase_ui_oauth_google: ^1.0.21
-  flutter_svg: ^1.1.6
+  flutter_svg: ^2.0.0
   gap: ^2.0.0
   qr_flutter: ^4.0.1
   flipper_ui: ^1.0.3

@@ -9,7 +9,7 @@ environment:
 
 dependencies:
   get: ^4.6.1
-  flipper_localize: ^0.0.4-dev
+  flipper_localize: ^1.0.0-dev
   flipper_models: ^0.0.1-dev.7
 
   flipper_routing: ^0.0.1-dev.3
@@ -69,7 +69,7 @@ dependencies:
   flutter_native_splash: ^2.3.0
   lecle_downloads_path_provider: ^0.0.2+7
   permission_handler: ^10.1.0
-  flutter_svg: ^1.1.6
+  flutter_svg: ^2.0.0
   modal_bottom_sheet: ^3.0.0-pre
   flipper_ui: ^1.0.3
   flutter_windowmanager: ^0.2.0

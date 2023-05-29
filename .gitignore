@@ -57,10 +57,9 @@ runner/**
 passwords.yaml
 package_config.json
 
-pubspec.lock.yaml
+.yaml
 pubspec_overrides.yaml
 .packages
 .flutter-plugins
 .env
-pubspec_overrides.yaml
-pubspec.lock
+

@@ -1,6 +1,6 @@
 name: flipper_localize
 description: A new Flutter package project.
-version: 0.0.4-dev
+version: 1.0.0-dev
 repository: https://github.com/yegobox/packages
 
 environment:
@@ -9,6 +9,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  firebase_ui_auth: ^1.1.16
+  firebase_ui_auth: ^1.4.1
 
   firebase_ui_localizations: ^1.5.0
