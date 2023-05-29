@@ -6,11 +6,21 @@ import 'locator.config.dart';
 
 final GetIt locator = GetIt.instance;
 
+const platformMobile = Environment('platformMobile');
+const platformWeb = Environment('platformWeb');
+
 @InjectableInit(
-  initializerName: 'init', // default
-  preferRelativeImports: true, // default
-  asExtension: true, // default
+  preferRelativeImports: true,
+  externalPackageModulesAfter: [
+    // ExternalModule(AwesomePackageModule),
+  ],
 )
-Future<void> configureDependencies() async {
-  await locator.init();
+initDependencies({
+  String? env,
+  EnvironmentFilter? environmentFilter,
+}) async {
+  return await locator.init(
+    environmentFilter: environmentFilter,
+    environment: env,
+  );
 }

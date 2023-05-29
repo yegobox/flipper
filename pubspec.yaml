@@ -36,7 +36,7 @@ dependencies:
   firebase_core: ^2.13.0
   firebase_core_desktop: ^1.0.2-dev
   firebase_ui_auth: ^1.1.16
-  get_storage: ^2.0.3
+  get_storage: ^2.1.1
   firebase_auth: ^4.6.1
   google_fonts: ^4.0.3
   stacked: ^3.2.5

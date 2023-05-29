@@ -1,6 +1,5 @@
 import 'dart:developer';
 
-import 'package:flipper_models/fake_api.dart';
 import 'package:flipper_models/marketing.dart';
 import 'package:flipper_models/remote_service.dart';
 import 'package:flipper_models/tax_api.dart';
@@ -14,7 +13,6 @@ import 'package:flipper_services/abstractions/system_time.dart';
 import 'package:flipper_services/billing_service.dart';
 import 'package:flipper_services/blue_thooth_service.dart';
 import 'package:flipper_services/event_interface.dart';
-import 'package:flipper_services/fake_local_storage.dart';
 import 'package:flipper_services/firebase_analytics_service.dart';
 import 'package:flipper_services/force_data_service.dart';
 import 'package:flipper_services/in_app_review.dart';
@@ -198,30 +196,19 @@ abstract class ThirdPartyServicesModule {
     return await RemoteService().getInstance();
   }
 
-  // @lazySingleton
-  // NavigationService get nav;
   @lazySingleton
-  LocalStorage get box {
-    LocalStorage box;
-    if (kDebugMode) {
-      box = FakeLocalStorage();
-    } else {
-      box = LocalStorageImpl();
-    }
-    return box;
+  LocalStorage box() {
+    return LocalStorageImpl();
   }
 
   @lazySingleton
   EventInterface get event {
-    EventInterface event;
-
-    event = EventService();
-
-    return event;
+    return EventService();
   }
 
   @preResolve
-  Future<IsarApiInterface> get isarApi async {
+  @LazySingleton()
+  Future<IsarApiInterface> isarApi() async {
     //first check if we are in testing mode.
     if ((const bool.fromEnvironment('Test', defaultValue: false) == false) &&
         !kDebugMode) {
