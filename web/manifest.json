@@ -1,11 +1,11 @@
 {
-    "name": "flipper",
-    "short_name": "flipper",
+    "name": "appbar",
+    "short_name": "appbar",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "An african point of sale.",
+    "description": "A new Flutter project.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

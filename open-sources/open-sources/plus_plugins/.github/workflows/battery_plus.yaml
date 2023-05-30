@@ -1,0 +1,211 @@
+# Build Battery Plus Example
+name: battery_plus
+
+concurrency:
+  group: battery_plus_${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+on:
+  pull_request:
+    paths:
+      - "packages/battery_plus/**"
+      - ".github/workflows/battery_plus.yaml"
+      - "!**.md"
+      - "!**.gitignore"
+
+env:
+  PLUGIN_SCOPE: "*battery_plus*"
+  PLUGIN_EXAMPLE_SCOPE: "*battery_plus_example*"
+
+jobs:
+  android_example_build:
+    runs-on: macos-13
+    timeout-minutes: 30
+    steps:
+      - name: "Checkout repository"
+        uses: actions/checkout@v3
+      - name: "Install Flutter"
+        run: ./.github/workflows/scripts/install-flutter.sh stable
+      - name: "Install Tools"
+        run: ./.github/workflows/scripts/install-tools.sh
+
+      # Required for Android builds
+      - uses: actions/setup-java@v3
+        with:
+          distribution: "temurin"
+          java-version: "11"
+
+      - name: "Build Example"
+        run: ./.github/workflows/scripts/build-examples.sh android ./lib/main.dart
+
+  android_integration_test:
+    runs-on: macos-13
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        android-api-level: [ 21, 26, 32 ]
+
+    steps:
+      - name: "Checkout repository"
+        uses: actions/checkout@v3
+      - name: "Install Flutter"
+        run: ./.github/workflows/scripts/install-flutter.sh stable
+      - name: "Install Tools"
+        run: ./.github/workflows/scripts/install-tools.sh
+
+      # Required for Android builds
+      - uses: actions/setup-java@v3
+        with:
+          distribution: "temurin"
+          java-version: "11"
+
+      - name: "Bootstrap Workspace"
+        run: melos bootstrap --scope="$PLUGIN_SCOPE"
+      - name: "Android Integration Test"
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.android-api-level }}
+          cores: 3
+          target: google_apis
+          arch: x86_64
+          force-avd-creation: false
+          profile: Nexus 5X
+          script: ./.github/workflows/scripts/integration-test.sh android battery_plus_example
+
+  ios_example_build:
+    runs-on: macos-13
+    timeout-minutes: 30
+    steps:
+      - name: "Checkout repository"
+        uses: actions/checkout@v3
+      - name: "Install Flutter"
+        run: ./.github/workflows/scripts/install-flutter.sh stable
+      - name: "Install Tools"
+        run: ./.github/workflows/scripts/install-tools.sh
+      - name: "Build Example"
+        run: ./.github/workflows/scripts/build-examples.sh ios ./lib/main.dart
+
+  ios_integration_test:
+    runs-on: macos-13
+    timeout-minutes: 30
+    steps:
+      - name: "Checkout repository"
+        uses: actions/checkout@v3
+      - name: "Install Flutter"
+        run: ./.github/workflows/scripts/install-flutter.sh stable
+      - name: "Install Tools"
+        run: ./.github/workflows/scripts/install-tools.sh
+      - name: "Bootstrap Workspace"
+        run: melos bootstrap --scope="$PLUGIN_SCOPE"
+      - name: "Start Simulator"
+        uses: futureware-tech/simulator-action@v2
+        with:
+          model: "iPhone 14"
+      - name: "Run Integration Test"
+        run: ./.github/workflows/scripts/integration-test.sh ios battery_plus_example
+
+  macos_example_build:
+    runs-on: macos-13
+    timeout-minutes: 30
+    steps:
+      - name: "Checkout repository"
+        uses: actions/checkout@v3
+      - name: "Install Flutter"
+        run: ./.github/workflows/scripts/install-flutter.sh stable
+      - name: "Install Tools"
+        run: ./.github/workflows/scripts/install-tools.sh
+      - name: "Build Example"
+        run: ./.github/workflows/scripts/build-examples.sh macos ./lib/main.dart
+
+  macos_integration_test:
+    if: false # Disabled as battery_plus APIs don't complete in github actions macos VMs.
+    runs-on: macos-13
+    timeout-minutes: 30
+    steps:
+      - name: "Checkout repository"
+        uses: actions/checkout@v3
+      - name: "Install Flutter"
+        run: ./.github/workflows/scripts/install-flutter.sh stable
+      - name: "Install Tools"
+        run: ./.github/workflows/scripts/install-tools.sh
+      - name: "Bootstrap Workspace"
+        run: melos bootstrap --scope="$PLUGIN_SCOPE"
+      - name: "Run Integration Test"
+        run: ./.github/workflows/scripts/integration-test.sh macos battery_plus_example
+
+  linux_example_build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: "Checkout repository"
+        uses: actions/checkout@v3
+      - name: "Install Flutter"
+        run: ./.github/workflows/scripts/install-flutter.sh stable
+      - name: "Install Tools"
+        run: ./.github/workflows/scripts/install-tools.sh
+      - name: "Install UPower"
+        run: sudo apt install upower
+      - name: "Build Example"
+        run: ./.github/workflows/scripts/build-examples.sh linux ./lib/main.dart
+
+  linux_integration_test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: "Checkout repository"
+        uses: actions/checkout@v3
+      - name: "Install Flutter"
+        run: ./.github/workflows/scripts/install-flutter.sh stable
+      - name: "Install Tools"
+        run: ./.github/workflows/scripts/install-tools.sh
+      - name: "Install UPower"
+        run: sudo apt install upower
+      - name: "Bootstrap Workspace"
+        run: melos bootstrap --scope="$PLUGIN_SCOPE"
+      - name: "Run Integration Test"
+        run: ./.github/workflows/scripts/integration-test.sh linux battery_plus_example
+
+  windows_example_build:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - name: "Checkout repository"
+        uses: actions/checkout@v3
+      - name: "Install Flutter"
+        run: ./.github/workflows/scripts/install-flutter.sh stable
+      - name: "Install Tools"
+        run: ./.github/workflows/scripts/install-tools.sh
+      - name: "Build Example"
+        run: ./.github/workflows/scripts/build-examples.sh windows ./lib/main.dart
+
+  windows_integration_test:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - name: "Checkout repository"
+        uses: actions/checkout@v3
+      - name: "Install Flutter"
+        run: ./.github/workflows/scripts/install-flutter.sh stable
+      - name: "Install Tools"
+        run: ./.github/workflows/scripts/install-tools.sh
+      - name: "Bootstrap Workspace"
+        run: melos.bat bootstrap --scope="$PLUGIN_SCOPE"
+      - name: "Run Integration Test"
+        run: ./.github/workflows/scripts/integration-test.sh windows battery_plus_example
+
+  web_example_build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: "Checkout repository"
+        uses: actions/checkout@v3
+      - name: "Install Flutter"
+        run: ./.github/workflows/scripts/install-flutter.sh stable
+      - name: "Install Tools"
+        run: ./.github/workflows/scripts/install-tools.sh
+      - name: "Build Example"
+        run: ./.github/workflows/scripts/build-examples.sh web ./lib/main.dart

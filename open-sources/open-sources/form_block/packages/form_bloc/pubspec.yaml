@@ -1,0 +1,25 @@
+name: form_bloc
+description: 'Easy Form State Management using BLoC pattern. Separate the Form State and Business Logic from the User Interface. Async Validation, Progress, Dynamic fields, and more.'
+version: 0.30.0
+homepage: 'https://github.com/GiancarloCode/form_bloc/tree/master/packages/form_bloc'
+repository: 'https://github.com/GiancarloCode/form_bloc/tree/master/packages/form_bloc'
+issue_tracker: 'https://github.com/GiancarloCode/form_bloc/issues'
+
+environment:
+  sdk: '>=2.14.0 <3.0.0'
+
+dependencies:
+  meta: ^1.7.0
+  bloc: ^8.0.1
+  rxdart: ^0.27.3
+  equatable: ^2.0.3
+  collection: ^1.15.0
+  uuid: ^3.0.4
+
+dev_dependencies:
+  test: ^1.20.1
+  mocktail: ^0.2.0
+  bloc_test: ^9.0.2
+  fire_line_diff: ^1.5.3
+
+  lints: ^1.0.1

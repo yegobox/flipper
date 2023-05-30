@@ -1,0 +1,74 @@
+# melos_managed_dependency_overrides: flipper_data_table,flipper_finance,flipper_loading,flipper_login,flipper_models,flipper_routing,flipper_services,flipper_socials,flipper_ui,battery_plus,battery_plus_platform_interface,connectivity_plus,connectivity_plus_platform_interface,device_info_plus,device_info_plus_platform_interface,firebase_auth_dart,firebase_auth_desktop,firebase_core_dart,firebase_core_desktop,flutter_datetime_picker,flutter_form_bloc,flutter_luban,flutter_slidable,form_bloc,package_info_plus,package_info_plus_platform_interface,pdf,printing,pubnub,qr_code_scanner,qr_flutter,receipt,scrollable_positioned_list,share_plus,share_plus_platform_interface,upgrader
+dependency_overrides:
+  battery_plus:
+    path: ..\\..\\open-sources\\open-sources\\plus_plugins\\packages\\battery_plus\\battery_plus
+  battery_plus_platform_interface:
+    path: ..\\..\\open-sources\\open-sources\\plus_plugins\\packages\\battery_plus\\battery_plus_platform_interface
+  connectivity_plus:
+    path: ..\\..\\open-sources\\open-sources\\plus_plugins\\packages\\connectivity_plus\\connectivity_plus
+  connectivity_plus_platform_interface:
+    path: ..\\..\\open-sources\\open-sources\\plus_plugins\\packages\\connectivity_plus\\connectivity_plus_platform_interface
+  device_info_plus:
+    path: ..\\..\\open-sources\\open-sources\\plus_plugins\\packages\\device_info_plus\\device_info_plus
+  device_info_plus_platform_interface:
+    path: ..\\..\\open-sources\\open-sources\\plus_plugins\\packages\\device_info_plus\\device_info_plus_platform_interface
+  firebase_auth_dart:
+    path: ..\\..\\open-sources\\open-sources\\flutterfire_desktop\\packages\\firebase_auth\\firebase_auth_dart
+  firebase_auth_desktop:
+    path: ..\\..\\open-sources\\open-sources\\flutterfire_desktop\\packages\\firebase_auth\\firebase_auth_desktop
+  firebase_core_dart:
+    path: ..\\..\\open-sources\\open-sources\\flutterfire_desktop\\packages\\firebase_core\\firebase_core_dart
+  firebase_core_desktop:
+    path: ..\\..\\open-sources\\open-sources\\flutterfire_desktop\\packages\\firebase_core\\firebase_core_desktop
+  flipper_data_table:
+    path: ..\\flipper_data_table
+  flipper_finance:
+    path: ..\\flipper_finance
+  flipper_loading:
+    path: ..\\flipper_loading
+  flipper_login:
+    path: ..\\flipper_login
+  flipper_models:
+    path: ..\\flipper_models
+  flipper_routing:
+    path: ..\\flipper_routing
+  flipper_services:
+    path: ..\\flipper_services
+  flipper_socials:
+    path: ..\\flipper_socials
+  flipper_ui:
+    path: ..\\flipper_ui
+  flutter_datetime_picker:
+    path: ..\\..\\open-sources\\open-sources\\flutter_datetime_picker
+  flutter_form_bloc:
+    path: ..\\..\\open-sources\\open-sources\\form_block\\packages\\flutter_form_bloc
+  flutter_luban:
+    path: ..\\..\\open-sources\\open-sources\\flutter_luban
+  flutter_slidable:
+    path: ..\\..\\open-sources\\open-sources\\flutter_slidable
+  form_bloc:
+    path: ..\\..\\open-sources\\open-sources\\form_block\\packages\\form_bloc
+  package_info_plus:
+    path: ..\\..\\open-sources\\open-sources\\plus_plugins\\packages\\package_info_plus\\package_info_plus
+  package_info_plus_platform_interface:
+    path: ..\\..\\open-sources\\open-sources\\plus_plugins\\packages\\package_info_plus\\package_info_plus_platform_interface
+  pdf:
+    path: ..\\..\\open-sources\\open-sources\\dart_pdf\\pdf
+  printing:
+    path: ..\\..\\open-sources\\open-sources\\dart_pdf\\printing
+  pubnub:
+    path: ..\\..\\open-sources\\open-sources\\pubnub\\pubnub
+  qr_code_scanner:
+    path: ..\\..\\open-sources\\open-sources\\qr_code_scanner
+  qr_flutter:
+    path: ..\\..\\open-sources\\open-sources\\qr.flutter
+  receipt:
+    path: ..\\..\\open-sources\\open-sources\\receipt
+  scrollable_positioned_list:
+    path: ..\\..\\open-sources\\open-sources\\flutter.widgets\\packages\\scrollable_positioned_list
+  share_plus:
+    path: ..\\..\\open-sources\\open-sources\\plus_plugins\\packages\\share_plus\\share_plus
+  share_plus_platform_interface:
+    path: ..\\..\\open-sources\\open-sources\\plus_plugins\\packages\\share_plus\\share_plus_platform_interface
+  upgrader:
+    path: ..\\..\\open-sources\\open-sources\\upgrader

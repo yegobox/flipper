@@ -1,0 +1,3 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+  package="plugin.flipper.system_time_check">
+</manifest>

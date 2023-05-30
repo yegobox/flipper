@@ -8,6 +8,7 @@
 .buildlog/
 .history
 .svn/
+migrate_working_dir/
 
 # IntelliJ related
 *.iml
@@ -26,7 +27,7 @@
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
-# .packages
+.packages
 .pub-cache/
 .pub/
 /build/
@@ -39,27 +40,8 @@ app.*.symbols
 
 # Obfuscation related
 app.*.map.json
-google-services.json
 
 # Android Studio will place build artifacts here
 /android/app/debug
 /android/app/profile
 /android/app/release
-# should be exluded as it contain a google API KEY.
-index.html
-
-# file containg sensitive information
-# config.dart
-firebase_options.dart
-runner/**
-# runner
-# windows
-passwords.yaml
-package_config.json
-
-.yaml
-pubspec_overrides.yaml
-.packages
-.flutter-plugins
-.env
-

@@ -7,6 +7,7 @@ repository: https://github.com/yegobox/packages
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
+  flutter: ">=1.17.0"
 
 dependencies:
   flutter:
@@ -19,7 +20,6 @@ dependencies:
   firebase_messaging: ^14.2.5
   flutter_local_notifications: ^12.0.3
   get_storage: ^2.1.1
-  # image: ^3.0.2
   image: ^4.0.15
   flipper_routing: ^0.0.1-dev.3
   flipper_models: ^0.0.1-dev.7
@@ -29,13 +29,11 @@ dependencies:
   nfc_manager: ^3.2.0
   geolocator: ^9.0.2
   geocode: ^1.0.1
-
   firebase_analytics: ^10.0.2
   firebase_crashlytics: ^3.3.1
   location: 5.0.0-dev.8
   flutter_luban: ^0.1.13
   flutter_uploader: ^3.0.0-beta.4
-  injectable: ^2.1.1
   google_sign_in: ^5.0.0
   firebase_dynamic_links: ^5.0.2
   http: ^0.13.6
@@ -44,13 +42,11 @@ dependencies:
   path_provider: ^2.0.15
   path: ^1.8.2
   googleapis: ^8.1.0
-
   timeago: ^3.2.1
   pubnub: ^4.2.2
   stacked_services: ^1.0.0
   universal_platform: ^1.0.0+1
   googleapis_auth: ^1.1.0
-  get_it: ^7.6.0
   uuid: ^3.0.5
   url_launcher: ^6.1.2
   flipper_nfc: ^1.2.0
@@ -59,9 +55,11 @@ dependencies:
   connectivity_plus: ^2.3.9
   flutter_statusbarcolor_ns: ^0.5.0
   pocketbase: ^0.7.2
-
+  get_it: ^7.6.0
+  injectable: ^2.1.1
 dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  injectable_generator: ^2.1.5
   build_runner: ^2.4.4
-  # objectbox_generator: ^1.4.0
-  injectable_generator:
   test:

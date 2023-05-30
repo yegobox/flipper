@@ -1,0 +1,4 @@
+# melos_managed_dependency_overrides: flipper_loading
+dependency_overrides:
+  flipper_loading:
+    path: ..\\flipper_loading

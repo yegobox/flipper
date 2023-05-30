@@ -3,23 +3,23 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>672237316015-9i1pjt8cqo9n0m3lv81tvafbtr6utj9p.apps.googleusercontent.com</string>
+	<string>455580464649-4ec34ssah18vlmv60ujssr4j6fcca8n9.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.672237316015-9i1pjt8cqo9n0m3lv81tvafbtr6utj9p</string>
+	<string>com.googleusercontent.apps.455580464649-4ec34ssah18vlmv60ujssr4j6fcca8n9</string>
 	<key>ANDROID_CLIENT_ID</key>
-	<string>672237316015-58kfg9qqcpu1u2iddupui1taf9fsb613.apps.googleusercontent.com</string>
+	<string>455580464649-79bh7kgpakcdoc25g75b56nmhupu0n69.apps.googleusercontent.com</string>
 	<key>API_KEY</key>
-	<string>AIzaSyAvEHuiHE_qdeG_QRCV5T__PBjkSkQ-848</string>
+	<string>AIzaSyBEQWa5FSPt1CYIvS7FAuMuQYTFViSWDSo</string>
 	<key>GCM_SENDER_ID</key>
-	<string>672237316015</string>
+	<string>455580464649</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.example.flipperAuth</string>
+	<string>com.example.appbar</string>
 	<key>PROJECT_ID</key>
-	<string>yegobox-2ee43</string>
+	<string>demoapp-912ed</string>
 	<key>STORAGE_BUCKET</key>
-	<string>yegobox-2ee43.appspot.com</string>
+	<string>demoapp-912ed.appspot.com</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -31,8 +31,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:672237316015:ios:55d0855187d50bfec2715a</string>
-	<key>DATABASE_URL</key>
-	<string>https://yegobox-2ee43.firebaseio.com</string>
+	<string>1:455580464649:ios:05b7ab8d06fb98b6d6ead8</string>
 </dict>
 </plist>

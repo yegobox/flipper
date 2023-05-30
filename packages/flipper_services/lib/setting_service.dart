@@ -3,7 +3,7 @@ import 'package:flipper_models/isar_models.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
-abstract class SettingsService with ListenableServiceMixin {
+class SettingsService with ListenableServiceMixin {
   //  bool sendDailReport = false;
   final _enablePrinter = ReactiveValue<bool>(false);
 

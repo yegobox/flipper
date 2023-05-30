@@ -124,14 +124,14 @@ packages:
   battery_plus:
     dependency: "direct main"
     description:
-      path: "../../open-sources/plus_plugins/packages/battery_plus/battery_plus"
+      path: "../../open-sources/open-sources/plus_plugins/packages/battery_plus/battery_plus"
       relative: true
     source: path
     version: "4.0.0"
   battery_plus_platform_interface:
     dependency: "direct overridden"
     description:
-      path: "../../open-sources/plus_plugins/packages/battery_plus/battery_plus_platform_interface"
+      path: "../../open-sources/open-sources/plus_plugins/packages/battery_plus/battery_plus_platform_interface"
       relative: true
     source: path
     version: "1.2.2"
@@ -298,14 +298,14 @@ packages:
   connectivity_plus:
     dependency: "direct main"
     description:
-      path: "../../open-sources/plus_plugins/packages/connectivity_plus/connectivity_plus"
+      path: "../../open-sources/open-sources/plus_plugins/packages/connectivity_plus/connectivity_plus"
       relative: true
     source: path
     version: "4.0.0"
   connectivity_plus_platform_interface:
     dependency: "direct overridden"
     description:
-      path: "../../open-sources/plus_plugins/packages/connectivity_plus/connectivity_plus_platform_interface"
+      path: "../../open-sources/open-sources/plus_plugins/packages/connectivity_plus/connectivity_plus_platform_interface"
       relative: true
     source: path
     version: "1.2.4"
@@ -317,6 +317,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.1"
+  country_code_picker:
+    dependency: transitive
+    description:
+      name: country_code_picker
+      sha256: "92818885f0e47486539f80463b66f649970506a91dd3c0731ca3ba5308324a4d"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.0.0"
   cross_file:
     dependency: transitive
     description:
@@ -376,14 +384,14 @@ packages:
   device_info_plus:
     dependency: "direct main"
     description:
-      path: "../../open-sources/plus_plugins/packages/device_info_plus/device_info_plus"
+      path: "../../open-sources/open-sources/plus_plugins/packages/device_info_plus/device_info_plus"
       relative: true
     source: path
     version: "9.0.0"
   device_info_plus_platform_interface:
     dependency: "direct overridden"
     description:
-      path: "../../open-sources/plus_plugins/packages/device_info_plus/device_info_plus_platform_interface"
+      path: "../../open-sources/open-sources/plus_plugins/packages/device_info_plus/device_info_plus_platform_interface"
       relative: true
     source: path
     version: "7.0.0"
@@ -511,14 +519,14 @@ packages:
   firebase_auth_dart:
     dependency: "direct overridden"
     description:
-      path: "../../open-sources/flutterfire_desktop/packages/firebase_auth/firebase_auth_dart"
+      path: "../../open-sources/open-sources/flutterfire_desktop/packages/firebase_auth/firebase_auth_dart"
       relative: true
     source: path
     version: "1.0.1"
   firebase_auth_desktop:
     dependency: "direct main"
     description:
-      path: "../../open-sources/flutterfire_desktop/packages/firebase_auth/firebase_auth_desktop"
+      path: "../../open-sources/open-sources/flutterfire_desktop/packages/firebase_auth/firebase_auth_desktop"
       relative: true
     source: path
     version: "1.0.2-flipper"
@@ -549,14 +557,14 @@ packages:
   firebase_core_dart:
     dependency: "direct overridden"
     description:
-      path: "../../open-sources/flutterfire_desktop/packages/firebase_core/firebase_core_dart"
+      path: "../../open-sources/open-sources/flutterfire_desktop/packages/firebase_core/firebase_core_dart"
       relative: true
     source: path
     version: "1.0.1"
   firebase_core_desktop:
     dependency: "direct main"
     description:
-      path: "../../open-sources/flutterfire_desktop/packages/firebase_core/firebase_core_desktop"
+      path: "../../open-sources/open-sources/flutterfire_desktop/packages/firebase_core/firebase_core_desktop"
       relative: true
     source: path
     version: "1.0.2"
@@ -768,9 +776,10 @@ packages:
   flipper_localize:
     dependency: "direct main"
     description:
-      path: "../../lib/flipper_localize"
-      relative: true
-    source: path
+      name: flipper_localize
+      sha256: c7d71dd6e2d5ed836699c4d99fd1366d370791ae763dd1ee6c9c5787a88b6980
+      url: "https://pub.dev"
+    source: hosted
     version: "1.0.0"
   flipper_login:
     dependency: "direct main"
@@ -870,14 +879,14 @@ packages:
   flutter_datetime_picker:
     dependency: "direct main"
     description:
-      path: "../../open-sources/flutter_datetime_picker"
+      path: "../../open-sources/open-sources/flutter_datetime_picker"
       relative: true
     source: path
     version: "1.5.1"
   flutter_form_bloc:
     dependency: "direct overridden"
     description:
-      path: "../../open-sources/form_block/packages/flutter_form_bloc"
+      path: "../../open-sources/open-sources/form_block/packages/flutter_form_bloc"
       relative: true
     source: path
     version: "0.30.1"
@@ -969,7 +978,7 @@ packages:
   flutter_luban:
     dependency: "direct overridden"
     description:
-      path: "../../open-sources/flutter_luban"
+      path: "../../open-sources/open-sources/flutter_luban"
       relative: true
     source: path
     version: "0.1.12"
@@ -1016,7 +1025,7 @@ packages:
   flutter_slidable:
     dependency: "direct main"
     description:
-      path: "../../open-sources/flutter_slidable"
+      path: "../../open-sources/open-sources/flutter_slidable"
       relative: true
     source: path
     version: "1.3.0"
@@ -1089,7 +1098,7 @@ packages:
   form_bloc:
     dependency: "direct overridden"
     description:
-      path: "../../open-sources/form_block/packages/form_bloc"
+      path: "../../open-sources/open-sources/form_block/packages/form_bloc"
       relative: true
     source: path
     version: "0.30.0"
@@ -1589,14 +1598,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.4"
-  mobile_scanner:
-    dependency: "direct main"
-    description:
-      name: mobile_scanner
-      sha256: da55204e5439bc8dc058df56231a7a1d513c6ec9cbad84492f56d493382d296f
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.2.0"
   modal_bottom_sheet:
     dependency: "direct main"
     description:
@@ -1688,14 +1689,14 @@ packages:
   package_info_plus:
     dependency: "direct overridden"
     description:
-      path: "../../open-sources/plus_plugins/packages/package_info_plus/package_info_plus"
+      path: "../../open-sources/open-sources/plus_plugins/packages/package_info_plus/package_info_plus"
       relative: true
     source: path
     version: "4.0.0"
   package_info_plus_platform_interface:
     dependency: "direct overridden"
     description:
-      path: "../../open-sources/plus_plugins/packages/package_info_plus/package_info_plus_platform_interface"
+      path: "../../open-sources/open-sources/plus_plugins/packages/package_info_plus/package_info_plus_platform_interface"
       relative: true
     source: path
     version: "2.0.1"
@@ -1766,7 +1767,7 @@ packages:
   pdf:
     dependency: "direct overridden"
     description:
-      path: "../../open-sources/dart_pdf/pdf"
+      path: "../../open-sources/open-sources/dart_pdf/pdf"
       relative: true
     source: path
     version: "3.10.4-flipper"
@@ -1877,7 +1878,7 @@ packages:
   printing:
     dependency: "direct overridden"
     description:
-      path: "../../open-sources/dart_pdf/printing"
+      path: "../../open-sources/open-sources/dart_pdf/printing"
       relative: true
     source: path
     version: "5.11.0-flipper"
@@ -1908,7 +1909,7 @@ packages:
   pubnub:
     dependency: "direct main"
     description:
-      path: "../../open-sources/pubnub/pubnub"
+      path: "../../open-sources/open-sources/pubnub/pubnub"
       relative: true
     source: path
     version: "4.1.4"
@@ -1931,14 +1932,14 @@ packages:
   qr_code_scanner:
     dependency: "direct main"
     description:
-      path: "../../open-sources/qr_code_scanner"
+      path: "../../open-sources/open-sources/qr_code_scanner"
       relative: true
     source: path
     version: "0.7.1"
   qr_flutter:
     dependency: "direct main"
     description:
-      path: "../../open-sources/qr.flutter"
+      path: "../../open-sources/open-sources/qr.flutter"
       relative: true
     source: path
     version: "4.0.2"
@@ -1961,7 +1962,7 @@ packages:
   receipt:
     dependency: "direct main"
     description:
-      path: "../../open-sources/receipt"
+      path: "../../open-sources/open-sources/receipt"
       relative: true
     source: path
     version: "1.0.0-dev.2"
@@ -1992,7 +1993,7 @@ packages:
   scrollable_positioned_list:
     dependency: "direct overridden"
     description:
-      path: "../../open-sources/flutter.widgets/packages/scrollable_positioned_list"
+      path: "../../open-sources/open-sources/flutter.widgets/packages/scrollable_positioned_list"
       relative: true
     source: path
     version: "0.3.2-dev"
@@ -2015,14 +2016,14 @@ packages:
   share_plus:
     dependency: "direct overridden"
     description:
-      path: "../../open-sources/plus_plugins/packages/share_plus/share_plus"
+      path: "../../open-sources/open-sources/plus_plugins/packages/share_plus/share_plus"
       relative: true
     source: path
     version: "7.0.0"
   share_plus_platform_interface:
     dependency: "direct overridden"
     description:
-      path: "../../open-sources/plus_plugins/packages/share_plus/share_plus_platform_interface"
+      path: "../../open-sources/open-sources/plus_plugins/packages/share_plus/share_plus_platform_interface"
       relative: true
     source: path
     version: "3.2.1"
@@ -2282,7 +2283,7 @@ packages:
   upgrader:
     dependency: "direct main"
     description:
-      path: "../../open-sources/upgrader"
+      path: "../../open-sources/open-sources/upgrader"
       relative: true
     source: path
     version: "4.2.2-dev"

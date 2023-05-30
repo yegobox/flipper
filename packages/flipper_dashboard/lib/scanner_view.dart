@@ -14,7 +14,8 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
-import 'package:mobile_scanner/mobile_scanner.dart' as newKid;
+// TODO:
+// import 'package:mobile_scanner/mobile_scanner.dart' as newKid;
 
 //
 
@@ -31,7 +32,7 @@ class ScannView extends StatefulWidget {
 
 class _ScannViewState extends State<ScannView> {
   Barcode? result;
-  newKid.Barcode? resultForNewKid;
+  // newKid.Barcode? resultForNewKid;
   List<Offset> points = [];
   QRViewController? controller;
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
@@ -122,16 +123,30 @@ class _ScannViewState extends State<ScannView> {
     // we need to listen for Flutter SizeChanged notification and update controller
     if (widget.useLatestImplementation) {
       // TODO: waiting for this PR: https://github.com/juliansteenbakker/mobile_scanner/pull/586
-      return Stack(
-        children: [
-          newKid.MobileScanner(
-            fit: BoxFit.fill,
-            onDetect: (capture) {
-              final List<newKid.Barcode> barcodes = capture.barcodes;
-              performIntentForNewKid(barcodes.first, model);
-            },
-          ),
-        ],
+      // return Stack(
+      //   children: [
+      //     newKid.MobileScanner(
+      //       fit: BoxFit.fill,
+      //       onDetect: (capture) {
+      //         final List<newKid.Barcode> barcodes = capture.barcodes;
+      //         performIntentForNewKid(barcodes.first, model);
+      //       },
+      //     ),
+      //   ],
+      // );
+      // return this for now as mobile_scanner above is not yet stable and causing web issues
+      return QRView(
+        key: qrKey,
+        onQRViewCreated: (controller) {
+          _onQRViewCreated(controller, model);
+        },
+        overlay: QrScannerOverlayShape(
+            borderColor: const Color(0xFF375778),
+            borderRadius: 10,
+            borderLength: 30,
+            borderWidth: 10,
+            cutOutSize: scanArea),
+        onPermissionSet: (ctrl, p) => _onPermissionSet(context, ctrl, p),
       );
     } else {
       return QRView(
@@ -207,33 +222,33 @@ class _ScannViewState extends State<ScannView> {
     });
   }
 
-  void performIntentForNewKid(
-      newKid.Barcode scanData, BusinessHomeViewModel model) {
-    return setState(() async {
-      resultForNewKid = scanData;
-      if (widget.intent == addBarCode) {
-        model.productService.setBarcode(scanData.displayValue);
-      }
-      // split result on - if first part is login then
-      // it is a login request
-      scanToLogin(result: scanData.displayValue);
-      if (widget.intent == attendance) {
-        // pull my bio data and asign them to the scan business.
-        bool isCheckInDone = await ProxyService.isarApi
-            .checkIn(checkInCode: scanData.displayValue);
-        if (isCheckInDone) {
-          showSimpleNotification(
-            const Text('Check In Successful'),
-            background: Colors.green,
-            position: NotificationPosition.bottom,
-          );
-          _routerService.pop();
-        }
-      }
+  // void performIntentForNewKid(
+  //     newKid.Barcode scanData, BusinessHomeViewModel model) {
+  //   return setState(() async {
+  //     resultForNewKid = scanData;
+  //     if (widget.intent == addBarCode) {
+  //       model.productService.setBarcode(scanData.displayValue);
+  //     }
+  //     // split result on - if first part is login then
+  //     // it is a login request
+  //     scanToLogin(result: scanData.displayValue);
+  //     if (widget.intent == attendance) {
+  //       // pull my bio data and asign them to the scan business.
+  //       bool isCheckInDone = await ProxyService.isarApi
+  //           .checkIn(checkInCode: scanData.displayValue);
+  //       if (isCheckInDone) {
+  //         showSimpleNotification(
+  //           const Text('Check In Successful'),
+  //           background: Colors.green,
+  //           position: NotificationPosition.bottom,
+  //         );
+  //         _routerService.pop();
+  //       }
+  //     }
 
-      navigate(scanData.displayValue, model);
-    });
-  }
+  //     navigate(scanData.displayValue, model);
+  //   });
+  // }
 
   void performIntent(Barcode scanData, BusinessHomeViewModel model) {
     return setState(() async {

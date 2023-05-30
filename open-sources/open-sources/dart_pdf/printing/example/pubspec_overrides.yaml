@@ -1,0 +1,6 @@
+# melos_managed_dependency_overrides: pdf,printing
+dependency_overrides:
+  pdf:
+    path: ../../pdf
+  printing:
+    path: ../

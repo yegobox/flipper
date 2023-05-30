@@ -1,9 +1,6 @@
-import 'package:injectable/injectable.dart';
-
 import 'abstractions/storage.dart';
 import 'package:get_storage/get_storage.dart';
 
-@LazySingleton()
 class LocalStorageImpl implements LocalStorage {
   final box = GetStorage();
   @override

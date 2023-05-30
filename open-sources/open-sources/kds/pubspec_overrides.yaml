@@ -1,0 +1,4 @@
+# melos_managed_dependency_overrides: flutter_list_drag_and_drop
+dependency_overrides:
+  flutter_list_drag_and_drop:
+    path: ..\\flutter_list_drag_and_drop

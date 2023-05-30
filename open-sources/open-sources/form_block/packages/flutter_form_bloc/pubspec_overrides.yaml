@@ -1,0 +1,4 @@
+# melos_managed_dependency_overrides: form_bloc
+dependency_overrides:
+  form_bloc:
+    path: ..\\form_bloc
