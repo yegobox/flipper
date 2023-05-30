@@ -13,72 +13,72 @@ extension GetVariantStockCollection on Isar {
   IsarCollection<VariantStock> get variantStocks => this.collection();
 }
 
-const VariantStockSchema = CollectionSchema(
+final VariantStockSchema = CollectionSchema(
   name: r'VariantStock',
-  id: 1510484417733258098,
+  id: BigInt.parse("1510484417733258098").toInt(),
   properties: {
     r'canTrackingStock': PropertySchema(
-      id: 0,
+      id: BigInt.parse("0").toInt(),
       name: r'canTrackingStock',
       type: IsarType.bool,
     ),
     r'currentStock': PropertySchema(
-      id: 1,
+      id: BigInt.parse("1").toInt(),
       name: r'currentStock',
       type: IsarType.double,
     ),
     r'fbranchId': PropertySchema(
-      id: 2,
+      id: BigInt.parse("2").toInt(),
       name: r'fbranchId',
       type: IsarType.string,
     ),
     r'fvariantId': PropertySchema(
-      id: 3,
+      id: BigInt.parse("3").toInt(),
       name: r'fvariantId',
       type: IsarType.string,
     ),
     r'lowStock': PropertySchema(
-      id: 4,
+      id: BigInt.parse("4").toInt(),
       name: r'lowStock',
       type: IsarType.double,
     ),
     r'productName': PropertySchema(
-      id: 5,
+      id: BigInt.parse("5").toInt(),
       name: r'productName',
       type: IsarType.string,
     ),
     r'retailPrice': PropertySchema(
-      id: 6,
+      id: BigInt.parse("6").toInt(),
       name: r'retailPrice',
       type: IsarType.double,
     ),
     r'sku': PropertySchema(
-      id: 7,
+      id: BigInt.parse("7").toInt(),
       name: r'sku',
       type: IsarType.string,
     ),
     r'taxName': PropertySchema(
-      id: 8,
+      id: BigInt.parse("8").toInt(),
       name: r'taxName',
       type: IsarType.string,
     ),
     r'taxPercentage': PropertySchema(
-      id: 9,
+      id: BigInt.parse("9").toInt(),
       name: r'taxPercentage',
       type: IsarType.double,
     ),
     r'unit': PropertySchema(
-      id: 10,
+      id: BigInt.parse("10").toInt(),
       name: r'unit',
       type: IsarType.string,
     ),
     r'value': PropertySchema(
-      id: 11,
+      id: BigInt.parse("11").toInt(),
       name: r'value',
       type: IsarType.double,
     ),
     r'variantName': PropertySchema(
-      id: 12,
+      id: BigInt.parse("12").toInt(),
       name: r'variantName',
       type: IsarType.string,
     )
@@ -94,7 +94,7 @@ const VariantStockSchema = CollectionSchema(
   getId: _variantStockGetId,
   getLinks: _variantStockGetLinks,
   attach: _variantStockAttach,
-  version: '3.1.0+1',
+  version: '3.1.0',
 );
 
 int _variantStockEstimateSize(

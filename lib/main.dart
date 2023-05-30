@@ -17,7 +17,6 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_native_timezone/flutter_native_timezone.dart';
-import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -75,9 +74,9 @@ void main() async {
       );
     }
 
-    await GetStorage.init();
+    // await GetStorage.init();
     // done init in mobile.//done separation.
-    await initDependencies();
+    initDependencies();
     // setPathUrlStrategy();
     loc.setupLocator(
       stackedRouter: stackedRouter,
@@ -164,9 +163,9 @@ void main() async {
     // close splash screen the app is fully initialized
     FlutterNativeSplash.remove();
   }, (error, stack) async {
-    // await Sentry.captureException(error, stackTrace: stack);
-    // if (!isWindows) {
-    //   recordBug(error, stack);
-    // }
+    await Sentry.captureException(error, stackTrace: stack);
+    if (!isWindows) {
+      // recordBug(error, stack);
+    }
   });
 }

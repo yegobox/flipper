@@ -13,47 +13,47 @@ extension GetCustomerCollection on Isar {
   IsarCollection<Customer> get customers => this.collection();
 }
 
-const CustomerSchema = CollectionSchema(
+final CustomerSchema = CollectionSchema(
   name: r'Customer',
-  id: -7623823084711604343,
+  id: BigInt.parse("-7623823084711604343").toInt(),
   properties: {
     r'address': PropertySchema(
-      id: 0,
+      id: BigInt.parse("0").toInt(),
       name: r'address',
       type: IsarType.string,
     ),
     r'branchId': PropertySchema(
-      id: 1,
+      id: BigInt.parse("1").toInt(),
       name: r'branchId',
       type: IsarType.long,
     ),
     r'email': PropertySchema(
-      id: 2,
+      id: BigInt.parse("2").toInt(),
       name: r'email',
       type: IsarType.string,
     ),
     r'name': PropertySchema(
-      id: 3,
+      id: BigInt.parse("3").toInt(),
       name: r'name',
       type: IsarType.string,
     ),
     r'orderId': PropertySchema(
-      id: 4,
+      id: BigInt.parse("4").toInt(),
       name: r'orderId',
       type: IsarType.long,
     ),
     r'phone': PropertySchema(
-      id: 5,
+      id: BigInt.parse("5").toInt(),
       name: r'phone',
       type: IsarType.string,
     ),
     r'tinNumber': PropertySchema(
-      id: 6,
+      id: BigInt.parse("6").toInt(),
       name: r'tinNumber',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 7,
+      id: BigInt.parse("7").toInt(),
       name: r'updatedAt',
       type: IsarType.string,
     )
@@ -69,7 +69,7 @@ const CustomerSchema = CollectionSchema(
   getId: _customerGetId,
   getLinks: _customerGetLinks,
   attach: _customerAttach,
-  version: '3.1.0+1',
+  version: '3.1.0',
 );
 
 int _customerEstimateSize(

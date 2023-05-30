@@ -12,14 +12,14 @@ const platformWeb = Environment('platformWeb');
 @InjectableInit(
   preferRelativeImports: true,
   externalPackageModulesAfter: [
-    // ExternalModule(AwesomePackageModule),
+    // ExternalModule(SettingsService),
   ],
 )
 initDependencies({
   String? env,
   EnvironmentFilter? environmentFilter,
-}) async {
-  return await locator.init(
+}) {
+  return locator.init(
     environmentFilter: environmentFilter,
     environment: env,
   );

@@ -32,9 +32,7 @@ import 'package:flipper_models/tax_api.dart';
 final Api _apiService = locator<Api>();
 final DynamicLink _dynamicLink = locator<DynamicLink>();
 final Shareable _share = locator<Shareable>();
-// final LoginStandard _auth = locator<LoginStandard>();
 final FlipperLocation _location = locator<FlipperLocation>();
-// final DB<Business> _db = locator<DB<Business>>();
 final LocalStorage _box = locator<LocalStorage>();
 final UploadT _upload = locator<UploadT>();
 final AppService _appService = locator<AppService>();
@@ -46,10 +44,7 @@ final Remote _remoteConfig = locator<Remote>();
 final Country _country = locator<Country>();
 final SettingsService _settings = locator<SettingsService>();
 final CronService _reportService = locator<CronService>();
-// final PdfInvoiceApi _pdfInvoiceApi = locator<PdfInvoiceApi>();
-// final PdfApi _pdfApi = locator<PdfApi>();
 final Printer _printService = locator<Printer>();
-//rename this to app analytics, i.e analytics for app improvments
 final Analytic _analytics = locator<Analytic>();
 final ForceDataEntryService _forceDataEntry = locator<ForceDataEntryService>();
 final Crash _crash = locator<Crash>();
@@ -66,6 +61,7 @@ final WhatsApp _whatsApp = locator<WhatsApp>();
 final Messaging _messaging = locator<Messaging>();
 
 abstract class ProxyService {
+  static LocalStorage get box => _box;
   static Api get api => _apiService;
   static TaxApi get tax => _taxApi;
   static IsarApiInterface get isarApi => _isarApi;
@@ -75,7 +71,7 @@ abstract class ProxyService {
   static Shareable get share => _share;
   static DynamicLink get dynamicLink => _dynamicLink;
   static FlipperLocation get location => _location;
-  static LocalStorage get box => _box;
+
   static AppService get appService => _appService;
   static ProductService get productService => _productService;
   static UploadT get upload => _upload;

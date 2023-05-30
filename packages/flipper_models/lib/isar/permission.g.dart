@@ -13,12 +13,12 @@ extension GetPermissionCollection on Isar {
   IsarCollection<Permission> get permissions => this.collection();
 }
 
-const PermissionSchema = CollectionSchema(
+final PermissionSchema = CollectionSchema(
   name: r'Permission',
-  id: 5583744244740860356,
+  id: BigInt.parse("5583744244740860356").toInt(),
   properties: {
     r'name': PropertySchema(
-      id: 0,
+      id: BigInt.parse("0").toInt(),
       name: r'name',
       type: IsarType.string,
     )
@@ -34,7 +34,7 @@ const PermissionSchema = CollectionSchema(
   getId: _permissionGetId,
   getLinks: _permissionGetLinks,
   attach: _permissionAttach,
-  version: '3.1.0+1',
+  version: '3.1.0',
 );
 
 int _permissionEstimateSize(

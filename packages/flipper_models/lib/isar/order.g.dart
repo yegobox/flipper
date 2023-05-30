@@ -13,117 +13,117 @@ extension GetOrderCollection on Isar {
   IsarCollection<Order> get orders => this.collection();
 }
 
-const OrderSchema = CollectionSchema(
+final OrderSchema = CollectionSchema(
   name: r'Order',
-  id: 103494837486634173,
+  id: BigInt.parse("103494837486634173").toInt(),
   properties: {
     r'action': PropertySchema(
-      id: 0,
+      id: BigInt.parse("0").toInt(),
       name: r'action',
       type: IsarType.string,
     ),
     r'active': PropertySchema(
-      id: 1,
+      id: BigInt.parse("1").toInt(),
       name: r'active',
       type: IsarType.bool,
     ),
     r'branchId': PropertySchema(
-      id: 2,
+      id: BigInt.parse("2").toInt(),
       name: r'branchId',
       type: IsarType.long,
     ),
     r'cashReceived': PropertySchema(
-      id: 3,
+      id: BigInt.parse("3").toInt(),
       name: r'cashReceived',
       type: IsarType.double,
     ),
     r'createdAt': PropertySchema(
-      id: 4,
+      id: BigInt.parse("4").toInt(),
       name: r'createdAt',
       type: IsarType.string,
     ),
     r'customerChangeDue': PropertySchema(
-      id: 5,
+      id: BigInt.parse("5").toInt(),
       name: r'customerChangeDue',
       type: IsarType.double,
     ),
     r'customerId': PropertySchema(
-      id: 6,
+      id: BigInt.parse("6").toInt(),
       name: r'customerId',
       type: IsarType.long,
     ),
     r'draft': PropertySchema(
-      id: 7,
+      id: BigInt.parse("7").toInt(),
       name: r'draft',
       type: IsarType.bool,
     ),
     r'lastTouched': PropertySchema(
-      id: 8,
+      id: BigInt.parse("8").toInt(),
       name: r'lastTouched',
       type: IsarType.string,
     ),
     r'localId': PropertySchema(
-      id: 9,
+      id: BigInt.parse("9").toInt(),
       name: r'localId',
       type: IsarType.long,
     ),
     r'note': PropertySchema(
-      id: 10,
+      id: BigInt.parse("10").toInt(),
       name: r'note',
       type: IsarType.string,
     ),
     r'orderNumber': PropertySchema(
-      id: 11,
+      id: BigInt.parse("11").toInt(),
       name: r'orderNumber',
       type: IsarType.string,
     ),
     r'orderType': PropertySchema(
-      id: 12,
+      id: BigInt.parse("12").toInt(),
       name: r'orderType',
       type: IsarType.string,
     ),
     r'paymentType': PropertySchema(
-      id: 13,
+      id: BigInt.parse("13").toInt(),
       name: r'paymentType',
       type: IsarType.string,
     ),
     r'receiptType': PropertySchema(
-      id: 14,
+      id: BigInt.parse("14").toInt(),
       name: r'receiptType',
       type: IsarType.string,
     ),
     r'reference': PropertySchema(
-      id: 15,
+      id: BigInt.parse("15").toInt(),
       name: r'reference',
       type: IsarType.string,
     ),
     r'remoteID': PropertySchema(
-      id: 16,
+      id: BigInt.parse("16").toInt(),
       name: r'remoteID',
       type: IsarType.string,
     ),
     r'reported': PropertySchema(
-      id: 17,
+      id: BigInt.parse("17").toInt(),
       name: r'reported',
       type: IsarType.bool,
     ),
     r'status': PropertySchema(
-      id: 18,
+      id: BigInt.parse("18").toInt(),
       name: r'status',
       type: IsarType.string,
     ),
     r'subTotal': PropertySchema(
-      id: 19,
+      id: BigInt.parse("19").toInt(),
       name: r'subTotal',
       type: IsarType.double,
     ),
     r'ticketName': PropertySchema(
-      id: 20,
+      id: BigInt.parse("20").toInt(),
       name: r'ticketName',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 21,
+      id: BigInt.parse("21").toInt(),
       name: r'updatedAt',
       type: IsarType.string,
     )
@@ -135,7 +135,7 @@ const OrderSchema = CollectionSchema(
   idName: r'id',
   indexes: {
     r'branchId': IndexSchema(
-      id: 2037049677925728410,
+      id: BigInt.parse("2037049677925728410").toInt(),
       name: r'branchId',
       unique: false,
       replace: false,
@@ -148,7 +148,7 @@ const OrderSchema = CollectionSchema(
       ],
     ),
     r'status_branchId': IndexSchema(
-      id: 7677499683711055211,
+      id: BigInt.parse("7677499683711055211").toInt(),
       name: r'status_branchId',
       unique: false,
       replace: false,
@@ -166,7 +166,7 @@ const OrderSchema = CollectionSchema(
       ],
     ),
     r'reported': IndexSchema(
-      id: -3616965814624702900,
+      id: BigInt.parse("-3616965814624702900").toInt(),
       name: r'reported',
       unique: false,
       replace: false,
@@ -179,7 +179,7 @@ const OrderSchema = CollectionSchema(
       ],
     ),
     r'lastTouched': IndexSchema(
-      id: -1197289422054722944,
+      id: BigInt.parse("-1197289422054722944").toInt(),
       name: r'lastTouched',
       unique: false,
       replace: false,
@@ -192,7 +192,7 @@ const OrderSchema = CollectionSchema(
       ],
     ),
     r'remoteID': IndexSchema(
-      id: 8280972950722306723,
+      id: BigInt.parse("8280972950722306723").toInt(),
       name: r'remoteID',
       unique: false,
       replace: false,
@@ -210,7 +210,7 @@ const OrderSchema = CollectionSchema(
   getId: _orderGetId,
   getLinks: _orderGetLinks,
   attach: _orderAttach,
-  version: '3.1.0+1',
+  version: '3.1.0',
 );
 
 int _orderEstimateSize(

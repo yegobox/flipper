@@ -41,8 +41,8 @@ import 'language_service.dart' as _i16;
 import 'local_notification_service.dart' as _i15;
 import 'local_storage.dart' as _i18;
 import 'product_service.dart' as _i21;
+import 'services_module.dart' as _i33;
 import 'setting_service.dart' as _i25;
-import 'third_party_services_module.dart' as _i33;
 
 extension GetItInjectableX on _i1.GetIt {
   // initializes the registration of main-scope dependencies inside of GetIt
@@ -55,70 +55,50 @@ extension GetItInjectableX on _i1.GetIt {
       environment,
       environmentFilter,
     );
-    final thirdPartyServicesModule = _$ThirdPartyServicesModule();
-    gh.lazySingleton<_i3.Analytic>(() => thirdPartyServicesModule.appAnalytic);
-    gh.lazySingleton<_i4.AppService>(() => thirdPartyServicesModule.appService);
-    gh.lazySingleton<_i5.BillingService>(
-        () => thirdPartyServicesModule.billing);
-    gh.lazySingleton<_i6.Country>(() => thirdPartyServicesModule.country);
-    gh.lazySingleton<_i7.Crash>(() => thirdPartyServicesModule.crash);
-    gh.lazySingleton<_i8.CronService>(() => thirdPartyServicesModule.cron);
-    gh.lazySingleton<_i9.DynamicLink>(
-        () => thirdPartyServicesModule.dynamicLink);
-    gh.lazySingleton<_i10.EventInterface>(() => thirdPartyServicesModule.event);
-    gh.lazySingleton<_i11.FlipperLocation>(
-        () => thirdPartyServicesModule.location);
+    final servicesModule = _$ServicesModule();
+    gh.lazySingleton<_i3.Analytic>(() => servicesModule.appAnalytic);
+    gh.lazySingleton<_i4.AppService>(() => servicesModule.appService());
+    gh.lazySingleton<_i5.BillingService>(() => servicesModule.billing());
+    gh.lazySingleton<_i6.Country>(() => servicesModule.country);
+    gh.lazySingleton<_i7.Crash>(() => servicesModule.crash);
+    gh.lazySingleton<_i8.CronService>(() => servicesModule.cron());
+    gh.lazySingleton<_i9.DynamicLink>(() => servicesModule.dynamicLink);
+    gh.lazySingleton<_i10.EventInterface>(() => servicesModule.event);
+    gh.lazySingleton<_i11.FlipperLocation>(() => servicesModule.location);
     gh.lazySingleton<_i12.ForceDataEntryService>(
-        () => thirdPartyServicesModule.forcedataEntry);
+        () => servicesModule.forcedataEntry());
     await gh.lazySingletonAsync<_i13.IsarApiInterface>(
-      () => thirdPartyServicesModule.isarApi(),
+      () => servicesModule.isarApi(),
       preResolve: true,
     );
-    gh.lazySingleton<_i14.KeyPadService>(
-        () => thirdPartyServicesModule.keypadService);
-    gh.lazySingleton<_i15.LNotification>(
-        () => thirdPartyServicesModule.notification);
-    gh.lazySingleton<_i16.Language>(
-        () => thirdPartyServicesModule.languageService);
-    gh.lazySingleton<_i17.LocalStorage>(() => thirdPartyServicesModule.box());
+    gh.lazySingleton<_i14.KeyPadService>(() => servicesModule.keypadService);
+    gh.lazySingleton<_i15.LNotification>(() => servicesModule.notification);
+    gh.lazySingleton<_i16.Language>(() => servicesModule.languageService);
+    gh.lazySingleton<_i17.LocalStorage>(() => servicesModule.box());
     gh.lazySingleton<_i18.LocalStorageImpl>(() => _i18.LocalStorageImpl());
-    gh.lazySingleton<_i19.Messaging>(() => thirdPartyServicesModule.messaging);
-    gh.lazySingleton<_i20.Printer>(() => thirdPartyServicesModule.printService);
+    gh.lazySingleton<_i19.Messaging>(() => servicesModule.messaging);
+    gh.lazySingleton<_i20.Printer>(() => servicesModule.printService);
     gh.lazySingleton<_i21.ProductService>(
-        () => thirdPartyServicesModule.productService);
-    gh.lazySingleton<_i22.Remote>(() => thirdPartyServicesModule.remote);
+        () => servicesModule.productService());
+    gh.lazySingleton<_i22.Remote>(() => servicesModule.remote);
     await gh.factoryAsync<_i23.RemoteInterface>(
-      () => thirdPartyServicesModule.remoteApi,
+      () => servicesModule.remoteApi,
       preResolve: true,
     );
-    gh.lazySingleton<_i24.Review>(() => thirdPartyServicesModule.review);
-    gh.lazySingleton<_i25.SettingsService>(
-        () => thirdPartyServicesModule.settings);
-    gh.lazySingleton<_i26.Shareable>(() => thirdPartyServicesModule.share);
+    gh.lazySingleton<_i24.Review>(() => servicesModule.review);
+    gh.factory<_i25.SettingsService>(() => _i25.SettingsService());
+    gh.lazySingleton<_i26.Shareable>(() => servicesModule.share);
     gh.lazySingleton<_i27.SyncApiInterface<_i28.IJsonSerializable>>(
-        () => thirdPartyServicesModule.sync);
-    gh.lazySingleton<_i29.SystemTime>(
-        () => thirdPartyServicesModule.systemTime);
-    gh.lazySingleton<_i30.TaxApi>(() => thirdPartyServicesModule.taxApiService);
-    gh.lazySingleton<_i31.UploadT>(() => thirdPartyServicesModule.upload);
-    gh.lazySingleton<_i32.WhatsApp>(() => thirdPartyServicesModule.whatsApp);
+        () => servicesModule.sync());
+    gh.lazySingleton<_i29.SystemTime>(() => servicesModule.systemTime);
+    gh.lazySingleton<_i30.TaxApi>(() => servicesModule.taxApiService);
+    gh.lazySingleton<_i31.UploadT>(() => servicesModule.upload);
+    gh.lazySingleton<_i32.WhatsApp>(() => servicesModule.whatsApp);
     return this;
   }
 }
 
-class _$ThirdPartyServicesModule extends _i33.ThirdPartyServicesModule {
+class _$ServicesModule extends _i33.ServicesModule {
   @override
   _i14.KeyPadService get keypadService => _i14.KeyPadService();
-  @override
-  _i4.AppService get appService => _i4.AppService();
-  @override
-  _i21.ProductService get productService => _i21.ProductService();
-  @override
-  _i25.SettingsService get settings => _i25.SettingsService();
-  @override
-  _i8.CronService get cron => _i8.CronService();
-  @override
-  _i12.ForceDataEntryService get forcedataEntry => _i12.ForceDataEntryService();
-  @override
-  _i5.BillingService get billing => _i5.BillingService();
 }

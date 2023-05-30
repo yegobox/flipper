@@ -13,97 +13,97 @@ extension GetSettingCollection on Isar {
   IsarCollection<Setting> get settings => this.collection();
 }
 
-const SettingSchema = CollectionSchema(
+final SettingSchema = CollectionSchema(
   name: r'Setting',
-  id: 2542600759502230801,
+  id: BigInt.parse("2542600759502230801").toInt(),
   properties: {
     r'attendnaceDocCreated': PropertySchema(
-      id: 0,
+      id: BigInt.parse("0").toInt(),
       name: r'attendnaceDocCreated',
       type: IsarType.bool,
     ),
     r'autoPrint': PropertySchema(
-      id: 1,
+      id: BigInt.parse("1").toInt(),
       name: r'autoPrint',
       type: IsarType.bool,
     ),
     r'autoRespond': PropertySchema(
-      id: 2,
+      id: BigInt.parse("2").toInt(),
       name: r'autoRespond',
       type: IsarType.bool,
     ),
     r'bToken': PropertySchema(
-      id: 3,
+      id: BigInt.parse("3").toInt(),
       name: r'bToken',
       type: IsarType.string,
     ),
     r'businessId': PropertySchema(
-      id: 4,
+      id: BigInt.parse("4").toInt(),
       name: r'businessId',
       type: IsarType.long,
     ),
     r'businessPhoneNumber': PropertySchema(
-      id: 5,
+      id: BigInt.parse("5").toInt(),
       name: r'businessPhoneNumber',
       type: IsarType.string,
     ),
     r'createdAt': PropertySchema(
-      id: 6,
+      id: BigInt.parse("6").toInt(),
       name: r'createdAt',
       type: IsarType.string,
     ),
     r'defaultLanguage': PropertySchema(
-      id: 7,
+      id: BigInt.parse("7").toInt(),
       name: r'defaultLanguage',
       type: IsarType.string,
     ),
     r'deviceToken': PropertySchema(
-      id: 8,
+      id: BigInt.parse("8").toInt(),
       name: r'deviceToken',
       type: IsarType.string,
     ),
     r'email': PropertySchema(
-      id: 9,
+      id: BigInt.parse("9").toInt(),
       name: r'email',
       type: IsarType.string,
     ),
     r'enrolledInBot': PropertySchema(
-      id: 10,
+      id: BigInt.parse("10").toInt(),
       name: r'enrolledInBot',
       type: IsarType.bool,
     ),
     r'hasPin': PropertySchema(
-      id: 11,
+      id: BigInt.parse("11").toInt(),
       name: r'hasPin',
       type: IsarType.string,
     ),
     r'isAttendanceEnabled': PropertySchema(
-      id: 12,
+      id: BigInt.parse("12").toInt(),
       name: r'isAttendanceEnabled',
       type: IsarType.bool,
     ),
     r'openReceiptFileOSaleComplete': PropertySchema(
-      id: 13,
+      id: BigInt.parse("13").toInt(),
       name: r'openReceiptFileOSaleComplete',
       type: IsarType.bool,
     ),
     r'sendDailyReport': PropertySchema(
-      id: 14,
+      id: BigInt.parse("14").toInt(),
       name: r'sendDailyReport',
       type: IsarType.bool,
     ),
     r'token': PropertySchema(
-      id: 15,
+      id: BigInt.parse("15").toInt(),
       name: r'token',
       type: IsarType.string,
     ),
     r'type': PropertySchema(
-      id: 16,
+      id: BigInt.parse("16").toInt(),
       name: r'type',
       type: IsarType.string,
     ),
     r'userId': PropertySchema(
-      id: 17,
+      id: BigInt.parse("17").toInt(),
       name: r'userId',
       type: IsarType.long,
     )
@@ -115,7 +115,7 @@ const SettingSchema = CollectionSchema(
   idName: r'id',
   indexes: {
     r'userId': IndexSchema(
-      id: -2005826577402374815,
+      id: BigInt.parse("-2005826577402374815").toInt(),
       name: r'userId',
       unique: false,
       replace: false,
@@ -128,7 +128,7 @@ const SettingSchema = CollectionSchema(
       ],
     ),
     r'businessId': IndexSchema(
-      id: 2228048290814354584,
+      id: BigInt.parse("2228048290814354584").toInt(),
       name: r'businessId',
       unique: false,
       replace: false,
@@ -146,7 +146,7 @@ const SettingSchema = CollectionSchema(
   getId: _settingGetId,
   getLinks: _settingGetLinks,
   attach: _settingAttach,
-  version: '3.1.0+1',
+  version: '3.1.0',
 );
 
 int _settingEstimateSize(

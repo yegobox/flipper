@@ -13,72 +13,72 @@ extension GetReceiptCollection on Isar {
   IsarCollection<Receipt> get receipts => this.collection();
 }
 
-const ReceiptSchema = CollectionSchema(
+final ReceiptSchema = CollectionSchema(
   name: r'Receipt',
-  id: 4668855833497531014,
+  id: BigInt.parse("4668855833497531014").toInt(),
   properties: {
     r'intrlData': PropertySchema(
-      id: 0,
+      id: BigInt.parse("0").toInt(),
       name: r'intrlData',
       type: IsarType.string,
     ),
     r'mrcNo': PropertySchema(
-      id: 1,
+      id: BigInt.parse("1").toInt(),
       name: r'mrcNo',
       type: IsarType.string,
     ),
     r'orderId': PropertySchema(
-      id: 2,
+      id: BigInt.parse("2").toInt(),
       name: r'orderId',
       type: IsarType.long,
     ),
     r'qrCode': PropertySchema(
-      id: 3,
+      id: BigInt.parse("3").toInt(),
       name: r'qrCode',
       type: IsarType.string,
     ),
     r'rcptNo': PropertySchema(
-      id: 4,
+      id: BigInt.parse("4").toInt(),
       name: r'rcptNo',
       type: IsarType.long,
     ),
     r'rcptSign': PropertySchema(
-      id: 5,
+      id: BigInt.parse("5").toInt(),
       name: r'rcptSign',
       type: IsarType.string,
     ),
     r'receiptType': PropertySchema(
-      id: 6,
+      id: BigInt.parse("6").toInt(),
       name: r'receiptType',
       type: IsarType.string,
     ),
     r'resultCd': PropertySchema(
-      id: 7,
+      id: BigInt.parse("7").toInt(),
       name: r'resultCd',
       type: IsarType.string,
     ),
     r'resultDt': PropertySchema(
-      id: 8,
+      id: BigInt.parse("8").toInt(),
       name: r'resultDt',
       type: IsarType.string,
     ),
     r'resultMsg': PropertySchema(
-      id: 9,
+      id: BigInt.parse("9").toInt(),
       name: r'resultMsg',
       type: IsarType.string,
     ),
     r'sdcId': PropertySchema(
-      id: 10,
+      id: BigInt.parse("10").toInt(),
       name: r'sdcId',
       type: IsarType.string,
     ),
     r'totRcptNo': PropertySchema(
-      id: 11,
+      id: BigInt.parse("11").toInt(),
       name: r'totRcptNo',
       type: IsarType.long,
     ),
     r'vsdcRcptPbctDate': PropertySchema(
-      id: 12,
+      id: BigInt.parse("12").toInt(),
       name: r'vsdcRcptPbctDate',
       type: IsarType.string,
     )
@@ -90,7 +90,7 @@ const ReceiptSchema = CollectionSchema(
   idName: r'id',
   indexes: {
     r'orderId': IndexSchema(
-      id: -6176610178429382285,
+      id: BigInt.parse("-6176610178429382285").toInt(),
       name: r'orderId',
       unique: false,
       replace: false,
@@ -108,7 +108,7 @@ const ReceiptSchema = CollectionSchema(
   getId: _receiptGetId,
   getLinks: _receiptGetLinks,
   attach: _receiptAttach,
-  version: '3.1.0+1',
+  version: '3.1.0',
 );
 
 int _receiptEstimateSize(

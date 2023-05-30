@@ -12,6 +12,7 @@ import 'package:flipper_models/sync.dart';
 import 'package:flipper_services/abstractions/system_time.dart';
 import 'package:flipper_services/billing_service.dart';
 import 'package:flipper_services/blue_thooth_service.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/event_interface.dart';
 import 'package:flipper_services/firebase_analytics_service.dart';
 import 'package:flipper_services/force_data_service.dart';
@@ -35,6 +36,7 @@ import 'abstractions/remote.dart';
 import 'abstractions/shareable.dart';
 import 'abstractions/storage.dart';
 import 'abstractions/upload.dart';
+import 'abstracts.dart';
 import 'app_service.dart';
 import 'country_service.dart';
 import 'dynamic_link_service.dart';
@@ -46,13 +48,9 @@ import 'location_service.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:flipper_models/isar_api.dart';
 
-final isWindows = UniversalPlatform.isWindows;
-
-final String platform = (!isWindows) ? 'mobile' : 'windows';
-
 @module
-abstract class ThirdPartyServicesModule {
-  @lazySingleton
+abstract class ServicesModule {
+  @LazySingleton()
   UploadT get upload {
     UploadT upload;
     if (UniversalPlatform.isAndroid || UniversalPlatform.isIOS) {
@@ -63,7 +61,7 @@ abstract class ThirdPartyServicesModule {
     return upload;
   }
 
-  @lazySingleton
+  @LazySingleton()
   Shareable get share {
     Shareable share;
 
@@ -72,7 +70,7 @@ abstract class ThirdPartyServicesModule {
     return share;
   }
 
-  @lazySingleton
+  @LazySingleton()
   Review get review {
     Review review;
     if (UniversalPlatform.isAndroid ||
@@ -85,7 +83,7 @@ abstract class ThirdPartyServicesModule {
     return review;
   }
 
-  @lazySingleton
+  @LazySingleton()
   Messaging get messaging {
     Messaging messaging;
     if (UniversalPlatform.isAndroid ||
@@ -98,7 +96,7 @@ abstract class ThirdPartyServicesModule {
     return messaging;
   }
 
-  @lazySingleton
+  @LazySingleton()
   Crash get crash {
     Crash crash;
     if (UniversalPlatform.isAndroid ||
@@ -111,7 +109,7 @@ abstract class ThirdPartyServicesModule {
     return crash;
   }
 
-  @lazySingleton
+  @LazySingleton()
   DynamicLink get dynamicLink {
     DynamicLink dynamicLink;
     if (UniversalPlatform.isAndroid || UniversalPlatform.isIOS) {
@@ -122,7 +120,7 @@ abstract class ThirdPartyServicesModule {
     return dynamicLink;
   }
 
-  @lazySingleton
+  @LazySingleton()
   Remote get remote {
     late Remote remote;
     if (UniversalPlatform.isAndroid || UniversalPlatform.isMacOS) {
@@ -133,12 +131,10 @@ abstract class ThirdPartyServicesModule {
     return remote;
   }
 
-  @lazySingleton
+  @LazySingleton()
   Printer get printService {
     late Printer printService;
-    if (
-        // UniversalPlatform.isWindows ||
-        UniversalPlatform.isAndroid || UniversalPlatform.isMacOS) {
+    if (UniversalPlatform.isAndroid) {
       printService = BlueToothPrinterService();
     } else {
       printService = WindowsBlueToothPrinterService();
@@ -146,7 +142,7 @@ abstract class ThirdPartyServicesModule {
     return printService;
   }
 
-  @lazySingleton
+  @LazySingleton()
   Analytic get appAnalytic {
     late Analytic appAnalytic;
     if (UniversalPlatform.isAndroid) {
@@ -157,7 +153,7 @@ abstract class ThirdPartyServicesModule {
     return appAnalytic;
   }
 
-  @lazySingleton
+  @LazySingleton()
   Country get country {
     late Country country;
     if (UniversalPlatform.isAndroid ||
@@ -170,7 +166,7 @@ abstract class ThirdPartyServicesModule {
     return country;
   }
 
-  @lazySingleton
+  @LazySingleton()
   SystemTime get systemTime {
     late SystemTime systemTime;
     if (UniversalPlatform.isAndroid) {
@@ -181,14 +177,14 @@ abstract class ThirdPartyServicesModule {
     return systemTime;
   }
 
-  @lazySingleton
+  @LazySingleton()
   WhatsApp get whatsApp {
     late WhatsApp whatsApp;
     whatsApp = Marketing();
     return whatsApp;
   }
 
-  @lazySingleton
+  @LazySingleton()
   KeyPadService get keypadService;
 
   @preResolve
@@ -196,12 +192,13 @@ abstract class ThirdPartyServicesModule {
     return await RemoteService().getInstance();
   }
 
-  @lazySingleton
+  @LazySingleton()
   LocalStorage box() {
+    log("loading a box");
     return LocalStorageImpl();
   }
 
-  @lazySingleton
+  @LazySingleton()
   EventInterface get event {
     return EventService();
   }
@@ -252,7 +249,7 @@ abstract class ThirdPartyServicesModule {
   }
 
   //TODOcheck if code from LanguageService can work fully on windows
-  @lazySingleton
+  @LazySingleton()
   Language get languageService {
     late Language languageService;
     if (UniversalPlatform.isAndroid ||
@@ -265,7 +262,7 @@ abstract class ThirdPartyServicesModule {
     return languageService;
   }
 
-  @lazySingleton
+  @LazySingleton()
   TaxApi get taxApiService {
     late TaxApi taxApiService;
 
@@ -276,7 +273,7 @@ abstract class ThirdPartyServicesModule {
     return taxApiService;
   }
 
-  @lazySingleton
+  @LazySingleton()
   LNotification get notification {
     late LNotification notificationService;
     if (UniversalPlatform.isAndroid ||
@@ -289,81 +286,47 @@ abstract class ThirdPartyServicesModule {
     return notificationService;
   }
 
-  @lazySingleton
+  @LazySingleton()
   FlipperLocation get location {
     FlipperLocation location;
-    switch (platform) {
-      case "windows":
-        location = WindowsLocationService();
-        break;
-      default:
-        location = LocationService();
+    if (isWindows) {
+      location = WindowsLocationService();
+    } else {
+      location = LocationService();
     }
     return location;
   }
 
-  @lazySingleton
-  AppService get appService;
-
-  @lazySingleton
-  ProductService get productService;
-
-  @lazySingleton
-  SettingsService get settings;
-
-  @lazySingleton
-  CronService get cron;
-
-  @lazySingleton
-  SyncApiInterface get sync => SyncApiInterface.create();
-
-  // @lazySingleton
-  // PdfInvoiceApi get pdfInvoice;
-
-  // @lazySingleton
-  // PdfApi get pdfApi;
-
-  @lazySingleton
-  ForceDataEntryService get forcedataEntry;
-
-  @lazySingleton
-  BillingService get billing;
-}
-
-class WindowsBlueToothPrinterService implements Printer {
-  @override
-  Future<bool> connect() async {
-    // TODO: implement connect
-    // throw UnimplementedError();
-    return false;
+  @LazySingleton()
+  AppService appService() {
+    return AppService();
   }
 
-  @override
-  Future<List?> blueTooths() async {
-    return null;
-
-    // TODO: implement getBluetooths
-    // throw UnimplementedError();
+  @LazySingleton()
+  ProductService productService() {
+    return ProductService();
   }
 
-  @override
-  Future sendToPrinter() async {
-    // TODO: implement sendToPrinter
-    // throw UnimplementedError();
-  }
-}
+  @LazySingleton()
+  SettingsService get settingsService;
 
-class WindowsLocationService implements FlipperLocation {
-  @override
-  Future<Map<String, String>> getLocations() async {
-    return {
-      "longitude": "11",
-      "latitude": "11"
-    }; //for windows it is not supported then please use the default
+  @LazySingleton()
+  CronService cron() {
+    return CronService();
   }
 
-  @override
-  Future<bool> doWeHaveLocationPermission() async {
-    return false; //so we can return default.
+  @LazySingleton()
+  SyncApiInterface sync() {
+    return SyncApiInterface.create();
+  }
+
+  @LazySingleton()
+  ForceDataEntryService forcedataEntry() {
+    return ForceDataEntryService();
+  }
+
+  @LazySingleton()
+  BillingService billing() {
+    return BillingService();
   }
 }

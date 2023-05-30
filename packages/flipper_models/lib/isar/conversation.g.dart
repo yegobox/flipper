@@ -13,87 +13,87 @@ extension GetConversationCollection on Isar {
   IsarCollection<Conversation> get conversations => this.collection();
 }
 
-const ConversationSchema = CollectionSchema(
+final ConversationSchema = CollectionSchema(
   name: r'Conversation',
-  id: 7261696243536555740,
+  id: BigInt.parse("7261696243536555740").toInt(),
   properties: {
     r'avatar': PropertySchema(
-      id: 0,
+      id: BigInt.parse("0").toInt(),
       name: r'avatar',
       type: IsarType.string,
     ),
     r'body': PropertySchema(
-      id: 1,
+      id: BigInt.parse("1").toInt(),
       name: r'body',
       type: IsarType.string,
     ),
     r'businessId': PropertySchema(
-      id: 2,
+      id: BigInt.parse("2").toInt(),
       name: r'businessId',
       type: IsarType.string,
     ),
     r'businessPhoneNumber': PropertySchema(
-      id: 3,
+      id: BigInt.parse("3").toInt(),
       name: r'businessPhoneNumber',
       type: IsarType.string,
     ),
     r'channelType': PropertySchema(
-      id: 4,
+      id: BigInt.parse("4").toInt(),
       name: r'channelType',
       type: IsarType.string,
     ),
     r'conversationId': PropertySchema(
-      id: 5,
+      id: BigInt.parse("5").toInt(),
       name: r'conversationId',
       type: IsarType.string,
     ),
     r'createdAt': PropertySchema(
-      id: 6,
+      id: BigInt.parse("6").toInt(),
       name: r'createdAt',
       type: IsarType.string,
     ),
     r'delivered': PropertySchema(
-      id: 7,
+      id: BigInt.parse("7").toInt(),
       name: r'delivered',
       type: IsarType.bool,
     ),
     r'fromNumber': PropertySchema(
-      id: 8,
+      id: BigInt.parse("8").toInt(),
       name: r'fromNumber',
       type: IsarType.string,
     ),
     r'messageId': PropertySchema(
-      id: 9,
+      id: BigInt.parse("9").toInt(),
       name: r'messageId',
       type: IsarType.string,
     ),
     r'messageType': PropertySchema(
-      id: 10,
+      id: BigInt.parse("10").toInt(),
       name: r'messageType',
       type: IsarType.string,
     ),
     r'phoneNumberId': PropertySchema(
-      id: 11,
+      id: BigInt.parse("11").toInt(),
       name: r'phoneNumberId',
       type: IsarType.string,
     ),
     r'respondedBy': PropertySchema(
-      id: 12,
+      id: BigInt.parse("12").toInt(),
       name: r'respondedBy',
       type: IsarType.string,
     ),
     r'scheduledAt': PropertySchema(
-      id: 13,
+      id: BigInt.parse("13").toInt(),
       name: r'scheduledAt',
       type: IsarType.dateTime,
     ),
     r'toNumber': PropertySchema(
-      id: 14,
+      id: BigInt.parse("14").toInt(),
       name: r'toNumber',
       type: IsarType.string,
     ),
     r'userName': PropertySchema(
-      id: 15,
+      id: BigInt.parse("15").toInt(),
       name: r'userName',
       type: IsarType.string,
     )
@@ -105,7 +105,7 @@ const ConversationSchema = CollectionSchema(
   idName: r'id',
   indexes: {
     r'createdAt': IndexSchema(
-      id: -3433535483987302584,
+      id: BigInt.parse("-3433535483987302584").toInt(),
       name: r'createdAt',
       unique: false,
       replace: false,
@@ -118,7 +118,7 @@ const ConversationSchema = CollectionSchema(
       ],
     ),
     r'messageId': IndexSchema(
-      id: -635287409172016016,
+      id: BigInt.parse("-635287409172016016").toInt(),
       name: r'messageId',
       unique: false,
       replace: false,
@@ -136,7 +136,7 @@ const ConversationSchema = CollectionSchema(
   getId: _conversationGetId,
   getLinks: _conversationGetLinks,
   attach: _conversationAttach,
-  version: '3.1.0+1',
+  version: '3.1.0',
 );
 
 int _conversationEstimateSize(
