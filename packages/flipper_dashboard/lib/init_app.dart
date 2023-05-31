@@ -42,7 +42,6 @@ class InitApp {
 
     ProxyService.messaging
         .initializeFirebaseMessagingAndSubscribeToBusinessNotifications();
-    ProxyService.messaging.listenTapOnNotificationFromBackground();
     ProxyService.messaging.listenTapOnNotificationForeground();
     if (isDesktopOrWeb) {
       ProxyService.event.subscribeToLogoutEvent(

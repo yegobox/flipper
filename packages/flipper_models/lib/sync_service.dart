@@ -55,6 +55,7 @@ class SynchronizationService<M extends IJsonSerializable>
           result = await ProxyService.remoteApi
               .update(data: json, collectionName: endpoint, recordId: remoteID);
         }
+        // ignore: unnecessary_null_comparison
       } else if (json['action'] == 'create' || result == null) {
         result = await ProxyService.remoteApi
             .create(collection: json, collectionName: endpoint);

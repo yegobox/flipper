@@ -6,15 +6,12 @@ import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
-import 'package:number_display/number_display.dart';
+import 'package:intl/intl.dart';
 
 class Payments extends StatelessWidget {
   Payments({Key? key, required this.order, required this.duePay})
       : super(key: key);
-  final display = createDisplay(
-    length: 8,
-    decimal: 0,
-  );
+
   final Order order;
   final _routerService = locator<RouterService>();
   final double duePay;
@@ -46,7 +43,7 @@ class Payments extends StatelessWidget {
                           const SizedBox(height: 40),
                           model.kOrder != null
                               ? Text(
-                                  'FRw ' + display(duePay).toString(),
+                                  'FRw ' + NumberFormat('#,###').format(duePay),
                                   style: const TextStyle(
                                       fontSize: 20.0,
                                       fontWeight: FontWeight.bold),

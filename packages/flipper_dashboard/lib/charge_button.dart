@@ -4,9 +4,9 @@ import 'package:flipper_routing/app.router.dart';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:number_display/number_display.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:intl/intl.dart';
 
 class ChargeButton extends StatelessWidget {
   ChargeButton({Key? key, required this.duePay, required this.model})
@@ -14,10 +14,6 @@ class ChargeButton extends StatelessWidget {
   final double? duePay;
   final BusinessHomeViewModel model;
   final _routerService = locator<RouterService>();
-  final display = createDisplay(
-    length: 8,
-    decimal: 4,
-  );
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -54,7 +50,7 @@ class ChargeButton extends StatelessWidget {
             child: Text(
               FLocalization.of(context).charge +
                   ' ' +
-                  display(duePay ?? 0.00).toString() +
+                  NumberFormat('#,###').format(duePay ?? 0.00) +
                   ' FRw ',
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(

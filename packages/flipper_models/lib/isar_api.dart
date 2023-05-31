@@ -5,8 +5,6 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_models/data.loads/jcounter.dart';
-import 'package:flipper_models/hlc.dart';
-import 'package:flipper_models/isar/utils.dart';
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_models/socials_http_client.dart';
@@ -364,9 +362,6 @@ class IsarAPI<M> implements IsarApiInterface {
     order.customerChangeDue = (cashReceived - totalPayable!);
 
     order.cashReceived = cashReceived;
-    order.lastTouched = removeTrailingDash(
-        Hlc.fromDate(DateTime.now(), ProxyService.box.getBranchId()!.toString())
-            .toString());
 
     await update(data: order);
 
@@ -374,9 +369,6 @@ class IsarAPI<M> implements IsarApiInterface {
       Stock? stock = await stockByVariantId(variantId: item.variantId);
       stock?.currentStock = stock.currentStock - item.qty;
       stock?.action = actions["update"];
-      stock?.lastTouched = removeTrailingDash(Hlc.fromDate(
-              DateTime.now(), ProxyService.box.getBranchId()!.toString())
-          .toString());
       update(data: stock);
     }
     // remove currentOrderId from local storage to leave a room
@@ -2335,7 +2327,8 @@ class IsarAPI<M> implements IsarApiInterface {
         message.userName = conversation.userName;
         message.phoneNumberId = conversation.phoneNumberId;
         message.businessId = conversation.businessId;
-        message.businessPhoneNumber = conversation.businessPhoneNumber;
+        message.businessPhoneNumber =
+            ProxyService.box.getUserPhone()!.replaceAll("+", "");
         isar.writeTxn(() async {
           await isar.conversations.put(message);
         });
@@ -2444,7 +2437,7 @@ class IsarAPI<M> implements IsarApiInterface {
   Future<void> patchSocialSetting({required Setting setting}) async {
     /// a hack to delay 20 seconds for theserver to not return forbidden as we have called the aws api before
     /// so we need to wait 20 seconds to make another call, I will need to investigate on server later
-    await Future.delayed(Duration(seconds: 20));
+    // await Future.delayed(Duration(seconds: 20));
     int businessId = ProxyService.box.getBusinessId()!;
     final http.Response response =
         await socialsHttpClient.patch(Uri.parse("$commApi/settings"),
@@ -2509,12 +2502,6 @@ class IsarAPI<M> implements IsarApiInterface {
     return isar.iTenants.filter().userIdEqualTo(userId).build().findFirst();
   }
 
-  String decodeUrl(String url) {
-    var decodedUrl = Uri.parse(url).replace(
-        pathSegments: url.split('&#x2F;&#x2F;').map((e) => Uri.encodeFull(e)));
-    return decodedUrl.toString();
-  }
-
   @override
   Future<void> loadConversations(
       {required int businessId,
@@ -2529,6 +2516,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
     if (response.statusCode == 200) {
       final messagesJson = jsonDecode(response.body)['messages'];
+      if (messagesJson == null) return;
       List<Conversation> messages = (messagesJson as List<dynamic>)
           .map((e) => Conversation.fromJson(e))
           .toList();

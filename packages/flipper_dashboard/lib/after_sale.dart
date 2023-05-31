@@ -5,12 +5,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:number_display/number_display.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'customappbar.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:intl/intl.dart';
 
 class AfterSale extends StatefulWidget {
   const AfterSale(
@@ -28,10 +28,6 @@ class AfterSale extends StatefulWidget {
 }
 
 class _AfterSaleState extends State<AfterSale> {
-  final display = createDisplay(
-    length: 8,
-    decimal: 0,
-  );
   final _routerService = locator<RouterService>();
   @override
   void initState() {
@@ -70,7 +66,8 @@ class _AfterSaleState extends State<AfterSale> {
                           const SizedBox(height: 40),
                           Text(
                             'FRw' +
-                                display(model.keypad.cashReceived -
+                                NumberFormat('#,###')
+                                    .format(model.keypad.cashReceived -
                                         widget.totalOrderAmount)
                                     .toString() +
                                 ' Change',
@@ -82,7 +79,8 @@ class _AfterSaleState extends State<AfterSale> {
                           const SizedBox(height: 10),
                           Text(
                             'Out of FRw ' +
-                                model.keypad.cashReceived.toStringAsFixed(0),
+                                NumberFormat('#,###')
+                                    .format(model.keypad.cashReceived),
                             style: GoogleFonts.poppins(
                                 fontWeight: FontWeight.w400,
                                 fontSize: 18,

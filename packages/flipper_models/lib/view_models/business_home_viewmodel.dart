@@ -627,11 +627,13 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     int branchId = ProxyService.box.getBranchId()!;
     List<Order> completedOrders =
         await ProxyService.isarApi.completedOrders(branchId: branchId);
+    Set<OrderItem> allItems = {};
     for (Order completedOrder in completedOrders) {
       List<OrderItem> orderItems = await ProxyService.isarApi
           .getOrderItemsByOrderId(orderId: completedOrder.id!);
-      orderItems.addAll(orderItems);
+      allItems.addAll(orderItems.toSet());
     }
+    orderItems = allItems.toList();
     notifyListeners();
   }
 
@@ -820,10 +822,21 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     }
   }
 
+  /// This function gets the default tenant for the current user.
+  ///
+  /// The function first gets the user ID from the `ProxyService`.
+  /// Then, it calls the `getTenantBYUserId` method on the `ProxyService` to get the tenant for the user ID.
+  /// If the tenant is not found, the function throws an exception. because every default business owner should have
+  /// one default tenant
+  /// Finally, the function sets the tenant on the `app` object.
+
   void defaultTenant() async {
-    ITenant? tenant = await ProxyService.isarApi
-        .getTenantBYUserId(userId: ProxyService.box.getUserId()!);
-    app.setTenant(tenant: tenant!);
+    final userId = ProxyService.box.getUserId()!;
+    final tenant = await ProxyService.isarApi.getTenantBYUserId(userId: userId);
+    if (tenant == null) {
+      throw Exception("could not find tenant with ${userId}");
+    }
+    app.setTenant(tenant: tenant);
   }
 
   void setDefaultBusiness({required Business business}) {
