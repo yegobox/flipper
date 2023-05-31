@@ -1,4 +1,4 @@
-package com.example.flipper
+package rw.flipper
 
 import io.flutter.embedding.android.FlutterActivity
 
