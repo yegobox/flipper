@@ -18,8 +18,8 @@ const platformWeb = Environment('platformWeb');
 initDependencies({
   String? env,
   EnvironmentFilter? environmentFilter,
-}) {
-  return locator.init(
+}) async {
+  return await locator.init(
     environmentFilter: environmentFilter,
     environment: env,
   );

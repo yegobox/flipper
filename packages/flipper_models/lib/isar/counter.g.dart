@@ -13,37 +13,37 @@ extension GetCounterCollection on Isar {
   IsarCollection<Counter> get counters => this.collection();
 }
 
-final CounterSchema = CollectionSchema(
+const CounterSchema = CollectionSchema(
   name: r'Counter',
-  id: BigInt.parse("-8560901831524329398").toInt(),
+  id: -8560901831524329398,
   properties: {
     r'backed': PropertySchema(
-      id: BigInt.parse("0").toInt(),
+      id: 0,
       name: r'backed',
       type: IsarType.bool,
     ),
     r'branchId': PropertySchema(
-      id: BigInt.parse("1").toInt(),
+      id: 1,
       name: r'branchId',
       type: IsarType.long,
     ),
     r'businessId': PropertySchema(
-      id: BigInt.parse("2").toInt(),
+      id: 2,
       name: r'businessId',
       type: IsarType.long,
     ),
     r'curRcptNo': PropertySchema(
-      id: BigInt.parse("3").toInt(),
+      id: 3,
       name: r'curRcptNo',
       type: IsarType.long,
     ),
     r'receiptType': PropertySchema(
-      id: BigInt.parse("4").toInt(),
+      id: 4,
       name: r'receiptType',
       type: IsarType.string,
     ),
     r'totRcptNo': PropertySchema(
-      id: BigInt.parse("5").toInt(),
+      id: 5,
       name: r'totRcptNo',
       type: IsarType.long,
     )
@@ -59,7 +59,7 @@ final CounterSchema = CollectionSchema(
   getId: _counterGetId,
   getLinks: _counterGetLinks,
   attach: _counterAttach,
-  version: '3.1.0',
+  version: '3.1.0+1',
 );
 
 int _counterEstimateSize(

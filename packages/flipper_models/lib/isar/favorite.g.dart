@@ -13,12 +13,12 @@ extension GetFavoriteCollection on Isar {
   IsarCollection<Favorite> get favorites => this.collection();
 }
 
-final FavoriteSchema = CollectionSchema(
+const FavoriteSchema = CollectionSchema(
   name: r'Favorite',
-  id: BigInt.parse("5577971995748139032").toInt(),
+  id: 5577971995748139032,
   properties: {
     r'name': PropertySchema(
-      id: BigInt.parse("0").toInt(),
+      id: 0,
       name: r'name',
       type: IsarType.string,
     )
@@ -31,7 +31,7 @@ final FavoriteSchema = CollectionSchema(
   indexes: {},
   links: {
     r'product': LinkSchema(
-      id: BigInt.parse("-7956638849048948629").toInt(),
+      id: -7956638849048948629,
       name: r'product',
       target: r'Product',
       single: true,
@@ -41,7 +41,7 @@ final FavoriteSchema = CollectionSchema(
   getId: _favoriteGetId,
   getLinks: _favoriteGetLinks,
   attach: _favoriteAttach,
-  version: '3.1.0',
+  version: '3.1.0+1',
 );
 
 int _favoriteEstimateSize(

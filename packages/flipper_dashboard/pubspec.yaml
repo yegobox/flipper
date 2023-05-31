@@ -13,11 +13,11 @@ dependencies:
 
   flipper_routing: ^0.0.1-dev.3
 
-  timeago: ^3.2.1
+  timeago: ^3.4.0
   mime: ^1.0.1
   open_filex: ^4.1.1
   ant_icons: ^2.0.0-nullsafety.0
-  pubnub: ^4.2.2
+  pubnub: ^4.2.3
   feather_icons: ^1.1.0-nullsafety.0
   flex_color_scheme: ^4.2.0
   image_picker: ^0.8.7+5
@@ -44,24 +44,24 @@ dependencies:
   google_fonts: ^4.0.3
   number_display: ^3.0.0
   firebase_auth_desktop: ^1.0.2-flipper
-  firebase_core: ^2.13.0
+  firebase_core: ^2.13.1
   firebase_core_desktop: ^1.0.2-dev
   cupertino_icons: ^1.0.4
   flipper_services: ^0.0.1-dev.6
   flutter_vector_icons: ^1.0.0
 
-  uuid: ^3.0.5
+  uuid: ^3.0.7
   flipper_login: ^0.0.1-dev.5
   intl: ^0.18.0
-  flutter_riverpod: ^1.0.1
+  flutter_riverpod: ^2.3.6
 
-  connectivity_plus: ^2.2.0
+  connectivity_plus: ^4.0.1
   flipper_data_table: ^1.0.0-dev.2
-  device_info_plus: ^9.0.0
+  device_info_plus: ^9.0.2
   provider: ^6.0.2
   gap: ^2.0.0
   barcode: ^2.2.0
-  qr_flutter: ^4.0.1
+  qr_flutter: ^4.1.0
   flutter_datetime_picker: ^1.5.2
   receipt: ^1.0.0
   # Splash screen handle
@@ -74,7 +74,7 @@ dependencies:
   flutter_windowmanager: ^0.2.0
   fluentui_system_icons: ^1.1.198
   keyboard_visibility_pro: ^0.0.1
-  battery_plus: ^3.0.3
+  battery_plus: ^4.0.1
   easy_sidemenu:
     git:
       url: https://github.com/Jamalianpour/easy_sidemenu.git

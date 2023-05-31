@@ -1,14 +1,17 @@
 # Project-level configuration.
 cmake_minimum_required(VERSION 3.14)
-project(appbar LANGUAGES CXX)
+project(flipper LANGUAGES CXX)
 
 # The name of the executable created for the application. Change this to change
 # the on-disk name of your application.
-set(BINARY_NAME "appbar")
-set(CMAKE_BUILD_TYPE "Release")
+set(BINARY_NAME "flipper")
+
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.
 cmake_policy(SET CMP0063 NEW)
+
+# TODO: remove this after the firebase_core is fully fixed
+set(CMAKE_BUILD_TYPE "Release")
 
 # Define build configuration option.
 get_property(IS_MULTICONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
@@ -51,6 +54,7 @@ add_subdirectory(${FLUTTER_MANAGED_DIR})
 
 # Application build; see runner/CMakeLists.txt.
 add_subdirectory("runner")
+
 
 # Generated plugin build rules, which manage building the plugins and adding
 # them to the application.

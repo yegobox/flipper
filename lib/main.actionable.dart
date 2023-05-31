@@ -1,5 +1,6 @@
-import 'package:flipper_actionable/actionable.dart';
-import 'package:flipper_actionable/locator.dart';
+import 'package:flipper_actionable/actionable.dart' show Actionable, hexToColor;
+// import 'package:flipper_actionable/locator.dart';
+import 'package:flipper_services/locator.dart';
 import 'package:flutter/material.dart';
 
 void main() async {

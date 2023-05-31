@@ -13,32 +13,32 @@ extension GetPinCollection on Isar {
   IsarCollection<Pin> get pins => this.collection();
 }
 
-final PinSchema = CollectionSchema(
+const PinSchema = CollectionSchema(
   name: r'Pin',
-  id: BigInt.parse("-7991167910665163133").toInt(),
+  id: -7991167910665163133,
   properties: {
     r'branchId': PropertySchema(
-      id: BigInt.parse("0").toInt(),
+      id: 0,
       name: r'branchId',
       type: IsarType.long,
     ),
     r'businessId': PropertySchema(
-      id: BigInt.parse("1").toInt(),
+      id: 1,
       name: r'businessId',
       type: IsarType.long,
     ),
     r'phoneNumber': PropertySchema(
-      id: BigInt.parse("2").toInt(),
+      id: 2,
       name: r'phoneNumber',
       type: IsarType.string,
     ),
     r'pin': PropertySchema(
-      id: BigInt.parse("3").toInt(),
+      id: 3,
       name: r'pin',
       type: IsarType.long,
     ),
     r'userId': PropertySchema(
-      id: BigInt.parse("4").toInt(),
+      id: 4,
       name: r'userId',
       type: IsarType.string,
     )
@@ -54,7 +54,7 @@ final PinSchema = CollectionSchema(
   getId: _pinGetId,
   getLinks: _pinGetLinks,
   attach: _pinAttach,
-  version: '3.1.0',
+  version: '3.1.0+1',
 );
 
 int _pinEstimateSize(

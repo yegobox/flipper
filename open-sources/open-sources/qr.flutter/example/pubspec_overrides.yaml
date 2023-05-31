@@ -1,4 +1,0 @@
-# melos_managed_dependency_overrides: qr_flutter
-dependency_overrides:
-  qr_flutter:
-    path: ..

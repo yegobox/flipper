@@ -8,8 +8,8 @@ import 'package:stacked/stacked.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'proxy.dart';
-import 'package:flutter_statusbarcolor_ns/flutter_statusbarcolor_ns.dart';
-import 'package:flipper_nfc/flipper_nfc.dart';
+// import 'package:flutter_statusbarcolor_ns/flutter_statusbarcolor_ns.dart';
+// import 'package:flipper_nfc/flipper_nfc.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -228,7 +228,7 @@ class AppService with ListenableServiceMixin {
     }
   }
 
-  NFCManager nfc = NFCManager();
+  // NFCManager nfc = NFCManager();
   static final StreamController<String> cleanedDataController =
       StreamController<String>.broadcast();
   static Stream<String> get cleanedData => cleanedDataController.stream;
@@ -333,19 +333,19 @@ class AppService with ListenableServiceMixin {
   String get statusText => _statusText;
 
   Future<void> appBarColor(material.Color color) async {
-    if (!isWindows) {
-      await FlutterStatusbarcolor.setStatusBarColor(color);
+    if (!isDesktopOrWeb) {
+      // await FlutterStatusbarcolor.setStatusBarColor(color);
       _statusColor = color;
-      if (useWhiteForeground(color)) {
-        SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark.copyWith(
-          statusBarBrightness: Brightness.dark,
-        ));
-      } else {
-        SystemChrome.setSystemUIOverlayStyle(
-            SystemUiOverlayStyle.light.copyWith(
-          statusBarBrightness: Brightness.light,
-        ));
-      }
+      // if (useWhiteForeground(color)) {
+      //   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark.copyWith(
+      //     statusBarBrightness: Brightness.dark,
+      //   ));
+      // } else {
+      //   SystemChrome.setSystemUIOverlayStyle(
+      //       SystemUiOverlayStyle.light.copyWith(
+      //     statusBarBrightness: Brightness.light,
+      //   ));
+      // }
     }
   }
 

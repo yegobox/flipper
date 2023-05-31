@@ -1,4 +1,4 @@
-import 'package:in_app_review/in_app_review.dart';
+// import 'package:in_app_review/in_app_review.dart';
 import 'dart:math';
 
 abstract class Review {
@@ -13,7 +13,7 @@ class UnSupportedReview implements Review {
 }
 
 class InAppReviewService implements Review {
-  final InAppReview inAppReview = InAppReview.instance;
+  // final InAppReview inAppReview = InAppReview.instance;
 
   @override
   void review() async {
@@ -23,9 +23,9 @@ class InAppReviewService implements Review {
 
     if (r.isEven) {
       //this is to occasionally show the rating of flipper to the user
-      if (await inAppReview.isAvailable()) {
-        inAppReview.requestReview();
-      }
+      // if (await inAppReview.isAvailable()) {
+      //   inAppReview.requestReview();
+      // }
     }
   }
 }

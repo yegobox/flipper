@@ -1,4 +1,0 @@
-# melos_managed_dependency_overrides: dart_console
-dependency_overrides:
-  dart_console:
-    path: ..\\dart_console

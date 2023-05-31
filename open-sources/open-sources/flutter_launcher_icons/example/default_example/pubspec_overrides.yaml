@@ -1,4 +1,0 @@
-# melos_managed_dependency_overrides: flutter_launcher_icons
-dependency_overrides:
-  flutter_launcher_icons:
-    path: ..\\..

@@ -13,57 +13,57 @@ extension GetDeviceCollection on Isar {
   IsarCollection<Device> get devices => this.collection();
 }
 
-final DeviceSchema = CollectionSchema(
+const DeviceSchema = CollectionSchema(
   name: r'Device',
-  id: BigInt.parse("3491430514663294648").toInt(),
+  id: 3491430514663294648,
   properties: {
     r'branchId': PropertySchema(
-      id: BigInt.parse("0").toInt(),
+      id: 0,
       name: r'branchId',
       type: IsarType.long,
     ),
     r'busienssId': PropertySchema(
-      id: BigInt.parse("1").toInt(),
+      id: 1,
       name: r'busienssId',
       type: IsarType.long,
     ),
     r'businessId': PropertySchema(
-      id: BigInt.parse("2").toInt(),
+      id: 2,
       name: r'businessId',
       type: IsarType.long,
     ),
     r'defaultApp': PropertySchema(
-      id: BigInt.parse("3").toInt(),
+      id: 3,
       name: r'defaultApp',
       type: IsarType.long,
     ),
     r'deviceName': PropertySchema(
-      id: BigInt.parse("4").toInt(),
+      id: 4,
       name: r'deviceName',
       type: IsarType.string,
     ),
     r'deviceVersion': PropertySchema(
-      id: BigInt.parse("5").toInt(),
+      id: 5,
       name: r'deviceVersion',
       type: IsarType.string,
     ),
     r'linkingCode': PropertySchema(
-      id: BigInt.parse("6").toInt(),
+      id: 6,
       name: r'linkingCode',
       type: IsarType.string,
     ),
     r'phone': PropertySchema(
-      id: BigInt.parse("7").toInt(),
+      id: 7,
       name: r'phone',
       type: IsarType.string,
     ),
     r'pubNubPublished': PropertySchema(
-      id: BigInt.parse("8").toInt(),
+      id: 8,
       name: r'pubNubPublished',
       type: IsarType.bool,
     ),
     r'userId': PropertySchema(
-      id: BigInt.parse("9").toInt(),
+      id: 9,
       name: r'userId',
       type: IsarType.long,
     )
@@ -79,7 +79,7 @@ final DeviceSchema = CollectionSchema(
   getId: _deviceGetId,
   getLinks: _deviceGetLinks,
   attach: _deviceAttach,
-  version: '3.1.0',
+  version: '3.1.0+1',
 );
 
 int _deviceEstimateSize(

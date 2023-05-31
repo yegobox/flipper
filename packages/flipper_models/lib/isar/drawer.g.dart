@@ -13,92 +13,92 @@ extension GetDrawersCollection on Isar {
   IsarCollection<Drawers> get drawers => this.collection();
 }
 
-final DrawersSchema = CollectionSchema(
+const DrawersSchema = CollectionSchema(
   name: r'Drawers',
-  id: BigInt.parse("2445380984406039333").toInt(),
+  id: 2445380984406039333,
   properties: {
     r'cashierId': PropertySchema(
-      id: BigInt.parse("0").toInt(),
+      id: 0,
       name: r'cashierId',
       type: IsarType.long,
     ),
     r'closingBalance': PropertySchema(
-      id: BigInt.parse("1").toInt(),
+      id: 1,
       name: r'closingBalance',
       type: IsarType.double,
     ),
     r'closingDateTime': PropertySchema(
-      id: BigInt.parse("2").toInt(),
+      id: 2,
       name: r'closingDateTime',
       type: IsarType.string,
     ),
     r'csSaleCount': PropertySchema(
-      id: BigInt.parse("3").toInt(),
+      id: 3,
       name: r'csSaleCount',
       type: IsarType.long,
     ),
     r'incompleteSale': PropertySchema(
-      id: BigInt.parse("4").toInt(),
+      id: 4,
       name: r'incompleteSale',
       type: IsarType.long,
     ),
     r'nrSaleCount': PropertySchema(
-      id: BigInt.parse("5").toInt(),
+      id: 5,
       name: r'nrSaleCount',
       type: IsarType.long,
     ),
     r'nsSaleCount': PropertySchema(
-      id: BigInt.parse("6").toInt(),
+      id: 6,
       name: r'nsSaleCount',
       type: IsarType.long,
     ),
     r'open': PropertySchema(
-      id: BigInt.parse("7").toInt(),
+      id: 7,
       name: r'open',
       type: IsarType.bool,
     ),
     r'openingBalance': PropertySchema(
-      id: BigInt.parse("8").toInt(),
+      id: 8,
       name: r'openingBalance',
       type: IsarType.double,
     ),
     r'openingDateTime': PropertySchema(
-      id: BigInt.parse("9").toInt(),
+      id: 9,
       name: r'openingDateTime',
       type: IsarType.string,
     ),
     r'otherTransactions': PropertySchema(
-      id: BigInt.parse("10").toInt(),
+      id: 10,
       name: r'otherTransactions',
       type: IsarType.long,
     ),
     r'paymentMode': PropertySchema(
-      id: BigInt.parse("11").toInt(),
+      id: 11,
       name: r'paymentMode',
       type: IsarType.string,
     ),
     r'psSaleCount': PropertySchema(
-      id: BigInt.parse("12").toInt(),
+      id: 12,
       name: r'psSaleCount',
       type: IsarType.long,
     ),
     r'totalCsSaleIncome': PropertySchema(
-      id: BigInt.parse("13").toInt(),
+      id: 13,
       name: r'totalCsSaleIncome',
       type: IsarType.double,
     ),
     r'totalNsSaleIncome': PropertySchema(
-      id: BigInt.parse("14").toInt(),
+      id: 14,
       name: r'totalNsSaleIncome',
       type: IsarType.double,
     ),
     r'trSaleCount': PropertySchema(
-      id: BigInt.parse("15").toInt(),
+      id: 15,
       name: r'trSaleCount',
       type: IsarType.long,
     ),
     r'tradeName': PropertySchema(
-      id: BigInt.parse("16").toInt(),
+      id: 16,
       name: r'tradeName',
       type: IsarType.string,
     )
@@ -110,7 +110,7 @@ final DrawersSchema = CollectionSchema(
   idName: r'id',
   indexes: {
     r'cashierId': IndexSchema(
-      id: BigInt.parse("-7056910165772930902").toInt(),
+      id: -7056910165772930902,
       name: r'cashierId',
       unique: false,
       replace: false,
@@ -123,7 +123,7 @@ final DrawersSchema = CollectionSchema(
       ],
     ),
     r'open_cashierId': IndexSchema(
-      id: BigInt.parse("-4902731535873747548").toInt(),
+      id: -4902731535873747548,
       name: r'open_cashierId',
       unique: false,
       replace: false,
@@ -146,7 +146,7 @@ final DrawersSchema = CollectionSchema(
   getId: _drawersGetId,
   getLinks: _drawersGetLinks,
   attach: _drawersAttach,
-  version: '3.1.0',
+  version: '3.1.0+1',
 );
 
 int _drawersEstimateSize(

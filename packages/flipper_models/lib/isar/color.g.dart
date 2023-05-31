@@ -13,27 +13,27 @@ extension GetPColorCollection on Isar {
   IsarCollection<PColor> get pColors => this.collection();
 }
 
-final PColorSchema = CollectionSchema(
+const PColorSchema = CollectionSchema(
   name: r'PColor',
-  id: BigInt.parse("-6070363420638790310").toInt(),
+  id: -6070363420638790310,
   properties: {
     r'active': PropertySchema(
-      id: BigInt.parse("0").toInt(),
+      id: 0,
       name: r'active',
       type: IsarType.bool,
     ),
     r'branchId': PropertySchema(
-      id: BigInt.parse("1").toInt(),
+      id: 1,
       name: r'branchId',
       type: IsarType.long,
     ),
     r'colors': PropertySchema(
-      id: BigInt.parse("2").toInt(),
+      id: 2,
       name: r'colors',
       type: IsarType.stringList,
     ),
     r'name': PropertySchema(
-      id: BigInt.parse("3").toInt(),
+      id: 3,
       name: r'name',
       type: IsarType.string,
     )
@@ -49,7 +49,7 @@ final PColorSchema = CollectionSchema(
   getId: _pColorGetId,
   getLinks: _pColorGetLinks,
   attach: _pColorAttach,
-  version: '3.1.0',
+  version: '3.1.0+1',
 );
 
 int _pColorEstimateSize(

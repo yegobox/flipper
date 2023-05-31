@@ -1,9 +1,10 @@
 import 'dart:developer';
 
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import 'proxy.dart';
+// import 'proxy.dart';
 
 Color hexToColor(String hexString) {
   final hexCode = hexString.replaceAll('#', '');
@@ -33,9 +34,8 @@ class Actionable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const containerWidth = 382.78;
-    Proxy.box.write(key: "h", value: "1");
-    log(Proxy.service.ilog());
-    //Proxy.api.intd();
+    ProxyService.box.write(key: "userId", value: 1);
+    log(ProxyService.box.read(key: 'userId'));
     return Scaffold(
       body: Stack(
         children: [

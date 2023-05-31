@@ -1,4 +1,0 @@
-# melos_managed_dependency_overrides: scrollable_positioned_list
-dependency_overrides:
-  scrollable_positioned_list:
-    path: ..

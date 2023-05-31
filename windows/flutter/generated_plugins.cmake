@@ -14,6 +14,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   printing
   sentry_flutter
   share_plus
+  system_theme
   url_launcher_windows
 )
 

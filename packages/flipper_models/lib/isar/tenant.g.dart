@@ -13,42 +13,42 @@ extension GetITenantCollection on Isar {
   IsarCollection<ITenant> get iTenants => this.collection();
 }
 
-final ITenantSchema = CollectionSchema(
+const ITenantSchema = CollectionSchema(
   name: r'ITenant',
-  id: BigInt.parse("2089856774983466838").toInt(),
+  id: 2089856774983466838,
   properties: {
     r'businessId': PropertySchema(
-      id: BigInt.parse("0").toInt(),
+      id: 0,
       name: r'businessId',
       type: IsarType.long,
     ),
     r'email': PropertySchema(
-      id: BigInt.parse("1").toInt(),
+      id: 1,
       name: r'email',
       type: IsarType.string,
     ),
     r'imageUrl': PropertySchema(
-      id: BigInt.parse("2").toInt(),
+      id: 2,
       name: r'imageUrl',
       type: IsarType.string,
     ),
     r'name': PropertySchema(
-      id: BigInt.parse("3").toInt(),
+      id: 3,
       name: r'name',
       type: IsarType.string,
     ),
     r'nfcEnabled': PropertySchema(
-      id: BigInt.parse("4").toInt(),
+      id: 4,
       name: r'nfcEnabled',
       type: IsarType.bool,
     ),
     r'phoneNumber': PropertySchema(
-      id: BigInt.parse("5").toInt(),
+      id: 5,
       name: r'phoneNumber',
       type: IsarType.string,
     ),
     r'userId': PropertySchema(
-      id: BigInt.parse("6").toInt(),
+      id: 6,
       name: r'userId',
       type: IsarType.long,
     )
@@ -64,7 +64,7 @@ final ITenantSchema = CollectionSchema(
   getId: _iTenantGetId,
   getLinks: _iTenantGetLinks,
   attach: _iTenantAttach,
-  version: '3.1.0',
+  version: '3.1.0+1',
 );
 
 int _iTenantEstimateSize(

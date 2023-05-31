@@ -4,7 +4,7 @@ packages:
   - "*"
   - packages/**
   - open-sources/**
-  # - lib/flipper_localize/**
+  - lib/flipper_localize/**
 
 ignore:
   - "*web*"

@@ -1,0 +1,156 @@
+name: Deploy to Play Store
+on:
+  # Enable manual run
+  workflow_dispatch:
+    inputs:
+      lane:
+        description: "Fastlane lane to use (beta OR promote_to_production OR production)"
+        required: true
+        default: "beta"
+  # Refs/tags push events to matching v*, i.e. v1.0, v20.15.10
+  push:
+    branches: [main, dev, socials]
+    # tags:
+    # - 'v*'
+env:
+  URL: ${{ secrets.DB_URL }}
+  PASSWORD: ${{ secrets.DB_PASSWORD }}
+jobs:
+  testing:
+    name: Integration Testing
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v1
+        with:
+          java-version: "8.x"
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+      - run: git submodule update --init
+      - name: Configure Missing files
+        run: |
+          echo "$INDEX" >> web/index.html
+          echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
+          echo "$FIREBASEOPTIONS" >> lib/firebase_options.dart
+        env:
+          INDEX: ${{ secrets.INDEX }}
+          CONFIGDART: ${{ secrets.CONFIGDART }}
+          FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+      - run: |
+          dart pub global activate melos 2.9.0
+          melos bootstrap
+          flutter test --dart-define=Test=true
+      # android_integration_test:
+      #   runs-on: macos-13
+      #   timeout-minutes: 30
+      #   strategy:
+      #     matrix:
+      #       android-api-level: [ 21, 26, 32 ]
+
+      #   steps:
+      #     - name: "Checkout repository"
+      #       uses: actions/checkout@v3
+      #     - name: "Install Flutter"
+      #       run: ./.github/workflows/scripts/install-flutter.sh stable
+      #     - name: "Install Tools"
+      #       run: ./.github/workflows/scripts/install-tools.sh
+
+      #     # Required for Android builds
+      #     - uses: actions/setup-java@v3
+      #       with:
+      #         distribution: "temurin"
+      #         java-version: "11"
+
+      #     - name: "Bootstrap Workspace"
+      #       run: melos bootstrap --scope="$PLUGIN_SCOPE"
+
+      #     - name: "Android Integration Test"
+      #       uses: reactivecircus/android-emulator-runner@v2
+      #       with:
+      #         api-level: ${{ matrix.android-api-level }}
+      #         cores: 3
+      #         target: google_apis
+      #         arch: x86_64
+      #         force-avd-creation: false
+      #         profile: Nexus 5X
+      #         script: ./.github/workflows/scripts/integration-test.sh android share_plus_example
+
+  fastlane-deploy:
+    name: "Google Deploy"
+    needs: [testing]
+    runs-on: ubuntu-20.04
+    steps:
+      # Set up Flutter.
+      - name: Clone Flutter repository with stable channel
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: flutter doctor -v
+
+      # Checkout gallery code and get packages.
+      - name: Checkout flipper code
+        uses: actions/checkout@v3
+      - uses: actions/setup-java@v2 #plugin for setting up the java
+        with:
+          distribution: "zulu"
+          java-version: "11" #defines the java version
+      # pause seedings
+      # - name: Update version in YAML
+      #   run: sed -i 's/1.0.1-dev.3/1.170.149+1111010349/g' pubspec.yaml
+      - name: submodule init
+        run: git submodule update --init
+      - name: Configure Missing files
+        run: |
+          echo "$INDEX" >> web/index.html
+          echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
+          echo "$FIREBASEOPTIONS" >> lib/firebase_options.dart
+        env:
+          INDEX: ${{ secrets.INDEX }}
+          CONFIGDART: ${{ secrets.CONFIGDART }}
+          FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+      - run: dart pub global activate melos 2.9.0
+      - name: "Run Melos bootstrap"
+        run: melos bootstrap
+      # Setup Ruby, Bundler, and Gemfile dependencies
+      - name: Setup Fastlane
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "2.6"
+          bundler-cache: true
+          working-directory: android
+      - name: Configure Keystore
+        run: |
+          echo "$GOOGLE_SERVICE_JSON" > app/google-services.json
+          echo "$PLAY_STORE_UPLOAD_KEY" | base64 --decode > app/key.jks
+          echo "storeFile=key.jks" >> key.properties
+          echo "keyAlias=$KEYSTORE_KEY_ALIAS" >> key.properties
+          echo "storePassword=$KEYSTORE_STORE_PASSWORD" >> key.properties
+          echo "keyPassword=$KEYSTORE_KEY_PASSWORD" >> key.properties
+        env:
+          PLAY_STORE_UPLOAD_KEY: ${{ secrets.PLAY_STORE_UPLOAD_KEY }}
+          KEYSTORE_KEY_ALIAS: ${{ secrets.KEYSTORE_KEY_ALIAS }}
+          KEYSTORE_KEY_PASSWORD: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
+          KEYSTORE_STORE_PASSWORD: ${{ secrets.KEYSTORE_STORE_PASSWORD }}
+          GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
+        working-directory: android
+
+      # Build and deploy with Fastlane (by default, to beta track) 🚀.
+      # Naturally, promote_to_production only deploys.
+      - run: |
+          bundle exec fastlane ${{ github.event.inputs.lane || 'internal' }}
+        env:
+          PLAY_STORE_CONFIG_JSON: ${{ secrets.PLAYSTORE_ACCOUNT_KEY }}
+          DB_URL: ${{ secrets.DB_URL }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        working-directory: android
+  slackNotification:
+    name: Slack Notification
+    needs: [fastlane-deploy]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Slack Notification
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}

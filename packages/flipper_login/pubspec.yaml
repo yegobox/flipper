@@ -13,10 +13,10 @@ dependencies:
   flutter:
     sdk: flutter
 
-  firebase_ui_auth: ^1.4.1
+  firebase_ui_auth: ^1.4.2
   flutter_form_bloc: ^0.30.1
   firebase_auth_desktop: ^1.0.2-flipper
-  firebase_core: ^2.13.0
+  firebase_core: ^2.13.1
   firebase_core_desktop: ^1.0.2-dev
   flipper_services: ^0.0.1-dev.6
   flipper_dashboard: ^0.0.1-dev.5
@@ -26,20 +26,19 @@ dependencies:
   flutter_settings_ui: ^2.0.1
   stacked: ^3.2.5
   google_fonts: ^4.0.3
-  firebase_auth: ^4.2.5
-
+  firebase_auth: ^4.6.2
   flipper_routing: ^0.0.1-dev.3
-  connectivity_plus: ^2.2.0
+  connectivity_plus: ^4.0.1
   firebase_ui_localizations: ^1.5.0
-  firebase_ui_oauth: ^1.1.8
-  firebase_ui_oauth_google: ^1.0.21
+  firebase_ui_oauth: ^1.4.2
+  firebase_ui_oauth_google: ^1.2.2
   flutter_svg: ^2.0.0
   gap: ^2.0.0
-  qr_flutter: ^4.0.1
+  qr_flutter: ^4.1.0
   flipper_ui: ^1.0.3
   flipper_socials: 1.0.0+1
   country_code_picker: ^3.0.0
-
+  flutter_carousel_slider: ^1.0.9
 flutter:
   assets:
     - assets/

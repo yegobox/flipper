@@ -1,21 +1,81 @@
-[submodule "packages/firebase_auth"]
-	path = packages/firebase_auth
-	url = https://github.com/yegobox/firebase_auth.git
-[submodule "packages/flutterfire_internal"]
-	path = packages/flutterfire_internal
-	url = https://github.com/yegobox/flutterfire_internal.git
-[submodule "packages/firebase_ui_oauth"]
-	path = packages/firebase_ui_oauth
-	url = https://github.com/yegobox/firebase_ui_oauth.git
-[submodule "packages/firebase_ui_auth"]
-	path = packages/firebase_ui_auth
-	url = https://github.com/yegobox/firebase_ui_auth.git
-[submodule "packages/firebase_ui_oauth_google"]
-	path = packages/firebase_ui_oauth_google
-	url = https://github.com/yegobox/firebase_ui_oauth_google.git
-[submodule "packages/firebase_dynamic_links"]
-	path = packages/firebase_dynamic_links
-	url = https://github.com/yegobox/firebase_dynamic_links.git
-[submodule "packages/firebase_core"]
-	path = packages/firebase_core
-	url = https://github.com/yegobox/firebase_core.git
+[submodule "Features"]
+	path = Features
+	url =https://github.com/yegobox/designDocs.git
+	branch = main
+	
+
+[submodule "open-sources/firestore_cache"]
+	path = open-sources/firestore_cache
+	url = https://github.com/yegobox/firestore_cache.git
+[submodule "open-sources/kds"]
+	path = open-sources/kds
+	url = https://github.com/yegobox/FlutterTrelloCards.git
+[submodule "open-sources/flutter_list_drag_and_drop"]
+	path = open-sources/flutter_list_drag_and_drop
+	url = https://github.com/yegobox/flutter_list_drag_and_drop.git
+[submodule "open-sources/qr.flutter"]
+	path = open-sources/qr.flutter
+	url = https://github.com/yegobox/qr.flutter.git
+[submodule "open-sources/flutter_datetime_picker"]
+	path = open-sources/flutter_datetime_picker
+	url = https://github.com/yegobox/flutter_datetime_picker.git
+[submodule "open-sources/flutter_slidable"]
+	path = open-sources/flutter_slidable
+	branch = dev
+	url = https://github.com/yegobox/flutter_slidable.git
+[submodule "open-sources/receipt"]
+	path = open-sources/receipt
+	url = https://github.com/yegobox/receipt.git
+[submodule "open-sources/qr_code_scanner"]
+	path = open-sources/qr_code_scanner
+	url = https://github.com/yegobox/qr_code_scanner.git
+# [submodule "open-sources/pubnub"]
+# 	path = open-sources/pubnub
+	# url = https://github.com/yegobox/dart.git
+[submodule "open-sources/system_time_check"]
+	path = open-sources/system_time_check
+	url = https://github.com/yegobox/system_time_check.git
+[submodule "open-sources/upgrader"]
+	path = open-sources/upgrader
+	url = https://github.com/yegobox/upgrader.git
+[submodule "open-sources/dart_console"]
+	path = open-sources/dart_console
+	url = https://github.com/yegobox/dart_console.git
+[submodule "open-sources/cli_dialog"]
+	path = open-sources/cli_dialog
+	url = https://github.com/yegobox/cli_dialog.git
+
+	
+# [submodule "open-sources/plus_plugins"]
+# 	path = open-sources/plus_plugins
+# 	url = https://github.com/yegobox/plus_plugins.git
+[submodule "open-sources/flutter.widgets"]
+	path = open-sources/flutter.widgets
+	url = https://github.com/yegobox/flutter.widgets.git
+[submodule "open-sources/flutterfire_desktop"]
+	path = open-sources/flutterfire_desktop
+	url = https://github.com/yegobox/flutterfire_desktop.git
+
+# [submodule "open-sources/msix"]
+# 	path = open-sources/msix
+[submodule "open-sources/flutter_luban"]
+	path = open-sources/flutter_luban
+	url = https://github.com/yegobox/flutter_luban.git
+[submodule "open-sources/flutter_launcher_icons"]
+	path = open-sources/flutter_launcher_icons
+	url = https://github.com/yegobox/flutter_launcher_icons.git
+[submodule "open-sources/form_block"]
+	path = open-sources/form_block
+	url = https://github.com/GiancarloCode/form_bloc.git
+[submodule "open-sources/dart_pdf"]
+	path = open-sources/dart_pdf
+	url = https://github.com/yegobox/dart_pdf.git
+# [submodule "open-sources/firebase_auth"]
+# 	path = open-sources/firebase_auth
+# 	url = https://github.com/yegobox/firebase_auth.git
+# [submodule "open-sources/flutterfire_internal"]
+# 	path = open-sources/flutterfire_internal
+# 	url = https://github.com/yegobox/flutterfire_internal.git
+# [submodule "open-sources/firebase_core"]
+# 	path = open-sources/firebase_core
+# 	url = https://github.com/yegobox/firebase_core.git

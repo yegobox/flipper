@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_carousel_slider/carousel_slider.dart';
-import 'package:flutter_carousel_slider/carousel_slider_indicators.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'auth_page_desktop.dart';
-import 'CustomPhone.dart';
 import 'responsive_layout.dart';
 import 'signinpage.dart';
 
