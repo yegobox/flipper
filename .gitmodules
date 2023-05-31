@@ -10,9 +10,9 @@
 [submodule "open-sources/kds"]
 	path = open-sources/kds
 	url = https://github.com/yegobox/FlutterTrelloCards.git
-# [submodule "open-sources/flutter_list_drag_and_drop"]
-# 	path = open-sources/flutter_list_drag_and_drop
-# 	url = https://github.com/yegobox/flutter_list_drag_and_drop.git
+[submodule "open-sources/flutter_list_drag_and_drop"]
+	path = open-sources/flutter_list_drag_and_drop
+	url = https://github.com/yegobox/flutter_list_drag_and_drop.git
 [submodule "open-sources/qr.flutter"]
 	path = open-sources/qr.flutter
 	url = https://github.com/yegobox/qr.flutter.git
@@ -35,9 +35,9 @@
 [submodule "open-sources/system_time_check"]
 	path = open-sources/system_time_check
 	url = https://github.com/yegobox/system_time_check.git
-# [submodule "open-sources/upgrader"]
-# 	path = open-sources/upgrader
-# 	url = https://github.com/yegobox/upgrader.git
+[submodule "open-sources/upgrader"]
+	path = open-sources/upgrader
+	url = https://github.com/yegobox/upgrader.git
 [submodule "open-sources/dart_console"]
 	path = open-sources/dart_console
 	url = https://github.com/yegobox/dart_console.git
@@ -61,9 +61,9 @@
 [submodule "open-sources/flutter_luban"]
 	path = open-sources/flutter_luban
 	url = https://github.com/yegobox/flutter_luban.git
-# [submodule "open-sources/flutter_launcher_icons"]
-# 	path = open-sources/flutter_launcher_icons
-# 	url = https://github.com/yegobox/flutter_launcher_icons.git
+[submodule "open-sources/flutter_launcher_icons"]
+	path = open-sources/flutter_launcher_icons
+	url = https://github.com/yegobox/flutter_launcher_icons.git
 # [submodule "open-sources/form_block"]
 # 	path = open-sources/form_block
 # 	url = https://github.com/GiancarloCode/form_bloc.git
