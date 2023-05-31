@@ -13,7 +13,11 @@
 // ignore_for_file: type=lint
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:flipper_models/isar_models.dart' as _i5;
+import 'dart:ui' as _i7;
+
+import 'package:firebase_auth/firebase_auth.dart' as _i6;
+import 'package:firebase_ui_auth/firebase_ui_auth.dart' as _i5;
+import 'package:flipper_models/isar_models.dart' as _i8;
 import 'package:flutter/material.dart' as _i4;
 import 'package:stacked/stacked.dart' as _i3;
 import 'package:stacked_services/stacked_services.dart' as _i1;
@@ -62,10 +66,52 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         barrierDismissible: false,
       );
     },
-    LoginViewRoute.name: (routeData) {
+    LandingRoute.name: (routeData) {
+      final args =
+          routeData.argsAs<LandingArgs>(orElse: () => const LandingArgs());
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i2.LoginView(),
+        child: _i2.Landing(key: args.key),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
+    AuthOptionPageRoute.name: (routeData) {
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i2.AuthOptionPage(),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
+    CountryPickerRoute.name: (routeData) {
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: const _i2.CountryPicker(),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
+    PhoneInputScreenRoute.name: (routeData) {
+      final args = routeData.argsAs<PhoneInputScreenArgs>();
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i2.PhoneInputScreen(
+          key: args.key,
+          action: args.action,
+          actions: args.actions,
+          auth: args.auth,
+          countryCode: args.countryCode,
+          subtitleBuilder: args.subtitleBuilder,
+          footerBuilder: args.footerBuilder,
+          headerBuilder: args.headerBuilder,
+          headerMaxExtent: args.headerMaxExtent,
+          sideBuilder: args.sideBuilder,
+          desktopLayoutDirection: args.desktopLayoutDirection,
+          breakpoint: args.breakpoint,
+          multiFactorSession: args.multiFactorSession,
+          mfaHint: args.mfaHint,
+        ),
         opaque: true,
         barrierDismissible: false,
       );
@@ -446,8 +492,20 @@ class StackedRouterWeb extends _i3.RootStackRouter {
           path: '/flipper-app',
         ),
         _i3.RouteConfig(
-          LoginViewRoute.name,
-          path: '/login-view',
+          LandingRoute.name,
+          path: '/Landing',
+        ),
+        _i3.RouteConfig(
+          AuthOptionPageRoute.name,
+          path: '/auth-option-page',
+        ),
+        _i3.RouteConfig(
+          CountryPickerRoute.name,
+          path: '/country-picker',
+        ),
+        _i3.RouteConfig(
+          PhoneInputScreenRoute.name,
+          path: '/phone-input-screen',
         ),
         _i3.RouteConfig(
           AddProductViewRoute.name,
@@ -665,15 +723,159 @@ class FlipperAppRoute extends _i3.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i2.LoginView]
-class LoginViewRoute extends _i3.PageRouteInfo<void> {
-  const LoginViewRoute()
+/// [_i2.Landing]
+class LandingRoute extends _i3.PageRouteInfo<LandingArgs> {
+  LandingRoute({_i4.Key? key})
       : super(
-          LoginViewRoute.name,
-          path: '/login-view',
+          LandingRoute.name,
+          path: '/Landing',
+          args: LandingArgs(key: key),
         );
 
-  static const String name = 'LoginView';
+  static const String name = 'Landing';
+}
+
+class LandingArgs {
+  const LandingArgs({this.key});
+
+  final _i4.Key? key;
+
+  @override
+  String toString() {
+    return 'LandingArgs{key: $key}';
+  }
+}
+
+/// generated route for
+/// [_i2.AuthOptionPage]
+class AuthOptionPageRoute extends _i3.PageRouteInfo<void> {
+  const AuthOptionPageRoute()
+      : super(
+          AuthOptionPageRoute.name,
+          path: '/auth-option-page',
+        );
+
+  static const String name = 'AuthOptionPage';
+}
+
+/// generated route for
+/// [_i2.CountryPicker]
+class CountryPickerRoute extends _i3.PageRouteInfo<void> {
+  const CountryPickerRoute()
+      : super(
+          CountryPickerRoute.name,
+          path: '/country-picker',
+        );
+
+  static const String name = 'CountryPicker';
+}
+
+/// generated route for
+/// [_i2.PhoneInputScreen]
+class PhoneInputScreenRoute extends _i3.PageRouteInfo<PhoneInputScreenArgs> {
+  PhoneInputScreenRoute({
+    _i4.Key? key,
+    _i5.AuthAction? action,
+    List<_i5.FirebaseUIAction>? actions,
+    _i6.FirebaseAuth? auth,
+    required String countryCode,
+    _i4.Widget Function(_i4.BuildContext)? subtitleBuilder,
+    _i4.Widget Function(_i4.BuildContext)? footerBuilder,
+    _i4.Widget Function(
+      _i4.BuildContext,
+      _i4.BoxConstraints,
+      double,
+    )? headerBuilder,
+    double? headerMaxExtent,
+    _i4.Widget Function(
+      _i4.BuildContext,
+      _i4.BoxConstraints,
+    )? sideBuilder,
+    _i7.TextDirection? desktopLayoutDirection,
+    double breakpoint = 500,
+    _i6.MultiFactorSession? multiFactorSession,
+    _i6.PhoneMultiFactorInfo? mfaHint,
+  }) : super(
+          PhoneInputScreenRoute.name,
+          path: '/phone-input-screen',
+          args: PhoneInputScreenArgs(
+            key: key,
+            action: action,
+            actions: actions,
+            auth: auth,
+            countryCode: countryCode,
+            subtitleBuilder: subtitleBuilder,
+            footerBuilder: footerBuilder,
+            headerBuilder: headerBuilder,
+            headerMaxExtent: headerMaxExtent,
+            sideBuilder: sideBuilder,
+            desktopLayoutDirection: desktopLayoutDirection,
+            breakpoint: breakpoint,
+            multiFactorSession: multiFactorSession,
+            mfaHint: mfaHint,
+          ),
+        );
+
+  static const String name = 'PhoneInputScreen';
+}
+
+class PhoneInputScreenArgs {
+  const PhoneInputScreenArgs({
+    this.key,
+    this.action,
+    this.actions,
+    this.auth,
+    required this.countryCode,
+    this.subtitleBuilder,
+    this.footerBuilder,
+    this.headerBuilder,
+    this.headerMaxExtent,
+    this.sideBuilder,
+    this.desktopLayoutDirection,
+    this.breakpoint = 500,
+    this.multiFactorSession,
+    this.mfaHint,
+  });
+
+  final _i4.Key? key;
+
+  final _i5.AuthAction? action;
+
+  final List<_i5.FirebaseUIAction>? actions;
+
+  final _i6.FirebaseAuth? auth;
+
+  final String countryCode;
+
+  final _i4.Widget Function(_i4.BuildContext)? subtitleBuilder;
+
+  final _i4.Widget Function(_i4.BuildContext)? footerBuilder;
+
+  final _i4.Widget Function(
+    _i4.BuildContext,
+    _i4.BoxConstraints,
+    double,
+  )? headerBuilder;
+
+  final double? headerMaxExtent;
+
+  final _i4.Widget Function(
+    _i4.BuildContext,
+    _i4.BoxConstraints,
+  )? sideBuilder;
+
+  final _i7.TextDirection? desktopLayoutDirection;
+
+  final double breakpoint;
+
+  final _i6.MultiFactorSession? multiFactorSession;
+
+  final _i6.PhoneMultiFactorInfo? mfaHint;
+
+  @override
+  String toString() {
+    return 'PhoneInputScreenArgs{key: $key, action: $action, actions: $actions, auth: $auth, countryCode: $countryCode, subtitleBuilder: $subtitleBuilder, footerBuilder: $footerBuilder, headerBuilder: $headerBuilder, headerMaxExtent: $headerMaxExtent, sideBuilder: $sideBuilder, desktopLayoutDirection: $desktopLayoutDirection, breakpoint: $breakpoint, multiFactorSession: $multiFactorSession, mfaHint: $mfaHint}';
+  }
 }
 
 /// generated route for
@@ -715,7 +917,7 @@ class AddProductViewArgs {
 class AddDiscountRoute extends _i3.PageRouteInfo<AddDiscountArgs> {
   AddDiscountRoute({
     _i4.Key? key,
-    _i5.Discount? discount,
+    _i8.Discount? discount,
   }) : super(
           AddDiscountRoute.name,
           path: '/add-discount',
@@ -736,7 +938,7 @@ class AddDiscountArgs {
 
   final _i4.Key? key;
 
-  final _i5.Discount? discount;
+  final _i8.Discount? discount;
 
   @override
   String toString() {
@@ -749,7 +951,7 @@ class AddDiscountArgs {
 class ListCategoriesRoute extends _i3.PageRouteInfo<ListCategoriesArgs> {
   ListCategoriesRoute({
     _i4.Key? key,
-    required List<_i5.Category> categories,
+    required List<_i8.Category> categories,
   }) : super(
           ListCategoriesRoute.name,
           path: '/list-categories',
@@ -770,7 +972,7 @@ class ListCategoriesArgs {
 
   final _i4.Key? key;
 
-  final List<_i5.Category> categories;
+  final List<_i8.Category> categories;
 
   @override
   String toString() {
@@ -938,7 +1140,7 @@ class ListUnitsArgs {
 class SellRoute extends _i3.PageRouteInfo<SellArgs> {
   SellRoute({
     _i4.Key? key,
-    required _i5.Product product,
+    required _i8.Product product,
   }) : super(
           SellRoute.name,
           path: '/Sell',
@@ -959,7 +1161,7 @@ class SellArgs {
 
   final _i4.Key? key;
 
-  final _i5.Product product;
+  final _i8.Product product;
 
   @override
   String toString() {
@@ -972,7 +1174,7 @@ class SellArgs {
 class PaymentsRoute extends _i3.PageRouteInfo<PaymentsArgs> {
   PaymentsRoute({
     _i4.Key? key,
-    required _i5.Order order,
+    required _i8.Order order,
     required double duePay,
   }) : super(
           PaymentsRoute.name,
@@ -996,7 +1198,7 @@ class PaymentsArgs {
 
   final _i4.Key? key;
 
-  final _i5.Order order;
+  final _i8.Order order;
 
   final double duePay;
 
@@ -1012,7 +1214,7 @@ class CollectCashViewRoute extends _i3.PageRouteInfo<CollectCashViewArgs> {
   CollectCashViewRoute({
     _i4.Key? key,
     required String paymentType,
-    required _i5.Order order,
+    required _i8.Order order,
   }) : super(
           CollectCashViewRoute.name,
           path: '/collect-cash-view',
@@ -1037,7 +1239,7 @@ class CollectCashViewArgs {
 
   final String paymentType;
 
-  final _i5.Order order;
+  final _i8.Order order;
 
   @override
   String toString() {
@@ -1051,7 +1253,7 @@ class AfterSaleRoute extends _i3.PageRouteInfo<AfterSaleArgs> {
   AfterSaleRoute({
     _i4.Key? key,
     required double totalOrderAmount,
-    required _i5.Order order,
+    required _i8.Order order,
     String? receiptType = "ns",
   }) : super(
           AfterSaleRoute.name,
@@ -1079,7 +1281,7 @@ class AfterSaleArgs {
 
   final double totalOrderAmount;
 
-  final _i5.Order order;
+  final _i8.Order order;
 
   final String? receiptType;
 
@@ -1094,7 +1296,7 @@ class AfterSaleArgs {
 class TransactionDetailRoute extends _i3.PageRouteInfo<TransactionDetailArgs> {
   TransactionDetailRoute({
     _i4.Key? key,
-    required _i5.Order order,
+    required _i8.Order order,
   }) : super(
           TransactionDetailRoute.name,
           path: '/transaction-detail',
@@ -1115,7 +1317,7 @@ class TransactionDetailArgs {
 
   final _i4.Key? key;
 
-  final _i5.Order order;
+  final _i8.Order order;
 
   @override
   String toString() {
@@ -1428,7 +1630,7 @@ class DrawerScreenRoute extends _i3.PageRouteInfo<DrawerScreenArgs> {
   DrawerScreenRoute({
     _i4.Key? key,
     required String open,
-    _i5.Drawers? drawer,
+    _i8.Drawers? drawer,
   }) : super(
           DrawerScreenRoute.name,
           path: '/drawer-screen',
@@ -1453,7 +1655,7 @@ class DrawerScreenArgs {
 
   final String open;
 
-  final _i5.Drawers? drawer;
+  final _i8.Drawers? drawer;
 
   @override
   String toString() {
@@ -1513,7 +1715,7 @@ class ConversationHistoryArgs {
 class TicketsRoute extends _i3.PageRouteInfo<TicketsArgs> {
   TicketsRoute({
     _i4.Key? key,
-    _i5.Order? order,
+    _i8.Order? order,
   }) : super(
           TicketsRoute.name,
           path: '/Tickets',
@@ -1534,7 +1736,7 @@ class TicketsArgs {
 
   final _i4.Key? key;
 
-  final _i5.Order? order;
+  final _i8.Order? order;
 
   @override
   String toString() {
@@ -1547,7 +1749,7 @@ class TicketsArgs {
 class NewTicketRoute extends _i3.PageRouteInfo<NewTicketArgs> {
   NewTicketRoute({
     _i4.Key? key,
-    required _i5.Order order,
+    required _i8.Order order,
   }) : super(
           NewTicketRoute.name,
           path: '/new-ticket',
@@ -1568,7 +1770,7 @@ class NewTicketArgs {
 
   final _i4.Key? key;
 
-  final _i5.Order order;
+  final _i8.Order order;
 
   @override
   String toString() {
