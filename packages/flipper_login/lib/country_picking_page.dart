@@ -25,23 +25,23 @@ class _CountryPickerState extends State<CountryPicker> {
         children: [
           Stack(
             children: [
-              Positioned(
-                top: 40,
-                left: 30,
-                child: MaterialButton(
-                  minWidth: 10,
-                  onPressed: () {
-                    final _routerService = locator<RouterService>();
-                    _routerService.clearStackAndShow(AuthOptionPageRoute());
-                  },
-                  child: Text("<",
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 28,
-                          fontFamily: 'Roboto')),
-                  color: Colors.black,
-                ),
-              ),
+              // Positioned(
+              //   top: 40,
+              //   left: 30,
+              //   child: MaterialButton(
+              //     minWidth: 10,
+              //     onPressed: () {
+              //       final _routerService = locator<RouterService>();
+              //       _routerService.clearStackAndShow(AuthOptionPageRoute());
+              //     },
+              //     child: Text("<",
+              //         style: TextStyle(
+              //             color: Colors.white,
+              //             fontSize: 28,
+              //             fontFamily: 'Roboto')),
+              //     color: Colors.black,
+              //   ),
+              // ),
               Positioned(
                 top: 45,
                 right: 30,
@@ -105,26 +105,25 @@ class _CountryPickerState extends State<CountryPicker> {
                       height: 68,
                       child: OutlinedButton(
                         style: ButtonStyle(
-                          shape: MaterialStateProperty.all<OutlinedBorder>(
-                            RoundedRectangleBorder(
-                              borderRadius: BorderRadius.zero,
-                            ),
+                          shape:
+                              MaterialStateProperty.resolveWith<OutlinedBorder>(
+                            (states) => RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(2.0),
+                                side: BorderSide(color: Color(0xFF01B8E4))),
                           ),
                           backgroundColor: MaterialStateProperty.all<Color>(
-                              Colors.blue.shade300),
+                              const Color(0xFF01B8E4)),
                           overlayColor:
                               MaterialStateProperty.resolveWith<Color?>(
                             (Set<MaterialState> states) {
                               if (states.contains(MaterialState.hovered)) {
-                                return const Color(0xffD07A2A)
-                                    .withOpacity(0.04);
+                                return Color(0xFF01B8E4);
                               }
                               if (states.contains(MaterialState.focused) ||
                                   states.contains(MaterialState.pressed)) {
-                                return const Color(0xffD07A2A)
-                                    .withOpacity(0.12);
+                                return Color(0xFF01B8E4);
                               }
-                              return null;
+                              return null; // Defer to the widget's default.
                             },
                           ),
                         ),

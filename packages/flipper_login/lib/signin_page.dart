@@ -14,7 +14,6 @@ class AuthOptionPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
         body: Center(
       child: Column(children: [
@@ -39,23 +38,26 @@ class AuthOptionPage extends StatelessWidget {
           height: 68,
           child: OutlinedButton(
             style: ButtonStyle(
-              shape: MaterialStateProperty.all<OutlinedBorder>(
-                RoundedRectangleBorder(
-                  borderRadius: BorderRadius.zero,
+              shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
+                (states) => RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(2.0),
+                  side: BorderSide(
+                      color: const Color(
+                          0xFF01B8E4)), // Add this line to set the border color
                 ),
               ),
               backgroundColor:
-                  MaterialStateProperty.all<Color>(Colors.blue.shade300),
+                  MaterialStateProperty.all<Color>(const Color(0xFF01B8E4)),
               overlayColor: MaterialStateProperty.resolveWith<Color?>(
                 (Set<MaterialState> states) {
                   if (states.contains(MaterialState.hovered)) {
-                    return const Color(0xffD07A2A).withOpacity(0.04);
+                    return const Color(0xFF01B8E4);
                   }
                   if (states.contains(MaterialState.focused) ||
                       states.contains(MaterialState.pressed)) {
-                    return const Color(0xffD07A2A).withOpacity(0.12);
+                    return const Color(0xFF01B8E4);
                   }
-                  return null;
+                  return null; // Defer to the widget's default.
                 },
               ),
             ),
