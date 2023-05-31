@@ -38,7 +38,7 @@ class _LandingState extends State<Landing> {
       child: Text(
         "Everything you need to run your business in the modern age",
         style: GoogleFonts.poppins(
-            fontSize: 16,
+            fontSize: 20,
             fontWeight: FontWeight.w500,
             color: Colors.white,
             decoration: TextDecoration.none),
@@ -76,7 +76,7 @@ class _LandingState extends State<Landing> {
         style: GoogleFonts.poppins(
             fontSize: 16,
             fontWeight: FontWeight.w500,
-            color: Colors.white,  
+            color: Colors.white,
             decoration: TextDecoration.none),
         textAlign: TextAlign.center,
       ),
@@ -89,12 +89,6 @@ class _LandingState extends State<Landing> {
     return ResponsiveLayout(
       mobile: Stack(
         children: [
-          Image.asset(
-            'assets/flipper_logo.png',
-            height: 82,
-            width: 82,
-            package: 'flipper_login',
-          ),
           CarouselSlider.builder(
               unlimitedMode: true,
               enableAutoSlider: false,
@@ -107,7 +101,7 @@ class _LandingState extends State<Landing> {
                       end: Alignment.bottomCenter,
                       colors: <Color>[
                         Color(0xff0056C2),
-                        Color(0xff636A73),
+                        Color(0xff9747FF),
                       ],
                       tileMode: TileMode.clamp,
                     ),
@@ -115,7 +109,13 @@ class _LandingState extends State<Landing> {
                   child: Column(
                     children: [
                       SizedBox(
-                        height: screenHeight * 0.2,
+                        height: screenHeight * 0.1,
+                      ),
+                      Image.asset(
+                        'assets/flipper_logo.png',
+                        height: 82,
+                        width: 82,
+                        package: 'flipper_login',
                       ),
                       _pages[index],
                       _pagesText[index],
@@ -183,23 +183,23 @@ class _LandingState extends State<Landing> {
                   height: 68,
                   child: OutlinedButton(
                     style: ButtonStyle(
-                      shape: MaterialStateProperty.all<OutlinedBorder>(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.zero,
+                      shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
+                        (states) => RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(2.0),
                         ),
                       ),
-                      backgroundColor:
-                          MaterialStateProperty.all<Color>(Colors.blue),
+                      backgroundColor: MaterialStateProperty.all<Color>(
+                          const Color(0xFF01B8E4)),
                       overlayColor: MaterialStateProperty.resolveWith<Color?>(
                         (Set<MaterialState> states) {
                           if (states.contains(MaterialState.hovered)) {
-                            return const Color(0xffD07A2A).withOpacity(0.04);
+                            return Color(0xFF01B8E4);
                           }
                           if (states.contains(MaterialState.focused) ||
                               states.contains(MaterialState.pressed)) {
-                            return const Color(0xffD07A2A).withOpacity(0.12);
+                            return Color(0xFF01B8E4);
                           }
-                          return null;
+                          return null; // Defer to the widget's default.
                         },
                       ),
                     ),
@@ -209,7 +209,7 @@ class _LandingState extends State<Landing> {
                       _routerService.clearStackAndShow(AuthOptionPageRoute());
                     },
                     child: Text(
-                      "Login",
+                      "Sign In",
                       style: GoogleFonts.poppins(
                           fontWeight: FontWeight.w400,
                           fontSize: 20,
