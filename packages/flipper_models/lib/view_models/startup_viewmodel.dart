@@ -51,14 +51,14 @@ class StartupViewModel extends BaseViewModel {
       if (e is LoginChoicesException) {
         _routerService.navigateTo(LoginChoicesRoute());
       } else if (e is SessionException || e is ErrorReadingFromYBServer) {
-        _routerService.clearStackAndShow(LoginViewRoute());
+        _routerService.clearStackAndShow(LandingRoute());
       } else if (e is BusinessNotFoundException) {
         _routerService.navigateTo(SignUpViewRoute(countryNm: "Rwanda"));
       } else {
         print(stackTrace);
         ProxyService.isarApi.logOut();
         // remove startup view from the stack
-        _routerService.clearStackAndShow(LoginViewRoute());
+        _routerService.clearStackAndShow(LandingRoute());
       }
     }
   }

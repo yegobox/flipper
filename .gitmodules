@@ -16,13 +16,13 @@
 [submodule "open-sources/qr.flutter"]
 	path = open-sources/qr.flutter
 	url = https://github.com/yegobox/qr.flutter.git
-# [submodule "open-sources/flutter_datetime_picker"]
-# 	path = open-sources/flutter_datetime_picker
-# 	url = https://github.com/yegobox/flutter_datetime_picker.git
-# [submodule "open-sources/flutter_slidable"]
-# 	path = open-sources/flutter_slidable
-# 	branch = dev
-# 	url = https://github.com/yegobox/flutter_slidable.git
+[submodule "open-sources/flutter_datetime_picker"]
+	path = open-sources/flutter_datetime_picker
+	url = https://github.com/yegobox/flutter_datetime_picker.git
+[submodule "open-sources/flutter_slidable"]
+	path = open-sources/flutter_slidable
+	branch = dev
+	url = https://github.com/yegobox/flutter_slidable.git
 [submodule "open-sources/receipt"]
 	path = open-sources/receipt
 	url = https://github.com/yegobox/receipt.git
@@ -52,9 +52,9 @@
 [submodule "open-sources/flutter.widgets"]
 	path = open-sources/flutter.widgets
 	url = https://github.com/yegobox/flutter.widgets.git
-# [submodule "open-sources/flutterfire_desktop"]
-# 	path = open-sources/flutterfire_desktop
-# 	url = https://github.com/yegobox/flutterfire_desktop.git
+[submodule "open-sources/flutterfire_desktop"]
+	path = open-sources/flutterfire_desktop
+	url = https://github.com/yegobox/flutterfire_desktop.git
 
 # [submodule "open-sources/msix"]
 # 	path = open-sources/msix
@@ -64,12 +64,12 @@
 [submodule "open-sources/flutter_launcher_icons"]
 	path = open-sources/flutter_launcher_icons
 	url = https://github.com/yegobox/flutter_launcher_icons.git
-# [submodule "open-sources/form_block"]
-# 	path = open-sources/form_block
-# 	url = https://github.com/GiancarloCode/form_bloc.git
-# [submodule "open-sources/dart_pdf"]
-# 	path = open-sources/dart_pdf
-# 	url = https://github.com/yegobox/dart_pdf.git
+[submodule "open-sources/form_block"]
+	path = open-sources/form_block
+	url = https://github.com/GiancarloCode/form_bloc.git
+[submodule "open-sources/dart_pdf"]
+	path = open-sources/dart_pdf
+	url = https://github.com/yegobox/dart_pdf.git
 # [submodule "open-sources/firebase_auth"]
 # 	path = open-sources/firebase_auth
 # 	url = https://github.com/yegobox/firebase_auth.git
@@ -79,3 +79,8 @@
 # [submodule "open-sources/firebase_core"]
 # 	path = open-sources/firebase_core
 # 	url = https://github.com/yegobox/firebase_core.git
+
+
+# NOTES:
+# git submodule update --remote open-sources/plus_plugins
+
