@@ -25,11 +25,6 @@ class StartupViewModel extends BaseViewModel {
     required bool refreshCredentials,
   }) async {
     log("on startup..here");
-    // ProxyService.box.write(key: 'businessId', value: 1);
-    // int? businessId = ProxyService.box.getBusinessId();
-    // log(businessId?.toString() ?? "null");
-    // // _routerService.navigateTo(LoginChoicesRoute());
-    // return;
     try {
       /// an event should be trigered from mobile not desktop as desktop is anonmous and login() func might have been called.
       if (refreshCredentials) {

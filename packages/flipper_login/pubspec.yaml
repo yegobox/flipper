@@ -37,8 +37,7 @@ dependencies:
   qr_flutter: ^4.1.0
   flipper_ui: ^1.0.3
   flipper_socials: 1.0.0+1
-  country_code_picker: ^3.0.0
-  flutter_carousel_slider: ^1.0.9
+
 flutter:
   assets:
     - assets/

@@ -47,9 +47,8 @@ Future<void> onDidReceiveBackgroundNotificationResponse(
 Future<void> backgroundHandler(RemoteMessage message) async {}
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
   runZonedGuarded<Future<void>>(() async {
+    WidgetsFlutterBinding.ensureInitialized();
     GoogleFonts.config.allowRuntimeFetching = false;
     foundation.LicenseRegistry.addLicense(() async* {
       final license = await rootBundle.loadString('google_fonts/OFL.txt');
