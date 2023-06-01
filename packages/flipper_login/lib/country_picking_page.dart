@@ -18,30 +18,26 @@ class _CountryPickerState extends State<CountryPicker> {
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Stack(
             children: [
-              // Positioned(
-              //   top: 40,
-              //   left: 30,
-              //   child: MaterialButton(
-              //     minWidth: 10,
-              //     onPressed: () {
-              //       final _routerService = locator<RouterService>();
-              //       _routerService.clearStackAndShow(AuthOptionPageRoute());
-              //     },
-              //     child: Text("<",
-              //         style: TextStyle(
-              //             color: Colors.white,
-              //             fontSize: 28,
-              //             fontFamily: 'Roboto')),
-              //     color: Colors.black,
-              //   ),
-              // ),
+              Positioned(
+                top: 8,
+                left: 0,
+                child: IconButton(
+                  // minWidth: 10,
+                  onPressed: () {
+                    final _routerService = locator<RouterService>();
+                    _routerService.clearStackAndShow(AuthOptionPageRoute());
+                  },
+                  icon: Image.asset('assets/fav.png',
+                      height: 110, width: 110, package: 'flipper_login'),
+                  color: Colors.black,
+                ),
+              ),
               Positioned(
                 top: 45,
                 right: 30,
