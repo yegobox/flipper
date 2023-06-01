@@ -240,4 +240,6 @@ abstract class IsarApiInterface {
       {required int businessId, int? pageSize = 10, String? pk, String? sk});
   Future<bool> updateContact(
       {required Map<String, dynamic> contact, required int businessId});
+
+  Future<List<Social>> activesocialAccounts({required int businessId});
 }

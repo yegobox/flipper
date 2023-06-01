@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:flipper_models/isar_models.dart' as isar;
 import 'package:flipper_services/constants.dart';
@@ -105,6 +106,8 @@ class AppService with ListenableServiceMixin {
     }
 
     bool value = await isSocialLoggedin();
+    String? token = ProxyService.box.getSocialBearerToken();
+    log(token?.toString() ?? "social token is null");
     if (!value) {
       await logSocial();
     }
@@ -379,6 +382,6 @@ class AppService with ListenableServiceMixin {
       return await ProxyService.isarApi
           .isTokenValid(businessId: businessId, tokenType: socialApp);
     }
-    return true;
+    return false;
   }
 }

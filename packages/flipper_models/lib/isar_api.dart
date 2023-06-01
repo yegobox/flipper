@@ -2219,6 +2219,19 @@ class IsarAPI<M> implements IsarApiInterface {
     return await isar.socials.get(id);
   }
 
+  /// Given businessId return if there is any social account set for this business
+  /// this will give us enough confidence that we can authenticate social api as there is
+  /// probably one account set which means we can get bearer token if we authenticate with service
+  @override
+  Future<List<Social>> activesocialAccounts({required int businessId}) async {
+    return await isar.socials
+        .filter()
+        .businessIdEqualTo(businessId)
+        .and()
+        .isAccountSetEqualTo(true)
+        .findAll();
+  }
+
   @override
   Stream<List<Conversation>> getTop5RecentConversations() {
     if (ProxyService.box.getUserPhone() == null) return Stream.empty();
@@ -2395,7 +2408,10 @@ class IsarAPI<M> implements IsarApiInterface {
       isar.writeTxn(() => isar.tokens.delete(token.id));
       return false;
     }
-
+    String? localToken = ProxyService.box.getSocialBearerToken();
+    if (localToken == null) {
+      return false;
+    }
     return true;
   }
 
