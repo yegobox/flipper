@@ -18,9 +18,11 @@ import 'package:flipper_services/proxy.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 
 class ProductView extends StatefulWidget {
-  const ProductView({
-    Key? key,
-  }) : super(key: key);
+  int? favIndex;
+  ProductView.normalMode({Key? key}) : super(key: key);
+  ProductView.favoriteMode(
+      {Key? key, required this.favIndex})
+      : super(key: key);
 
   @override
   State<ProductView> createState() => _ProductViewState();
@@ -157,6 +159,8 @@ class _ProductViewState extends State<ProductView> {
                                 product: product,
                                 name: product.name,
                                 imageUrl: product.imageUrl,
+                                addFavoriteMode: (widget.favIndex != null)? true : false,
+                                favIndex: widget.favIndex,
                                 edit: (productId) {
                                   _routerService.navigateTo(AddProductViewRoute(
                                       productId: productId));

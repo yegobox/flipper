@@ -24,13 +24,13 @@ class StartupViewModel extends BaseViewModel {
   Future<void> runStartupLogic({
     required bool refreshCredentials,
   }) async {
-    log("on startup..here");
     try {
       /// an event should be trigered from mobile not desktop as desktop is anonmous and login() func might have been called.
       if (refreshCredentials) {
         await appService.isLoggedIn();
       }
       await appService.appInit();
+      log(ProxyService.box.getUserId().toString());
       //if we reached this far then it means we have a default business/branch make sence to check drawer
       if (await ProxyService.isarApi
           .isDrawerOpen(cashierId: ProxyService.box.getBusinessId()!)) {
@@ -48,6 +48,7 @@ class StartupViewModel extends BaseViewModel {
         }
       }
     } catch (e, stackTrace) {
+      log(e.toString());
       if (e is LoginChoicesException) {
         _routerService.navigateTo(LoginChoicesRoute());
       } else if (e is SessionException || e is ErrorReadingFromYBServer) {
@@ -57,7 +58,7 @@ class StartupViewModel extends BaseViewModel {
       } else {
         print(stackTrace);
         ProxyService.isarApi.logOut();
-        // remove startup view from the stack
+        //remove startup view from the stack
         _routerService.clearStackAndShow(LandingRoute());
       }
     }

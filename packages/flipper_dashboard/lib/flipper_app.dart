@@ -301,7 +301,7 @@ class _FlipperAppState extends State<FlipperApp>
                       Expanded(
                         flex: 2,
                         child: Container(
-                          child: ProductView(),
+                          child: ProductView.normalMode(),
                         ),
                       ),
 

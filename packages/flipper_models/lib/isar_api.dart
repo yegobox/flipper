@@ -76,6 +76,7 @@ class IsarAPI<M> implements IsarApiInterface {
           SocialSchema,
           ConversationSchema,
           DeviceSchema,
+          FavoriteSchema
         ],
         directory: dir.path,
       );
@@ -168,6 +169,46 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   IPoint addPoint({required int userId, required int point}) {
     return isar.iPoints.filter().userIdEqualTo(userId).findFirstSync()!;
+  }
+
+  @override
+  Future<int> addFavorite({required Favorite data}) async {
+    if (data != Null) {
+      await isar.writeTxn(() async {
+        await isar.favorites.put(data);
+      });
+      return Future.value(200);
+    }
+    return Future.value(404);
+  }
+
+  @override
+  Future<List<Favorite>> getFavorites() async {
+    List<Favorite> favorites = await isar.favorites.where().findAll();
+    return favorites;
+  }
+
+  @override
+  Future<Favorite?> getFavoriteById({required int favId}) async {
+    //Get a favorite
+    Favorite? favorite =
+        await isar.favorites.filter().idEqualTo(favId).findFirst();
+    return favorite;
+  }
+
+  @override
+  Future<Favorite?> getFavoriteByIndex({required int favIndex}) async {
+    //Get a favorite
+    Favorite? favorite =
+        await isar.favorites.filter().favIndexEqualTo(favIndex).findFirst();
+    return favorite;
+  }
+
+  //Delete a favorite
+  @override
+  Future<int> deleteFavorite({required int favId}) async {
+    await isar.favorites.delete(favId);
+    return Future.value(200);
   }
 
   @override
@@ -1524,6 +1565,12 @@ class IsarAPI<M> implements IsarApiInterface {
         return Future.value(null);
       });
     }
+    if (data is Favorite) {
+      await isar.writeTxn(() async {
+        await isar.favorites.put(data);
+        return Future.value(null);
+      });
+    }
     if (data is Stock) {
       await isar.writeTxn(() async {
         await isar.stocks.put(data);
@@ -1562,6 +1609,12 @@ class IsarAPI<M> implements IsarApiInterface {
 
       await isar.writeTxn(() async {
         return await isar.products.put(product);
+      });
+    }
+    if (data is Favorite) {
+      Favorite fav = data;
+      await isar.writeTxn(() async {
+        return await isar.favorites.put(fav);
       });
     }
     if (data is Variant) {

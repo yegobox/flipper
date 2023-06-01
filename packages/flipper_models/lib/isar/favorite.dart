@@ -8,6 +8,9 @@ part 'favorite.g.dart';
 @collection
 class Favorite {
   Id id = Isar.autoIncrement;
-  late String name;
+
+  @Index(unique: true)
+  int? favIndex;
+
   final product = IsarLink<Product>();
 }
