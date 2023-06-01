@@ -24,6 +24,8 @@ class StartupViewModel extends BaseViewModel {
   Future<void> runStartupLogic({
     required bool refreshCredentials,
   }) async {
+    log("on startup..here");
+    log(ProxyService.box.getBusinessId()?.toString() ?? "no BusinessId");
     try {
       /// an event should be trigered from mobile not desktop as desktop is anonmous and login() func might have been called.
       if (refreshCredentials) {
@@ -48,7 +50,7 @@ class StartupViewModel extends BaseViewModel {
         }
       }
     } catch (e, stackTrace) {
-      log(e.toString());
+      log(stackTrace.toString());
       if (e is LoginChoicesException) {
         _routerService.navigateTo(LoginChoicesRoute());
       } else if (e is SessionException || e is ErrorReadingFromYBServer) {

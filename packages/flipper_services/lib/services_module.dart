@@ -193,14 +193,18 @@ abstract class ServicesModule {
   }
 
   @LazySingleton()
-  LocalStorage box() {
+  LocalStorage get box {
+    late LocalStorage box;
     log("loading a box");
-    return LocalStorageImpl();
+    box = LocalStorageImpl();
+    return box;
   }
 
   @LazySingleton()
   EventInterface get event {
-    return EventService();
+    late EventInterface e;
+    e = EventService();
+    return e;
   }
 
   @preResolve

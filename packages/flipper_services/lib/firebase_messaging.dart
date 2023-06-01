@@ -52,7 +52,15 @@ class FirebaseMessagingService implements Messaging {
     await FirebaseMessaging.instance
         .subscribeToTopic(ProxyService.box.getBusinessId()!.toString());
     String? _token = await token();
-    if (ProxyService.box.getDefaultApp() == 2) {
+
+    ///at this stage we need to have businessId set for current session otherwise set to 0 to avoid any issue but that should not happen!
+    List<Social> activeSocialAccount = await ProxyService.isarApi
+        .activesocialAccounts(
+            businessId: ProxyService.box.getBusinessId() ?? 0);
+
+    /// we can only attempt to get social login if there is a social account set and is active
+    if (ProxyService.box.getDefaultApp() == 2 &&
+        activeSocialAccount.isNotEmpty) {
       bool isSocialLoggedIn = await appService.isSocialLoggedin();
       if (isSocialLoggedIn == true) {
         Setting? setting = await ProxyService.isarApi.getSocialSetting();
