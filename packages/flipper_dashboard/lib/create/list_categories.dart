@@ -81,7 +81,7 @@ class ListCategories extends StatelessWidget {
             bottomSpacer: 52,
           ),
           body: StreamBuilder<List<Category>>(
-              stream: ProxyService.isarApi
+              stream: ProxyService.isar
                   .categoriesStream(branchId: ProxyService.box.getBranchId()!),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {

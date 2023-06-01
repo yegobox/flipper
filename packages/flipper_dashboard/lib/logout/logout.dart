@@ -94,7 +94,7 @@ class LogOut extends StackedView<LogoutModel> {
                             'linkingCode': device.linkingCode,
                           });
                           // delete device
-                          ProxyService.isarApi.delete(
+                          ProxyService.isar.delete(
                             endPoint: 'device',
                             id: device.id!,
                           );

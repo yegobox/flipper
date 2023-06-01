@@ -30,9 +30,9 @@ class _LoginChoicesState extends State<LoginChoices> {
         onViewModelReady: (model) async {
           int? userId = ProxyService.box.getUserId();
           List<Business> _b =
-              await ProxyService.isarApi.businesses(userId: userId!);
+              await ProxyService.isar.businesses(userId: userId!);
           if (_b.isEmpty) {
-            await ProxyService.isarApi.logOut();
+            await ProxyService.isar.logOut();
             _routerService.clearStackAndShow(LandingRoute());
           }
 
@@ -153,11 +153,11 @@ class _LoginChoicesState extends State<LoginChoices> {
       print(business.id);
 
       model.branchesList(
-          await ProxyService.isarApi.branches(businessId: business.id!));
+          await ProxyService.isar.branches(businessId: business.id!));
       List<ITenant> tenants =
-          await ProxyService.isarApi.tenants(businessId: business.id!);
+          await ProxyService.isar.tenants(businessId: business.id!);
       if (tenants.isEmpty) {
-        await ProxyService.isarApi.tenantsFromOnline(businessId: business.id!);
+        await ProxyService.isar.tenantsFromOnline(businessId: business.id!);
       }
       await model.app.loadCounters(business);
       setState(() {
@@ -169,7 +169,7 @@ class _LoginChoicesState extends State<LoginChoices> {
   Future<void> chooseBranch(
       bool? value, BusinessHomeViewModel model, Branch branch) async {
     model.setDefaultBranch(branch: branch);
-    if (await ProxyService.isarApi
+    if (await ProxyService.isar
             .isDrawerOpen(cashierId: ProxyService.box.getBusinessId()!) ==
         null) {
       _routerService.navigateTo(DrawerScreenRoute(open: "open"));

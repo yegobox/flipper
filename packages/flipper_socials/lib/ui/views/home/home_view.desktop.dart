@@ -17,7 +17,7 @@ class HomeViewDesktop extends ViewModelWidget<HomeViewModel> {
     return Scaffold(
       body: SafeArea(
         child: StreamBuilder<Social>(
-            stream: ProxyService.isarApi.socialsStream(
+            stream: ProxyService.isar.socialsStream(
                 businessId: ProxyService.box.getBusinessId() ?? 0),
             builder: (context, snapshot) {
               if (snapshot.hasData) {

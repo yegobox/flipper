@@ -27,20 +27,19 @@ class UploadViewModel extends ProductViewModel {
         if (urlType == URLTYPE.PRODUCT) {
           final UploadResponse uploadResponse =
               uploadResponseFromJson(result.response!);
-          Product? product = await ProxyService.isarApi.getProduct(id: id);
+          Product? product = await ProxyService.isar.getProduct(id: id);
           product!.imageUrl = uploadResponse.url;
-          ProxyService.isarApi.update(data: product);
-          Product? kProduct = await ProxyService.isarApi.getProduct(id: id);
+          ProxyService.isar.update(data: product);
+          Product? kProduct = await ProxyService.isar.getProduct(id: id);
           ProxyService.productService.setCurrentProduct(product: kProduct!);
           callBack(uploadResponse.url);
         }
         if (urlType == URLTYPE.BUSINESS) {
           final UploadResponse uploadResponse =
               uploadResponseFromJson(result.response!);
-          Business? business =
-              await ProxyService.isarApi.getBusinessById(id: id);
+          Business? business = await ProxyService.isar.getBusinessById(id: id);
           business!.imageUrl = uploadResponse.url;
-          ProxyService.isarApi.update(data: business);
+          ProxyService.isar.update(data: business);
           updateBusinessProfile(url: uploadResponse.url);
           callBack(uploadResponse.url);
         }
@@ -63,19 +62,19 @@ class UploadViewModel extends ProductViewModel {
   }
 
   void updateBusinessProfile({required String url}) async {
-    ITenant? tenant = await ProxyService.isarApi
+    ITenant? tenant = await ProxyService.isar
         .getTenantBYUserId(userId: ProxyService.box.getUserId()!);
     // update business as well as for this time tenant is the same as busienss
 
     if (tenant != null) {
       tenant.imageUrl = url;
-      ProxyService.isarApi.update(data: tenant);
+      ProxyService.isar.update(data: tenant);
     }
 
     /// if the user has enabled the flipper connecta update his profile image in contacts as well
     if (await appService.isSocialLoggedin()) {
       // we are logged in in social so safe to patch the image as well
-      ProxyService.isarApi.updateContact(contact: {
+      ProxyService.isar.updateContact(contact: {
         "phoneNumber": ProxyService.box.getUserPhone(),
         "avatar": url,
         "entity": "contacts",

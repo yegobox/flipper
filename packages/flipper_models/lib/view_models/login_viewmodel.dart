@@ -44,14 +44,14 @@ class LoginViewModel extends FormViewModel {
     required BuildContext context,
   }) async {
     setIsprocessing(value: true);
-    Pin? pin = await ProxyService.isarApi.getPin(pin: pinCode);
+    Pin? pin = await ProxyService.isar.getPin(pin: pinCode);
     if (pin != null) {
       ProxyService.box.write(key: 'businessId', value: pin.businessId);
       ProxyService.box.write(key: 'branchId', value: pin.branchId);
       ProxyService.box.write(key: 'userId', value: pin.userId);
       ProxyService.box.write(key: 'userPhone', value: pin.phoneNumber);
       ProxyService.box.write(key: 'isAnonymous', value: true);
-      await ProxyService.isarApi.login(
+      await ProxyService.isar.login(
         skipDefaultAppSetup: false,
         userPhone: pin.phoneNumber,
       );

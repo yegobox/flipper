@@ -60,7 +60,7 @@ class _ConversationHistoryState extends State<ConversationHistory>
             body: Column(
               children: [
                 StreamBuilder<List<Conversation>>(
-                    stream: ProxyService.isarApi
+                    stream: ProxyService.isar
                         .conversations(conversationId: widget.conversationId),
                     builder: (context, snapshot) {
                       if (snapshot.hasData) {

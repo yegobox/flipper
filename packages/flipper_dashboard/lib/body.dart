@@ -46,7 +46,7 @@ Widget PaymentTicketManager(
       orders: model.keypad.itemsOnSale,
       duePay: model.kOrder?.subTotal,
       ticketHandler: () async {
-        Order order = await ProxyService.isarApi.manageOrder();
+        Order order = await ProxyService.isar.manageOrder();
         _routerService.navigateTo(TicketsRoute(order: order));
       },
     ),

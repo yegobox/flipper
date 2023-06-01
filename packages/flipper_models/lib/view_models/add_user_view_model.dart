@@ -7,7 +7,7 @@ class AddTenantViewModel extends ReactiveViewModel {
   List<ITenant> get tenants => _tenants;
 
   Future<void> loadTenants() async {
-    List<ITenant> users = await ProxyService.isarApi
+    List<ITenant> users = await ProxyService.isar
         .tenants(businessId: ProxyService.box.getBusinessId()!);
     _tenants = [...users];
     rebuildUi();

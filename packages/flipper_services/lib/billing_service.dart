@@ -8,7 +8,7 @@ class BillingService {
 
   Future<Voucher?> useVoucher({int? voucher, int? userId}) async {
     Voucher? voucherUse =
-        await ProxyService.isarApi.consumeVoucher(voucherCode: voucher!);
+        await ProxyService.isar.consumeVoucher(voucherCode: voucher!);
     if (voucherUse != null) {
       return voucherUse;
     } else {
@@ -17,7 +17,7 @@ class BillingService {
   }
 
   IPoint addPoints({int? points, int? userId}) {
-    return ProxyService.isarApi.addPoint(userId: userId!, point: points!);
+    return ProxyService.isar.addPoint(userId: userId!, point: points!);
   }
 
   Future<Subscription> updateSubscription({
@@ -28,7 +28,7 @@ class BillingService {
     required double amount,
   }) async {
     /// update the subscription of the user
-    Subscription? sub = await ProxyService.isarApi.addUpdateSubscription(
+    Subscription? sub = await ProxyService.isar.addUpdateSubscription(
       userId: userId,
       interval: interval,
       recurringAmount: amount,
@@ -41,8 +41,7 @@ class BillingService {
   Future<bool> activeSubscription() async {
     if (ProxyService.box.getUserId() == null) return false;
     int userId = ProxyService.box.getUserId()!;
-    Subscription? sub =
-        await ProxyService.isarApi.getSubscription(userId: userId);
+    Subscription? sub = await ProxyService.isar.getSubscription(userId: userId);
     if (sub != null) {
       String date = sub.nextBillingDate;
       DateTime nextBillingDate = DateTime.parse(date);

@@ -47,7 +47,7 @@ class _ProfileWidgetState extends State<ProfileWidget>
           return Stack(
             children: [
               StreamBuilder<Business>(
-                  stream: ProxyService.isarApi
+                  stream: ProxyService.isar
                       .businessStream(businessId: widget.tenant.businessId),
                   builder: (context, snapshot) {
                     if (snapshot.hasData) {

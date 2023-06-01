@@ -54,7 +54,7 @@ class FirebaseMessagingService implements Messaging {
     String? _token = await token();
 
     ///at this stage we need to have businessId set for current session otherwise set to 0 to avoid any issue but that should not happen!
-    List<Social> activeSocialAccount = await ProxyService.isarApi
+    List<Social> activeSocialAccount = await ProxyService.isar
         .activesocialAccounts(
             businessId: ProxyService.box.getBusinessId() ?? 0);
 
@@ -63,19 +63,19 @@ class FirebaseMessagingService implements Messaging {
         activeSocialAccount.isNotEmpty) {
       bool isSocialLoggedIn = await appService.isSocialLoggedin();
       if (isSocialLoggedIn == true) {
-        Setting? setting = await ProxyService.isarApi.getSocialSetting();
+        Setting? setting = await ProxyService.isar.getSocialSetting();
         if (setting == null) {
           throw Exception("Was about to patch settings but failed");
         }
         setting.deviceToken = _token;
         setting.token = setting.bToken;
-        ProxyService.isarApi.patchSocialSetting(setting: setting);
+        ProxyService.isar.patchSocialSetting(setting: setting);
       } else {
         await appService.logSocial();
       }
       if (!kDebugMode) {
         try {
-          ProxyService.remoteApi.create(collection: {
+          ProxyService.remote.create(collection: {
             "deviceToken": _token,
             "businessId": ProxyService.box.getBusinessId()!
           }, collectionName: 'messagings');
@@ -113,10 +113,10 @@ class FirebaseMessagingService implements Messaging {
       Conversation conversation = Conversation.fromJson(conversationMap);
       // delay so if there is other transaction going on to complete first e.g from pubnub
       Future.delayed(Duration(seconds: 20));
-      Conversation? conversationExistOnLocal = await ProxyService.isarApi
+      Conversation? conversationExistOnLocal = await ProxyService.isar
           .getConversation(messageId: conversation.messageId!);
       if (conversationExistOnLocal == null) {
-        await ProxyService.isarApi.create(data: conversation);
+        await ProxyService.isar.create(data: conversation);
       }
       if (isNotificationClicked) {
         _routerService.navigateTo(ConversationHistoryRoute(

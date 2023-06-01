@@ -57,7 +57,7 @@ class EventService implements EventInterface {
           ///TODO: work on making sure only specific device with specific linkingCode
           ///is the one logged out not all device, but leaving it now as it is not top priority
           await FirebaseAuth.instance.signOut();
-          ProxyService.isarApi.logOut();
+          ProxyService.isar.logOut();
           _routerService.clearStackAndShow(LandingRoute());
         }
       });
@@ -100,11 +100,11 @@ class EventService implements EventInterface {
         String deviceVersion = Platform.version;
         // publish the device name and version
 
-        Device? device = await ProxyService.isarApi
+        Device? device = await ProxyService.isar
             .getDevice(linkingCode: loginData.linkingCode);
 
         if (device == null) {
-          await ProxyService.isarApi.create(
+          await ProxyService.isar.create(
               data: Device(
                   busienssId: loginData.businessId,
                   pubNubPublished: false,
@@ -117,7 +117,7 @@ class EventService implements EventInterface {
                   deviceName: deviceName,
                   deviceVersion: deviceVersion));
         }
-        await ProxyService.isarApi
+        await ProxyService.isar
             .login(userPhone: loginData.phone, skipDefaultAppSetup: true);
         keepTryingPublishDevice();
         await FirebaseAuth.instance.signInAnonymously();
@@ -141,11 +141,11 @@ class EventService implements EventInterface {
       log("received message aha!");
       Conversation conversation = Conversation.fromJson(envelope.payload);
 
-      Conversation? localConversation = await ProxyService.isarApi
+      Conversation? localConversation = await ProxyService.isar
           .getConversation(messageId: conversation.messageId!);
 
       if (localConversation == null) {
-        await ProxyService.isarApi.create(data: conversation);
+        await ProxyService.isar.create(data: conversation);
       }
     });
   }
@@ -162,11 +162,11 @@ class EventService implements EventInterface {
       log("received device aha!");
       LoginData deviceEvent = LoginData.fromMap(envelope.payload);
 
-      Device? device = await ProxyService.isarApi
+      Device? device = await ProxyService.isar
           .getDevice(linkingCode: deviceEvent.linkingCode);
 
       if (device == null) {
-        await ProxyService.isarApi.create(
+        await ProxyService.isar.create(
             data: Device(
                 busienssId: deviceEvent.businessId,
                 pubNubPublished: true,
@@ -185,7 +185,7 @@ class EventService implements EventInterface {
   @override
   Future<void> keepTryingPublishDevice() async {
     if (ProxyService.box.getBusinessId() == null) return;
-    List<Device> devices = await ProxyService.isarApi
+    List<Device> devices = await ProxyService.isar
         .unpublishedDevices(businessId: ProxyService.box.getBusinessId()!);
     for (Device device in devices) {
       publish(

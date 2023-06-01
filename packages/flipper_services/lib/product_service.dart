@@ -48,19 +48,19 @@ class ProductService with ListenableServiceMixin {
   List<Variant>? get variants => _variants.value;
 
   Future<void> variantsProduct({required int productId}) async {
-    _variants.value = await ProxyService.isarApi
+    _variants.value = await ProxyService.isar
         .variants(branchId: branchId!, productId: productId);
     notifyListeners();
   }
 
   /// discount streams
   Stream<List<Discount>> discountStream({required int branchId}) async* {
-    yield* ProxyService.isarApi.discountStreams(branchId: branchId);
+    yield* ProxyService.isar.discountStreams(branchId: branchId);
   }
 
   /// products streams
   Stream<List<Product>> productStream({required int branchId}) async* {
-    yield* ProxyService.isarApi.productStreams(branchId: branchId);
+    yield* ProxyService.isar.productStreams(branchId: branchId);
   }
 
   StreamTransformer<List<Product>, List<Product>> searchTransformer(
@@ -80,13 +80,13 @@ class ProductService with ListenableServiceMixin {
 
   Future<Product?> getProductByBarCode({required String? code}) async {
     if (code == null) return null;
-    return await ProxyService.isarApi.getProductByBarCode(barCode: code);
+    return await ProxyService.isar.getProductByBarCode(barCode: code);
   }
 
   List<Stock?> _stocks = [];
   List<Stock?> get stocks => _stocks;
   Future<List<Stock?>> loadStockByProductId({required int productId}) async {
-    _stocks = await ProxyService.isarApi.stocks(productId: productId);
+    _stocks = await ProxyService.isar.stocks(productId: productId);
     return stocks;
   }
 

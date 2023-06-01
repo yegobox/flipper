@@ -48,7 +48,7 @@ class ChatListViewModel extends StartupViewModel {
       messageType: "text",
       businessId: ProxyService.box.getBusinessId()!.toString(),
     );
-    ProxyService.isarApi.create(data: reply);
+    ProxyService.isar.create(data: reply);
   }
 
   void navigateToAppCenter() {

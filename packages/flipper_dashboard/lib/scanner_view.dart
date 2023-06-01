@@ -262,7 +262,7 @@ class _ScannViewState extends State<ScannView> {
       if (widget.intent == attendance) {
         // pull my bio data and asign them to the scan business.
         bool isCheckInDone =
-            await ProxyService.isarApi.checkIn(checkInCode: scanData.code);
+            await ProxyService.isar.checkIn(checkInCode: scanData.code);
         if (isCheckInDone) {
           showSimpleNotification(
             const Text('Check In Successful'),

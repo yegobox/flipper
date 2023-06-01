@@ -137,7 +137,7 @@ class _AddProductViewState extends State<AddProductView> {
         /// get the regular variant then get it's price to fill in the form when we are in edit mode!
         /// normal this is a List of variants where match the productId and take where we have the regular variant
         if (widget.productId != null) {
-          List<Variant> variants = await ProxyService.isarApi
+          List<Variant> variants = await ProxyService.isar
               .getVariantByProductId(productId: widget.productId!);
           //filter the variants where we have the regular variant and get one of them
           Variant regularVariant =

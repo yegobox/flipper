@@ -33,10 +33,10 @@ class InitApp {
     ProxyService.cron.schedule();
 
     if (isWindows) {
-      ProxyService.appService.updateStatusColor();
+      ProxyService.app.updateStatusColor();
     }
 
-    ProxyService.appService.appBarColor(Colors.black);
+    ProxyService.app.appBarColor(Colors.black);
 
     ProxyService.event.connect();
 

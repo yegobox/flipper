@@ -51,7 +51,7 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
         onViewModelReady: (model) {},
         builder: (build, viewModel, child) {
           return StreamBuilder<List<Conversation>>(
-              stream: ProxyService.isarApi.conversations(),
+              stream: ProxyService.isar.conversations(),
               builder: (context, snapshot) {
                 if (snapshot.hasData && snapshot.data!.isNotEmpty) {
                   final conversations = snapshot.data ?? [];
@@ -79,7 +79,7 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
                                             const EdgeInsets.only(left: 28.0),
                                         child: StreamBuilder<
                                                 List<Conversation>>(
-                                            stream: ProxyService.isarApi
+                                            stream: ProxyService.isar
                                                 .conversations(
                                                     conversationId: viewModel
                                                         .conversationId!),
@@ -137,10 +137,9 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
                               // The list of messages for the selected chat
                               viewModel.focusedConversation
                                   ? StreamBuilder<List<Conversation>>(
-                                      stream: ProxyService.isarApi
-                                          .conversations(
-                                              conversationId:
-                                                  viewModel.conversationId!),
+                                      stream: ProxyService.isar.conversations(
+                                          conversationId:
+                                              viewModel.conversationId!),
                                       builder: (context, snapshot) {
                                         if (snapshot.hasData) {
                                           final data = snapshot.data;

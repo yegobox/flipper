@@ -60,10 +60,10 @@ class KeyPadService with ListenableServiceMixin {
 
   List<Order> get tickets => _tickets.value;
   Future<List<Order>> getTickets() async {
-    List<Order> tickets = await ProxyService.isarApi.tickets();
+    List<Order> tickets = await ProxyService.isar.tickets();
     //NOTE: we assume index[0] as pending order can not be more than one at the moment
     if (tickets.isNotEmpty) {
-      List<OrderItem> orderItems = await ProxyService.isarApi
+      List<OrderItem> orderItems = await ProxyService.isar
           .getOrderItemsByOrderId(orderId: tickets.first.id!);
       _countOrderItems.value = orderItems.length;
     }
@@ -102,11 +102,11 @@ class KeyPadService with ListenableServiceMixin {
   /// we have one order but an order can have more than 1 orderitem(s)
   /// it is in this recard in application anywhere else it's okay to access orders[0]
   Future<Order?> getPendingOrder({required int branchId}) async {
-    Order? order = await ProxyService.isarApi.pendingOrder(branchId: branchId);
+    Order? order = await ProxyService.isar.pendingOrder(branchId: branchId);
 
     if (order != null) {
       List<OrderItem> items =
-          await ProxyService.isarApi.orderItems(orderId: order.id!);
+          await ProxyService.isar.orderItems(orderId: order.id!);
       _countOrderItems.value = items.length;
     }
     _order.value = order;
@@ -116,9 +116,9 @@ class KeyPadService with ListenableServiceMixin {
   /// this function update _orders.value the same as getOrders but this takes id of the order we want
   /// it is very important to not fonfuse these functions. later on.
   Future<Order?> getOrderById({required int id}) async {
-    Order? od = await ProxyService.isarApi.getOrderById(id: id);
+    Order? od = await ProxyService.isar.getOrderById(id: id);
     List<OrderItem> orderItems =
-        await ProxyService.isarApi.getOrderItemsByOrderId(orderId: od!.id!);
+        await ProxyService.isar.getOrderItemsByOrderId(orderId: od!.id!);
     _countOrderItems.value = orderItems.length;
 
     _order.value = od;

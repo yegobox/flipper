@@ -88,14 +88,14 @@ class _FlipperAppState extends State<FlipperApp>
       // AppLifecycleState.
       case AppLifecycleState.resumed:
         nfc();
-        ProxyService.appService.pushDataToServer();
+        ProxyService.app.pushDataToServer();
         break;
       case AppLifecycleState.paused:
         // AppService.cleanedDataController.close();
-        ProxyService.appService.pushDataToServer();
+        ProxyService.app.pushDataToServer();
         break;
       default:
-        ProxyService.appService.pushDataToServer();
+        ProxyService.app.pushDataToServer();
         break;
     }
   }
@@ -393,7 +393,7 @@ class _FlipperAppState extends State<FlipperApp>
     if (shouldPop == true) {
       // Handle leaving  the app
       // ...
-      Drawers? drawer = await ProxyService.isarApi
+      Drawers? drawer = await ProxyService.isar
           .getDrawer(cashierId: ProxyService.box.getBusinessId()!);
       _routerService
           .replaceWith(DrawerScreenRoute(open: "close", drawer: drawer));

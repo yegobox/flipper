@@ -25,14 +25,14 @@ class CronService {
   // then we will customize invoice to match with actual data.
   schedule() async {
     //save the device token to firestore if it is not already there
-    Business? business = await ProxyService.isarApi.getBusiness();
+    Business? business = await ProxyService.isar.getBusiness();
     String? token;
     Timer.periodic(Duration(minutes: kDebugMode ? 5 : 5), (Timer t) async {
       /// get a list of local copy of product to sync
-      ProxyService.appService.pushDataToServer();
+      ProxyService.app.pushDataToServer();
       ProxyService.sync.pull();
       // in case pubnub did not get latest message load them forcefully
-      ProxyService.isarApi
+      ProxyService.isar
           .loadConversations(businessId: ProxyService.box.getBranchId()!);
     });
     if (!Platform.isWindows) {
@@ -54,16 +54,16 @@ class CronService {
 
     Timer.periodic(Duration(seconds: kDebugMode ? 10 : 10), (Timer t) async {
       /// get unsynced counter and send them online for houseKeping.
-      ProxyService.isarApi.sendScheduleMessages();
+      ProxyService.isar.sendScheduleMessages();
       ProxyService.event.keepTryingPublishDevice();
     });
     Timer.periodic(Duration(minutes: kDebugMode ? 1 : 10), (Timer t) async {
       /// get unsynced counter and send them online for houseKeping.
       if (ProxyService.box.getBranchId() != null) {
-        List<Counter> counters = await ProxyService.isarApi
+        List<Counter> counters = await ProxyService.isar
             .unSyncedCounters(branchId: ProxyService.box.getBranchId()!);
         for (Counter counter in counters) {
-          ProxyService.isarApi.update(data: counter..backed = true);
+          ProxyService.isar.update(data: counter..backed = true);
         }
       }
     });

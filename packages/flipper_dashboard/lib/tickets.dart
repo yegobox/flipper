@@ -102,7 +102,7 @@ class _TicketsState extends State<Tickets> with SingleTickerProviderStateMixin {
                       padding: const EdgeInsets.only(
                           left: 24.0, top: 20.0, right: 20.0),
                       child: StreamBuilder<List<Order>>(
-                          stream: ProxyService.isarApi.ticketsStreams(),
+                          stream: ProxyService.isar.ticketsStreams(),
                           builder: (context, snapshot) {
                             if (snapshot.hasData) {
                               List<Order> data = snapshot.data!;

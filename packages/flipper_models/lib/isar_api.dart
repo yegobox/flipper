@@ -374,7 +374,7 @@ class IsarAPI<M> implements IsarApiInterface {
     // remove currentOrderId from local storage to leave a room
     // for listening to new order that will be created
     ProxyService.box.remove(key: 'currentOrderId');
-    ProxyService.appService.pushDataToServer();
+    ProxyService.app.pushDataToServer();
   }
 
   @override
@@ -806,7 +806,7 @@ class IsarAPI<M> implements IsarApiInterface {
           .where()
           .productIdEqualTo(newProduct.id!)
           .findFirst();
-      if (await ProxyService.isarApi.isTaxEnabled()) {
+      if (await ProxyService.isar.isTaxEnabled()) {
         ProxyService.tax.saveItem(variation: variant!);
       }
       return variant!;
@@ -2538,7 +2538,7 @@ class IsarAPI<M> implements IsarApiInterface {
           .toList();
 
       for (Conversation conversation in messages) {
-        Conversation? localConversation = await ProxyService.isarApi
+        Conversation? localConversation = await ProxyService.isar
             .getConversation(messageId: conversation.messageId!);
         // if date is improperly formatted then format it right
         // the bellow date format will be like 5th May converter
@@ -2554,7 +2554,7 @@ class IsarAPI<M> implements IsarApiInterface {
         conversation.avatar = HtmlUnescape().convert(conversation.avatar);
         log(conversation.avatar, name: "converted URL");
         if (localConversation == null) {
-          await ProxyService.isarApi.create(data: conversation);
+          await ProxyService.isar.create(data: conversation);
         }
       }
 
@@ -2566,6 +2566,8 @@ class IsarAPI<M> implements IsarApiInterface {
             .write(key: 'pk', value: pk.replaceAll("messages#", ""));
         ProxyService.box
             .write(key: 'sk', value: sk.replaceAll("messages#", ""));
+      } else {
+        log("there is no last key to use in query and that is fine!");
       }
     }
   }

@@ -44,13 +44,13 @@ class _ChatListViewMobileState extends State<ChatListViewMobile>
     return ViewModelBuilder<ChatListViewModel>.reactive(
         viewModelBuilder: () => ChatListViewModel(),
         onViewModelReady: (viewModel) {
-          ProxyService.isarApi
+          ProxyService.isar
               .loadConversations(businessId: ProxyService.box.getBusinessId()!);
           SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
             if (ProxyService.box.getBranchId() != null &&
                 ProxyService.box.getBusinessId() != null &&
                 ProxyService.box.getUserId() != null) {
-              ProxyService.remoteApi.listenToChanges();
+              ProxyService.remote.listenToChanges();
             }
           });
         },
@@ -90,7 +90,7 @@ class _ChatListViewMobileState extends State<ChatListViewMobile>
                 ],
               ),
               body: StreamBuilder<List<Conversation>>(
-                  stream: ProxyService.isarApi.conversations(),
+                  stream: ProxyService.isar.conversations(),
                   builder: (context, snapshot) {
                     if (snapshot.hasData && snapshot.data!.isNotEmpty) {
                       final _conversations = snapshot.data;
@@ -112,7 +112,7 @@ class _ChatListViewMobileState extends State<ChatListViewMobile>
                               flexibleSpace: FlexibleSpaceBar(
                                 titlePadding: EdgeInsets.zero,
                                 title: StreamBuilder<List<Conversation>>(
-                                  stream: ProxyService.isarApi
+                                  stream: ProxyService.isar
                                       .getTop5RecentConversations(),
                                   builder: (context, snapshot) {
                                     if (snapshot.hasData &&

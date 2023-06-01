@@ -94,7 +94,7 @@ class _AfterSaleState extends State<AfterSale> {
                       right: 0,
                       left: 0,
                       child: StreamBuilder<Customer?>(
-                          stream: ProxyService.isarApi.getCustomerByOrderId(
+                          stream: ProxyService.isar.getCustomerByOrderId(
                               id: model.kOrder == null ? 0 : model.kOrder!.id!),
                           builder: (context, snapshot) {
                             return snapshot.data == null
@@ -158,14 +158,14 @@ class _AfterSaleState extends State<AfterSale> {
                                               model.keyboardKeyPressed(
                                                   key:
                                                       'C'); // to clear the keyboard
-                                              if (await ProxyService.isarApi
+                                              if (await ProxyService.isar
                                                   .isTaxEnabled()) {
                                                 if (model.receiptReady) {
                                                   Business? business =
-                                                      await ProxyService.isarApi
+                                                      await ProxyService.isar
                                                           .getBusiness();
                                                   List<OrderItem> items =
-                                                      await ProxyService.isarApi
+                                                      await ProxyService.isar
                                                           .orderItems(
                                                     orderId: widget.order.id!,
                                                   );
@@ -318,10 +318,10 @@ class _AfterSaleState extends State<AfterSale> {
         onViewModelReady: (model) async {
           model.getOrderById();
           // generate rra receipt
-          if (await ProxyService.isarApi.isTaxEnabled()) {
-            Business? business = await ProxyService.isarApi.getBusiness();
-            List<OrderItem> items = await ProxyService.isarApi
-                .orderItems(orderId: widget.order.id!);
+          if (await ProxyService.isar.isTaxEnabled()) {
+            Business? business = await ProxyService.isar.getBusiness();
+            List<OrderItem> items =
+                await ProxyService.isar.orderItems(orderId: widget.order.id!);
 
             final bool isDone = await model.generateRRAReceipt(
                 items: items,

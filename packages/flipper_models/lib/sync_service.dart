@@ -23,7 +23,7 @@ class SynchronizationService<M extends IJsonSerializable>
       Map<String, dynamic> json = model.toJson();
 
       if (endpoint == "orders") {
-        String namesString = (await ProxyService.isarApi.orderItems(
+        String namesString = (await ProxyService.isar.orderItems(
           orderId: json["localId"],
         ))
             .map((item) => item.name)
@@ -52,12 +52,12 @@ class SynchronizationService<M extends IJsonSerializable>
         var remoteID = json["remoteID"];
         if (remoteID != null) {
           json["id"] = remoteID;
-          result = await ProxyService.remoteApi
+          result = await ProxyService.remote
               .update(data: json, collectionName: endpoint, recordId: remoteID);
         }
         // ignore: unnecessary_null_comparison
       } else if (json['action'] == 'create' || result == null) {
-        result = await ProxyService.remoteApi
+        result = await ProxyService.remote
             .create(collection: json, collectionName: endpoint);
       }
 
@@ -68,6 +68,6 @@ class SynchronizationService<M extends IJsonSerializable>
 
   @override
   void pull() async {
-    ProxyService.remoteApi.listenToChanges();
+    ProxyService.remote.listenToChanges();
   }
 }

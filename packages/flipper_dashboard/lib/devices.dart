@@ -139,7 +139,7 @@ class Devices extends StatelessWidget {
             ),
             // streams of devices
             StreamBuilder<List<Device>>(
-              stream: ProxyService.isarApi
+              stream: ProxyService.isar
                   .getDevices(businessId: ProxyService.box.getBusinessId()!),
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
