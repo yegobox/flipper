@@ -21,9 +21,6 @@ import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import 'firebase_options.dart';
-// import 'init.dart'
-//     if (dart.library.html) 'web_init.dart'
-//     if (dart.library.io) 'io_init.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
@@ -38,11 +35,6 @@ Future<void> onDidReceiveBackgroundNotificationResponse(
     level: SentryLevel.info,
   );
 }
-
-// import 'init.dart'
-//     if (dart.library.html) 'web_init.dart'
-//     if (dart.library.io) 'io_init.dart';
-// import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 Future<void> backgroundHandler(RemoteMessage message) async {}
 
