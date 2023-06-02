@@ -2466,7 +2466,7 @@ class IsarAPI<M> implements IsarApiInterface {
               "deviceToken": setting.deviceToken
             }));
     // convert response to Setting
-    if (response.statusCode != 200) {
+    if (response.statusCode != 200 && response.statusCode != 403) {
       throw Exception(
           "Can't  patch  settings patch ${response.body}${setting.toJson()}");
     }
