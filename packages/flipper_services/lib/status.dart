@@ -1,6 +1,5 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_statusbarcolor_ns/flutter_statusbarcolor_ns.dart';
-import 'constants.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
