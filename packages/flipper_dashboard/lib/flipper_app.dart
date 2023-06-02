@@ -151,16 +151,19 @@ class _FlipperAppState extends State<FlipperApp>
               appBar: AppBar(
                 title: Center(
                     child: Text(
-                  model.app.statusText,
+                  ProxyService.status.statusText.value ?? "",
                   style: GoogleFonts.poppins(
                     fontSize: 16.0,
                     fontWeight: FontWeight.w300,
                     color: Colors.white,
                   ),
                 )),
-                backgroundColor: model.app.statusColor,
+                backgroundColor: ProxyService.status.statusColor.value,
                 automaticallyImplyLeading: false,
-                toolbarHeight: model.app.statusText.isNotEmpty ? 25 : 0,
+                toolbarHeight:
+                    ProxyService.status.statusText.value?.isNotEmpty == true
+                        ? 25
+                        : 0,
               ),
               bottomNavigationBar: !isWindows
                   ? NavigationBarTheme(

@@ -32,12 +32,7 @@ class InitApp {
     // ScrollController(keepScrollOffset: true, initialScrollOffset: 0);
     ProxyService.cron.schedule();
 
-    if (isWindows) {
-      ProxyService.app.updateStatusColor();
-    }
-
-    ProxyService.app.appBarColor(Colors.black);
-
+    ProxyService.status.updateStatusColor();
     ProxyService.event.connect();
 
     ProxyService.messaging

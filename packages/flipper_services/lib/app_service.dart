@@ -3,7 +3,6 @@ import 'dart:developer';
 
 import 'package:flipper_models/isar_models.dart' as isar;
 import 'package:flipper_services/constants.dart';
-import 'package:flutter/material.dart' as material;
 import 'package:pocketbase/pocketbase.dart';
 import 'package:stacked/stacked.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -11,7 +10,6 @@ import 'package:flipper_models/isar_models.dart';
 import 'proxy.dart';
 // import 'package:flutter_statusbarcolor_ns/flutter_statusbarcolor_ns.dart';
 // import 'package:flipper_nfc/flipper_nfc.dart';
-import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 const socialApp = "socials";
@@ -323,50 +321,6 @@ class AppService with ListenableServiceMixin {
         in connectivity.onConnectivityChanged) {
       yield result != ConnectivityResult.none;
     }
-  }
-
-  material.Color _statusColor = material.Color(0xFF8B0000);
-
-  material.Color get statusColor => _statusColor;
-
-  String _statusText = "";
-
-  String get statusText => _statusText;
-
-  Future<void> appBarColor(material.Color color) async {
-    if (!isDesktopOrWeb) {
-      // await FlutterStatusbarcolor.setStatusBarColor(color);
-      _statusColor = color;
-      // if (useWhiteForeground(color)) {
-      //   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark.copyWith(
-      //     statusBarBrightness: Brightness.dark,
-      //   ));
-      // } else {
-      //   SystemChrome.setSystemUIOverlayStyle(
-      //       SystemUiOverlayStyle.light.copyWith(
-      //     statusBarBrightness: Brightness.light,
-      //   ));
-      // }
-    }
-  }
-
-  void updateStatusColor() {
-    _statusText = "";
-    appBarColor(material.Colors.black);
-
-    ProxyService.app
-        .checkInternetConnectivity()
-        .listen((currentInternetStatus) {
-      if (!currentInternetStatus) {
-        _statusColor = material.Colors.red;
-        _statusText = "Connectivity issues";
-        appBarColor(material.Color(0xFF8B0000));
-      } else {
-        _statusText = "";
-        appBarColor(material.Colors.black);
-      }
-      notifyListeners();
-    });
   }
 
   AppService() {

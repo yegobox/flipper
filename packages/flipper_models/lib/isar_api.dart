@@ -18,11 +18,8 @@ import 'package:flipper_services/locator.dart' as loc;
 import 'package:flutter/foundation.dart' as foundation;
 
 import 'package:path_provider/path_provider.dart';
-import 'package:universal_platform/universal_platform.dart';
 import 'flipper_http_client.dart';
 import 'package:flipper_routing/receipt_types.dart';
-
-final isAndroid = UniversalPlatform.isAndroid;
 
 class IsarAPI<M> implements IsarApiInterface {
   FlipperHttpClient flipperHttpClient = FlipperHttpClient(http.Client());
@@ -2518,6 +2515,27 @@ class IsarAPI<M> implements IsarApiInterface {
     return isar.iTenants.filter().userIdEqualTo(userId).build().findFirst();
   }
 
+  /// Loads conversations from the server for a given business ID.
+  ///
+  /// The [businessId] parameter is required and specifies the ID of the business
+  /// for which conversations should be loaded.
+  ///
+  /// The [pageSize] parameter determines the number of conversations to retrieve
+  /// per page. If not provided, a default value of 10 is used.
+  ///
+  /// The [pk] and [sk] parameters allow for pagination and retrieving conversations
+  /// starting from a specific point in the conversation history.
+  ///
+  /// This function makes an HTTP request to the server, retrieves the conversations,
+  /// and stores them in a local database for future reference.
+  ///
+  /// Note: This function assumes a successful HTTP response with a status code of 200.
+  /// Errors during the request or JSON parsing are not handled in this implementation.
+  ///
+  /// Example usage:
+  /// ```
+  /// await loadConversations(businessId: 123, pageSize: 20);
+  /// ```
   @override
   Future<void> loadConversations(
       {required int businessId,

@@ -1,6 +1,7 @@
 import 'package:flipper_models/view_models/gate.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -39,9 +40,14 @@ class _DrawerScreenState extends State<DrawerScreen> {
           key: _sub,
           child: Column(
             children: [
-              Text(widget.open == "close"
-                  ? "Close a Business"
-                  : "Open Business"),
+              Text(
+                widget.open == "close" ? "Close a Business" : "Open Business",
+                style: GoogleFonts.poppins(
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                ),
+              ),
               const Spacer(),
               TextFormField(
                   controller: _controller,
