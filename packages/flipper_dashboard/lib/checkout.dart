@@ -204,7 +204,7 @@ class NewWidget extends StatelessWidget {
                   )
                 ],
               ),
-              const ProductView(),
+              ProductView.normalMode(),
               const Favorites()
             ],
           ),

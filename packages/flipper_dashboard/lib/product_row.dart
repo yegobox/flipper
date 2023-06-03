@@ -8,8 +8,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flutter_text_drawable/flutter_text_drawable.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class ProductRow extends StatelessWidget {
+  Map<int, String> positionString = {
+    0: 'first',
+    1: 'second',
+    2: 'third',
+    3: 'fourth',
+    4: 'fifth',
+    5: 'sixth',
+    6: 'seventh',
+    7: 'eighth',
+    8: 'ninth',
+    9: 'tenth',
+    10: 'eleventh',
+    11: 'twelvth',
+    12: 'thirteenth',
+    13: 'fourteenth',
+    14: 'fifteenth',
+    15: 'sixteenth'
+  };
   ProductRow({
     Key? key,
     required this.color,
@@ -22,10 +41,14 @@ class ProductRow extends StatelessWidget {
     required this.enableNfc,
     required this.model,
     required this.delete,
+    this.addFavoriteMode,
+    this.favIndex,
   }) : super(key: key);
   final String color;
   final String name;
   final String? imageUrl;
+  final bool? addFavoriteMode;
+  final int? favIndex;
   final Product product;
   final Function delete;
   final Function addToMenu;
@@ -40,10 +63,80 @@ class ProductRow extends StatelessWidget {
       key: Key('slidable-${product.id!}'),
       child: GestureDetector(
         onTap: () {
-          _routerService.navigateTo(SellRoute(product: product));
-        },
-        onLongPress: () {
-          _routerService.navigateTo(SellRoute(product: product));
+          if (addFavoriteMode != null && addFavoriteMode == true) {
+            String? position = positionString[favIndex!];
+            //Confirmation dialog
+            final shouldPop = showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text('Confirm Favorite'),
+                  content: Text(
+                      'You are about to add $name to your $position favorite position.\n\nDo you approve?'),
+                  actions: <Widget>[
+                    OutlinedButton(
+                      child: Text('Yes',
+                          style: GoogleFonts.poppins(
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                          )),
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            const Color(0xff006AFE)),
+                        overlayColor: MaterialStateProperty.resolveWith<Color?>(
+                          (Set<MaterialState> states) {
+                            if (states.contains(MaterialState.hovered)) {
+                              return Colors.blue.withOpacity(0.04);
+                            }
+                            if (states.contains(MaterialState.focused) ||
+                                states.contains(MaterialState.pressed)) {
+                              return Colors.blue.withOpacity(0.12);
+                            }
+                            return null; // Defer to the widget's default.
+                          },
+                        ),
+                      ),
+                      onPressed: () => {
+                        model.addFavorite(
+                            favIndex: favIndex!, productId: product.id!),
+                        model.rebuildUi(),
+                        Navigator.of(context).pop(),
+                        Navigator.of(context).pop(),
+                      },
+                    ),
+                    OutlinedButton(
+                      child: Text('No',
+                          style: GoogleFonts.poppins(
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                          )),
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            const Color(0xff006AFE)),
+                        overlayColor: MaterialStateProperty.resolveWith<Color?>(
+                          (Set<MaterialState> states) {
+                            if (states.contains(MaterialState.hovered)) {
+                              return Colors.blue.withOpacity(0.04);
+                            }
+                            if (states.contains(MaterialState.focused) ||
+                                states.contains(MaterialState.pressed)) {
+                              return Colors.blue.withOpacity(0.12);
+                            }
+                            return null; // Defer to the widget's default.
+                          },
+                        ),
+                      ),
+                      onPressed: () => Navigator.of(context).pop(false),
+                    ),
+                  ],
+                );
+              },
+            );
+          } else {
+            _routerService.navigateTo(SellRoute(product: product));
+          }
         },
         child: Container(
           padding: EdgeInsets.zero,
@@ -83,8 +176,8 @@ class ProductRow extends StatelessWidget {
             ),
             subtitle: Text(
               stocks.isNotEmpty
-                  ? 'In stock ' + stocks[0]!.currentStock.toString()
-                  : 'In stock 0.0',
+                  ? 'In stock: ' + stocks[0]!.currentStock.toString()
+                  : 'In stock: 0.0',
               style: const TextStyle(color: Colors.black),
             ),
             trailing: Container(

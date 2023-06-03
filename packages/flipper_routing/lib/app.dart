@@ -19,6 +19,7 @@ import 'all_routes.dart';
     //End of new login routes
 
     CustomRoute(page: AddProductView),
+    CustomRoute(page: AddToFavorites),
     CustomRoute(page: AddDiscount),
     CustomRoute(page: ListCategories),
     CustomRoute(page: ColorTile),

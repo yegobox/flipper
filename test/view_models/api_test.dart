@@ -31,7 +31,7 @@ void main() {
     });
 
     isarTest('Test can create order', () async {
-      // order = await ProxyService.isarApi.manageOrder();
+      // order = await ProxyService.isar.manageOrder();
       // expect(order, isA<Order>());
       expect(1, 1);
     });

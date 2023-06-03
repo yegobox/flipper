@@ -2,6 +2,8 @@ library flipper_models;
 
 // import 'package:flipper_models/isar_models.dart';
 
+import 'dart:developer';
+
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar/utils.dart';
 import 'package:flipper_models/isar_models.dart';
@@ -181,7 +183,7 @@ class ProductViewModel extends TenantViewModel {
     if (type == 'variant') {
       // final Map data = product.toJson();
       // data['unit'] = unit.name;
-      // ProxyService.isarApi.update(data: data, endPoint: 'variant');
+      // ProxyService.isar.update(data: data, endPoint: 'variant');
     }
     notifyListeners();
     app.loadUnits();
@@ -364,6 +366,18 @@ class ProductViewModel extends TenantViewModel {
     return response == 200;
   }
 
+  /// Add a product into the favorites
+  Future<int> addFavorite(
+      {required int favIndex, required int productId}) async {
+    final favorite = Favorite(favIndex, productId);
+
+    int res = await ProxyService.isar.addFavorite(data: favorite);
+    rebuildUi();
+    notifyListeners();
+    ProxyService.app.pushDataToServer();
+    return res;
+  }
+
   void deleteProduct({required int productId}) async {
     //get variants->delete
     int branchId = ProxyService.box.getBranchId()!;
@@ -376,6 +390,11 @@ class ProductViewModel extends TenantViewModel {
           await ProxyService.isar.stockByVariantId(variantId: variation.id!);
       if (stock != null) {
         await ProxyService.isar.delete(id: stock.id!, endPoint: 'stock');
+      }
+      Favorite? fav =
+          await ProxyService.isar.getFavoriteByProdId(prodId: productId);
+      if (fav != null) {
+        await ProxyService.isar.deleteFavoriteByIndex(favIndex: fav.id);
       }
     }
     //then delete the product
