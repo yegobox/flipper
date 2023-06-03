@@ -2472,7 +2472,7 @@ class IsarAPI<M> implements IsarApiInterface {
     if (setting != null) {
       return setting;
     }
-
+    Future.delayed(Duration(seconds: 20));
     final Uri uri = Uri.parse("$commApi/settings/$number");
     final http.Response response = await socialsHttpClient.get(uri);
 
