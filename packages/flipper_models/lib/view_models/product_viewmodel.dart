@@ -19,7 +19,7 @@ import 'package:flipper_models/hlc.dart';
 import 'package:stacked/stacked.dart';
 
 // class ProductViewModel extends BusinessHomeViewModel {
-class ProductViewModel extends AddTenantViewModel {
+class ProductViewModel extends TenantViewModel {
   // extends ReactiveViewModel
   final AppService app = loc.locator<AppService>();
   // ignore: annotate_overrides, overridden_fields

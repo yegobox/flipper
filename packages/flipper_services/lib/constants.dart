@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:universal_platform/universal_platform.dart';
-
+import 'package:google_fonts/google_fonts.dart';
 const String defaultApp = 'defaultApp';
 String parkedStatus = 'parked';
 const String pendingStatus = 'pending';
@@ -31,5 +31,23 @@ bool isIos = UniversalPlatform.isIOS;
 bool isAndroid = UniversalPlatform.isAndroid;
 bool isWeb = UniversalPlatform.isWeb;
 bool isWindows = UniversalPlatform.isWindows;
-
 bool isDesktopOrWeb = UniversalPlatform.isDesktopOrWeb;
+ButtonStyle primaryButtonStyle = ButtonStyle(
+  backgroundColor: MaterialStateProperty.all<Color>(const Color(0xff006AFE)),
+  overlayColor: MaterialStateProperty.resolveWith<Color?>(
+    (Set<MaterialState> states) {
+      if (states.contains(MaterialState.hovered)) {
+        return Colors.blue.withOpacity(0.04);
+      }
+      if (states.contains(MaterialState.focused) ||
+          states.contains(MaterialState.pressed)) {
+        return Colors.blue.withOpacity(0.12);
+      }
+      return null; // Defer to the widget's default.
+    },
+  ),
+);
+TextStyle primaryTextStyle = GoogleFonts.poppins(
+  fontSize: 16.0,
+  fontWeight: FontWeight.w500,
+);
