@@ -173,13 +173,20 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<int> addFavorite({required Favorite data}) async {
-    if (data != Null) {
+    Favorite? fav = await isar.favorites.getByFavIndex(data.favIndex!);
+    if (fav == null) {
       await isar.writeTxn(() async {
         await isar.favorites.put(data);
       });
       return Future.value(200);
+    } else {
+      fav.productId = data.productId;
+      await isar.writeTxn(() async {
+        await isar.favorites.put(fav);
+      });
+      return Future.value(200);
     }
-    return Future.value(404);
+    //return Future.value(404);
   }
 
   @override
@@ -204,11 +211,21 @@ class IsarAPI<M> implements IsarApiInterface {
     return favorite;
   }
 
+  @override
+  Future<Favorite?> getFavoriteByProdId({required int prodId}) async {
+    Favorite? favorite =
+        await isar.favorites.filter().productIdEqualTo(prodId).findFirst();
+    return favorite;
+  }
+
   //Delete a favorite
   @override
-  Future<int> deleteFavorite({required int favId}) async {
-    await isar.favorites.delete(favId);
-    return Future.value(200);
+  Future<int> deleteFavoriteByIndex({required int favIndex}) async {
+    await isar.writeTxn(() async {
+      await isar.favorites.deleteByFavIndex(favIndex);
+      return Future.value(200);
+    });
+    return Future.value(403);
   }
 
   @override

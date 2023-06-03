@@ -31,7 +31,7 @@ class _CountryPickerState extends State<CountryPicker> {
                   // minWidth: 10,
                   onPressed: () {
                     final _routerService = locator<RouterService>();
-                    _routerService.clearStackAndShow(AuthOptionPageRoute());
+                    _routerService.navigateTo(AuthOptionPageRoute());
                   },
                   icon: Image.asset('assets/fav.png',
                       height: 110, width: 110, package: 'flipper_login'),
@@ -127,7 +127,7 @@ class _CountryPickerState extends State<CountryPicker> {
                           if (termsAndCondValue) {
                             //Navigate to signinpage.dart
                             final _routerService = locator<RouterService>();
-                            _routerService.clearStackAndShow(
+                            _routerService.navigateTo(
                                 PhoneInputScreenRoute(
                                     countryCode: pickedCountry));
                           } else {

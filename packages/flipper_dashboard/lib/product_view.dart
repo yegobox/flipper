@@ -19,9 +19,10 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 
 class ProductView extends StatefulWidget {
   int? favIndex;
+  List<int> existingFavs = [];
   ProductView.normalMode({Key? key}) : super(key: key);
   ProductView.favoriteMode(
-      {Key? key, required this.favIndex})
+      {Key? key, required this.favIndex, required this.existingFavs})
       : super(key: key);
 
   @override
@@ -121,7 +122,9 @@ class _ProductViewState extends State<ProductView> {
                   builder: (context, snapshot) {
                     final products = (snapshot.data ?? [])
                         .where((p) =>
-                            p.name != 'Custom Amount' && p.name != 'temp')
+                            p.name != 'Custom Amount' &&
+                            p.name != 'temp' &&
+                            !widget.existingFavs.contains(p.id))
                         .toList();
                     return SliverList(
                         delegate: SliverChildListDelegate([
@@ -137,7 +140,9 @@ class _ProductViewState extends State<ProductView> {
                                     FluentIcons.calendar_cancel_20_filled,
                                     size: 48,
                                   ),
-                                  Text('No items found'),
+                                  Text((widget.favIndex == null)
+                                      ? 'No items found'
+                                      : 'All items are in favorites'),
                                 ],
                               ),
                             )
@@ -159,7 +164,8 @@ class _ProductViewState extends State<ProductView> {
                                 product: product,
                                 name: product.name,
                                 imageUrl: product.imageUrl,
-                                addFavoriteMode: (widget.favIndex != null)? true : false,
+                                addFavoriteMode:
+                                    (widget.favIndex != null) ? true : false,
                                 favIndex: widget.favIndex,
                                 edit: (productId) {
                                   _routerService.navigateTo(AddProductViewRoute(

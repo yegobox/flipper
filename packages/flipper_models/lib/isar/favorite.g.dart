@@ -21,6 +21,11 @@ const FavoriteSchema = CollectionSchema(
       id: 0,
       name: r'favIndex',
       type: IsarType.long,
+    ),
+    r'productId': PropertySchema(
+      id: 1,
+      name: r'productId',
+      type: IsarType.long,
     )
   },
   estimateSize: _favoriteEstimateSize,
@@ -43,14 +48,7 @@ const FavoriteSchema = CollectionSchema(
       ],
     )
   },
-  links: {
-    r'product': LinkSchema(
-      id: -7956638849048948629,
-      name: r'product',
-      target: r'Product',
-      single: true,
-    )
-  },
+  links: {},
   embeddedSchemas: {},
   getId: _favoriteGetId,
   getLinks: _favoriteGetLinks,
@@ -74,6 +72,7 @@ void _favoriteSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeLong(offsets[0], object.favIndex);
+  writer.writeLong(offsets[1], object.productId);
 }
 
 Favorite _favoriteDeserialize(
@@ -82,8 +81,10 @@ Favorite _favoriteDeserialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = Favorite();
-  object.favIndex = reader.readLongOrNull(offsets[0]);
+  final object = Favorite(
+    reader.readLongOrNull(offsets[0]),
+    reader.readLongOrNull(offsets[1]),
+  );
   object.id = id;
   return object;
 }
@@ -97,6 +98,8 @@ P _favoriteDeserializeProp<P>(
   switch (propertyId) {
     case 0:
       return (reader.readLongOrNull(offset)) as P;
+    case 1:
+      return (reader.readLongOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -107,12 +110,11 @@ Id _favoriteGetId(Favorite object) {
 }
 
 List<IsarLinkBase<dynamic>> _favoriteGetLinks(Favorite object) {
-  return [object.product];
+  return [];
 }
 
 void _favoriteAttach(IsarCollection<dynamic> col, Id id, Favorite object) {
   object.id = id;
-  object.product.attach(col, col.isar.collection<Product>(), r'product', id);
 }
 
 extension FavoriteByIndex on IsarCollection<Favorite> {
@@ -485,26 +487,82 @@ extension FavoriteQueryFilter
       ));
     });
   }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> productIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'productId',
+      ));
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> productIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'productId',
+      ));
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> productIdEqualTo(
+      int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'productId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> productIdGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'productId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> productIdLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'productId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> productIdBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'productId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
 }
 
 extension FavoriteQueryObject
     on QueryBuilder<Favorite, Favorite, QFilterCondition> {}
 
 extension FavoriteQueryLinks
-    on QueryBuilder<Favorite, Favorite, QFilterCondition> {
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> product(
-      FilterQuery<Product> q) {
-    return QueryBuilder.apply(this, (query) {
-      return query.link(q, r'product');
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> productIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'product', 0, true, 0, true);
-    });
-  }
-}
+    on QueryBuilder<Favorite, Favorite, QFilterCondition> {}
 
 extension FavoriteQuerySortBy on QueryBuilder<Favorite, Favorite, QSortBy> {
   QueryBuilder<Favorite, Favorite, QAfterSortBy> sortByFavIndex() {
@@ -516,6 +574,18 @@ extension FavoriteQuerySortBy on QueryBuilder<Favorite, Favorite, QSortBy> {
   QueryBuilder<Favorite, Favorite, QAfterSortBy> sortByFavIndexDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'favIndex', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterSortBy> sortByProductId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'productId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterSortBy> sortByProductIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'productId', Sort.desc);
     });
   }
 }
@@ -545,6 +615,18 @@ extension FavoriteQuerySortThenBy
       return query.addSortBy(r'id', Sort.desc);
     });
   }
+
+  QueryBuilder<Favorite, Favorite, QAfterSortBy> thenByProductId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'productId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterSortBy> thenByProductIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'productId', Sort.desc);
+    });
+  }
 }
 
 extension FavoriteQueryWhereDistinct
@@ -552,6 +634,12 @@ extension FavoriteQueryWhereDistinct
   QueryBuilder<Favorite, Favorite, QDistinct> distinctByFavIndex() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'favIndex');
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QDistinct> distinctByProductId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'productId');
     });
   }
 }
@@ -567,6 +655,12 @@ extension FavoriteQueryProperty
   QueryBuilder<Favorite, int?, QQueryOperations> favIndexProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'favIndex');
+    });
+  }
+
+  QueryBuilder<Favorite, int?, QQueryOperations> productIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'productId');
     });
   }
 }

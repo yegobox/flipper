@@ -12,5 +12,7 @@ class Favorite {
   @Index(unique: true)
   int? favIndex;
 
-  final product = IsarLink<Product>();
+  int? productId;
+
+  Favorite(this.favIndex, this.productId);
 }

@@ -2,6 +2,8 @@ library flipper_models;
 
 // import 'package:flipper_models/isar_models.dart';
 
+import 'dart:developer';
+
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar/utils.dart';
 import 'package:flipper_models/isar_models.dart';
@@ -366,13 +368,11 @@ class ProductViewModel extends AddTenantViewModel {
 
   /// Add a product into the favorites
   Future<int> addFavorite(
-      {required int favIndex, required int fav_product_id}) async {
-    final Product? product =
-        await ProxyService.isarApi.getProduct(id: fav_product_id);
-    final favorite = Favorite()
-      ..favIndex = favIndex
-      ..product.value = product;
+      {required int favIndex, required int productId}) async {
+    final favorite = Favorite(favIndex, productId);
+
     int res = await ProxyService.isarApi.addFavorite(data: favorite);
+    rebuildUi();
     notifyListeners();
     ProxyService.appService.pushDataToServer();
     return res;
@@ -390,6 +390,11 @@ class ProductViewModel extends AddTenantViewModel {
           await ProxyService.isarApi.stockByVariantId(variantId: variation.id!);
       if (stock != null) {
         await ProxyService.isarApi.delete(id: stock.id!, endPoint: 'stock');
+      }
+      Favorite? fav =
+          await ProxyService.isarApi.getFavoriteByProdId(prodId: productId);
+      if (fav != null) {
+        await ProxyService.isarApi.deleteFavoriteByIndex(favIndex: fav.id);
       }
     }
     //then delete the product

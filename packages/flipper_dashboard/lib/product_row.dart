@@ -99,82 +99,10 @@ class ProductRow extends StatelessWidget {
                       ),
                       onPressed: () => {
                         model.addFavorite(
-                            favIndex: favIndex!, fav_product_id: product.id!),
-                        Navigator.of(context).pop(true)
-                      },
-                    ),
-                    OutlinedButton(
-                      child: Text('No',
-                          style: GoogleFonts.poppins(
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.white,
-                          )),
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            const Color(0xff006AFE)),
-                        overlayColor: MaterialStateProperty.resolveWith<Color?>(
-                          (Set<MaterialState> states) {
-                            if (states.contains(MaterialState.hovered)) {
-                              return Colors.blue.withOpacity(0.04);
-                            }
-                            if (states.contains(MaterialState.focused) ||
-                                states.contains(MaterialState.pressed)) {
-                              return Colors.blue.withOpacity(0.12);
-                            }
-                            return null; // Defer to the widget's default.
-                          },
-                        ),
-                      ),
-                      onPressed: () => Navigator.of(context).pop(false),
-                    ),
-                  ],
-                );
-              },
-            );
-          } else {
-            _routerService.navigateTo(SellRoute(product: product));
-          }
-        },
-        onLongPress: () {
-          if (addFavoriteMode != null && addFavoriteMode == true) {
-            String? position = positionString[favIndex!];
-            //Confirmation dialog
-            final shouldPop = showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  title: Text('Confirm Favorite'),
-                  content: Text(
-                      'You are about to add $name to your $position position.\n\nDo you approve?'),
-                  actions: <Widget>[
-                    OutlinedButton(
-                      child: Text('Yes',
-                          style: GoogleFonts.poppins(
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.white,
-                          )),
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            const Color(0xff006AFE)),
-                        overlayColor: MaterialStateProperty.resolveWith<Color?>(
-                          (Set<MaterialState> states) {
-                            if (states.contains(MaterialState.hovered)) {
-                              return Colors.blue.withOpacity(0.04);
-                            }
-                            if (states.contains(MaterialState.focused) ||
-                                states.contains(MaterialState.pressed)) {
-                              return Colors.blue.withOpacity(0.12);
-                            }
-                            return null; // Defer to the widget's default.
-                          },
-                        ),
-                      ),
-                      onPressed: () {
-                        model.addFavorite(
-                            favIndex: favIndex!, fav_product_id: product.id!);
-                        Navigator.of(context).pop(true);
+                            favIndex: favIndex!, productId: product.id!),
+                        model.rebuildUi(),
+                        Navigator.of(context).pop(),
+                        Navigator.of(context).pop(),
                       },
                     ),
                     OutlinedButton(

@@ -31,6 +31,7 @@ export 'package:flipper_dashboard/switch_branch_view.dart';
 export 'package:flipper_dashboard/transactions_details.dart';
 export 'package:flipper_dashboard/drawer.dart';
 export 'package:flipper_dashboard/tenant_add.dart';
+export 'package:flipper_dashboard/add_to_favorites.dart';
 
 export 'package:flipper_login/pin_login.dart';
 export 'package:flipper_login/signup_view.dart';

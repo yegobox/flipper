@@ -33,6 +33,15 @@ class ProductService with ListenableServiceMixin {
     notifyListeners();
   }
 
+  List<Product> get nonFavoriteProducts => _products.value
+      .where((element) =>
+          element.name != 'temp' && element.name != 'Custom Amount' && element.id != 1)
+      .toList();
+  set nonFavoriteProducts(List<Product> value) {
+    _products.value = value;
+    notifyListeners();
+  }
+
   int? get userId => ProxyService.box.getUserId();
   int? get branchId => ProxyService.box.getBranchId()!;
 
