@@ -46,21 +46,18 @@ dependencies:
   googleapis_auth: ^1.4.1
   uuid: ^3.0.7
   url_launcher: ^6.1.11
-  # flipper_nfc: ^1.2.0
+  flipper_nfc: ^1.2.0
   timezone: ^0.9.2
   flutter_native_timezone: ^2.0.0
   connectivity_plus: ^4.0.1
-  # flutter_statusbarcolor_ns: ^0.5.0
+  flutter_statusbarcolor_ns: ^0.5.0
   pocketbase: ^0.10.0
   get_it: ^7.6.0
   injectable: ^2.1.1
   flipper_routing: ^0.0.1-dev.3
   flipper_models: ^0.0.1-dev.7
   get_storage: ^2.1.1
-
-  # these was removed in submodules:
-  # plus_plugins
-  # pubnub
+  google_fonts: ^4.0.3
 dev_dependencies:
   flutter_test:
     sdk: flutter

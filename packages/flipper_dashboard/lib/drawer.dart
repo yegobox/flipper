@@ -1,6 +1,7 @@
 import 'package:flipper_models/view_models/gate.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -39,9 +40,14 @@ class _DrawerScreenState extends State<DrawerScreen> {
           key: _sub,
           child: Column(
             children: [
-              Text(widget.open == "close"
-                  ? "Close a Business"
-                  : "Open Business"),
+              Text(
+                widget.open == "close" ? "Close a Business" : "Open Business",
+                style: GoogleFonts.poppins(
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                ),
+              ),
               const Spacer(),
               TextFormField(
                   controller: _controller,
@@ -93,13 +99,12 @@ class _DrawerScreenState extends State<DrawerScreen> {
                     onPressed: () async {
                       if (_sub.currentState!.validate()) {
                         if (widget.open == "open") {
-                          ProxyService.isarApi.openDrawer(
+                          ProxyService.isar.openDrawer(
                             drawer: model.Drawers()
                               ..cashierId = ProxyService.box.getBusinessId()!
                               ..openingBalance = double.parse(_controller.text)
                               ..closingBalance = 0
-                              ..tradeName =
-                                  ProxyService.appService.business.name
+                              ..tradeName = ProxyService.app.business.name
                               ..nsSaleCount = 0
                               ..trSaleCount = 0
                               ..psSaleCount = 0
@@ -116,7 +121,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
 
                           _routerService.navigateTo(FlipperAppRoute());
                         } else {
-                          ProxyService.isarApi.update(
+                          ProxyService.isar.update(
                               data: widget.drawer!
                                 ..closingBalance =
                                     double.parse(_controller.text)
@@ -126,7 +131,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
 
                           /// when you close a drawer we asume you also closed a business day
                           /// therefore we log you out for next day log in.
-                          await ProxyService.isarApi.logOut();
+                          await ProxyService.isar.logOut();
                           _routerService.navigateTo(LandingRoute());
                         }
                       }

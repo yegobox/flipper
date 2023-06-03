@@ -3,15 +3,12 @@ import 'dart:developer';
 
 import 'package:flipper_models/isar_models.dart' as isar;
 import 'package:flipper_services/constants.dart';
-import 'package:flutter/material.dart' as material;
 import 'package:pocketbase/pocketbase.dart';
 import 'package:stacked/stacked.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'proxy.dart';
-// import 'package:flutter_statusbarcolor_ns/flutter_statusbarcolor_ns.dart';
-// import 'package:flipper_nfc/flipper_nfc.dart';
-import 'package:flutter/services.dart';
+import 'package:flipper_nfc/flipper_nfc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 const socialApp = "socials";
@@ -62,7 +59,7 @@ class AppService with ListenableServiceMixin {
     int? branchId = ProxyService.box.getBranchId();
 
     final List<Category> result =
-        await ProxyService.isarApi.categories(branchId: branchId ?? 0);
+        await ProxyService.isar.categories(branchId: branchId ?? 0);
 
     _categories.value = result;
     notifyListeners();
@@ -71,7 +68,7 @@ class AppService with ListenableServiceMixin {
   Future<void> loadUnits() async {
     int? branchId = ProxyService.box.getBranchId();
     final List<IUnit> result =
-        await ProxyService.isarApi.units(branchId: branchId!);
+        await ProxyService.isar.units(branchId: branchId!);
 
     _units.value = result;
   }
@@ -79,8 +76,7 @@ class AppService with ListenableServiceMixin {
   Future<void> loadColors() async {
     int? branchId = ProxyService.box.getBranchId();
 
-    List<PColor> result =
-        await ProxyService.isarApi.colors(branchId: branchId!);
+    List<PColor> result = await ProxyService.isar.colors(branchId: branchId!);
     _colors.value = result;
 
     for (PColor color in result) {
@@ -100,15 +96,15 @@ class AppService with ListenableServiceMixin {
     if (ProxyService.box.getUserId() == null &&
         user != null &&
         businessId == null) {
-      await ProxyService.isarApi.login(
+      await ProxyService.isar.login(
           userPhone: user.phoneNumber ?? user.email!,
           skipDefaultAppSetup: false);
     }
 
     bool value = await isSocialLoggedin();
-    String? token = ProxyService.box.getSocialBearerToken();
-    log(token?.toString() ?? "social token is null");
+
     if (!value) {
+      log("should not come here more often", name: "isLoggedIn()");
       await logSocial();
     }
     return ProxyService.box.getUserId() != null &&
@@ -116,14 +112,14 @@ class AppService with ListenableServiceMixin {
   }
 
   Future<void> logSocial() async {
-    SocialToken token = await ProxyService.isarApi.loginOnSocial(
+    SocialToken token = await ProxyService.isar.loginOnSocial(
         password: ProxyService.box.getUserPhone()!.replaceFirst("+", ""),
         phoneNumberOrEmail:
             ProxyService.box.getUserPhone()!.replaceFirst("+", ""));
     ProxyService.box
         .write(key: 'socialBearerToken', value: "Bearer " + token.body.token);
     int? businessId = ProxyService.box.getBusinessId();
-    await ProxyService.isarApi.create(
+    await ProxyService.isar.create(
         data: Token(
             businessId: businessId!,
             token: token.body.token,
@@ -138,7 +134,7 @@ class AppService with ListenableServiceMixin {
   /// contact are business in other words
   Future<void> loadContacts() async {
     Stream<List<Business>> contacts =
-        ProxyService.isarApi.contacts().asBroadcastStream();
+        ProxyService.isar.contacts().asBroadcastStream();
     contacts.listen((event) {
       _contacts.value = event;
     });
@@ -151,10 +147,10 @@ class AppService with ListenableServiceMixin {
     int? userId = ProxyService.box.getUserId();
     if (userId == null) return;
     List<isar.Business> businesses =
-        await ProxyService.isarApi.businesses(userId: userId);
+        await ProxyService.isar.businesses(userId: userId);
     if (businesses.isEmpty) {
       try {
-        Business b = await ProxyService.isarApi
+        Business b = await ProxyService.isar
             .getOnlineBusiness(userId: userId.toString());
         businesses.add(b);
       } catch (e) {
@@ -192,17 +188,17 @@ class AppService with ListenableServiceMixin {
   }
 
   Future<void> loadTenants(List<isar.Business> businesses) async {
-    List<ITenant> tenants = await ProxyService.isarApi
+    List<ITenant> tenants = await ProxyService.isar
         .tenants(businessId: ProxyService.box.getBusinessId()!);
     if (tenants.isEmpty) {
-      await ProxyService.isarApi
+      await ProxyService.isar
           .tenantsFromOnline(businessId: businesses.first.id!);
     }
   }
 
   Future<bool> setActiveBranch({required isar.Business businesses}) async {
     List<isar.Branch> branches =
-        await ProxyService.isarApi.branches(businessId: businesses.id!);
+        await ProxyService.isar.branches(businessId: businesses.id!);
 
     bool defaultBranch = false;
     for (Branch branch in branches) {
@@ -219,19 +215,18 @@ class AppService with ListenableServiceMixin {
   }
 
   Future<void> setActiveBusiness(List<isar.Business> businesses) async {
-    ProxyService.appService.setBusiness(business: businesses.first);
+    ProxyService.app.setBusiness(business: businesses.first);
 
     ProxyService.box.write(key: 'businessId', value: businesses.first.id);
   }
 
   Future<void> loadCounters(isar.Business business) async {
-    if (await ProxyService.isarApi.size(object: Counter()) == 0) {
-      await ProxyService.isarApi
-          .loadCounterFromOnline(businessId: business.id!);
+    if (await ProxyService.isar.size(object: Counter()) == 0) {
+      await ProxyService.isar.loadCounterFromOnline(businessId: business.id!);
     }
   }
 
-  // NFCManager nfc = NFCManager();
+  NFCManager nfc = NFCManager();
   static final StreamController<String> cleanedDataController =
       StreamController<String>.broadcast();
   static Stream<String> get cleanedData => cleanedDataController.stream;
@@ -239,7 +234,7 @@ class AppService with ListenableServiceMixin {
   // The extracted function for updating and reporting orders
   Future<void> pushOrders(Order order) async {
     List<OrderItem> updatedItems =
-        await ProxyService.isarApi.orderItems(orderId: order.id!);
+        await ProxyService.isar.orderItems(orderId: order.id!);
     order.subTotal = updatedItems.fold(0, (a, b) => a + (b.price * b.qty));
 
     /// fix@issue where the createdAt synced on server is older compared to when a transaction was completed.
@@ -254,18 +249,18 @@ class AppService with ListenableServiceMixin {
       // /// keep the local ID unchanged to avoid complication
       o.id = order.id;
 
-      await ProxyService.isarApi.update(data: o);
+      await ProxyService.isar.update(data: o);
     }
   }
 
   Future<void> pushDataToServer() async {
     /// push stock
-    List<Order> orders = await ProxyService.isarApi.getLocalOrders();
+    List<Order> orders = await ProxyService.isar.getLocalOrders();
     for (Order order in orders) {
       await pushOrders(order);
     }
 
-    List<Stock> stocks = await ProxyService.isarApi.getLocalStocks();
+    List<Stock> stocks = await ProxyService.isar.getLocalStocks();
     for (Stock stock in stocks) {
       int stockId = stock.id!;
 
@@ -278,13 +273,13 @@ class AppService with ListenableServiceMixin {
         s.id = stockId;
         s.action = actions["afterUpdate"];
 
-        await ProxyService.isarApi.update(data: s);
+        await ProxyService.isar.update(data: s);
       }
     }
 
     //push variant
     /// get variants
-    List<Variant> variants = await ProxyService.isarApi.getLocalVariants();
+    List<Variant> variants = await ProxyService.isar.getLocalVariants();
     for (Variant variant in variants) {
       int variantId = variant.id!;
 
@@ -296,12 +291,12 @@ class AppService with ListenableServiceMixin {
         // /// keep the local ID unchanged to avoid complication
         va.id = variantId;
         va.action = actions["afterUpdate"];
-        await ProxyService.isarApi.update(data: va);
+        await ProxyService.isar.update(data: va);
       }
     }
 
     /// pushing products data
-    List<Product> products = await ProxyService.isarApi.getLocalProducts();
+    List<Product> products = await ProxyService.isar.getLocalProducts();
     for (Product product in products) {
       RecordModel? record = await ProxyService.sync.push(product);
       int oldId = product.id!;
@@ -312,7 +307,7 @@ class AppService with ListenableServiceMixin {
         /// keep the local ID unchanged to avoid complication
         product.id = oldId;
         product.action = actions["afterUpdate"];
-        await ProxyService.isarApi.update(data: product);
+        await ProxyService.isar.update(data: product);
       }
     }
   }
@@ -327,50 +322,6 @@ class AppService with ListenableServiceMixin {
     }
   }
 
-  material.Color _statusColor = material.Color(0xFF8B0000);
-
-  material.Color get statusColor => _statusColor;
-
-  String _statusText = "";
-
-  String get statusText => _statusText;
-
-  Future<void> appBarColor(material.Color color) async {
-    if (!isDesktopOrWeb) {
-      // await FlutterStatusbarcolor.setStatusBarColor(color);
-      _statusColor = color;
-      // if (useWhiteForeground(color)) {
-      //   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark.copyWith(
-      //     statusBarBrightness: Brightness.dark,
-      //   ));
-      // } else {
-      //   SystemChrome.setSystemUIOverlayStyle(
-      //       SystemUiOverlayStyle.light.copyWith(
-      //     statusBarBrightness: Brightness.light,
-      //   ));
-      // }
-    }
-  }
-
-  void updateStatusColor() {
-    _statusText = "";
-    appBarColor(material.Colors.black);
-
-    ProxyService.appService
-        .checkInternetConnectivity()
-        .listen((currentInternetStatus) {
-      if (!currentInternetStatus) {
-        _statusColor = material.Colors.red;
-        _statusText = "Connectivity issues";
-        appBarColor(material.Color(0xFF8B0000));
-      } else {
-        _statusText = "";
-        appBarColor(material.Colors.black);
-      }
-      notifyListeners();
-    });
-  }
-
   AppService() {
     listenToReactiveValues(
         [_categories, _units, _colors, _currentColor, _business, _contacts]);
@@ -379,7 +330,7 @@ class AppService with ListenableServiceMixin {
   Future<bool> isSocialLoggedin() async {
     if (ProxyService.box.getDefaultApp() == 2) {
       int businessId = ProxyService.box.getBusinessId()!;
-      return await ProxyService.isarApi
+      return await ProxyService.isar
           .isTokenValid(businessId: businessId, tokenType: socialApp);
     }
     return false;

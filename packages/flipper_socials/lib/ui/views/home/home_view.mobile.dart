@@ -26,7 +26,7 @@ class HomeViewMobile extends ViewModelWidget<HomeViewModel> {
         padding: const EdgeInsets.only(top: 20.0),
         child: Scaffold(
           body: StreamBuilder<Social>(
-              stream: ProxyService.isarApi.socialsStream(
+              stream: ProxyService.isar.socialsStream(
                   businessId: ProxyService.box.getBusinessId() ?? 0),
               builder: (context, snapshot) {
                 if (snapshot.hasData) {

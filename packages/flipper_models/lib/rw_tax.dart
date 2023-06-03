@@ -51,7 +51,7 @@ class RWTax implements TaxApi {
   Future<bool> saveStock({required Stock stock}) async {
     var headers = {'Content-Type': 'application/json'};
     Variant? variant =
-        await ProxyService.isarApi.getVariantById(id: stock.variantId);
+        await ProxyService.isar.getVariantById(id: stock.variantId);
     var request = http.Request(
         'POST', Uri.parse(apihub + '/stockMaster/saveStockMaster'));
     variant?.rsdQty = stock.rsdQty;
@@ -130,7 +130,7 @@ class RWTax implements TaxApi {
       required List<OrderItem> items,
       required String receiptType,
       required Counter counter}) async {
-    Business? business = await ProxyService.isarApi.getBusiness();
+    Business? business = await ProxyService.isar.getBusiness();
 
     String date = DateTime.now()
         .toString()

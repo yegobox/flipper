@@ -50,7 +50,7 @@ class _ProductViewState extends State<ProductView> {
     return ViewModelBuilder<ProductViewModel>.reactive(
       onViewModelReady: (model) async {
         model.loadTenants();
-        model.productService.products = await ProxyService.isarApi
+        model.productService.products = await ProxyService.isar
             .products(branchId: ProxyService.box.getBranchId()!);
       },
       viewModelBuilder: () => ProductViewModel(),
@@ -92,10 +92,8 @@ class _ProductViewState extends State<ProductView> {
                           ),
                           isDesktopOrWeb
                               ? FutureBuilder<ITenant?>(
-                                  future: ProxyService.isarApi
-                                      .getTenantBYUserId(
-                                          userId:
-                                              ProxyService.box.getUserId()!),
+                                  future: ProxyService.isar.getTenantBYUserId(
+                                      userId: ProxyService.box.getUserId()!),
                                   builder: (a, snapshoot) {
                                     if (snapshoot.connectionState ==
                                             ConnectionState.waiting ||

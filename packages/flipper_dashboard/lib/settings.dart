@@ -110,7 +110,7 @@ class SettingPage extends StatelessWidget {
                             ),
                             onPressed: (BuildContext context) async {
                               // get active drawer
-                              isar.Drawers? drawer = await ProxyService.isarApi
+                              isar.Drawers? drawer = await ProxyService.isar
                                   .getDrawer(
                                       cashierId:
                                           ProxyService.box.getBusinessId()!);

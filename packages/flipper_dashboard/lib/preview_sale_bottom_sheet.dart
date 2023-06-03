@@ -66,7 +66,7 @@ class _PreviewSaleBottomSheetState extends State<PreviewSaleBottomSheet> {
                             callback: (item) async {
                               model.kOrder!.subTotal = model.kOrder!.subTotal -
                                   (item.price * item.qty);
-                              await ProxyService.isarApi
+                              await ProxyService.isar
                                   .update(data: model.kOrder);
                               model.deleteOrderItem(
                                   id: item.id, context: context);

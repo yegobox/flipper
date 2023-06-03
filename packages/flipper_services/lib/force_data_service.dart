@@ -23,9 +23,9 @@ class ForceDataEntryService {
     int businessId = ProxyService.box.getBusinessId()!;
 
     List<Product> products =
-        await ProxyService.isarApi.products(branchId: branchId);
+        await ProxyService.isar.products(branchId: branchId);
     if (products.isEmpty) {
-      await ProxyService.isarApi.createProduct(
+      await ProxyService.isar.createProduct(
           product: Product(
               name: "Custom Amount",
               action: 'create',
@@ -55,12 +55,11 @@ class ForceDataEntryService {
       ..name = '#d63031';
 
     int branchid = ProxyService.box.getBranchId()!;
-    List<PColor> kColors =
-        await ProxyService.isarApi.colors(branchId: branchid);
+    List<PColor> kColors = await ProxyService.isar.colors(branchId: branchid);
     if (kColors.isEmpty) {
-      await ProxyService.isarApi.create<PColor>(data: color);
+      await ProxyService.isar.create<PColor>(data: color);
     }
-    List<IUnit> kUnits = await ProxyService.isarApi.units(branchId: branchid);
+    List<IUnit> kUnits = await ProxyService.isar.units(branchId: branchid);
 
     //now create default units for this branch
     final units = IUnit()
@@ -71,7 +70,7 @@ class ForceDataEntryService {
       ..units = mockUnits
       ..branchId = branchId;
     if (kUnits.isEmpty) {
-      await ProxyService.isarApi.addUnits(data: units);
+      await ProxyService.isar.addUnits(data: units);
     }
   }
 }

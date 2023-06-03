@@ -39,13 +39,13 @@ class LocalNotificationService implements LNotification {
       return;
     }
     if (payload != null) {
-      await ProxyService.isarApi.create(data: payload);
+      await ProxyService.isar.create(data: payload);
       // do something with payloadId
       print('Received a new message in payload: ${payload.body}');
-      Conversation? localConversation = await ProxyService.isarApi
+      Conversation? localConversation = await ProxyService.isar
           .getConversation(messageId: payload.messageId!);
       if (localConversation == null) {
-        await ProxyService.isarApi.create(data: payload);
+        await ProxyService.isar.create(data: payload);
       }
     }
     AndroidNotificationDetails androidNotificationDetails =

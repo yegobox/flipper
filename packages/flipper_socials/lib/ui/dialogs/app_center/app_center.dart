@@ -1,6 +1,7 @@
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_socials/ui/common/ui_helpers.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -50,14 +51,6 @@ class AppCenter extends StackedView<AppCenterModel> {
                     height: _graphicSize,
                     child: Stack(
                       children: [
-                        Container(
-                          decoration: const BoxDecoration(
-                            color: Color.fromARGB(255, 0, 0, 0),
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(10),
-                            ),
-                          ),
-                        ),
                         InkWell(
                           child: Image.asset(logoAsset,
                               package: "flipper_socials"),
@@ -68,6 +61,13 @@ class AppCenter extends StackedView<AppCenterModel> {
                           },
                         ),
                       ],
+                    ),
+                  ),
+                  Text(
+                    "Inventory",
+                    style: GoogleFonts.poppins(
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.w500,
                     ),
                   )
                 ],

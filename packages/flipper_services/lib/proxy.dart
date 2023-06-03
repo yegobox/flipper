@@ -16,6 +16,7 @@ import 'package:flipper_services/language_service.dart';
 import 'package:flipper_services/local_notification_service.dart';
 import 'package:flipper_services/cron_service.dart';
 import 'package:flipper_services/setting_service.dart';
+import 'package:flipper_services/status.dart';
 import 'abstractions/api.dart';
 import 'abstractions/dynamic_link.dart';
 import 'abstractions/location.dart';
@@ -35,7 +36,7 @@ final Shareable _share = locator<Shareable>();
 final FlipperLocation _location = locator<FlipperLocation>();
 final LocalStorage _box = locator<LocalStorage>();
 final UploadT _upload = locator<UploadT>();
-final AppService _appService = locator<AppService>();
+final AppService _app = locator<AppService>();
 final ProductService _productService = locator<ProductService>();
 final KeyPadService _keypad = locator<KeyPadService>();
 final Language _locale = locator<Language>();
@@ -54,25 +55,26 @@ final SyncApiInterface _syncApi = locator<SyncApiInterface>();
 final SystemTime _systemTime = locator<SystemTime>();
 final EventInterface _event = locator<EventInterface>();
 final BillingService _billingService = locator<BillingService>();
-final IsarApiInterface _isarApi = locator<IsarApiInterface>();
-final RemoteInterface _remoteApi = locator<RemoteInterface>();
-final TaxApi _taxApi = locator<TaxApi>();
+final IsarApiInterface _isar = locator<IsarApiInterface>();
+final RemoteInterface _remote = locator<RemoteInterface>();
+final TaxApi _tax = locator<TaxApi>();
 final WhatsApp _whatsApp = locator<WhatsApp>();
 final Messaging _messaging = locator<Messaging>();
+final Status _status = locator<Status>();
 
 abstract class ProxyService {
   static LocalStorage get box => _box;
   static Api get api => _apiService;
-  static TaxApi get tax => _taxApi;
-  static IsarApiInterface get isarApi => _isarApi;
-  static RemoteInterface get remoteApi => _remoteApi;
+  static TaxApi get tax => _tax;
+  static IsarApiInterface get isar => _isar;
+  static RemoteInterface get remote => _remote;
   static EventInterface get event => _event;
   static Crash get crash => _crash;
   static Shareable get share => _share;
   static DynamicLink get dynamicLink => _dynamicLink;
   static FlipperLocation get location => _location;
 
-  static AppService get appService => _appService;
+  static AppService get app => _app;
   static ProductService get productService => _productService;
   static UploadT get upload => _upload;
   static KeyPadService get keypad => _keypad;
@@ -91,4 +93,5 @@ abstract class ProxyService {
   static BillingService get billing => _billingService;
   static WhatsApp get whatsApp => _whatsApp;
   static Messaging get messaging => _messaging;
+  static Status get status => _status;
 }

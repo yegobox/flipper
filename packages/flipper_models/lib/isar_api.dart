@@ -18,11 +18,8 @@ import 'package:flipper_services/locator.dart' as loc;
 import 'package:flutter/foundation.dart' as foundation;
 
 import 'package:path_provider/path_provider.dart';
-import 'package:universal_platform/universal_platform.dart';
 import 'flipper_http_client.dart';
 import 'package:flipper_routing/receipt_types.dart';
-
-final isAndroid = UniversalPlatform.isAndroid;
 
 class IsarAPI<M> implements IsarApiInterface {
   FlipperHttpClient flipperHttpClient = FlipperHttpClient(http.Client());
@@ -432,7 +429,7 @@ class IsarAPI<M> implements IsarApiInterface {
     // remove currentOrderId from local storage to leave a room
     // for listening to new order that will be created
     ProxyService.box.remove(key: 'currentOrderId');
-    ProxyService.appService.pushDataToServer();
+    ProxyService.app.pushDataToServer();
   }
 
   @override
@@ -864,7 +861,7 @@ class IsarAPI<M> implements IsarApiInterface {
           .where()
           .productIdEqualTo(newProduct.id!)
           .findFirst();
-      if (await ProxyService.isarApi.isTaxEnabled()) {
+      if (await ProxyService.isar.isTaxEnabled()) {
         ProxyService.tax.saveItem(variation: variant!);
       }
       return variant!;
@@ -1603,6 +1600,12 @@ class IsarAPI<M> implements IsarApiInterface {
     if (data is Token) {
       await isar.writeTxn(() async {
         await isar.tokens.put(data);
+        return Future.value(null);
+      });
+    }
+    if (data is Setting) {
+      await isar.writeTxn(() async {
+        await isar.settings.put(data);
         return Future.value(null);
       });
     }
@@ -2501,22 +2504,55 @@ class IsarAPI<M> implements IsarApiInterface {
     }
   }
 
+  /// Retrieves the social setting asynchronously.
+  ///
+  /// This function retrieves the social setting based on the user's phone number.
+  /// If the user's phone number is not available, it returns `null`.
+  /// It first checks if the setting is available in the `isar.settings` database using the user's phone number.
+  /// If the setting is found, it returns the setting.
+  /// If the setting is not found in the database, it makes an HTTP GET request to the socialsHttpClient
+  /// to fetch the setting from the specified API endpoint.
+  /// If the HTTP response status code is 200, it converts the response body to a `Setting` object
+  /// using `Setting.fromJson()` and then saves it using the `create()` function.
+  /// Finally, it returns the fetched or created setting.
+  /// If the HTTP response status code is not 200, it throws an exception with a descriptive error message.
+  ///
+  /// Returns:
+  ///   - A `Future` of type `Setting?` representing the retrieved social setting.
+  ///     If the user's phone number is not available, it returns `null`.
+  ///
+  /// Throws:
+  ///   - An `Exception` with an error message if the HTTP response status code is not 200.
+  ///     The error message includes the response body and the user's phone number.
+
   @override
   Future<Setting?> getSocialSetting() async {
     String? phoneNumber = ProxyService.box.getUserPhone();
     if (phoneNumber == null) {
       return null;
     }
-    await Future.delayed(Duration(seconds: 20));
+
     final number = phoneNumber.replaceAll("+", "");
-    final http.Response response =
-        await socialsHttpClient.get(Uri.parse("$commApi/settings/$number"));
-    // convert response to Setting
-    if (response.statusCode == 200) {
-      Setting setting = Setting.fromJson(jsonDecode(response.body));
+
+    Setting? setting = await isar.settings
+        .filter()
+        .businessPhoneNumberEqualTo(number)
+        .findFirst();
+
+    if (setting != null) {
       return setting;
     }
-    throw Exception("Can't get social setting ${response.body}${number}");
+
+    final Uri uri = Uri.parse("$commApi/settings/$number");
+    final http.Response response = await socialsHttpClient.get(uri);
+
+    if (response.statusCode == 200) {
+      Setting setting = Setting.fromJson(jsonDecode(response.body));
+      create(data: setting);
+      return setting;
+    } else {
+      throw Exception("Can't get social setting ${response.body}${number}");
+    }
   }
 
   @override
@@ -2536,7 +2572,7 @@ class IsarAPI<M> implements IsarApiInterface {
               "deviceToken": setting.deviceToken
             }));
     // convert response to Setting
-    if (response.statusCode != 200) {
+    if (response.statusCode != 200 && response.statusCode != 403) {
       throw Exception(
           "Can't  patch  settings patch ${response.body}${setting.toJson()}");
     }
@@ -2588,6 +2624,27 @@ class IsarAPI<M> implements IsarApiInterface {
     return isar.iTenants.filter().userIdEqualTo(userId).build().findFirst();
   }
 
+  /// Loads conversations from the server for a given business ID.
+  ///
+  /// The [businessId] parameter is required and specifies the ID of the business
+  /// for which conversations should be loaded.
+  ///
+  /// The [pageSize] parameter determines the number of conversations to retrieve
+  /// per page. If not provided, a default value of 10 is used.
+  ///
+  /// The [pk] and [sk] parameters allow for pagination and retrieving conversations
+  /// starting from a specific point in the conversation history.
+  ///
+  /// This function makes an HTTP request to the server, retrieves the conversations,
+  /// and stores them in a local database for future reference.
+  ///
+  /// Note: This function assumes a successful HTTP response with a status code of 200.
+  /// Errors during the request or JSON parsing are not handled in this implementation.
+  ///
+  /// Example usage:
+  /// ```
+  /// await loadConversations(businessId: 123, pageSize: 20);
+  /// ```
   @override
   Future<void> loadConversations(
       {required int businessId,
@@ -2608,7 +2665,7 @@ class IsarAPI<M> implements IsarApiInterface {
           .toList();
 
       for (Conversation conversation in messages) {
-        Conversation? localConversation = await ProxyService.isarApi
+        Conversation? localConversation = await ProxyService.isar
             .getConversation(messageId: conversation.messageId!);
         // if date is improperly formatted then format it right
         // the bellow date format will be like 5th May converter
@@ -2624,7 +2681,7 @@ class IsarAPI<M> implements IsarApiInterface {
         conversation.avatar = HtmlUnescape().convert(conversation.avatar);
         log(conversation.avatar, name: "converted URL");
         if (localConversation == null) {
-          await ProxyService.isarApi.create(data: conversation);
+          await ProxyService.isar.create(data: conversation);
         }
       }
 
@@ -2636,6 +2693,8 @@ class IsarAPI<M> implements IsarApiInterface {
             .write(key: 'pk', value: pk.replaceAll("messages#", ""));
         ProxyService.box
             .write(key: 'sk', value: sk.replaceAll("messages#", ""));
+      } else {
+        log("there is no last key to use in query and that is fine!");
       }
     }
   }

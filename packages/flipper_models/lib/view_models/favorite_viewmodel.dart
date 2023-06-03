@@ -43,16 +43,15 @@ class FavoriteViewModel extends ProductViewModel {
   bool? inUpdateProcess;
 
   Future<List<Favorite>> getFavorites() async {
-    List<Favorite> res = await ProxyService.isarApi.getFavorites();
+    List<Favorite> res = await ProxyService.isar.getFavorites();
     return res;
   }
 
   Future<int> deleteFavoriteByIndex(int favIndex) async {
     Favorite? target = await getFavoriteByIndex(favIndex);
-    int res =
-        await ProxyService.isarApi.deleteFavoriteByIndex(favIndex: favIndex);
+    int res = await ProxyService.isar.deleteFavoriteByIndex(favIndex: favIndex);
     notifyListeners();
-    ProxyService.appService.pushDataToServer();
+    ProxyService.app.pushDataToServer();
     if (target != null) {
       return target.productId!;
     }
@@ -60,18 +59,18 @@ class FavoriteViewModel extends ProductViewModel {
   }
 
   Future<Favorite?> getFavoriteById(int favId) async {
-    Favorite? res = await ProxyService.isarApi.getFavoriteById(favId: favId);
+    Favorite? res = await ProxyService.isar.getFavoriteById(favId: favId);
     return res;
   }
 
   Future<Favorite?> getFavoriteByIndex(int favIndex) async {
     Favorite? res =
-        await ProxyService.isarApi.getFavoriteByIndex(favIndex: favIndex);
+        await ProxyService.isar.getFavoriteByIndex(favIndex: favIndex);
     return res;
   }
 
   Future<Product?> getProductById(int prodIndex) async {
-    Product? res = await ProxyService.isarApi.getProduct(id: prodIndex);
+    Product? res = await ProxyService.isar.getProduct(id: prodIndex);
     return res;
   }
 }

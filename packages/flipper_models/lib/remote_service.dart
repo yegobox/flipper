@@ -147,16 +147,16 @@ class RemoteService implements RemoteInterface {
       RecordModel item, int branchId, String? lastTouched, String model) async {
     Variant remoteVariant = Variant.fromJson(item.toJson());
     Variant? localVariant =
-        await ProxyService.isarApi.getVariantById(id: remoteVariant.localId!);
+        await ProxyService.isar.getVariantById(id: remoteVariant.localId!);
 
     if (localVariant == null && remoteVariant.branchId == branchId) {
-      await ProxyService.isarApi.create(data: remoteVariant);
+      await ProxyService.isar.create(data: remoteVariant);
       lastTouched = remoteVariant.lastTouched;
     } else if (localVariant != null &&
         localVariant.lastTouched != null &&
         remoteVariant.lastTouched!
             .isFutureDateCompareTo(localVariant.lastTouched!)) {
-      await ProxyService.isarApi.update(data: remoteVariant);
+      await ProxyService.isar.update(data: remoteVariant);
       lastTouched = remoteVariant.lastTouched;
     }
     return lastTouched;
@@ -166,16 +166,16 @@ class RemoteService implements RemoteInterface {
       String? lastTouched, String model) async {
     Social remoteSocial = Social.fromJson(item.toJson());
     Social? localSocial =
-        await ProxyService.isarApi.getSocialById(id: remoteSocial.localId!);
+        await ProxyService.isar.getSocialById(id: remoteSocial.localId!);
     if (localSocial == null && remoteSocial.businessId == businessId) {
       remoteSocial.id = remoteSocial.localId;
-      await ProxyService.isarApi.create(data: remoteSocial);
+      await ProxyService.isar.create(data: remoteSocial);
       lastTouched = remoteSocial.lastTouched;
     } else if (localSocial != null &&
         remoteSocial.lastTouched!
             .isFutureDateCompareTo(localSocial.lastTouched!)) {
       remoteSocial.id = remoteSocial.localId;
-      await ProxyService.isarApi.update(data: remoteSocial);
+      await ProxyService.isar.update(data: remoteSocial);
       lastTouched = remoteSocial.lastTouched;
     }
     return lastTouched;
@@ -185,15 +185,15 @@ class RemoteService implements RemoteInterface {
       RecordModel item, int branchId, String? lastTouched, String model) async {
     Stock remoteStock = Stock.fromJson(item.toJson());
     Stock? localStock =
-        await ProxyService.isarApi.getStockById(id: remoteStock.localId!);
+        await ProxyService.isar.getStockById(id: remoteStock.localId!);
     if (localStock == null && remoteStock.branchId == branchId) {
-      await ProxyService.isarApi.create(data: remoteStock);
+      await ProxyService.isar.create(data: remoteStock);
       lastTouched = remoteStock.lastTouched;
     } else if (localStock != null &&
         localStock.lastTouched != null &&
         remoteStock.lastTouched!
             .isFutureDateCompareTo(localStock.lastTouched!)) {
-      await ProxyService.isarApi.update(data: remoteStock);
+      await ProxyService.isar.update(data: remoteStock);
       lastTouched = remoteStock.lastTouched;
     }
     return lastTouched;
@@ -203,15 +203,15 @@ class RemoteService implements RemoteInterface {
       RecordModel item, int branchId, String? lastTouched, String model) async {
     Product remoteProduct = Product.fromJson(item.toJson());
     Product? localProduct =
-        await ProxyService.isarApi.getProduct(id: remoteProduct.localId!);
+        await ProxyService.isar.getProduct(id: remoteProduct.localId!);
     if (localProduct == null && remoteProduct.branchId == branchId) {
-      await ProxyService.isarApi.create(data: remoteProduct);
+      await ProxyService.isar.create(data: remoteProduct);
       lastTouched = remoteProduct.lastTouched;
     } else if (localProduct != null &&
         localProduct.lastTouched != null &&
         remoteProduct.lastTouched!
             .isFutureDateCompareTo(localProduct.lastTouched!)) {
-      await ProxyService.isarApi.update(data: remoteProduct);
+      await ProxyService.isar.update(data: remoteProduct);
       lastTouched = remoteProduct.lastTouched;
     }
   }
@@ -225,27 +225,27 @@ class RemoteService implements RemoteInterface {
     pb.collection('socials').subscribe("*", (socialEvent) async {
       if (socialEvent.action == "create") {
         Social socialFromRecord = Social.fromRecord(socialEvent.record!);
-        Social? localSocial = await ProxyService.isarApi
+        Social? localSocial = await ProxyService.isar
             .getSocialById(id: socialFromRecord.localId!);
         if (localSocial == null && socialFromRecord.businessId == businessId) {
           socialFromRecord.id = socialFromRecord.localId;
-          await ProxyService.isarApi.create(data: socialFromRecord);
+          await ProxyService.isar.create(data: socialFromRecord);
         }
       } else if (socialEvent.action == "update") {
         Social socialFromRecord = Social.fromRecord(socialEvent.record!);
-        Social? localSocial = await ProxyService.isarApi
+        Social? localSocial = await ProxyService.isar
             .getSocialById(id: socialFromRecord.localId!);
         if (localSocial == null && socialFromRecord.businessId == businessId) {
           socialFromRecord.id = socialFromRecord.localId;
-          await ProxyService.isarApi.create(data: socialFromRecord);
+          await ProxyService.isar.create(data: socialFromRecord);
         }
         Social a = Social.fromRecord(socialEvent.record!);
-        Social? b = await ProxyService.isarApi.getSocialById(id: a.localId!);
+        Social? b = await ProxyService.isar.getSocialById(id: a.localId!);
         String lastTouched = a.lastTouched!;
         if (b != null &&
             a.businessId == businessId &&
             lastTouched.isFutureDateCompareTo(b.lastTouched!)) {
-          await ProxyService.isarApi.update(data: a);
+          await ProxyService.isar.update(data: a);
         }
       }
     });
@@ -253,20 +253,20 @@ class RemoteService implements RemoteInterface {
     pb.collection('stocks').subscribe("*", (stockEvent) async {
       if (stockEvent.action == "create") {
         Stock stockFromRecord = Stock.fromRecord(stockEvent.record!);
-        Stock? localStock = await ProxyService.isarApi
-            .getStockById(id: stockFromRecord.localId!);
+        Stock? localStock =
+            await ProxyService.isar.getStockById(id: stockFromRecord.localId!);
         if (localStock == null && stockFromRecord.branchId == branchId) {
-          await ProxyService.isarApi.create(data: stockFromRecord);
+          await ProxyService.isar.create(data: stockFromRecord);
         }
       } else if (stockEvent.action == "update") {
         Stock stockFromRecord = Stock.fromRecord(stockEvent.record!);
-        Stock? localStock = await ProxyService.isarApi
-            .getStockById(id: stockFromRecord.localId!);
+        Stock? localStock =
+            await ProxyService.isar.getStockById(id: stockFromRecord.localId!);
         String lastTouched = stockFromRecord.lastTouched!;
         if (localStock != null &&
             stockFromRecord.branchId == branchId &&
             lastTouched.isFutureDateCompareTo(localStock.lastTouched!)) {
-          await ProxyService.isarApi.update(data: stockFromRecord);
+          await ProxyService.isar.update(data: stockFromRecord);
         }
       }
     });
@@ -275,42 +275,42 @@ class RemoteService implements RemoteInterface {
         Variant variant = Variant.fromRecord(variantEvent.record!);
 
         Variant? localVariant =
-            await ProxyService.isarApi.getVariantById(id: variant.localId!);
+            await ProxyService.isar.getVariantById(id: variant.localId!);
         if (localVariant == null && variant.branchId == branchId) {
-          await ProxyService.isarApi.create(data: variant);
+          await ProxyService.isar.create(data: variant);
         }
       } else if (variantEvent.action == "update") {
         Variant variant = Variant.fromRecord(variantEvent.record!);
 
         Variant? localVariant =
-            await ProxyService.isarApi.getVariantById(id: variant.localId!);
+            await ProxyService.isar.getVariantById(id: variant.localId!);
         String lastTouched = variant.lastTouched!;
         if (localVariant != null &&
             variant.branchId == branchId &&
             lastTouched.isFutureDateCompareTo(localVariant.lastTouched!)) {
-          await ProxyService.isarApi.update(data: variant);
+          await ProxyService.isar.update(data: variant);
         }
       }
     });
     pb.collection('products').subscribe("*", (productEvent) async {
       if (productEvent.action == "create") {
         Product productFromRecord = Product.fromRecord(productEvent.record!);
-        Product? localProduct = await ProxyService.isarApi
-            .getProduct(id: productFromRecord.localId!);
+        Product? localProduct =
+            await ProxyService.isar.getProduct(id: productFromRecord.localId!);
         if (localProduct == null && productFromRecord.branchId == branchId) {
           log("created product from remote");
-          await ProxyService.isarApi.create(data: productFromRecord);
+          await ProxyService.isar.create(data: productFromRecord);
         }
       } else if (productEvent.action == "update") {
         Product productFromRecord = Product.fromRecord(productEvent.record!);
-        Product? localProduct = await ProxyService.isarApi
-            .getProduct(id: productFromRecord.localId!);
+        Product? localProduct =
+            await ProxyService.isar.getProduct(id: productFromRecord.localId!);
         String lastTouched = productFromRecord.lastTouched!;
         if (localProduct != null &&
             productFromRecord.branchId == branchId &&
             lastTouched.isFutureDateCompareTo(localProduct.lastTouched!)) {
           log("updated product from remote");
-          await ProxyService.isarApi.update(data: productFromRecord);
+          await ProxyService.isar.update(data: productFromRecord);
         }
       }
     });

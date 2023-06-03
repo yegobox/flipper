@@ -18,7 +18,7 @@ class SettingViewModel extends ReactiveViewModel {
   Business? _business;
   Business? get business => _business;
   getBusiness() async {
-    _business = await ProxyService.isarApi
+    _business = await ProxyService.isar
         .getBusinessById(id: ProxyService.box.getBusinessId()!);
     notifyListeners();
   }
@@ -55,12 +55,12 @@ class SettingViewModel extends ReactiveViewModel {
 
   Future<Profile?> updateProfile({required Profile profile}) async {
     _updateStarted = true;
-    return ProxyService.isarApi.updateProfile(profile: profile);
+    return ProxyService.isar.updateProfile(profile: profile);
   }
 
   loadUserSettings() async {
     int businessId = ProxyService.box.getBusinessId()!;
-    _setting = await ProxyService.isarApi.getSetting(businessId: businessId);
+    _setting = await ProxyService.isar.getSetting(businessId: businessId);
     notifyListeners();
   }
 
@@ -77,7 +77,7 @@ class SettingViewModel extends ReactiveViewModel {
     } else if (ProxyService.box.getBusinessId().runtimeType is String) {
       businessId = ProxyService.box.getBusinessId()!;
     }
-    return ProxyService.isarApi
+    return ProxyService.isar
         .isSubscribed(feature: 'sync', businessId: businessId);
   }
 
@@ -96,13 +96,13 @@ class SettingViewModel extends ReactiveViewModel {
 
     /// do we have a subscription on the feature
 
-    isSubscribed = ProxyService.isarApi
+    isSubscribed = ProxyService.isar
         .isSubscribed(businessId: businessId, feature: feature);
     if (isSubscribed) {
       callback(isSubscribed);
     } else {
       /// subscribe to the feature
-      isSubscribed = ProxyService.isarApi.subscribe(
+      isSubscribed = ProxyService.isar.subscribe(
         businessId: businessId,
         feature: feature,
         agentCode: agentCode,
@@ -123,14 +123,14 @@ class SettingViewModel extends ReactiveViewModel {
       if (!RegExp(r"^[\w.+\-]+@gmail\.com$").hasMatch(setting.email!)) {
         callback(1);
       } else {
-        await ProxyService.isarApi.createGoogleSheetDoc(email: setting.email!);
+        await ProxyService.isar.createGoogleSheetDoc(email: setting.email!);
 
-        Business? business = await ProxyService.isarApi.getBusiness();
+        Business? business = await ProxyService.isar.getBusiness();
         business!.email = setting.email;
-        await ProxyService.isarApi.update(
+        await ProxyService.isar.update(
           data: business,
         );
-        ProxyService.isarApi.update(
+        ProxyService.isar.update(
           data: business,
         );
       }
@@ -147,8 +147,8 @@ class SettingViewModel extends ReactiveViewModel {
         callback(1);
       } else {
         /// the
-        Business? business = await ProxyService.isarApi.getBusiness();
-        ProxyService.isarApi
+        Business? business = await ProxyService.isar.getBusiness();
+        ProxyService.isar
             .enableAttendance(businessId: business!.id!, email: setting.email!);
       }
     } else {
@@ -158,7 +158,7 @@ class SettingViewModel extends ReactiveViewModel {
 
   Pin? pin;
   Future<void> createPin() async {
-    pin = await ProxyService.isarApi.createPin();
+    pin = await ProxyService.isar.createPin();
     notifyListeners();
   }
 

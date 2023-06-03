@@ -78,7 +78,7 @@ class SignupViewModel extends ReactiveViewModel {
 
       String? referralCode = ProxyService.box.read(key: 'referralCode');
 
-      List<JTenant> jTenants = await ProxyService.isarApi.signup(business: {
+      List<JTenant> jTenants = await ProxyService.isar.signup(business: {
         'name': kName,
         'latitude': latitude,
         'longitude': longitude,
@@ -97,16 +97,16 @@ class SignupViewModel extends ReactiveViewModel {
         /// we have socials as choosen app then register on social
         if (businessType.id == 2) {
           // it is customer support then register on socials as well
-          await ProxyService.isarApi.registerOnSocial(
+          await ProxyService.isar.registerOnSocial(
               password: ProxyService.box.getUserPhone()!.replaceAll("+", ""),
               phoneNumberOrEmail:
                   ProxyService.box.getUserPhone()!.replaceAll("+", ""));
         }
-        Business? business = await ProxyService.isarApi
+        Business? business = await ProxyService.isar
             .getBusinessById(id: jTenants.first.businesses.first.id!);
 
         List<Branch> branches =
-            await ProxyService.isarApi.branches(businessId: business!.id!);
+            await ProxyService.isar.branches(businessId: business!.id!);
         ProxyService.box.write(key: 'branchId', value: branches[0].id!);
 
         appService.appInit();
@@ -115,7 +115,7 @@ class SignupViewModel extends ReactiveViewModel {
           ..focused = true
           ..name = 'NONE'
           ..branchId = branches[0].id!;
-        await ProxyService.isarApi.create<Category>(data: category);
+        await ProxyService.isar.create<Category>(data: category);
         //get default colors for this branch
         final List<String> colors = [
           '#d63031',
@@ -135,7 +135,7 @@ class SignupViewModel extends ReactiveViewModel {
           ..branchId = branches[0].id
           ..name = 'sample';
 
-        await ProxyService.isarApi.create<PColor>(data: color);
+        await ProxyService.isar.create<PColor>(data: color);
         //now create default units for this branch
         final units = IUnit()
           ..name = 'Per Kilogram (kg)'
@@ -144,7 +144,7 @@ class SignupViewModel extends ReactiveViewModel {
           ..id = DateTime.now().millisecondsSinceEpoch
           ..units = mockUnits
           ..branchId = branches[0].id!;
-        await ProxyService.isarApi.addUnits(data: units);
+        await ProxyService.isar.addUnits(data: units);
 
         //now create a default custom product
         ProxyService.forceDateEntry.dataBootstrapper();

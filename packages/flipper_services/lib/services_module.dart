@@ -26,6 +26,7 @@ import 'package:flipper_services/remote_config_service.dart';
 import 'package:flipper_services/cron_service.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_services/sharing_service.dart';
+import 'package:flipper_services/status.dart';
 import 'package:flipper_services/system_time_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
@@ -201,11 +202,18 @@ abstract class ServicesModule {
   }
 
   @LazySingleton()
-  EventInterface get event {
-    late EventInterface e;
-    e = EventService();
-    return e;
+  Status get status {
+    late Status status;
+    if (isAndroid || isIos) {
+      status = StatusAppBarForAndroidAndIos();
+    } else {
+      status = StatusAppBarForWindowsAndWeb();
+    }
+    return status;
   }
+
+  @LazySingleton()
+  EventInterface get event => EventService();
 
   @preResolve
   @LazySingleton()

@@ -32,12 +32,7 @@ class InitApp {
     // ScrollController(keepScrollOffset: true, initialScrollOffset: 0);
     ProxyService.cron.schedule();
 
-    if (isWindows) {
-      ProxyService.appService.updateStatusColor();
-    }
-
-    ProxyService.appService.appBarColor(Colors.black);
-
+    ProxyService.status.updateStatusColor();
     ProxyService.event.connect();
 
     ProxyService.messaging
@@ -57,8 +52,8 @@ class InitApp {
 
     /// to avoid receiving the message of the contact you don't have in your book
     /// we need to load contacts when the app starts.
-    // ProxyService.isarApi.contacts().asBroadcastStream();
-    // ProxyService.isarApi.createPin();
+    // ProxyService.isar.contacts().asBroadcastStream();
+    // ProxyService.isar.createPin();
 
     // if (!kDebugMode) {
     //   if (SchedulerBinding.instance.schedulerPhase ==

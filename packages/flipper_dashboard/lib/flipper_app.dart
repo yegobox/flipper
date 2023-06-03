@@ -21,7 +21,7 @@ import 'package:permission_handler/permission_handler.dart' as perm;
 import 'badge_icon.dart';
 import 'page_switcher.dart';
 import 'package:flutter_windowmanager/flutter_windowmanager.dart';
-// import 'package:nfc_manager/nfc_manager.dart';
+import 'package:nfc_manager/nfc_manager.dart';
 
 class FlipperApp extends StatefulWidget {
   const FlipperApp({Key? key}) : super(key: key);
@@ -66,20 +66,20 @@ class _FlipperAppState extends State<FlipperApp>
   }
 
   Future<void> nfc() async {
-    // if (!isDesktopOrWeb) {
-    //   if ((isAndroid || isIos) && await NfcManager.instance.isAvailable()) {
-    //     // This code will run every 1 second while the app is in the foreground
-    //     AppService().nfc.stopNfc();
-    //     AppService().nfc.startNFC(
-    //           callback: (nfcData) {
-    //             AppService.cleanedDataController
-    //                 .add(nfcData.split(RegExp(r"(NFC_DATA:|en|\\x02)")).last);
-    //           },
-    //           textData: "",
-    //           write: false,
-    //         );
-    //   }
-    // }
+    if (!isDesktopOrWeb) {
+      if ((isAndroid || isIos) && await NfcManager.instance.isAvailable()) {
+        // This code will run every 1 second while the app is in the foreground
+        AppService().nfc.stopNfc();
+        AppService().nfc.startNFC(
+              callback: (nfcData) {
+                AppService.cleanedDataController
+                    .add(nfcData.split(RegExp(r"(NFC_DATA:|en|\\x02)")).last);
+              },
+              textData: "",
+              write: false,
+            );
+      }
+    }
   }
 
   @override
@@ -88,14 +88,14 @@ class _FlipperAppState extends State<FlipperApp>
       // AppLifecycleState.
       case AppLifecycleState.resumed:
         nfc();
-        ProxyService.appService.pushDataToServer();
+        ProxyService.app.pushDataToServer();
         break;
       case AppLifecycleState.paused:
         // AppService.cleanedDataController.close();
-        ProxyService.appService.pushDataToServer();
+        ProxyService.app.pushDataToServer();
         break;
       default:
-        ProxyService.appService.pushDataToServer();
+        ProxyService.app.pushDataToServer();
         break;
     }
   }
@@ -113,14 +113,14 @@ class _FlipperAppState extends State<FlipperApp>
           model.currentOrder();
           ProxyService.dynamicLink.handleDynamicLink(context);
           if (isAndroid || isIos) {
-            // AppService().nfc.startNFC(
-            //       callback: (nfcData) {
-            //         AppService.cleanedDataController.add(
-            //             nfcData.split(RegExp(r"(NFC_DATA:|en|\\x02)")).last);
-            //       },
-            //       textData: "",
-            //       write: false,
-            //     );
+            AppService().nfc.startNFC(
+                  callback: (nfcData) {
+                    AppService.cleanedDataController.add(
+                        nfcData.split(RegExp(r"(NFC_DATA:|en|\\x02)")).last);
+                  },
+                  textData: "",
+                  write: false,
+                );
             AppService.cleanedData.listen((data) async {
               log("listened to data");
               log(data);
@@ -151,16 +151,19 @@ class _FlipperAppState extends State<FlipperApp>
               appBar: AppBar(
                 title: Center(
                     child: Text(
-                  model.app.statusText,
+                  ProxyService.status.statusText.value ?? "",
                   style: GoogleFonts.poppins(
                     fontSize: 16.0,
                     fontWeight: FontWeight.w300,
                     color: Colors.white,
                   ),
                 )),
-                backgroundColor: model.app.statusColor,
+                backgroundColor: ProxyService.status.statusColor.value,
                 automaticallyImplyLeading: false,
-                toolbarHeight: model.app.statusText.isNotEmpty ? 25 : 0,
+                toolbarHeight:
+                    ProxyService.status.statusText.value?.isNotEmpty == true
+                        ? 25
+                        : 0,
               ),
               bottomNavigationBar: !isWindows
                   ? NavigationBarTheme(
@@ -393,7 +396,7 @@ class _FlipperAppState extends State<FlipperApp>
     if (shouldPop == true) {
       // Handle leaving  the app
       // ...
-      Drawers? drawer = await ProxyService.isarApi
+      Drawers? drawer = await ProxyService.isar
           .getDrawer(cashierId: ProxyService.box.getBusinessId()!);
       _routerService
           .replaceWith(DrawerScreenRoute(open: "close", drawer: drawer));

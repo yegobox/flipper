@@ -91,10 +91,10 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   void keyboardKeyPressed({required String key}) async {
     ProxyService.analytics.trackEvent("keypad", {'feature_name': 'keypad_tab'});
     if (key == 'C') {
-      Order pendingOrder = await ProxyService.isarApi.manageOrder();
+      Order pendingOrder = await ProxyService.isar.manageOrder();
 
       List<OrderItem> items =
-          await ProxyService.isarApi.orderItems(orderId: pendingOrder.id!);
+          await ProxyService.isar.orderItems(orderId: pendingOrder.id!);
 
       if (items.isEmpty) {
         ProxyService.keypad.reset();
@@ -102,18 +102,18 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       }
 
       OrderItem itemToDelete = items.last;
-      await ProxyService.isarApi
+      await ProxyService.isar
           .delete(id: itemToDelete.id, endPoint: 'orderItem');
 
       List<OrderItem> updatedItems =
-          await ProxyService.isarApi.orderItems(orderId: pendingOrder.id!);
+          await ProxyService.isar.orderItems(orderId: pendingOrder.id!);
       pendingOrder.subTotal =
           updatedItems.fold(0, (a, b) => a + (b.price * b.qty));
-      await ProxyService.isarApi.update(data: pendingOrder);
+      await ProxyService.isar.update(data: pendingOrder);
       ProxyService.keypad.reset();
 
       Order? updatedOrder =
-          await ProxyService.isarApi.getOrderById(id: pendingOrder.id!);
+          await ProxyService.isar.getOrderById(id: pendingOrder.id!);
       keypad.setOrder(updatedOrder);
       currentOrder();
       rebuildUi();
@@ -127,25 +127,23 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       /// don't keep adding item to the order
       if (double.parse(ProxyService.keypad.key) != 0.0 &&
           ProxyService.keypad.key.length == 1) {
-        Variant? variation = await ProxyService.isarApi.getCustomVariant();
+        Variant? variation = await ProxyService.isar.getCustomVariant();
         if (variation == null) return;
         double amount = double.parse(ProxyService.keypad.key);
         await saveOrder(
             amountTotal: amount, variationId: variation.id!, customItem: true);
-        Order? updatedOrder = await ProxyService.isarApi.manageOrder();
-        items =
-            await ProxyService.isarApi.orderItems(orderId: updatedOrder.id!);
+        Order? updatedOrder = await ProxyService.isar.manageOrder();
+        items = await ProxyService.isar.orderItems(orderId: updatedOrder.id!);
         updatedOrder.subTotal = items.fold(0, (a, b) => a + (b.price * b.qty));
-        await ProxyService.isarApi.update(data: updatedOrder);
+        await ProxyService.isar.update(data: updatedOrder);
         keypad.setOrder(updatedOrder);
         currentOrder();
       } else if (ProxyService.keypad.key.length > 1) {
-        Order? pendingOrder = await ProxyService.isarApi.manageOrder();
+        Order? pendingOrder = await ProxyService.isar.manageOrder();
         List<OrderItem> items = [];
-        items =
-            await ProxyService.isarApi.orderItems(orderId: pendingOrder.id!);
+        items = await ProxyService.isar.orderItems(orderId: pendingOrder.id!);
         double amount = double.parse(ProxyService.keypad.key);
-        Variant? variation = await ProxyService.isarApi.getCustomVariant();
+        Variant? variation = await ProxyService.isar.getCustomVariant();
 
         if (variation == null) return;
         if (items.isEmpty) {
@@ -155,20 +153,19 @@ class BusinessHomeViewModel extends ReactiveViewModel {
             customItem: true,
           );
         }
-        items =
-            await ProxyService.isarApi.orderItems(orderId: pendingOrder.id!);
+        items = await ProxyService.isar.orderItems(orderId: pendingOrder.id!);
 
         OrderItem item = items.last;
         item.price = double.parse(ProxyService.keypad.key);
         item.taxAmt = double.parse(
             (double.parse(ProxyService.keypad.key) * 18 / 118)
                 .toStringAsFixed(2));
-        await ProxyService.isarApi.update(data: item);
+        await ProxyService.isar.update(data: item);
 
         pendingOrder.subTotal = items.fold(0, (a, b) => a + (b.price * b.qty));
-        await ProxyService.isarApi.update(data: pendingOrder);
+        await ProxyService.isar.update(data: pendingOrder);
         Order? updatedOrder =
-            await ProxyService.isarApi.getOrderById(id: pendingOrder.id!);
+            await ProxyService.isar.getOrderById(id: pendingOrder.id!);
         keypad.setOrder(updatedOrder);
         currentOrder();
       }
@@ -185,11 +182,11 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     keypad.setItemsOnSale(count: 0);
     keypad.setTotalPayable(amount: 0.0);
 
-    Order order = await await ProxyService.isarApi.manageOrder();
+    Order order = await await ProxyService.isar.manageOrder();
     if (order.status == pendingStatus) {
       keypad.setOrder(order);
       List<OrderItem> items =
-          await ProxyService.isarApi.orderItems(orderId: order.id!);
+          await ProxyService.isar.orderItems(orderId: order.id!);
 
       if (items.isNotEmpty) {
         keypad.setItemsOnSale(count: items.length);
@@ -203,8 +200,8 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
     keypad.setOrder(order);
     List<OrderItem> items =
-        await ProxyService.isarApi.orderItems(orderId: order.id!);
-    await ProxyService.isarApi.update(data: order);
+        await ProxyService.isar.orderItems(orderId: order.id!);
+    await ProxyService.isar.update(data: order);
     keypad.setItemsOnSale(count: items.length);
     rebuildUi();
   }
@@ -221,7 +218,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   ///list products availabe for sell
   Future<List<Product>> products() async {
     int branchId = ProxyService.box.getBranchId()!;
-    return await ProxyService.isarApi.productsFuture(branchId: branchId);
+    return await ProxyService.isar.productsFuture(branchId: branchId);
   }
 
   Business get businesses => app.business;
@@ -276,20 +273,20 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   void loadVariantStock({required int variantId}) async {
     int branchId = ProxyService.box.getBranchId()!;
-    _currentItemStock = await ProxyService.isarApi
+    _currentItemStock = await ProxyService.isar
         .getStock(branchId: branchId, variantId: variantId);
   }
 
   Future<List<Variant>> getVariants({required int productId}) async {
     int branchId = ProxyService.box.getBranchId()!;
-    _variants = await ProxyService.isarApi
+    _variants = await ProxyService.isar
         .variants(branchId: branchId, productId: productId);
     notifyListeners();
     return _variants;
   }
 
   Future<Variant?> getVariant({required int variantId}) async {
-    return await ProxyService.isarApi.variant(variantId: variantId);
+    return await ProxyService.isar.variant(variantId: variantId);
   }
 
   void toggleCheckbox({required int variantId}) {
@@ -303,20 +300,19 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     required bool customItem,
   }) async {
     Variant? variation =
-        await ProxyService.isarApi.variant(variantId: variationId);
+        await ProxyService.isar.variant(variantId: variationId);
     Stock? stock =
-        await ProxyService.isarApi.stockByVariantId(variantId: variation!.id!);
+        await ProxyService.isar.stockByVariantId(variantId: variation!.id!);
 
     String name = variation.productName != 'Custom Amount'
         ? '${variation.productName}(${variation.name})'
         : variation.productName;
 
     /// if variation  given it exist in the orderItems of currentPending order then we update the order with new count
-    Order? pendingOrder = await ProxyService.isarApi.manageOrder();
+    Order? pendingOrder = await ProxyService.isar.manageOrder();
 
-    OrderItem? existOrderItem = await ProxyService.isarApi
-        .getOrderItemByVariantId(
-            variantId: variationId, orderId: pendingOrder.id!);
+    OrderItem? existOrderItem = await ProxyService.isar.getOrderItemByVariantId(
+        variantId: variationId, orderId: pendingOrder.id!);
     await addOrderItems(
       variationId: variationId,
       pendingOrder: pendingOrder,
@@ -354,11 +350,11 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       item.price = amountTotal / quantity; // price of one unit
 
       List<OrderItem> items =
-          await ProxyService.isarApi.orderItems(orderId: pendingOrder!.id!);
+          await ProxyService.isar.orderItems(orderId: pendingOrder!.id!);
       pendingOrder.subTotal = items.fold(0, (a, b) => a + (b.price * b.qty));
 
-      ProxyService.isarApi.update(data: pendingOrder);
-      ProxyService.isarApi.update(data: item);
+      ProxyService.isar.update(data: pendingOrder);
+      ProxyService.isar.update(data: item);
       return;
     }
     if (pendingOrder != null) {
@@ -411,12 +407,12 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         ..remainingStock = stock.currentStock - quantity;
 
       List<OrderItem> items =
-          await ProxyService.isarApi.orderItems(orderId: pendingOrder.id!);
+          await ProxyService.isar.orderItems(orderId: pendingOrder.id!);
       pendingOrder.subTotal = items.fold(0, (a, b) => a + (b.price * b.qty));
 
-      ProxyService.isarApi.update(data: pendingOrder);
+      ProxyService.isar.update(data: pendingOrder);
 
-      ProxyService.isarApi.addOrderItem(order: pendingOrder, item: newItem);
+      ProxyService.isar.addOrderItem(order: pendingOrder, item: newItem);
     }
   }
 
@@ -426,9 +422,9 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       //should show a global snack bar
       return;
     }
-    await ProxyService.isarApi
+    await ProxyService.isar
         .spennPayment(amount: cashReceived, phoneNumber: phoneNumber);
-    await ProxyService.isarApi
+    await ProxyService.isar
         .collectCashPayment(cashReceived: cashReceived, order: kOrder!);
   }
 
@@ -436,7 +432,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     if (kOrder == null && amountTotal != 0.0) {
       return;
     }
-    await ProxyService.isarApi
+    await ProxyService.isar
         .collectCashPayment(cashReceived: keypad.cashReceived, order: kOrder!);
 
     keypad.setItemsOnSale(count: 0);
@@ -466,7 +462,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       required String name,
       required int orderId,
       required String tinNumber}) {
-    ProxyService.isarApi.addCustomer(customer: {
+    ProxyService.isar.addCustomer(customer: {
       'email': email,
       'phone': phone,
       'name': name,
@@ -476,7 +472,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   Future<void> assignToSale(
       {required int customerId, required int orderId}) async {
-    ProxyService.isarApi
+    ProxyService.isar
         .assingOrderToCustomer(customerId: customerId, orderId: orderId);
   }
 
@@ -492,10 +488,10 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     if (kOrder == null) {
       return;
     }
-    Order? order = await ProxyService.isarApi.getOrderById(id: kOrder!.id!);
+    Order? order = await ProxyService.isar.getOrderById(id: kOrder!.id!);
     // Map map = order!;
     order!.note = note;
-    ProxyService.isarApi.update(data: order);
+    ProxyService.isar.update(data: order);
     callback(1);
   }
 
@@ -511,14 +507,14 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     order.note = ticketNote;
     order.ticketName = ticketName;
     order.updatedAt = DateTime.now().toIso8601String();
-    await ProxyService.isarApi.update(data: order);
+    await ProxyService.isar.update(data: order);
   }
 
   Future resumeOrder({required int ticketId}) async {
-    Order? _order = await ProxyService.isarApi.getOrderById(id: ticketId);
+    Order? _order = await ProxyService.isar.getOrderById(id: ticketId);
 
     _order!.status = pendingStatus;
-    await ProxyService.isarApi.update(data: _order);
+    await ProxyService.isar.update(data: _order);
     await keypad.getTickets();
     await keypad.getPendingOrder(branchId: ProxyService.box.getBranchId()!);
     await currentOrder();
@@ -543,7 +539,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     if (keypad.order == null) return 0.0;
 
     List<OrderItem> items =
-        await ProxyService.isarApi.orderItems(orderId: keypad.order!.id!);
+        await ProxyService.isar.orderItems(orderId: keypad.order!.id!);
 
     num? totalPayable = items.fold(0, (a, b) => a! + (b.price * b.qty));
 
@@ -569,11 +565,11 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   /// FIXMEsometime after deleteting orderItems are not reflecting
   Future<bool> deleteOrderItem(
       {required int id, required BuildContext context}) async {
-    await ProxyService.isarApi.delete(id: id, endPoint: 'orderItem');
+    await ProxyService.isar.delete(id: id, endPoint: 'orderItem');
 
-    Order? pendingOrder = await ProxyService.isarApi.manageOrder();
+    Order? pendingOrder = await ProxyService.isar.manageOrder();
     List<OrderItem> items =
-        await ProxyService.isarApi.orderItems(orderId: pendingOrder.id!);
+        await ProxyService.isar.orderItems(orderId: pendingOrder.id!);
 
     currentOrder();
 
@@ -589,9 +585,9 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   List<OrderItem> items = [];
   setOrderItems() async {
-    Order? pendingOrder = await ProxyService.isarApi.manageOrder();
+    Order? pendingOrder = await ProxyService.isar.manageOrder();
     List<OrderItem> _items =
-        await ProxyService.isarApi.orderItems(orderId: pendingOrder.id!);
+        await ProxyService.isar.orderItems(orderId: pendingOrder.id!);
     items = _items;
     notifyListeners();
   }
@@ -602,7 +598,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   /// the UI can notify the user based on the return value
   void restoreBackUp(Function callback) async {
     if (ProxyService.remoteConfig.isBackupAvailable()) {
-      Business? business = await ProxyService.isarApi.getBusiness();
+      Business? business = await ProxyService.isar.getBusiness();
       final drive = GoogleDrive();
       if (business!.backupFileId != null) {
         await drive.downloadGoogleDriveFile('data', business.backupFileId!);
@@ -626,10 +622,10 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   void loadReport() async {
     int branchId = ProxyService.box.getBranchId()!;
     List<Order> completedOrders =
-        await ProxyService.isarApi.completedOrders(branchId: branchId);
+        await ProxyService.isar.completedOrders(branchId: branchId);
     Set<OrderItem> allItems = {};
     for (Order completedOrder in completedOrders) {
-      List<OrderItem> orderItems = await ProxyService.isarApi
+      List<OrderItem> orderItems = await ProxyService.isar
           .getOrderItemsByOrderId(orderId: completedOrder.id!);
       allItems.addAll(orderItems.toSet());
     }
@@ -644,9 +640,8 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       required Order oorder}) async {
     // get receipt from isar related to this order
     // get refreshed order with cash received
-    Order? order = await ProxyService.isarApi.getOrderById(id: oorder.id!);
-    Receipt? receipt =
-        await ProxyService.isarApi.getReceipt(orderId: order!.id!);
+    Order? order = await ProxyService.isar.getOrderById(id: oorder.id!);
+    Receipt? receipt = await ProxyService.isar.getReceipt(orderId: order!.id!);
     // get time formatted like hhmmss
     Print print = Print();
     print.feed(items);
@@ -700,7 +695,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       return false;
     }
     Customer? customer =
-        await ProxyService.isarApi.nGetCustomerByOrderId(id: order.id!);
+        await ProxyService.isar.nGetCustomerByOrderId(id: order.id!);
     ReceiptSignature? receiptSignature = await ProxyService.tax.createReceipt(
         order: order,
         items: items,
@@ -717,7 +712,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
     // get the current drawer status
     await updateDrawer(receiptType, order);
-    ProxyService.isarApi.update(data: order);
+    ProxyService.isar.update(data: order);
     String time = DateTime.now().toString().substring(11, 19);
     DateTime now = DateTime.now();
     String formattedDate = DateFormat('dd-MM-yyy').format(now);
@@ -726,14 +721,14 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         "${receiptSignature.data.rcptNo}/${receiptSignature.data.totRcptNo}";
     String qrCode =
         '$formattedDate#$time#${receiptSignature.data.sdcId}#$receiptNumber#${receiptSignature.data.intrlData}#${receiptSignature.data.rcptSign}';
-    await ProxyService.isarApi.createReceipt(
+    await ProxyService.isar.createReceipt(
         signature: receiptSignature,
         order: order,
         qrCode: qrCode,
         counter: counter,
         receiptType: receiptNumber);
     // update counter, increment the counter
-    ProxyService.isarApi.update(
+    ProxyService.isar.update(
         data: counter
           ..totRcptNo = receiptSignature.data.totRcptNo + 1
           ..backed = false
@@ -747,25 +742,25 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     Counter? counter;
     int branchId = ProxyService.box.getBranchId()!;
     if (receiptType == "ns") {
-      counter = await ProxyService.isarApi.nSCounter(branchId: branchId);
+      counter = await ProxyService.isar.nSCounter(branchId: branchId);
     }
     if (receiptType == ReceiptType.ts) {
-      counter = await ProxyService.isarApi.tSCounter(branchId: branchId);
+      counter = await ProxyService.isar.tSCounter(branchId: branchId);
     }
     if (receiptType == ReceiptType.nr) {
-      counter = await ProxyService.isarApi.nRSCounter(branchId: branchId);
+      counter = await ProxyService.isar.nRSCounter(branchId: branchId);
     }
     if (receiptType == ReceiptType.cs) {
-      counter = await ProxyService.isarApi.cSCounter(branchId: branchId);
+      counter = await ProxyService.isar.cSCounter(branchId: branchId);
     }
     if (receiptType == ReceiptType.ps) {
-      counter = await ProxyService.isarApi.pSCounter(branchId: branchId);
+      counter = await ProxyService.isar.pSCounter(branchId: branchId);
     }
     return counter!;
   }
 
   Future<void> updateDrawer(String receiptType, Order order) async {
-    Drawers? drawer = await ProxyService.isarApi
+    Drawers? drawer = await ProxyService.isar
         .getDrawer(cashierId: ProxyService.box.getBusinessId()!);
     drawer!
       ..cashierId = ProxyService.box.getBusinessId()!
@@ -794,7 +789,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       ..openingDateTime = DateTime.now().toIso8601String()
       ..open = true;
     // update drawer
-    await ProxyService.isarApi.update(data: drawer);
+    await ProxyService.isar.update(data: drawer);
   }
 
   List<Order> _completedOrders = [];
@@ -816,7 +811,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   // order need to be deleted or completed first.
   void deleteCustomer(int id, Function callback) {
     if (kOrder!.customerId == null) {
-      ProxyService.isarApi.delete(id: id, endPoint: 'customer');
+      ProxyService.isar.delete(id: id, endPoint: 'customer');
     } else {
       callback("Can't delete the customer");
     }
@@ -832,7 +827,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   void defaultTenant() async {
     final userId = ProxyService.box.getUserId()!;
-    final tenant = await ProxyService.isarApi.getTenantBYUserId(userId: userId);
+    final tenant = await ProxyService.isar.getTenantBYUserId(userId: userId);
     if (tenant == null) {
       throw Exception("could not find tenant with ${userId}");
     }
@@ -841,12 +836,12 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   void setDefaultBusiness({required Business business}) {
     app.setBusiness(business: business);
-    ProxyService.isarApi.update(data: business..isDefault = true);
+    ProxyService.isar.update(data: business..isDefault = true);
     ProxyService.box.write(key: 'businessId', value: business.id);
   }
 
   void setDefaultBranch({required Branch branch}) {
-    ProxyService.isarApi.update(data: branch..isDefault = true);
+    ProxyService.isar.update(data: branch..isDefault = true);
     ProxyService.box.write(key: 'branchId', value: branch.id);
   }
 
@@ -856,7 +851,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   Future<void> sellWithCard({required int tenantId}) async {
     Product? product =
-        await ProxyService.isarApi.findProductByTenantId(tenantId: tenantId);
+        await ProxyService.isar.findProductByTenantId(tenantId: tenantId);
 
     clearPreviousSaleCounts();
     List<Variant> variants = await getVariants(productId: product!.id!);
