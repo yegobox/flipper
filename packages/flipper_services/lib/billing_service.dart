@@ -59,7 +59,7 @@ class BillingService {
     // ignore: todo
     // TODO: getSubscription api seem to return 404
     // Subscription? sub =
-    //     await ProxyService.isarApi.getSubscription(userId: userId);
+    //     await ProxyService.isar.getSubscription(userId: userId);
     // if (sub != null) {
     //   String date = sub.nextBillingDate;
     //   DateTime nextBillingDate = DateTime.parse(date);
@@ -67,11 +67,11 @@ class BillingService {
 
     //   if (nextBillingDate.isBefore(today)) {
     //     // if the user still have some point consume them and update the subscription
-    //     IPoint? points = await ProxyService.isarApi.getPoints(userId: userId);
+    //     IPoint? points = await ProxyService.isar.getPoints(userId: userId);
     //     if (points?.value != null && points!.value > 0) {
     //       ProxyService.isarApi
     //           .consumePoints(userId: userId, points: points.value);
-    //       ProxyService.isarApi.addUpdateSubscription(
+    //       ProxyService.isar.addUpdateSubscription(
     //         userId: userId,
     //         interval: sub.interval,
     //         recurringAmount: sub.recurring,

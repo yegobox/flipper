@@ -95,7 +95,7 @@
 //   Future<http.Client> backUpNow() async {
 //     Directory dir = await getApplicationDocumentsDirectory();
 //     File file = File(path.context.canonicalize(dir.path + '/db/isar'));
-//     Business? business = await ProxyService.isarApi.getBusiness();
+//     Business? business = await ProxyService.isar.getBusiness();
 //     final httpClient = await silentLogin();
 //     if (business!.backUpEnabled!) {
 //       await upload(file);
@@ -116,8 +116,8 @@
 
 //     /// notify the online that user has enabled the backup
 //     /// also update the property locally.
-//     await ProxyService.isarApi.update(data: business);
-//     ProxyService.isarApi.update(data: business.toJson());
+//     await ProxyService.isar.update(data: business);
+//     ProxyService.isar.update(data: business.toJson());
 //   }
 
 //   /// Upload File to user's Google Drive appData folder
@@ -147,10 +147,10 @@
 //     log.w("Result ${response.toJson()}");
 //     FileUploaded fileUploaded = FileUploaded.fromJson(response.toJson());
 //     //patch a business with lst backup fileId.
-//     Business? business = await ProxyService.isarApi.getBusiness();
+//     Business? business = await ProxyService.isar.getBusiness();
 //     business!.backupFileId = fileUploaded.id;
-//     await ProxyService.isarApi.update(data: business);
-//     ProxyService.isarApi.update(data: business);
+//     await ProxyService.isar.update(data: business);
+//     ProxyService.isar.update(data: business);
 //     // downloadGoogleDriveFile('data', fileUploaded.id);
 //   }
 

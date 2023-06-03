@@ -43,6 +43,13 @@ abstract class IsarApiInterface {
     required double supplyPrice,
   });
 
+  Future<int> addFavorite({required Favorite data});
+  Future<List<Favorite>> getFavorites();
+  Future<Favorite?> getFavoriteById({required int favId});
+  Future<Favorite?> getFavoriteByProdId({required int prodId});
+  Future<Favorite?> getFavoriteByIndex({required int favIndex});
+  Future<int> deleteFavoriteByIndex({required int favIndex});
+
   Future<Product?> getProduct({required int id});
   Future<Product?> getProductByBarCode({required String barCode});
   // Future

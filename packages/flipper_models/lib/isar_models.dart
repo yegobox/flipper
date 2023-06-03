@@ -11,6 +11,7 @@ export 'isar/color.dart';
 export 'isar/category.dart';
 export 'isar/business.dart';
 export 'isar/branch.dart';
+export 'isar/favorite.dart';
 export 'isar/voucher.dart';
 export 'isar/variant.dart';
 export 'isar/unit.dart';

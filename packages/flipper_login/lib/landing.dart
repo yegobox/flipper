@@ -164,7 +164,7 @@ class _LandingState extends State<Landing> {
                     ),
                     onPressed: () async {
                       final _routerService = locator<RouterService>();
-                      _routerService.clearStackAndShow(AuthOptionPageRoute());
+                      _routerService.navigateTo(AuthOptionPageRoute());
                     },
                     child: Text(
                       "Create Account",

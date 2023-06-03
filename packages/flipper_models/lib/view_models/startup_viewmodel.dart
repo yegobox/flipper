@@ -32,6 +32,7 @@ class StartupViewModel extends BaseViewModel {
         await appService.isLoggedIn();
       }
       await appService.appInit();
+      log(ProxyService.box.getUserId().toString());
       //if we reached this far then it means we have a default business/branch make sence to check drawer
       if (await ProxyService.isar
           .isDrawerOpen(cashierId: ProxyService.box.getBusinessId()!)) {
@@ -59,7 +60,7 @@ class StartupViewModel extends BaseViewModel {
       } else {
         print(stackTrace);
         ProxyService.isar.logOut();
-        // remove startup view from the stack
+        //remove startup view from the stack
         _routerService.clearStackAndShow(LandingRoute());
       }
     }

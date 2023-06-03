@@ -48,7 +48,7 @@
 //     // final log = getLogger('ObjectBoxAPi');
 //     // log.i('Path' + dir.path + '/$dbName');
 //     store = Store(getObjectBoxModel(), directory: dir.path + '/$dbName');
-//     ProxyService.isarApi.migrateToSync();
+//     ProxyService.isar.migrateToSync();
 //     SyncClient syncClient = Sync.client(
 //       store,
 //       'ws://sync.yegobox.com:908', // wss for SSL, ws for unencrypted traffic

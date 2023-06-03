@@ -23,6 +23,7 @@ import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import 'firebase_options.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:country_code_picker/country_code_picker.dart';
 import 'package:get_storage/get_storage.dart';
 
 import 'package:flutter_animate/flutter_animate.dart';
@@ -138,6 +139,7 @@ void main() async {
             const FlipperLocalizationsDelegate(),
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
+            CountryLocalizations.delegate
           ],
           supportedLocales: const [
             Locale('en'), // English
