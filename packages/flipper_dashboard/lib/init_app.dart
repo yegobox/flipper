@@ -1,6 +1,5 @@
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flutter/material.dart';
 
 class InitApp {
   static void init() {

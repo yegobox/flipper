@@ -51,6 +51,7 @@ class _ChatListViewMobileState extends State<ChatListViewMobile>
               ProxyService.remote.listenToChanges();
             }
           });
+
           ProxyService.isar.sendScheduleMessages();
           ProxyService.isar
               .loadConversations(businessId: ProxyService.box.getBranchId()!);
