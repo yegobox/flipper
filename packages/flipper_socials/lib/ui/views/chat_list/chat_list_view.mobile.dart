@@ -44,8 +44,6 @@ class _ChatListViewMobileState extends State<ChatListViewMobile>
     return ViewModelBuilder<ChatListViewModel>.reactive(
         viewModelBuilder: () => ChatListViewModel(),
         onViewModelReady: (viewModel) {
-          ProxyService.isar
-              .loadConversations(businessId: ProxyService.box.getBusinessId()!);
           SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
             if (ProxyService.box.getBranchId() != null &&
                 ProxyService.box.getBusinessId() != null &&
@@ -53,6 +51,10 @@ class _ChatListViewMobileState extends State<ChatListViewMobile>
               ProxyService.remote.listenToChanges();
             }
           });
+          ProxyService.isar.sendScheduleMessages();
+          ProxyService.event.keepTryingPublishDevice();
+          ProxyService.isar
+              .loadConversations(businessId: ProxyService.box.getBranchId()!);
         },
         builder: (build, viewModel, child) {
           return AnnotatedRegion<SystemUiOverlayStyle>(

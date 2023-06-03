@@ -32,8 +32,6 @@ class CronService {
       ProxyService.app.pushDataToServer();
       ProxyService.sync.pull();
       // in case pubnub did not get latest message load them forcefully
-      ProxyService.isar
-          .loadConversations(businessId: ProxyService.box.getBranchId()!);
     });
     if (!Platform.isWindows) {
       token = await FirebaseMessaging.instance.getToken();
@@ -51,11 +49,9 @@ class CronService {
     // we need to think when the devices change or app is uninstalled
     // for the case like that the token needs to be updated, but not covered now
     // this sill make more sence once we implement the sync that is when we will implement such solution
-
     Timer.periodic(Duration(seconds: kDebugMode ? 10 : 10), (Timer t) async {
       /// get unsynced counter and send them online for houseKeping.
       ProxyService.isar.sendScheduleMessages();
-      ProxyService.event.keepTryingPublishDevice();
     });
     Timer.periodic(Duration(minutes: kDebugMode ? 1 : 10), (Timer t) async {
       /// get unsynced counter and send them online for houseKeping.

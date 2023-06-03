@@ -102,9 +102,9 @@ class AppService with ListenableServiceMixin {
     }
 
     bool value = await isSocialLoggedin();
-    String? token = ProxyService.box.getSocialBearerToken();
-    log(token?.toString() ?? "social token is null");
+
     if (!value) {
+      log("should not come here more often", name: "isLoggedIn()");
       await logSocial();
     }
     return ProxyService.box.getUserId() != null &&

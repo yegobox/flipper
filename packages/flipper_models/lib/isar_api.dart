@@ -1539,6 +1539,12 @@ class IsarAPI<M> implements IsarApiInterface {
         return Future.value(null);
       });
     }
+    if (data is Setting) {
+      await isar.writeTxn(() async {
+        await isar.settings.put(data);
+        return Future.value(null);
+      });
+    }
     return Future.value(null);
   }
 
@@ -2428,22 +2434,55 @@ class IsarAPI<M> implements IsarApiInterface {
     }
   }
 
+  /// Retrieves the social setting asynchronously.
+  ///
+  /// This function retrieves the social setting based on the user's phone number.
+  /// If the user's phone number is not available, it returns `null`.
+  /// It first checks if the setting is available in the `isar.settings` database using the user's phone number.
+  /// If the setting is found, it returns the setting.
+  /// If the setting is not found in the database, it makes an HTTP GET request to the socialsHttpClient
+  /// to fetch the setting from the specified API endpoint.
+  /// If the HTTP response status code is 200, it converts the response body to a `Setting` object
+  /// using `Setting.fromJson()` and then saves it using the `create()` function.
+  /// Finally, it returns the fetched or created setting.
+  /// If the HTTP response status code is not 200, it throws an exception with a descriptive error message.
+  ///
+  /// Returns:
+  ///   - A `Future` of type `Setting?` representing the retrieved social setting.
+  ///     If the user's phone number is not available, it returns `null`.
+  ///
+  /// Throws:
+  ///   - An `Exception` with an error message if the HTTP response status code is not 200.
+  ///     The error message includes the response body and the user's phone number.
+
   @override
   Future<Setting?> getSocialSetting() async {
     String? phoneNumber = ProxyService.box.getUserPhone();
     if (phoneNumber == null) {
       return null;
     }
-    await Future.delayed(Duration(seconds: 20));
+
     final number = phoneNumber.replaceAll("+", "");
-    final http.Response response =
-        await socialsHttpClient.get(Uri.parse("$commApi/settings/$number"));
-    // convert response to Setting
-    if (response.statusCode == 200) {
-      Setting setting = Setting.fromJson(jsonDecode(response.body));
+
+    Setting? setting = await isar.settings
+        .filter()
+        .businessPhoneNumberEqualTo(number)
+        .findFirst();
+
+    if (setting != null) {
       return setting;
     }
-    throw Exception("Can't get social setting ${response.body}${number}");
+
+    final Uri uri = Uri.parse("$commApi/settings/$number");
+    final http.Response response = await socialsHttpClient.get(uri);
+
+    if (response.statusCode == 200) {
+      Setting setting = Setting.fromJson(jsonDecode(response.body));
+      create(data: setting);
+      return setting;
+    } else {
+      throw Exception("Can't get social setting ${response.body}${number}");
+    }
   }
 
   @override
