@@ -6,4 +6,5 @@ final Map<Type, String> serverDefinitions = {
   Variant: "variants",
   Order: "orders",
   Social: "socials",
+  Favorite: "favorites",
 };
