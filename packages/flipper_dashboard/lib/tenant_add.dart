@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:stacked/stacked.dart';
 import 'customappbar.dart';
+import 'package:nfc_manager/nfc_manager.dart';
 
 class TenantAdd extends StatefulWidget {
   const TenantAdd({Key? key}) : super(key: key);
@@ -195,25 +196,25 @@ class _TenantAddState extends State<TenantAdd> {
                                   tenant.nfcEnabled = !tenant.nfcEnabled;
                                   // stop the nfc session first as it might be running
                                   try {
-                                    // await AppService().nfc.stopNfc();
+                                    await AppService().nfc.stopNfc();
                                   } catch (e) {}
-                                  // AppService().nfc.startNFC(
-                                  //       callback: (nfcData) async {
-                                  //         nfcData
-                                  //             .split(RegExp(
-                                  //                 r"(NFC_DATA:|en|\\x02)"))
-                                  //             .last;
+                                  AppService().nfc.startNFC(
+                                        callback: (nfcData) async {
+                                          nfcData
+                                              .split(RegExp(
+                                                  r"(NFC_DATA:|en|\\x02)"))
+                                              .last;
 
-                                  //         showToast(context,
-                                  //             'You have added NFC card to ${tenant.name}');
-                                  //         await ProxyService.isarApi
-                                  //             .update<ITenant>(data: tenant);
-                                  //         model.loadTenants();
-                                  //       },
-                                  //       textData:
-                                  //           "${tenant.id}:${ProxyService.box.getBusinessId()}:${ProxyService.box.getBranchId()}:${tenant.phoneNumber}",
-                                  //       write: true,
-                                  //     );
+                                          showToast(context,
+                                              'You have added NFC card to ${tenant.name}');
+                                          await ProxyService.isar
+                                              .update<ITenant>(data: tenant);
+                                          model.loadTenants();
+                                        },
+                                        textData:
+                                            "${tenant.id}:${ProxyService.box.getBusinessId()}:${ProxyService.box.getBranchId()}:${tenant.phoneNumber}",
+                                        write: true,
+                                      );
                                 },
                                 leading: Text(tenant.name),
                                 trailing: Icon(Icons.nfc,

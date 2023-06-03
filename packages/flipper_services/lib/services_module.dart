@@ -213,11 +213,7 @@ abstract class ServicesModule {
   }
 
   @LazySingleton()
-  EventInterface get event {
-    late EventInterface e;
-    e = EventService();
-    return e;
-  }
+  EventInterface get event => EventService();
 
   @preResolve
   @LazySingleton()

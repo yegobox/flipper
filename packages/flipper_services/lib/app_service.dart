@@ -8,8 +8,7 @@ import 'package:stacked/stacked.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'proxy.dart';
-// import 'package:flutter_statusbarcolor_ns/flutter_statusbarcolor_ns.dart';
-// import 'package:flipper_nfc/flipper_nfc.dart';
+import 'package:flipper_nfc/flipper_nfc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 const socialApp = "socials";
@@ -227,7 +226,7 @@ class AppService with ListenableServiceMixin {
     }
   }
 
-  // NFCManager nfc = NFCManager();
+  NFCManager nfc = NFCManager();
   static final StreamController<String> cleanedDataController =
       StreamController<String>.broadcast();
   static Stream<String> get cleanedData => cleanedDataController.stream;
