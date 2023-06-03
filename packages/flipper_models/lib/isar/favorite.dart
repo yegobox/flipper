@@ -2,7 +2,6 @@ library flipper_models;
 
 import 'package:isar/isar.dart';
 
-import 'package:flipper_models/isar/product.dart';
 part 'favorite.g.dart';
 
 @collection
