@@ -122,20 +122,18 @@ packages:
     source: hosted
     version: "2.2.3"
   battery_plus:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: battery_plus
-      sha256: ae3f2094e58d93e5b760ef308a39918ea98f12da4d79e7ffd0b7fcca891ffd6a
-      url: "https://pub.dev"
-    source: hosted
-    version: "4.0.1"
+      path: "../../open-sources/plus_plugins/packages/battery_plus/battery_plus"
+      relative: true
+    source: path
+    version: "4.0.0"
   battery_plus_platform_interface:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: battery_plus_platform_interface
-      sha256: "19fd8418a81aeb2dea8fb7026b1fdf56b6c6d319baf8d703fa0d13c1d5c7ba2f"
-      url: "https://pub.dev"
-    source: hosted
+      path: "../../open-sources/plus_plugins/packages/battery_plus/battery_plus_platform_interface"
+      relative: true
+    source: path
     version: "1.2.2"
   bidi:
     dependency: transitive
@@ -300,18 +298,16 @@ packages:
   connectivity_plus:
     dependency: "direct main"
     description:
-      name: connectivity_plus
-      sha256: "8599ae9edca5ff96163fca3e36f8e481ea917d1e71cdad912c084b5579913f34"
-      url: "https://pub.dev"
-    source: hosted
-    version: "4.0.1"
+      path: "../../open-sources/plus_plugins/packages/connectivity_plus/connectivity_plus"
+      relative: true
+    source: path
+    version: "4.0.0"
   connectivity_plus_platform_interface:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: connectivity_plus_platform_interface
-      sha256: cf1d1c28f4416f8c654d7dc3cd638ec586076255d407cef3ddbdaf178272a71a
-      url: "https://pub.dev"
-    source: hosted
+      path: "../../open-sources/plus_plugins/packages/connectivity_plus/connectivity_plus_platform_interface"
+      relative: true
+    source: path
     version: "1.2.4"
   convert:
     dependency: transitive
@@ -394,20 +390,18 @@ packages:
     source: hosted
     version: "0.0.12"
   device_info_plus:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: device_info_plus
-      sha256: "2c35b6d1682b028e42d07b3aee4b98fa62996c10bc12cb651ec856a80d6a761b"
-      url: "https://pub.dev"
-    source: hosted
-    version: "9.0.2"
+      path: "../../open-sources/plus_plugins/packages/device_info_plus/device_info_plus"
+      relative: true
+    source: path
+    version: "9.0.0"
   device_info_plus_platform_interface:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: device_info_plus_platform_interface
-      sha256: d3b01d5868b50ae571cd1dc6e502fc94d956b665756180f7b16ead09e836fd64
-      url: "https://pub.dev"
-    source: hosted
+      path: "../../open-sources/plus_plugins/packages/device_info_plus/device_info_plus_platform_interface"
+      relative: true
+    source: path
     version: "7.0.0"
   dio:
     dependency: transitive
@@ -1716,20 +1710,18 @@ packages:
     source: hosted
     version: "2.1.0"
   package_info_plus:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: package_info_plus
-      sha256: "10259b111176fba5c505b102e3a5b022b51dd97e30522e906d6922c745584745"
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.1.2"
+      path: "../../open-sources/plus_plugins/packages/package_info_plus/package_info_plus"
+      relative: true
+    source: path
+    version: "4.0.0"
   package_info_plus_platform_interface:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: package_info_plus_platform_interface
-      sha256: "9bc8ba46813a4cc42c66ab781470711781940780fd8beddd0c3da62506d3a6c6"
-      url: "https://pub.dev"
-    source: hosted
+      path: "../../open-sources/plus_plugins/packages/package_info_plus/package_info_plus_platform_interface"
+      relative: true
+    source: path
     version: "2.0.1"
   path:
     dependency: transitive
@@ -1941,13 +1933,12 @@ packages:
     source: hosted
     version: "2.1.4"
   pubnub:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: pubnub
-      sha256: "95684a0297697878fc634f96ae37ea514206eca63ffa06a188da0d8aae6430e6"
-      url: "https://pub.dev"
-    source: hosted
-    version: "4.2.3"
+      path: "../../open-sources/pubnub/pubnub"
+      relative: true
+    source: path
+    version: "4.1.4"
   pubspec_parse:
     dependency: transitive
     description:
@@ -2049,20 +2040,18 @@ packages:
     source: hosted
     version: "7.5.2"
   share_plus:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: share_plus
-      sha256: ed3fcea4f789ed95913328e629c0c53e69e80e08b6c24542f1b3576046c614e8
-      url: "https://pub.dev"
-    source: hosted
-    version: "7.0.2"
+      path: "../../open-sources/plus_plugins/packages/share_plus/share_plus"
+      relative: true
+    source: path
+    version: "7.0.0"
   share_plus_platform_interface:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: share_plus_platform_interface
-      sha256: "0c6e61471bd71b04a138b8b588fa388e66d8b005e6f2deda63371c5c505a0981"
-      url: "https://pub.dev"
-    source: hosted
+      path: "../../open-sources/plus_plugins/packages/share_plus/share_plus_platform_interface"
+      relative: true
+    source: path
     version: "3.2.1"
   shared_preferences:
     dependency: transitive
