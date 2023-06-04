@@ -48,7 +48,7 @@ class StartupViewModel extends BaseViewModel {
         }
       }
     } catch (e, stackTrace) {
-      log("Oh no our table "+stackTrace.toString());
+      log("Oh no our table " + stackTrace.toString());
       if (e is LoginChoicesException) {
         _routerService.navigateTo(LoginChoicesRoute());
       } else if (e is SessionException || e is ErrorReadingFromYBServer) {
