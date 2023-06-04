@@ -120,3 +120,4 @@ class App {}
 // git submodule update --remote --merge 
 // git config submodule.recurse false
 // git pull https://github.com/joelhigi/flipper.git stable
+// flutterfire configure

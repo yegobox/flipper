@@ -193,9 +193,6 @@ class FLocalization {
 
   String get saveTicket => _saveTicket[locale.languageCode]!['saveTicket']!;
 
-  // String get productNotFound =>
-  //     _productNotFound[locale.languageCode]!['productNotFound']!;
-
   String get noPayable => _noPayable[locale.languageCode]!['noPayable']!;
 
   String get delete => _delete[locale.languageCode]!['delete']!;
