@@ -211,6 +211,7 @@ abstract class IsarApiInterface {
   Future<bool> bindProduct({required int productId, required int tenantId});
   Future<Product?> findProductByTenantId({required int tenantId});
   Future<List<Product>> getLocalProducts();
+  Future<List<Favorite>> getLocalFavorite();
   Future<List<Variant>> getLocalVariants();
   Future<List<Stock>> getLocalStocks();
   Future<void> deleteAllProducts();

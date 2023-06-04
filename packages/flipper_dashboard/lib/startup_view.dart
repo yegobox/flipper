@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'package:flipper_dashboard/init_app.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_ui/flipper_ui.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -25,7 +26,9 @@ class StartUpView extends StatelessWidget {
                 ProxyService.box.getBusinessId() != null &&
                 ProxyService.box.getUserId() != null) {
               InitApp.init();
+
               ProxyService.remote.listenToChanges();
+              showToast(context, 'Welcome!', color: Colors.green);
             }
           });
         },

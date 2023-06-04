@@ -10,10 +10,10 @@ class HomeViewTablet extends ViewModelWidget<HomeViewModel> {
 
   @override
   Widget build(BuildContext context, HomeViewModel viewModel) {
-    return Scaffold(
+    return const Scaffold(
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 25.0),
+          padding: EdgeInsets.symmetric(horizontal: 25.0),
           child: Center(
             child: Column(
               mainAxisSize: MainAxisSize.max,
@@ -21,7 +21,7 @@ class HomeViewTablet extends ViewModelWidget<HomeViewModel> {
               children: [
                 verticalSpaceLarge,
                 Column(
-                  children: const [
+                  children: [
                     Text(
                       'Hello, TABLET UI!',
                       style: TextStyle(
@@ -29,7 +29,7 @@ class HomeViewTablet extends ViewModelWidget<HomeViewModel> {
                         fontWeight: FontWeight.w900,
                       ),
                     ),
-                    verticalSpaceMedium,
+                    verticalSpaceMediums,
                     MaterialButton(
                       color: Colors.black,
                       onPressed: null,
@@ -42,7 +42,7 @@ class HomeViewTablet extends ViewModelWidget<HomeViewModel> {
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [
+                  children: [
                     MaterialButton(
                       color: kcDarkGreyColor,
                       child: Text(

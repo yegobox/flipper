@@ -12,8 +12,6 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 
-// final isWeb = UniversalPlatform.isWeb;
-
 class StartupViewModel extends BaseViewModel {
   final appService = loc.locator<AppService>();
   bool isBusinessSet = false;

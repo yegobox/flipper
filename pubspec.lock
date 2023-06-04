@@ -130,18 +130,20 @@ packages:
     source: hosted
     version: "2.2.4"
   battery_plus:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
-      path: "open-sources/plus_plugins/packages/battery_plus/battery_plus"
-      relative: true
-    source: path
-    version: "4.0.0"
+      name: battery_plus
+      sha256: ae3f2094e58d93e5b760ef308a39918ea98f12da4d79e7ffd0b7fcca891ffd6a
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.1"
   battery_plus_platform_interface:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
-      path: "open-sources/plus_plugins/packages/battery_plus/battery_plus_platform_interface"
-      relative: true
-    source: path
+      name: battery_plus_platform_interface
+      sha256: "19fd8418a81aeb2dea8fb7026b1fdf56b6c6d319baf8d703fa0d13c1d5c7ba2f"
+      url: "https://pub.dev"
+    source: hosted
     version: "1.2.2"
   bidi:
     dependency: transitive
@@ -315,10 +317,10 @@ packages:
     dependency: transitive
     description:
       name: code_builder
-      sha256: "0d43dd1288fd145de1ecc9a3948ad4a6d5a82f0a14c4fdd0892260787d975cbe"
+      sha256: "4ad01d6e56db961d29661561effde45e519939fdaeb46c351275b182eac70189"
       url: "https://pub.dev"
     source: hosted
-    version: "4.4.0"
+    version: "4.5.0"
   collection:
     dependency: transitive
     description:
@@ -328,18 +330,20 @@ packages:
     source: hosted
     version: "1.17.1"
   connectivity_plus:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
-      path: "open-sources/plus_plugins/packages/connectivity_plus/connectivity_plus"
-      relative: true
-    source: path
-    version: "4.0.0"
+      name: connectivity_plus
+      sha256: "8599ae9edca5ff96163fca3e36f8e481ea917d1e71cdad912c084b5579913f34"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.1"
   connectivity_plus_platform_interface:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
-      path: "open-sources/plus_plugins/packages/connectivity_plus/connectivity_plus_platform_interface"
-      relative: true
-    source: path
+      name: connectivity_plus_platform_interface
+      sha256: cf1d1c28f4416f8c654d7dc3cd638ec586076255d407cef3ddbdaf178272a71a
+      url: "https://pub.dev"
+    source: hosted
     version: "1.2.4"
   console:
     dependency: transitive
@@ -438,18 +442,20 @@ packages:
     source: hosted
     version: "0.0.12"
   device_info_plus:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
-      path: "open-sources/plus_plugins/packages/device_info_plus/device_info_plus"
-      relative: true
-    source: path
-    version: "9.0.0"
+      name: device_info_plus
+      sha256: "2c35b6d1682b028e42d07b3aee4b98fa62996c10bc12cb651ec856a80d6a761b"
+      url: "https://pub.dev"
+    source: hosted
+    version: "9.0.2"
   device_info_plus_platform_interface:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
-      path: "open-sources/plus_plugins/packages/device_info_plus/device_info_plus_platform_interface"
-      relative: true
-    source: path
+      name: device_info_plus_platform_interface
+      sha256: d3b01d5868b50ae571cd1dc6e502fc94d956b665756180f7b16ead09e836fd64
+      url: "https://pub.dev"
+    source: hosted
     version: "7.0.0"
   dio:
     dependency: transitive
@@ -585,7 +591,7 @@ packages:
       path: "open-sources/flutterfire_desktop/packages/firebase_auth/firebase_auth_desktop"
       relative: true
     source: path
-    version: "1.0.2"
+    version: "1.0.2-flipper"
   firebase_auth_platform_interface:
     dependency: transitive
     description:
@@ -623,7 +629,7 @@ packages:
       path: "open-sources/flutterfire_desktop/packages/firebase_core/firebase_core_desktop"
       relative: true
     source: path
-    version: "1.0.2-dev"
+    version: "1.0.2"
   firebase_core_platform_interface:
     dependency: transitive
     description:
@@ -904,10 +910,10 @@ packages:
     dependency: transitive
     description:
       name: fluentui_system_icons
-      sha256: "745d58831bba404532bebce20286fb1920c650a4cc74678990251a16fb4d2600"
+      sha256: "4506f47dac4ec408f9d38b0530e1e4f1f43d4b266f4ac183cff752b484e5234f"
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.201"
+    version: "1.1.202"
   flutter:
     dependency: "direct main"
     description: flutter
@@ -1047,10 +1053,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_local_notifications
-      sha256: "12f8abacca8bf29c042ec50c554f967da4c6f88ec99fc215e0325e5b43a25188"
+      sha256: "812791d43ccfc1b443a0d39fa02a206fc228c597e28ff9337e09e3ca8d370391"
       url: "https://pub.dev"
     source: hosted
-    version: "14.1.0"
+    version: "14.1.1"
   flutter_local_notifications_linux:
     dependency: transitive
     description:
@@ -1496,10 +1502,10 @@ packages:
     dependency: transitive
     description:
       name: image_picker_android
-      sha256: c2f3c66400649bd132f721c88218945d6406f693092b2f741b79ae9cdb046e59
+      sha256: "3083c3a3245adf9f3eb7bacf0eaa6a1f087dd538fab73a13a2f7907602601692"
       url: "https://pub.dev"
     source: hosted
-    version: "0.8.6+16"
+    version: "0.8.6+19"
   image_picker_for_web:
     dependency: transitive
     description:
@@ -1621,10 +1627,10 @@ packages:
     dependency: transitive
     description:
       name: lints
-      sha256: "6b0206b0bf4f04961fc5438198ccb3a885685cd67d4d4a32cc20ad7f8adbe015"
+      sha256: "0a217c6c989d21039f1498c3ed9f3ed71b354e69873f13a8dfc3c9fe76f1b452"
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.0"
+    version: "2.1.1"
   location:
     dependency: transitive
     description:
@@ -1749,10 +1755,10 @@ packages:
     dependency: "direct dev"
     description:
       name: msix
-      sha256: ecb192bc47aa9de177e954761b2e90e4b6f1370abe1d298975e56d894ca75bc6
+      sha256: "26fabf10f65464f5198e9a9e3d242627efef56e418d52d6be466e2e126095647"
       url: "https://pub.dev"
     source: hosted
-    version: "3.13.3"
+    version: "3.14.0"
   mustache_template:
     dependency: transitive
     description:
@@ -1850,18 +1856,20 @@ packages:
     source: hosted
     version: "2.1.0"
   package_info_plus:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
-      path: "open-sources/plus_plugins/packages/package_info_plus/package_info_plus"
-      relative: true
-    source: path
-    version: "4.0.0"
+      name: package_info_plus
+      sha256: "10259b111176fba5c505b102e3a5b022b51dd97e30522e906d6922c745584745"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.1.2"
   package_info_plus_platform_interface:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
-      path: "open-sources/plus_plugins/packages/package_info_plus/package_info_plus_platform_interface"
-      relative: true
-    source: path
+      name: package_info_plus_platform_interface
+      sha256: "9bc8ba46813a4cc42c66ab781470711781940780fd8beddd0c3da62506d3a6c6"
+      url: "https://pub.dev"
+    source: hosted
     version: "2.0.1"
   path:
     dependency: "direct main"
@@ -2089,12 +2097,13 @@ packages:
     source: hosted
     version: "0.2.4"
   pubnub:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
-      path: "open-sources/pubnub/pubnub"
-      relative: true
-    source: path
-    version: "4.1.4"
+      name: pubnub
+      sha256: "95684a0297697878fc634f96ae37ea514206eca63ffa06a188da0d8aae6430e6"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.2.3"
   pubspec:
     dependency: transitive
     description:
@@ -2212,18 +2221,20 @@ packages:
     source: hosted
     version: "7.6.3"
   share_plus:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
-      path: "open-sources/plus_plugins/packages/share_plus/share_plus"
-      relative: true
-    source: path
-    version: "7.0.0"
+      name: share_plus
+      sha256: ed3fcea4f789ed95913328e629c0c53e69e80e08b6c24542f1b3576046c614e8
+      url: "https://pub.dev"
+    source: hosted
+    version: "7.0.2"
   share_plus_platform_interface:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
-      path: "open-sources/plus_plugins/packages/share_plus/share_plus_platform_interface"
-      relative: true
-    source: path
+      name: share_plus_platform_interface
+      sha256: "0c6e61471bd71b04a138b8b588fa388e66d8b005e6f2deda63371c5c505a0981"
+      url: "https://pub.dev"
+    source: hosted
     version: "3.2.1"
   shared_preferences:
     dependency: transitive
@@ -2554,10 +2565,10 @@ packages:
     dependency: transitive
     description:
       name: universal_io
-      sha256: "06866290206d196064fd61df4c7aea1ffe9a4e7c4ccaa8fcded42dd41948005d"
+      sha256: "1722b2dcc462b4b2f3ee7d188dad008b6eb4c40bbd03a3de451d82c78bba9aad"
       url: "https://pub.dev"
     source: hosted
-    version: "2.2.0"
+    version: "2.2.2"
   universal_platform:
     dependency: "direct main"
     description:

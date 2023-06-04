@@ -2244,6 +2244,19 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
+  Future<List<Favorite>> getLocalFavorite() async {
+    if (ProxyService.box.getBranchId() == null) return [];
+    return await isar.favorites
+        .filter()
+        .lastTouchedIsNull()
+        .or()
+        .actionEqualTo('update')
+        .and()
+        .branchIdEqualTo(ProxyService.box.getBranchId()!)
+        .findAll();
+  }
+
+  @override
   Future<List<Order>> getLocalOrders() async {
     if (ProxyService.box.getBranchId() == null) return [];
     return await isar.orders
@@ -2542,7 +2555,7 @@ class IsarAPI<M> implements IsarApiInterface {
     if (setting != null) {
       return setting;
     }
-
+    Future.delayed(Duration(seconds: 20));
     final Uri uri = Uri.parse("$commApi/settings/$number");
     final http.Response response = await socialsHttpClient.get(uri);
 

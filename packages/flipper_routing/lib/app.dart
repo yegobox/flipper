@@ -117,3 +117,6 @@ class App {}
 // -ref: https://github.com/Merrit/adventure_list/blob/main/lib/src/system_tray/system_tray_manager.dart
 // TODO:  packages we can use
 // - https://github.com/luckysmg/flutter_swipe_action_cell(if we choose to use this, then we will need to remove the one we use on while showing product item)
+// git submodule update --remote --merge 
+// git config submodule.recurse false
+// git pull https://github.com/joelhigi/flipper.git stable
