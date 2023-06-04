@@ -33,7 +33,7 @@ class _LoginChoicesState extends State<LoginChoices> {
               await ProxyService.isar.businesses(userId: userId!);
           if (_b.isEmpty) {
             await ProxyService.isar.logOut();
-            _routerService.clearStackAndShow(LandingRoute());
+            _routerService.clearStackAndShow(LoginViewRoute());
           }
 
           setState(() {

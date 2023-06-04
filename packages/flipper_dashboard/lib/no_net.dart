@@ -16,7 +16,7 @@ class NoNet extends StatelessWidget {
         subtitle:
             "Can't connect to the internet.\nPlease check your internet connection",
         onPressed: () async {
-          _routerService.clearStackAndShow(LandingRoute());
+          _routerService.clearStackAndShow(LoginViewRoute());
         },
       ),
     );
