@@ -121,3 +121,4 @@ class App {}
 // git config submodule.recurse false
 // git pull https://github.com/joelhigi/flipper.git stable
 // flutterfire configure
+// git submodule deinit -f open-sources/plus_plugins
