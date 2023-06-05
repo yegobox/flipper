@@ -177,7 +177,7 @@ class NewWidget extends StatelessWidget {
                       height: 41,
                       width: double.infinity,
                       child: Tab(
-                        text: 'Favourites',
+                        text: 'Favorites',
                       ),
                     ),
                   ],

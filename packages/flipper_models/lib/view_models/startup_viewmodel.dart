@@ -30,7 +30,7 @@ class StartupViewModel extends BaseViewModel {
         await appService.isLoggedIn();
       }
       await appService.appInit();
-      log(ProxyService.box.getUserId().toString());
+      log("User rrr" + ProxyService.box.getUserId().toString());
       //if we reached this far then it means we have a default business/branch make sence to check drawer
       if (await ProxyService.isar
           .isDrawerOpen(cashierId: ProxyService.box.getBusinessId()!)) {
@@ -48,7 +48,6 @@ class StartupViewModel extends BaseViewModel {
         }
       }
     } catch (e, stackTrace) {
-      log("Oh no our table " + stackTrace.toString());
       if (e is LoginChoicesException) {
         _routerService.navigateTo(LoginChoicesRoute());
       } else if (e is SessionException || e is ErrorReadingFromYBServer) {
