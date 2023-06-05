@@ -315,7 +315,7 @@ class AppService with ListenableServiceMixin {
     List<Favorite> favorites = await ProxyService.isar.getLocalFavorite();
     for (Favorite favorite in favorites) {
       RecordModel? record = await ProxyService.sync.push(favorite);
-      int oldId = favorite.id;
+      int oldId = favorite.id!;
       if (record != null) {
         Favorite fav = Favorite.fromRecord(record);
         fav.remoteID = record.id;

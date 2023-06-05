@@ -394,7 +394,7 @@ class ProductViewModel extends TenantViewModel {
       Favorite? fav =
           await ProxyService.isar.getFavoriteByProdId(prodId: productId);
       if (fav != null) {
-        await ProxyService.isar.deleteFavoriteByIndex(favIndex: fav.id);
+        await ProxyService.isar.deleteFavoriteByIndex(favIndex: fav.id!);
       }
     }
     //then delete the product
