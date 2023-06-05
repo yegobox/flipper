@@ -232,6 +232,9 @@ class _FavoritesState extends State<Favorites> {
           final _routerService = locator<RouterService>();
           _routerService.navigateTo(AddToFavoritesRoute(
               favoriteIndex: favIndex, existingFavs: favoriteProdIds));
+        } else {
+          final _routerService = locator<RouterService>();
+          _routerService.navigateTo(SellRoute(product: favProd));
         }
       },
       child: Column(
@@ -257,7 +260,9 @@ class _FavoritesState extends State<Favorites> {
                   child: Text(
                     favProd.imageUrl != null
                         ? ''
-                        : favProd.name.substring(0, 2),
+                        : favProd.name.length > 1
+                            ? favProd.name.substring(0, 2)
+                            : favProd.name,
                     style:
                         GoogleFonts.poppins(fontSize: 36, color: Colors.black),
                   ),

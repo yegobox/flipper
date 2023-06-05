@@ -28,7 +28,7 @@ class StartUpView extends StatelessWidget {
               InitApp.init();
 
               ProxyService.remote.listenToChanges();
-              showToast(context, 'Success!', color: Colors.green);
+              //showToast(context, 'Success!', color: Colors.green);
             }
           });
         },
