@@ -177,6 +177,16 @@ class _FavoritesState extends State<Favorites> {
     );
   }
 
+//Function to transform color from hex string to Color
+  Color getColorFromHex(String hexColor) {
+    hexColor = hexColor.replaceAll("#", "");
+    if (hexColor.length == 6) {
+      hexColor = "FF" + hexColor;
+    }
+    return Color(int.parse(hexColor, radix: 16));
+  }
+
+//Function to build an empty grid item
   Widget _favoriteEmpty(int favIndex) {
     return GestureDetector(
       onLongPress: () {
@@ -214,6 +224,7 @@ class _FavoritesState extends State<Favorites> {
     );
   }
 
+//Function to build a populated grid item
   Widget _favoritePopulated(
       int favIndex, Product favProd, FavoriteViewModel model) {
     if (!favoriteProdIds.contains(favProd.id)) {
@@ -245,7 +256,9 @@ class _FavoritesState extends State<Favorites> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
               // Set the background color based on the condition
-              color: favProd.imageUrl != null ? null : Colors.grey[300],
+              color: favProd.imageUrl != null
+                  ? null
+                  : getColorFromHex(favProd.color),
               // Set the background image based on the condition
               image: favProd.imageUrl != null
                   ? DecorationImage(
