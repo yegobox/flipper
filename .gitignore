@@ -64,3 +64,5 @@ pubspec_overrides.yaml
 .flutter-plugins
 .env
 
+.gradle
+android/.gradle

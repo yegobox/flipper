@@ -307,17 +307,17 @@ class _FavoritesState extends State<Favorites> {
     );
   }
 
-  // Builds an item widget with the given label and favorite status
-  Widget _buildItem(
-      BuildContext context, int favIndex, FavoriteViewModel model) {
+  Widget _buildItemContent(
+      BuildContext context, int adjustedIndex, FavoriteViewModel model) {
     return StreamBuilder<Favorite?>(
       initialData: null,
-      stream: ProxyService.isar.getFavoriteByIndexStream(favIndex: favIndex),
+      stream:
+          ProxyService.isar.getFavoriteByIndexStream(favIndex: adjustedIndex),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return CircularProgressIndicator();
         } else if (!snapshot.hasData) {
-          return _favoriteEmpty(favIndex);
+          return _favoriteEmpty(adjustedIndex);
         } else {
           final favorite = snapshot.data!;
           int prodId = favorite.productId!;
@@ -328,10 +328,10 @@ class _FavoritesState extends State<Favorites> {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return CircularProgressIndicator();
               } else if (snapshot.hasError) {
-                return Text('Errorhjj: ${snapshot.error}');
+                return Text('Error: ${snapshot.error}');
               } else if (snapshot.hasData) {
                 Product favProduct = snapshot.data!;
-                return _favoritePopulated(favIndex, favProduct, model);
+                return _favoritePopulated(adjustedIndex, favProduct, model);
               } else {
                 return SizedBox.shrink();
               }
@@ -340,5 +340,14 @@ class _FavoritesState extends State<Favorites> {
         }
       },
     );
+  }
+
+  // Builds an item widget with the given label and favorite status
+  Widget _buildItem(
+      BuildContext context, int favIndex, FavoriteViewModel model) {
+    // Calculate the adjusted index based on the hasBeenPressed state
+    int adjustedIndex = widget.hasBeenPressed ? favIndex : favIndex * 2;
+
+    return _buildItemContent(context, adjustedIndex, model);
   }
 }
