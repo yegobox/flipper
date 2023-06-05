@@ -320,9 +320,7 @@ class _FavoritesState extends State<Favorites> {
       stream:
           ProxyService.isar.getFavoriteByIndexStream(favIndex: adjustedIndex),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator();
-        } else if (!snapshot.hasData) {
+        if (!snapshot.hasData) {
           return _favoriteEmpty(adjustedIndex);
         } else {
           final favorite = snapshot.data!;
@@ -331,9 +329,7 @@ class _FavoritesState extends State<Favorites> {
           return StreamBuilder<Product?>(
             stream: ProxyService.isar.getProductStream(prodIndex: prodId),
             builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return CircularProgressIndicator();
-              } else if (snapshot.hasError) {
+               if (snapshot.hasError) {
                 return Text('Error: ${snapshot.error}');
               } else if (snapshot.hasData) {
                 Product favProduct = snapshot.data!;
