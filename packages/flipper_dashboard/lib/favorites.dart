@@ -1,3 +1,5 @@
+import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_models/isar_models.dart';
@@ -9,9 +11,11 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 
-class Favorites extends StatefulWidget {
-  const Favorites({Key? key}) : super(key: key);
+import 'animated_row.dart';
 
+class Favorites extends StatefulWidget {
+  Favorites({Key? key, this.hasBeenPressed = false}) : super(key: key);
+  bool hasBeenPressed;
   @override
   _FavoritesState createState() => _FavoritesState();
 }
@@ -21,7 +25,7 @@ class _FavoritesState extends State<Favorites> {
   final List<String> items = List.generate(16, (index) => 'Item ${index}');
 
   // Define a boolean to know if we have pressed.
-  bool hasBeenPressed = false;
+
   List<int> favoriteProdIds = [];
 
   @override
@@ -47,7 +51,7 @@ class _FavoritesState extends State<Favorites> {
                   // Display two items on each row
                   if (index.isEven) {
                     // Add a container to the first row only
-                    if (index == 0 && !hasBeenPressed) {
+                    if (index == 0 && !widget.hasBeenPressed) {
                       return Padding(
                         padding: const EdgeInsets.only(top: 10.0),
                         child: Container(
@@ -75,7 +79,7 @@ class _FavoritesState extends State<Favorites> {
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 15),
                                   child: Text(
-                                    hasBeenPressed
+                                    widget.hasBeenPressed
                                         ? 'Press "Done" when you are finished'
                                         : "Press and hold anywhere in the grid to begin setting items",
                                     style: TextStyle(fontSize: 16),
@@ -89,16 +93,21 @@ class _FavoritesState extends State<Favorites> {
                       );
                     } else {
                       // Display two items on all other even rows
-                      if (hasBeenPressed) {
-                        //Setting hasBeenPressed has bizarre effect on indices.
+                      if (widget.hasBeenPressed) {
+                        //Setting widget.hasBeenPressed has bizarre effect on indices.
                         //The top block is actually deleted, leaving a void of
                         //indices -2, which messes up the favorite blocks.
                         //This has been catered for.
                         return Row(
                           children: [
-                            Expanded(child: _buildItem(context, index, model)),
                             Expanded(
-                                child: _buildItem(context, index + 1, model)),
+                                child: AnimatedRowItem(
+                              item: _buildItem(context, index, model),
+                            )),
+                            Expanded(
+                                child: AnimatedRowItem(
+                                    item:
+                                        _buildItem(context, index + 1, model))),
                           ],
                         );
                       } else {
@@ -117,7 +126,7 @@ class _FavoritesState extends State<Favorites> {
                   return Container();
                 },
               ),
-              hasBeenPressed
+              widget.hasBeenPressed
                   ? Positioned.fill(
                       child: Align(
                         alignment: Alignment.bottomCenter,
@@ -131,38 +140,19 @@ class _FavoritesState extends State<Favorites> {
                                   textScaleFactor:
                                       MediaQuery.of(context).textScaleFactor),
                               child: Text('Done',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 16.0,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.white,
-                                  )),
+                                  style: primaryTextStyle.copyWith(
+                                      color: Colors.white)),
                             ),
-                            style: ButtonStyle(
-                              shape: MaterialStateProperty.resolveWith<
-                                  OutlinedBorder>(
-                                (states) => RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10.0),
+                            style: primaryButtonStyle.copyWith(
+                              shape: MaterialStateProperty.all(
+                                RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(2.0),
                                 ),
-                              ),
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                  const Color(0xff006AFE)),
-                              overlayColor:
-                                  MaterialStateProperty.resolveWith<Color?>(
-                                (Set<MaterialState> states) {
-                                  if (states.contains(MaterialState.hovered)) {
-                                    return Colors.blue.withOpacity(0.04);
-                                  }
-                                  if (states.contains(MaterialState.focused) ||
-                                      states.contains(MaterialState.pressed)) {
-                                    return Colors.blue.withOpacity(0.12);
-                                  }
-                                  return null; // Defer to the widget's default.
-                                },
                               ),
                             ),
                             onPressed: () {
                               setState(() {
-                                hasBeenPressed = false;
+                                widget.hasBeenPressed = false;
                               });
                             },
                           ),
@@ -193,11 +183,11 @@ class _FavoritesState extends State<Favorites> {
         HapticFeedback.lightImpact();
         // Show a plus icon on long press to add the item to favorites
         setState(() {
-          hasBeenPressed = true;
+          widget.hasBeenPressed = true;
         });
       },
       onTap: () {
-        if (hasBeenPressed) {
+        if (widget.hasBeenPressed) {
           // Launch the page where the item will be added to favorites.
           // It contains a modified ProductView widget.
           final _routerService = locator<RouterService>();
@@ -216,7 +206,7 @@ class _FavoritesState extends State<Favorites> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            if (hasBeenPressed)
+            if (widget.hasBeenPressed)
               Icon(FluentIcons.add_20_regular, color: Colors.blue[400])
           ],
         ),
@@ -235,11 +225,11 @@ class _FavoritesState extends State<Favorites> {
       onLongPress: () {
         HapticFeedback.lightImpact();
         setState(() {
-          hasBeenPressed = true;
+          widget.hasBeenPressed = true;
         });
       },
       onTap: () {
-        if (hasBeenPressed) {
+        if (widget.hasBeenPressed) {
           final _routerService = locator<RouterService>();
           _routerService.navigateTo(AddToFavoritesRoute(
               favoriteIndex: favIndex, existingFavs: favoriteProdIds));
@@ -275,12 +265,12 @@ class _FavoritesState extends State<Favorites> {
                         ? ''
                         : favProd.name.length > 1
                             ? favProd.name.substring(0, 2)
-                            : favProd.name,
+                            : favProd.name.toUpperCase(),
                     style:
-                        GoogleFonts.poppins(fontSize: 36, color: Colors.black),
+                        GoogleFonts.poppins(fontSize: 36, color: Colors.white),
                   ),
                 ),
-                if (hasBeenPressed)
+                if (widget.hasBeenPressed)
                   Positioned(
                     top: 8,
                     left: 8,
@@ -320,34 +310,30 @@ class _FavoritesState extends State<Favorites> {
   // Builds an item widget with the given label and favorite status
   Widget _buildItem(
       BuildContext context, int favIndex, FavoriteViewModel model) {
-    return FutureBuilder<Favorite?>(
-      future: model.getFavoriteByIndex(
-          favIndex), // Call a function to retrieve the Favorite row
+    return StreamBuilder<Favorite?>(
+      initialData: null,
+      stream: ProxyService.isar.getFavoriteByIndexStream(favIndex: favIndex),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          // Display a loading indicator while waiting for the future to complete
           return CircularProgressIndicator();
-        } else if (snapshot.hasError) {
-          // Handle any errors that occurred during the future execution
-          return Text('Error: ${snapshot.error}');
         } else if (!snapshot.hasData) {
           return _favoriteEmpty(favIndex);
         } else {
           final favorite = snapshot.data!;
           int prodId = favorite.productId!;
 
-          return FutureBuilder<Product?>(
-            future: model.getProductById(prodId),
+          return StreamBuilder<Product?>(
+            stream: ProxyService.isar.getProductStream(prodIndex: prodId),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return CircularProgressIndicator();
               } else if (snapshot.hasError) {
-                return Text('Error: ${snapshot.error}');
+                return Text('Errorhjj: ${snapshot.error}');
               } else if (snapshot.hasData) {
                 Product favProduct = snapshot.data!;
                 return _favoritePopulated(favIndex, favProduct, model);
               } else {
-                return Text("Test");
+                return SizedBox.shrink();
               }
             },
           );

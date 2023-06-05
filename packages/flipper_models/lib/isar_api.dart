@@ -209,6 +209,30 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
+  Stream<Favorite?> getFavoriteByIndexStream({required int favIndex}) {
+    return isar.favorites
+        .filter()
+        .favIndexEqualTo(favIndex)
+        .build()
+        .watch(fireImmediately: true)
+        .asyncMap((event) => event.first);
+  }
+
+  @override
+  Future<Product?> getProduct({required int id}) async {
+    return await isar.products.get(id);
+  }
+
+  Stream<Product> getProductStream({required int prodIndex}) {
+    return isar.products
+        .filter()
+        .idEqualTo(prodIndex)
+        .build()
+        .watch(fireImmediately: true)
+        .asyncMap((event) => event.first);
+  }
+
+  @override
   Future<Favorite?> getFavoriteByProdId({required int prodId}) async {
     Favorite? favorite =
         await isar.favorites.filter().productIdEqualTo(prodId).findFirst();
@@ -1080,11 +1104,6 @@ class IsarAPI<M> implements IsarApiInterface {
     return isar.writeTxn(() {
       return isar.iPoints.where().userIdEqualTo(userId).findFirst();
     });
-  }
-
-  @override
-  Future<Product?> getProduct({required int id}) async {
-    return await isar.products.get(id);
   }
 
   @override

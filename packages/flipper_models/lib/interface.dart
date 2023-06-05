@@ -48,6 +48,7 @@ abstract class IsarApiInterface {
   Future<Favorite?> getFavoriteById({required int favId});
   Future<Favorite?> getFavoriteByProdId({required int prodId});
   Future<Favorite?> getFavoriteByIndex({required int favIndex});
+  Stream<Favorite?> getFavoriteByIndexStream({required int favIndex});
   Future<int> deleteFavoriteByIndex({required int favIndex});
 
   Future<Product?> getProduct({required int id});
@@ -252,4 +253,5 @@ abstract class IsarApiInterface {
   Future<List<Social>> activesocialAccounts({required int businessId});
 
   Future<Stock?> addStockToVariant({required Variant variant});
+  Stream<Product> getProductStream({required int prodIndex});
 }
