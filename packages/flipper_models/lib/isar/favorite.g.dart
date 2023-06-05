@@ -195,7 +195,7 @@ P _favoriteDeserializeProp<P>(
 }
 
 Id _favoriteGetId(Favorite object) {
-  return object.id;
+  return object.id ?? Isar.autoIncrement;
 }
 
 List<IsarLinkBase<dynamic>> _favoriteGetLinks(Favorite object) {
@@ -870,7 +870,23 @@ extension FavoriteQueryFilter
     });
   }
 
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> idEqualTo(Id value) {
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> idIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'id',
+      ));
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> idIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'id',
+      ));
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> idEqualTo(Id? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -880,7 +896,7 @@ extension FavoriteQueryFilter
   }
 
   QueryBuilder<Favorite, Favorite, QAfterFilterCondition> idGreaterThan(
-    Id value, {
+    Id? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -893,7 +909,7 @@ extension FavoriteQueryFilter
   }
 
   QueryBuilder<Favorite, Favorite, QAfterFilterCondition> idLessThan(
-    Id value, {
+    Id? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -906,8 +922,8 @@ extension FavoriteQueryFilter
   }
 
   QueryBuilder<Favorite, Favorite, QAfterFilterCondition> idBetween(
-    Id lower,
-    Id upper, {
+    Id? lower,
+    Id? upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -1655,14 +1671,12 @@ Favorite _$FavoriteFromJson(Map<String, dynamic> json) => Favorite(
       json['productId'] as int?,
       json['branchId'] as int?,
     )
-      ..id = json['id'] as int
       ..lastTouched = json['lastTouched'] as String?
       ..remoteID = json['remoteID'] as String?
       ..localId = json['localId'] as int?
       ..action = json['action'] as String?;
 
 Map<String, dynamic> _$FavoriteToJson(Favorite instance) => <String, dynamic>{
-      'id': instance.id,
       'favIndex': instance.favIndex,
       'productId': instance.productId,
       'branchId': instance.branchId,

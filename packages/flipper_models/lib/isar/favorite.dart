@@ -9,7 +9,8 @@ part 'favorite.g.dart';
 @JsonSerializable()
 @Collection()
 class Favorite extends IJsonSerializable {
-  Id id = Isar.autoIncrement;
+  @JsonKey(includeToJson: false, includeFromJson: false)
+  Id? id = null;
 
   @Index(unique: true)
   int? favIndex;

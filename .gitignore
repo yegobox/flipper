@@ -66,3 +66,4 @@ pubspec_overrides.yaml
 
 .gradle
 android/.gradle
+pubspec.lock
