@@ -1,18 +1,5 @@
-# melos_managed_dependency_overrides: battery_plus,battery_plus_platform_interface,connectivity_plus,connectivity_plus_platform_interface,device_info_plus,device_info_plus_platform_interface,package_info_plus,package_info_plus_platform_interface,pubnub,share_plus,share_plus_platform_interface
 # melos_managed_dependency_overrides: firebase_auth_dart,firebase_auth_desktop,firebase_core_dart,firebase_core_desktop,flipper_dashboard,flipper_data_table,flipper_finance,flipper_loading,flipper_localize,flipper_models,flipper_routing,flipper_services,flipper_socials,flipper_ui,flutter_datetime_picker,flutter_form_bloc,flutter_luban,flutter_slidable,form_bloc,qr_code_scanner,qr_flutter,receipt,scrollable_positioned_list,upgrader
 dependency_overrides:
-  battery_plus:
-    path: ..\\..\\open-sources\\plus_plugins\\packages\\battery_plus\\battery_plus
-  battery_plus_platform_interface:
-    path: ..\\..\\open-sources\\plus_plugins\\packages\\battery_plus\\battery_plus_platform_interface
-  connectivity_plus:
-    path: ..\\..\\open-sources\\plus_plugins\\packages\\connectivity_plus\\connectivity_plus
-  connectivity_plus_platform_interface:
-    path: ..\\..\\open-sources\\plus_plugins\\packages\\connectivity_plus\\connectivity_plus_platform_interface
-  device_info_plus:
-    path: ..\\..\\open-sources\\plus_plugins\\packages\\device_info_plus\\device_info_plus
-  device_info_plus_platform_interface:
-    path: ..\\..\\open-sources\\plus_plugins\\packages\\device_info_plus\\device_info_plus_platform_interface
   firebase_auth_dart:
     path: ..\\..\\open-sources\\flutterfire_desktop\\packages\\firebase_auth\\firebase_auth_dart
   firebase_auth_desktop:
@@ -51,12 +38,6 @@ dependency_overrides:
     path: ..\\..\\open-sources\\flutter_slidable
   form_bloc:
     path: ..\\..\\open-sources\\form_block\\packages\\form_bloc
-  package_info_plus:
-    path: ..\\..\\open-sources\\plus_plugins\\packages\\package_info_plus\\package_info_plus
-  package_info_plus_platform_interface:
-    path: ..\\..\\open-sources\\plus_plugins\\packages\\package_info_plus\\package_info_plus_platform_interface
-  pubnub:
-    path: ..\\..\\open-sources\\pubnub\\pubnub
   qr_code_scanner:
     path: ..\\..\\open-sources\\qr_code_scanner
   qr_flutter:
@@ -65,9 +46,5 @@ dependency_overrides:
     path: ..\\..\\open-sources\\receipt
   scrollable_positioned_list:
     path: ..\\..\\open-sources\\flutter.widgets\\packages\\scrollable_positioned_list
-  share_plus:
-    path: ..\\..\\open-sources\\plus_plugins\\packages\\share_plus\\share_plus
-  share_plus_platform_interface:
-    path: ..\\..\\open-sources\\plus_plugins\\packages\\share_plus\\share_plus_platform_interface
   upgrader:
     path: ..\\..\\open-sources\\upgrader
