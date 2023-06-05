@@ -114,16 +114,22 @@ class _FavoritesState extends State<Favorites> {
                         return Row(
                           children: [
                             Expanded(
-                                child: _buildItem(context, index - 2, model)),
+                                child: AnimatedRowItem(
+                                    item:
+                                        _buildItem(context, index - 2, model))),
                             Expanded(
-                                child: _buildItem(context, index - 1, model)),
+                                child: AnimatedRowItem(
+                                    item:
+                                        _buildItem(context, index - 1, model))),
                           ],
                         );
                       }
                     }
                   }
                   // Return an empty container for odd indices to keep the layout
-                  return Container();
+                  return AnimatedContainer(
+                    duration: Duration(microseconds: 1),
+                  );
                 },
               ),
               widget.hasBeenPressed
