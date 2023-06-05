@@ -66,6 +66,14 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         barrierDismissible: false,
       );
     },
+    LoginViewRoute.name: (routeData) {
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: const _i2.LoginView(),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
     LandingRoute.name: (routeData) {
       final args =
           routeData.argsAs<LandingArgs>(orElse: () => const LandingArgs());
@@ -505,6 +513,10 @@ class StackedRouterWeb extends _i3.RootStackRouter {
           path: '/flipper-app',
         ),
         _i3.RouteConfig(
+          LoginViewRoute.name,
+          path: '/login-view',
+        ),
+        _i3.RouteConfig(
           LandingRoute.name,
           path: '/Landing',
         ),
@@ -737,6 +749,18 @@ class FlipperAppRoute extends _i3.PageRouteInfo<void> {
         );
 
   static const String name = 'FlipperApp';
+}
+
+/// generated route for
+/// [_i2.LoginView]
+class LoginViewRoute extends _i3.PageRouteInfo<void> {
+  const LoginViewRoute()
+      : super(
+          LoginViewRoute.name,
+          path: '/login-view',
+        );
+
+  static const String name = 'LoginView';
 }
 
 /// generated route for

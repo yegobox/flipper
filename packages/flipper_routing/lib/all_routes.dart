@@ -35,6 +35,8 @@ export 'package:flipper_dashboard/add_to_favorites.dart';
 
 export 'package:flipper_login/pin_login.dart';
 export 'package:flipper_login/signup_view.dart';
+export 'package:flipper_login/login.dart';
+export 'package:flipper_login/desktop_login_view.dart';
 
 export 'package:flipper_login/landing.dart';
 export 'package:flipper_login/signin_page.dart';

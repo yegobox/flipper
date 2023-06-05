@@ -58,7 +58,7 @@ class EventService implements EventInterface {
           ///is the one logged out not all device, but leaving it now as it is not top priority
           await FirebaseAuth.instance.signOut();
           ProxyService.isar.logOut();
-          _routerService.clearStackAndShow(LandingRoute());
+          _routerService.clearStackAndShow(LoginViewRoute());
         }
       });
     } catch (e, stacktrace) {

@@ -349,6 +349,8 @@ class AppService with ListenableServiceMixin {
       return await ProxyService.isar
           .isTokenValid(businessId: businessId, tokenType: socialApp);
     }
-    return false;
+
+    /// should return true if the app is not 2 by default this is because otherwise it will keep pinging the server to log in
+    return true;
   }
 }

@@ -11,12 +11,13 @@ import 'all_routes.dart';
     CustomRoute(page: SignUpView),
     CustomRoute(page: FlipperApp),
 
-    //New Login Routes
+    //Login Routes
+    CustomRoute(page: LoginView),
     CustomRoute(page: Landing),
     CustomRoute(page: AuthOptionPage),
     CustomRoute(page: CountryPicker),
     CustomRoute(page: PhoneInputScreen),
-    //End of new login routes
+    //End of login routes
 
     CustomRoute(page: AddProductView),
     CustomRoute(page: AddToFavorites),
@@ -119,3 +120,4 @@ class App {}
 // git submodule update --remote --merge 
 // git config submodule.recurse false
 // git pull https://github.com/joelhigi/flipper.git stable
+// flutterfire configure
