@@ -193,12 +193,14 @@ abstract class ServicesModule {
     return await RemoteService().getInstance();
   }
 
-  @LazySingleton()
-  LocalStorage get box {
-    late LocalStorage box;
+  // @LazySingleton()
+  @preResolve
+  Future<LocalStorage>  get box async {
+    //late LocalStorage box;
     log("loading a box");
-    box = LocalStorageImpl();
-    return box;
+    return await SharedPreferenceStorage().initializePreferences();
+    //box = LocalStorageImpl();
+    // return box;
   }
 
   @LazySingleton()
