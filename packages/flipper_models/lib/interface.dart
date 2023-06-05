@@ -250,4 +250,6 @@ abstract class IsarApiInterface {
       {required Map<String, dynamic> contact, required int businessId});
 
   Future<List<Social>> activesocialAccounts({required int businessId});
+
+  Future<Stock?> addStockToVariant({required Variant variant});
 }

@@ -313,6 +313,12 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
     OrderItem? existOrderItem = await ProxyService.isar.getOrderItemByVariantId(
         variantId: variationId, orderId: pendingOrder.id!);
+    if (stock == null) {
+      /// directly create stock for this variant, there is cases seen on production
+      /// where a variant might not have a stock related to it, this might be because of faulty sync
+      /// we add default stock then to it.
+      stock = await ProxyService.isar.addStockToVariant(variant: variation);
+    }
     await addOrderItems(
       variationId: variationId,
       pendingOrder: pendingOrder,

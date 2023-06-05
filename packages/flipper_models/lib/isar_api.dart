@@ -2738,4 +2738,34 @@ class IsarAPI<M> implements IsarApiInterface {
         .watch()
         .map((event) => event.toList());
   }
+
+  @override
+  Future<Stock?> addStockToVariant({required Variant variant}) async {
+    int branchId = ProxyService.box.getBranchId()!;
+    Stock stock = Stock(
+        id: syncIdInt(),
+        action: 'create',
+        branchId: branchId,
+        variantId: variant.id!,
+        currentStock: 0.0,
+        productId: variant.productId)
+      ..canTrackingStock = false
+      ..showLowStockAlert = false
+      ..currentStock = 0.0
+      ..branchId = branchId
+      ..variantId = variant.id!
+      ..supplyPrice = 0.0
+      ..retailPrice = 0.0
+      ..lowStock = 10.0 // default static
+      ..canTrackingStock = true
+      ..showLowStockAlert = true
+      ..active = false
+      ..productId = variant.productId
+      ..rsdQty = 0.0;
+
+    return await isar.writeTxn(() async {
+      int id = await isar.stocks.put(stock);
+      return await isar.stocks.get(id);
+    });
+  }
 }
