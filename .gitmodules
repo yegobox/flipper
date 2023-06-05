@@ -2,9 +2,6 @@
 	path = Features
 	url =https://github.com/yegobox/designDocs.git
 	branch = main
-[submodule "open-sources/firestore_cache"]
-	path = open-sources/firestore_cache
-	url = https://github.com/yegobox/firestore_cache.git
 [submodule "open-sources/kds"]
 	path = open-sources/kds
 	url = https://github.com/yegobox/FlutterTrelloCards.git
