@@ -110,9 +110,9 @@ jobs:
           INDEX: ${{ secrets.INDEX }}
           CONFIGDART: ${{ secrets.CONFIGDART }}
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
-      - run: dart pub global activate melos 2.9.0
-      - name: "Run Melos bootstrap"
-        run: melos bootstrap
+      - run: |
+          dart pub global activate melos 2.9.0
+          melos bootstrap
       # Setup Ruby, Bundler, and Gemfile dependencies
       - name: Setup Fastlane
         uses: ruby/setup-ruby@v1
