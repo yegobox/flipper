@@ -1231,9 +1231,7 @@ class IsarAPI<M> implements IsarApiInterface {
         "name": name,
         "businessId": business.id,
         "permissions": [
-          {
-            "name": "cashier",
-          }
+          {"id": 2, "name": "cashier"}
         ],
         "businesses": [business.toJson()],
         "branches": [branch.toJson()]
