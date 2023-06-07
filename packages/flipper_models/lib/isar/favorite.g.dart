@@ -1671,17 +1671,19 @@ Favorite _$FavoriteFromJson(Map<String, dynamic> json) => Favorite(
       json['productId'] as int?,
       json['branchId'] as int?,
     )
+      ..id = json['id'] as int?
       ..lastTouched = json['lastTouched'] as String?
       ..remoteID = json['remoteID'] as String?
-      ..localId = json['localId'] as int?
-      ..action = json['action'] as String?;
+      ..action = json['action'] as String?
+      ..localId = json['localId'] as int?;
 
 Map<String, dynamic> _$FavoriteToJson(Favorite instance) => <String, dynamic>{
+      'id': instance.id,
       'favIndex': instance.favIndex,
       'productId': instance.productId,
       'branchId': instance.branchId,
       'lastTouched': instance.lastTouched,
       'remoteID': instance.remoteID,
-      'localId': instance.localId,
       'action': instance.action,
+      'localId': instance.localId,
     };

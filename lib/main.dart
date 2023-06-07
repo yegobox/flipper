@@ -97,8 +97,6 @@ void main() async {
 
     if (!isWindows) {
       FirebaseMessaging.onBackgroundMessage(backgroundHandler);
-      // FirebaseMessaging.onMessageOpenedApp();
-      // FirebaseMessaging.getInitialMessage(backgroundHandler);
       await FirebaseMessaging.instance
           .setForegroundNotificationPresentationOptions(
         badge: true,
@@ -107,7 +105,6 @@ void main() async {
     WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
 
     FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-    // await GetStorage.init();
 
     await initDependencies();
     // setPathUrlStrategy();

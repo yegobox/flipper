@@ -1633,12 +1633,18 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<T?> update<T>({required T data}) async {
     // int branchId = ProxyService.box.getBranchId()!;
-
-    if (data is Social) {
-      Social product = data;
+    if (data is Device) {
+      Device device = data;
 
       await isar.writeTxn(() async {
-        return await isar.socials.put(product);
+        return await isar.devices.put(device);
+      });
+    }
+    if (data is Social) {
+      Social social = data;
+
+      await isar.writeTxn(() async {
+        return await isar.socials.put(social);
       });
     }
     if (data is Product) {
@@ -2219,6 +2225,47 @@ class IsarAPI<M> implements IsarApiInterface {
     });
   }
 
+  /// internal function that I am still brain storming about
+  Future<List<T>> getLocalData<T>(String modelName) async {
+    log(ProxyService.box.getBranchId().toString(), name: 'getLocal$modelName');
+    if (ProxyService.box.getBranchId() == null) return [];
+
+    final Map<String, IsarCollection<dynamic>> collectionMap = {
+      'Stock': isar.stocks,
+      'Variant': isar.variants,
+      // Add more model names and corresponding collection instances as needed
+    };
+    final collection = collectionMap[modelName];
+    if (collection == null) {
+      throw Exception('No collection found for model: $modelName');
+    }
+    if (collection is IsarCollection<Variant>) {
+      return await collection
+          .filter()
+          .lastTouchedIsNull()
+          .or()
+          .actionEqualTo('update')
+          .and()
+          .branchIdEqualTo(ProxyService.box.getBranchId()!)
+          .findAll() as List<T>;
+    }
+    return await [];
+  }
+
+  @override
+  Future<List<Device>> getLocalDevices() async {
+    log(ProxyService.box.getBranchId().toString(), name: 'getLocalStocks');
+    if (ProxyService.box.getBranchId() == null) return [];
+    return await isar.devices
+        .filter()
+        .lastTouchedIsNull()
+        .or()
+        .actionEqualTo('update')
+        .and()
+        .branchIdEqualTo(ProxyService.box.getBranchId()!)
+        .findAll();
+  }
+
   @override
   Future<List<Stock>> getLocalStocks() async {
     log(ProxyService.box.getBranchId().toString(), name: 'getLocalStocks');
@@ -2616,6 +2663,12 @@ class IsarAPI<M> implements IsarApiInterface {
         .linkingCodeEqualTo(linkingCode)
         .build()
         .findFirst();
+  }
+
+  @override
+  Future<Device?> getDeviceById({required int id}) {
+    // get device from isar with linking code and return it
+    return isar.devices.filter().idEqualTo(id).build().findFirst();
   }
 
   @override

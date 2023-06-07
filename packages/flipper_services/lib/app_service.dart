@@ -326,6 +326,22 @@ class AppService with ListenableServiceMixin {
         await ProxyService.isar.update(data: fav);
       }
     }
+
+    /// pushing devices
+    List<Device> devices = await ProxyService.isar.getLocalDevices();
+    for (Device device in devices) {
+      RecordModel? record = await ProxyService.sync.push(device);
+      int oldId = device.id!;
+      if (record != null) {
+        Device dev = Device.fromRecord(record);
+        dev.remoteID = record.id;
+
+        /// keep the local ID unchanged to avoid complication
+        dev.id = oldId;
+        dev.action = actions["afterUpdate"];
+        await ProxyService.isar.update(data: dev);
+      }
+    }
   }
 
   Stream<bool> checkInternetConnectivity() async* {

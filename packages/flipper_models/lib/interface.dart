@@ -211,10 +211,7 @@ abstract class IsarApiInterface {
   Future<Customer?> nGetCustomerByOrderId({required int id});
   Future<bool> bindProduct({required int productId, required int tenantId});
   Future<Product?> findProductByTenantId({required int tenantId});
-  Future<List<Product>> getLocalProducts();
-  Future<List<Favorite>> getLocalFavorite();
-  Future<List<Variant>> getLocalVariants();
-  Future<List<Stock>> getLocalStocks();
+
   Future<void> deleteAllProducts();
   Future<Stock?> getStockById({required int id});
   Future<List<Order>> getLocalOrders();
@@ -243,6 +240,7 @@ abstract class IsarApiInterface {
   Future<Setting?> getSocialSetting();
 
   Future<Device?> getDevice({required String linkingCode});
+  Future<Device?> getDeviceById({required int id});
   Stream<List<Device>> getDevices({required int businessId});
   Future<List<Device>> unpublishedDevices({required int businessId});
   Future<void> loadConversations(
@@ -254,4 +252,11 @@ abstract class IsarApiInterface {
 
   Future<Stock?> addStockToVariant({required Variant variant});
   Stream<Product> getProductStream({required int prodIndex});
+
+  //sync related
+  Future<List<Product>> getLocalProducts();
+  Future<List<Favorite>> getLocalFavorite();
+  Future<List<Variant>> getLocalVariants();
+  Future<List<Stock>> getLocalStocks();
+  Future<List<Device>> getLocalDevices();
 }

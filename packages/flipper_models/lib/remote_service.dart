@@ -107,9 +107,9 @@ class RemoteService implements RemoteInterface {
           .getList(page: 1, perPage: 2, filter: 'businessId = ${businessId}')
           .then((event) => event.items);
       await Future.forEach(socialItems, (RecordModel item) async {
-        Social remoteStock = Social.fromJson(item.toJson());
+        Social remoteSocial = Social.fromJson(item.toJson());
         await handleSocial(
-            item, businessId, remoteStock.lastTouched, 'socials');
+            item, businessId, remoteSocial.lastTouched, 'socials');
       });
 
       List<RecordModel> stockItems = await pb
@@ -120,6 +120,16 @@ class RemoteService implements RemoteInterface {
         Stock remoteStock = Stock.fromJson(item.toJson());
         await handleStock(item, branchId, remoteStock.lastTouched, 'stocks');
       });
+      //
+      List<RecordModel> deviceItems = await pb
+          .collection('devices')
+          .getList(page: 1, perPage: 100, filter: 'branchId = ${branchId}')
+          .then((event) => event.items);
+      await Future.forEach(deviceItems, (RecordModel item) async {
+        Device remoteDevice = Device.fromJson(item.toJson());
+        await handleDevice(item, branchId, remoteDevice.lastTouched, 'devices');
+      });
+      //
       List<RecordModel> variantItems = await pb
           .collection('variants')
           .getList(page: 1, perPage: 100, filter: 'branchId = ${branchId}')
@@ -168,15 +178,33 @@ class RemoteService implements RemoteInterface {
     Social? localSocial =
         await ProxyService.isar.getSocialById(id: remoteSocial.localId!);
     if (localSocial == null && remoteSocial.businessId == businessId) {
-      remoteSocial.id = remoteSocial.localId;
+      remoteSocial.id = remoteSocial.id;
       await ProxyService.isar.create(data: remoteSocial);
       lastTouched = remoteSocial.lastTouched;
     } else if (localSocial != null &&
         remoteSocial.lastTouched!
             .isFutureDateCompareTo(localSocial.lastTouched!)) {
-      remoteSocial.id = remoteSocial.localId;
+      remoteSocial.id = remoteSocial.id;
       await ProxyService.isar.update(data: remoteSocial);
       lastTouched = remoteSocial.lastTouched;
+    }
+    return lastTouched;
+  }
+
+  Future<String?> handleDevice(
+      RecordModel item, int branchId, String? lastTouched, String model) async {
+    Device remoteDevice = Device.fromJson(item.toJson());
+    Device? localDevice =
+        await ProxyService.isar.getDeviceById(id: remoteDevice.localId!);
+    if (localDevice == null && remoteDevice.branchId == branchId) {
+      await ProxyService.isar.create(data: remoteDevice);
+      lastTouched = remoteDevice.lastTouched;
+    } else if (localDevice != null &&
+        localDevice.lastTouched != null &&
+        remoteDevice.lastTouched!
+            .isFutureDateCompareTo(localDevice.lastTouched!)) {
+      await ProxyService.isar.update(data: remoteDevice);
+      lastTouched = remoteDevice.lastTouched;
     }
     return lastTouched;
   }
@@ -228,7 +256,7 @@ class RemoteService implements RemoteInterface {
         Social? localSocial = await ProxyService.isar
             .getSocialById(id: socialFromRecord.localId!);
         if (localSocial == null && socialFromRecord.businessId == businessId) {
-          socialFromRecord.id = socialFromRecord.localId;
+          socialFromRecord.id = socialFromRecord.id;
           await ProxyService.isar.create(data: socialFromRecord);
         }
       } else if (socialEvent.action == "update") {
@@ -236,7 +264,7 @@ class RemoteService implements RemoteInterface {
         Social? localSocial = await ProxyService.isar
             .getSocialById(id: socialFromRecord.localId!);
         if (localSocial == null && socialFromRecord.businessId == businessId) {
-          socialFromRecord.id = socialFromRecord.localId;
+          socialFromRecord.id = socialFromRecord.id;
           await ProxyService.isar.create(data: socialFromRecord);
         }
         Social a = Social.fromRecord(socialEvent.record!);
@@ -311,6 +339,19 @@ class RemoteService implements RemoteInterface {
             lastTouched.isFutureDateCompareTo(localProduct.lastTouched!)) {
           log("updated product from remote");
           await ProxyService.isar.update(data: productFromRecord);
+        }
+      }
+    });
+
+    /// devices
+    pb.collection('devices').subscribe("*", (deviceEvent) async {
+      if (deviceEvent.action == "create") {
+        Device deviceRecord = Device.fromRecord(deviceEvent.record!);
+        Device? localDevice =
+            await ProxyService.isar.getDeviceById(id: deviceRecord.localId!);
+        if (localDevice == null && deviceRecord.branchId == branchId) {
+          log("created product from remote");
+          await ProxyService.isar.create(data: deviceRecord);
         }
       }
     });

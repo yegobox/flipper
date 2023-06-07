@@ -35,7 +35,7 @@ class Stock extends IJsonSerializable {
   @Index()
   String? remoteID;
   int? localId;
-  String action;
+  String? action;
   Stock(
       {required this.branchId,
       required this.variantId,
@@ -55,44 +55,19 @@ class Stock extends IJsonSerializable {
       this.remoteID,
       this.localId});
 
-  @override
-  Map<String, dynamic> toJson() => {
-        'branchId': branchId,
-        'variantId': variantId,
-        'lowStock': lowStock,
-        'currentStock': currentStock,
-        'supplyPrice': supplyPrice,
-        'retailPrice': retailPrice,
-        'canTrackingStock': canTrackingStock,
-        'showLowStockAlert': showLowStockAlert,
-        'productId': productId,
-        'active': active,
-        'value': value,
-        'rsdQty': rsdQty,
-        "localId": id,
-        "action": action,
-        "remoteID": remoteID,
-      };
   factory Stock.fromRecord(RecordModel record) =>
       Stock.fromJson(record.toJson());
+
   factory Stock.fromJson(Map<String, dynamic> json) {
-    return Stock(
-        branchId: json['branchId'],
-        localId: json['localId'],
-        variantId: json['variantId'],
-        lowStock: json['lowStock']?.toDouble() ?? 0.0,
-        currentStock: json['currentStock']?.toDouble() ?? 0.0,
-        supplyPrice: json['supplyPrice']?.toDouble() ?? 0.0,
-        retailPrice: json['retailPrice']?.toDouble() ?? 0.0,
-        canTrackingStock: json['canTrackingStock'],
-        showLowStockAlert: json['showLowStockAlert'],
-        productId: json['productId'],
-        active: json['active'],
-        value: json['value']?.toDouble() ?? 0.0,
-        rsdQty: json['rsdQty']?.toDouble() ?? 0.0,
-        lastTouched: json['lastTouched'],
-        id: json['localId'],
-        action: "sync",
-        remoteID: json['id']);
+    json.remove('id');
+    return _$StockFromJson(json);
+  }
+  @override
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = _$StockToJson(this);
+    if (id != null) {
+      data['localId'] = id;
+    }
+    return data;
   }
 }

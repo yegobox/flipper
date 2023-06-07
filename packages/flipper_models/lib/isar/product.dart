@@ -10,6 +10,7 @@ part 'product.g.dart';
 @JsonSerializable()
 @Collection()
 class Product extends IJsonSerializable {
+  // @JsonKey(name: 'localId')
   Id? id = null;
   @Index(caseSensitive: true)
   late String name;
@@ -40,8 +41,9 @@ class Product extends IJsonSerializable {
   String? lastTouched;
   @Index()
   String? remoteID;
+  String? action;
   int? localId;
-  String action;
+
   final variants = IsarLinks<Variant>();
 
   Product(
@@ -64,59 +66,21 @@ class Product extends IJsonSerializable {
       this.bindedToTenantId,
       this.isFavorite,
       this.lastTouched,
-      this.localId,
       this.remoteID});
 
   factory Product.fromRecord(RecordModel record) =>
       Product.fromJson(record.toJson());
-
   factory Product.fromJson(Map<String, dynamic> json) {
-    return Product(
-        name: json['name'],
-        color: json['color'],
-        localId: json['localId'],
-        businessId: json['businessId'],
-        branchId: json['branchId'],
-        description: json['description'].isEmpty ? null : json['description'],
-        taxId: json['taxId'].isEmpty ? null : json['taxId'],
-        supplierId: json['supplierId'].isEmpty ? null : json['supplierId'],
-        categoryId: json['categoryId'].isEmpty ? null : json['categoryId'],
-        createdAt: json['createdAt'].isEmpty ? null : json['createdAt'],
-        unit: json['unit'],
-        imageUrl: json['imageUrl'].isEmpty ? null : json['imageUrl'],
-        expiryDate: json['expiryDate'].isEmpty ? null : json['expiryDate'],
-        barCode: json['barCode'].isEmpty ? null : json['barCode'],
-        nfcEnabled: json['nfcEnabled'],
-        bindedToTenantId: json['bindedToTenantId'],
-        isFavorite: json['isFavorite'],
-        lastTouched: json['lastTouched'],
-        id: json['localId'],
-        action: "sync",
-        remoteID: json['id']);
+    json.remove('id');
+    return _$ProductFromJson(json);
   }
 
   @override
   Map<String, dynamic> toJson() {
-    return {
-      "name": name,
-      "color": color,
-      "businessId": businessId,
-      "branchId": branchId,
-      "description": description ?? null,
-      "taxId": taxId ?? null,
-      "supplierId": supplierId ?? null,
-      "categoryId": categoryId ?? null,
-      "createdAt": createdAt,
-      "unit": unit,
-      "imageUrl": imageUrl ?? null,
-      "expiryDate": expiryDate,
-      "barCode": barCode ?? null,
-      "nfcEnabled": nfcEnabled,
-      "bindedToTenantId": bindedToTenantId,
-      "isFavorite": isFavorite,
-      "localId": id,
-      "action": action,
-      "remoteID": remoteID,
-    };
+    final Map<String, dynamic> data = _$ProductToJson(this);
+    if (id != null) {
+      data['localId'] = id;
+    }
+    return data;
   }
 }

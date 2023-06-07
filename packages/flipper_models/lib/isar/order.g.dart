@@ -317,7 +317,6 @@ Order _orderDeserialize(
     draft: reader.readBool(offsets[7]),
     id: id,
     lastTouched: reader.readStringOrNull(offsets[8]),
-    localId: reader.readLongOrNull(offsets[9]),
     note: reader.readStringOrNull(offsets[10]),
     orderNumber: reader.readString(offsets[11]),
     orderType: reader.readString(offsets[12]),
@@ -331,6 +330,7 @@ Order _orderDeserialize(
     ticketName: reader.readStringOrNull(offsets[20]),
     updatedAt: reader.readStringOrNull(offsets[21]),
   );
+  object.localId = reader.readLongOrNull(offsets[9]);
   return object;
 }
 
@@ -4001,3 +4001,58 @@ extension OrderQueryProperty on QueryBuilder<Order, Order, QQueryProperty> {
     });
   }
 }
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+Order _$OrderFromJson(Map<String, dynamic> json) => Order(
+      reference: json['reference'] as String,
+      orderNumber: json['orderNumber'] as String,
+      branchId: json['branchId'] as int,
+      status: json['status'] as String,
+      orderType: json['orderType'] as String,
+      active: json['active'] as bool,
+      draft: json['draft'] as bool,
+      subTotal: (json['subTotal'] as num).toDouble(),
+      paymentType: json['paymentType'] as String,
+      cashReceived: (json['cashReceived'] as num).toDouble(),
+      customerChangeDue: (json['customerChangeDue'] as num).toDouble(),
+      createdAt: json['createdAt'] as String,
+      receiptType: json['receiptType'] as String?,
+      updatedAt: json['updatedAt'] as String?,
+      reported: json['reported'] as bool,
+      customerId: json['customerId'] as int?,
+      note: json['note'] as String?,
+      id: json['id'] as int?,
+      lastTouched: json['lastTouched'] as String?,
+      action: json['action'] as String?,
+      remoteID: json['remoteID'] as String?,
+      ticketName: json['ticketName'] as String?,
+    )..localId = json['localId'] as int?;
+
+Map<String, dynamic> _$OrderToJson(Order instance) => <String, dynamic>{
+      'id': instance.id,
+      'reference': instance.reference,
+      'orderNumber': instance.orderNumber,
+      'branchId': instance.branchId,
+      'status': instance.status,
+      'orderType': instance.orderType,
+      'active': instance.active,
+      'draft': instance.draft,
+      'subTotal': instance.subTotal,
+      'paymentType': instance.paymentType,
+      'cashReceived': instance.cashReceived,
+      'customerChangeDue': instance.customerChangeDue,
+      'createdAt': instance.createdAt,
+      'receiptType': instance.receiptType,
+      'updatedAt': instance.updatedAt,
+      'reported': instance.reported,
+      'customerId': instance.customerId,
+      'note': instance.note,
+      'lastTouched': instance.lastTouched,
+      'remoteID': instance.remoteID,
+      'action': instance.action,
+      'localId': instance.localId,
+      'ticketName': instance.ticketName,
+    };

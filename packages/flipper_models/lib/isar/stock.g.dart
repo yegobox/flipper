@@ -215,7 +215,12 @@ int _stockEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  bytesCount += 3 + object.action.length * 3;
+  {
+    final value = object.action;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   {
     final value = object.lastTouched;
     if (value != null) {
@@ -262,7 +267,7 @@ Stock _stockDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Stock(
-    action: reader.readString(offsets[0]),
+    action: reader.readStringOrNull(offsets[0]),
     active: reader.readBoolOrNull(offsets[1]),
     branchId: reader.readLong(offsets[2]),
     canTrackingStock: reader.readBoolOrNull(offsets[3]),
@@ -291,7 +296,7 @@ P _stockDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 1:
       return (reader.readBoolOrNull(offset)) as P;
     case 2:
@@ -1169,8 +1174,24 @@ extension StockQueryWhere on QueryBuilder<Stock, Stock, QWhereClause> {
 }
 
 extension StockQueryFilter on QueryBuilder<Stock, Stock, QFilterCondition> {
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> actionIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'action',
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> actionIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'action',
+      ));
+    });
+  }
+
   QueryBuilder<Stock, Stock, QAfterFilterCondition> actionEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1183,7 +1204,7 @@ extension StockQueryFilter on QueryBuilder<Stock, Stock, QFilterCondition> {
   }
 
   QueryBuilder<Stock, Stock, QAfterFilterCondition> actionGreaterThan(
-    String value, {
+    String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -1198,7 +1219,7 @@ extension StockQueryFilter on QueryBuilder<Stock, Stock, QFilterCondition> {
   }
 
   QueryBuilder<Stock, Stock, QAfterFilterCondition> actionLessThan(
-    String value, {
+    String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -1213,8 +1234,8 @@ extension StockQueryFilter on QueryBuilder<Stock, Stock, QFilterCondition> {
   }
 
   QueryBuilder<Stock, Stock, QAfterFilterCondition> actionBetween(
-    String lower,
-    String upper, {
+    String? lower,
+    String? upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -2928,7 +2949,7 @@ extension StockQueryProperty on QueryBuilder<Stock, Stock, QQueryProperty> {
     });
   }
 
-  QueryBuilder<Stock, String, QQueryOperations> actionProperty() {
+  QueryBuilder<Stock, String?, QQueryOperations> actionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'action');
     });
@@ -3034,7 +3055,7 @@ Stock _$StockFromJson(Map<String, dynamic> json) => Stock(
       variantId: json['variantId'] as int,
       currentStock: (json['currentStock'] as num).toDouble(),
       productId: json['productId'] as int,
-      action: json['action'] as String,
+      action: json['action'] as String?,
       id: json['id'] as int?,
       lowStock: (json['lowStock'] as num?)?.toDouble(),
       supplyPrice: (json['supplyPrice'] as num?)?.toDouble(),

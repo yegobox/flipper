@@ -1,11 +1,13 @@
 import 'package:flipper_models/isar_models.dart';
-import 'package:flipper_services/proxy.dart';
+import 'package:json_annotation/json_annotation.dart';
 import 'package:flipper_models/sync_service.dart';
 import 'package:pocketbase/pocketbase.dart';
 part 'order.g.dart';
 
+@JsonSerializable()
 @Collection()
 class Order extends IJsonSerializable {
+  // @JsonKey(name: 'localId')
   Id? id = null;
   late String reference;
   late String orderNumber;
@@ -33,10 +35,8 @@ class Order extends IJsonSerializable {
   String? lastTouched;
   @Index()
   String? remoteID;
-  int? localId;
-
   String? action;
-
+  int? localId;
   String? ticketName;
 
   Order(
@@ -60,59 +60,22 @@ class Order extends IJsonSerializable {
       this.id,
       this.lastTouched,
       this.action,
-      this.localId,
       this.remoteID,
       this.ticketName});
   factory Order.fromRecord(RecordModel record) =>
       Order.fromJson(record.toJson());
+
   factory Order.fromJson(Map<String, dynamic> json) {
-    return Order(
-        reference: json['reference'],
-        orderNumber: json['orderNumber'],
-        branchId: json['branchId'],
-        status: json['status'],
-        orderType: json['orderType'],
-        active: json['active'],
-        draft: json['draft'],
-        subTotal: json['subTotal'].toDouble(),
-        paymentType: json['paymentType'],
-        cashReceived: json['cashReceived'].toDouble(),
-        customerChangeDue: json['customerChangeDue'].toDouble(),
-        createdAt: json['createdAt'],
-        receiptType: json['receiptType'],
-        updatedAt: json['updatedAt'],
-        reported: json['reported'],
-        customerId: json['customerId'],
-        note: json['note'],
-        lastTouched: json['lastTouched'],
-        id: json['localId'],
-        action: json['action'],
-        remoteID: json['id'],
-        ticketName: json['ticketName']);
+    json.remove('id');
+    return _$OrderFromJson(json);
   }
 
   @override
-  Map<String, dynamic> toJson() => {
-        'reference': reference,
-        'orderNumber': orderNumber,
-        'branchId': branchId,
-        'status': status,
-        'orderType': orderType,
-        'active': active,
-        'draft': draft,
-        'subTotal': subTotal,
-        'paymentType': paymentType,
-        'cashReceived': cashReceived,
-        'customerChangeDue': customerChangeDue,
-        'createdAt': createdAt,
-        'updatedAt': updatedAt,
-        'reported': reported,
-        'customerId': customerId,
-        'note': note,
-        'businessPhoneNumber': ProxyService.box.getUserPhone()!,
-        'businessId': ProxyService.box.getBusinessId()!,
-        "localId": id,
-        "action": action,
-        'ticketName': ticketName,
-      };
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = _$OrderToJson(this);
+    if (id != null) {
+      data['localId'] = id;
+    }
+    return data;
+  }
 }

@@ -1,5 +1,6 @@
 library flipper_models;
 
+import 'package:flipper_models/isar/random.dart';
 import 'package:isar/isar.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pocketbase/pocketbase.dart';
@@ -9,7 +10,7 @@ part 'favorite.g.dart';
 @JsonSerializable()
 @Collection()
 class Favorite extends IJsonSerializable {
-  @JsonKey(includeToJson: false, includeFromJson: false)
+  // @JsonKey(name: 'localId')
   Id? id = null;
 
   @Index(unique: true)
@@ -22,17 +23,30 @@ class Favorite extends IJsonSerializable {
   String? lastTouched;
   @Index()
   String? remoteID;
-  int? localId;
   String? action;
+  // only for accor when fetching from remove
+  int? localId;
 
   Favorite(this.favIndex, this.productId, this.branchId);
 
   factory Favorite.fromRecord(RecordModel record) =>
       Favorite.fromJson(record.toJson());
 
-  factory Favorite.fromJson(Map<String, dynamic> json) =>
-      _$FavoriteFromJson(json);
+  factory Favorite.fromJson(Map<String, dynamic> json) {
+    json.remove('id');
+    return _$FavoriteFromJson(json);
+  }
 
   @override
-  Map<String, dynamic> toJson() => _$FavoriteToJson(this);
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = _$FavoriteToJson(this);
+    if (id != null) {
+      data['localId'] = id;
+    }
+    return data;
+  }
+
+  void assignIdFromSync() {
+    id = syncIdInt();
+  }
 }

@@ -78,8 +78,8 @@ class _DesktopLoginViewState extends State<DesktopLoginView> {
                 child: QrImageView(
                   data: loginCode ?? '000',
                   version: QrVersions.auto,
-                  embeddedImage:
-                      AssetImage(logoAsset, package: "flipper_login"),
+                  // embeddedImage:
+                  //     AssetImage(logoAsset, package: "flipper_login"),
                   embeddedImageStyle: QrEmbeddedImageStyle(
                     size: Size(logoSize, logoSize),
                   ),

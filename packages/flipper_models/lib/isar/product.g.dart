@@ -224,7 +224,12 @@ int _productEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  bytesCount += 3 + object.action.length * 3;
+  {
+    final value = object.action;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   {
     final value = object.barCode;
     if (value != null) {
@@ -331,7 +336,7 @@ Product _productDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Product(
-    action: reader.readString(offsets[0]),
+    action: reader.readStringOrNull(offsets[0]),
     barCode: reader.readStringOrNull(offsets[1]),
     bindedToTenantId: reader.readLongOrNull(offsets[2]),
     branchId: reader.readLong(offsets[3]),
@@ -345,7 +350,6 @@ Product _productDeserialize(
     imageUrl: reader.readStringOrNull(offsets[10]),
     isFavorite: reader.readBoolOrNull(offsets[11]),
     lastTouched: reader.readStringOrNull(offsets[12]),
-    localId: reader.readLongOrNull(offsets[13]),
     name: reader.readString(offsets[14]),
     nfcEnabled: reader.readBoolOrNull(offsets[15]),
     remoteID: reader.readStringOrNull(offsets[16]),
@@ -353,6 +357,7 @@ Product _productDeserialize(
     taxId: reader.readStringOrNull(offsets[18]),
     unit: reader.readStringOrNull(offsets[19]),
   );
+  object.localId = reader.readLongOrNull(offsets[13]);
   return object;
 }
 
@@ -364,7 +369,7 @@ P _productDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 1:
       return (reader.readStringOrNull(offset)) as P;
     case 2:
@@ -954,8 +959,24 @@ extension ProductQueryWhere on QueryBuilder<Product, Product, QWhereClause> {
 
 extension ProductQueryFilter
     on QueryBuilder<Product, Product, QFilterCondition> {
+  QueryBuilder<Product, Product, QAfterFilterCondition> actionIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'action',
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> actionIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'action',
+      ));
+    });
+  }
+
   QueryBuilder<Product, Product, QAfterFilterCondition> actionEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -968,7 +989,7 @@ extension ProductQueryFilter
   }
 
   QueryBuilder<Product, Product, QAfterFilterCondition> actionGreaterThan(
-    String value, {
+    String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -983,7 +1004,7 @@ extension ProductQueryFilter
   }
 
   QueryBuilder<Product, Product, QAfterFilterCondition> actionLessThan(
-    String value, {
+    String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -998,8 +1019,8 @@ extension ProductQueryFilter
   }
 
   QueryBuilder<Product, Product, QAfterFilterCondition> actionBetween(
-    String lower,
-    String upper, {
+    String? lower,
+    String? upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -4026,7 +4047,7 @@ extension ProductQueryProperty
     });
   }
 
-  QueryBuilder<Product, String, QQueryOperations> actionProperty() {
+  QueryBuilder<Product, String?, QQueryOperations> actionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'action');
     });
@@ -4156,7 +4177,7 @@ Product _$ProductFromJson(Map<String, dynamic> json) => Product(
       color: json['color'] as String,
       businessId: json['businessId'] as int,
       branchId: json['branchId'] as int,
-      action: json['action'] as String,
+      action: json['action'] as String?,
       id: json['id'] as int?,
       description: json['description'] as String?,
       taxId: json['taxId'] as String?,
@@ -4171,9 +4192,8 @@ Product _$ProductFromJson(Map<String, dynamic> json) => Product(
       bindedToTenantId: json['bindedToTenantId'] as int?,
       isFavorite: json['isFavorite'] as bool?,
       lastTouched: json['lastTouched'] as String?,
-      localId: json['localId'] as int?,
       remoteID: json['remoteID'] as String?,
-    );
+    )..localId = json['localId'] as int?;
 
 Map<String, dynamic> _$ProductToJson(Product instance) => <String, dynamic>{
       'id': instance.id,
@@ -4195,6 +4215,6 @@ Map<String, dynamic> _$ProductToJson(Product instance) => <String, dynamic>{
       'isFavorite': instance.isFavorite,
       'lastTouched': instance.lastTouched,
       'remoteID': instance.remoteID,
-      'localId': instance.localId,
       'action': instance.action,
+      'localId': instance.localId,
     };

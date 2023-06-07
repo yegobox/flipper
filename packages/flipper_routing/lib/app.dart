@@ -86,7 +86,7 @@ class App {}
 
 // FIXME: use dart-define for secrets
 // https://thiele.dev/blog/part-1-configure-a-flutter-app-with-dart-define-environment-variable/
-// flutter pub run msix:create
+// dart run msix:create
 // TODO: implement SNS notification as well
 // https://medium.com/iiitians-network/flutter-push-notifications-using-aws-sns-dac464c1edf0
 // TODO: implement quick action on mobile
@@ -122,3 +122,6 @@ class App {}
 // git pull https://github.com/joelhigi/flipper.git stable
 // flutterfire configure
 // git submodule deinit -f open-sources/plus_plugins
+
+// TODO: - add localId in model
+//  - add devices model in prod database

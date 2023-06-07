@@ -85,8 +85,10 @@ class Variant extends IJsonSerializable {
   late double retailPrice;
   @Index()
   String? remoteID;
+  String? action;
+
+  // only for accor when fetching from remove
   int? localId;
-  String action;
 
   Variant(
       {required this.name,
@@ -133,105 +135,22 @@ class Variant extends IJsonSerializable {
       this.modrNm,
       this.rsdQty,
       this.lastTouched,
-      this.remoteID,
-      this.localId});
+      this.remoteID});
 
-  // toJson helper
-  @override
-  Map<String, dynamic> toJson() => {
-        'name': name,
-        'sku': sku,
-        'productId': productId,
-        'unit': unit,
-        'productName': productName,
-        'branchId': branchId,
-        'taxName': taxName,
-        'taxPercentage': taxPercentage,
-        'supplyPrice': supplyPrice,
-        'retailPrice': retailPrice,
-        'itemSeq': itemSeq,
-        'isrccCd': isrccCd,
-        'isrccNm': isrccNm,
-        'isrcRt': isrcRt,
-        'isrcAmt': isrcAmt,
-        'taxTyCd': taxTyCd,
-        'bcd': bcd,
-        'itemClsCd': itemClsCd,
-        'itemTyCd': itemTyCd,
-        'itemStdNm': itemStdNm,
-        'orgnNatCd': orgnNatCd,
-        'pkg': pkg,
-        'itemCd': itemCd,
-        'pkgUnitCd': pkgUnitCd,
-        'qtyUnitCd': qtyUnitCd,
-        'itemNm': itemNm,
-        'qty': qty,
-        'prc': prc,
-        'splyAmt': splyAmt,
-        'tin': tin,
-        'bhfId': bhfId,
-        'dftPrc': dftPrc,
-        'addInfo': addInfo,
-        'isrcAplcbYn': isrcAplcbYn,
-        'useYn': useYn,
-        'regrId': regrId,
-        'regrNm': regrNm,
-        'modrId': modrId,
-        'modrNm': modrNm,
-        "rsdQty": rsdQty,
-        "localId": id,
-        "action": action,
-        "remoteID": remoteID,
-      };
   factory Variant.fromRecord(RecordModel record) =>
       Variant.fromJson(record.toJson());
+
   factory Variant.fromJson(Map<String, dynamic> json) {
-    return Variant(
-        name: json['name'],
-        sku: json['sku'],
-        localId: json['localId'],
-        productId: json['productId'],
-        unit: json['unit'],
-        productName: json['productName'],
-        branchId: json['branchId'],
-        taxName: json['taxName'],
-        taxPercentage: json['taxPercentage']?.toDouble() ?? 0.0,
-        supplyPrice: json['supplyPrice']?.toDouble() ?? 0.0,
-        retailPrice: json['retailPrice']?.toDouble() ?? 0.0,
-        isTaxExempted: json['isTaxExempted'],
-        itemSeq: json['itemSeq'],
-        isrccCd: json['isrccCd'],
-        isrccNm: json['isrccNm'],
-        isrcRt: json['isrcRt'],
-        isrcAmt: json['isrcAmt'],
-        taxTyCd: json['taxTyCd'],
-        bcd: json['bcd'],
-        itemClsCd: json['itemClsCd'],
-        itemTyCd: json['itemTyCd'],
-        itemStdNm: json['itemStdNm'],
-        orgnNatCd: json['orgnNatCd'],
-        pkg: json['pkg'],
-        itemCd: json['itemCd'],
-        pkgUnitCd: json['pkgUnitCd'],
-        qtyUnitCd: json['qtyUnitCd'],
-        itemNm: json['itemNm'],
-        qty: json['qty']?.toDouble() ?? 0.0,
-        prc: json['prc']?.toDouble() ?? 0.0,
-        splyAmt: json['splyAmt']?.toDouble() ?? 0.0,
-        tin: json['tin'],
-        bhfId: json['bhfId'],
-        dftPrc: json['dftPrc']?.toDouble() ?? 0.0,
-        addInfo: json['addInfo'],
-        isrcAplcbYn: json['isrcAplcbYn'],
-        useYn: json['useYn'],
-        regrId: json['regrId'],
-        regrNm: json['regrNm'],
-        modrId: json['modrId'],
-        modrNm: json['modrNm'],
-        rsdQty: json['rsdQty']?.toDouble() ?? 0.0,
-        lastTouched: json['lastTouched'],
-        id: json['localId'],
-        remoteID: json['id'],
-        action: "sync");
+    json.remove('id');
+    return _$VariantFromJson(json);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = _$VariantToJson(this);
+    if (id != null) {
+      data['localId'] = id;
+    }
+    return data;
   }
 }
