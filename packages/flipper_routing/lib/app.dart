@@ -122,4 +122,10 @@ class App {}
 // git pull https://github.com/joelhigi/flipper.git stable
 // flutterfire configure
 // git submodule deinit -f open-sources/plus_plugins
+// STEPS to remove submodule
+///git submodule deinit -f path/to/submodule
+///git rm -rf path/to/submodule
+///rm -rf .git/modules/path/to/submodule
+///git commit -m "Remove submodule open-sources/flutter_launcher_icons"
+///rm -rf path/to/submodule
 
