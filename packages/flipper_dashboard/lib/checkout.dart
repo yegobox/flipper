@@ -7,13 +7,14 @@ import 'keypad_view.dart';
 import 'product_view.dart';
 
 class CheckOut extends StatefulWidget {
-  CheckOut(
-      {Key? key,
-      required this.model,
-      required this.controller,
-      required this.tabController,
-      required this.isBigScreen})
-      : super(key: key);
+  CheckOut({
+    Key? key,
+    required this.model,
+    required this.controller,
+    required this.tabController,
+    required this.isBigScreen,
+  }) : super(key: key);
+
   final BusinessHomeViewModel model;
   final bool isBigScreen;
   final TextEditingController controller;
@@ -25,100 +26,73 @@ class CheckOut extends StatefulWidget {
 
 class _CheckOutState extends State<CheckOut>
     with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _animation;
+
   final FocusNode keyPadFocusNode = FocusNode();
-  late TabController _tabController;
+
   @override
   void initState() {
-    _tabController = TabController(length: 2, vsync: this);
     super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 1),
+    );
+    _animation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeInOut,
+      ),
+    );
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     if (widget.isBigScreen) {
-      return Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Container(
-              height: 40,
-              decoration: BoxDecoration(
-                color: const Color(0xffE5E5E5),
-                borderRadius: BorderRadius.circular(0.0),
-              ),
-              child: TabBar(
-                onTap: (v) {
-                  FocusScope.of(context).unfocus();
-                },
-                controller: _tabController,
-                // give the indicator a decoration (color and border radius)
-                indicator: BoxDecoration(
-                  borderRadius: BorderRadius.circular(4.0),
-                  color: const Color(0xffFFFFFF),
-                ),
-                indicatorSize: TabBarIndicatorSize.tab,
-
-                /// this code is no longer of use, it is here as documentation
-                // indicatorPadding: EdgeInsets.only(
-                //   left: 120,
-                //   right: 120,
-                //   top: 6,
-                //   bottom: 6,
-                // ),
-                labelColor: Colors.black,
-                // labelStyle: tabLabelStyle,
-                // unselectedLabelColor: Colors.black,
-                // indicatorColor: Colors.black,
-                tabs: const [
-                  // first tab [you can add an icon using the icon property]
-                  Tab(
-                    text: 'Keypad',
+      return FadeTransition(
+        opacity: _animation,
+        child: Column(
+          children: [
+            Expanded(
+              child: Column(
+                children: [
+                  KeyPadView(
+                    model: widget.model,
+                    isBigScreen: widget.isBigScreen,
                   ),
-                  Tab(
-                    text: 'Orders',
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(0.0, 10, 0, 0),
+                    child: PaymentTicketManager(
+                      context: context,
+                      model: widget.model,
+                      controller: widget.controller,
+                      nodeDisabled: true,
+                    ),
+                  ),
+                  SizedBox(
+                    height: 30,
                   ),
                 ],
               ),
             ),
-          ),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                Column(
-                  children: [
-                    KeyPadView(
-                      model: widget.model,
-                      isBigScreen: widget.isBigScreen,
-                    ),
-                    Padding(
-                      padding: EdgeInsets.fromLTRB(0.0, 10, 0, 0),
-                      child: PaymentTicketManager(
-                        context: context,
-                        model: widget.model,
-                        controller: widget.controller,
-                        nodeDisabled: true,
-                      ),
-                    ),
-                    SizedBox(
-                      height: 30,
-                    )
-                  ],
-                ),
-                Text("Tab 2")
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       );
     } else {
-      return NewWidget(widget: widget);
+      return MobileView(widget: widget);
     }
   }
 }
 
-class NewWidget extends StatelessWidget {
-  const NewWidget({
+class MobileView extends StatelessWidget {
+  const MobileView({
     super.key,
     required this.widget,
   });
