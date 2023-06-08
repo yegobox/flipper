@@ -128,4 +128,7 @@ class App {}
 ///rm -rf .git/modules/path/to/submodule
 ///git commit -m "Remove submodule open-sources/flutter_launcher_icons"
 ///rm -rf path/to/submodule
+/// find ./ -name pubspec.lock -type f -delete
+/// find ./ -name pubspec_overrides.yaml -type f -delete
+
 
