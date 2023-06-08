@@ -10,8 +10,8 @@ part 'favorite.g.dart';
 @JsonSerializable()
 @Collection()
 class Favorite extends IJsonSerializable {
-  // @JsonKey(name: 'localId')
-  Id? id = null;
+  int? id = null;
+  Id get isarId => syncIdInt();
 
   @Index(unique: true)
   int? favIndex;
@@ -44,9 +44,5 @@ class Favorite extends IJsonSerializable {
       data['localId'] = id;
     }
     return data;
-  }
-
-  void assignIdFromSync() {
-    id = syncIdInt();
   }
 }

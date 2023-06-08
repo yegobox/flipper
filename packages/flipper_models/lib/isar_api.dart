@@ -2676,7 +2676,7 @@ class IsarAPI<M> implements IsarApiInterface {
     // get device from isar with linking code and return it
     return isar.devices
         .filter()
-        .busienssIdEqualTo(businessId)
+        .businessIdEqualTo(businessId)
         .build()
         .watch(fireImmediately: true);
   }
@@ -2685,7 +2685,7 @@ class IsarAPI<M> implements IsarApiInterface {
   Future<List<Device>> unpublishedDevices({required int businessId}) async {
     return await isar.devices
         .filter()
-        .busienssIdEqualTo(businessId)
+        .businessIdEqualTo(businessId)
         .and()
         .pubNubPublishedEqualTo(false)
         .build()

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar/utils.dart';
 import 'package:flipper_models/server_definitions.dart';
@@ -45,6 +47,7 @@ class SynchronizationService<M extends IJsonSerializable>
       json["id"] = syncId();
 
       RecordModel? result;
+      log(json.toString());
       // Assume that `json` is a variable holding a JSON object
       //because there is a case where I might update yet there is no equivalent
       //object remote, in this case we will fallback in create

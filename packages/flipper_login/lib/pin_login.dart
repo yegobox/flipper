@@ -1,4 +1,5 @@
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
@@ -42,6 +43,7 @@ class _PinLoginState extends State<PinLogin> {
                               TextFormField(
                                 obscureText: _isObscure,
                                 decoration: InputDecoration(
+                                    labelStyle: primaryTextStyle,
                                     suffixIcon: IconButton(
                                       icon: Icon(
                                         _isObscure
@@ -85,10 +87,12 @@ class _PinLoginState extends State<PinLogin> {
                                                   is BusinessNotFoundException) {
                                                 ScaffoldMessenger.of(context)
                                                     .showSnackBar(
-                                                  const SnackBar(
+                                                  SnackBar(
                                                     backgroundColor: Colors.red,
                                                     content: Text(
-                                                        "Could not login with this pin."),
+                                                      "Could not login with this pin.",
+                                                      style: primaryTextStyle,
+                                                    ),
                                                   ),
                                                 );
                                               } else if (e
@@ -102,14 +106,9 @@ class _PinLoginState extends State<PinLogin> {
                                                   ),
                                                 );
                                               } else {
-                                                ScaffoldMessenger.of(context)
-                                                    .showSnackBar(
-                                                  const SnackBar(
-                                                    backgroundColor: Colors.red,
-                                                    content: Text(
-                                                        "Could not login with this pin."),
-                                                  ),
-                                                );
+                                                showToast(context,
+                                                    "Could not login with this pin.",
+                                                    color: Colors.red);
                                               }
                                               model.setIsprocessing(
                                                   value: false);

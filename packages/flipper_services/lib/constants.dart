@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 const String defaultApp = 'defaultApp';
 String parkedStatus = 'parked';
 const String pendingStatus = 'pending';
@@ -33,6 +34,11 @@ bool isWeb = UniversalPlatform.isWeb;
 bool isWindows = UniversalPlatform.isWindows;
 bool isDesktopOrWeb = UniversalPlatform.isDesktopOrWeb;
 ButtonStyle primaryButtonStyle = ButtonStyle(
+  shape: MaterialStateProperty.resolveWith<OutlinedBorder>((states) =>
+      RoundedRectangleBorder(borderRadius: BorderRadius.circular(0))),
+  side: MaterialStateProperty.resolveWith<BorderSide>((states) => BorderSide(
+        color: const Color(0xff006AFE),
+      )),
   backgroundColor: MaterialStateProperty.all<Color>(const Color(0xff006AFE)),
   overlayColor: MaterialStateProperty.resolveWith<Color?>(
     (Set<MaterialState> states) {
@@ -43,7 +49,7 @@ ButtonStyle primaryButtonStyle = ButtonStyle(
           states.contains(MaterialState.pressed)) {
         return Colors.blue.withOpacity(0.12);
       }
-      return null; // Defer to the widget's default.
+      return null;
     },
   ),
 );

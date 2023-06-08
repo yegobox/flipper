@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flipper_services/constants.dart';
 
 void showToast(BuildContext context, String message, {Object? color}) {
   Color? _color;
@@ -23,14 +24,17 @@ void showToast(BuildContext context, String message, {Object? color}) {
         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         decoration: BoxDecoration(
           color: _color,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(4),
         ),
         child: Center(
           child: FittedBox(
             fit: BoxFit.scaleDown,
             child: DefaultTextStyle(
               style: TextStyle(color: Colors.white),
-              child: Text(message),
+              child: Text(
+                message,
+                style: primaryTextStyle,
+              ),
             ),
           ),
         ),

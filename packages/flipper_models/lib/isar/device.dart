@@ -15,7 +15,6 @@ class Device extends IJsonSerializable {
   String linkingCode;
   String deviceName;
   String deviceVersion;
-  int busienssId;
   bool pubNubPublished;
   String phone;
   int branchId;
@@ -41,8 +40,7 @@ class Device extends IJsonSerializable {
       required this.branchId,
       required this.businessId,
       required this.userId,
-      required this.defaultApp,
-      required this.busienssId});
+      required this.defaultApp});
   factory Device.fromRecord(RecordModel record) =>
       Device.fromJson(record.toJson());
 

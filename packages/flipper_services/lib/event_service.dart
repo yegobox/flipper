@@ -106,7 +106,6 @@ class EventService implements EventInterface {
         if (device == null) {
           await ProxyService.isar.create(
               data: Device(
-                  busienssId: loginData.businessId,
                   pubNubPublished: false,
                   branchId: loginData.branchId,
                   businessId: loginData.businessId,
@@ -168,7 +167,6 @@ class EventService implements EventInterface {
       if (device == null) {
         await ProxyService.isar.create(
             data: Device(
-                busienssId: deviceEvent.businessId,
                 pubNubPublished: true,
                 branchId: deviceEvent.branchId,
                 businessId: deviceEvent.businessId,

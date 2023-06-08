@@ -309,7 +309,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
         : variation.productName;
 
     /// if variation  given it exist in the orderItems of currentPending order then we update the order with new count
-    Order? pendingOrder = await ProxyService.isar.manageOrder();
+    Order pendingOrder = await ProxyService.isar.manageOrder();
 
     OrderItem? existOrderItem = await ProxyService.isar.getOrderItemByVariantId(
         variantId: variationId, orderId: pendingOrder.id!);
@@ -330,7 +330,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       item: existOrderItem,
     );
     currentOrder();
-    rebuildUi();
+    notifyListeners();
     return true;
   }
 
@@ -340,7 +340,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   /// because we don't know if this is not something different you are selling at this point.
   Future<void> addOrderItems(
       {required int variationId,
-      required Order? pendingOrder,
+      required Order pendingOrder,
       required String name,
       required Variant variation,
       required Stock stock,

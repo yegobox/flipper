@@ -1,3 +1,4 @@
+import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'customappbar.dart';
@@ -69,22 +70,20 @@ class Sell extends StatelessWidget {
                         children: [
                           Text(
                             product.name,
-                            style: GoogleFonts.rubik(
-                              textStyle: TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 14,
-                                  color: Colors.grey[800]),
-                            ),
+                            style: primaryTextStyle.copyWith(
+                                fontWeight: FontWeight.w500,
+                                fontSize: 14,
+                                color: Colors.grey[800]),
                           ),
                           const SizedBox(
                             height: 4,
                           ),
                           Text(
                             '  CHOOSE ONE',
-                            style: GoogleFonts.rubik(
-                              textStyle: TextStyle(
-                                  fontSize: 11.0, color: Colors.grey[700]),
-                            ),
+                            style: primaryTextStyle.copyWith(
+                                fontWeight: FontWeight.w500,
+                                fontSize: 11,
+                                color: Colors.grey[700]),
                           )
                         ],
                       ),

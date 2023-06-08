@@ -32,23 +32,28 @@ const FavoriteSchema = CollectionSchema(
       name: r'favIndex',
       type: IsarType.long,
     ),
-    r'lastTouched': PropertySchema(
+    r'id': PropertySchema(
       id: 3,
+      name: r'id',
+      type: IsarType.long,
+    ),
+    r'lastTouched': PropertySchema(
+      id: 4,
       name: r'lastTouched',
       type: IsarType.string,
     ),
     r'localId': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'localId',
       type: IsarType.long,
     ),
     r'productId': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'productId',
       type: IsarType.long,
     ),
     r'remoteID': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'remoteID',
       type: IsarType.string,
     )
@@ -57,7 +62,7 @@ const FavoriteSchema = CollectionSchema(
   serialize: _favoriteSerialize,
   deserialize: _favoriteDeserialize,
   deserializeProp: _favoriteDeserializeProp,
-  idName: r'id',
+  idName: r'isarId',
   indexes: {
     r'favIndex': IndexSchema(
       id: 6770521250567016133,
@@ -143,10 +148,11 @@ void _favoriteSerialize(
   writer.writeString(offsets[0], object.action);
   writer.writeLong(offsets[1], object.branchId);
   writer.writeLong(offsets[2], object.favIndex);
-  writer.writeString(offsets[3], object.lastTouched);
-  writer.writeLong(offsets[4], object.localId);
-  writer.writeLong(offsets[5], object.productId);
-  writer.writeString(offsets[6], object.remoteID);
+  writer.writeLong(offsets[3], object.id);
+  writer.writeString(offsets[4], object.lastTouched);
+  writer.writeLong(offsets[5], object.localId);
+  writer.writeLong(offsets[6], object.productId);
+  writer.writeString(offsets[7], object.remoteID);
 }
 
 Favorite _favoriteDeserialize(
@@ -157,14 +163,14 @@ Favorite _favoriteDeserialize(
 ) {
   final object = Favorite(
     reader.readLongOrNull(offsets[2]),
-    reader.readLongOrNull(offsets[5]),
+    reader.readLongOrNull(offsets[6]),
     reader.readLongOrNull(offsets[1]),
   );
   object.action = reader.readStringOrNull(offsets[0]);
-  object.id = id;
-  object.lastTouched = reader.readStringOrNull(offsets[3]);
-  object.localId = reader.readLongOrNull(offsets[4]);
-  object.remoteID = reader.readStringOrNull(offsets[6]);
+  object.id = reader.readLongOrNull(offsets[3]);
+  object.lastTouched = reader.readStringOrNull(offsets[4]);
+  object.localId = reader.readLongOrNull(offsets[5]);
+  object.remoteID = reader.readStringOrNull(offsets[7]);
   return object;
 }
 
@@ -182,12 +188,14 @@ P _favoriteDeserializeProp<P>(
     case 2:
       return (reader.readLongOrNull(offset)) as P;
     case 3:
-      return (reader.readStringOrNull(offset)) as P;
-    case 4:
       return (reader.readLongOrNull(offset)) as P;
+    case 4:
+      return (reader.readStringOrNull(offset)) as P;
     case 5:
       return (reader.readLongOrNull(offset)) as P;
     case 6:
+      return (reader.readLongOrNull(offset)) as P;
+    case 7:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -195,16 +203,14 @@ P _favoriteDeserializeProp<P>(
 }
 
 Id _favoriteGetId(Favorite object) {
-  return object.id ?? Isar.autoIncrement;
+  return object.isarId;
 }
 
 List<IsarLinkBase<dynamic>> _favoriteGetLinks(Favorite object) {
   return [];
 }
 
-void _favoriteAttach(IsarCollection<dynamic> col, Id id, Favorite object) {
-  object.id = id;
-}
+void _favoriteAttach(IsarCollection<dynamic> col, Id id, Favorite object) {}
 
 extension FavoriteByIndex on IsarCollection<Favorite> {
   Future<Favorite?> getByFavIndex(int? favIndex) {
@@ -262,7 +268,7 @@ extension FavoriteByIndex on IsarCollection<Favorite> {
 }
 
 extension FavoriteQueryWhereSort on QueryBuilder<Favorite, Favorite, QWhere> {
-  QueryBuilder<Favorite, Favorite, QAfterWhere> anyId() {
+  QueryBuilder<Favorite, Favorite, QAfterWhere> anyIsarId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
     });
@@ -278,66 +284,68 @@ extension FavoriteQueryWhereSort on QueryBuilder<Favorite, Favorite, QWhere> {
 }
 
 extension FavoriteQueryWhere on QueryBuilder<Favorite, Favorite, QWhereClause> {
-  QueryBuilder<Favorite, Favorite, QAfterWhereClause> idEqualTo(Id id) {
+  QueryBuilder<Favorite, Favorite, QAfterWhereClause> isarIdEqualTo(Id isarId) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(
-        lower: id,
-        upper: id,
+        lower: isarId,
+        upper: isarId,
       ));
     });
   }
 
-  QueryBuilder<Favorite, Favorite, QAfterWhereClause> idNotEqualTo(Id id) {
+  QueryBuilder<Favorite, Favorite, QAfterWhereClause> isarIdNotEqualTo(
+      Id isarId) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
             .addWhereClause(
-              IdWhereClause.lessThan(upper: id, includeUpper: false),
+              IdWhereClause.lessThan(upper: isarId, includeUpper: false),
             )
             .addWhereClause(
-              IdWhereClause.greaterThan(lower: id, includeLower: false),
+              IdWhereClause.greaterThan(lower: isarId, includeLower: false),
             );
       } else {
         return query
             .addWhereClause(
-              IdWhereClause.greaterThan(lower: id, includeLower: false),
+              IdWhereClause.greaterThan(lower: isarId, includeLower: false),
             )
             .addWhereClause(
-              IdWhereClause.lessThan(upper: id, includeUpper: false),
+              IdWhereClause.lessThan(upper: isarId, includeUpper: false),
             );
       }
     });
   }
 
-  QueryBuilder<Favorite, Favorite, QAfterWhereClause> idGreaterThan(Id id,
+  QueryBuilder<Favorite, Favorite, QAfterWhereClause> isarIdGreaterThan(
+      Id isarId,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
-        IdWhereClause.greaterThan(lower: id, includeLower: include),
+        IdWhereClause.greaterThan(lower: isarId, includeLower: include),
       );
     });
   }
 
-  QueryBuilder<Favorite, Favorite, QAfterWhereClause> idLessThan(Id id,
+  QueryBuilder<Favorite, Favorite, QAfterWhereClause> isarIdLessThan(Id isarId,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
-        IdWhereClause.lessThan(upper: id, includeUpper: include),
+        IdWhereClause.lessThan(upper: isarId, includeUpper: include),
       );
     });
   }
 
-  QueryBuilder<Favorite, Favorite, QAfterWhereClause> idBetween(
-    Id lowerId,
-    Id upperId, {
+  QueryBuilder<Favorite, Favorite, QAfterWhereClause> isarIdBetween(
+    Id lowerIsarId,
+    Id upperIsarId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(
-        lower: lowerId,
+        lower: lowerIsarId,
         includeLower: includeLower,
-        upper: upperId,
+        upper: upperIsarId,
         includeUpper: includeUpper,
       ));
     });
@@ -886,7 +894,8 @@ extension FavoriteQueryFilter
     });
   }
 
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> idEqualTo(Id? value) {
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> idEqualTo(
+      int? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -896,7 +905,7 @@ extension FavoriteQueryFilter
   }
 
   QueryBuilder<Favorite, Favorite, QAfterFilterCondition> idGreaterThan(
-    Id? value, {
+    int? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -909,7 +918,7 @@ extension FavoriteQueryFilter
   }
 
   QueryBuilder<Favorite, Favorite, QAfterFilterCondition> idLessThan(
-    Id? value, {
+    int? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -922,14 +931,67 @@ extension FavoriteQueryFilter
   }
 
   QueryBuilder<Favorite, Favorite, QAfterFilterCondition> idBetween(
-    Id? lower,
-    Id? upper, {
+    int? lower,
+    int? upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
         property: r'id',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> isarIdEqualTo(
+      Id value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isarId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> isarIdGreaterThan(
+    Id value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'isarId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> isarIdLessThan(
+    Id value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'isarId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> isarIdBetween(
+    Id lower,
+    Id upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'isarId',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -1415,6 +1477,18 @@ extension FavoriteQuerySortBy on QueryBuilder<Favorite, Favorite, QSortBy> {
     });
   }
 
+  QueryBuilder<Favorite, Favorite, QAfterSortBy> sortById() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'id', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterSortBy> sortByIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'id', Sort.desc);
+    });
+  }
+
   QueryBuilder<Favorite, Favorite, QAfterSortBy> sortByLastTouched() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastTouched', Sort.asc);
@@ -1514,6 +1588,18 @@ extension FavoriteQuerySortThenBy
     });
   }
 
+  QueryBuilder<Favorite, Favorite, QAfterSortBy> thenByIsarId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isarId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterSortBy> thenByIsarIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isarId', Sort.desc);
+    });
+  }
+
   QueryBuilder<Favorite, Favorite, QAfterSortBy> thenByLastTouched() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastTouched', Sort.asc);
@@ -1584,6 +1670,12 @@ extension FavoriteQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Favorite, Favorite, QDistinct> distinctById() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'id');
+    });
+  }
+
   QueryBuilder<Favorite, Favorite, QDistinct> distinctByLastTouched(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -1613,9 +1705,9 @@ extension FavoriteQueryWhereDistinct
 
 extension FavoriteQueryProperty
     on QueryBuilder<Favorite, Favorite, QQueryProperty> {
-  QueryBuilder<Favorite, int, QQueryOperations> idProperty() {
+  QueryBuilder<Favorite, int, QQueryOperations> isarIdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'id');
+      return query.addPropertyName(r'isarId');
     });
   }
 
@@ -1634,6 +1726,12 @@ extension FavoriteQueryProperty
   QueryBuilder<Favorite, int?, QQueryOperations> favIndexProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'favIndex');
+    });
+  }
+
+  QueryBuilder<Favorite, int?, QQueryOperations> idProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'id');
     });
   }
 

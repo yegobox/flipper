@@ -123,5 +123,3 @@ class App {}
 // flutterfire configure
 // git submodule deinit -f open-sources/plus_plugins
 
-// TODO: - add localId in model
-//  - add devices model in prod database

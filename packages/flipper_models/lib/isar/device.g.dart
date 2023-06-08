@@ -27,63 +27,58 @@ const DeviceSchema = CollectionSchema(
       name: r'branchId',
       type: IsarType.long,
     ),
-    r'busienssId': PropertySchema(
-      id: 2,
-      name: r'busienssId',
-      type: IsarType.long,
-    ),
     r'businessId': PropertySchema(
-      id: 3,
+      id: 2,
       name: r'businessId',
       type: IsarType.long,
     ),
     r'defaultApp': PropertySchema(
-      id: 4,
+      id: 3,
       name: r'defaultApp',
       type: IsarType.long,
     ),
     r'deviceName': PropertySchema(
-      id: 5,
+      id: 4,
       name: r'deviceName',
       type: IsarType.string,
     ),
     r'deviceVersion': PropertySchema(
-      id: 6,
+      id: 5,
       name: r'deviceVersion',
       type: IsarType.string,
     ),
     r'lastTouched': PropertySchema(
-      id: 7,
+      id: 6,
       name: r'lastTouched',
       type: IsarType.string,
     ),
     r'linkingCode': PropertySchema(
-      id: 8,
+      id: 7,
       name: r'linkingCode',
       type: IsarType.string,
     ),
     r'localId': PropertySchema(
-      id: 9,
+      id: 8,
       name: r'localId',
       type: IsarType.long,
     ),
     r'phone': PropertySchema(
-      id: 10,
+      id: 9,
       name: r'phone',
       type: IsarType.string,
     ),
     r'pubNubPublished': PropertySchema(
-      id: 11,
+      id: 10,
       name: r'pubNubPublished',
       type: IsarType.bool,
     ),
     r'remoteID': PropertySchema(
-      id: 12,
+      id: 11,
       name: r'remoteID',
       type: IsarType.string,
     ),
     r'userId': PropertySchema(
-      id: 13,
+      id: 12,
       name: r'userId',
       type: IsarType.long,
     )
@@ -168,18 +163,17 @@ void _deviceSerialize(
 ) {
   writer.writeString(offsets[0], object.action);
   writer.writeLong(offsets[1], object.branchId);
-  writer.writeLong(offsets[2], object.busienssId);
-  writer.writeLong(offsets[3], object.businessId);
-  writer.writeLong(offsets[4], object.defaultApp);
-  writer.writeString(offsets[5], object.deviceName);
-  writer.writeString(offsets[6], object.deviceVersion);
-  writer.writeString(offsets[7], object.lastTouched);
-  writer.writeString(offsets[8], object.linkingCode);
-  writer.writeLong(offsets[9], object.localId);
-  writer.writeString(offsets[10], object.phone);
-  writer.writeBool(offsets[11], object.pubNubPublished);
-  writer.writeString(offsets[12], object.remoteID);
-  writer.writeLong(offsets[13], object.userId);
+  writer.writeLong(offsets[2], object.businessId);
+  writer.writeLong(offsets[3], object.defaultApp);
+  writer.writeString(offsets[4], object.deviceName);
+  writer.writeString(offsets[5], object.deviceVersion);
+  writer.writeString(offsets[6], object.lastTouched);
+  writer.writeString(offsets[7], object.linkingCode);
+  writer.writeLong(offsets[8], object.localId);
+  writer.writeString(offsets[9], object.phone);
+  writer.writeBool(offsets[10], object.pubNubPublished);
+  writer.writeString(offsets[11], object.remoteID);
+  writer.writeLong(offsets[12], object.userId);
 }
 
 Device _deviceDeserialize(
@@ -190,21 +184,20 @@ Device _deviceDeserialize(
 ) {
   final object = Device(
     branchId: reader.readLong(offsets[1]),
-    busienssId: reader.readLong(offsets[2]),
-    businessId: reader.readLong(offsets[3]),
-    defaultApp: reader.readLong(offsets[4]),
-    deviceName: reader.readString(offsets[5]),
-    deviceVersion: reader.readString(offsets[6]),
-    linkingCode: reader.readString(offsets[8]),
-    phone: reader.readString(offsets[10]),
-    pubNubPublished: reader.readBool(offsets[11]),
-    userId: reader.readLong(offsets[13]),
+    businessId: reader.readLong(offsets[2]),
+    defaultApp: reader.readLong(offsets[3]),
+    deviceName: reader.readString(offsets[4]),
+    deviceVersion: reader.readString(offsets[5]),
+    linkingCode: reader.readString(offsets[7]),
+    phone: reader.readString(offsets[9]),
+    pubNubPublished: reader.readBool(offsets[10]),
+    userId: reader.readLong(offsets[12]),
   );
   object.action = reader.readStringOrNull(offsets[0]);
   object.id = id;
-  object.lastTouched = reader.readStringOrNull(offsets[7]);
-  object.localId = reader.readLongOrNull(offsets[9]);
-  object.remoteID = reader.readStringOrNull(offsets[12]);
+  object.lastTouched = reader.readStringOrNull(offsets[6]);
+  object.localId = reader.readLongOrNull(offsets[8]);
+  object.remoteID = reader.readStringOrNull(offsets[11]);
   return object;
 }
 
@@ -224,24 +217,22 @@ P _deviceDeserializeProp<P>(
     case 3:
       return (reader.readLong(offset)) as P;
     case 4:
-      return (reader.readLong(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 5:
       return (reader.readString(offset)) as P;
     case 6:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 7:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 8:
-      return (reader.readString(offset)) as P;
-    case 9:
       return (reader.readLongOrNull(offset)) as P;
-    case 10:
+    case 9:
       return (reader.readString(offset)) as P;
-    case 11:
+    case 10:
       return (reader.readBool(offset)) as P;
-    case 12:
+    case 11:
       return (reader.readStringOrNull(offset)) as P;
-    case 13:
+    case 12:
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -657,59 +648,6 @@ extension DeviceQueryFilter on QueryBuilder<Device, Device, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
         property: r'branchId',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<Device, Device, QAfterFilterCondition> busienssIdEqualTo(
-      int value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'busienssId',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Device, Device, QAfterFilterCondition> busienssIdGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'busienssId',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Device, Device, QAfterFilterCondition> busienssIdLessThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'busienssId',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Device, Device, QAfterFilterCondition> busienssIdBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'busienssId',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -1866,18 +1804,6 @@ extension DeviceQuerySortBy on QueryBuilder<Device, Device, QSortBy> {
     });
   }
 
-  QueryBuilder<Device, Device, QAfterSortBy> sortByBusienssId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'busienssId', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Device, Device, QAfterSortBy> sortByBusienssIdDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'busienssId', Sort.desc);
-    });
-  }
-
   QueryBuilder<Device, Device, QAfterSortBy> sortByBusinessId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'businessId', Sort.asc);
@@ -2033,18 +1959,6 @@ extension DeviceQuerySortThenBy on QueryBuilder<Device, Device, QSortThenBy> {
   QueryBuilder<Device, Device, QAfterSortBy> thenByBranchIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'branchId', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Device, Device, QAfterSortBy> thenByBusienssId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'busienssId', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Device, Device, QAfterSortBy> thenByBusienssIdDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'busienssId', Sort.desc);
     });
   }
 
@@ -2207,12 +2121,6 @@ extension DeviceQueryWhereDistinct on QueryBuilder<Device, Device, QDistinct> {
     });
   }
 
-  QueryBuilder<Device, Device, QDistinct> distinctByBusienssId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'busienssId');
-    });
-  }
-
   QueryBuilder<Device, Device, QDistinct> distinctByBusinessId() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'businessId');
@@ -2306,12 +2214,6 @@ extension DeviceQueryProperty on QueryBuilder<Device, Device, QQueryProperty> {
     });
   }
 
-  QueryBuilder<Device, int, QQueryOperations> busienssIdProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'busienssId');
-    });
-  }
-
   QueryBuilder<Device, int, QQueryOperations> businessIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'businessId');
@@ -2393,7 +2295,6 @@ Device _$DeviceFromJson(Map<String, dynamic> json) => Device(
       businessId: json['businessId'] as int,
       userId: json['userId'] as int,
       defaultApp: json['defaultApp'] as int,
-      busienssId: json['busienssId'] as int,
     )
       ..id = json['id'] as int?
       ..lastTouched = json['lastTouched'] as String?
@@ -2406,7 +2307,6 @@ Map<String, dynamic> _$DeviceToJson(Device instance) => <String, dynamic>{
       'linkingCode': instance.linkingCode,
       'deviceName': instance.deviceName,
       'deviceVersion': instance.deviceVersion,
-      'busienssId': instance.busienssId,
       'pubNubPublished': instance.pubNubPublished,
       'phone': instance.phone,
       'branchId': instance.branchId,
