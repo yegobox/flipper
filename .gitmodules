@@ -47,9 +47,6 @@
 [submodule "open-sources/flutter_luban"]
 	path = open-sources/flutter_luban
 	url = https://github.com/yegobox/flutter_luban.git
-[submodule "open-sources/flutter_launcher_icons"]
-	path = open-sources/flutter_launcher_icons
-	url = https://github.com/yegobox/flutter_launcher_icons.git
 [submodule "open-sources/form_block"]
 	path = open-sources/form_block
 	url = https://github.com/GiancarloCode/form_bloc.git
