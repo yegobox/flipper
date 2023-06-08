@@ -1,6 +1,9 @@
+import 'dart:developer';
+
 import 'package:flipper_dashboard/letter.dart';
 import 'package:flipper_dashboard/progress.dart';
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/abstractions/upload.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -27,6 +30,7 @@ class _ProfileWidgetState extends State<ProfileWidget>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   final _dialogService = locator<DialogService>();
+  final _routerService = locator<RouterService>();
   @override
   void initState() {
     super.initState();
@@ -46,77 +50,12 @@ class _ProfileWidgetState extends State<ProfileWidget>
         builder: (context, model, child) {
           return Stack(
             children: [
-              StreamBuilder<Business>(
-                  stream: ProxyService.isar
-                      .businessStream(businessId: widget.tenant.businessId),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasData) {
-                      final data = snapshot.data;
-                      if (data!.imageUrl == null) {
-                        return GestureDetector(
-                          onTap: () {
-                            _dialogService.showCustomDialog(
-                                variant: DialogType.logOut, title: 'Log out');
-                          },
-                          child: GmailLikeLetter(
-                            tenant: widget.tenant,
-                            size: widget.size,
-                          ),
-                        );
-                      } else {
-                        return GestureDetector(
-                          onTap: () {
-                            _dialogService.showCustomDialog(
-                                variant: DialogType.logOut, title: 'Log out');
-                          },
-                          child: SizedBox(
-                            width: isDesktopOrWeb ? 50 : 100,
-                            height: isDesktopOrWeb ? 50 : 100,
-                            child: Container(
-                              width: isDesktopOrWeb ? 50 : 100,
-                              height: isDesktopOrWeb ? 50 : 100,
-                              decoration: BoxDecoration(
-                                color: Colors.pink,
-                                borderRadius: BorderRadius.circular(45),
-                                border: Border.all(
-                                  color: Colors.pink,
-                                  width: 2.0,
-                                ),
-                              ),
-                              child: ClipOval(
-                                child: CachedNetworkImage(
-                                  imageUrl: data.imageUrl!,
-                                  placeholder: (context, url) =>
-                                      GmailLikeLetter(
-                                    tenant: widget.tenant,
-                                    size: widget.size,
-                                  ),
-                                  errorWidget: (context, url, error) =>
-                                      GmailLikeLetter(
-                                    tenant: widget.tenant,
-                                    size: widget.size,
-                                  ),
-                                  width: 100,
-                                  height: 100,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-                      }
-                    }
-                    return GestureDetector(
-                      onTap: () {
-                        _dialogService.showCustomDialog(
-                            variant: DialogType.logOut, title: 'Log out');
-                      },
-                      child: GmailLikeLetter(
-                        tenant: widget.tenant,
-                        size: widget.size,
-                      ),
-                    );
-                  }),
+              !isDesktopOrWeb
+                  ? PMobile(widget: widget, dialogService: _dialogService)
+                  : PDesktop(
+                      widget: widget,
+                      dialogService: _dialogService,
+                      routeService: _routerService),
               !isDesktopOrWeb
                   ? Positioned(
                       bottom: 0,
@@ -157,5 +96,162 @@ class _ProfileWidgetState extends State<ProfileWidget>
             ],
           );
         });
+  }
+}
+
+class PDesktop extends StatelessWidget {
+  const PDesktop({
+    Key? key,
+    required this.widget,
+    required this.dialogService,
+    required this.routeService,
+  });
+
+  final DialogService dialogService;
+  final RouterService routeService;
+  final ProfileWidget widget;
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<Business>(
+      stream: ProxyService.isar
+          .businessStream(businessId: widget.tenant.businessId),
+      builder: (context, snapshot) {
+        final data = snapshot.data;
+        final hasImage = data?.imageUrl != null;
+
+        Widget buildContent() {
+          return PopupMenuButton<String>(
+            onSelected: (value) async {
+              if (value == 'logOut') {
+                log('logout selected');
+                await ProxyService.isar.logOut();
+                routeService.clearStackAndShow(LoginViewRoute());
+              }
+            },
+            itemBuilder: (BuildContext context) => [
+              PopupMenuItem<String>(
+                value: 'logOut',
+                child: Text(
+                  'Log out',
+                  style: primaryTextStyle,
+                ),
+              ),
+            ],
+            child: hasImage
+                ? SizedBox(
+                    width: isDesktopOrWeb ? 50 : 100,
+                    height: isDesktopOrWeb ? 50 : 100,
+                    child: Container(
+                      width: isDesktopOrWeb ? 50 : 100,
+                      height: isDesktopOrWeb ? 50 : 100,
+                      decoration: BoxDecoration(
+                        color: Colors.pink,
+                        borderRadius: BorderRadius.circular(45),
+                        border: Border.all(
+                          color: Colors.pink,
+                          width: 2.0,
+                        ),
+                      ),
+                      child: ClipOval(
+                        child: CachedNetworkImage(
+                          imageUrl: data!.imageUrl!,
+                          placeholder: (context, url) => GmailLikeLetter(
+                            tenant: widget.tenant,
+                            size: widget.size,
+                          ),
+                          errorWidget: (context, url, error) => GmailLikeLetter(
+                            tenant: widget.tenant,
+                            size: widget.size,
+                          ),
+                          width: 100,
+                          height: 100,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                  )
+                : GmailLikeLetter(
+                    tenant: widget.tenant,
+                    size: widget.size,
+                  ),
+          );
+        }
+
+        return buildContent();
+      },
+    );
+  }
+}
+
+class PMobile extends StatelessWidget {
+  const PMobile({
+    super.key,
+    required this.widget,
+    required DialogService dialogService,
+  }) : _dialogService = dialogService;
+
+  final DialogService _dialogService;
+  final ProfileWidget widget;
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<Business>(
+      stream: ProxyService.isar
+          .businessStream(businessId: widget.tenant.businessId),
+      builder: (context, snapshot) {
+        final hasData = snapshot.hasData;
+        final data = snapshot.data;
+        final hasImage = data?.imageUrl != null;
+
+        Widget buildContent() {
+          return GestureDetector(
+            onTap: () {
+              _dialogService.showCustomDialog(
+                  variant: DialogType.logOut, title: 'Log out');
+            },
+            child: hasImage
+                ? SizedBox(
+                    width: isDesktopOrWeb ? 50 : 100,
+                    height: isDesktopOrWeb ? 50 : 100,
+                    child: Container(
+                      width: isDesktopOrWeb ? 50 : 100,
+                      height: isDesktopOrWeb ? 50 : 100,
+                      decoration: BoxDecoration(
+                        color: Colors.pink,
+                        borderRadius: BorderRadius.circular(45),
+                        border: Border.all(
+                          color: Colors.pink,
+                          width: 2.0,
+                        ),
+                      ),
+                      child: ClipOval(
+                        child: CachedNetworkImage(
+                          imageUrl: data!.imageUrl!,
+                          placeholder: (context, url) => GmailLikeLetter(
+                            tenant: widget.tenant,
+                            size: widget.size,
+                          ),
+                          errorWidget: (context, url, error) => GmailLikeLetter(
+                            tenant: widget.tenant,
+                            size: widget.size,
+                          ),
+                          width: 100,
+                          height: 100,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                  )
+                : GmailLikeLetter(
+                    tenant: widget.tenant,
+                    size: widget.size,
+                  ),
+          );
+        }
+
+        return buildContent();
+      },
+    );
   }
 }
