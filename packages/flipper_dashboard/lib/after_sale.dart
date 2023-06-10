@@ -44,7 +44,6 @@ class _AfterSaleState extends State<AfterSale> {
               appBar: CustomAppBar(
                 useTransparentButton: false,
                 onPop: () {
-                  model.currentOrder();
                   _routerService.clearStackAndShow(FlipperAppRoute());
                 },
                 closeButton: CLOSEBUTTON.BUTTON,
@@ -167,6 +166,7 @@ class _AfterSaleState extends State<AfterSale> {
                                                   List<OrderItem> items =
                                                       await ProxyService.isar
                                                           .orderItems(
+                                                    doneWithOrder: false,
                                                     orderId: widget.order.id!,
                                                   );
                                                   model.printReceipt(
@@ -228,9 +228,7 @@ class _AfterSaleState extends State<AfterSale> {
                                             onPressed: () {
                                               // refresh orders
                                               model.keyboardKeyPressed(
-                                                  key:
-                                                      'C'); // to clear the keyboard
-                                              model.currentOrder();
+                                                  key: 'C');
                                               _routerService.clearStackAndShow(
                                                   FlipperAppRoute());
                                             },
@@ -276,7 +274,6 @@ class _AfterSaleState extends State<AfterSale> {
                                             title: 'No Receipt',
                                             onTap: () {
                                               // refresh orders
-                                              model.currentOrder();
                                               model.keyboardKeyPressed(
                                                   key:
                                                       'C'); // to clear the keyboard
@@ -320,8 +317,8 @@ class _AfterSaleState extends State<AfterSale> {
           // generate rra receipt
           if (await ProxyService.isar.isTaxEnabled()) {
             Business? business = await ProxyService.isar.getBusiness();
-            List<OrderItem> items =
-                await ProxyService.isar.orderItems(orderId: widget.order.id!);
+            List<OrderItem> items = await ProxyService.isar
+                .orderItems(orderId: widget.order.id!, doneWithOrder: false);
 
             final bool isDone = await model.generateRRAReceipt(
                 items: items,

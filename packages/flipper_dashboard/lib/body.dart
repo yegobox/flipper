@@ -25,15 +25,11 @@ Widget PaymentTicketManager(
   return SalesButtonsController(
     tab: model.tab,
     model: model,
-    saleCounts: model.keypad.itemsOnSale,
     payable: PayableView(
       model: model,
-      saleCounts: model.keypad.itemsOnSale,
       onClick: () {
         if (model.kOrder != null) {
-          _routerService.navigateTo(PaymentsRoute(
-              order: model.kOrder!,
-              duePay: model.items.fold(0, (a, b) => a + (b.price * b.qty))));
+          _routerService.navigateTo(PaymentsRoute(order: model.kOrder!));
         } else {
           showSimpleNotification(
             Text(FLocalization.of(context).noPayable),
@@ -42,8 +38,6 @@ Widget PaymentTicketManager(
           );
         }
       },
-      tickets: model.keypad.tickets.length.toDouble(),
-      orders: model.keypad.itemsOnSale,
       duePay: model.kOrder?.subTotal,
       ticketHandler: () async {
         Order order = await ProxyService.isar.manageOrder();

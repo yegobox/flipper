@@ -7,15 +7,6 @@ class KeyPadService with ListenableServiceMixin {
   final _key = ReactiveValue<String>("0.00");
   Stack stack = Stack<String>();
 
-  final _itemsOnSale = ReactiveValue<int>(0);
-
-  get itemsOnSale => _itemsOnSale.value;
-
-  /// [CAUTION] do not add notify lister on this method
-  setItemsOnSale({required int count}) {
-    _itemsOnSale.value = count;
-  }
-
   final _quantity = ReactiveValue<int>(1);
 
   get quantity => _quantity.value;
@@ -56,22 +47,6 @@ class KeyPadService with ListenableServiceMixin {
     _check.value = variantId;
   }
 
-  final _tickets = ReactiveValue<List<Order>>([]);
-
-  List<Order> get tickets => _tickets.value;
-  Future<List<Order>> getTickets() async {
-    List<Order> tickets = await ProxyService.isar.tickets();
-    //NOTE: we assume index[0] as pending order can not be more than one at the moment
-    if (tickets.isNotEmpty) {
-      List<OrderItem> orderItems = await ProxyService.isar
-          .getOrderItemsByOrderId(orderId: tickets.first.id!);
-      _countOrderItems.value = orderItems.length;
-    }
-    _tickets.value = tickets;
-    notifyListeners();
-    return _tickets.value;
-  }
-
   /// all the time we have one order being processed at the time.
   /// one order can have multiple order items.
   final _order = ReactiveValue<Order?>(null);
@@ -105,8 +80,8 @@ class KeyPadService with ListenableServiceMixin {
     Order? order = await ProxyService.isar.pendingOrder(branchId: branchId);
 
     if (order != null) {
-      List<OrderItem> items =
-          await ProxyService.isar.orderItems(orderId: order.id!);
+      List<OrderItem> items = await ProxyService.isar
+          .orderItems(orderId: order.id!, doneWithOrder: false);
       _countOrderItems.value = items.length;
     }
     _order.value = order;
@@ -178,7 +153,6 @@ class KeyPadService with ListenableServiceMixin {
       _quantity,
       _amountTotal,
       _check,
-      _itemsOnSale,
       _cashReceived,
       _totalPayable,
       _totalDiscount

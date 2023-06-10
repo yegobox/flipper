@@ -24,7 +24,7 @@ dependencies:
   firebase_storage: ^11.0.2
   file_picker: ^5.2.11
 
-  stacked: ^3.2.5
+  stacked: ^3.4.0
   azlistview: ^2.0.0
   qr_code_scanner: ^1.0.1
   # I will abandon qr_code_scanner and switch to mobile_scanner even though this

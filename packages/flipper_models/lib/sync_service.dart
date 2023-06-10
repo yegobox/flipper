@@ -25,9 +25,8 @@ class SynchronizationService<M extends IJsonSerializable>
       Map<String, dynamic> json = model.toJson();
 
       if (endpoint == "orders") {
-        String namesString = (await ProxyService.isar.orderItems(
-          orderId: json["localId"],
-        ))
+        String namesString = (await ProxyService.isar
+                .orderItems(orderId: json["localId"], doneWithOrder: false))
             .map((item) => item.name)
             .join(',');
         json["itemName"] = namesString;

@@ -23,7 +23,7 @@ export 'package:flipper_dashboard/new_ticket.dart';
 export 'package:flipper_dashboard/startup_view.dart';
 export 'package:flipper_dashboard/inapp_browser.dart';
 export 'package:flipper_dashboard/order.dart';
-export 'package:flipper_dashboard/payment_options.dart';
+export 'package:flipper_dashboard/payments.dart';
 export 'package:flipper_dashboard/scanner_view.dart';
 export 'package:flipper_dashboard/sell.dart';
 export 'package:flipper_dashboard/setting_secreen.dart';

@@ -1,27 +1,21 @@
-import 'dart:developer';
 import 'package:flipper_dashboard/preview_sale_button.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class PayableView extends StatelessWidget {
   const PayableView(
       {Key? key,
-      this.tickets = 0,
       this.duePay = 0,
-      this.orders = 0,
       required this.onClick,
       required this.ticketHandler,
-      required this.saleCounts,
       required this.model})
       : super(key: key);
-  final double tickets;
-  final int orders;
   final double? duePay;
   final Function onClick;
   final Function ticketHandler;
-  final int saleCounts;
   final BusinessHomeViewModel model;
 
   @override
@@ -35,91 +29,94 @@ class PayableView extends StatelessWidget {
               child: SizedBox(
             height: 64,
             child: TextButton(
-                style: ButtonStyle(
-                  shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
-                    (states) => RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                  ),
-                  backgroundColor:
-                      MaterialStateProperty.all<Color>(const Color(0xffF2F2F2)),
-                  overlayColor: MaterialStateProperty.resolveWith<Color?>(
-                    (Set<MaterialState> states) {
-                      if (states.contains(MaterialState.hovered)) {
-                        return Colors.blue.withOpacity(0.04);
-                      }
-                      if (states.contains(MaterialState.focused) ||
-                          states.contains(MaterialState.pressed)) {
-                        return Colors.blue.withOpacity(0.12);
-                      }
-                      return null; // Defer to the widget's default.
-                    },
+              style: ButtonStyle(
+                shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
+                  (states) => RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0),
                   ),
                 ),
-                onPressed: () {
-                  ticketHandler();
+                backgroundColor:
+                    MaterialStateProperty.all<Color>(const Color(0xffF2F2F2)),
+                overlayColor: MaterialStateProperty.resolveWith<Color?>(
+                  (Set<MaterialState> states) {
+                    if (states.contains(MaterialState.hovered)) {
+                      return Colors.blue.withOpacity(0.04);
+                    }
+                    if (states.contains(MaterialState.focused) ||
+                        states.contains(MaterialState.pressed)) {
+                      return Colors.blue.withOpacity(0.12);
+                    }
+                    return null; // Defer to the widget's default.
+                  },
+                ),
+              ),
+              onPressed: () {
+                ticketHandler();
+              },
+              child: StreamBuilder<List<Order>>(
+                stream: ProxyService.isar.ticketsStreams(),
+                builder: (context, snapshot) {
+                  final List<Order> orders = snapshot.data ?? [];
+                  final int tickets = orders.length;
+
+                  return StreamBuilder<List<Order>>(
+                    stream: ProxyService.isar.pendingOrderStreams(),
+                    builder: (context, snapshot) {
+                      final List<Order> pendingOrders = snapshot.data ?? [];
+                      final int ordersCount = pendingOrders.length;
+
+                      return Ticket(
+                        tickets: tickets,
+                        orders: ordersCount,
+                        context: context,
+                      );
+                    },
+                  );
                 },
-                child: ticketText(
-                    tickets: tickets.toInt(),
-                    orders: orders,
-                    context: context)),
+              ),
+            ),
           )),
           const SizedBox(
             width: 10,
           ),
-          PreviewSaleButton(saleCounts: saleCounts, model: model)
+          PreviewSaleButton(model: model)
         ],
       ),
     );
   }
 
-  Widget ticketText(
-      {required int tickets,
-      required int orders,
-      required BuildContext context}) {
-    log("ticketText:" + tickets.toString());
-    if (tickets > 0 || orders == 0) {
-      return Text(
-        FLocalization.of(context).tickets,
-        textAlign: TextAlign.center,
-        style: GoogleFonts.poppins(
-          fontSize: 17,
-          fontWeight: FontWeight.w400,
-          color: Colors.black,
-        ),
-      );
-    } else if (orders > 0) {
-      return Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Text(
-            FLocalization.of(context).save,
+  Widget Ticket({
+    required int tickets,
+    required int orders,
+    required BuildContext context,
+  }) {
+    final bool hasTickets = tickets > 0;
+    final bool hasNoOrders = orders == 0;
+
+    return hasTickets || hasNoOrders
+        ? Text(
+            FLocalization.of(context).tickets,
             textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(
-              fontSize: 17,
-              fontWeight: FontWeight.w400,
-              color: Colors.black,
-            ),
-          ),
-          Text(
-            orders.toString() + ' New Item' + (tickets > 1 ? 's' : ''),
-            textAlign: TextAlign.center,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.poppins(
-              fontSize: 17,
-              fontWeight: FontWeight.w400,
-              color: Colors.black,
-            ),
+            style: primaryTextStyle.copyWith(
+                fontWeight: FontWeight.w400, fontSize: 17),
           )
-        ],
-      );
-    } else {
-      return Text(
-        "Error: Invalid parameters passed to ticketText",
-        textAlign: TextAlign.center,
-        style: GoogleFonts.poppins(
-            fontSize: 17, fontWeight: FontWeight.w400, color: Colors.red),
-      );
-    }
+        : Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Text(
+                FLocalization.of(context).save,
+                textAlign: TextAlign.center,
+                style: primaryTextStyle.copyWith(
+                    fontWeight: FontWeight.w400, fontSize: 17),
+              ),
+              Text(
+                'New Order${tickets > 1 ? 's' : ''}',
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+                style: primaryTextStyle.copyWith(
+                    fontWeight: FontWeight.w400, fontSize: 17),
+              ),
+            ],
+          );
   }
 }

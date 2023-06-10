@@ -1,6 +1,7 @@
 library flipper_models;
 
 import 'dart:async';
+import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_routing/receipt_types.dart';
 import 'package:flipper_services/locator.dart';
@@ -90,120 +91,177 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
   void keyboardKeyPressed({required String key}) async {
     ProxyService.analytics.trackEvent("keypad", {'feature_name': 'keypad_tab'});
-    if (key == 'C') {
-      Order pendingOrder = await ProxyService.isar.manageOrder();
 
-      List<OrderItem> items =
-          await ProxyService.isar.orderItems(orderId: pendingOrder.id!);
+    Order? pendingOrder = await ProxyService.isar.manageOrder();
+    List<OrderItem> items = await ProxyService.isar
+        .orderItems(orderId: pendingOrder.id!, doneWithOrder: false);
 
-      if (items.isEmpty) {
+    switch (key) {
+      case 'C':
+        handleClearKey(items, pendingOrder);
+        break;
+
+      case '+':
+        for (OrderItem item in items) {
+          /// mark the item on the order as true so next time we will create new one
+          /// instead of updating existing one
+          item.doneWithOrder = true;
+          await ProxyService.isar.update(data: item);
+        }
         ProxyService.keypad.reset();
-        return;
+        rebuildUi();
+        break;
+
+      default:
+        ProxyService.keypad.addKey(key);
+        if (ProxyService.keypad.key.length == 1) {
+          handleSingleDigitKey(items, pendingOrder);
+        } else if (ProxyService.keypad.key.length > 1) {
+          handleMultipleDigitKey(items, pendingOrder);
+        }
+        break;
+    }
+  }
+
+  void handleClearKey(List<OrderItem> items, Order pendingOrder) async {
+    if (items.isEmpty) {
+      ProxyService.keypad.reset();
+      return;
+    }
+
+    OrderItem itemToDelete = items.last;
+    await ProxyService.isar.delete(id: itemToDelete.id!, endPoint: 'orderItem');
+
+    List<OrderItem> updatedItems = await ProxyService.isar
+        .orderItems(orderId: pendingOrder.id!, doneWithOrder: false);
+    pendingOrder.subTotal =
+        updatedItems.fold(0, (a, b) => a + (b.price * b.qty));
+    pendingOrder.updatedAt = DateTime.now().toIso8601String();
+    await ProxyService.isar.update(data: pendingOrder);
+    ProxyService.keypad.reset();
+
+    Order? updatedOrder =
+        await ProxyService.isar.getOrderById(id: pendingOrder.id!);
+    keypad.setOrder(updatedOrder);
+
+    rebuildUi();
+  }
+
+  void handleSingleDigitKey(List<OrderItem> items, Order pendingOrder) async {
+    double amount = double.parse(ProxyService.keypad.key);
+
+    if (amount == 0.0) return;
+
+    Variant? variation = await ProxyService.isar.getCustomVariant();
+    if (variation == null) return;
+
+    Stock? stock =
+        await ProxyService.isar.stockByVariantId(variantId: variation.id!);
+    if (stock == null) {
+      stock = await ProxyService.isar.addStockToVariant(variant: variation);
+    }
+
+    String name = variation.productName != 'Custom Amount'
+        ? '${variation.productName}(${variation.name})'
+        : variation.productName;
+
+    if (items.isEmpty) {
+      OrderItem newItem =
+          newOrderItem(amount, variation, name, pendingOrder, stock!);
+      await ProxyService.isar.addOrderItem(order: pendingOrder, item: newItem);
+      items = await ProxyService.isar
+          .orderItems(orderId: pendingOrder.id!, doneWithOrder: false);
+    } else {
+      items = await ProxyService.isar
+          .orderItems(orderId: pendingOrder.id!, doneWithOrder: false);
+    }
+
+    pendingOrder.subTotal = items.fold(0, (a, b) => a + (b.price * b.qty));
+    pendingOrder.updatedAt = DateTime.now().toIso8601String();
+    await ProxyService.isar.update(data: pendingOrder);
+
+    keypad.setOrder(pendingOrder);
+  }
+
+  void handleMultipleDigitKey(List<OrderItem> items, Order pendingOrder) async {
+    double amount = double.parse(ProxyService.keypad.key);
+    Variant? variation = await ProxyService.isar.getCustomVariant();
+    if (variation == null) return;
+
+    if (items.isEmpty) {
+      Stock? stock =
+          await ProxyService.isar.stockByVariantId(variantId: variation.id!);
+      if (stock == null) {
+        stock = await ProxyService.isar.addStockToVariant(variant: variation);
       }
 
-      OrderItem itemToDelete = items.last;
-      await ProxyService.isar
-          .delete(id: itemToDelete.id, endPoint: 'orderItem');
+      String name = variation.productName != 'Custom Amount'
+          ? '${variation.productName}(${variation.name})'
+          : variation.productName;
 
-      List<OrderItem> updatedItems =
-          await ProxyService.isar.orderItems(orderId: pendingOrder.id!);
-      pendingOrder.subTotal =
-          updatedItems.fold(0, (a, b) => a + (b.price * b.qty));
+      OrderItem? existOrderItem = await ProxyService.isar
+          .getOrderItemByVariantId(
+              variantId: variation.id!, orderId: pendingOrder.id!);
+
+      if (existOrderItem != null) {
+        existOrderItem.qty = existOrderItem.qty + 1;
+        existOrderItem.price = amount / 1; // price of one unit
+
+        List<OrderItem> items = await ProxyService.isar
+            .orderItems(orderId: pendingOrder.id!, doneWithOrder: false);
+        pendingOrder.subTotal =
+            items.fold(0, (a, b) => a + (b.price * b.qty) + amount);
+        pendingOrder.updatedAt = DateTime.now().toIso8601String();
+        ProxyService.isar.update(data: pendingOrder);
+        ProxyService.isar.update(data: existOrderItem);
+      } else {
+        OrderItem newItem =
+            newOrderItem(amount, variation, name, pendingOrder, stock!);
+
+        List<OrderItem> items = await ProxyService.isar
+            .orderItems(orderId: pendingOrder.id!, doneWithOrder: false);
+        pendingOrder.subTotal =
+            items.fold(0, (a, b) => a + (b.price * b.qty) + amount);
+        pendingOrder.updatedAt = DateTime.now().toIso8601String();
+        await ProxyService.isar.update(data: pendingOrder);
+        await ProxyService.isar
+            .addOrderItem(order: pendingOrder, item: newItem);
+
+        notifyListeners();
+      }
+    } else {
+      OrderItem item = items.last;
+      item.price = amount;
+      item.taxAmt = double.parse((amount * 18 / 118).toStringAsFixed(2));
+      await ProxyService.isar.update(data: item);
+
+      pendingOrder.subTotal = items.fold(0, (a, b) => a + (b.price * b.qty));
+      pendingOrder.updatedAt = DateTime.now().toIso8601String();
       await ProxyService.isar.update(data: pendingOrder);
-      ProxyService.keypad.reset();
 
       Order? updatedOrder =
           await ProxyService.isar.getOrderById(id: pendingOrder.id!);
       keypad.setOrder(updatedOrder);
-      currentOrder();
-      rebuildUi();
-    } else if (key == '+') {
-      ProxyService.keypad.reset();
-      rebuildUi();
-    } else {
-      ProxyService.keypad.addKey(key);
-
-      /// if ProxyService.keypad.key.length==1 then that is the new record wait
-      /// don't keep adding item to the order
-      if (double.parse(ProxyService.keypad.key) != 0.0 &&
-          ProxyService.keypad.key.length == 1) {
-        Variant? variation = await ProxyService.isar.getCustomVariant();
-        if (variation == null) return;
-        double amount = double.parse(ProxyService.keypad.key);
-        await saveOrder(
-            amountTotal: amount, variationId: variation.id!, customItem: true);
-        Order? updatedOrder = await ProxyService.isar.manageOrder();
-        items = await ProxyService.isar.orderItems(orderId: updatedOrder.id!);
-        updatedOrder.subTotal = items.fold(0, (a, b) => a + (b.price * b.qty));
-        await ProxyService.isar.update(data: updatedOrder);
-        keypad.setOrder(updatedOrder);
-        currentOrder();
-      } else if (ProxyService.keypad.key.length > 1) {
-        Order? pendingOrder = await ProxyService.isar.manageOrder();
-        List<OrderItem> items = [];
-        items = await ProxyService.isar.orderItems(orderId: pendingOrder.id!);
-        double amount = double.parse(ProxyService.keypad.key);
-        Variant? variation = await ProxyService.isar.getCustomVariant();
-
-        if (variation == null) return;
-        if (items.isEmpty) {
-          await saveOrder(
-            amountTotal: amount,
-            variationId: variation.id!,
-            customItem: true,
-          );
-        }
-        items = await ProxyService.isar.orderItems(orderId: pendingOrder.id!);
-
-        OrderItem item = items.last;
-        item.price = double.parse(ProxyService.keypad.key);
-        item.taxAmt = double.parse(
-            (double.parse(ProxyService.keypad.key) * 18 / 118)
-                .toStringAsFixed(2));
-        await ProxyService.isar.update(data: item);
-
-        pendingOrder.subTotal = items.fold(0, (a, b) => a + (b.price * b.qty));
-        await ProxyService.isar.update(data: pendingOrder);
-        Order? updatedOrder =
-            await ProxyService.isar.getOrderById(id: pendingOrder.id!);
-        keypad.setOrder(updatedOrder);
-        currentOrder();
-      }
     }
   }
 
-  void getTickets() async {
-    await ProxyService.keypad.getTickets();
-  }
-
-  /// [CAUTION] do not add notify lister on this method as it is called
-  /// when the build is still active
-  Future<void> currentOrder() async {
-    keypad.setItemsOnSale(count: 0);
-    keypad.setTotalPayable(amount: 0.0);
-
-    Order order = await await ProxyService.isar.manageOrder();
-    if (order.status == pendingStatus) {
-      keypad.setOrder(order);
-      List<OrderItem> items =
-          await ProxyService.isar.orderItems(orderId: order.id!);
-
-      if (items.isNotEmpty) {
-        keypad.setItemsOnSale(count: items.length);
-      }
-      keypad.setTotalPayable(amount: order.subTotal);
-    } else {
-      keypad.setOrder(null);
-      keypad.setItemsOnSale(count: 0);
-      keypad.setTotalPayable(amount: 0.0);
-    }
-
-    keypad.setOrder(order);
-    List<OrderItem> items =
-        await ProxyService.isar.orderItems(orderId: order.id!);
-    await ProxyService.isar.update(data: order);
-    keypad.setItemsOnSale(count: items.length);
-    rebuildUi();
+  OrderItem newOrderItem(double amount, Variant variation, String name,
+      Order pendingOrder, Stock stock) {
+    return OrderItem(
+      id: syncIdInt(),
+      qty: 1,
+      price: amount / 1,
+      variantId: variation.id!,
+      name: name,
+      discount: 0.0,
+      reported: false,
+      doneWithOrder: false,
+      orderId: pendingOrder.id!,
+      createdAt: DateTime.now().toString(),
+      updatedAt: DateTime.now().toString(),
+      isTaxExempted: variation.isTaxExempted,
+      remainingStock: stock.currentStock - 1,
+    );
   }
 
   /// the function is useful on completing a sale since we need to look for this past order
@@ -329,7 +387,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
       isCustom: customItem,
       item: existOrderItem,
     );
-    currentOrder();
+
     notifyListeners();
     return true;
   }
@@ -338,88 +396,86 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   /// it is important to note that custom item is not incremented
   /// when added and there is existing custom item in the list
   /// because we don't know if this is not something different you are selling at this point.
-  Future<void> addOrderItems(
-      {required int variationId,
-      required Order pendingOrder,
-      required String name,
-      required Variant variation,
-      required Stock stock,
-      required double amountTotal,
-      required bool isCustom,
-      OrderItem? item}) async {
-    /// just on custom item being sold we never update the orderItems
-    /// we keep adding as we are not sure if it is the same item being sold or not.
-    /// !isCustom as if it is custom we keep adding.
-    ///now we will be updating the orderItem
+  Future<void> addOrderItems({
+    required int variationId,
+    required Order pendingOrder,
+    required String name,
+    required Variant variation,
+    required Stock stock,
+    required double amountTotal,
+    required bool isCustom,
+    OrderItem? item,
+  }) async {
     if (item != null && !isCustom) {
-      item.qty = item.qty + quantity.toDouble();
-      item.price = amountTotal / quantity; // price of one unit
+      // Update existing order item
+      item.qty += quantity.toDouble();
+      item.price = amountTotal / quantity;
 
-      List<OrderItem> items =
-          await ProxyService.isar.orderItems(orderId: pendingOrder!.id!);
+      List<OrderItem> items = await ProxyService.isar
+          .orderItems(orderId: pendingOrder.id!, doneWithOrder: false);
       pendingOrder.subTotal = items.fold(0, (a, b) => a + (b.price * b.qty));
-
-      ProxyService.isar.update(data: pendingOrder);
-      ProxyService.isar.update(data: item);
+      pendingOrder.updatedAt = DateTime.now().toIso8601String();
+      await ProxyService.isar.update(data: pendingOrder);
+      await ProxyService.isar.update(data: item);
       return;
     }
-    if (pendingOrder != null) {
-      OrderItem newItem = OrderItem()
-        ..qty = isCustom ? 1 : quantity.toDouble()
-        ..price = (amountTotal / quantity) // price of one unit
-        ..variantId = variationId
-        ..name = name
-        ..discount = 0.0
-        ..reported = false
-        ..orderId = pendingOrder.id!
-        ..createdAt = DateTime.now().toString()
-        ..updatedAt = DateTime.now().toString()
-        ..isTaxExempted = variation.isTaxExempted
-        // RRA fields dutira muri variants (rent from variant model)
-        ..dcRt = 0.0
-        ..dcAmt = 0.0
-        ..taxblAmt = pendingOrder.subTotal
-        ..taxAmt = double.parse((amountTotal * 18 / 118).toStringAsFixed(2))
-        ..totAmt = variation.retailPrice
-        ..itemSeq = variation.itemSeq
-        ..isrccCd = variation.isrccCd
-        ..isrccNm = variation.isrccNm
-        ..isrcRt = variation.isrcRt
-        ..isrcAmt = variation.isrcAmt
-        ..taxTyCd = variation.taxTyCd
-        ..bcd = variation.bcd
-        ..itemClsCd = variation.itemClsCd
-        ..itemTyCd = variation.itemTyCd
-        ..itemStdNm = variation.itemStdNm
-        ..orgnNatCd = variation.orgnNatCd
-        ..pkg = variation.pkg
-        ..itemCd = variation.itemCd
-        ..pkgUnitCd = variation.pkgUnitCd
-        ..qtyUnitCd = variation.qtyUnitCd
-        ..itemNm = variation.itemNm
-        ..prc = variation.retailPrice
-        ..splyAmt = variation.splyAmt
-        ..tin = variation.tin
-        ..bhfId = variation.bhfId
-        ..dftPrc = variation.dftPrc
-        ..addInfo = variation.addInfo
-        ..isrcAplcbYn = variation.isrcAplcbYn
-        ..useYn = variation.useYn
-        ..regrId = variation.regrId
-        ..regrNm = variation.regrNm
-        ..modrId = variation.modrId
-        ..modrNm = variation.modrNm
-        // end of fields twakuye muri variants
-        ..remainingStock = stock.currentStock - quantity;
 
-      List<OrderItem> items =
-          await ProxyService.isar.orderItems(orderId: pendingOrder.id!);
-      pendingOrder.subTotal = items.fold(0, (a, b) => a + (b.price * b.qty));
+    // Create a new order item
+    OrderItem newItem = OrderItem(
+      id: syncIdInt(),
+      qty: isCustom ? 1 : quantity,
+      price: amountTotal / quantity,
+      variantId: variationId,
+      name: name,
+      discount: 0.0,
+      reported: false,
+      orderId: pendingOrder.id!,
+      createdAt: DateTime.now().toString(),
+      updatedAt: DateTime.now().toString(),
+      isTaxExempted: variation.isTaxExempted,
+      dcRt: 0.0,
+      dcAmt: 0.0,
+      taxblAmt: pendingOrder.subTotal,
+      taxAmt: double.parse((amountTotal * 18 / 118).toStringAsFixed(2)),
+      totAmt: variation.retailPrice,
+      itemSeq: variation.itemSeq,
+      isrccCd: variation.isrccCd,
+      isrccNm: variation.isrccNm,
+      isrcRt: variation.isrcRt,
+      isrcAmt: variation.isrcAmt,
+      taxTyCd: variation.taxTyCd,
+      bcd: variation.bcd,
+      itemClsCd: variation.itemClsCd,
+      itemTyCd: variation.itemTyCd,
+      itemStdNm: variation.itemStdNm,
+      orgnNatCd: variation.orgnNatCd,
+      pkg: variation.pkg,
+      itemCd: variation.itemCd,
+      pkgUnitCd: variation.pkgUnitCd,
+      qtyUnitCd: variation.qtyUnitCd,
+      itemNm: variation.itemNm,
+      prc: variation.retailPrice,
+      splyAmt: variation.splyAmt,
+      tin: variation.tin,
+      bhfId: variation.bhfId,
+      dftPrc: variation.dftPrc,
+      addInfo: variation.addInfo,
+      isrcAplcbYn: variation.isrcAplcbYn,
+      useYn: variation.useYn,
+      regrId: variation.regrId,
+      regrNm: variation.regrNm,
+      modrId: variation.modrId,
+      modrNm: variation.modrNm,
+      remainingStock: stock.currentStock - quantity,
+      doneWithOrder: false,
+    );
 
-      ProxyService.isar.update(data: pendingOrder);
-
-      ProxyService.isar.addOrderItem(order: pendingOrder, item: newItem);
-    }
+    List<OrderItem> items = await ProxyService.isar
+        .orderItems(orderId: pendingOrder.id!, doneWithOrder: false);
+    pendingOrder.subTotal = items.fold(0, (a, b) => a + (b.price * b.qty));
+    pendingOrder.updatedAt = DateTime.now().toIso8601String();
+    await ProxyService.isar.update(data: pendingOrder);
+    await ProxyService.isar.addOrderItem(order: pendingOrder, item: newItem);
   }
 
   Future collectSPENNPayment(
@@ -440,8 +496,6 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     }
     await ProxyService.isar
         .collectCashPayment(cashReceived: keypad.cashReceived, order: kOrder!);
-
-    keypad.setItemsOnSale(count: 0);
   }
 
   void registerLocation() async {
@@ -521,10 +575,8 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
     _order!.status = pendingStatus;
     await ProxyService.isar.update(data: _order);
-    await keypad.getTickets();
     await keypad.getPendingOrder(branchId: ProxyService.box.getBranchId()!);
-    await currentOrder();
-    await updatePayable();
+    await await updatePayable();
   }
 
   /// the method return total amount of the order to be used in the payment
@@ -544,8 +596,8 @@ class BusinessHomeViewModel extends ReactiveViewModel {
 
     if (keypad.order == null) return 0.0;
 
-    List<OrderItem> items =
-        await ProxyService.isar.orderItems(orderId: keypad.order!.id!);
+    List<OrderItem> items = await ProxyService.isar
+        .orderItems(orderId: keypad.order!.id!, doneWithOrder: false);
 
     num? totalPayable = items.fold(0, (a, b) => a! + (b.price * b.qty));
 
@@ -558,8 +610,6 @@ class BusinessHomeViewModel extends ReactiveViewModel {
             : totalPayable!.toDouble());
 
     keypad.setTotalDiscount(amount: totalDiscount!.toDouble());
-
-    await keypad.getTickets();
 
     notifyListeners();
 
@@ -574,28 +624,16 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     await ProxyService.isar.delete(id: id, endPoint: 'orderItem');
 
     Order? pendingOrder = await ProxyService.isar.manageOrder();
-    List<OrderItem> items =
-        await ProxyService.isar.orderItems(orderId: pendingOrder.id!);
-
-    currentOrder();
+    List<OrderItem> items = await ProxyService.isar
+        .orderItems(orderId: pendingOrder.id!, doneWithOrder: false);
 
     updatePayable();
-    await setOrderItems();
 
     if (items.isEmpty) {
       Navigator.of(context).pop();
     }
 
     return true;
-  }
-
-  List<OrderItem> items = [];
-  setOrderItems() async {
-    Order? pendingOrder = await ProxyService.isar.manageOrder();
-    List<OrderItem> _items =
-        await ProxyService.isar.orderItems(orderId: pendingOrder.id!);
-    items = _items;
-    notifyListeners();
   }
 
   /// this method is used to restore database from backup

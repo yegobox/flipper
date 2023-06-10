@@ -47,7 +47,7 @@ class _TransactionDetailState extends State<TransactionDetail> {
                       children: [
                         SlidableAction(
                           onPressed: (_) {
-                            refund(item.id, model);
+                            refund(item.id!, model);
                           },
                           backgroundColor: Colors.blue,
                           foregroundColor: Colors.white,
@@ -63,7 +63,7 @@ class _TransactionDetailState extends State<TransactionDetail> {
                       children: [
                         SlidableAction(
                           onPressed: (_) {
-                            refund(item.id, model);
+                            refund(item.id!, model);
                           },
                           backgroundColor: Colors.blue,
                           foregroundColor: Colors.white,
@@ -83,8 +83,8 @@ class _TransactionDetailState extends State<TransactionDetail> {
     return ViewModelBuilder<BusinessHomeViewModel>.reactive(
         viewModelBuilder: () => BusinessHomeViewModel(),
         onViewModelReady: (model) async {
-          List<OrderItem> items =
-              await ProxyService.isar.orderItems(orderId: widget.order.id!);
+          List<OrderItem> items = await ProxyService.isar
+              .orderItems(orderId: widget.order.id!, doneWithOrder: false);
 
           model.completedOrderItemsList = items;
         },
@@ -124,8 +124,8 @@ class _TransactionDetailState extends State<TransactionDetail> {
 
   Future<void> refund(int id, BusinessHomeViewModel model) async {
     ProxyService.isar.refund(itemId: id);
-    List<OrderItem> items =
-        await ProxyService.isar.orderItems(orderId: widget.order.id!);
+    List<OrderItem> items = await ProxyService.isar
+        .orderItems(orderId: widget.order.id!, doneWithOrder: false);
 
     model.completedOrderItemsList = items;
   }

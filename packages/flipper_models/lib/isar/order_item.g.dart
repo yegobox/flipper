@@ -17,233 +17,248 @@ const OrderItemSchema = CollectionSchema(
   name: r'OrderItem',
   id: -5113141332666578860,
   properties: {
-    r'addInfo': PropertySchema(
+    r'action': PropertySchema(
       id: 0,
+      name: r'action',
+      type: IsarType.string,
+    ),
+    r'addInfo': PropertySchema(
+      id: 1,
       name: r'addInfo',
       type: IsarType.string,
     ),
     r'bcd': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'bcd',
       type: IsarType.string,
     ),
     r'bhfId': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'bhfId',
       type: IsarType.string,
     ),
     r'createdAt': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'createdAt',
       type: IsarType.string,
     ),
     r'dcAmt': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'dcAmt',
       type: IsarType.double,
     ),
     r'dcRt': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'dcRt',
       type: IsarType.double,
     ),
     r'dftPrc': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'dftPrc',
       type: IsarType.double,
     ),
     r'discount': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'discount',
       type: IsarType.double,
     ),
+    r'doneWithOrder': PropertySchema(
+      id: 9,
+      name: r'doneWithOrder',
+      type: IsarType.bool,
+    ),
     r'isRefunded': PropertySchema(
-      id: 8,
+      id: 10,
       name: r'isRefunded',
       type: IsarType.bool,
     ),
     r'isTaxExempted': PropertySchema(
-      id: 9,
+      id: 11,
       name: r'isTaxExempted',
       type: IsarType.bool,
     ),
     r'isrcAmt': PropertySchema(
-      id: 10,
+      id: 12,
       name: r'isrcAmt',
       type: IsarType.string,
     ),
     r'isrcAplcbYn': PropertySchema(
-      id: 11,
+      id: 13,
       name: r'isrcAplcbYn',
       type: IsarType.string,
     ),
     r'isrcRt': PropertySchema(
-      id: 12,
+      id: 14,
       name: r'isrcRt',
       type: IsarType.string,
     ),
     r'isrccCd': PropertySchema(
-      id: 13,
+      id: 15,
       name: r'isrccCd',
       type: IsarType.string,
     ),
     r'isrccNm': PropertySchema(
-      id: 14,
+      id: 16,
       name: r'isrccNm',
       type: IsarType.string,
     ),
     r'itemCd': PropertySchema(
-      id: 15,
+      id: 17,
       name: r'itemCd',
       type: IsarType.string,
     ),
     r'itemClsCd': PropertySchema(
-      id: 16,
+      id: 18,
       name: r'itemClsCd',
       type: IsarType.string,
     ),
     r'itemNm': PropertySchema(
-      id: 17,
+      id: 19,
       name: r'itemNm',
       type: IsarType.string,
     ),
     r'itemSeq': PropertySchema(
-      id: 18,
+      id: 20,
       name: r'itemSeq',
       type: IsarType.string,
     ),
     r'itemStdNm': PropertySchema(
-      id: 19,
+      id: 21,
       name: r'itemStdNm',
       type: IsarType.string,
     ),
     r'itemTyCd': PropertySchema(
-      id: 20,
+      id: 22,
       name: r'itemTyCd',
       type: IsarType.string,
     ),
+    r'localId': PropertySchema(
+      id: 23,
+      name: r'localId',
+      type: IsarType.long,
+    ),
     r'modrId': PropertySchema(
-      id: 21,
+      id: 24,
       name: r'modrId',
       type: IsarType.string,
     ),
     r'modrNm': PropertySchema(
-      id: 22,
+      id: 25,
       name: r'modrNm',
       type: IsarType.string,
     ),
     r'name': PropertySchema(
-      id: 23,
+      id: 26,
       name: r'name',
       type: IsarType.string,
     ),
     r'orderId': PropertySchema(
-      id: 24,
+      id: 27,
       name: r'orderId',
       type: IsarType.long,
     ),
     r'orgnNatCd': PropertySchema(
-      id: 25,
+      id: 28,
       name: r'orgnNatCd',
       type: IsarType.string,
     ),
     r'pkg': PropertySchema(
-      id: 26,
+      id: 29,
       name: r'pkg',
       type: IsarType.string,
     ),
     r'pkgUnitCd': PropertySchema(
-      id: 27,
+      id: 30,
       name: r'pkgUnitCd',
       type: IsarType.string,
     ),
     r'prc': PropertySchema(
-      id: 28,
+      id: 31,
       name: r'prc',
       type: IsarType.double,
     ),
     r'price': PropertySchema(
-      id: 29,
+      id: 32,
       name: r'price',
       type: IsarType.double,
     ),
     r'qty': PropertySchema(
-      id: 30,
+      id: 33,
       name: r'qty',
       type: IsarType.double,
     ),
     r'qtyUnitCd': PropertySchema(
-      id: 31,
+      id: 34,
       name: r'qtyUnitCd',
       type: IsarType.string,
     ),
     r'regrId': PropertySchema(
-      id: 32,
+      id: 35,
       name: r'regrId',
       type: IsarType.string,
     ),
     r'regrNm': PropertySchema(
-      id: 33,
+      id: 36,
       name: r'regrNm',
       type: IsarType.string,
     ),
     r'remainingStock': PropertySchema(
-      id: 34,
+      id: 37,
       name: r'remainingStock',
       type: IsarType.double,
     ),
     r'reported': PropertySchema(
-      id: 35,
+      id: 38,
       name: r'reported',
       type: IsarType.bool,
     ),
     r'splyAmt': PropertySchema(
-      id: 36,
+      id: 39,
       name: r'splyAmt',
       type: IsarType.double,
     ),
     r'taxAmt': PropertySchema(
-      id: 37,
+      id: 40,
       name: r'taxAmt',
       type: IsarType.double,
     ),
     r'taxTyCd': PropertySchema(
-      id: 38,
+      id: 41,
       name: r'taxTyCd',
       type: IsarType.string,
     ),
     r'taxblAmt': PropertySchema(
-      id: 39,
+      id: 42,
       name: r'taxblAmt',
       type: IsarType.double,
     ),
     r'tin': PropertySchema(
-      id: 40,
+      id: 43,
       name: r'tin',
       type: IsarType.long,
     ),
     r'totAmt': PropertySchema(
-      id: 41,
+      id: 44,
       name: r'totAmt',
       type: IsarType.double,
     ),
     r'type': PropertySchema(
-      id: 42,
+      id: 45,
       name: r'type',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 43,
+      id: 46,
       name: r'updatedAt',
       type: IsarType.string,
     ),
     r'useYn': PropertySchema(
-      id: 44,
+      id: 47,
       name: r'useYn',
       type: IsarType.string,
     ),
     r'variantId': PropertySchema(
-      id: 45,
+      id: 48,
       name: r'variantId',
       type: IsarType.long,
     )
@@ -300,6 +315,12 @@ int _orderItemEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  {
+    final value = object.action;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   {
     final value = object.addInfo;
     if (value != null) {
@@ -462,52 +483,55 @@ void _orderItemSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeString(offsets[0], object.addInfo);
-  writer.writeString(offsets[1], object.bcd);
-  writer.writeString(offsets[2], object.bhfId);
-  writer.writeString(offsets[3], object.createdAt);
-  writer.writeDouble(offsets[4], object.dcAmt);
-  writer.writeDouble(offsets[5], object.dcRt);
-  writer.writeDouble(offsets[6], object.dftPrc);
-  writer.writeDouble(offsets[7], object.discount);
-  writer.writeBool(offsets[8], object.isRefunded);
-  writer.writeBool(offsets[9], object.isTaxExempted);
-  writer.writeString(offsets[10], object.isrcAmt);
-  writer.writeString(offsets[11], object.isrcAplcbYn);
-  writer.writeString(offsets[12], object.isrcRt);
-  writer.writeString(offsets[13], object.isrccCd);
-  writer.writeString(offsets[14], object.isrccNm);
-  writer.writeString(offsets[15], object.itemCd);
-  writer.writeString(offsets[16], object.itemClsCd);
-  writer.writeString(offsets[17], object.itemNm);
-  writer.writeString(offsets[18], object.itemSeq);
-  writer.writeString(offsets[19], object.itemStdNm);
-  writer.writeString(offsets[20], object.itemTyCd);
-  writer.writeString(offsets[21], object.modrId);
-  writer.writeString(offsets[22], object.modrNm);
-  writer.writeString(offsets[23], object.name);
-  writer.writeLong(offsets[24], object.orderId);
-  writer.writeString(offsets[25], object.orgnNatCd);
-  writer.writeString(offsets[26], object.pkg);
-  writer.writeString(offsets[27], object.pkgUnitCd);
-  writer.writeDouble(offsets[28], object.prc);
-  writer.writeDouble(offsets[29], object.price);
-  writer.writeDouble(offsets[30], object.qty);
-  writer.writeString(offsets[31], object.qtyUnitCd);
-  writer.writeString(offsets[32], object.regrId);
-  writer.writeString(offsets[33], object.regrNm);
-  writer.writeDouble(offsets[34], object.remainingStock);
-  writer.writeBool(offsets[35], object.reported);
-  writer.writeDouble(offsets[36], object.splyAmt);
-  writer.writeDouble(offsets[37], object.taxAmt);
-  writer.writeString(offsets[38], object.taxTyCd);
-  writer.writeDouble(offsets[39], object.taxblAmt);
-  writer.writeLong(offsets[40], object.tin);
-  writer.writeDouble(offsets[41], object.totAmt);
-  writer.writeString(offsets[42], object.type);
-  writer.writeString(offsets[43], object.updatedAt);
-  writer.writeString(offsets[44], object.useYn);
-  writer.writeLong(offsets[45], object.variantId);
+  writer.writeString(offsets[0], object.action);
+  writer.writeString(offsets[1], object.addInfo);
+  writer.writeString(offsets[2], object.bcd);
+  writer.writeString(offsets[3], object.bhfId);
+  writer.writeString(offsets[4], object.createdAt);
+  writer.writeDouble(offsets[5], object.dcAmt);
+  writer.writeDouble(offsets[6], object.dcRt);
+  writer.writeDouble(offsets[7], object.dftPrc);
+  writer.writeDouble(offsets[8], object.discount);
+  writer.writeBool(offsets[9], object.doneWithOrder);
+  writer.writeBool(offsets[10], object.isRefunded);
+  writer.writeBool(offsets[11], object.isTaxExempted);
+  writer.writeString(offsets[12], object.isrcAmt);
+  writer.writeString(offsets[13], object.isrcAplcbYn);
+  writer.writeString(offsets[14], object.isrcRt);
+  writer.writeString(offsets[15], object.isrccCd);
+  writer.writeString(offsets[16], object.isrccNm);
+  writer.writeString(offsets[17], object.itemCd);
+  writer.writeString(offsets[18], object.itemClsCd);
+  writer.writeString(offsets[19], object.itemNm);
+  writer.writeString(offsets[20], object.itemSeq);
+  writer.writeString(offsets[21], object.itemStdNm);
+  writer.writeString(offsets[22], object.itemTyCd);
+  writer.writeLong(offsets[23], object.localId);
+  writer.writeString(offsets[24], object.modrId);
+  writer.writeString(offsets[25], object.modrNm);
+  writer.writeString(offsets[26], object.name);
+  writer.writeLong(offsets[27], object.orderId);
+  writer.writeString(offsets[28], object.orgnNatCd);
+  writer.writeString(offsets[29], object.pkg);
+  writer.writeString(offsets[30], object.pkgUnitCd);
+  writer.writeDouble(offsets[31], object.prc);
+  writer.writeDouble(offsets[32], object.price);
+  writer.writeDouble(offsets[33], object.qty);
+  writer.writeString(offsets[34], object.qtyUnitCd);
+  writer.writeString(offsets[35], object.regrId);
+  writer.writeString(offsets[36], object.regrNm);
+  writer.writeDouble(offsets[37], object.remainingStock);
+  writer.writeBool(offsets[38], object.reported);
+  writer.writeDouble(offsets[39], object.splyAmt);
+  writer.writeDouble(offsets[40], object.taxAmt);
+  writer.writeString(offsets[41], object.taxTyCd);
+  writer.writeDouble(offsets[42], object.taxblAmt);
+  writer.writeLong(offsets[43], object.tin);
+  writer.writeDouble(offsets[44], object.totAmt);
+  writer.writeString(offsets[45], object.type);
+  writer.writeString(offsets[46], object.updatedAt);
+  writer.writeString(offsets[47], object.useYn);
+  writer.writeLong(offsets[48], object.variantId);
 }
 
 OrderItem _orderItemDeserialize(
@@ -516,54 +540,58 @@ OrderItem _orderItemDeserialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = OrderItem();
-  object.addInfo = reader.readStringOrNull(offsets[0]);
-  object.bcd = reader.readStringOrNull(offsets[1]);
-  object.bhfId = reader.readStringOrNull(offsets[2]);
-  object.createdAt = reader.readString(offsets[3]);
-  object.dcAmt = reader.readDoubleOrNull(offsets[4]);
-  object.dcRt = reader.readDoubleOrNull(offsets[5]);
-  object.dftPrc = reader.readDoubleOrNull(offsets[6]);
-  object.discount = reader.readDoubleOrNull(offsets[7]);
-  object.id = id;
-  object.isRefunded = reader.readBoolOrNull(offsets[8]);
-  object.isTaxExempted = reader.readBool(offsets[9]);
-  object.isrcAmt = reader.readStringOrNull(offsets[10]);
-  object.isrcAplcbYn = reader.readStringOrNull(offsets[11]);
-  object.isrcRt = reader.readStringOrNull(offsets[12]);
-  object.isrccCd = reader.readStringOrNull(offsets[13]);
-  object.isrccNm = reader.readStringOrNull(offsets[14]);
-  object.itemCd = reader.readStringOrNull(offsets[15]);
-  object.itemClsCd = reader.readStringOrNull(offsets[16]);
-  object.itemNm = reader.readStringOrNull(offsets[17]);
-  object.itemSeq = reader.readStringOrNull(offsets[18]);
-  object.itemStdNm = reader.readStringOrNull(offsets[19]);
-  object.itemTyCd = reader.readStringOrNull(offsets[20]);
-  object.modrId = reader.readStringOrNull(offsets[21]);
-  object.modrNm = reader.readStringOrNull(offsets[22]);
-  object.name = reader.readString(offsets[23]);
-  object.orderId = reader.readLong(offsets[24]);
-  object.orgnNatCd = reader.readStringOrNull(offsets[25]);
-  object.pkg = reader.readStringOrNull(offsets[26]);
-  object.pkgUnitCd = reader.readStringOrNull(offsets[27]);
-  object.prc = reader.readDoubleOrNull(offsets[28]);
-  object.price = reader.readDouble(offsets[29]);
-  object.qty = reader.readDouble(offsets[30]);
-  object.qtyUnitCd = reader.readStringOrNull(offsets[31]);
-  object.regrId = reader.readStringOrNull(offsets[32]);
-  object.regrNm = reader.readStringOrNull(offsets[33]);
-  object.remainingStock = reader.readDouble(offsets[34]);
-  object.reported = reader.readBoolOrNull(offsets[35]);
-  object.splyAmt = reader.readDoubleOrNull(offsets[36]);
-  object.taxAmt = reader.readDoubleOrNull(offsets[37]);
-  object.taxTyCd = reader.readStringOrNull(offsets[38]);
-  object.taxblAmt = reader.readDoubleOrNull(offsets[39]);
-  object.tin = reader.readLongOrNull(offsets[40]);
-  object.totAmt = reader.readDoubleOrNull(offsets[41]);
-  object.type = reader.readStringOrNull(offsets[42]);
-  object.updatedAt = reader.readString(offsets[43]);
-  object.useYn = reader.readStringOrNull(offsets[44]);
-  object.variantId = reader.readLong(offsets[45]);
+  final object = OrderItem(
+    addInfo: reader.readStringOrNull(offsets[1]),
+    bcd: reader.readStringOrNull(offsets[2]),
+    bhfId: reader.readStringOrNull(offsets[3]),
+    createdAt: reader.readString(offsets[4]),
+    dcAmt: reader.readDoubleOrNull(offsets[5]),
+    dcRt: reader.readDoubleOrNull(offsets[6]),
+    dftPrc: reader.readDoubleOrNull(offsets[7]),
+    discount: reader.readDoubleOrNull(offsets[8]),
+    doneWithOrder: reader.readBoolOrNull(offsets[9]),
+    id: id,
+    isRefunded: reader.readBoolOrNull(offsets[10]),
+    isTaxExempted: reader.readBool(offsets[11]),
+    isrcAmt: reader.readStringOrNull(offsets[12]),
+    isrcAplcbYn: reader.readStringOrNull(offsets[13]),
+    isrcRt: reader.readStringOrNull(offsets[14]),
+    isrccCd: reader.readStringOrNull(offsets[15]),
+    isrccNm: reader.readStringOrNull(offsets[16]),
+    itemCd: reader.readStringOrNull(offsets[17]),
+    itemClsCd: reader.readStringOrNull(offsets[18]),
+    itemNm: reader.readStringOrNull(offsets[19]),
+    itemSeq: reader.readStringOrNull(offsets[20]),
+    itemStdNm: reader.readStringOrNull(offsets[21]),
+    itemTyCd: reader.readStringOrNull(offsets[22]),
+    modrId: reader.readStringOrNull(offsets[24]),
+    modrNm: reader.readStringOrNull(offsets[25]),
+    name: reader.readString(offsets[26]),
+    orderId: reader.readLong(offsets[27]),
+    orgnNatCd: reader.readStringOrNull(offsets[28]),
+    pkg: reader.readStringOrNull(offsets[29]),
+    pkgUnitCd: reader.readStringOrNull(offsets[30]),
+    prc: reader.readDoubleOrNull(offsets[31]),
+    price: reader.readDouble(offsets[32]),
+    qty: reader.readDouble(offsets[33]),
+    qtyUnitCd: reader.readStringOrNull(offsets[34]),
+    regrId: reader.readStringOrNull(offsets[35]),
+    regrNm: reader.readStringOrNull(offsets[36]),
+    remainingStock: reader.readDouble(offsets[37]),
+    reported: reader.readBoolOrNull(offsets[38]),
+    splyAmt: reader.readDoubleOrNull(offsets[39]),
+    taxAmt: reader.readDoubleOrNull(offsets[40]),
+    taxTyCd: reader.readStringOrNull(offsets[41]),
+    taxblAmt: reader.readDoubleOrNull(offsets[42]),
+    tin: reader.readLongOrNull(offsets[43]),
+    totAmt: reader.readDoubleOrNull(offsets[44]),
+    type: reader.readStringOrNull(offsets[45]),
+    updatedAt: reader.readString(offsets[46]),
+    useYn: reader.readStringOrNull(offsets[47]),
+    variantId: reader.readLong(offsets[48]),
+  );
+  object.action = reader.readStringOrNull(offsets[0]);
+  object.localId = reader.readLongOrNull(offsets[23]);
   return object;
 }
 
@@ -581,9 +609,9 @@ P _orderItemDeserializeProp<P>(
     case 2:
       return (reader.readStringOrNull(offset)) as P;
     case 3:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 4:
-      return (reader.readDoubleOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 5:
       return (reader.readDoubleOrNull(offset)) as P;
     case 6:
@@ -591,13 +619,13 @@ P _orderItemDeserializeProp<P>(
     case 7:
       return (reader.readDoubleOrNull(offset)) as P;
     case 8:
-      return (reader.readBoolOrNull(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 9:
-      return (reader.readBool(offset)) as P;
+      return (reader.readBoolOrNull(offset)) as P;
     case 10:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readBoolOrNull(offset)) as P;
     case 11:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 12:
       return (reader.readStringOrNull(offset)) as P;
     case 13:
@@ -621,50 +649,56 @@ P _orderItemDeserializeProp<P>(
     case 22:
       return (reader.readStringOrNull(offset)) as P;
     case 23:
-      return (reader.readString(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 24:
-      return (reader.readLong(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 25:
       return (reader.readStringOrNull(offset)) as P;
     case 26:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 27:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 28:
-      return (reader.readDoubleOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 29:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 30:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 31:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 32:
-      return (reader.readStringOrNull(offset)) as P;
-    case 33:
-      return (reader.readStringOrNull(offset)) as P;
-    case 34:
       return (reader.readDouble(offset)) as P;
-    case 35:
-      return (reader.readBoolOrNull(offset)) as P;
-    case 36:
-      return (reader.readDoubleOrNull(offset)) as P;
-    case 37:
-      return (reader.readDoubleOrNull(offset)) as P;
-    case 38:
+    case 33:
+      return (reader.readDouble(offset)) as P;
+    case 34:
       return (reader.readStringOrNull(offset)) as P;
+    case 35:
+      return (reader.readStringOrNull(offset)) as P;
+    case 36:
+      return (reader.readStringOrNull(offset)) as P;
+    case 37:
+      return (reader.readDouble(offset)) as P;
+    case 38:
+      return (reader.readBoolOrNull(offset)) as P;
     case 39:
       return (reader.readDoubleOrNull(offset)) as P;
     case 40:
-      return (reader.readLongOrNull(offset)) as P;
-    case 41:
       return (reader.readDoubleOrNull(offset)) as P;
+    case 41:
+      return (reader.readStringOrNull(offset)) as P;
     case 42:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 43:
-      return (reader.readString(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 44:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 45:
+      return (reader.readStringOrNull(offset)) as P;
+    case 46:
+      return (reader.readString(offset)) as P;
+    case 47:
+      return (reader.readStringOrNull(offset)) as P;
+    case 48:
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -672,7 +706,7 @@ P _orderItemDeserializeProp<P>(
 }
 
 Id _orderItemGetId(OrderItem object) {
-  return object.id;
+  return object.id ?? Isar.autoIncrement;
 }
 
 List<IsarLinkBase<dynamic>> _orderItemGetLinks(OrderItem object) {
@@ -1057,6 +1091,152 @@ extension OrderItemQueryWhere
 
 extension OrderItemQueryFilter
     on QueryBuilder<OrderItem, OrderItem, QFilterCondition> {
+  QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition> actionIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'action',
+      ));
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition> actionIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'action',
+      ));
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition> actionEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition> actionGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition> actionLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition> actionBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'action',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition> actionStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition> actionEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition> actionContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition> actionMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'action',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition> actionIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'action',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition> actionIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'action',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition> addInfoIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -1941,8 +2121,52 @@ extension OrderItemQueryFilter
     });
   }
 
+  QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition>
+      doneWithOrderIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'doneWithOrder',
+      ));
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition>
+      doneWithOrderIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'doneWithOrder',
+      ));
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition>
+      doneWithOrderEqualTo(bool? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'doneWithOrder',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition> idIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'id',
+      ));
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition> idIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'id',
+      ));
+    });
+  }
+
   QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition> idEqualTo(
-      Id value) {
+      Id? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -1952,7 +2176,7 @@ extension OrderItemQueryFilter
   }
 
   QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition> idGreaterThan(
-    Id value, {
+    Id? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1965,7 +2189,7 @@ extension OrderItemQueryFilter
   }
 
   QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition> idLessThan(
-    Id value, {
+    Id? value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1978,8 +2202,8 @@ extension OrderItemQueryFilter
   }
 
   QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition> idBetween(
-    Id lower,
-    Id upper, {
+    Id? lower,
+    Id? upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -3651,6 +3875,75 @@ extension OrderItemQueryFilter
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'itemTyCd',
         value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition> localIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'localId',
+      ));
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition> localIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'localId',
+      ));
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition> localIdEqualTo(
+      int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'localId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition> localIdGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'localId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition> localIdLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'localId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition> localIdBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'localId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
       ));
     });
   }
@@ -6325,6 +6618,18 @@ extension OrderItemQueryLinks
     on QueryBuilder<OrderItem, OrderItem, QFilterCondition> {}
 
 extension OrderItemQuerySortBy on QueryBuilder<OrderItem, OrderItem, QSortBy> {
+  QueryBuilder<OrderItem, OrderItem, QAfterSortBy> sortByAction() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'action', Sort.asc);
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterSortBy> sortByActionDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'action', Sort.desc);
+    });
+  }
+
   QueryBuilder<OrderItem, OrderItem, QAfterSortBy> sortByAddInfo() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'addInfo', Sort.asc);
@@ -6418,6 +6723,18 @@ extension OrderItemQuerySortBy on QueryBuilder<OrderItem, OrderItem, QSortBy> {
   QueryBuilder<OrderItem, OrderItem, QAfterSortBy> sortByDiscountDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'discount', Sort.desc);
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterSortBy> sortByDoneWithOrder() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'doneWithOrder', Sort.asc);
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterSortBy> sortByDoneWithOrderDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'doneWithOrder', Sort.desc);
     });
   }
 
@@ -6574,6 +6891,18 @@ extension OrderItemQuerySortBy on QueryBuilder<OrderItem, OrderItem, QSortBy> {
   QueryBuilder<OrderItem, OrderItem, QAfterSortBy> sortByItemTyCdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'itemTyCd', Sort.desc);
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterSortBy> sortByLocalId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterSortBy> sortByLocalIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localId', Sort.desc);
     });
   }
 
@@ -6880,6 +7209,18 @@ extension OrderItemQuerySortBy on QueryBuilder<OrderItem, OrderItem, QSortBy> {
 
 extension OrderItemQuerySortThenBy
     on QueryBuilder<OrderItem, OrderItem, QSortThenBy> {
+  QueryBuilder<OrderItem, OrderItem, QAfterSortBy> thenByAction() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'action', Sort.asc);
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterSortBy> thenByActionDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'action', Sort.desc);
+    });
+  }
+
   QueryBuilder<OrderItem, OrderItem, QAfterSortBy> thenByAddInfo() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'addInfo', Sort.asc);
@@ -6973,6 +7314,18 @@ extension OrderItemQuerySortThenBy
   QueryBuilder<OrderItem, OrderItem, QAfterSortBy> thenByDiscountDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'discount', Sort.desc);
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterSortBy> thenByDoneWithOrder() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'doneWithOrder', Sort.asc);
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterSortBy> thenByDoneWithOrderDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'doneWithOrder', Sort.desc);
     });
   }
 
@@ -7141,6 +7494,18 @@ extension OrderItemQuerySortThenBy
   QueryBuilder<OrderItem, OrderItem, QAfterSortBy> thenByItemTyCdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'itemTyCd', Sort.desc);
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterSortBy> thenByLocalId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterSortBy> thenByLocalIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localId', Sort.desc);
     });
   }
 
@@ -7447,6 +7812,13 @@ extension OrderItemQuerySortThenBy
 
 extension OrderItemQueryWhereDistinct
     on QueryBuilder<OrderItem, OrderItem, QDistinct> {
+  QueryBuilder<OrderItem, OrderItem, QDistinct> distinctByAction(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'action', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<OrderItem, OrderItem, QDistinct> distinctByAddInfo(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -7496,6 +7868,12 @@ extension OrderItemQueryWhereDistinct
   QueryBuilder<OrderItem, OrderItem, QDistinct> distinctByDiscount() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'discount');
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QDistinct> distinctByDoneWithOrder() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'doneWithOrder');
     });
   }
 
@@ -7585,6 +7963,12 @@ extension OrderItemQueryWhereDistinct
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'itemTyCd', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QDistinct> distinctByLocalId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'localId');
     });
   }
 
@@ -7760,6 +8144,12 @@ extension OrderItemQueryProperty
     });
   }
 
+  QueryBuilder<OrderItem, String?, QQueryOperations> actionProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'action');
+    });
+  }
+
   QueryBuilder<OrderItem, String?, QQueryOperations> addInfoProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'addInfo');
@@ -7805,6 +8195,12 @@ extension OrderItemQueryProperty
   QueryBuilder<OrderItem, double?, QQueryOperations> discountProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'discount');
+    });
+  }
+
+  QueryBuilder<OrderItem, bool?, QQueryOperations> doneWithOrderProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'doneWithOrder');
     });
   }
 
@@ -7883,6 +8279,12 @@ extension OrderItemQueryProperty
   QueryBuilder<OrderItem, String?, QQueryOperations> itemTyCdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'itemTyCd');
+    });
+  }
+
+  QueryBuilder<OrderItem, int?, QQueryOperations> localIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'localId');
     });
   }
 
@@ -8036,3 +8438,113 @@ extension OrderItemQueryProperty
     });
   }
 }
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+OrderItem _$OrderItemFromJson(Map<String, dynamic> json) => OrderItem(
+      id: json['id'] as int?,
+      name: json['name'] as String,
+      orderId: json['orderId'] as int,
+      variantId: json['variantId'] as int,
+      qty: (json['qty'] as num).toDouble(),
+      price: (json['price'] as num).toDouble(),
+      discount: (json['discount'] as num?)?.toDouble(),
+      type: json['type'] as String?,
+      reported: json['reported'] as bool?,
+      remainingStock: (json['remainingStock'] as num).toDouble(),
+      createdAt: json['createdAt'] as String,
+      updatedAt: json['updatedAt'] as String,
+      isTaxExempted: json['isTaxExempted'] as bool,
+      isRefunded: json['isRefunded'] as bool?,
+      doneWithOrder: json['doneWithOrder'] as bool?,
+      dcRt: (json['dcRt'] as num?)?.toDouble(),
+      dcAmt: (json['dcAmt'] as num?)?.toDouble(),
+      taxblAmt: (json['taxblAmt'] as num?)?.toDouble(),
+      taxAmt: (json['taxAmt'] as num?)?.toDouble(),
+      totAmt: (json['totAmt'] as num?)?.toDouble(),
+      itemSeq: json['itemSeq'] as String?,
+      isrccCd: json['isrccCd'] as String?,
+      isrccNm: json['isrccNm'] as String?,
+      isrcRt: json['isrcRt'] as String?,
+      isrcAmt: json['isrcAmt'] as String?,
+      taxTyCd: json['taxTyCd'] as String?,
+      bcd: json['bcd'] as String?,
+      itemClsCd: json['itemClsCd'] as String?,
+      itemTyCd: json['itemTyCd'] as String?,
+      itemStdNm: json['itemStdNm'] as String?,
+      orgnNatCd: json['orgnNatCd'] as String?,
+      pkg: json['pkg'] as String?,
+      itemCd: json['itemCd'] as String?,
+      pkgUnitCd: json['pkgUnitCd'] as String?,
+      qtyUnitCd: json['qtyUnitCd'] as String?,
+      itemNm: json['itemNm'] as String?,
+      prc: (json['prc'] as num?)?.toDouble(),
+      splyAmt: (json['splyAmt'] as num?)?.toDouble(),
+      tin: json['tin'] as int?,
+      bhfId: json['bhfId'] as String?,
+      dftPrc: (json['dftPrc'] as num?)?.toDouble(),
+      addInfo: json['addInfo'] as String?,
+      isrcAplcbYn: json['isrcAplcbYn'] as String?,
+      useYn: json['useYn'] as String?,
+      regrId: json['regrId'] as String?,
+      regrNm: json['regrNm'] as String?,
+      modrId: json['modrId'] as String?,
+      modrNm: json['modrNm'] as String?,
+    )
+      ..action = json['action'] as String?
+      ..localId = json['localId'] as int?;
+
+Map<String, dynamic> _$OrderItemToJson(OrderItem instance) => <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+      'orderId': instance.orderId,
+      'variantId': instance.variantId,
+      'qty': instance.qty,
+      'price': instance.price,
+      'discount': instance.discount,
+      'type': instance.type,
+      'reported': instance.reported,
+      'remainingStock': instance.remainingStock,
+      'createdAt': instance.createdAt,
+      'updatedAt': instance.updatedAt,
+      'isTaxExempted': instance.isTaxExempted,
+      'isRefunded': instance.isRefunded,
+      'doneWithOrder': instance.doneWithOrder,
+      'dcRt': instance.dcRt,
+      'dcAmt': instance.dcAmt,
+      'taxblAmt': instance.taxblAmt,
+      'taxAmt': instance.taxAmt,
+      'totAmt': instance.totAmt,
+      'itemSeq': instance.itemSeq,
+      'isrccCd': instance.isrccCd,
+      'isrccNm': instance.isrccNm,
+      'isrcRt': instance.isrcRt,
+      'isrcAmt': instance.isrcAmt,
+      'taxTyCd': instance.taxTyCd,
+      'bcd': instance.bcd,
+      'itemClsCd': instance.itemClsCd,
+      'itemTyCd': instance.itemTyCd,
+      'itemStdNm': instance.itemStdNm,
+      'orgnNatCd': instance.orgnNatCd,
+      'pkg': instance.pkg,
+      'itemCd': instance.itemCd,
+      'pkgUnitCd': instance.pkgUnitCd,
+      'qtyUnitCd': instance.qtyUnitCd,
+      'itemNm': instance.itemNm,
+      'prc': instance.prc,
+      'splyAmt': instance.splyAmt,
+      'tin': instance.tin,
+      'bhfId': instance.bhfId,
+      'dftPrc': instance.dftPrc,
+      'addInfo': instance.addInfo,
+      'isrcAplcbYn': instance.isrcAplcbYn,
+      'useYn': instance.useYn,
+      'regrId': instance.regrId,
+      'regrNm': instance.regrNm,
+      'modrId': instance.modrId,
+      'modrNm': instance.modrNm,
+      'action': instance.action,
+      'localId': instance.localId,
+    };

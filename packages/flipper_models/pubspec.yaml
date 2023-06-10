@@ -16,7 +16,7 @@ dependencies:
   universal_platform: ^1.0.0+1
   stacked_services: ^1.0.4
   firebase_auth: ^4.6.2
-  stacked: ^3.2.5
+  stacked: ^3.4.0
   built_value: ^8.1.4
   azlistview: ^2.0.0
   scrollable_positioned_list: ^0.3.2-dev

@@ -11,7 +11,6 @@ class SalesButtonsController extends StatelessWidget {
       required this.controller,
       this.payable,
       required this.tab,
-      required this.saleCounts,
       required this.model})
       : super(key: key);
   final double amount;
@@ -19,7 +18,6 @@ class SalesButtonsController extends StatelessWidget {
   final TextEditingController controller;
   final Widget? payable;
   final int tab;
-  final int saleCounts;
   final bool ticketsEnabled;
   final BusinessHomeViewModel model;
 
@@ -29,9 +27,7 @@ class SalesButtonsController extends StatelessWidget {
       children: <Widget>[
         Padding(
           padding: const EdgeInsets.only(left: 0.0, right: 0.0),
-          child: ticketsEnabled
-              ? payable
-              : PreviewSaleButton(saleCounts: saleCounts, model: model),
+          child: ticketsEnabled ? payable : PreviewSaleButton(model: model),
         ),
       ],
     );

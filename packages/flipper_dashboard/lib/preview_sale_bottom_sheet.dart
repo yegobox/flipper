@@ -14,12 +14,8 @@ class PreviewSaleBottomSheet extends StatefulWidget {
   final bool reverse;
 
   const PreviewSaleBottomSheet(
-      {Key? key,
-      this.reverse = false,
-      required this.saleCount,
-      required this.model})
+      {Key? key, this.reverse = false, required this.model})
       : super(key: key);
-  final int saleCount;
   final BusinessHomeViewModel model;
 
   @override
@@ -35,84 +31,97 @@ class _PreviewSaleBottomSheetState extends State<PreviewSaleBottomSheet> {
         navigationBar: CupertinoNavigationBar(
             leading: Container(),
             middle: Row(children: [
-              Text("Current Sale(${widget.saleCount})",
-                  style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
-                      color: Colors.black))
+              StreamBuilder<List<OrderItem>>(
+                  stream: ProxyService.isar.orderItemsStream(),
+                  builder: (context, snapshot) {
+                    final orderItems = snapshot.data ??
+                        []; // Retrieve the data from the stream
+                    final saleCounts = orderItems
+                        .length; // Calculate the saleCounts based on the orderItems
+
+                    return Text(
+                      "Preview Sale${saleCounts != 0 ? "($saleCounts)" : ""}",
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                        color: const Color(0xffFFFFFF),
+                      ),
+                    );
+                  })
             ])),
         child: ViewModelBuilder<BusinessHomeViewModel>.reactive(
             viewModelBuilder: () => BusinessHomeViewModel(),
-            onViewModelReady: (model) async {
-              if (model.kOrder != null) {
-                await model.setOrderItems();
-              }
-            },
             builder: (a, model, c) {
               return SafeArea(
                 bottom: false,
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: ListView(
-                        reverse: widget.reverse,
-                        shrinkWrap: true,
-                        controller: ModalScrollController.of(context),
-                        physics: const ClampingScrollPhysics(),
+                child: StreamBuilder<List<OrderItem>>(
+                    stream: ProxyService.isar.orderItemsStream(),
+                    builder: (context, snapshot) {
+                      final orderItems = snapshot.data ?? [];
+                      return Column(
                         children: [
-                          AddCustomerButton(orderId: model.kOrder!.id!),
-                          ...buildItems(
-                            context: context,
-                            callback: (item) async {
-                              model.kOrder!.subTotal = model.kOrder!.subTotal -
-                                  (item.price * item.qty);
-                              await ProxyService.isar
-                                  .update(data: model.kOrder);
-                              model.deleteOrderItem(
-                                  id: item.id, context: context);
-                              model.currentOrder();
-                            },
-                            items: model.items,
+                          Expanded(
+                            child: ListView(
+                              reverse: widget.reverse,
+                              shrinkWrap: true,
+                              controller: ModalScrollController.of(context),
+                              physics: const ClampingScrollPhysics(),
+                              children: [
+                                AddCustomerButton(orderId: model.kOrder!.id!),
+                                ...buildItems(
+                                  context: context,
+                                  callback: (item) async {
+                                    model.kOrder!.subTotal =
+                                        model.kOrder!.subTotal -
+                                            (item.price * item.qty);
+                                    await ProxyService.isar
+                                        .update(data: model.kOrder);
+                                    model.deleteOrderItem(
+                                        id: item.id, context: context);
+                                  },
+                                  items: orderItems,
+                                ),
+                                if (widget.model.totalDiscount > 0)
+                                  ListTile(
+                                    contentPadding: const EdgeInsets.only(
+                                        left: 40.0, right: 40.0),
+                                    trailing: Text(
+                                      '- RWF ' +
+                                          NumberFormat('#,###')
+                                              .format(
+                                                  widget.model.totalDiscount)
+                                              .toString(),
+                                      style: GoogleFonts.poppins(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 15,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                    leading: Text(
+                                      'Discounts',
+                                      style: GoogleFonts.poppins(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 15,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
                           ),
-                          if (widget.model.totalDiscount > 0)
-                            ListTile(
-                              contentPadding: const EdgeInsets.only(
-                                  left: 40.0, right: 40.0),
-                              trailing: Text(
-                                '- RWF ' +
-                                    NumberFormat('#,###')
-                                        .format(widget.model.totalDiscount)
-                                        .toString(),
-                                style: GoogleFonts.poppins(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 15,
-                                  color: Colors.black,
-                                ),
-                              ),
-                              leading: Text(
-                                'Discounts',
-                                style: GoogleFonts.poppins(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 15,
-                                  color: Colors.black,
-                                ),
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 60.0),
+                            child: Container(
+                              child: ChargeButton(
+                                duePay: orderItems.fold(
+                                    0, (a, b) => a! + (b.price * b.qty)),
+                                model: model,
                               ),
                             ),
+                          )
                         ],
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 20.0),
-                      child: Container(
-                        child: ChargeButton(
-                          duePay: model.items
-                              .fold(0, (a, b) => a! + (b.price * b.qty)),
-                          model: model,
-                        ),
-                      ),
-                    )
-                  ],
-                ),
+                      );
+                    }),
               );
             }),
       )),

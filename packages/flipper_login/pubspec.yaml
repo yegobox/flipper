@@ -26,7 +26,7 @@ dependencies:
   country_code_picker: ^3.0.0
   overlay_support: ^2.1.0
   flutter_settings_ui: ^2.0.1
-  stacked: ^3.2.5
+  stacked: ^3.4.0
   google_fonts: ^4.0.3
   firebase_auth: ^4.6.2
   flipper_routing: ^0.0.1-dev.3

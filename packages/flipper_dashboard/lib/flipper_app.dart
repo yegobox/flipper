@@ -110,7 +110,6 @@ class _FlipperAppState extends State<FlipperApp>
           model.defaultTenant();
 
           /// if there is current order ongoing show them when the app starts
-          model.currentOrder();
           ProxyService.dynamicLink.handleDynamicLink(context);
           if (isAndroid || isIos) {
             AppService().nfc.startNFC(

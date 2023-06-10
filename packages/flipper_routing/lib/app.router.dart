@@ -251,7 +251,6 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         child: _i2.Payments(
           key: args.key,
           order: args.order,
-          duePay: args.duePay,
         ),
         opaque: true,
         barrierDismissible: false,
@@ -1255,14 +1254,12 @@ class PaymentsRoute extends _i3.PageRouteInfo<PaymentsArgs> {
   PaymentsRoute({
     _i4.Key? key,
     required _i8.Order order,
-    required double duePay,
   }) : super(
           PaymentsRoute.name,
           path: '/Payments',
           args: PaymentsArgs(
             key: key,
             order: order,
-            duePay: duePay,
           ),
         );
 
@@ -1273,18 +1270,15 @@ class PaymentsArgs {
   const PaymentsArgs({
     this.key,
     required this.order,
-    required this.duePay,
   });
 
   final _i4.Key? key;
 
   final _i8.Order order;
 
-  final double duePay;
-
   @override
   String toString() {
-    return 'PaymentsArgs{key: $key, order: $order, duePay: $duePay}';
+    return 'PaymentsArgs{key: $key, order: $order}';
   }
 }
 

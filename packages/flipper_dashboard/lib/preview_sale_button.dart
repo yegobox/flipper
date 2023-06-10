@@ -1,4 +1,5 @@
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -9,10 +10,8 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 class PreviewSaleButton extends StatelessWidget {
   const PreviewSaleButton({
     Key? key,
-    required this.saleCounts,
     required this.model,
   }) : super(key: key);
-  final int saleCounts;
   final BusinessHomeViewModel model;
 
   @override
@@ -67,7 +66,6 @@ class PreviewSaleButton extends StatelessWidget {
             backgroundColor: Colors.transparent,
             builder: (context) => Container(
               child: PreviewSaleBottomSheet(
-                saleCount: saleCounts,
                 model: model,
               ),
             ),
@@ -86,14 +84,23 @@ class PreviewSaleButton extends StatelessWidget {
                 Brightness.light, // set the icon color to light
           ));
         },
-        child: Text(
-          "Preview Sale${saleCounts != 0 ? "(" + saleCounts.toString() + ")" : ""}",
-          style: GoogleFonts.poppins(
-            fontWeight: FontWeight.w600,
-            fontSize: 15,
-            color: const Color(0xffFFFFFF),
-          ),
-        ),
+        child: StreamBuilder<List<OrderItem>>(
+            stream: ProxyService.isar.orderItemsStream(),
+            builder: (context, snapshot) {
+              final orderItems =
+                  snapshot.data ?? []; // Retrieve the data from the stream
+              final saleCounts = orderItems
+                  .length; // Calculate the saleCounts based on the orderItems
+
+              return Text(
+                "Preview Sale${saleCounts != 0 ? "($saleCounts)" : ""}",
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                  color: const Color(0xffFFFFFF),
+                ),
+              );
+            }),
       ),
     ));
   }

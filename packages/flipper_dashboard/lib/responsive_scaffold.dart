@@ -468,7 +468,6 @@ class _ResponsiveScaffoldState extends State<ResponsiveScaffold> {
                 ? AppBar(
                     // systemOverlayStyle: SystemUiOverlayStyle.light,
                     title: SaleIndicator(
-                      counts: widget.model.keypad.itemsOnSale,
                       onClick: () {
                         // if (widget.model.keypad.itemsOnSale > 0) {
                         //   GoRouter.of(context).push(Routes.summary);

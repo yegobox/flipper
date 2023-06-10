@@ -1,10 +1,13 @@
 import 'package:isar/isar.dart';
-
+import 'package:json_annotation/json_annotation.dart';
+import 'package:flipper_models/sync_service.dart';
+import 'package:pocketbase/pocketbase.dart';
 part 'order_item.g.dart';
 
+@JsonSerializable()
 @Collection()
-class OrderItem {
-  Id id = Isar.autoIncrement;
+class OrderItem extends IJsonSerializable {
+  Id? id = null;
   late String name;
   @Index()
   late int orderId;
@@ -21,6 +24,9 @@ class OrderItem {
   late String updatedAt;
   late bool isTaxExempted;
   bool? isRefunded;
+
+  /// property to help us adding new item to order
+  bool? doneWithOrder;
 
   // RRA fields
   // discount rate
@@ -85,51 +91,74 @@ class OrderItem {
   String? modrId;
   String? modrNm;
 
-  // to json
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'orderId': orderId,
-        'variantId': variantId,
-        'qty': qty,
-        'price': price,
-        'discount': discount,
-        'type': type,
-        'reported': reported,
-        'remainingStock': remainingStock,
-        'createdAt': createdAt,
-        'updatedAt': updatedAt,
-        'dcRt': dcRt,
-        'dcAmt': dcAmt,
-        'taxblAmt': taxblAmt,
-        'taxAmt': taxAmt,
-        'totAmt': totAmt,
-        'itemSeq': itemSeq,
-        'isrccCd': isrccCd,
-        'isrccNm': isrccNm,
-        'isrcRt': isrcRt,
-        'isrcAmt': isrcAmt,
-        'taxTyCd': taxTyCd,
-        'bcd': bcd,
-        'itemClsCd': itemClsCd,
-        'itemTyCd': itemTyCd,
-        'itemStdNm': itemStdNm,
-        'orgnNatCd': orgnNatCd,
-        'pkg': pkg,
-        'itemCd': itemCd,
-        'pkgUnitCd': pkgUnitCd,
-        'qtyUnitCd': qtyUnitCd,
-        'itemNm': itemNm,
-        'prc': prc,
-        'splyAmt': splyAmt,
-        'tin': tin,
-        'bhfId': bhfId,
-        'dftPrc': dftPrc,
-        'addInfo': addInfo,
-        'isrcAplcbYn': isrcAplcbYn,
-        'useYn': useYn,
-        'regrId': regrId,
-        'regrNm': regrNm,
-        'modrId': modrId,
-      };
+  OrderItem({
+    this.id,
+    required this.name,
+    required this.orderId,
+    required this.variantId,
+    required this.qty,
+    required this.price,
+    this.discount,
+    this.type,
+    this.reported,
+    required this.remainingStock,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.isTaxExempted,
+    this.isRefunded,
+    this.doneWithOrder,
+    this.dcRt,
+    this.dcAmt,
+    this.taxblAmt,
+    this.taxAmt,
+    this.totAmt,
+    this.itemSeq,
+    this.isrccCd,
+    this.isrccNm,
+    this.isrcRt,
+    this.isrcAmt,
+    this.taxTyCd,
+    this.bcd,
+    this.itemClsCd,
+    this.itemTyCd,
+    this.itemStdNm,
+    this.orgnNatCd,
+    this.pkg,
+    this.itemCd,
+    this.pkgUnitCd,
+    this.qtyUnitCd,
+    this.itemNm,
+    this.prc,
+    this.splyAmt,
+    this.tin,
+    this.bhfId,
+    this.dftPrc,
+    this.addInfo,
+    this.isrcAplcbYn,
+    this.useYn,
+    this.regrId,
+    this.regrNm,
+    this.modrId,
+    this.modrNm,
+  });
+  //sync String? remoteID;
+  String? action;
+  int? localId;
+
+  factory OrderItem.fromRecord(RecordModel record) =>
+      OrderItem.fromJson(record.toJson());
+
+  factory OrderItem.fromJson(Map<String, dynamic> json) {
+    json.remove('id');
+    return _$OrderItemFromJson(json);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = _$OrderItemToJson(this);
+    if (id != null) {
+      data['localId'] = id;
+    }
+    return data;
+  }
 }
