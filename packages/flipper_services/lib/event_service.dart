@@ -15,6 +15,7 @@ import 'dart:io';
 LoginData loginDataFromMap(String str) => LoginData.fromMap(json.decode(str));
 
 String loginDataToMap(LoginData data) => json.encode(data.toMap());
+
 /// list of channels and their purposes
 /// [login] this channel is used to send login details to other end
 /// [logout] this channel is used to send logout details to other end
@@ -24,11 +25,11 @@ class EventService implements EventInterface {
   final nub.Keyset keySet;
   nub.PubNub? pubnub;
 
-  EventService({required String? userId})
+  EventService({required String userId})
       : keySet = nub.Keyset(
           subscribeKey: 'sub-c-2fb5f1f2-84dc-11ec-9f2b-a2cedba671e8',
           publishKey: 'pub-c-763b84f1-f366-4f07-b9db-3f626069e71c',
-          userId: userId != null ? nub.UserId(userId) : null,
+          userId: nub.UserId(userId),
         ) {
     pubnub = nub.PubNub(defaultKeyset: keySet);
   }

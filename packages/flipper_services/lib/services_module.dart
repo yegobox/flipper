@@ -217,7 +217,7 @@ abstract class ServicesModule {
   @LazySingleton()
   EventInterface get event {
     final userId = ProxyService.box.getUserId()?.toString();
-    return EventService(userId: userId);
+    return EventService(userId: userId ?? 'NULL');
   }
 
   @preResolve
