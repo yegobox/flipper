@@ -1,27 +1,16 @@
-import 'dart:developer';
-
-import 'package:stacked/stacked.dart';
-import 'package:flipper_models/isar/random.dart';
-import 'package:flipper_models/isar/utils.dart';
 import 'package:flipper_models/isar_models.dart';
-import 'package:flipper_routing/app.router.dart';
-import 'package:flutter/cupertino.dart';
 
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/product_service.dart';
-import 'package:flipper_routing/app.locator.dart';
-import 'package:stacked_services/stacked_services.dart';
-import 'package:flipper_services/constants.dart';
-import 'package:flipper_models/hlc.dart';
 
 class FavoriteViewModel extends ProductViewModel {
   // extends ReactiveViewModel
   final AppService app = loc.locator<AppService>();
   // ignore: annotate_overrides, overridden_fields
   final ProductService productService = loc.locator<ProductService>();
-  final _routerService = locator<RouterService>();
+  // final _routerService = locator<RouterService>();
 
   List<PColor> get colors => app.colors;
 

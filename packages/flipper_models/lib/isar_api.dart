@@ -1342,12 +1342,18 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<IUser> login(
       {required String userPhone, required bool skipDefaultAppSetup}) async {
+    String phoneNumber = userPhone;
+    if (!phoneNumber.startsWith('+')) {
+      phoneNumber = '+' + phoneNumber;
+    }
+
     final response = await flipperHttpClient.post(
       Uri.parse(apihub + '/v2/api/user'),
       body: jsonEncode(
-        <String, String>{'phoneNumber': userPhone},
+        <String, String>{'phoneNumber': phoneNumber},
       ),
     );
+
     if (response.statusCode == 200 && response.body.isNotEmpty) {
       IUser syncF = IUser.fromRawJson(response.body);
       await ProxyService.box.write(
@@ -1425,7 +1431,7 @@ class IsarAPI<M> implements IsarApiInterface {
     } else if (response.statusCode == 500) {
       throw ErrorReadingFromYBServer(term: "Not found");
     } else {
-      throw Exception('403 Error');
+      throw Exception(response);
     }
   }
 
