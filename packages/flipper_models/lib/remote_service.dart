@@ -166,6 +166,7 @@ class RemoteService implements RemoteInterface {
         localVariant.lastTouched != null &&
         remoteVariant.lastTouched!
             .isFutureDateCompareTo(localVariant.lastTouched!)) {
+      remoteVariant.id = remoteVariant.localId;
       await ProxyService.isar.update(data: remoteVariant);
       lastTouched = remoteVariant.lastTouched;
     }
@@ -184,7 +185,7 @@ class RemoteService implements RemoteInterface {
     } else if (localSocial != null &&
         remoteSocial.lastTouched!
             .isFutureDateCompareTo(localSocial.lastTouched!)) {
-      remoteSocial.id = remoteSocial.id;
+      remoteSocial.id = remoteSocial.localId;
       await ProxyService.isar.update(data: remoteSocial);
       lastTouched = remoteSocial.lastTouched;
     }
@@ -203,6 +204,7 @@ class RemoteService implements RemoteInterface {
         localDevice.lastTouched != null &&
         remoteDevice.lastTouched!
             .isFutureDateCompareTo(localDevice.lastTouched!)) {
+      localDevice.id = localDevice.localId;
       await ProxyService.isar.update(data: remoteDevice);
       lastTouched = remoteDevice.lastTouched;
     }
@@ -221,6 +223,7 @@ class RemoteService implements RemoteInterface {
         localStock.lastTouched != null &&
         remoteStock.lastTouched!
             .isFutureDateCompareTo(localStock.lastTouched!)) {
+      remoteStock.id = remoteStock.localId;
       await ProxyService.isar.update(data: remoteStock);
       lastTouched = remoteStock.lastTouched;
     }
@@ -239,6 +242,7 @@ class RemoteService implements RemoteInterface {
         localProduct.lastTouched != null &&
         remoteProduct.lastTouched!
             .isFutureDateCompareTo(localProduct.lastTouched!)) {
+      remoteProduct.id = localProduct.localId;
       await ProxyService.isar.update(data: remoteProduct);
       lastTouched = remoteProduct.lastTouched;
     }
@@ -264,7 +268,7 @@ class RemoteService implements RemoteInterface {
         Social? localSocial = await ProxyService.isar
             .getSocialById(id: socialFromRecord.localId!);
         if (localSocial == null && socialFromRecord.businessId == businessId) {
-          socialFromRecord.id = socialFromRecord.id;
+          socialFromRecord.id = socialFromRecord.localId;
           await ProxyService.isar.create(data: socialFromRecord);
         }
         Social a = Social.fromRecord(socialEvent.record!);
@@ -294,6 +298,7 @@ class RemoteService implements RemoteInterface {
         if (localStock != null &&
             stockFromRecord.branchId == branchId &&
             lastTouched.isFutureDateCompareTo(localStock.lastTouched!)) {
+          stockFromRecord.id = stockFromRecord.localId;
           await ProxyService.isar.update(data: stockFromRecord);
         }
       }
@@ -316,6 +321,7 @@ class RemoteService implements RemoteInterface {
         if (localVariant != null &&
             variant.branchId == branchId &&
             lastTouched.isFutureDateCompareTo(localVariant.lastTouched!)) {
+          variant.id = variant.localId;
           await ProxyService.isar.update(data: variant);
         }
       }
@@ -338,6 +344,7 @@ class RemoteService implements RemoteInterface {
             productFromRecord.branchId == branchId &&
             lastTouched.isFutureDateCompareTo(localProduct.lastTouched!)) {
           log("updated product from remote");
+          productFromRecord.id = productFromRecord.localId;
           await ProxyService.isar.update(data: productFromRecord);
         }
       }
