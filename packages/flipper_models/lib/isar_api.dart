@@ -474,9 +474,7 @@ class IsarAPI<M> implements IsarApiInterface {
     List<OrderItem> items =
         await orderItems(orderId: order.id!, doneWithOrder: false);
 
-    double? totalPayable = items.fold(0, (a, b) => a! + (b.price * b.qty));
-
-    order.customerChangeDue = (cashReceived - totalPayable!);
+    order.customerChangeDue = (cashReceived - order.subTotal);
 
     order.cashReceived = cashReceived;
     order.updatedAt = DateTime.now().toIso8601String();

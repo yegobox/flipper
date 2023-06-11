@@ -32,22 +32,7 @@ class KeyPadView extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min, // set main axis size to min
         children: [
-          isDesktopOrWeb
-              ? StreamBuilder<Order?>(
-                  stream: ProxyService.isar.pendingOrderStream(),
-                  builder: (context, snapshot) {
-                    // return Text('Sub Totoal  ${snapshot.data?.subTotal}');
-                    return Text(
-                      "Sub Totoal: " +
-                          NumberFormat('#,###')
-                              .format(double.parse(model.keypad.key)) +
-                          " RWF",
-                      style: GoogleFonts.poppins(
-                        color: const Color(0xff000000),
-                      ),
-                    );
-                  })
-              : SizedBox.shrink(),
+         
           Padding(
             padding: EdgeInsets.symmetric(vertical: paddingHeight),
             child: Text(

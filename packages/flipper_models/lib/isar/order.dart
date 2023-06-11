@@ -1,4 +1,5 @@
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:flipper_models/sync_service.dart';
 import 'package:pocketbase/pocketbase.dart';
@@ -75,6 +76,8 @@ class Order extends IJsonSerializable {
     final Map<String, dynamic> data = _$OrderToJson(this);
     if (id != null) {
       data['localId'] = id;
+      data['businessPhoneNumber'] = ProxyService.box.getUserPhone();
+      data['businessId'] = ProxyService.box.getBusinessId();
     }
     return data;
   }
