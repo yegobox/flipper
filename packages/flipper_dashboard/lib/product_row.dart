@@ -146,7 +146,7 @@ class ProductRow extends StatelessWidget {
             leading: SizedBox(
               height: MediaQuery.of(context).size.height,
               width: 58,
-              child: imageUrl == null
+              child: imageUrl?.isEmpty ?? true
                   ? TextDrawable(
                       backgroundColor: HexColor(color),
                       text: name,
