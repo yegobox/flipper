@@ -40,7 +40,7 @@ class FavoriteViewModel extends ProductViewModel {
     yield productService.barCode;
   }
 
-  bool? inUpdateProcess;
+  bool inUpdateProcess = false;
 
   Future<List<Favorite>> getFavorites() async {
     List<Favorite> res = await ProxyService.isar.getFavorites();
@@ -49,7 +49,7 @@ class FavoriteViewModel extends ProductViewModel {
 
   Future<int> deleteFavoriteByIndex(int favIndex) async {
     Favorite? target = await getFavoriteByIndex(favIndex);
-    int res = await ProxyService.isar.deleteFavoriteByIndex(favIndex: favIndex);
+    await ProxyService.isar.deleteFavoriteByIndex(favIndex: favIndex);
     notifyListeners();
     ProxyService.app.pushDataToServer();
     if (target != null) {

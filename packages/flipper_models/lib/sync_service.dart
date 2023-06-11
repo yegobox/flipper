@@ -32,13 +32,15 @@ class SynchronizationService<M extends IJsonSerializable>
         log(itemOnOrder.length.toString(), name: "ItemOnOrder");
         String namesString = itemOnOrder.map((item) => item.name).join(',');
         json["itemName"] = namesString;
-        // log(json.toString());
       }
+
       if (endpoint == "stocks" && json["retailPrice"] == null) {
+        log(json.toString(), name: "stocks");
         throw Exception("stocks has null retail price");
       }
 
       if (endpoint == "variants" && json["retailPrice"] == null) {
+        log(json.toString(), name: "variants");
         throw Exception("variant has null retail price");
       }
 

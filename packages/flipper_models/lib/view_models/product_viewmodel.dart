@@ -44,7 +44,7 @@ class ProductViewModel extends TenantViewModel {
     yield productService.barCode;
   }
 
-  bool? inUpdateProcess;
+  bool inUpdateProcess = false;
 
   /// Create a temporal product to use during this session of product creation
   /// the same product will be use if it is still temp product
@@ -280,7 +280,8 @@ class ProductViewModel extends TenantViewModel {
         if (variation.name == "Regular") {
           variation.supplyPrice = supplyPrice;
           variation.productName = product!.name;
-          variation.action = actions["update"];
+          variation.action =
+              inUpdateProcess ? actions["update"] : actions["create"];
           variation.productId = variation.productId;
           ProxyService.isar.update(data: variation);
           Stock? stock = await ProxyService.isar
@@ -300,7 +301,8 @@ class ProductViewModel extends TenantViewModel {
           variation.retailPrice = retailPrice;
           variation.productId = variation.productId;
           variation.prc = retailPrice;
-          variation.action = actions["update"];
+          variation.action =
+              inUpdateProcess ? actions["update"] : actions["create"];
           variation.productName = product!.name;
           ProxyService.isar.update(data: variation);
           Stock? stock = await ProxyService.isar
@@ -326,13 +328,8 @@ class ProductViewModel extends TenantViewModel {
     mproduct.barCode = productService.barCode.toString();
     mproduct.color = app.currentColor;
     mproduct.color = app.currentColor;
-    mproduct.action = actions["update"];
 
-    /// since we have action update, then we can also update lastTouched
-    /// always a product is in update state as we start with temp product initially
-    mproduct.lastTouched = removeTrailingDash(
-        Hlc.fromDate(DateTime.now(), ProxyService.box.getBranchId()!.toString())
-            .toString());
+    mproduct.action = inUpdateProcess ? actions["update"] : actions["create"];
 
     final response = await ProxyService.isar.update(data: mproduct);
     List<Variant> variants =
@@ -343,20 +340,7 @@ class ProductViewModel extends TenantViewModel {
       variant.prc = variant.retailPrice;
       variant.productId = mproduct.id!;
       variant.pkgUnitCd = "NT";
-
-      /// we negate where remoteID is null because we want to change action to update
-      /// only if the product is already synced with the server
-      if (inUpdateProcess != null &&
-          inUpdateProcess! &&
-          variant.remoteID != null) {
-        variant.action = actions["update"];
-
-        /// since we have action update, then we can also update lastTouched
-        variant.lastTouched = removeTrailingDash(Hlc.fromDate(
-                DateTime.now(), ProxyService.box.getBranchId()!.toString())
-            .toString());
-      }
-
+      variant.action = inUpdateProcess ? actions["update"] : actions["create"];
       await ProxyService.isar.update(data: variant);
       if (await ProxyService.isar.isTaxEnabled()) {
         ProxyService.tax.saveItem(variation: variant);
