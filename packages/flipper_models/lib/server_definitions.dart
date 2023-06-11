@@ -7,4 +7,5 @@ final Map<Type, String> serverDefinitions = {
   Order: "orders",
   Social: "socials",
   Favorite: "favorites",
+  Device: 'devices'
 };

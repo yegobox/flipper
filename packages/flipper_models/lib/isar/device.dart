@@ -56,8 +56,4 @@ class Device extends IJsonSerializable {
     }
     return data;
   }
-
-  void assignIdFromSync() {
-    id = syncIdInt();
-  }
 }

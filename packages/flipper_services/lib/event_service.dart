@@ -15,32 +15,36 @@ import 'dart:io';
 LoginData loginDataFromMap(String str) => LoginData.fromMap(json.decode(str));
 
 String loginDataToMap(LoginData data) => json.encode(data.toMap());
-
 /// list of channels and their purposes
 /// [login] this channel is used to send login details to other end
 /// [logout] this channel is used to send logout details to other end
 /// [device] this channel is used to send device details to other end
 class EventService implements EventInterface {
   final _routerService = locator<RouterService>();
+  final nub.Keyset keySet;
   nub.PubNub? pubnub;
-  final keySet = nub.Keyset(
-    subscribeKey: 'sub-c-2fb5f1f2-84dc-11ec-9f2b-a2cedba671e8',
-    publishKey: 'pub-c-763b84f1-f366-4f07-b9db-3f626069e71c',
-    uuid: const nub.UUID('5d012092-29c4-45fc-a37b-5776e64d4355'),
-  );
+
+  EventService({required String? userId})
+      : keySet = nub.Keyset(
+          subscribeKey: 'sub-c-2fb5f1f2-84dc-11ec-9f2b-a2cedba671e8',
+          publishKey: 'pub-c-763b84f1-f366-4f07-b9db-3f626069e71c',
+          userId: userId != null ? nub.UserId(userId) : null,
+        ) {
+    pubnub = nub.PubNub(defaultKeyset: keySet);
+  }
+
   @override
   nub.PubNub connect() {
-    pubnub = nub.PubNub(defaultKeyset: keySet);
     return pubnub!;
   }
 
   @override
-  void publish({required Map loginDetails}) {
+  Future<nub.PublishResult> publish({required Map loginDetails}) async {
     if (pubnub == null) {
       connect();
     }
     final nub.Channel channel = pubnub!.channel(loginDetails['channel']);
-    channel.publish(loginDetails);
+    return await channel.publish(loginDetails);
   }
 
   @override
@@ -100,8 +104,8 @@ class EventService implements EventInterface {
         String deviceVersion = Platform.version;
         // publish the device name and version
 
-        Device? device = await ProxyService.isar
-            .getDevice(linkingCode: loginData.linkingCode);
+        Device? device =
+            await ProxyService.isar.getDevice(phone: loginData.phone);
 
         if (device == null) {
           await ProxyService.isar.create(
@@ -161,8 +165,8 @@ class EventService implements EventInterface {
       log("received device aha!");
       LoginData deviceEvent = LoginData.fromMap(envelope.payload);
 
-      Device? device = await ProxyService.isar
-          .getDevice(linkingCode: deviceEvent.linkingCode);
+      Device? device =
+          await ProxyService.isar.getDevice(phone: deviceEvent.phone);
 
       if (device == null) {
         await ProxyService.isar.create(
@@ -186,7 +190,7 @@ class EventService implements EventInterface {
     List<Device> devices = await ProxyService.isar
         .unpublishedDevices(businessId: ProxyService.box.getBusinessId()!);
     for (Device device in devices) {
-      publish(
+      nub.PublishResult result = await publish(
         loginDetails: {
           'channel': 'device',
           'deviceName': device.deviceName,
@@ -199,6 +203,10 @@ class EventService implements EventInterface {
           'defaultApp': device.defaultApp,
         },
       );
+      if (result.description == 'Sent') {
+        device.pubNubPublished = true;
+        await ProxyService.isar.update(data: device);
+      }
     }
   }
 }

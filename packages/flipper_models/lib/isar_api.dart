@@ -2680,13 +2680,9 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Device?> getDevice({required String linkingCode}) {
+  Future<Device?> getDevice({required String phone}) {
     // get device from isar with linking code and return it
-    return isar.devices
-        .filter()
-        .linkingCodeEqualTo(linkingCode)
-        .build()
-        .findFirst();
+    return isar.devices.filter().phoneEqualTo(phone).build().findFirst();
   }
 
   @override

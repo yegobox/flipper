@@ -195,7 +195,7 @@ abstract class ServicesModule {
 
   // @LazySingleton()
   @preResolve
-  Future<LocalStorage>  get box async {
+  Future<LocalStorage> get box async {
     //late LocalStorage box;
     log("loading a box");
     return await SharedPreferenceStorage().initializePreferences();
@@ -215,7 +215,10 @@ abstract class ServicesModule {
   }
 
   @LazySingleton()
-  EventInterface get event => EventService();
+  EventInterface get event {
+    final userId = ProxyService.box.getUserId()?.toString();
+    return EventService(userId: userId);
+  }
 
   @preResolve
   @LazySingleton()
