@@ -8,7 +8,7 @@ part 'social.g.dart';
 @Collection()
 class Social extends IJsonSerializable {
   @JsonKey(includeToJson: false, includeFromJson: false)
-  Id? id = null;
+  Id? id;
 
   bool isAccountSet;
 

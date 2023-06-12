@@ -13,7 +13,7 @@ part 'variant.g.dart';
 @JsonSerializable()
 @Collection()
 class Variant extends IJsonSerializable {
-  Id? id = null;
+  Id? id;
   @Index(caseSensitive: true)
   late String name;
   late String sku;

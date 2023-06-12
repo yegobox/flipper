@@ -11,7 +11,7 @@ part 'product.g.dart';
 @Collection()
 class Product extends IJsonSerializable {
   // @JsonKey(name: 'localId')
-  Id? id = null;
+  Id? id;
   @Index(caseSensitive: true)
   late String name;
   String? description;

@@ -9,7 +9,7 @@ part 'stock.g.dart';
 @JsonSerializable()
 @Collection()
 class Stock extends IJsonSerializable {
-  Id? id = null;
+  Id? id;
   @Index()
   late int branchId;
   @Index(composite: [CompositeIndex('branchId')])

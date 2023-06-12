@@ -7,7 +7,7 @@ part 'order_item.g.dart';
 @JsonSerializable()
 @Collection()
 class OrderItem extends IJsonSerializable {
-  Id? id = null;
+  Id? id;
   late String name;
   @Index()
   late int orderId;

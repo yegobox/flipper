@@ -9,7 +9,7 @@ part 'order.g.dart';
 @Collection()
 class Order extends IJsonSerializable {
   // @JsonKey(name: 'localId')
-  Id? id = null;
+  Id? id;
   late String reference;
   late String orderNumber;
   @Index()

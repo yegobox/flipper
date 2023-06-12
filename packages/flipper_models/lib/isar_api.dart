@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:html_unescape/html_unescape.dart';
 import 'dart:convert';
 import 'dart:developer';
+import 'package:path/path.dart' as path;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_models/data.loads/jcounter.dart';
 import 'package:flipper_models/isar/random.dart';
@@ -28,7 +29,7 @@ class IsarAPI<M> implements IsarApiInterface {
   late String commApi;
   late Isar isar;
   Future<IsarApiInterface> getInstance({Isar? iisar}) async {
-    final dir = await getApplicationDocumentsDirectory();
+    final appDocDir = await getApplicationDocumentsDirectory();
     if (foundation.kDebugMode && !isAndroid) {
       apihub = "https://uat-apihub.yegobox.com";
       commApi = "https://ers84w6ehl.execute-api.us-east-1.amazonaws.com/api";
@@ -75,7 +76,7 @@ class IsarAPI<M> implements IsarApiInterface {
           DeviceSchema,
           FavoriteSchema
         ],
-        directory: dir.path,
+        directory: appDocDir.path,
       );
     } else {
       isar = iisar;
@@ -398,7 +399,7 @@ class IsarAPI<M> implements IsarApiInterface {
   Future assingOrderToCustomer(
       {required int customerId, required int orderId}) async {
     // get order where id = orderId from db
-    Order? order = await isar.orders.get(orderId);
+    Order? order = await isar.orders.filter().idEqualTo(orderId).findFirst();
 
     order!.customerId = customerId;
     // update order to db
@@ -1958,9 +1959,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<Variant?> getVariantById({required int id}) async {
-    return isar.writeTxn(() async {
-      return await isar.variants.get(id);
-    });
+    return await isar.variants.get(id);
   }
 
   @override
@@ -2244,9 +2243,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<Stock?> getStockById({required int id}) async {
-    return isar.writeTxn(() async {
-      return await isar.stocks.get(id);
-    });
+    return await isar.stocks.get(id);
   }
 
   /// internal function that I am still brain storming about
