@@ -45,6 +45,7 @@ class Device extends IJsonSerializable {
       Device.fromJson(record.toJson());
 
   factory Device.fromJson(Map<String, dynamic> json) {
+    json['remoteID'] = json['id'];
     json.remove('id');
     return _$DeviceFromJson(json);
   }

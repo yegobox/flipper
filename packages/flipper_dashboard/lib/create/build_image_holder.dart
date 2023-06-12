@@ -61,13 +61,15 @@ class ColorAndImagePlaceHolder extends StatelessWidget {
             );
           }
           // the case of adding a product when product is not null but no image attached to it.
-          if (product.data!.imageUrl == null) {
+          if (product.data!.imageUrl == null ||
+              product.data!.imageUrl!.isEmpty) {
             return Container(
               height: 80,
               width: 80,
               color: HexColor(currentColor),
             );
           }
+
           return Stack(
             children: <Widget>[
               SizedBox(

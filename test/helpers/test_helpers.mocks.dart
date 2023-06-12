@@ -120,8 +120,8 @@ class _FakeColor_8 extends _i1.SmartFake implements _i2.Color {
         );
 }
 
-class _FakeIPoint_9 extends _i1.SmartFake implements _i9.IPoint {
-  _FakeIPoint_9(
+class _FakePointss_9 extends _i1.SmartFake implements _i9.Pointss {
+  _FakePointss_9(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -1760,7 +1760,7 @@ class MockBillingService extends _i1.Mock implements _i20.BillingService {
         returnValueForMissingStub: _i5.Future<_i9.Voucher?>.value(),
       ) as _i5.Future<_i9.Voucher?>);
   @override
-  _i9.IPoint addPoints({
+  _i9.Pointss addPoints({
     int? points,
     int? userId,
   }) =>
@@ -1773,7 +1773,7 @@ class MockBillingService extends _i1.Mock implements _i20.BillingService {
             #userId: userId,
           },
         ),
-        returnValue: _FakeIPoint_9(
+        returnValue: _FakePointss_9(
           this,
           Invocation.method(
             #addPoints,
@@ -1784,7 +1784,7 @@ class MockBillingService extends _i1.Mock implements _i20.BillingService {
             },
           ),
         ),
-        returnValueForMissingStub: _FakeIPoint_9(
+        returnValueForMissingStub: _FakePointss_9(
           this,
           Invocation.method(
             #addPoints,
@@ -1795,7 +1795,7 @@ class MockBillingService extends _i1.Mock implements _i20.BillingService {
             },
           ),
         ),
-      ) as _i9.IPoint);
+      ) as _i9.Pointss);
   @override
   _i5.Future<_i9.Subscription> updateSubscription({
     required int? userId,

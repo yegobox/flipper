@@ -67,6 +67,7 @@ class Order extends IJsonSerializable {
       Order.fromJson(record.toJson());
 
   factory Order.fromJson(Map<String, dynamic> json) {
+    json['remoteID'] = json['id'];
     json.remove('id');
     return _$OrderFromJson(json);
   }

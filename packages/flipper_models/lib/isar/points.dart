@@ -4,15 +4,15 @@ import 'package:isar/isar.dart';
 part 'points.g.dart';
 
 @Collection()
-class IPoint {
-  IPoint({this.id = 0, required this.value, required this.userId});
+class Pointss {
+  Pointss({this.id = 0, required this.value, required this.userId});
 
   Id id = Isar.autoIncrement;
   int value;
   @Index()
   short userId;
 
-  factory IPoint.fromJson(Map<String, dynamic> json) => IPoint(
+  factory Pointss.fromJson(Map<String, dynamic> json) => Pointss(
         id: json["id"],
         value: json["value"],
         userId: json["userId"],

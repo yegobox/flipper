@@ -45,9 +45,7 @@ class SynchronizationService<M extends IJsonSerializable>
       }
 
       /// remove trailing dashes to sent lastTouched
-      json["lastTouched"] = removeTrailingDash(Hlc.fromDate(
-              DateTime.now(), ProxyService.box.getBranchId()!.toString())
-          .toString());
+      json["lastTouched"] = DateTime.now().toIso8601String();
       json["id"] = syncId();
 
       RecordModel? result;

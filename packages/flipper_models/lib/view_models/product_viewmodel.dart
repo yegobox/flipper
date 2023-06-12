@@ -285,6 +285,8 @@ class ProductViewModel extends TenantViewModel {
 
           if (stock != null) {
             stock.supplyPrice = supplyPrice;
+            stock.action =
+                inUpdateProcess ? actions["update"] : actions["create"];
             ProxyService.isar.update(data: stock);
           }
         }
@@ -306,7 +308,7 @@ class ProductViewModel extends TenantViewModel {
 
           if (stock != null) {
             stock.retailPrice = retailPrice;
-
+            stock.action = inUpdateProcess ? actions["update"] : actions["create"];
             await ProxyService.isar.update(data: stock);
           }
         }

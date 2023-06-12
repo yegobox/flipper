@@ -141,6 +141,7 @@ class Variant extends IJsonSerializable {
       Variant.fromJson(record.toJson());
 
   factory Variant.fromJson(Map<String, dynamic> json) {
+    json['remoteID'] = json['id'];
     json.remove('id');
     return _$VariantFromJson(json);
   }

@@ -54,7 +54,7 @@ class IsarAPI<M> implements IsarApiInterface {
           VariantSchema,
           ProfileSchema,
           SubscriptionSchema,
-          IPointSchema,
+          PointssSchema,
           StockSchema,
           FeatureSchema,
           VoucherSchema,
@@ -205,8 +205,8 @@ class IsarAPI<M> implements IsarApiInterface {
 
   // get point where userId = userId from db
   @override
-  IPoint addPoint({required int userId, required int point}) {
-    return isar.iPoints.filter().userIdEqualTo(userId).findFirstSync()!;
+  Pointss addPoint({required int userId, required int point}) {
+    return isar.pointss.filter().userIdEqualTo(userId).findFirstSync()!;
   }
 
   @override
@@ -508,13 +508,13 @@ class IsarAPI<M> implements IsarApiInterface {
   void consumePoints({required int userId, required int points}) async {
     // get Points where userId = userId from db
     // and update this Points with new points
-    IPoint? po = await isar.iPoints.filter().userIdEqualTo(userId).findFirst();
+    Pointss? po = await isar.pointss.filter().userIdEqualTo(userId).findFirst();
     //po ??= Points(userId: userId, points: 0, value: 0);
     // save po to db
     po!.value = po.value - points;
     await isar.writeTxn(() async {
-      int id = await isar.iPoints.put(po);
-      return isar.iPoints.getSync(id)!;
+      int id = await isar.pointss.put(po);
+      return isar.pointss.getSync(id)!;
     });
   }
 
@@ -1141,9 +1141,9 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<IPoint?> getPoints({required int userId}) {
+  Future<Pointss?> getPoints({required int userId}) {
     return isar.writeTxn(() {
-      return isar.iPoints.where().userIdEqualTo(userId).findFirst();
+      return isar.pointss.where().userIdEqualTo(userId).findFirst();
     });
   }
 

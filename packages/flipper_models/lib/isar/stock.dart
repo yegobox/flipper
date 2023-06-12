@@ -59,6 +59,7 @@ class Stock extends IJsonSerializable {
       Stock.fromJson(record.toJson());
 
   factory Stock.fromJson(Map<String, dynamic> json) {
+    json['remoteID'] = json['id'];
     json.remove('id');
     return _$StockFromJson(json);
   }
