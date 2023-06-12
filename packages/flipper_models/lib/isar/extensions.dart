@@ -1,7 +1,6 @@
-import 'package:flipper_models/isar/utils.dart';
-
 extension StringExtensions on String {
   bool isFutureDateCompareTo(String? other) {
-    return isGreaterThan(this, other) || this == other;
+    if (other == null) return false;
+    return compareTo(other) > 0;
   }
 }
