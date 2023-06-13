@@ -102,7 +102,8 @@ class _DrawerScreenState extends State<DrawerScreen> {
                           ProxyService.isar.openDrawer(
                             drawer: model.Drawers()
                               ..cashierId = ProxyService.box.getBusinessId()!
-                              ..openingBalance = double.parse(_controller.text)
+                              ..openingBalance =
+                                  double.tryParse(_controller.text) ?? 0
                               ..closingBalance = 0
                               ..tradeName = ProxyService.app.business.name
                               ..nsSaleCount = 0
