@@ -57,7 +57,7 @@
 # NOTES:
 # git submodule update --remote open-sources/plus_plugins
 # git filter-branch --force --index-filter 'git rm --cached --ignore-unmatch open-sources/plus_plugins' --prune-empty --tag-name-filter cat -- --all
-
+# 
 [submodule "open-sources/plus_plugins"]
 	path = open-sources/plus_plugins
 	url = https://github.com/yegobox/plus_plugins.git
