@@ -6,6 +6,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   battery_plus
   connectivity_plus
   desktop_webview_auth
+  file_selector_windows
   firebase_core
   flutter_localization
   geolocator_windows
