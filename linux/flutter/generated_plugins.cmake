@@ -4,7 +4,6 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   desktop_webview_auth
-  file_selector_linux
   flutter_localization
   isar_flutter_libs
   printing

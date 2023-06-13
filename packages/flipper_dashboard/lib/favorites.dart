@@ -10,7 +10,7 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
-
+import 'dart:developer';
 import 'animated_row.dart';
 
 class Favorites extends StatefulWidget {
@@ -102,12 +102,12 @@ class _FavoritesState extends State<Favorites> {
                           children: [
                             Expanded(
                                 child: AnimatedRowItem(
-                              item: _buildItem(context, index, model),
+                              item: _buildItem(context, (index), model),
                             )),
                             Expanded(
                                 child: AnimatedRowItem(
-                                    item:
-                                        _buildItem(context, index + 1, model))),
+                                    item: _buildItem(
+                                        context, (index + 1), model))),
                           ],
                         );
                       } else {
@@ -115,12 +115,12 @@ class _FavoritesState extends State<Favorites> {
                           children: [
                             Expanded(
                                 child: AnimatedRowItem(
-                                    item:
-                                        _buildItem(context, index - 2, model))),
+                                    item: _buildItem(
+                                        context, (index - 2), model))),
                             Expanded(
                                 child: AnimatedRowItem(
-                                    item:
-                                        _buildItem(context, index - 1, model))),
+                                    item: _buildItem(
+                                        context, (index - 1), model))),
                           ],
                         );
                       }
@@ -329,7 +329,7 @@ class _FavoritesState extends State<Favorites> {
           return StreamBuilder<Product?>(
             stream: ProxyService.isar.getProductStream(prodIndex: prodId),
             builder: (context, snapshot) {
-               if (snapshot.hasError) {
+              if (snapshot.hasError) {
                 return Text('Error: ${snapshot.error}');
               } else if (snapshot.hasData) {
                 Product favProduct = snapshot.data!;
@@ -347,8 +347,9 @@ class _FavoritesState extends State<Favorites> {
   // Builds an item widget with the given label and favorite status
   Widget _buildItem(
       BuildContext context, int favIndex, FavoriteViewModel model) {
+        
     // Calculate the adjusted index based on the hasBeenPressed state
-    int adjustedIndex = widget.hasBeenPressed ? favIndex : favIndex * 2;
+    int adjustedIndex = favIndex;
 
     return _buildItemContent(context, adjustedIndex, model);
   }
