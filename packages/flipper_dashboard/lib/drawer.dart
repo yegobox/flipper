@@ -50,21 +50,27 @@ class _DrawerScreenState extends State<DrawerScreen> {
               ),
               const Spacer(),
               TextFormField(
-                  controller: _controller,
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (value == null) {
-                      return "You need to enter the amount";
-                    }
-                    return null;
-                  },
-                  decoration: InputDecoration(
-                      enabled: true,
-                      border: const OutlineInputBorder(),
-                      suffixIcon: const Icon(Icons.money),
-                      hintText: widget.open == "open"
-                          ? "Opening balance"
-                          : "Closing balance")),
+                controller: _controller,
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "You need to enter the amount";
+                  }
+                  final numericValue = num.tryParse(value);
+                  if (numericValue == null) {
+                    return "Only numeric values are allowed";
+                  }
+                  return null;
+                },
+                decoration: InputDecoration(
+                  enabled: true,
+                  border: const OutlineInputBorder(),
+                  suffixIcon: const Icon(Icons.money),
+                  hintText: widget.open == "open"
+                      ? "Opening balance"
+                      : "Closing balance",
+                ),
+              ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(1, 8, 1, 0),
                 child: Container(
