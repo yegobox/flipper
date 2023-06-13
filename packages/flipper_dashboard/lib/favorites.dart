@@ -252,11 +252,11 @@ class _FavoritesState extends State<Favorites> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
               // Set the background color based on the condition
-              color: favProd.imageUrl != null
+              color: favProd.imageUrl != null && !favProd.imageUrl!.isEmpty
                   ? null
                   : getColorFromHex(favProd.color),
               // Set the background image based on the condition
-              image: favProd.imageUrl != null
+              image: favProd.imageUrl != null && !favProd.imageUrl!.isEmpty
                   ? DecorationImage(
                       image: NetworkImage(favProd.imageUrl!),
                       fit: BoxFit.cover,
@@ -267,7 +267,7 @@ class _FavoritesState extends State<Favorites> {
               children: [
                 Center(
                   child: Text(
-                    favProd.imageUrl != null
+                    favProd.imageUrl != null && !favProd.imageUrl!.isEmpty
                         ? ''
                         : favProd.name.length > 1
                             ? favProd.name.substring(0, 2)
@@ -347,7 +347,6 @@ class _FavoritesState extends State<Favorites> {
   // Builds an item widget with the given label and favorite status
   Widget _buildItem(
       BuildContext context, int favIndex, FavoriteViewModel model) {
-        
     // Calculate the adjusted index based on the hasBeenPressed state
     int adjustedIndex = favIndex;
 
