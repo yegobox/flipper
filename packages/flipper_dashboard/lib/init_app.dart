@@ -34,8 +34,6 @@ class InitApp {
     ProxyService.status.updateStatusColor();
     ProxyService.event.connect();
 
-    ProxyService.messaging
-        .initializeFirebaseMessagingAndSubscribeToBusinessNotifications();
     ProxyService.messaging.listenTapOnNotificationForeground();
     if (isDesktopOrWeb) {
       ProxyService.event.subscribeToLogoutEvent(

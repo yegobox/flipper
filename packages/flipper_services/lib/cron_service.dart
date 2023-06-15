@@ -31,6 +31,9 @@ class CronService {
       /// get a list of local copy of product to sync
       ProxyService.app.pushDataToServer();
       ProxyService.sync.pull();
+      
+      ProxyService.messaging
+        .initializeFirebaseMessagingAndSubscribeToBusinessNotifications();
       // in case pubnub did not get latest message load them forcefully
     });
     if (!Platform.isWindows) {
