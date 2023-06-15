@@ -143,7 +143,7 @@ class RemoteService implements RemoteInterface {
       //
       List<RecordModel> socialItems = await pb
           .collection('socials')
-          .getList(page: 1, perPage: 2, filter: 'businessId = ${businessId}')
+          .getList(page: 1, perPage: 200, filter: 'businessId = ${businessId}')
           .then((event) => event.items);
       await Future.forEach(socialItems, (RecordModel item) async {
         Social remoteSocial = Social.fromJson(item.toJson());

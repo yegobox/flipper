@@ -58,9 +58,11 @@ class RWTax implements TaxApi {
     request.body = json.encode(variant?.toJson());
     request.headers.addAll(headers);
     // log(variant!.toJson().toString());
+
     http.StreamedResponse response = await request.send();
 
     if (response.statusCode == 200) {
+      ProxyService.sentry.debug(event: stock.toJson().toString());
       log(await response.stream.bytesToString());
       return Future.value(true);
     } else {
@@ -89,6 +91,7 @@ class RWTax implements TaxApi {
     http.StreamedResponse response = await request.send();
 
     if (response.statusCode == 200) {
+      ProxyService.sentry.debug(event: variation.toJson().toString());
       log(await response.stream.bytesToString());
       return Future.value(true);
     } else {
@@ -255,6 +258,7 @@ class RWTax implements TaxApi {
     http.StreamedResponse response = await request.send();
 
     if (response.statusCode == 200) {
+      ProxyService.sentry.debug(event: request.body.toString());
       if (ProxyService.remoteConfig.isMarketingFeatureEnabled()) {
         SentryId sentryId = await Sentry.captureMessage("EBM-JSON");
 
