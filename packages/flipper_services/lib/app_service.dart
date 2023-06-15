@@ -112,20 +112,25 @@ class AppService with ListenableServiceMixin {
   }
 
   Future<void> logSocial() async {
-    SocialToken token = await ProxyService.isar.loginOnSocial(
-        password: ProxyService.box.getUserPhone()!.replaceFirst("+", ""),
-        phoneNumberOrEmail:
-            ProxyService.box.getUserPhone()!.replaceFirst("+", ""));
-    ProxyService.box
-        .write(key: 'socialBearerToken', value: "Bearer " + token.body.token);
-    int? businessId = ProxyService.box.getBusinessId();
-    await ProxyService.isar.create(
-        data: Token(
-            businessId: businessId!,
-            token: token.body.token,
-            validFrom: token.body.validFrom,
-            validUntil: token.body.validUntil,
-            type: socialApp));
+    final phoneNumber = ProxyService.box.getUserPhone()!.replaceFirst("+", "");
+    final token = await ProxyService.isar.loginOnSocial(
+      password: phoneNumber,
+      phoneNumberOrEmail: phoneNumber,
+    );
+
+    final socialBearerToken = "Bearer " + token.body.token;
+    ProxyService.box.write(key: 'whatsAppToken', value: socialBearerToken);
+
+    final businessId = ProxyService.box.getBusinessId()!;
+    final data = Token(
+      businessId: businessId,
+      token: token.body.token,
+      validFrom: token.body.validFrom,
+      validUntil: token.body.validUntil,
+      type: socialApp,
+    );
+
+    await ProxyService.isar.create(data: data);
   }
 
   final _contacts = ReactiveValue<List<Business>>([]);

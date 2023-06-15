@@ -2579,7 +2579,7 @@ class IsarAPI<M> implements IsarApiInterface {
       isar.writeTxn(() => isar.tokens.delete(token.id));
       return false;
     }
-    String? localToken = ProxyService.box.getSocialBearerToken();
+    String? localToken = ProxyService.box.whatsAppToken();
     if (localToken == null) {
       return false;
     }

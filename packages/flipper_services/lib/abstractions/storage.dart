@@ -19,7 +19,7 @@ abstract class LocalStorage {
   String? gdID();
   String? getBearerToken();
   int getDefaultApp();
-  String? getSocialBearerToken();
+  String? whatsAppToken();
   String? getPk();
   String? getSk();
 }

@@ -30,7 +30,7 @@ class RemoteService implements RemoteInterface {
         url = 'https://db.yegobox.com';
       }
       pb = PocketBase(url);
-      await pb.admins.authWithPassword('info@yegobox.com', 'd');
+      await pb.admins.authWithPassword('info@yegobox.com', '5nUeS5TjpArcSGd');
     } on SocketException catch (e) {
       log(e.toString());
     } on ClientException catch (e) {

@@ -135,6 +135,10 @@ class App {}
 /// C:\Users\Richie\Downloads\vcpkg\vcpkg.exe install cppwinrt
 /// https://vcpkg.io/en/packages.html
 /// import 'package:newrelic_mobile/newrelic_navigation_observer.dart';
+/// https://learn.microsoft.com/en-us/gaming/gdk/_content/gc/commerce/service-to-service/xstore-requesting-a-userstoreid
+/// https://learn.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app
+/// https://learn.microsoft.com/en-us/gaming/gdk/_content/gc/commerce/service-to-service/xstore-requesting-a-userstoreid#step-2
+/// https://learn.microsoft.com/en-us/gaming/gdk/_content/gc/commerce/service-to-service/microsoft-store-apis/xstore-v8-recurrence-query
 
 //....
 

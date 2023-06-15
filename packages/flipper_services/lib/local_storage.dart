@@ -134,8 +134,8 @@ class SharedPreferenceStorage implements LocalStorage {
   }
 
   @override
-  String? getSocialBearerToken() {
-    return prefs.getString('socialBearerToken');
+  String? whatsAppToken() {
+    return prefs.getString('whatsAppToken');
   }
 
   @override
@@ -278,8 +278,8 @@ class LocalStorageImpl implements LocalStorage {
   }
 
   @override
-  String? getSocialBearerToken() {
-    return box.read('socialBearerToken');
+  String? whatsAppToken() {
+    return box.read('whatsAppToken');
   }
 
   @override
