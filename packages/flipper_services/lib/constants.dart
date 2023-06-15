@@ -2,19 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+class AppActions {
+  static const String update = "update";
+  static const String updated = "updated";
+  static const String delete = "delete";
+  static const String deleted = "deleted";
+  static const String create = "create";
+  static const String created = "created";
+}
+
 const String defaultApp = 'defaultApp';
 String parkedStatus = 'parked';
 const String pendingStatus = 'pending';
 const String postPonedStatus = 'postponed';
 String addBarCode = 'addBarCode';
-Map actions = {
-  "update": "update",
-  "afterUpdate": "afterUpdate",
-  "delete": "delete",
-  "afterDelete": "afterDelete",
-  "create": "create",
-  "afterCreate": "afterCreate"
-};
+
 String attendance = 'attendance';
 String login = 'login';
 String selling = 'selling';

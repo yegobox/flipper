@@ -271,7 +271,7 @@ class AppService with ListenableServiceMixin {
 
         /// keep the local ID unchanged to avoid complication
         s.id = stockId;
-        s.action = actions["afterUpdate"];
+        s.action = AppActions.updated;
 
         await ProxyService.isar.update(data: s);
       }
@@ -290,7 +290,7 @@ class AppService with ListenableServiceMixin {
 
         // /// keep the local ID unchanged to avoid complication
         va.id = variantId;
-        va.action = actions["afterUpdate"];
+        va.action = AppActions.updated;
         await ProxyService.isar.update(data: va);
       }
     }
@@ -306,7 +306,7 @@ class AppService with ListenableServiceMixin {
 
         /// keep the local ID unchanged to avoid complication
         product.id = oldId;
-        product.action = actions["afterUpdate"];
+        product.action = AppActions.updated;
         await ProxyService.isar.update(data: product);
       }
     }
@@ -322,7 +322,7 @@ class AppService with ListenableServiceMixin {
 
         /// keep the local ID unchanged to avoid complication
         fav.id = oldId;
-        fav.action = actions["afterUpdate"];
+        fav.action = AppActions.updated;
         await ProxyService.isar.update(data: fav);
       }
     }
@@ -338,7 +338,7 @@ class AppService with ListenableServiceMixin {
 
         /// keep the local ID unchanged to avoid complication
         dev.id = oldId;
-        dev.action = actions["afterUpdate"];
+        dev.action = AppActions.updated;
         await ProxyService.isar.update(data: dev);
       }
     }

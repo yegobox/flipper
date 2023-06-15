@@ -11,6 +11,8 @@ import 'package:flipper_rw/flipper_localize/lib/flipper_localize.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:google_fonts/google_fonts.dart';
+import 'package:newrelic_mobile/config.dart';
+import 'package:newrelic_mobile/newrelic_mobile.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:flipper_services/locator.dart';
@@ -81,7 +83,23 @@ void main() async {
         FirebaseCrashlytics.instance.recordFlutterError(details);
       };
     }
-
+    if (isAndroid) {
+      // import 'package:newrelic_mobile/newrelic_mobile.dart';
+      const appToken = "AAbbd887ce4300ef17e2e403be632d198c86f486a0-NRMA";
+      Config config = Config(
+          accessToken: appToken,
+          analyticsEventEnabled: true,
+          networkErrorRequestEnabled: true,
+          networkRequestEnabled: true,
+          crashReportingEnabled: true,
+          interactionTracingEnabled: true,
+          httpResponseBodyCaptureEnabled: true,
+          loggingEnabled: true,
+          webViewInstrumentation: true,
+          printStatementAsEventsEnabled: true,
+          httpInstrumentationEnabled: true);
+      await NewrelicMobile.instance.startAgent(config);
+    }
     if (foundation.kReleaseMode) {
       await SentryFlutter.init(
         (options) {
@@ -140,6 +158,7 @@ void main() async {
             Locale('en'), // English
             Locale('es'), // Spanish
           ],
+
           locale: const Locale('en'),
           // locale: model
           //     .languageService.locale,

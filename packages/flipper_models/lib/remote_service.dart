@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart';
 import 'package:pocketbase/pocketbase.dart';
@@ -29,7 +30,7 @@ class RemoteService implements RemoteInterface {
         url = 'https://db.yegobox.com';
       }
       pb = PocketBase(url);
-      await pb.admins.authWithPassword('info@yegobox.com', '5nUeS5TjpArcSGd');
+      await pb.admins.authWithPassword('info@yegobox.com', 'd');
     } on SocketException catch (e) {
       log(e.toString());
     } on ClientException catch (e) {
@@ -198,6 +199,7 @@ class RemoteService implements RemoteInterface {
         remoteStock.lastTouched!
             .isFutureDateCompareTo(localStock.lastTouched!)) {
       remoteStock.id = localStock.localId;
+      remoteStock.action = AppActions.updated;
       await ProxyService.isar.update(data: remoteStock);
       lastTouched = remoteStock.lastTouched;
     }
@@ -223,7 +225,7 @@ class RemoteService implements RemoteInterface {
         remoteProduct.lastTouched!
             .isFutureDateCompareTo(localProduct.lastTouched!)) {
       remoteProduct.id = localProduct.localId;
-
+      remoteProduct.action = AppActions.updated;
       await ProxyService.isar.update(data: remoteProduct);
       lastTouched = remoteProduct.lastTouched;
     }
@@ -243,6 +245,7 @@ class RemoteService implements RemoteInterface {
         remoteDevice.lastTouched!
             .isFutureDateCompareTo(localDevice.lastTouched!)) {
       localDevice.id = localDevice.localId;
+      localDevice.action = AppActions.updated;
       await ProxyService.isar.update(data: remoteDevice);
       lastTouched = remoteDevice.lastTouched;
     }
@@ -262,6 +265,7 @@ class RemoteService implements RemoteInterface {
         remoteSocial.lastTouched!
             .isFutureDateCompareTo(localSocial.lastTouched!)) {
       remoteSocial.id = remoteSocial.localId;
+
       await ProxyService.isar.update(data: remoteSocial);
       lastTouched = remoteSocial.lastTouched;
     }
@@ -320,6 +324,7 @@ class RemoteService implements RemoteInterface {
             stockFromRecord.branchId == branchId &&
             lastTouched.isFutureDateCompareTo(localStock.lastTouched!)) {
           stockFromRecord.id = stockFromRecord.localId;
+          stockFromRecord.action = AppActions.updated;
           await ProxyService.isar.update(data: stockFromRecord);
         }
       }
@@ -344,6 +349,7 @@ class RemoteService implements RemoteInterface {
             variant.branchId == branchId &&
             lastTouched.isFutureDateCompareTo(localVariant.lastTouched!)) {
           variant.id = variant.localId;
+          variant.action = AppActions.updated;
           await ProxyService.isar.update(data: variant);
         }
       }
@@ -368,6 +374,7 @@ class RemoteService implements RemoteInterface {
             lastTouched.isFutureDateCompareTo(localProduct.lastTouched!)) {
           log("updated product from remote");
           productFromRecord.id = productFromRecord.localId;
+          productFromRecord.action = AppActions.updated;
           await ProxyService.isar.update(data: productFromRecord);
         }
       }

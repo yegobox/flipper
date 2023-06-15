@@ -55,7 +55,7 @@ Future<IsarApiInterface> getAndRegisterApiService() async {
     VariantSchema,
     ProfileSchema,
     SubscriptionSchema,
-    IPointSchema,
+    PointssSchema,
     StockSchema,
     FeatureSchema,
     VoucherSchema,

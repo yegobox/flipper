@@ -130,5 +130,19 @@ class App {}
 ///rm -rf path/to/submodule
 /// find ./ -name pubspec.lock -type f -delete
 /// find ./ -name pubspec_overrides.yaml -type f -delete
+/// https://developer.apple.com/in-app-purchase/
+/// https://github.com/flutter/packages/tree/main/packages/in_app_purchase/in_app_purchase
+/// C:\Users\Richie\Downloads\vcpkg\vcpkg.exe install cppwinrt
+/// https://vcpkg.io/en/packages.html
+/// import 'package:newrelic_mobile/newrelic_navigation_observer.dart';
+
+//....
+
+// MaterialApp(
+//   navigatorObservers: [
+//     NewRelicNavigationObserver(),
+//   ],
+//   // other parameters
+// )
 
 

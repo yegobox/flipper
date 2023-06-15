@@ -15,6 +15,7 @@ import 'package:flipper_services/keypad_service.dart';
 import 'package:flipper_services/language_service.dart';
 import 'package:flipper_services/local_notification_service.dart';
 import 'package:flipper_services/cron_service.dart';
+import 'package:flipper_services/sentry_service.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_services/status.dart';
 import 'abstractions/api.dart';
@@ -61,6 +62,7 @@ final TaxApi _tax = locator<TaxApi>();
 final WhatsApp _whatsApp = locator<WhatsApp>();
 final Messaging _messaging = locator<Messaging>();
 final Status _status = locator<Status>();
+final SentryServiceInterface _sentry = locator<SentryServiceInterface>();
 
 abstract class ProxyService {
   static LocalStorage get box => _box;
@@ -94,4 +96,5 @@ abstract class ProxyService {
   static WhatsApp get whatsApp => _whatsApp;
   static Messaging get messaging => _messaging;
   static Status get status => _status;
+  static SentryServiceInterface get sentry => _sentry;
 }

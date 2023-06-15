@@ -22,12 +22,8 @@ class _DrawerScreenState extends State<DrawerScreen> {
   final _routerService = locator<RouterService>();
   @override
   void dispose() {
-    // Dispose of the TextEditingController
     _controller.dispose();
-
-    // Dispose of the GlobalKey<FormState>
     _sub.currentState?.dispose();
-
     super.dispose();
   }
 

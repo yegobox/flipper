@@ -166,6 +166,11 @@ public final class GeneratedPluginRegistrant {
       Log.e(TAG, "Error registering plugin location_android, com.lyokone.location.LocationPlugin", e);
     }
     try {
+      flutterEngine.getPlugins().add(new com.newrelic.newrelic_mobile.NewrelicMobilePlugin());
+    } catch(Exception e) {
+      Log.e(TAG, "Error registering plugin newrelic_mobile, com.newrelic.newrelic_mobile.NewrelicMobilePlugin", e);
+    }
+    try {
       flutterEngine.getPlugins().add(new io.flutter.plugins.nfcmanager.NfcManagerPlugin());
     } catch(Exception e) {
       Log.e(TAG, "Error registering plugin nfc_manager, io.flutter.plugins.nfcmanager.NfcManagerPlugin", e);

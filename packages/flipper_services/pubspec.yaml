@@ -59,6 +59,7 @@ dependencies:
   get_storage: ^2.1.1
   google_fonts: ^4.0.3
   shared_preferences: ^2.1.1
+  newrelic_mobile: ^1.0.1
 dev_dependencies:
   flutter_test:
     sdk: flutter

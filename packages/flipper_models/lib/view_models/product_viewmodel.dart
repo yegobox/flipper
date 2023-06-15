@@ -277,7 +277,7 @@ class ProductViewModel extends TenantViewModel {
           variation.supplyPrice = supplyPrice;
           variation.productName = product!.name;
           variation.action =
-              inUpdateProcess ? actions["update"] : actions["create"];
+              inUpdateProcess ? AppActions.update : AppActions.create;
           variation.productId = variation.productId;
           ProxyService.isar.update(data: variation);
           Stock? stock = await ProxyService.isar
@@ -286,7 +286,7 @@ class ProductViewModel extends TenantViewModel {
           if (stock != null) {
             stock.supplyPrice = supplyPrice;
             stock.action =
-                inUpdateProcess ? actions["update"] : actions["create"];
+                inUpdateProcess ? AppActions.update : AppActions.create;
             ProxyService.isar.update(data: stock);
           }
         }
@@ -300,7 +300,7 @@ class ProductViewModel extends TenantViewModel {
           variation.productId = variation.productId;
           variation.prc = retailPrice;
           variation.action =
-              inUpdateProcess ? actions["update"] : actions["create"];
+              inUpdateProcess ? AppActions.update : AppActions.create;
           variation.productName = product!.name;
           ProxyService.isar.update(data: variation);
           Stock? stock = await ProxyService.isar
@@ -308,7 +308,8 @@ class ProductViewModel extends TenantViewModel {
 
           if (stock != null) {
             stock.retailPrice = retailPrice;
-            stock.action = inUpdateProcess ? actions["update"] : actions["create"];
+            stock.action =
+                inUpdateProcess ? AppActions.update : AppActions.create;
             await ProxyService.isar.update(data: stock);
           }
         }
@@ -327,7 +328,7 @@ class ProductViewModel extends TenantViewModel {
     mproduct.color = app.currentColor;
     mproduct.color = app.currentColor;
 
-    mproduct.action = inUpdateProcess ? actions["update"] : actions["create"];
+    mproduct.action = inUpdateProcess ? AppActions.update : AppActions.create;
 
     final response = await ProxyService.isar.update(data: mproduct);
     List<Variant> variants =
@@ -338,7 +339,7 @@ class ProductViewModel extends TenantViewModel {
       variant.prc = variant.retailPrice;
       variant.productId = mproduct.id!;
       variant.pkgUnitCd = "NT";
-      variant.action = inUpdateProcess ? actions["update"] : actions["create"];
+      variant.action = inUpdateProcess ? AppActions.update : AppActions.create;
       await ProxyService.isar.update(data: variant);
       if (await ProxyService.isar.isTaxEnabled()) {
         ProxyService.tax.saveItem(variation: variant);

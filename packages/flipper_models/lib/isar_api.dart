@@ -485,7 +485,7 @@ class IsarAPI<M> implements IsarApiInterface {
     for (OrderItem item in items) {
       Stock? stock = await stockByVariantId(variantId: item.variantId);
       stock?.currentStock = stock.currentStock - item.qty;
-      stock?.action = actions["update"];
+      stock?.action = AppActions.update;
       item.doneWithOrder = true;
       item.updatedAt = DateTime.now().toIso8601String();
       await update(data: stock);

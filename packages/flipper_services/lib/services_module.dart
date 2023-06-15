@@ -24,6 +24,7 @@ import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/remote_config_service.dart';
 import 'package:flipper_services/cron_service.dart';
+import 'package:flipper_services/sentry_service.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_services/sharing_service.dart';
 import 'package:flipper_services/status.dart';
@@ -218,6 +219,11 @@ abstract class ServicesModule {
   EventInterface get event {
     final userId = ProxyService.box.getUserId()?.toString();
     return EventService(userId: userId ?? 'NULL');
+  }
+
+  @LazySingleton()
+  SentryServiceInterface sentry() {
+    return SentryService();
   }
 
   @preResolve
