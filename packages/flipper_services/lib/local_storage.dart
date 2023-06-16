@@ -125,7 +125,7 @@ class SharedPreferenceStorage implements LocalStorage {
 
   @override
   bool? getIsTokenRegistered() {
-    return prefs.getBool('getIsTokenRegistered');
+    return prefs.getBool('getIsTokenRegistered') ?? false;
   }
 
   @override
@@ -269,7 +269,7 @@ class LocalStorageImpl implements LocalStorage {
 
   @override
   bool? getIsTokenRegistered() {
-    return box.read('getIsTokenRegistered');
+    return box.read('getIsTokenRegistered') ?? false;
   }
 
   @override

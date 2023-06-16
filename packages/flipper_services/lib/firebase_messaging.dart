@@ -53,19 +53,19 @@ class FirebaseMessagingService implements Messaging {
         .subscribeToTopic(ProxyService.box.getBusinessId()!.toString());
     String? _token = await token();
 
-    ///at this stage we need to have businessId set for current session otherwise set to 0 to avoid any issue but that should not happen!
-    List<Social> activeSocialAccount = await ProxyService.isar
-        .activesocialAccounts(
-            businessId: ProxyService.box.getBusinessId() ?? 0);
+    int businessId = ProxyService.box.getBusinessId() ?? 0;
+    List<Social> activeSocialAccount =
+        await ProxyService.isar.activesocialAccounts(businessId: businessId);
 
-    /// we can only attempt to get social login if there is a social account set and is active
     if (ProxyService.box.getDefaultApp() == 2 &&
-        activeSocialAccount.isNotEmpty) {
+        activeSocialAccount.isNotEmpty &&
+        !ProxyService.box.getIsTokenRegistered()!) {
       bool isSocialLoggedIn = await appService.isSocialLoggedin();
-      if (isSocialLoggedIn == true) {
+
+      if (isSocialLoggedIn) {
         Setting? setting = await ProxyService.isar.getSocialSetting();
         if (setting == null) {
-          throw Exception("Was about to patch settings but failed");
+          throw Exception("Failed to retrieve social settings.");
         }
         setting.deviceToken = _token;
         setting.token = setting.bToken;
@@ -73,12 +73,16 @@ class FirebaseMessagingService implements Messaging {
       } else {
         await appService.logSocial();
       }
+
       if (!kDebugMode) {
         try {
-          ProxyService.remote.create(collection: {
-            "deviceToken": _token,
-            "businessId": ProxyService.box.getBusinessId()!
-          }, collectionName: 'messagings');
+          await ProxyService.remote.create(
+            collection: {
+              "deviceToken": _token,
+              "businessId": businessId,
+            },
+            collectionName: 'messagings',
+          );
         } catch (e) {
           ProxyService.box.write(key: 'getIsTokenRegistered', value: true);
         }
