@@ -78,7 +78,6 @@ class InitApp {
     //   }
     // }
     ProxyService.forceDateEntry.dataBootstrapper();
-    ProxyService.sentry.debug();
     print("should be reported");
   }
 }
