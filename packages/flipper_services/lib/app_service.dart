@@ -238,10 +238,6 @@ class AppService with ListenableServiceMixin {
 
   // The extracted function for updating and reporting orders
   Future<void> pushOrders(Order order) async {
-    List<OrderItem> updatedItems = await ProxyService.isar
-        .orderItems(orderId: order.id!, doneWithOrder: false);
-    order.subTotal = updatedItems.fold(0, (a, b) => a + (b.price * b.qty));
-
     /// fix@issue where the createdAt synced on server is older compared to when a transaction was completed.
     order.updatedAt = DateTime.now().toIso8601String();
     order.createdAt = DateTime.now().toIso8601String();
