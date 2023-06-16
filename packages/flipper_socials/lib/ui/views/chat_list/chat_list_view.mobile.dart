@@ -54,7 +54,7 @@ class _ChatListViewMobileState extends State<ChatListViewMobile>
 
           ProxyService.isar.sendScheduleMessages();
           ProxyService.isar
-              .loadConversations(businessId: ProxyService.box.getBranchId()!);
+              .loadConversations(businessId: ProxyService.box.getBusinessId()!);
         },
         builder: (build, viewModel, child) {
           return AnnotatedRegion<SystemUiOverlayStyle>(
