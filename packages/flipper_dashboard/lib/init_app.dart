@@ -77,6 +77,8 @@ class InitApp {
     //     });
     //   }
     // }
+    ProxyService.messaging
+        .initializeFirebaseMessagingAndSubscribeToBusinessNotifications();
     ProxyService.forceDateEntry.dataBootstrapper();
     print("should be reported");
   }
