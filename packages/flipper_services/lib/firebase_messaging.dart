@@ -83,6 +83,7 @@ class FirebaseMessagingService implements Messaging {
             },
             collectionName: 'messagings',
           );
+          ProxyService.box.write(key: 'getIsTokenRegistered', value: true);
         } catch (e) {
           ProxyService.box.write(key: 'getIsTokenRegistered', value: true);
         }
