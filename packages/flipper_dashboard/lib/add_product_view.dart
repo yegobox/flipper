@@ -165,7 +165,6 @@ class _AddProductViewState extends State<AddProductView> {
             appBar: CustomAppBar(
               onPop: () async {
                 _routerService.pop();
-                ;
               },
               title: 'Create Product',
               disableButton: model.lock,

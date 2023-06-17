@@ -67,6 +67,8 @@ class Order extends IJsonSerializable {
       Order.fromJson(record.toJson());
 
   factory Order.fromJson(Map<String, dynamic> json) {
+    /// assign remoteID to the value of id because this method is used to encode
+    /// data from remote server and id from remote server is considered remoteID on local
     json['remoteID'] = json['id'];
     json.remove('id');
     return _$OrderFromJson(json);

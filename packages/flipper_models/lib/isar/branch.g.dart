@@ -17,43 +17,63 @@ const BranchSchema = CollectionSchema(
   name: r'Branch',
   id: 7089804700259644623,
   properties: {
-    r'active': PropertySchema(
+    r'action': PropertySchema(
       id: 0,
+      name: r'action',
+      type: IsarType.string,
+    ),
+    r'active': PropertySchema(
+      id: 1,
       name: r'active',
       type: IsarType.bool,
     ),
     r'businessId': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'businessId',
       type: IsarType.long,
     ),
     r'description': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'description',
       type: IsarType.string,
     ),
     r'isDefault': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'isDefault',
       type: IsarType.bool,
     ),
+    r'lastTouched': PropertySchema(
+      id: 5,
+      name: r'lastTouched',
+      type: IsarType.string,
+    ),
     r'latitude': PropertySchema(
-      id: 4,
+      id: 6,
       name: r'latitude',
       type: IsarType.string,
     ),
+    r'localId': PropertySchema(
+      id: 7,
+      name: r'localId',
+      type: IsarType.long,
+    ),
     r'longitude': PropertySchema(
-      id: 5,
+      id: 8,
       name: r'longitude',
       type: IsarType.string,
     ),
     r'name': PropertySchema(
-      id: 6,
+      id: 9,
       name: r'name',
       type: IsarType.string,
     ),
+    r'remoteID': PropertySchema(
+      id: 10,
+      name: r'remoteID',
+      type: IsarType.string,
+    ),
     r'table': PropertySchema(
-      id: 7,
+      id: 11,
       name: r'table',
       type: IsarType.string,
     )
@@ -63,7 +83,34 @@ const BranchSchema = CollectionSchema(
   deserialize: _branchDeserialize,
   deserializeProp: _branchDeserializeProp,
   idName: r'id',
-  indexes: {},
+  indexes: {
+    r'lastTouched': IndexSchema(
+      id: -1197289422054722944,
+      name: r'lastTouched',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'lastTouched',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
+    ),
+    r'remoteID': IndexSchema(
+      id: 8280972950722306723,
+      name: r'remoteID',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'remoteID',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
+    )
+  },
   links: {},
   embeddedSchemas: {},
   getId: _branchGetId,
@@ -79,7 +126,19 @@ int _branchEstimateSize(
 ) {
   var bytesCount = offsets.last;
   {
+    final value = object.action;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
     final value = object.description;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.lastTouched;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
     }
@@ -103,6 +162,12 @@ int _branchEstimateSize(
     }
   }
   {
+    final value = object.remoteID;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
     final value = object.table;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
@@ -117,14 +182,18 @@ void _branchSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeBool(offsets[0], object.active);
-  writer.writeLong(offsets[1], object.businessId);
-  writer.writeString(offsets[2], object.description);
-  writer.writeBool(offsets[3], object.isDefault);
-  writer.writeString(offsets[4], object.latitude);
-  writer.writeString(offsets[5], object.longitude);
-  writer.writeString(offsets[6], object.name);
-  writer.writeString(offsets[7], object.table);
+  writer.writeString(offsets[0], object.action);
+  writer.writeBool(offsets[1], object.active);
+  writer.writeLong(offsets[2], object.businessId);
+  writer.writeString(offsets[3], object.description);
+  writer.writeBool(offsets[4], object.isDefault);
+  writer.writeString(offsets[5], object.lastTouched);
+  writer.writeString(offsets[6], object.latitude);
+  writer.writeLong(offsets[7], object.localId);
+  writer.writeString(offsets[8], object.longitude);
+  writer.writeString(offsets[9], object.name);
+  writer.writeString(offsets[10], object.remoteID);
+  writer.writeString(offsets[11], object.table);
 }
 
 Branch _branchDeserialize(
@@ -134,16 +203,20 @@ Branch _branchDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Branch(
-    active: reader.readBoolOrNull(offsets[0]),
-    businessId: reader.readLongOrNull(offsets[1]),
-    description: reader.readStringOrNull(offsets[2]),
+    active: reader.readBoolOrNull(offsets[1]),
+    businessId: reader.readLongOrNull(offsets[2]),
+    description: reader.readStringOrNull(offsets[3]),
     id: id,
-    isDefault: reader.readBool(offsets[3]),
-    latitude: reader.readStringOrNull(offsets[4]),
-    longitude: reader.readStringOrNull(offsets[5]),
-    name: reader.readStringOrNull(offsets[6]),
-    table: reader.readStringOrNull(offsets[7]),
+    isDefault: reader.readBool(offsets[4]),
+    latitude: reader.readStringOrNull(offsets[6]),
+    longitude: reader.readStringOrNull(offsets[8]),
+    name: reader.readStringOrNull(offsets[9]),
+    table: reader.readStringOrNull(offsets[11]),
   );
+  object.action = reader.readStringOrNull(offsets[0]);
+  object.lastTouched = reader.readStringOrNull(offsets[5]);
+  object.localId = reader.readLongOrNull(offsets[7]);
+  object.remoteID = reader.readStringOrNull(offsets[10]);
   return object;
 }
 
@@ -155,20 +228,28 @@ P _branchDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readBoolOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 1:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readBoolOrNull(offset)) as P;
     case 2:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 3:
-      return (reader.readBool(offset)) as P;
-    case 4:
       return (reader.readStringOrNull(offset)) as P;
+    case 4:
+      return (reader.readBool(offset)) as P;
     case 5:
       return (reader.readStringOrNull(offset)) as P;
     case 6:
       return (reader.readStringOrNull(offset)) as P;
     case 7:
+      return (reader.readLongOrNull(offset)) as P;
+    case 8:
+      return (reader.readStringOrNull(offset)) as P;
+    case 9:
+      return (reader.readStringOrNull(offset)) as P;
+    case 10:
+      return (reader.readStringOrNull(offset)) as P;
+    case 11:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -260,9 +341,285 @@ extension BranchQueryWhere on QueryBuilder<Branch, Branch, QWhereClause> {
       ));
     });
   }
+
+  QueryBuilder<Branch, Branch, QAfterWhereClause> lastTouchedIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'lastTouched',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterWhereClause> lastTouchedIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'lastTouched',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterWhereClause> lastTouchedEqualTo(
+      String? lastTouched) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'lastTouched',
+        value: [lastTouched],
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterWhereClause> lastTouchedNotEqualTo(
+      String? lastTouched) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [],
+              upper: [lastTouched],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [lastTouched],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [lastTouched],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [],
+              upper: [lastTouched],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterWhereClause> remoteIDIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'remoteID',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterWhereClause> remoteIDIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'remoteID',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterWhereClause> remoteIDEqualTo(
+      String? remoteID) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'remoteID',
+        value: [remoteID],
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterWhereClause> remoteIDNotEqualTo(
+      String? remoteID) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'remoteID',
+              lower: [],
+              upper: [remoteID],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'remoteID',
+              lower: [remoteID],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'remoteID',
+              lower: [remoteID],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'remoteID',
+              lower: [],
+              upper: [remoteID],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
 }
 
 extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> actionIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'action',
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> actionIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'action',
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> actionEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> actionGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> actionLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> actionBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'action',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> actionStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> actionEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> actionContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> actionMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'action',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> actionIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'action',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> actionIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'action',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Branch, Branch, QAfterFilterCondition> activeIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -582,6 +939,152 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     });
   }
 
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> lastTouchedIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'lastTouched',
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> lastTouchedIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'lastTouched',
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> lastTouchedEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lastTouched',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> lastTouchedGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'lastTouched',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> lastTouchedLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'lastTouched',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> lastTouchedBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'lastTouched',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> lastTouchedStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'lastTouched',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> lastTouchedEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'lastTouched',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> lastTouchedContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'lastTouched',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> lastTouchedMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'lastTouched',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> lastTouchedIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lastTouched',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> lastTouchedIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'lastTouched',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Branch, Branch, QAfterFilterCondition> latitudeIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -724,6 +1227,75 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'latitude',
         value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> localIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'localId',
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> localIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'localId',
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> localIdEqualTo(
+      int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'localId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> localIdGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'localId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> localIdLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'localId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> localIdBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'localId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
       ));
     });
   }
@@ -1019,6 +1591,152 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     });
   }
 
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> remoteIDIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'remoteID',
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> remoteIDIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'remoteID',
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> remoteIDEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'remoteID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> remoteIDGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'remoteID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> remoteIDLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'remoteID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> remoteIDBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'remoteID',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> remoteIDStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'remoteID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> remoteIDEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'remoteID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> remoteIDContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'remoteID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> remoteIDMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'remoteID',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> remoteIDIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'remoteID',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> remoteIDIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'remoteID',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Branch, Branch, QAfterFilterCondition> tableIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -1171,6 +1889,18 @@ extension BranchQueryObject on QueryBuilder<Branch, Branch, QFilterCondition> {}
 extension BranchQueryLinks on QueryBuilder<Branch, Branch, QFilterCondition> {}
 
 extension BranchQuerySortBy on QueryBuilder<Branch, Branch, QSortBy> {
+  QueryBuilder<Branch, Branch, QAfterSortBy> sortByAction() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'action', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterSortBy> sortByActionDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'action', Sort.desc);
+    });
+  }
+
   QueryBuilder<Branch, Branch, QAfterSortBy> sortByActive() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'active', Sort.asc);
@@ -1219,6 +1949,18 @@ extension BranchQuerySortBy on QueryBuilder<Branch, Branch, QSortBy> {
     });
   }
 
+  QueryBuilder<Branch, Branch, QAfterSortBy> sortByLastTouched() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastTouched', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterSortBy> sortByLastTouchedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastTouched', Sort.desc);
+    });
+  }
+
   QueryBuilder<Branch, Branch, QAfterSortBy> sortByLatitude() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'latitude', Sort.asc);
@@ -1228,6 +1970,18 @@ extension BranchQuerySortBy on QueryBuilder<Branch, Branch, QSortBy> {
   QueryBuilder<Branch, Branch, QAfterSortBy> sortByLatitudeDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'latitude', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterSortBy> sortByLocalId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterSortBy> sortByLocalIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localId', Sort.desc);
     });
   }
 
@@ -1255,6 +2009,18 @@ extension BranchQuerySortBy on QueryBuilder<Branch, Branch, QSortBy> {
     });
   }
 
+  QueryBuilder<Branch, Branch, QAfterSortBy> sortByRemoteID() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'remoteID', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterSortBy> sortByRemoteIDDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'remoteID', Sort.desc);
+    });
+  }
+
   QueryBuilder<Branch, Branch, QAfterSortBy> sortByTable() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'table', Sort.asc);
@@ -1269,6 +2035,18 @@ extension BranchQuerySortBy on QueryBuilder<Branch, Branch, QSortBy> {
 }
 
 extension BranchQuerySortThenBy on QueryBuilder<Branch, Branch, QSortThenBy> {
+  QueryBuilder<Branch, Branch, QAfterSortBy> thenByAction() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'action', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterSortBy> thenByActionDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'action', Sort.desc);
+    });
+  }
+
   QueryBuilder<Branch, Branch, QAfterSortBy> thenByActive() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'active', Sort.asc);
@@ -1329,6 +2107,18 @@ extension BranchQuerySortThenBy on QueryBuilder<Branch, Branch, QSortThenBy> {
     });
   }
 
+  QueryBuilder<Branch, Branch, QAfterSortBy> thenByLastTouched() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastTouched', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterSortBy> thenByLastTouchedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastTouched', Sort.desc);
+    });
+  }
+
   QueryBuilder<Branch, Branch, QAfterSortBy> thenByLatitude() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'latitude', Sort.asc);
@@ -1338,6 +2128,18 @@ extension BranchQuerySortThenBy on QueryBuilder<Branch, Branch, QSortThenBy> {
   QueryBuilder<Branch, Branch, QAfterSortBy> thenByLatitudeDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'latitude', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterSortBy> thenByLocalId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterSortBy> thenByLocalIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localId', Sort.desc);
     });
   }
 
@@ -1365,6 +2167,18 @@ extension BranchQuerySortThenBy on QueryBuilder<Branch, Branch, QSortThenBy> {
     });
   }
 
+  QueryBuilder<Branch, Branch, QAfterSortBy> thenByRemoteID() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'remoteID', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterSortBy> thenByRemoteIDDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'remoteID', Sort.desc);
+    });
+  }
+
   QueryBuilder<Branch, Branch, QAfterSortBy> thenByTable() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'table', Sort.asc);
@@ -1379,6 +2193,13 @@ extension BranchQuerySortThenBy on QueryBuilder<Branch, Branch, QSortThenBy> {
 }
 
 extension BranchQueryWhereDistinct on QueryBuilder<Branch, Branch, QDistinct> {
+  QueryBuilder<Branch, Branch, QDistinct> distinctByAction(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'action', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<Branch, Branch, QDistinct> distinctByActive() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'active');
@@ -1404,10 +2225,23 @@ extension BranchQueryWhereDistinct on QueryBuilder<Branch, Branch, QDistinct> {
     });
   }
 
+  QueryBuilder<Branch, Branch, QDistinct> distinctByLastTouched(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'lastTouched', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<Branch, Branch, QDistinct> distinctByLatitude(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'latitude', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QDistinct> distinctByLocalId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'localId');
     });
   }
 
@@ -1425,6 +2259,13 @@ extension BranchQueryWhereDistinct on QueryBuilder<Branch, Branch, QDistinct> {
     });
   }
 
+  QueryBuilder<Branch, Branch, QDistinct> distinctByRemoteID(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'remoteID', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<Branch, Branch, QDistinct> distinctByTable(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -1437,6 +2278,12 @@ extension BranchQueryProperty on QueryBuilder<Branch, Branch, QQueryProperty> {
   QueryBuilder<Branch, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<Branch, String?, QQueryOperations> actionProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'action');
     });
   }
 
@@ -1464,9 +2311,21 @@ extension BranchQueryProperty on QueryBuilder<Branch, Branch, QQueryProperty> {
     });
   }
 
+  QueryBuilder<Branch, String?, QQueryOperations> lastTouchedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'lastTouched');
+    });
+  }
+
   QueryBuilder<Branch, String?, QQueryOperations> latitudeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'latitude');
+    });
+  }
+
+  QueryBuilder<Branch, int?, QQueryOperations> localIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'localId');
     });
   }
 
@@ -1482,9 +2341,51 @@ extension BranchQueryProperty on QueryBuilder<Branch, Branch, QQueryProperty> {
     });
   }
 
+  QueryBuilder<Branch, String?, QQueryOperations> remoteIDProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'remoteID');
+    });
+  }
+
   QueryBuilder<Branch, String?, QQueryOperations> tableProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'table');
     });
   }
 }
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+Branch _$BranchFromJson(Map<String, dynamic> json) => Branch(
+      id: json['id'] as int?,
+      active: json['active'] as bool?,
+      description: json['description'] as String?,
+      name: json['name'] as String?,
+      businessId: json['businessId'] as int?,
+      longitude: json['longitude'] as String?,
+      latitude: json['latitude'] as String?,
+      table: json['table'] as String?,
+      isDefault: json['isDefault'] as bool,
+    )
+      ..lastTouched = json['lastTouched'] as String?
+      ..remoteID = json['remoteID'] as String?
+      ..action = json['action'] as String?
+      ..localId = json['localId'] as int?;
+
+Map<String, dynamic> _$BranchToJson(Branch instance) => <String, dynamic>{
+      'id': instance.id,
+      'active': instance.active,
+      'description': instance.description,
+      'name': instance.name,
+      'businessId': instance.businessId,
+      'longitude': instance.longitude,
+      'latitude': instance.latitude,
+      'table': instance.table,
+      'isDefault': instance.isDefault,
+      'lastTouched': instance.lastTouched,
+      'remoteID': instance.remoteID,
+      'action': instance.action,
+      'localId': instance.localId,
+    };

@@ -63,18 +63,19 @@ class SettingPage extends StatelessWidget {
                               _routerService.navigateTo(PrintingRoute());
                             },
                           ),
-                          SettingsTile(
-                            title: "BackUp configuration",
-                            leading: CircleAvatar(
-                              backgroundColor: Colors.white,
-                              child: Icon(
-                                FluentIcons.arrow_upload_20_regular,
-                              ),
-                            ),
-                            onPressed: (BuildContext context) {
-                              _routerService.navigateTo(BackUpRoute());
-                            },
-                          ),
+                          // TODO: resume backup configuration once we know it works 100%
+                          // SettingsTile(
+                          //   title: "BackUp configuration",
+                          //   leading: CircleAvatar(
+                          //     backgroundColor: Colors.white,
+                          //     child: Icon(
+                          //       FluentIcons.arrow_upload_20_regular,
+                          //     ),
+                          //   ),
+                          //   onPressed: (BuildContext context) {
+                          //     _routerService.navigateTo(BackUpRoute());
+                          //   },
+                          // ),
                           SettingsTile(
                             title: "Tax Configuration",
                             leading: CircleAvatar(
@@ -85,7 +86,7 @@ class SettingPage extends StatelessWidget {
                             ),
                             onPressed: (BuildContext context) {
                               _routerService
-                                  .replaceWith(TaxConfigurationRoute());
+                                  .navigateTo(TaxConfigurationRoute());
                             },
                           ),
                           SettingsTile(

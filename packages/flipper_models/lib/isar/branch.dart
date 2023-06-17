@@ -3,11 +3,17 @@
 //     final branch = branchFromJson(jsonString);
 library flipper_models;
 
+import 'dart:convert';
+
 import 'package:isar/isar.dart';
+import 'package:json_annotation/json_annotation.dart';
+import 'package:flipper_models/sync_service.dart';
+import 'package:pocketbase/pocketbase.dart';
 part 'branch.g.dart';
 
-@collection
-class Branch {
+@JsonSerializable()
+@Collection()
+class Branch extends IJsonSerializable {
   Branch({
     this.id,
     this.active,
@@ -31,26 +37,33 @@ class Branch {
   String? table;
   late bool isDefault;
 
-  factory Branch.fromJson(Map<dynamic, dynamic> json) => Branch(
-      id: json["id"],
-      active: json["active"],
-      description: json["description"] ?? '',
-      name: json["name"],
-      businessId: json["businessId"] ?? 0,
-      longitude: json["longitude"] ?? '',
-      latitude: json["latitude"] ?? '',
-      table: json["table"],
-      isDefault: json["isDefault"]);
+  @Index()
+  String? lastTouched;
+  @Index()
+  String? remoteID;
+  String? action;
+  int? localId;
 
-  Map<String, dynamic> toJson() => {
-        "id": id.toString(),
-        "active": active ?? false,
-        "description": description ?? '',
-        "name": name,
-        "businessId": businessId ?? 0,
-        "longitude": longitude ?? '0',
-        "latitude": latitude ?? '0',
-        "table": table,
-        "isDefault": isDefault,
-      };
+  factory Branch.fromRecord(RecordModel record) =>
+      Branch.fromJson(record.toJson());
+
+  factory Branch.fromJson(Map<String, dynamic> json) {
+    /// assign remoteID to the value of id because this method is used to encode
+    /// data from remote server and id from remote server is considered remoteID on local
+    if (json['id'] is int) {
+      json['remoteID'] = json['id'].toString();
+    } else {
+      json['remoteID'] = json['id'];
+    }
+    return _$BranchFromJson(json);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = _$BranchToJson(this);
+    if (id != null) {
+      data['localId'] = id;
+    }
+    return data;
+  }
 }

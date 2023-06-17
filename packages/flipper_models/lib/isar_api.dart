@@ -1086,12 +1086,13 @@ class IsarAPI<M> implements IsarApiInterface {
     }
 
     Business? business = await isar.writeTxn(() {
-      return isar.business.get(fromJson(response.body).id!);
+      return isar.business
+          .get(Business.fromJson(json.decode(response.body)).id!);
     });
 
     if (business == null) {
       await isar.writeTxn(() async {
-        return isar.business.put(fromJson(response.body));
+        return isar.business.put(Business.fromJson(json.decode(response.body)));
       });
       business = await isar.writeTxn(() {
         return isar.business.filter().userIdEqualTo(userId).findFirst();

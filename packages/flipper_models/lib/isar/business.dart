@@ -2,8 +2,10 @@ library flipper_models;
 
 import 'dart:convert';
 
+import 'package:json_annotation/json_annotation.dart';
+import 'package:flipper_models/sync_service.dart';
 import 'package:isar/isar.dart';
-
+import 'package:pocketbase/pocketbase.dart';
 part 'business.g.dart';
 
 /// A business object. which in some case act as contact
@@ -16,13 +18,10 @@ part 'business.g.dart';
 /// again becase a business if found in a mix of being a business
 /// and a contact at the same time i.e. a person then it make sense to add bellow fields too!
 /// All possible roles user can have.
-Business fromJson(String str) => Business.fromJson(json.decode(str));
-String toJson(Business data) => json.encode(data.toJson());
-List<Business> listFromJson(String str) =>
-    List<Business>.from(json.decode(str).map((x) => Business.fromJson(x)));
 
+@JsonSerializable()
 @Collection()
-class Business {
+class Business extends IJsonSerializable {
   Business(
       {this.name,
       this.currency,
@@ -63,7 +62,7 @@ class Business {
       this.isDefault,
       this.id,
       this.businessTypeId});
-  Id? id = Isar.autoIncrement;
+  Id? id;
   String? name;
   String? currency;
   String? categoryId;
@@ -105,84 +104,33 @@ class Business {
   String? taxServerUrl;
   bool? isDefault;
   int? businessTypeId;
-  Map<String, dynamic> toJson() => {
-        "id": int.parse(id.toString()),
-        "name": name,
-        "deviceToken": deviceToken,
-        "backUpEnabled": backUpEnabled,
-        "subscriptionPlan": subscriptionPlan,
-        "nextBillingDate": nextBillingDate,
-        "previousBillingDate": previousBillingDate,
-        "isLastSubscriptionPaymentSucceeded":
-            isLastSubscriptionPaymentSucceeded,
-        "backupFileId": backupFileId,
-        "email": email,
-        "lastDbBackup": lastDbBackup,
-        "fullName": fullName,
-        "currency": currency,
-        "chatUid": chatUid,
-        "categoryId": categoryId.toString(),
-        "latitude": latitude,
-        "longitude": longitude,
-        "userId": userId.toString(),
-        "timeZone": timeZone,
-        "metadata": metadata,
-        "lastName": name,
-        "firstName": name,
-        "imageUrl": imageUrl,
-        "role": role,
-        "lastSeen": lastSeen,
-        "country": country,
-        "businessUrl": businessUrl,
-        "hexColor": hexColor,
-        "type": type,
-        "active": active,
-        "tinNumber": tinNumber,
-        "bhfId": bhfId,
-        "dvcSrlNo": dvcSrlNo,
-        "adrs": adrs,
-        "taxEnabled": taxEnabled,
-        "taxServerUrl": taxServerUrl,
-        "isDefault": isDefault,
-        "businessTypeId": businessTypeId,
-      };
-  Business.fromJson(Map<dynamic, dynamic> json)
-      : id = json["id"],
-        name = json["name"],
-        subscriptionPlan = json["subscriptionPlan"],
-        nextBillingDate = json["nextBillingDate"],
-        previousBillingDate = json["previousBillingDate"],
-        isLastSubscriptionPaymentSucceeded =
-            json["isLastSubscriptionPaymentSucceeded"],
-        backupFileId = json["backupFileId"],
-        email = json["email"],
-        lastDbBackup = json["lastDbBackup"],
-        fullName = json["fullName"],
-        chatUid = json["chatUid"],
-        deviceToken = json["deviceToken"],
-        currency = json["currency"],
-        backUpEnabled = json["backUpEnabled"],
-        latitude = json["latitude"] ?? '1',
-        longitude = json["longitude"] ?? '1',
-        userId = json["userId"],
-        timeZone = json["timeZone"],
-        country = json["country"],
-        businessUrl = json["businessUrl"],
-        hexColor = json["hexColor"],
-        imageUrl = json["imageUrl"],
-        type = json["type"],
-        metadata = json["metadata"],
-        role = json["role"],
-        lastName = json["name"],
-        firstName = json["name"],
-        lastSeen = json["lastSeen"],
-        active = json["active"],
-        tinNumber = json["tinNumber"],
-        bhfId = json["bhfId"],
-        dvcSrlNo = json["dvcSrlNo"],
-        adrs = json["adrs"],
-        taxEnabled = json["taxEnabled"],
-        taxServerUrl = json["taxServerUrl"],
-        businessTypeId = json["businessTypeId"],
-        isDefault = json["isDefault"];
+  @Index()
+  String? lastTouched;
+  @Index()
+  String? remoteID;
+  String? action;
+  int? localId;
+
+  factory Business.fromRecord(RecordModel record) =>
+      Business.fromJson(record.toJson());
+
+  factory Business.fromJson(Map<String, dynamic> json) {
+    /// assign remoteID to the value of id because this method is used to encode
+    /// data from remote server and id from remote server is considered remoteID on local
+    if (json['id'] is int) {
+      json['remoteID'] = json['id'].toString();
+    } else {
+      json['remoteID'] = json['id'];
+    }
+    return _$BusinessFromJson(json);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = _$BusinessToJson(this);
+    if (id != null) {
+      data['localId'] = id;
+    }
+    return data;
+  }
 }
