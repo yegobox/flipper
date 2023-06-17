@@ -1,12 +1,11 @@
 import 'package:flipper_services/locator.dart';
-import 'package:stacked/stacked.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_services/language_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flutter/material.dart';
 
-class SettingViewModel extends ReactiveViewModel {
+class SettingViewModel extends BusinessHomeViewModel {
   ThemeMode themeMode = ThemeMode.system;
   final kSetting = locator<SettingsService>();
   final languageService = locator<Language>();

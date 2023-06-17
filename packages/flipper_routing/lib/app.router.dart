@@ -495,6 +495,45 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         barrierDismissible: false,
       );
     },
+    AppsRoute.name: (routeData) {
+      final args = routeData.argsAs<AppsArgs>();
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i2.Apps(
+          key: args.key,
+          controller: args.controller,
+          isBigScreen: args.isBigScreen,
+          model: args.model,
+          tabController: args.tabController,
+        ),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
+    CheckOutRoute.name: (routeData) {
+      final args = routeData.argsAs<CheckOutArgs>();
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i2.CheckOut(
+          key: args.key,
+          controller: args.controller,
+          tabController: args.tabController,
+          isBigScreen: args.isBigScreen,
+        ),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
+    SettingPageRoute.name: (routeData) {
+      final args = routeData.argsAs<SettingPageArgs>(
+          orElse: () => const SettingPageArgs());
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i2.SettingPage(key: args.key),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
   };
 
   @override
@@ -666,6 +705,18 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         _i3.RouteConfig(
           NewTicketRoute.name,
           path: '/new-ticket',
+        ),
+        _i3.RouteConfig(
+          AppsRoute.name,
+          path: '/Apps',
+        ),
+        _i3.RouteConfig(
+          CheckOutRoute.name,
+          path: '/check-out',
+        ),
+        _i3.RouteConfig(
+          SettingPageRoute.name,
+          path: '/setting-page',
         ),
       ];
 }
@@ -1849,5 +1900,122 @@ class NewTicketArgs {
   @override
   String toString() {
     return 'NewTicketArgs{key: $key, order: $order}';
+  }
+}
+
+/// generated route for
+/// [_i2.Apps]
+class AppsRoute extends _i3.PageRouteInfo<AppsArgs> {
+  AppsRoute({
+    _i4.Key? key,
+    required _i4.TextEditingController controller,
+    required bool isBigScreen,
+    required _i8.BusinessHomeViewModel model,
+    required _i4.TabController tabController,
+  }) : super(
+          AppsRoute.name,
+          path: '/Apps',
+          args: AppsArgs(
+            key: key,
+            controller: controller,
+            isBigScreen: isBigScreen,
+            model: model,
+            tabController: tabController,
+          ),
+        );
+
+  static const String name = 'Apps';
+}
+
+class AppsArgs {
+  const AppsArgs({
+    this.key,
+    required this.controller,
+    required this.isBigScreen,
+    required this.model,
+    required this.tabController,
+  });
+
+  final _i4.Key? key;
+
+  final _i4.TextEditingController controller;
+
+  final bool isBigScreen;
+
+  final _i8.BusinessHomeViewModel model;
+
+  final _i4.TabController tabController;
+
+  @override
+  String toString() {
+    return 'AppsArgs{key: $key, controller: $controller, isBigScreen: $isBigScreen, model: $model, tabController: $tabController}';
+  }
+}
+
+/// generated route for
+/// [_i2.CheckOut]
+class CheckOutRoute extends _i3.PageRouteInfo<CheckOutArgs> {
+  CheckOutRoute({
+    _i4.Key? key,
+    required _i4.TextEditingController controller,
+    required _i4.TabController tabController,
+    required bool isBigScreen,
+  }) : super(
+          CheckOutRoute.name,
+          path: '/check-out',
+          args: CheckOutArgs(
+            key: key,
+            controller: controller,
+            tabController: tabController,
+            isBigScreen: isBigScreen,
+          ),
+        );
+
+  static const String name = 'CheckOut';
+}
+
+class CheckOutArgs {
+  const CheckOutArgs({
+    this.key,
+    required this.controller,
+    required this.tabController,
+    required this.isBigScreen,
+  });
+
+  final _i4.Key? key;
+
+  final _i4.TextEditingController controller;
+
+  final _i4.TabController tabController;
+
+  final bool isBigScreen;
+
+  @override
+  String toString() {
+    return 'CheckOutArgs{key: $key, controller: $controller, tabController: $tabController, isBigScreen: $isBigScreen}';
+  }
+}
+
+/// generated route for
+/// [_i2.SettingPage]
+class SettingPageRoute extends _i3.PageRouteInfo<SettingPageArgs> {
+  SettingPageRoute({_i4.Key? key})
+      : super(
+          SettingPageRoute.name,
+          path: '/setting-page',
+          args: SettingPageArgs(key: key),
+        );
+
+  static const String name = 'SettingPage';
+}
+
+class SettingPageArgs {
+  const SettingPageArgs({this.key});
+
+  final _i4.Key? key;
+
+  @override
+  String toString() {
+    return 'SettingPageArgs{key: $key}';
   }
 }

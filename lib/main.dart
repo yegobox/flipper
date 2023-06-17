@@ -83,7 +83,7 @@ void main() async {
         FirebaseCrashlytics.instance.recordFlutterError(details);
       };
     }
-    if (isAndroid) {
+    if (isAndroid && foundation.kReleaseMode) {
       const appToken = "AAbbd887ce4300ef17e2e403be632d198c86f486a0-NRMA";
       Config config = Config(
           accessToken: appToken,

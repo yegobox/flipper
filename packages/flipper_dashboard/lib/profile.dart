@@ -19,9 +19,15 @@ import 'package:stacked/stacked.dart';
 /// and current tenant logged in which in most cases is the same as
 /// the user logged in
 class ProfileWidget extends StatefulWidget {
-  const ProfileWidget({super.key, required this.tenant, this.size = 50});
+  const ProfileWidget({
+    super.key,
+    required this.tenant,
+    this.showIcon = true,
+    this.size = 50,
+  });
   final ITenant tenant;
   final double? size;
+  final bool showIcon;
   @override
   State<ProfileWidget> createState() => _ProfileWidgetState();
 }
@@ -60,36 +66,41 @@ class _ProfileWidgetState extends State<ProfileWidget>
                   ? Positioned(
                       bottom: 0,
                       right: -10,
-                      child: IconButton(
-                        icon: Icon(Icons.camera),
-                        color: Colors.red,
-                        iconSize: 40,
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              backgroundColor: Colors.white,
-                              duration: Duration(hours: 1),
-                              content: Container(
-                                color: Colors.white,
-                                padding: EdgeInsets.all(8.0),
-                                child: UploadProgressWidget(
-                                    progressStream: model.uploadProgress()),
+                      child: Visibility(
+                        visible: widget.showIcon,
+                        child: IconButton(
+                          icon: Icon(Icons.camera),
+                          color: Colors.red,
+                          iconSize: 40,
+                          onPressed: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                backgroundColor: Colors.white,
+                                duration: Duration(hours: 1),
+                                content: Container(
+                                  color: Colors.white,
+                                  padding: EdgeInsets.all(8.0),
+                                  child: UploadProgressWidget(
+                                    progressStream: model.uploadProgress(),
+                                  ),
+                                ),
                               ),
-                            ),
-                          );
-                          model.uploadProgress().listen((progress) {
-                            if (progress == 100) {
-                              ScaffoldMessenger.of(context)
-                                  .hideCurrentSnackBar();
-                            }
-                          });
-                          model.browsePictureFromGallery(
+                            );
+                            model.uploadProgress().listen((progress) {
+                              if (progress == 100) {
+                                ScaffoldMessenger.of(context)
+                                    .hideCurrentSnackBar();
+                              }
+                            });
+                            model.browsePictureFromGallery(
                               urlType: URLTYPE.BUSINESS,
                               callBack: (res) async {
                                 if (res == "500") return;
                               },
-                              id: widget.tenant.businessId);
-                        },
+                              id: widget.tenant.businessId,
+                            );
+                          },
+                        ),
                       ),
                     )
                   : SizedBox.shrink()
@@ -200,11 +211,17 @@ class PMobile extends StatelessWidget {
       stream: ProxyService.isar
           .businessStream(businessId: widget.tenant.businessId),
       builder: (context, snapshot) {
-        final hasData = snapshot.hasData;
         final data = snapshot.data;
         final hasImage = data?.imageUrl != null;
 
         Widget buildContent() {
+          final borderRadius = BorderRadius.only(
+            topLeft: Radius.circular(10),
+            topRight: Radius.circular(15),
+            bottomLeft: Radius.circular(15),
+            bottomRight: Radius.circular(10),
+          );
+
           return GestureDetector(
             onTap: () {
               _dialogService.showCustomDialog(
@@ -218,14 +235,17 @@ class PMobile extends StatelessWidget {
                       width: isDesktopOrWeb ? 50 : 100,
                       height: isDesktopOrWeb ? 50 : 100,
                       decoration: BoxDecoration(
-                        color: Colors.pink,
-                        borderRadius: BorderRadius.circular(45),
+                        color: Colors.transparent,
+                        borderRadius: BorderRadius.circular(
+                            10), // Adjust the border radius value to your desired amount
                         border: Border.all(
-                          color: Colors.pink,
+                          color: Colors.transparent,
                           width: 2.0,
                         ),
                       ),
-                      child: ClipOval(
+                      child: ClipRRect(
+                        borderRadius:
+                            borderRadius, // Same border radius value as above
                         child: CachedNetworkImage(
                           imageUrl: data!.imageUrl!,
                           placeholder: (context, url) => GmailLikeLetter(

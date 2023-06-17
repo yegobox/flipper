@@ -18,12 +18,19 @@ import 'package:flipper_services/proxy.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 
 class ProductView extends StatefulWidget {
-  int? favIndex;
-  List<int> existingFavs = [];
-  ProductView.normalMode({Key? key}) : super(key: key);
-  ProductView.favoriteMode(
-      {Key? key, required this.favIndex, required this.existingFavs})
-      : super(key: key);
+  final int? favIndex;
+  final List<int> existingFavs;
+
+  ProductView.normalMode({Key? key})
+      : favIndex = null,
+        existingFavs = [],
+        super(key: key);
+
+  ProductView.favoriteMode({
+    Key? key,
+    required this.favIndex,
+    required this.existingFavs,
+  }) : super(key: key);
 
   @override
   State<ProductView> createState() => _ProductViewState();

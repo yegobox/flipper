@@ -86,9 +86,7 @@ class _BodyWidgetState extends State<BodyWidget> {
           if (widget.model.tab == 2) Flexible(child: ProductView.normalMode()),
           if (widget.model.tab == 3)
             Flexible(
-              child: SettingPage(
-                  business: widget.model.businesses,
-                  tenant: widget.model.tenant!),
+              child: SettingPage(),
             ),
         ],
       ),

@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/apps.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flutter/material.dart';
 
@@ -24,20 +25,24 @@ class PageSwitcher extends StatelessWidget {
   Widget build(BuildContext context) {
     switch (currentPage) {
       case 0:
-        return CheckOut(
-          controller: controller,
-          model: model,
-          tabController: tabController,
-          isBigScreen: isBigScreen,
-        );
+        return Apps(
+            model: model,
+            controller: controller,
+            tabController: tabController,
+            isBigScreen: isBigScreen);
+      // return CheckOut(
+      //   controller: controller,
+      //   model: model,
+      //   tabController: tabController,
+      //   isBigScreen: isBigScreen,
+      // );
       case 1:
         return Transactions(model: model);
       case 2:
-        return SettingPage(business: model.businesses, tenant: model.tenant!);
+        return SettingPage();
       default:
         return CheckOut(
             controller: controller,
-            model: model,
             tabController: tabController,
             isBigScreen: isBigScreen);
     }

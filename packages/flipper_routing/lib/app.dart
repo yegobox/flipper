@@ -53,6 +53,9 @@ import 'all_routes.dart';
     CustomRoute(page: ConversationHistory),
     CustomRoute(page: Tickets),
     CustomRoute(page: NewTicket),
+    CustomRoute(page: Apps),
+    CustomRoute(page: CheckOut),
+    CustomRoute(page: SettingPage),
   ],
   dependencies: [
     LazySingleton(classType: BottomSheetService),

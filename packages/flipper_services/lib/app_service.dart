@@ -315,17 +315,17 @@ class AppService with ListenableServiceMixin {
     /// pushing favorites
     List<Favorite> favorites = await ProxyService.isar.getLocalFavorite();
     for (Favorite favorite in favorites) {
-      RecordModel? record = await ProxyService.sync.push(favorite);
-      int oldId = favorite.id!;
-      if (record != null) {
-        Favorite fav = Favorite.fromRecord(record);
-        fav.remoteID = record.id;
+      // RecordModel? record = await ProxyService.sync.push(favorite);
+      // int oldId = favorite.id!;
+      // if (record != null) {
+      //   Favorite fav = Favorite.fromRecord(record);
+      //   fav.remoteID = record.id;
 
-        /// keep the local ID unchanged to avoid complication
-        fav.id = oldId;
-        fav.action = AppActions.updated;
-        await ProxyService.isar.update(data: fav);
-      }
+      //   /// keep the local ID unchanged to avoid complication
+      //   fav.id = oldId;
+      //   fav.action = AppActions.updated;
+      //   await ProxyService.isar.update(data: fav);
+      // }
     }
 
     /// pushing devices

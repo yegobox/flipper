@@ -6,25 +6,26 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'flipper_ui.dart';
 
-enum CLOSEBUTTON { ICON, BUTTON }
+enum CLOSEBUTTON { ICON, BUTTON, WIDGET }
 
 class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
-  const CustomAppBar({
-    super.key,
-    this.showActionButton,
-    this.title,
-    this.icon,
-    this.additionalText,
-    this.disableButton,
-    this.onActionButtonClicked,
-    this.onPop,
-    this.rightActionButtonName = "Save",
-    this.leftActionButtonName = "Save",
-    this.closeButton = CLOSEBUTTON.ICON,
-    this.useTransparentButton = false,
-    this.multi,
-    this.bottomSpacer,
-  });
+  const CustomAppBar(
+      {super.key,
+      this.showActionButton,
+      this.title,
+      this.icon,
+      this.additionalText,
+      this.disableButton,
+      this.onActionButtonClicked,
+      this.onPop,
+      this.rightActionButtonName = "Save",
+      this.leftActionButtonName = "Save",
+      this.closeButton = CLOSEBUTTON.ICON,
+      this.useTransparentButton = false,
+      this.multi,
+      this.bottomSpacer,
+      this.customLeadingWidget,
+      this.customTrailingWidget});
 
   final String? rightActionButtonName;
   final String? leftActionButtonName;
@@ -40,6 +41,8 @@ class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
   final bool useTransparentButton;
 
   final Widget? additionalText;
+  final StatelessWidget? customLeadingWidget;
+  final StatelessWidget? customTrailingWidget;
 
   @override
   State<CustomAppBar> createState() => _CustomAppBarState();
@@ -60,21 +63,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
           children: <Widget>[
             ListTile(
               contentPadding: const EdgeInsets.symmetric(horizontal: 0),
-              leading: widget.closeButton == CLOSEBUTTON.ICON
-                  ? IconButton(
-                      icon: Icon(
-                        widget.icon ?? Icons.close,
-                        color: Colors.black,
-                        size: 30,
-                      ),
-                      onPressed: widget.onPop,
-                    )
-                  : FLipperButton(
-                      transparent: widget.useTransparentButton,
-                      disableButton: widget.disableButton ?? false,
-                      onPressedCallback: widget.onPop ?? () {},
-                      buttonName: widget.leftActionButtonName ?? '',
-                    ),
+              leading: buildLeading(),
               title: widget.title == null
                   ? const SizedBox.shrink()
                   : Text(
@@ -85,15 +74,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
                           fontSize: 17,
                           fontWeight: FontWeight.w400),
                     ),
-              trailing: widget.showActionButton == null ||
-                      !widget.showActionButton!
-                  ? const SizedBox.shrink()
-                  : FLipperButton(
-                      transparent: widget.useTransparentButton,
-                      disableButton: widget.disableButton ?? false,
-                      onPressedCallback: widget.onActionButtonClicked ?? () {},
-                      buttonName: widget.rightActionButtonName ?? "Save",
-                    ),
+              trailing: buildTrailing(),
               dense: true,
             ),
             Container(
@@ -106,5 +87,48 @@ class _CustomAppBarState extends State<CustomAppBar> {
         ),
       ),
     );
+  }
+
+  Widget buildTrailing() {
+    if (widget.customTrailingWidget != null) {
+      return widget.customTrailingWidget!;
+    }
+
+    return widget.showActionButton == null || !widget.showActionButton!
+        ? SizedBox.shrink()
+        : FLipperButton(
+            transparent: widget.useTransparentButton,
+            disableButton: widget.disableButton ?? false,
+            onPressedCallback: widget.onActionButtonClicked ?? () {},
+            buttonName: widget.rightActionButtonName ?? "Save",
+          );
+  }
+
+  StatelessWidget buildLeading() {
+    switch (widget.closeButton) {
+      case CLOSEBUTTON.WIDGET:
+        return widget.customLeadingWidget!;
+      case CLOSEBUTTON.ICON:
+        return IconButton(
+          icon: Icon(
+            widget.icon ?? Icons.close,
+            color: Colors.black,
+            size: 30,
+          ),
+          onPressed: widget.onPop,
+        );
+      case CLOSEBUTTON.BUTTON:
+        return FLipperButton(
+          transparent: widget.useTransparentButton,
+          disableButton: widget.disableButton ?? false,
+          onPressedCallback: widget.onPop ?? () {},
+          buttonName: widget.leftActionButtonName ?? '',
+        );
+      default:
+        return Container(
+          width: 0,
+          height: 0,
+        );
+    }
   }
 }

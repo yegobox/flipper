@@ -184,10 +184,10 @@ class _FlipperAppState extends State<FlipperApp>
                           ),
                         ),
                         child: NavigationBar(
-                          height: 90,
+                          height: 50,
                           selectedIndex: tabselected,
                           labelBehavior:
-                              NavigationDestinationLabelBehavior.alwaysShow,
+                              NavigationDestinationLabelBehavior.alwaysHide,
                           backgroundColor: Colors.white,
                           elevation: 0,
                           animationDuration: const Duration(seconds: 2),
@@ -199,21 +199,21 @@ class _FlipperAppState extends State<FlipperApp>
                           // fluent icons: https://github.com/microsoft/fluentui-system-icons/blob/main/icons_regular.md
                           destinations: [
                             NavigationDestination(
-                              icon: Icon(FluentIcons.dialpad_24_regular),
-                              label: 'Checkout',
+                              icon: Icon(FluentIcons.home_24_regular),
+                              label: 'Home',
                               selectedIcon: Icon(
-                                FluentIcons.dialpad_24_regular,
+                                FluentIcons.home_24_regular,
                                 color: const Color(0xff006AFE),
                               ),
                             ),
-                            NavigationDestination(
-                              icon:
-                                  Icon(FluentIcons.apps_list_detail_24_regular),
-                              label: 'Transactions',
-                              selectedIcon: Icon(
-                                  FluentIcons.apps_list_detail_24_regular,
-                                  color: const Color(0xff006AFE)),
-                            ),
+                            // NavigationDestination(
+                            //   icon:
+                            //       Icon(FluentIcons.apps_list_detail_24_regular),
+                            //   label: 'Transactions',
+                            //   selectedIcon: Icon(
+                            //       FluentIcons.apps_list_detail_24_regular,
+                            //       color: const Color(0xff006AFE)),
+                            // ),
                             NavigationDestination(
                               icon: Icon(FluentIcons.navigation_20_regular),
                               label: 'More',
