@@ -90,12 +90,6 @@ class _BodyWidgetState extends State<BodyWidget> {
                   business: widget.model.businesses,
                   tenant: widget.model.tenant!),
             ),
-          if (widget.model.tab == 4)
-            Flexible(
-              child: SettingPage(
-                  business: widget.model.businesses,
-                  tenant: widget.model.tenant!),
-            )
         ],
       ),
     );

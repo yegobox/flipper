@@ -33,8 +33,6 @@ class PageSwitcher extends StatelessWidget {
       case 1:
         return Transactions(model: model);
       case 2:
-        return const Notifications();
-      case 3:
         return SettingPage(business: model.businesses, tenant: model.tenant!);
       default:
         return CheckOut(

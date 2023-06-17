@@ -215,29 +215,6 @@ class _FlipperAppState extends State<FlipperApp>
                                   color: const Color(0xff006AFE)),
                             ),
                             NavigationDestination(
-                              icon: BadgeIcon(
-                                icon: Icon(
-                                    FluentIcons.mail_all_unread_20_regular),
-                                badgeCount: 0,
-                                badgeColor: Color(0xff006AFE),
-                                badgeTextStyle: TextStyle(
-                                  color: Color(0xff006AFE),
-                                  fontSize: 8,
-                                ),
-                              ),
-                              label: 'Notifications',
-                              selectedIcon: BadgeIcon(
-                                icon: Icon(
-                                    FluentIcons.mail_all_unread_20_regular),
-                                badgeCount: 0,
-                                badgeColor: Color(0xff006AFE),
-                                badgeTextStyle: TextStyle(
-                                  color: Color(0xff006AFE),
-                                  fontSize: 8,
-                                ),
-                              ),
-                            ),
-                            NavigationDestination(
                               icon: Icon(FluentIcons.navigation_20_regular),
                               label: 'More',
                               selectedIcon: Icon(
