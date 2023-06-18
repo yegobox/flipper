@@ -10,8 +10,7 @@ import 'package:intl/intl.dart';
 import 'package:stacked/stacked.dart';
 
 class Transactions extends StatefulWidget {
-  const Transactions({Key? key, required this.model}) : super(key: key);
-  final BusinessHomeViewModel model;
+  const Transactions({Key? key}) : super(key: key);
 
   @override
   State<Transactions> createState() => _TransactionsState();

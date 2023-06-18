@@ -37,7 +37,7 @@ class PageSwitcher extends StatelessWidget {
       //   isBigScreen: isBigScreen,
       // );
       case 1:
-        return Transactions(model: model);
+        return Transactions();
       case 2:
         return SettingPage();
       default:

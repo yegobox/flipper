@@ -53,6 +53,12 @@ class _AppsState extends State<Apps> {
           case "settings":
             _routerService.navigateTo(SettingPageRoute());
             return;
+          case "Connecta":
+            _routerService.navigateTo(SocialHomeViewRoute());
+            return;
+          case "Transactions":
+            _routerService.navigateTo(TransactionsRoute());
+            return;
           default:
             _routerService.navigateTo(CheckOutRoute(
               controller: widget.controller,
@@ -146,9 +152,9 @@ class _AppsState extends State<Apps> {
                       backgroundColor: Color(0xff99DDFF),
                       page: "Connecta"),
                   _buildCustomPaintWithIcon(
-                      iconData: FluentIcons.chart_person_48_regular,
+                      iconData: FluentIcons.arrow_trending_lines_24_regular,
                       backgroundColor: Colors.red,
-                      page: "keyPad"),
+                      page: "Transactions"),
                 ],
               ),
               Row(

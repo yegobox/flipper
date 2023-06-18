@@ -534,6 +534,14 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         barrierDismissible: false,
       );
     },
+    TransactionsRoute.name: (routeData) {
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: const _i2.Transactions(),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
   };
 
   @override
@@ -717,6 +725,10 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         _i3.RouteConfig(
           SettingPageRoute.name,
           path: '/setting-page',
+        ),
+        _i3.RouteConfig(
+          TransactionsRoute.name,
+          path: '/Transactions',
         ),
       ];
 }
@@ -2018,4 +2030,16 @@ class SettingPageArgs {
   String toString() {
     return 'SettingPageArgs{key: $key}';
   }
+}
+
+/// generated route for
+/// [_i2.Transactions]
+class TransactionsRoute extends _i3.PageRouteInfo<void> {
+  const TransactionsRoute()
+      : super(
+          TransactionsRoute.name,
+          path: '/Transactions',
+        );
+
+  static const String name = 'Transactions';
 }

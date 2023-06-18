@@ -21,7 +21,7 @@ dependencies:
   flipper_models: ^0.0.1-dev.7
   flipper_routing: ^0.0.1-dev.3
 
-  fluentui_system_icons: ^1.1.198
+  fluentui_system_icons: ^1.1.203
   animated_icon_button: ^1.0.2
   pip_view: ^0.9.7
   getwidget: ^3.0.1

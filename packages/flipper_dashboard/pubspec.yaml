@@ -72,7 +72,7 @@ dependencies:
   modal_bottom_sheet: ^3.0.0-pre
   flipper_ui: ^1.0.3
   flutter_windowmanager: ^0.2.0
-  fluentui_system_icons: ^1.1.198
+  fluentui_system_icons: ^1.1.203
   keyboard_visibility_pro: ^0.0.1
   battery_plus: ^4.0.1
   easy_sidemenu:

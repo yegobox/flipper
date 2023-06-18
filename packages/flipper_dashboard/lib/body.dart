@@ -82,7 +82,7 @@ class _BodyWidgetState extends State<BodyWidget> {
                 controller: widget.controller,
                 nodeDisabled: widget.nodeDisabled),
           if (widget.model.tab == 0) KeyPadView(model: widget.model),
-          if (widget.model.tab == 1) Transactions(model: widget.model),
+          if (widget.model.tab == 1) Transactions(),
           if (widget.model.tab == 2) Flexible(child: ProductView.normalMode()),
           if (widget.model.tab == 3)
             Flexible(

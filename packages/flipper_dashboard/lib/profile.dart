@@ -217,8 +217,8 @@ class PMobile extends StatelessWidget {
         Widget buildContent() {
           final borderRadius = BorderRadius.only(
             topLeft: Radius.circular(10),
-            topRight: Radius.circular(15),
-            bottomLeft: Radius.circular(15),
+            topRight: Radius.circular(10),
+            bottomLeft: Radius.circular(10),
             bottomRight: Radius.circular(10),
           );
 
@@ -236,8 +236,8 @@ class PMobile extends StatelessWidget {
                       height: isDesktopOrWeb ? 50 : 100,
                       decoration: BoxDecoration(
                         color: Colors.transparent,
-                        borderRadius: BorderRadius.circular(
-                            10), // Adjust the border radius value to your desired amount
+                        borderRadius:
+                            borderRadius, // Adjust the border radius value to your desired amount
                         border: Border.all(
                           color: Colors.transparent,
                           width: 2.0,
