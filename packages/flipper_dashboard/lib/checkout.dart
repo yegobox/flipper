@@ -11,26 +11,22 @@ import 'product_view.dart';
 class CheckOut extends StatefulWidget {
   CheckOut({
     Key? key,
-    required this.controller,
-    required this.tabController,
     required this.isBigScreen,
   }) : super(key: key);
 
   final bool isBigScreen;
-  final TextEditingController controller;
-  final TabController tabController;
 
   @override
   State<CheckOut> createState() => _CheckOutState();
 }
 
 class _CheckOutState extends State<CheckOut>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late AnimationController _animationController;
   late Animation<double> _animation;
-
+  late TabController tabController;
   final FocusNode keyPadFocusNode = FocusNode();
-
+  final TextEditingController textEditController = TextEditingController();
   @override
   void initState() {
     super.initState();
@@ -45,11 +41,18 @@ class _CheckOutState extends State<CheckOut>
       ),
     );
     _animationController.forward();
+    if (mounted) {
+      WidgetsBinding.instance.addObserver(this);
+      tabController = TabController(length: 3, vsync: this);
+      // run the code in here only once.
+    }
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _animationController.dispose();
+    tabController.dispose();
     super.dispose();
   }
 
@@ -75,7 +78,7 @@ class _CheckOutState extends State<CheckOut>
                           child: PaymentTicketManager(
                             context: context,
                             model: model,
-                            controller: widget.controller,
+                            controller: textEditController,
                             nodeDisabled: true,
                           ),
                         ),
@@ -90,7 +93,11 @@ class _CheckOutState extends State<CheckOut>
             );
           });
     } else {
-      return MobileView(widget: widget);
+      return MobileView(
+        widget: widget,
+        tabController: tabController,
+        textEditController: textEditController,
+      );
     }
   }
 }
@@ -99,9 +106,13 @@ class MobileView extends StatelessWidget {
   const MobileView({
     super.key,
     required this.widget,
+    required this.tabController,
+    required this.textEditController,
   });
 
   final CheckOut widget;
+  final TabController tabController;
+  final TextEditingController textEditController;
 
   @override
   Widget build(BuildContext context) {
@@ -142,7 +153,7 @@ class MobileView extends StatelessWidget {
                           onTap: (v) {
                             FocusScope.of(context).unfocus();
                           },
-                          controller: widget.tabController,
+                          controller: tabController,
                           // give the indicator a decoration (color and border radius)
                           indicator: BoxDecoration(
                             borderRadius: BorderRadius.circular(4.0),
@@ -186,7 +197,7 @@ class MobileView extends StatelessWidget {
                 // tab bar view here
                 Expanded(
                   child: TabBarView(
-                    controller: widget.tabController,
+                    controller: tabController,
                     children: [
                       Column(
                         children: [
@@ -196,7 +207,7 @@ class MobileView extends StatelessWidget {
                             child: PaymentTicketManager(
                                 context: context,
                                 model: model,
-                                controller: widget.controller,
+                                controller: textEditController,
                                 nodeDisabled: true),
                           )
                         ],

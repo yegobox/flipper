@@ -15,18 +15,15 @@ class Apps extends StatefulWidget {
   final TextEditingController controller;
   final bool isBigScreen;
   final BusinessHomeViewModel model;
-  final TabController tabController;
 
   Apps({
     Key? key,
     required final TextEditingController controller,
     required final bool isBigScreen,
     required final BusinessHomeViewModel model,
-    required final TabController tabController,
   })  : controller = controller,
         isBigScreen = isBigScreen,
         model = model,
-        tabController = tabController,
         super(key: key);
 
   @override
@@ -45,8 +42,6 @@ class _AppsState extends State<Apps> {
         switch (page) {
           case "keypad":
             _routerService.navigateTo(CheckOutRoute(
-              controller: widget.controller,
-              tabController: widget.tabController,
               isBigScreen: widget.isBigScreen,
             ));
             return;
@@ -54,6 +49,7 @@ class _AppsState extends State<Apps> {
             _routerService.navigateTo(SettingPageRoute());
             return;
           case "Connecta":
+            ProxyService.box.write(key: 'defaultApp', value: 2);
             _routerService.navigateTo(SocialHomeViewRoute());
             return;
           case "Transactions":
@@ -61,8 +57,6 @@ class _AppsState extends State<Apps> {
             return;
           default:
             _routerService.navigateTo(CheckOutRoute(
-              controller: widget.controller,
-              tabController: widget.tabController,
               isBigScreen: widget.isBigScreen,
             ));
         }

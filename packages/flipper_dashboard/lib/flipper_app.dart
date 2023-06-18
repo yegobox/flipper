@@ -18,7 +18,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
 
 import 'package:permission_handler/permission_handler.dart' as perm;
-import 'badge_icon.dart';
 import 'page_switcher.dart';
 import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:nfc_manager/nfc_manager.dart';
@@ -32,7 +31,6 @@ class FlipperApp extends StatefulWidget {
 
 class _FlipperAppState extends State<FlipperApp>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
-  late TabController _tabController;
   PageController page = PageController();
   final TextEditingController controller = TextEditingController();
   SideMenuController sideMenu = SideMenuController();
@@ -50,11 +48,6 @@ class _FlipperAppState extends State<FlipperApp>
     if (isAndroid) {
       _disableScreenshots();
     }
-    if (mounted) {
-      WidgetsBinding.instance.addObserver(this);
-      _tabController = TabController(length: 3, vsync: this);
-      // run the code in here only once.
-    }
   }
 
   @override
@@ -62,7 +55,6 @@ class _FlipperAppState extends State<FlipperApp>
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
     AppService.cleanedDataController.close();
-    _tabController.dispose();
   }
 
   Future<void> nfc() async {
@@ -234,7 +226,6 @@ class _FlipperAppState extends State<FlipperApp>
                     child: PageSwitcher(
                       controller: controller,
                       model: model,
-                      tabController: _tabController,
                       currentPage: tabselected,
                     ),
                   );
@@ -292,7 +283,6 @@ class _FlipperAppState extends State<FlipperApp>
                             isBigScreen: true,
                             controller: controller,
                             model: model,
-                            tabController: _tabController,
                             currentPage: tabselected,
                           ),
                         ),

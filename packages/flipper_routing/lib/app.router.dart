@@ -504,7 +504,6 @@ class StackedRouterWeb extends _i3.RootStackRouter {
           controller: args.controller,
           isBigScreen: args.isBigScreen,
           model: args.model,
-          tabController: args.tabController,
         ),
         opaque: true,
         barrierDismissible: false,
@@ -516,8 +515,6 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         routeData: routeData,
         child: _i2.CheckOut(
           key: args.key,
-          controller: args.controller,
-          tabController: args.tabController,
           isBigScreen: args.isBigScreen,
         ),
         opaque: true,
@@ -1923,7 +1920,6 @@ class AppsRoute extends _i3.PageRouteInfo<AppsArgs> {
     required _i4.TextEditingController controller,
     required bool isBigScreen,
     required _i8.BusinessHomeViewModel model,
-    required _i4.TabController tabController,
   }) : super(
           AppsRoute.name,
           path: '/Apps',
@@ -1932,7 +1928,6 @@ class AppsRoute extends _i3.PageRouteInfo<AppsArgs> {
             controller: controller,
             isBigScreen: isBigScreen,
             model: model,
-            tabController: tabController,
           ),
         );
 
@@ -1945,7 +1940,6 @@ class AppsArgs {
     required this.controller,
     required this.isBigScreen,
     required this.model,
-    required this.tabController,
   });
 
   final _i4.Key? key;
@@ -1956,11 +1950,9 @@ class AppsArgs {
 
   final _i8.BusinessHomeViewModel model;
 
-  final _i4.TabController tabController;
-
   @override
   String toString() {
-    return 'AppsArgs{key: $key, controller: $controller, isBigScreen: $isBigScreen, model: $model, tabController: $tabController}';
+    return 'AppsArgs{key: $key, controller: $controller, isBigScreen: $isBigScreen, model: $model}';
   }
 }
 
@@ -1969,16 +1961,12 @@ class AppsArgs {
 class CheckOutRoute extends _i3.PageRouteInfo<CheckOutArgs> {
   CheckOutRoute({
     _i4.Key? key,
-    required _i4.TextEditingController controller,
-    required _i4.TabController tabController,
     required bool isBigScreen,
   }) : super(
           CheckOutRoute.name,
           path: '/check-out',
           args: CheckOutArgs(
             key: key,
-            controller: controller,
-            tabController: tabController,
             isBigScreen: isBigScreen,
           ),
         );
@@ -1989,22 +1977,16 @@ class CheckOutRoute extends _i3.PageRouteInfo<CheckOutArgs> {
 class CheckOutArgs {
   const CheckOutArgs({
     this.key,
-    required this.controller,
-    required this.tabController,
     required this.isBigScreen,
   });
 
   final _i4.Key? key;
 
-  final _i4.TextEditingController controller;
-
-  final _i4.TabController tabController;
-
   final bool isBigScreen;
 
   @override
   String toString() {
-    return 'CheckOutArgs{key: $key, controller: $controller, tabController: $tabController, isBigScreen: $isBigScreen}';
+    return 'CheckOutArgs{key: $key, isBigScreen: $isBigScreen}';
   }
 }
 
