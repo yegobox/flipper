@@ -2,7 +2,7 @@ import 'package:flipper_models/isar_models.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-List<Widget> variantsWidget({required BusinessHomeViewModel model}) {
+List<Widget> variantsWidget({required HomeViewModel model}) {
   final List<Widget> list = <Widget>[];
 
   for (Variant variant in model.variants) {

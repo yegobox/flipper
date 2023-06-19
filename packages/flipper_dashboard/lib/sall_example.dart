@@ -24,7 +24,7 @@ class Sell extends StatelessWidget {
   final Pickup pick = Pickup.lafayette;
   final TextEditingController quantityController =
       TextEditingController(text: "1");
-  String buildTitle(BusinessHomeViewModel model) {
+  String buildTitle(HomeViewModel model) {
     if (model.amountTotal.toString() == 'null') {
       return product.name;
     }
@@ -35,7 +35,7 @@ class Sell extends StatelessWidget {
   }
 
   Widget Quantity(
-      {required BusinessHomeViewModel model, required BuildContext context}) {
+      {required HomeViewModel model, required BuildContext context}) {
     return SingleChildScrollView(
       child: Container(
         child: Padding(
@@ -507,7 +507,7 @@ class Sell extends StatelessWidget {
     );
   }
 
-  List<Widget> variant({required BusinessHomeViewModel model}) {
+  List<Widget> variant({required HomeViewModel model}) {
     final List<Widget> list = <Widget>[];
 
     for (Variant variant in model.variants) {
@@ -585,11 +585,11 @@ class Sell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<BusinessHomeViewModel>.reactive(
+    return ViewModelBuilder<HomeViewModel>.reactive(
         onViewModelReady: (model) async {
           await model.getVariants(productId: product.id!);
         },
-        viewModelBuilder: () => BusinessHomeViewModel(),
+        viewModelBuilder: () => HomeViewModel(),
         builder: (context, model, child) {
           return Scaffold(
             backgroundColor: Colors.white,

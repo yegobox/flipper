@@ -1,7 +1,6 @@
 import 'package:flipper_models/isar_models.dart';
 
-String titleWidget(
-    {required BusinessHomeViewModel model, required String name}) {
+String titleWidget({required HomeViewModel model, required String name}) {
   if (model.amountTotal == 0) {
     return '';
   }

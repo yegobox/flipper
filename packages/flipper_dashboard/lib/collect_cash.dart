@@ -36,7 +36,7 @@ class _CollectCashViewState extends State<CollectCashView> {
 
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<BusinessHomeViewModel>.reactive(
+    return ViewModelBuilder<HomeViewModel>.reactive(
         builder: (context, model, child) {
           return SafeArea(
             child: Scaffold(
@@ -243,6 +243,6 @@ class _CollectCashViewState extends State<CollectCashView> {
             }
           });
         },
-        viewModelBuilder: () => BusinessHomeViewModel());
+        viewModelBuilder: () => HomeViewModel());
   }
 }

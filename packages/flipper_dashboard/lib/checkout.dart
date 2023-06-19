@@ -21,12 +21,13 @@ class CheckOut extends StatefulWidget {
 }
 
 class _CheckOutState extends State<CheckOut>
-    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   late AnimationController _animationController;
   late Animation<double> _animation;
   late TabController tabController;
   final FocusNode keyPadFocusNode = FocusNode();
   final TextEditingController textEditController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -59,8 +60,8 @@ class _CheckOutState extends State<CheckOut>
   @override
   Widget build(BuildContext context) {
     if (widget.isBigScreen) {
-      return ViewModelBuilder<BusinessHomeViewModel>.reactive(
-          viewModelBuilder: () => BusinessHomeViewModel(),
+      return ViewModelBuilder<HomeViewModel>.reactive(
+          viewModelBuilder: () => HomeViewModel(),
           builder: (context, model, child) {
             return FadeTransition(
               opacity: _animation,
@@ -104,11 +105,11 @@ class _CheckOutState extends State<CheckOut>
 
 class MobileView extends StatelessWidget {
   const MobileView({
-    super.key,
     required this.widget,
     required this.tabController,
     required this.textEditController,
-  });
+    Key? key,
+  }) : super(key: key);
 
   final CheckOut widget;
   final TabController tabController;
@@ -119,21 +120,22 @@ class MobileView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Center(
-            child: Text(
-          ProxyService.status.statusText.value ?? "",
-          style: GoogleFonts.poppins(
-            fontSize: 16.0,
-            fontWeight: FontWeight.w300,
-            color: Colors.white,
+          child: Text(
+            ProxyService.status.statusText.value ?? "",
+            style: GoogleFonts.poppins(
+              fontSize: 16.0,
+              fontWeight: FontWeight.w300,
+              color: Colors.white,
+            ),
           ),
-        )),
+        ),
         backgroundColor: ProxyService.status.statusColor.value,
         automaticallyImplyLeading: false,
         toolbarHeight:
             ProxyService.status.statusText.value?.isNotEmpty == true ? 25 : 0,
       ),
-      body: ViewModelBuilder<BusinessHomeViewModel>.reactive(
-          viewModelBuilder: () => BusinessHomeViewModel(),
+      body: ViewModelBuilder<HomeViewModel>.reactive(
+          viewModelBuilder: () => HomeViewModel(),
           builder: (context, model, child) {
             return Column(
               children: [
@@ -160,33 +162,18 @@ class MobileView extends StatelessWidget {
                             color: const Color(0xffFFFFFF),
                           ),
                           labelColor: Colors.black,
-                          // labelStyle: tabLabelStyle,
-                          // unselectedLabelColor: Colors.black,
-                          // indicatorColor: Colors.black,
                           tabs: const [
                             // first tab [you can add an icon using the icon property]
-                            SizedBox(
-                              height: 41,
-                              width: double.infinity,
-                              child: Tab(
-                                text: 'Keypad',
-                              ),
+                            Tab(
+                              text: 'Keypad',
                             ),
 
                             // second tab [you can add an icon using the icon property]
-                            SizedBox(
-                              height: 41,
-                              width: double.infinity,
-                              child: Tab(
-                                text: 'Library',
-                              ),
+                            Tab(
+                              text: 'Library',
                             ),
-                            SizedBox(
-                              height: 41,
-                              width: double.infinity,
-                              child: Tab(
-                                text: 'Favorites',
-                              ),
+                            Tab(
+                              text: 'Favorites',
                             ),
                           ],
                         );
@@ -205,15 +192,16 @@ class MobileView extends StatelessWidget {
                           Padding(
                             padding: EdgeInsets.fromLTRB(0.0, 10, 0, 0),
                             child: PaymentTicketManager(
-                                context: context,
-                                model: model,
-                                controller: textEditController,
-                                nodeDisabled: true),
-                          )
+                              context: context,
+                              model: model,
+                              controller: textEditController,
+                              nodeDisabled: true,
+                            ),
+                          ),
                         ],
                       ),
                       ProductView.normalMode(),
-                      Favorites()
+                      Favorites(),
                     ],
                   ),
                 ),

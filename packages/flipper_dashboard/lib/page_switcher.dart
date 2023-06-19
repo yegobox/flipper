@@ -14,7 +14,7 @@ class PageSwitcher extends StatelessWidget {
       this.isBigScreen = false,
       required this.currentPage})
       : super(key: key);
-  final BusinessHomeViewModel model;
+  final HomeViewModel model;
   final TextEditingController controller;
   final int currentPage;
   final bool isBigScreen;

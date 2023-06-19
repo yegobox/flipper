@@ -17,7 +17,7 @@ class Payments extends StatelessWidget {
   // TODO: remove duePay get it's value from stream
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<BusinessHomeViewModel>.reactive(
+    return ViewModelBuilder<HomeViewModel>.reactive(
         builder: (context, model, child) {
           return SafeArea(
             child: Scaffold(
@@ -170,6 +170,6 @@ class Payments extends StatelessWidget {
         onViewModelReady: (model) {
           model.updatePayable();
         },
-        viewModelBuilder: () => BusinessHomeViewModel());
+        viewModelBuilder: () => HomeViewModel());
   }
 }

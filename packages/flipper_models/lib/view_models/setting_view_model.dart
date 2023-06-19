@@ -5,7 +5,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flutter/material.dart';
 
-class SettingViewModel extends BusinessHomeViewModel {
+class SettingViewModel extends HomeViewModel {
   ThemeMode themeMode = ThemeMode.system;
   final kSetting = locator<SettingsService>();
   final languageService = locator<Language>();

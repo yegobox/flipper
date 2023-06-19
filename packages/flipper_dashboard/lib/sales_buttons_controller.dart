@@ -19,7 +19,7 @@ class SalesButtonsController extends StatelessWidget {
   final Widget? payable;
   final int tab;
   final bool ticketsEnabled;
-  final BusinessHomeViewModel model;
+  final HomeViewModel model;
 
   @override
   Widget build(BuildContext context) {

@@ -36,7 +36,7 @@ class _AfterSaleState extends State<AfterSale> {
 
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<BusinessHomeViewModel>.reactive(
+    return ViewModelBuilder<HomeViewModel>.reactive(
         builder: (context, model, child) {
           return SafeArea(
             top: false,
@@ -342,6 +342,6 @@ class _AfterSaleState extends State<AfterSale> {
             }
           }
         },
-        viewModelBuilder: () => BusinessHomeViewModel());
+        viewModelBuilder: () => HomeViewModel());
   }
 }

@@ -7,7 +7,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
-import 'home_viewmodel.dart';
 
 class HomeViewDesktop extends ViewModelWidget<HomeViewModel> {
   const HomeViewDesktop({super.key});

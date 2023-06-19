@@ -19,7 +19,7 @@ import 'package:flipper_services/language_service.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:receipt/print.dart';
 
-class BusinessHomeViewModel extends ReactiveViewModel {
+class HomeViewModel extends ReactiveViewModel {
   final settingService = locator<SettingsService>();
   final languageService = locator<Language>();
   final KeyPadService keypad = locator<KeyPadService>();
@@ -297,7 +297,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
   }
 
   /// setAmount is the amount shown on top of product when increasing the quantity
-  void customQtyIncrease(int quantity) {
+  void customQtyIncrease(double quantity) {
     ProxyService.keypad.increaseQty(custom: true, qty: quantity);
     if (_currentItemStock != null) {
       keypad.setAmount(amount: _currentItemStock!.retailPrice! * quantity);
@@ -423,7 +423,7 @@ class BusinessHomeViewModel extends ReactiveViewModel {
     // Create a new order item
     OrderItem newItem = OrderItem(
       id: syncIdInt(),
-      qty: isCustom ? 1 : quantity,
+      qty: isCustom ? 1.0 : quantity,
       price: amountTotal / quantity,
       variantId: variationId,
       name: name,

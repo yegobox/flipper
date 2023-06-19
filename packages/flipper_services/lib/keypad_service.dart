@@ -7,7 +7,7 @@ class KeyPadService with ListenableServiceMixin {
   final _key = ReactiveValue<String>("0.00");
   Stack stack = Stack<String>();
 
-  final _quantity = ReactiveValue<int>(1);
+  final _quantity = ReactiveValue<double>(1.0);
 
   get quantity => _quantity.value;
 
@@ -108,10 +108,10 @@ class KeyPadService with ListenableServiceMixin {
     notifyListeners();
   }
 
-  void increaseQty({required bool custom, int? qty}) {
+  void increaseQty({required bool custom, double? qty}) {
     if (custom) {
       _quantity.value = 0;
-      _quantity.value = qty ?? 1;
+      _quantity.value = qty ?? 1.0;
     } else {
       _quantity.value++;
       notifyListeners();

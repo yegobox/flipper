@@ -25,8 +25,8 @@ class _LoginChoicesState extends State<LoginChoices> {
 
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<BusinessHomeViewModel>.reactive(
-        viewModelBuilder: () => BusinessHomeViewModel(),
+    return ViewModelBuilder<HomeViewModel>.reactive(
+        viewModelBuilder: () => HomeViewModel(),
         onViewModelReady: (model) async {
           int? userId = ProxyService.box.getUserId();
           List<Business> _b =
@@ -146,7 +146,7 @@ class _LoginChoicesState extends State<LoginChoices> {
   }
 
   Future<void> chooseBusiness(
-      bool? value, BusinessHomeViewModel model, Business business) async {
+      bool? value, HomeViewModel model, Business business) async {
     _businessChoosen = value!;
     if (_businessChoosen) {
       model.setDefaultBusiness(business: business);
@@ -167,7 +167,7 @@ class _LoginChoicesState extends State<LoginChoices> {
   }
 
   Future<void> chooseBranch(
-      bool? value, BusinessHomeViewModel model, Branch branch) async {
+      bool? value, HomeViewModel model, Branch branch) async {
     model.setDefaultBranch(branch: branch);
     if (await ProxyService.isar
             .isDrawerOpen(cashierId: ProxyService.box.getBusinessId()!) ==

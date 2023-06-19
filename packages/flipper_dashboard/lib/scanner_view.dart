@@ -50,8 +50,8 @@ class _ScannViewState extends State<ScannView> {
 
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<BusinessHomeViewModel>.reactive(
-      viewModelBuilder: () => BusinessHomeViewModel(),
+    return ViewModelBuilder<HomeViewModel>.reactive(
+      viewModelBuilder: () => HomeViewModel(),
       builder: (context, model, child) {
         final size = MediaQuery.of(context).size;
         final double aspectRatio = size.width / size.height;
@@ -113,7 +113,7 @@ class _ScannViewState extends State<ScannView> {
     );
   }
 
-  Widget _buildQrView(BuildContext context, BusinessHomeViewModel model) {
+  Widget _buildQrView(BuildContext context, HomeViewModel model) {
     // For this example we check how width or tall the device is and change the scanArea and overlay accordingly.
     var scanArea = (MediaQuery.of(context).size.width < 400 ||
             MediaQuery.of(context).size.height < 400)
@@ -202,8 +202,7 @@ class _ScannViewState extends State<ScannView> {
     }
   }
 
-  void _onQRViewCreated(
-      QRViewController controller, BusinessHomeViewModel model) {
+  void _onQRViewCreated(QRViewController controller, HomeViewModel model) {
     setState(() {
       this.controller = controller;
     });
@@ -250,7 +249,7 @@ class _ScannViewState extends State<ScannView> {
   //   });
   // }
 
-  void performIntent(Barcode scanData, BusinessHomeViewModel model) {
+  void performIntent(Barcode scanData, HomeViewModel model) {
     return setState(() async {
       result = scanData;
       if (widget.intent == addBarCode) {
@@ -277,7 +276,7 @@ class _ScannViewState extends State<ScannView> {
     });
   }
 
-  void navigate(String? code, BusinessHomeViewModel model) async {
+  void navigate(String? code, HomeViewModel model) async {
     if (widget.intent == addBarCode) {
       _routerService.pop();
       return;

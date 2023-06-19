@@ -16,7 +16,7 @@ class PayableView extends StatelessWidget {
   final double? duePay;
   final Function onClick;
   final Function ticketHandler;
-  final BusinessHomeViewModel model;
+  final HomeViewModel model;
 
   @override
   Widget build(BuildContext context) {

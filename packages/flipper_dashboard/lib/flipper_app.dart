@@ -29,8 +29,7 @@ class FlipperApp extends StatefulWidget {
   _FlipperAppState createState() => _FlipperAppState();
 }
 
-class _FlipperAppState extends State<FlipperApp>
-    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
+class _FlipperAppState extends State<FlipperApp> {
   PageController page = PageController();
   final TextEditingController controller = TextEditingController();
   SideMenuController sideMenu = SideMenuController();
@@ -52,7 +51,6 @@ class _FlipperAppState extends State<FlipperApp>
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
     AppService.cleanedDataController.close();
   }
@@ -94,9 +92,9 @@ class _FlipperAppState extends State<FlipperApp>
 
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<BusinessHomeViewModel>.reactive(
+    return ViewModelBuilder<HomeViewModel>.reactive(
         fireOnViewModelReadyOnce: true,
-        viewModelBuilder: () => BusinessHomeViewModel(),
+        viewModelBuilder: () => HomeViewModel(),
         onViewModelReady: (model) async {
           //get default tenant
           model.defaultTenant();
@@ -296,7 +294,7 @@ class _FlipperAppState extends State<FlipperApp>
         });
   }
 
-  Future<bool> _onWillPop(BusinessHomeViewModel model) async {
+  Future<bool> _onWillPop(HomeViewModel model) async {
     final shouldPop = await showDialog(
       context: context,
       builder: (BuildContext context) {

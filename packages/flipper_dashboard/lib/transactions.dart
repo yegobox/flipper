@@ -192,7 +192,7 @@ class _TransactionsState extends State<Transactions> {
 
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<BusinessHomeViewModel>.reactive(
+    return ViewModelBuilder<HomeViewModel>.reactive(
         onViewModelReady: (model) async {
           List<Order> completedOrders = await ProxyService.isar
               .completedOrders(branchId: ProxyService.box.getBranchId()!);
@@ -209,7 +209,7 @@ class _TransactionsState extends State<Transactions> {
             zlist = _zTransactions(drawer: drawer!);
           });
         },
-        viewModelBuilder: () => BusinessHomeViewModel(),
+        viewModelBuilder: () => HomeViewModel(),
         builder: (context, model, child) {
           return Scaffold(
             appBar: AppBar(

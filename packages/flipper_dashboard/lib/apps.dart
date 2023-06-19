@@ -14,13 +14,13 @@ import 'package:stacked_services/stacked_services.dart';
 class Apps extends StatefulWidget {
   final TextEditingController controller;
   final bool isBigScreen;
-  final BusinessHomeViewModel model;
+  final HomeViewModel model;
 
   Apps({
     Key? key,
     required final TextEditingController controller,
     required final bool isBigScreen,
-    required final BusinessHomeViewModel model,
+    required final HomeViewModel model,
   })  : controller = controller,
         isBigScreen = isBigScreen,
         model = model,

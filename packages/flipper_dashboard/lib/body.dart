@@ -18,7 +18,7 @@ final isDesktopOrWeb = UniversalPlatform.isDesktopOrWeb;
 // ignore: non_constant_identifier_names
 Widget PaymentTicketManager(
     {required BuildContext context,
-    required BusinessHomeViewModel model,
+    required HomeViewModel model,
     required TextEditingController controller,
     required bool nodeDisabled}) {
   final _routerService = locator<RouterService>();
@@ -56,7 +56,7 @@ class BodyWidget extends StatefulWidget {
       required this.controller,
       required this.nodeDisabled})
       : super(key: key);
-  final BusinessHomeViewModel model;
+  final HomeViewModel model;
   final TextEditingController controller;
   final bool nodeDisabled;
   @override

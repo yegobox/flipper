@@ -17,7 +17,7 @@ class TransactionDetail extends StatefulWidget {
 
 class _TransactionDetailState extends State<TransactionDetail> {
   List<Widget> _list(
-      {required List<OrderItem> items, required BusinessHomeViewModel model}) {
+      {required List<OrderItem> items, required HomeViewModel model}) {
     return items
         .map((item) => Column(
               children: [
@@ -80,8 +80,8 @@ class _TransactionDetailState extends State<TransactionDetail> {
   final _routerService = locator<RouterService>();
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<BusinessHomeViewModel>.reactive(
-        viewModelBuilder: () => BusinessHomeViewModel(),
+    return ViewModelBuilder<HomeViewModel>.reactive(
+        viewModelBuilder: () => HomeViewModel(),
         onViewModelReady: (model) async {
           List<OrderItem> items = await ProxyService.isar
               .orderItems(orderId: widget.order.id!, doneWithOrder: false);
@@ -122,7 +122,7 @@ class _TransactionDetailState extends State<TransactionDetail> {
         });
   }
 
-  Future<void> refund(int id, BusinessHomeViewModel model) async {
+  Future<void> refund(int id, HomeViewModel model) async {
     ProxyService.isar.refund(itemId: id);
     List<OrderItem> items = await ProxyService.isar
         .orderItems(orderId: widget.order.id!, doneWithOrder: false);

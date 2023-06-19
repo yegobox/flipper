@@ -9,13 +9,13 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
 
-import 'home_viewmodel.dart';
+import 'home_viewmodel.dart' as social;
 
-class HomeViewMobile extends ViewModelWidget<HomeViewModel> {
+class HomeViewMobile extends ViewModelWidget<social.HomeViewModel> {
   const HomeViewMobile({super.key});
 
   @override
-  Widget build(BuildContext context, HomeViewModel viewModel) {
+  Widget build(BuildContext context, social.HomeViewModel viewModel) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
         statusBarColor: Colors.white, // set the status bar color

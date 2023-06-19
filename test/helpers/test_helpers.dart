@@ -82,7 +82,7 @@ AppService getAndRegisterAppService(
     int businessId = 10}) {
   _removeRegistrationIfExists<AppService>();
   final service = MockAppService();
-  when(service.hasLoggedInUser).thenReturn(hasLoggedInUser);
+  // when(service.hasLoggedInUser).thenReturn(hasLoggedInUser);
   when(service.branchId).thenReturn(branchId);
   when(service.businessId).thenReturn(businessId);
   when(service.currentColor).thenReturn('#ee5253');

@@ -1,5 +1,6 @@
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_ui/toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -12,7 +13,7 @@ class PreviewSaleButton extends StatelessWidget {
     Key? key,
     required this.model,
   }) : super(key: key);
-  final BusinessHomeViewModel model;
+  final HomeViewModel model;
 
   @override
   Widget build(BuildContext context) {
@@ -41,16 +42,18 @@ class PreviewSaleButton extends StatelessWidget {
             },
           ),
         ),
-        onPressed: () {
-          if (model.kOrder == null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                backgroundColor: Colors.red,
-                content: Text("No active order to preview"),
-              ),
-            );
+        onPressed: () async {
+          Order? order = await ProxyService.isar
+              .pendingOrder(branchId: ProxyService.box.getBranchId()!);
+          if (order == null) {
+            showToast(context, 'No item on cart!', color: Colors.red);
             return;
           }
+          if (order.subTotal == 0.0) {
+            showToast(context, 'No item on cart!', color: Colors.red);
+            return;
+          }
+          model.keypad.setOrder(order);
           showBarModalBottomSheet(
             overlayStyle: SystemUiOverlayStyle.light,
             expand: false,

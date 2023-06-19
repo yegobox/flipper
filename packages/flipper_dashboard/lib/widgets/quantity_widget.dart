@@ -4,7 +4,7 @@ import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 Widget quantityWidget({
-  required BusinessHomeViewModel model,
+  required HomeViewModel model,
   required BuildContext context,
   required TextEditingController quantityController,
 }) {
@@ -82,7 +82,7 @@ Widget quantityWidget({
                       controller: quantityController,
                       onChanged: (quantity) {
                         if (quantity.isNotEmpty) {
-                          model.customQtyIncrease(int.parse(quantity));
+                          model.customQtyIncrease(double.parse(quantity));
                         }
                       },
                       style: TextStyle(

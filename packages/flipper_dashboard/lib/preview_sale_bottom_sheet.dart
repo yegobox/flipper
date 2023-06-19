@@ -16,7 +16,7 @@ class PreviewSaleBottomSheet extends StatefulWidget {
   const PreviewSaleBottomSheet(
       {Key? key, this.reverse = false, required this.model})
       : super(key: key);
-  final BusinessHomeViewModel model;
+  final HomeViewModel model;
 
   @override
   State<PreviewSaleBottomSheet> createState() => _PreviewSaleBottomSheetState();
@@ -49,8 +49,8 @@ class _PreviewSaleBottomSheetState extends State<PreviewSaleBottomSheet> {
                     );
                   })
             ])),
-        child: ViewModelBuilder<BusinessHomeViewModel>.reactive(
-            viewModelBuilder: () => BusinessHomeViewModel(),
+        child: ViewModelBuilder<HomeViewModel>.reactive(
+            viewModelBuilder: () => HomeViewModel(),
             builder: (a, model, c) {
               return SafeArea(
                 bottom: false,

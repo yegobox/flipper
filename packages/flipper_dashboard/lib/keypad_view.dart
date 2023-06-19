@@ -19,7 +19,7 @@ class AlwaysDisabledFocusNode extends FocusNode {
 class KeyPadView extends StatelessWidget {
   KeyPadView({Key? key, required this.model, this.isBigScreen = false})
       : super(key: key);
-  final BusinessHomeViewModel model;
+  final HomeViewModel model;
   final bool isBigScreen;
 
   @override
@@ -357,7 +357,7 @@ class KeyboardKey extends StatelessWidget {
     required this.value,
   }) : super(key: key);
   final String value;
-  final BusinessHomeViewModel model;
+  final HomeViewModel model;
 
   @override
   Widget build(BuildContext context) {
