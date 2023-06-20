@@ -29,14 +29,19 @@ class LogOut extends StackedView<LogoutModel> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       backgroundColor: Colors.white,
       child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Visibility(
+              visible:
+                  request.data != null, // Hide the Row if request.data is null
+              child: Row(
                 children: [
                   Image.asset(
-                    'assets/${_getDeviceName(request.data)}.png',
+                    request.data != null
+                        ? 'assets/${_getDeviceName(request.data!)}.png'
+                        : 'assets/default_image.png', // Provide a default image path or handle the null case.
                     height: _graphicSize,
                     width: _graphicSize,
                     package: 'flipper_dashboard',
@@ -51,35 +56,37 @@ class LogOut extends StackedView<LogoutModel> {
                   ),
                 ],
               ),
-              verticalSpaceMedium,
-              const Text(
-                'Are you sure you want to logout?',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
+            ),
+            verticalSpaceMedium,
+            const Text(
+              'Are you sure you want to logout?',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
               ),
-              verticalSpaceMedium,
-              Row(
-                children: [
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () {
-                        completer(DialogResponse(confirmed: false));
-                      },
-                      child: const Text(
-                        'Cancel',
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.w500,
-                        ),
+            ),
+            verticalSpaceMedium,
+            Row(
+              children: [
+                Expanded(
+                  child: TextButton(
+                    onPressed: () {
+                      completer(DialogResponse(confirmed: false));
+                    },
+                    child: const Text(
+                      'Cancel',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () async {
-                        Device device = request.data;
+                ),
+                Expanded(
+                  child: TextButton(
+                    onPressed: () async {
+                      if (request.data != null) {
+                        Device device = request.data!;
                         if (ProxyService.box.getUserId() != null &&
                             ProxyService.box.getBusinessId() != null) {
                           ProxyService.event.publish(loginDetails: {
@@ -102,20 +109,24 @@ class LogOut extends StackedView<LogoutModel> {
                           // close the dialog
                           completer(DialogResponse(confirmed: true));
                         }
-                      },
-                      child: const Text(
-                        'Logout',
-                        style: TextStyle(
-                          color: Colors.red,
-                          fontWeight: FontWeight.w500,
-                        ),
+                      } else {
+                        completer(DialogResponse(confirmed: true));
+                      }
+                    },
+                    child: const Text(
+                      'Logout',
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
-                ],
-              ),
-            ],
-          )),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 

@@ -116,22 +116,6 @@ class SettingPage extends StatelessWidget {
                                   open: "close", drawer: drawer));
                             },
                           ),
-                          SettingsTile(
-                            title: "Switch to flipper Connecta",
-                            leading: CircleAvatar(
-                              backgroundColor: Colors.white,
-                              child: Icon(
-                                FluentIcons.comment_24_regular,
-                              ),
-                            ),
-                            onPressed: (BuildContext context) async {
-                              // get active drawer
-                              ProxyService.box
-                                  .write(key: 'defaultApp', value: 2);
-                              // navigate
-                              _routerService.navigateTo(SocialHomeViewRoute());
-                            },
-                          )
                         ],
                       ),
                     ],
