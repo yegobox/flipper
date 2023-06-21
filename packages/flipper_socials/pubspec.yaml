@@ -28,7 +28,7 @@ dependencies:
   timeago: ^3.4.0
   fast_cached_network_image: ^1.1.1
   # custom_floating_action_button: ^0.0.3
-  readmore: ^2.1.0
+  rich_readmore: ^1.0.5
 dev_dependencies:
   flutter_test:
     sdk: flutter

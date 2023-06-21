@@ -38,10 +38,10 @@ class ChatWidget extends StatelessWidget {
             // Show the message text
             SizedBox(
               width: chat.body.length > 20 ? 200 : 100,
-              height: 20,
+              height: chat.body.length > 20 ? 120 : 20,
               child: ReadMoreText(
                 chat.body,
-                trimLines: 2,
+                trimLines: 5,
                 colorClickableText: Colors.pink,
                 trimMode: TrimMode.Line,
                 trimCollapsedText: 'Show more',
