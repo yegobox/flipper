@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 import 'package:html_unescape/html_unescape.dart';
 import 'dart:convert';
 import 'dart:developer';
-import 'package:path/path.dart' as path;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_models/data.loads/jcounter.dart';
 import 'package:flipper_models/isar/random.dart';
@@ -1600,6 +1599,14 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<T?> create<T>({required T data}) async {
+    if (data is Conversation) {
+      Conversation conversation = data;
+      return await isar.writeTxn(() async {
+        int id = await isar.conversations.put(conversation);
+        return isar.conversations.get(id); // Return the created conversation
+      }) as T; // Cast the result to type T
+    }
+
     if (data is PColor) {
       PColor color = data;
       isar.writeTxn(() async {
@@ -2511,7 +2518,6 @@ class IsarAPI<M> implements IsarApiInterface {
         message.conversationId = conversation.conversationId;
         message.userName = conversation.userName;
         message.phoneNumberId = conversation.phoneNumberId;
-        message.businessId = conversation.businessId;
         message.businessPhoneNumber =
             ProxyService.box.getUserPhone()!.replaceAll("+", "");
         isar.writeTxn(() async {
@@ -2782,7 +2788,14 @@ class IsarAPI<M> implements IsarApiInterface {
         conversation.avatar = HtmlUnescape().convert(conversation.avatar);
         log(conversation.avatar, name: "converted URL");
         if (localConversation == null) {
-          await ProxyService.isar.create(data: conversation);
+          conversation.businessId = conversation.businessId == null
+              ? ProxyService.box.getBusinessId()!.toString()
+              : conversation.businessId!;
+          conversation.businessPhoneNumber =
+              conversation.businessPhoneNumber == null
+                  ? ProxyService.box.getUserPhone()!.replaceAll("+", "")
+                  : conversation.businessPhoneNumber;
+          await create(data: conversation);
         }
       }
 
@@ -2865,5 +2878,36 @@ class IsarAPI<M> implements IsarApiInterface {
       int id = await isar.stocks.put(stock);
       return await isar.stocks.get(id);
     });
+  }
+
+  @override
+  Future<Conversation> sendMessage(
+      {required String message,
+      required Conversation latestConversation}) async {
+    final reply = Conversation(
+      avatar: "https://yegobox-flipper.s3.eu-west-2.amazonaws.com/lRsBL.png",
+      body: message,
+      channelType: "whatsapp",
+
+      /// always from number is the user phone number i.e the business phone number
+      /// this number need to be enabled on whatsapp business to use whatsapp api
+      fromNumber: ProxyService.box.getUserPhone()!.replaceAll("+", ""),
+
+      /// the phone number of a user who sent the message to the business, this is the number
+      /// and this does not have to be registered on flipper but check to see if this from is not us
+      toNumber: latestConversation.fromNumber,
+      userName: "Yego",
+      messageId: latestConversation.messageId,
+      conversationId: latestConversation.conversationId,
+      phoneNumberId: latestConversation.phoneNumberId,
+      delivered: false,
+      createdAt: DateTime.now().toString(),
+      // now add 5 seconds to the current time
+      scheduledAt: DateTime.now().add(const Duration(seconds: 5)),
+      businessPhoneNumber: ProxyService.box.getUserPhone()!.replaceAll("+", ""),
+      messageType: "text",
+      businessId: ProxyService.box.getBusinessId()!.toString(),
+    );
+    return await ProxyService.isar.create(data: reply) as Conversation;
   }
 }

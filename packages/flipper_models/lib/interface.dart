@@ -261,4 +261,6 @@ abstract class IsarApiInterface {
   Future<List<Variant>> getLocalVariants();
   Future<List<Stock>> getLocalStocks();
   Future<List<Device>> getLocalDevices();
+  Future<Conversation> sendMessage(
+      {required String message, required Conversation latestConversation});
 }

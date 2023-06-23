@@ -3404,7 +3404,7 @@ extension ConversationQueryProperty
 // **************************************************************************
 
 Conversation _$ConversationFromJson(Map<String, dynamic> json) => Conversation(
-      userName: json['userName'] as String,
+      userName: json['userName'] as String? ?? 'Awesome Richie',
       body: json['body'] as String,
       avatar: json['avatar'] as String,
       channelType: json['channelType'] as String,

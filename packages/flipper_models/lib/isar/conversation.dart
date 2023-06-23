@@ -12,6 +12,7 @@ part 'conversation.g.dart';
 class Conversation extends IJsonSerializable {
   @JsonKey(includeToJson: false, includeFromJson: false)
   Id? id;
+  @JsonKey(defaultValue: 'Awesome Richie')
   String userName;
   String body;
   String avatar;
@@ -57,6 +58,7 @@ class Conversation extends IJsonSerializable {
 
   factory Conversation.fromJson(Map<String, dynamic> json) =>
       _$ConversationFromJson(json);
+
   static List<Conversation> fromJsonList(String str) => List<Conversation>.from(
       json.decode(str).map((x) => Conversation.fromJson(x)));
   @override

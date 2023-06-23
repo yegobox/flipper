@@ -21,36 +21,7 @@ class ChatListViewModel extends StartupViewModel {
     notifyListeners();
   }
 
-  Future<void> sendMessage(
-      {required String message,
-      required Conversation latestConversation}) async {
-    final reply = Conversation(
-      avatar: "https://yegobox-flipper.s3.eu-west-2.amazonaws.com/lRsBL.png",
-      body: message,
-      channelType: "whatsapp",
-
-      /// always from number is the user phone number i.e the business phone number
-      /// this number need to be enabled on whatsapp business to use whatsapp api
-      fromNumber: ProxyService.box.getUserPhone()!.replaceAll("+", ""),
-
-      /// the phone number of a user who sent the message to the business, this is the number
-      /// and this does not have to be registered on flipper but check to see if this from is not us
-      toNumber: latestConversation.fromNumber,
-      userName: "Yego",
-      messageId: latestConversation.messageId,
-      conversationId: latestConversation.conversationId,
-      phoneNumberId: latestConversation.phoneNumberId,
-      delivered: false,
-      createdAt: DateTime.now().toString(),
-      // now add 5 seconds to the current time
-      scheduledAt: DateTime.now().add(const Duration(seconds: 5)),
-      businessPhoneNumber: ProxyService.box.getUserPhone()!.replaceAll("+", ""),
-      messageType: "text",
-      businessId: ProxyService.box.getBusinessId()!.toString(),
-    );
-    ProxyService.isar.create(data: reply);
-  }
-
+  
   void navigateToAppCenter() {
     _dialogService.showCustomDialog(
       variant: DialogType.appCenter,
