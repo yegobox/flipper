@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_models/isar/ConversationAdapter.dart';
 import 'package:flipper_models/isar_models.dart';
@@ -27,6 +29,15 @@ class _ConversationHistoryState extends State<ConversationHistory>
   List<Conversation>? conversations;
   List<types.Message> messageList = [];
   final _routerService = locator<RouterService>();
+
+  Widget _avatarBuilder(String userId) {
+    log(userId, name: "UserId");
+    return const CircleAvatar(
+      backgroundImage: NetworkImage(
+          "https://yegobox-flipper.s3.eu-west-2.amazonaws.com/tgWpp.png"), // Replace with your avatar image source
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<ChatListViewModel>.reactive(
@@ -70,6 +81,7 @@ class _ConversationHistoryState extends State<ConversationHistory>
                 key: const Key('chat_widget'), // Add a unique key
                 messages: messageList,
                 onSendPressed: _click,
+                // avatarBuilder: _avatarBuilder,
                 user: types.User(
                     id: ProxyService.box.getUserPhone()!.replaceAll("+", "")),
               );

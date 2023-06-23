@@ -2896,7 +2896,7 @@ class IsarAPI<M> implements IsarApiInterface {
       /// the phone number of a user who sent the message to the business, this is the number
       /// and this does not have to be registered on flipper but check to see if this from is not us
       toNumber: latestConversation.fromNumber,
-      userName: "Yego",
+      userName: latestConversation.userName,
       messageId: latestConversation.messageId,
       conversationId: latestConversation.conversationId,
       phoneNumberId: latestConversation.phoneNumberId,
