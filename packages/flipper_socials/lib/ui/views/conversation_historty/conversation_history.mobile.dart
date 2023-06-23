@@ -81,7 +81,17 @@ class _ConversationHistoryState extends State<ConversationHistory>
                 key: const Key('chat_widget'), // Add a unique key
                 messages: messageList,
                 onSendPressed: _click,
-                // avatarBuilder: _avatarBuilder,
+                showUserAvatars: true,
+                avatarBuilder: (String userId) {
+                  types.Message m = messageList
+                      .where((element) => element.roomId == userId)
+                      .first;
+                  log(m.toJson().toString(), name: "messageAvatar");
+                  return CircleAvatar(
+                    backgroundImage: NetworkImage(m.author
+                        .imageUrl!), // Replace with your avatar image source
+                  );
+                },
                 user: types.User(
                     id: ProxyService.box.getUserPhone()!.replaceAll("+", "")),
               );

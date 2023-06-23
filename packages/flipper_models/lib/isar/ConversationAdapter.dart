@@ -8,11 +8,13 @@ class ConversationAdapter implements types.Message {
 
   static types.Message fromConversation(Conversation conversation) {
     return types.TextMessage(
-      id: conversation.id.toString(),
-      author: types.User(id: conversation.fromNumber),
-      text: conversation.body,
-      createdAt: DateTime.parse(conversation.createdAt!).millisecondsSinceEpoch,
-    );
+        id: conversation.id.toString(),
+        author: types.User(
+            id: conversation.fromNumber, imageUrl: conversation.avatar),
+        text: conversation.body,
+        createdAt:
+            DateTime.parse(conversation.createdAt!).millisecondsSinceEpoch,
+        roomId: conversation.fromNumber);
   }
 
   @override
