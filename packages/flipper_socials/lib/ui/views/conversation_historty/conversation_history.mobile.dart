@@ -70,7 +70,8 @@ class _ConversationHistoryState extends State<ConversationHistory>
                 key: const Key('chat_widget'), // Add a unique key
                 messages: messageList,
                 onSendPressed: _click,
-                user: types.User(id: ProxyService.box.getUserPhone()!),
+                user: types.User(
+                    id: ProxyService.box.getUserPhone()!.replaceAll("+", "")),
               );
             },
           ),

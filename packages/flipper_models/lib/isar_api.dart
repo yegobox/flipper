@@ -2908,6 +2908,6 @@ class IsarAPI<M> implements IsarApiInterface {
       messageType: "text",
       businessId: ProxyService.box.getBusinessId()!.toString(),
     );
-    return await ProxyService.isar.create(data: reply) as Conversation;
+    return await create(data: reply) as Conversation;
   }
 }
