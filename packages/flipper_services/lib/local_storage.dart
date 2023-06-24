@@ -145,7 +145,7 @@ class SharedPreferenceStorage implements LocalStorage {
 
   @override
   int? paginationId() {
-    return prefs.getString('id') ?? '';
+    return prefs.getInt('id') ?? 0;
   }
 }
 
@@ -289,6 +289,6 @@ class LocalStorageImpl implements LocalStorage {
 
   @override
   int? paginationId() {
-    return box.read('id') ?? '';
+    return box.read('id') ?? 0;
   }
 }
