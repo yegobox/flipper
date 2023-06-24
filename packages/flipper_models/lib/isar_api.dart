@@ -2788,7 +2788,7 @@ class IsarAPI<M> implements IsarApiInterface {
         log(conversation.avatar, name: "converted URL");
         if (localConversation == null) {
           conversation.businessId = conversation.businessId == null
-              ? ProxyService.box.getBusinessId()!.toString()
+              ? ProxyService.box.getBusinessId()!
               : conversation.businessId!;
           conversation.businessPhoneNumber =
               conversation.businessPhoneNumber == null
@@ -2904,7 +2904,7 @@ class IsarAPI<M> implements IsarApiInterface {
       scheduledAt: DateTime.now().add(const Duration(seconds: 5)),
       businessPhoneNumber: ProxyService.box.getUserPhone()!.replaceAll("+", ""),
       messageType: "text",
-      businessId: ProxyService.box.getBusinessId()!.toString(),
+      businessId: ProxyService.box.getBusinessId()!,
     );
     return await create(data: reply) as Conversation;
   }
