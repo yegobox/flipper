@@ -13,7 +13,6 @@ import 'config.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
-import 'decorations.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flipper_routing/app.locator.dart';

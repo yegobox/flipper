@@ -30,7 +30,7 @@ class Conversation extends IJsonSerializable {
 
   /// properties that are here only useful when replying
   String? businessPhoneNumber;
-  String? businessId;
+  int businessId;
 
   DateTime? scheduledAt;
 
@@ -43,13 +43,13 @@ class Conversation extends IJsonSerializable {
       required this.channelType,
       required this.fromNumber,
       required this.toNumber,
+      required this.businessId,
       this.createdAt,
       this.respondedBy,
       this.messageType,
       this.phoneNumberId,
       this.conversationId,
       this.businessPhoneNumber,
-      this.businessId,
       this.scheduledAt,
       this.delivered,
       this.messageId});

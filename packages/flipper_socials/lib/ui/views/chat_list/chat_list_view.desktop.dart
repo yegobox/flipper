@@ -2,19 +2,14 @@ import 'package:flipper_models/isar/ConversationAdapter.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_socials/ui/widgets/list_of_messages.dart';
-import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:stacked/stacked.dart';
 import 'chat_list_viewmodel.dart';
-import 'package:flipper_routing/app.router.dart';
 
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flipper_services/constants.dart';
-import 'package:animated_icon_button/animated_icon_button.dart';
-import 'package:flipper_routing/app.locator.dart';
-import 'package:stacked_services/stacked_services.dart';
 
 class ChatListViewDesktop extends StatefulWidget {
   const ChatListViewDesktop({super.key});
@@ -26,8 +21,7 @@ class ChatListViewDesktop extends StatefulWidget {
 class _ChatListViewDesktopState extends State<ChatListViewDesktop>
     with TickerProviderStateMixin {
   late AnimationController animationController; // use late modifier
-  final TextEditingController _conversationController =
-      TextEditingController(text: '');
+
   Conversation? latestConversation;
   final _scrollController = ScrollController();
   List<Conversation>? conversations;
@@ -47,8 +41,6 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
     _scrollController.dispose();
     super.dispose();
   }
-
-  final _routerService = locator<RouterService>();
 
   @override
   Widget build(BuildContext context) {
