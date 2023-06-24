@@ -139,13 +139,13 @@ class SharedPreferenceStorage implements LocalStorage {
   }
 
   @override
-  String? getPk() {
-    return prefs.getString('pk') ?? '';
+  String? paginationCreatedAt() {
+    return prefs.getString('createdAt') ?? '';
   }
 
   @override
-  String? getSk() {
-    return prefs.getString('sk') ?? '';
+  int? paginationId() {
+    return prefs.getString('id') ?? '';
   }
 }
 
@@ -283,12 +283,12 @@ class LocalStorageImpl implements LocalStorage {
   }
 
   @override
-  String? getPk() {
-    return box.read('pk') ?? '';
+  String? paginationCreatedAt() {
+    return box.read('createdAt') ?? '';
   }
 
   @override
-  String? getSk() {
-    return box.read('sk') ?? '';
+  int? paginationId() {
+    return box.read('id') ?? '';
   }
 }

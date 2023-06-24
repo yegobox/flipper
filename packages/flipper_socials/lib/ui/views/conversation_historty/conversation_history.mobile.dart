@@ -30,14 +30,6 @@ class _ConversationHistoryState extends State<ConversationHistory>
   List<types.Message> messageList = [];
   final _routerService = locator<RouterService>();
 
-  Widget _avatarBuilder(String userId) {
-    log(userId, name: "UserId");
-    return const CircleAvatar(
-      backgroundImage: NetworkImage(
-          "https://yegobox-flipper.s3.eu-west-2.amazonaws.com/tgWpp.png"), // Replace with your avatar image source
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<ChatListViewModel>.reactive(
@@ -88,8 +80,7 @@ class _ConversationHistoryState extends State<ConversationHistory>
                       .first;
                   log(m.toJson().toString(), name: "messageAvatar");
                   return CircleAvatar(
-                    backgroundImage: NetworkImage(m.author
-                        .imageUrl!), // Replace with your avatar image source
+                    backgroundImage: NetworkImage(m.author.imageUrl!),
                   );
                 },
                 user: types.User(

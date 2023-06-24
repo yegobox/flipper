@@ -2755,14 +2755,14 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<void> loadConversations(
       {required int businessId,
-      int? pageSize = 10,
+      int? pageSize = 1000,
       String? pk,
       String? sk}) async {
-    String? lastPk = ProxyService.box.getPk();
-    String? lastSk = ProxyService.box.getSk();
+    String? paginationCreatedAt = ProxyService.box.paginationCreatedAt();
+    int? paginationId = ProxyService.box.paginationId();
 
     final response = await socialsHttpClient.get(Uri.parse(
-        '${commApi}/messages/${businessId}?pageSize=${pageSize}&pk=${lastPk}&sk=${lastSk}'));
+        '${commApi}/messages/${businessId}?pageSize=${pageSize}&createdAt=${paginationCreatedAt}&id=${paginationId}'));
 
     if (response.statusCode == 200) {
       final messagesJson = jsonDecode(response.body)['messages'];
@@ -2776,10 +2776,9 @@ class IsarAPI<M> implements IsarApiInterface {
             .getConversation(messageId: conversation.messageId!);
         // if date is improperly formatted then format it right
         // the bellow date format will be like 5th May converter
-        final DateFormat formatter = DateFormat('EEE MMM dd yyyy');
         DateTime createdAt;
         try {
-          createdAt = formatter.parse(conversation.createdAt!);
+          createdAt = DateTime.parse(conversation.createdAt!);
         } on FormatException {
           /// in case it fail to format set fake date
           createdAt = DateTime.now();
@@ -2799,14 +2798,13 @@ class IsarAPI<M> implements IsarApiInterface {
         }
       }
 
-      if (jsonDecode(response.body)['lastKey'] != null) {
+      if (jsonDecode(response.body)['lastEvaluatedKey'] != null) {
         // Set lastKey to the value returned by the API
-        String pk = jsonDecode(response.body)['lastKey']['PK'] as String;
-        String sk = jsonDecode(response.body)['lastKey']['SK'] as String;
-        ProxyService.box
-            .write(key: 'pk', value: pk.replaceAll("messages#", ""));
-        ProxyService.box
-            .write(key: 'sk', value: sk.replaceAll("messages#", ""));
+        String createdAt = jsonDecode(response.body)['lastEvaluatedKey']
+            ['createdAt'] as String;
+        int id = jsonDecode(response.body)['lastEvaluatedKey']['id'] as int;
+        ProxyService.box.write(key: 'createdAt', value: createdAt);
+        ProxyService.box.write(key: 'id', value: id);
       } else {
         log("there is no last key to use in query and that is fine!");
       }

@@ -20,6 +20,6 @@ abstract class LocalStorage {
   String? getBearerToken();
   int getDefaultApp();
   String? whatsAppToken();
-  String? getPk();
-  String? getSk();
+  String? paginationCreatedAt();
+  int? paginationId();
 }
