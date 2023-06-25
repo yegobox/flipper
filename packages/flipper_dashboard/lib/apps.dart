@@ -4,6 +4,7 @@ import 'package:flipper_dashboard/profile.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:flipper_services/proxy.dart';
 import 'button.dart';
 import 'customappbar.dart';
@@ -37,7 +38,7 @@ class _AppsState extends State<Apps> {
       required Color backgroundColor,
       required String page}) {
     return GestureDetector(
-      onTap: () {
+      onTap: () async {
         HapticFeedback.lightImpact();
         switch (page) {
           case "keypad":
@@ -47,6 +48,15 @@ class _AppsState extends State<Apps> {
             return;
           case "settings":
             _routerService.navigateTo(SettingPageRoute());
+            return;
+          case "Support":
+            final Uri whatsappUri = Uri.parse('https://wa.me/250788360058');
+            if (await canLaunchUrl(whatsappUri)) {
+              await launchUrl(whatsappUri,
+                  mode: LaunchMode.externalApplication);
+            } else {
+              throw 'Could not launch $whatsappUri';
+            }
             return;
           case "Connecta":
             ProxyService.box.write(key: 'defaultApp', value: 2);
@@ -157,6 +167,10 @@ class _AppsState extends State<Apps> {
                       iconData: FluentIcons.settings_16_regular,
                       backgroundColor: Colors.blueGrey,
                       page: "settings"),
+                  _buildCustomPaintWithIcon(
+                      iconData: FluentIcons.call_32_filled,
+                      backgroundColor: Colors.blue,
+                      page: "Support"),
                 ],
               ),
             ],

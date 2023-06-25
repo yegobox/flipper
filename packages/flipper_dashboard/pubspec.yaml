@@ -40,7 +40,7 @@ dependencies:
   overlay_support: ^2.1.0
   flutter_settings_ui: ^2.0.1
   flutter_inappwebview: ^5.4.3+7
-  url_launcher: ^6.0.18
+  url_launcher: ^6.1.11
   google_fonts: ^4.0.3
   number_display: ^3.0.0
   firebase_auth_desktop: ^1.0.2-flipper

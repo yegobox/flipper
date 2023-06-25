@@ -2523,9 +2523,10 @@ class IsarAPI<M> implements IsarApiInterface {
         isar.writeTxn(() async {
           await isar.conversations.put(message);
         });
-      } else if (response.statusCode == 402) {
+      } else {
         // this means there is no credit
-        throw Exception('There is no available credit,can not send message');
+        throw Exception(
+            'Error sending scheduled message${response.body}${response.statusCode}');
       }
     }
   }
