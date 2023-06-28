@@ -62,6 +62,10 @@ class _AppsState extends State<Apps> {
             ProxyService.box.write(key: 'defaultApp', value: 2);
             _routerService.navigateTo(SocialHomeViewRoute());
             return;
+          case "Orders":
+            // ProxyService.box.write(key: 'defaultApp', value: 2);
+            // _routerService.navigateTo(SocialHomeViewRoute());
+            return;
           case "Transactions":
             _routerService.navigateTo(TransactionsRoute());
             return;
@@ -168,9 +172,13 @@ class _AppsState extends State<Apps> {
                       backgroundColor: Colors.blueGrey,
                       page: "settings"),
                   _buildCustomPaintWithIcon(
-                      iconData: FluentIcons.call_32_filled,
+                      iconData: Icons.call,
                       backgroundColor: Colors.blue,
                       page: "Support"),
+                  _buildCustomPaintWithIcon(
+                      iconData: Icons.shopping_bag,
+                      backgroundColor: Colors.blue,
+                      page: "Orders"),
                 ],
               ),
             ],

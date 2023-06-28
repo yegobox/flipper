@@ -29,6 +29,7 @@ class _ConversationHistoryState extends State<ConversationHistory>
   List<Conversation>? conversations;
   List<types.Message> messageList = [];
   final _routerService = locator<RouterService>();
+  Set<String> messageIdSet = {};
 
   @override
   Widget build(BuildContext context) {
@@ -55,8 +56,9 @@ class _ConversationHistoryState extends State<ConversationHistory>
                 types.Message message =
                     ConversationAdapter.fromConversation(conversation);
 
-                if (!messageList.contains(message)) {
+                if (!messageIdSet.contains(message.id)) {
                   messageList.insert(0, message);
+                  messageIdSet.add(message.id); // Add message ID to the set
                 }
               }
 
@@ -98,6 +100,7 @@ class _ConversationHistoryState extends State<ConversationHistory>
       message: message.text,
       latestConversation: latestConversation!,
     );
+    messageIdSet.add(conversation.id.toString()); // Add message ID to the set
     messageList.insert(0, ConversationAdapter.fromConversation(conversation));
   }
 }
