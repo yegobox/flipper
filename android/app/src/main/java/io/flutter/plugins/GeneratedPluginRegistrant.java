@@ -166,6 +166,11 @@ public final class GeneratedPluginRegistrant {
       Log.e(TAG, "Error registering plugin location_android, com.lyokone.location.LocationPlugin", e);
     }
     try {
+      flutterEngine.getPlugins().add(new com.sayegh.move_to_background.MoveToBackgroundPlugin());
+    } catch(Exception e) {
+      Log.e(TAG, "Error registering plugin move_to_background, com.sayegh.move_to_background.MoveToBackgroundPlugin", e);
+    }
+    try {
       flutterEngine.getPlugins().add(new com.newrelic.newrelic_mobile.NewrelicMobilePlugin());
     } catch(Exception e) {
       Log.e(TAG, "Error registering plugin newrelic_mobile, com.newrelic.newrelic_mobile.NewrelicMobilePlugin", e);
@@ -234,6 +239,11 @@ public final class GeneratedPluginRegistrant {
       flutterEngine.getPlugins().add(new io.flutter.plugins.urllauncher.UrlLauncherPlugin());
     } catch(Exception e) {
       Log.e(TAG, "Error registering plugin url_launcher_android, io.flutter.plugins.urllauncher.UrlLauncherPlugin", e);
+    }
+    try {
+      flutterEngine.getPlugins().add(new be.tramckrijte.workmanager.WorkmanagerPlugin());
+    } catch(Exception e) {
+      Log.e(TAG, "Error registering plugin workmanager, be.tramckrijte.workmanager.WorkmanagerPlugin", e);
     }
   }
 }

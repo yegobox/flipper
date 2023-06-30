@@ -9,14 +9,20 @@ list(APPEND FLUTTER_PLUGIN_LIST
   file_selector_windows
   firebase_core
   flutter_localization
+  flutter_window_close
   geolocator_windows
   isar_flutter_libs
+  local_notifier
   permission_handler_windows
   printing
+  screen_retriever
   sentry_flutter
   share_plus
   system_theme
+  tray_manager
   url_launcher_windows
+  window_manager
+  window_size
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
