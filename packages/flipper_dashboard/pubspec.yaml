@@ -81,6 +81,10 @@ dependencies:
       ref: master
   flipper_socials: 1.0.0+1
   flipper_localize: ^1.0.0
+  tray_manager: ^0.2.0
+  move_to_background:
+    git:
+      url: https://github.com/ViliusP/move_to_background.git
 flutter:
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

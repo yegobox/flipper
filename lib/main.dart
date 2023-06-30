@@ -9,6 +9,7 @@ import 'package:flipper_routing/app.locator.dart' as loc;
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_rw/flipper_localize/lib/flipper_localize.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/notifications/cubit/notifications_cubit.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:newrelic_mobile/config.dart';
@@ -53,24 +54,19 @@ void main() async {
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
+
+    ///Will switch to localNotification when it support windows
     if (isAndroid || isIos) {
-      final String timeZoneName =
-          await FlutterNativeTimezone.getLocalTimezone();
-      tz.initializeTimeZones();
-      tz.setLocalLocation(tz.getLocation(timeZoneName));
-      const AndroidInitializationSettings initializationSettingsAndroid =
-          AndroidInitializationSettings('@mipmap/launcher_icon');
-      const InitializationSettings initializationSettings =
-          InitializationSettings(android: initializationSettingsAndroid);
-      await FlutterLocalNotificationsPlugin().initialize(
-        initializationSettings,
-        onDidReceiveBackgroundNotificationResponse:
-            onDidReceiveBackgroundNotificationResponse,
-        onDidReceiveNotificationResponse:
-            onDidReceiveBackgroundNotificationResponse,
+      await NotificationsCubit.initialize(
+        flutterLocalNotificationsPlugin: FlutterLocalNotificationsPlugin(),
       );
     }
-
+    if (isWindows || isLinux) {
+      // TODO: implement when windows notifification is supported in localNotification plugin
+      /// ref: https://github.com/Merrit/adventure_list
+      // final systemTray = SystemTrayManager(appWindow);
+      // await systemTray.initialize();
+    }
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );

@@ -145,13 +145,6 @@ class App {}
 /// https://learn.microsoft.com/en-us/gaming/gdk/_content/gc/commerce/service-to-service/xstore-requesting-a-userstoreid#step-2
 /// https://learn.microsoft.com/en-us/gaming/gdk/_content/gc/commerce/service-to-service/microsoft-store-apis/xstore-v8-recurrence-query
 
-//....
-
-// MaterialApp(
-//   navigatorObservers: [
-//     NewRelicNavigationObserver(),
-//   ],
-//   // other parameters
-// )
-
+/// intresting package: https://pub.dev/packages/xdg_desktop_portal
+/// this guy used google calendar in innovative way: https://github.com/Merrit/adventure_list/issues/7
 

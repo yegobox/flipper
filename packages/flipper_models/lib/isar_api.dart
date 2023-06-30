@@ -2773,8 +2773,8 @@ class IsarAPI<M> implements IsarApiInterface {
           .toList();
 
       for (Conversation conversation in messages) {
-        Conversation? localConversation = await ProxyService.isar
-            .getConversation(messageId: conversation.messageId!);
+        Conversation? localConversation =
+            await getConversation(messageId: conversation.messageId!);
         // if date is improperly formatted then format it right
         // the bellow date format will be like 5th May converter
         DateTime createdAt;
@@ -2786,11 +2786,7 @@ class IsarAPI<M> implements IsarApiInterface {
         }
         conversation.createdAt = createdAt.toIso8601String();
         conversation.avatar = HtmlUnescape().convert(conversation.avatar);
-        log(conversation.avatar, name: "converted URL");
         if (localConversation == null) {
-          conversation.businessId = conversation.businessId == null
-              ? ProxyService.box.getBusinessId()!
-              : conversation.businessId!;
           conversation.businessPhoneNumber =
               conversation.businessPhoneNumber == null
                   ? ProxyService.box.getUserPhone()!.replaceAll("+", "")

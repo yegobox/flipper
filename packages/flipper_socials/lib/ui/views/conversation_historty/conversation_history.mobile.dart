@@ -64,6 +64,7 @@ class _ConversationHistoryState extends State<ConversationHistory>
 
               return Chat(
                 theme: const DefaultChatTheme(
+                  inputContainerDecoration: BoxDecoration(),
                   inputBorderRadius: BorderRadius.vertical(
                     top: Radius.circular(10),
                   ),

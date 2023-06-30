@@ -12,7 +12,7 @@ description: A super app for africans
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundatversion:
-version: 1.170.248950792349+1688126048
+version: 1.170.252327044343+1688126073
 #....
 # The packages below are just refrences for what packages being used
 # so not referenced in the app! check each package for more real package used
@@ -51,7 +51,17 @@ dependencies:
   flutter_native_timezone: ^2.0.0
   flutter_localizations:
     sdk: flutter
-  flutter_local_notifications: ^14.1.0
+  flutter_local_notifications:
+    git:
+      url: https://github.com/Merrit/flutter_local_notifications.git
+      ref: 310ea54cf3fafeea087a60608d6f9f4c3b6080b7
+      path: flutter_local_notifications
+  flutter_local_notifications_linux:
+    git:
+      url: https://github.com/Merrit/flutter_local_notifications.git
+      ref: 03b9104dfa284eff2d43f04250ef8e3aa8c7161e
+      path: flutter_local_notifications_linux
+  # ----------------- End flutter_local_notifications override --------------- #
   flipper_socials: 1.0.0+1
   flipper_dashboard: ^0.0.1-dev.5
   flipper_models: ^0.0.1-dev.7
@@ -74,6 +84,7 @@ dependencies:
   get_storage: ^2.1.1
   get_it: ^7.6.0
   newrelic_mobile: ^1.0.1
+  workmanager: ^0.5.1
 
 dev_dependencies:
   flutter_test:
