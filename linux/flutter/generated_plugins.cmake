@@ -6,11 +6,17 @@ list(APPEND FLUTTER_PLUGIN_LIST
   desktop_webview_auth
   file_selector_linux
   flutter_localization
+  flutter_window_close
   isar_flutter_libs
+  local_notifier
   printing
+  screen_retriever
   sentry_flutter
   system_theme
+  tray_manager
   url_launcher_linux
+  window_manager
+  window_size
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST

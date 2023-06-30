@@ -10,6 +10,8 @@ import 'package:flipper_services/locator.dart' as loc;
 import 'package:flutter/foundation.dart';
 import 'package:stacked_services/stacked_services.dart';
 
+import 'notifications/cubit/notifications_cubit.dart';
+
 abstract class Messaging {
   Future<void> initializeFirebaseMessagingAndSubscribeToBusinessNotifications();
   Future<void> listenTapOnNotificationForeground();
@@ -42,7 +44,7 @@ class FirebaseMessagingService implements Messaging {
   /// hence I don't even know how to accept a notification when tapped
   /// this is experiment to check if I can register for backgroun message listening
   Future<void> backgroundHandler(RemoteMessage message) async {
-    await handleMessage(message: message, isNotificationClicked: false);
+    await _handleMessage(message: message, isNotificationClicked: false);
   }
 
   final appService = loc.locator<AppService>();
@@ -98,18 +100,15 @@ class FirebaseMessagingService implements Messaging {
 
   @override
   Future<void> listenTapOnNotificationForeground() async {
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
-      await handleTapOnNotification(message);
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+      await _handleMessage(message: message, showLocalNotification: true);
     });
   }
 
-  Future<void> handleTapOnNotification(RemoteMessage message) async {
-    await handleMessage(message: message);
-  }
-
-  Future<void> handleMessage(
+  Future<void> _handleMessage(
       {required RemoteMessage message,
-      bool isNotificationClicked = false}) async {
+      bool isNotificationClicked = false,
+      bool showLocalNotification = false}) async {
     final type = message.data['type'];
     if (type == "whatsapp") {
       final conversationKey = message.data['conversation'];
@@ -121,6 +120,9 @@ class FirebaseMessagingService implements Messaging {
       Conversation? conversationExistOnLocal = await ProxyService.isar
           .getConversation(messageId: conversation.messageId!);
       if (conversationExistOnLocal == null) {
+        if (showLocalNotification) {
+          await NotificationsCubit.instance.scheduleNotification(conversation);
+        }
         await ProxyService.isar.create(data: conversation);
       }
       if (isNotificationClicked) {
