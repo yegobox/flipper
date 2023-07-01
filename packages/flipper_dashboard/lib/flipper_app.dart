@@ -4,7 +4,6 @@ import 'dart:developer';
 import 'package:easy_sidemenu/easy_sidemenu.dart';
 import 'package:flipper_dashboard/product_view.dart';
 import 'package:flipper_models/isar_models.dart';
-import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -12,9 +11,7 @@ import 'package:flipper_ui/toast.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_routing/app.locator.dart';
 import 'package:move_to_background/move_to_background.dart';
-import 'package:stacked_services/stacked_services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
 
@@ -30,11 +27,10 @@ class FlipperApp extends StatefulWidget {
   _FlipperAppState createState() => _FlipperAppState();
 }
 
-class _FlipperAppState extends State<FlipperApp> {
+class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
   PageController page = PageController();
   final TextEditingController controller = TextEditingController();
   SideMenuController sideMenu = SideMenuController();
-  final _routerService = locator<RouterService>();
   int tabselected = 0;
   Future<void> _disableScreenshots() async {
     if (!kDebugMode && !isDesktopOrWeb) {
