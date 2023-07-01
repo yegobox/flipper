@@ -52,12 +52,16 @@ class _ChatListViewMobileState extends State<ChatListViewMobile>
               ProxyService.remote.listenToChanges();
             }
           });
-          InitApp.init();
+          ProxyService.isar.sendScheduleMessages();
+          ProxyService.isar
+              .loadConversations(businessId: ProxyService.box.getBusinessId()!);
         },
         builder: (build, viewModel, child) {
           return RefreshIndicator(
             onRefresh: () async {
-              InitApp.init();
+              ProxyService.isar.sendScheduleMessages();
+              ProxyService.isar.loadConversations(
+                  businessId: ProxyService.box.getBusinessId()!);
             },
             child: AnnotatedRegion<SystemUiOverlayStyle>(
               value: const SystemUiOverlayStyle(

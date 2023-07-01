@@ -133,9 +133,11 @@ void main() async {
         child: MultiRepositoryProvider(
           providers: const [],
           child: MultiBlocProvider(
-            providers: [
-              BlocProvider.value(value: notificationsCubit!),
-            ],
+            providers: notificationsCubit == null
+                ? []
+                : [
+                    BlocProvider.value(value: notificationsCubit),
+                  ],
             child: MaterialApp.router(
               debugShowCheckedModeBanner: true,
               title: 'flipper',

@@ -45,9 +45,5 @@ class InitApp {
         .initializeFirebaseMessagingAndSubscribeToBusinessNotifications();
 
     ProxyService.forceDateEntry.dataBootstrapper();
-
-    ProxyService.isar.sendScheduleMessages();
-    ProxyService.isar
-        .loadConversations(businessId: ProxyService.box.getBusinessId()!);
   }
 }

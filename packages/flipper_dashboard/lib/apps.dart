@@ -175,10 +175,10 @@ class _AppsState extends State<Apps> {
                       iconData: Icons.call,
                       backgroundColor: Colors.blue,
                       page: "Support"),
-                  _buildCustomPaintWithIcon(
-                      iconData: Icons.shopping_bag,
-                      backgroundColor: Colors.blue,
-                      page: "Orders"),
+                  // _buildCustomPaintWithIcon(
+                  //     iconData: Icons.shopping_bag,
+                  //     backgroundColor: Colors.blue,
+                  //     page: "Orders"),
                 ],
               ),
             ],
