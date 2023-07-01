@@ -13,6 +13,7 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_routing/app.locator.dart';
+import 'package:move_to_background/move_to_background.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
@@ -358,17 +359,17 @@ class _FlipperAppState extends State<FlipperApp> {
     );
 
     if (shouldPop == true) {
-      // Handle leaving  the app
-      // ...
-      Drawers? drawer = await ProxyService.isar
-          .getDrawer(cashierId: ProxyService.box.getBusinessId()!);
-      _routerService
-          .replaceWith(DrawerScreenRoute(open: "close", drawer: drawer));
-      //we return again false to be able to go to close a day page
+      /// @Decision: maybe a user does not want to close the day yet instead he want
+      /// to just send the app in background, hence why I have commented out
+      /// the code to trigger the closing drawer, for that
+      /// a user will have to be explicit
+      await MoveToBackground.moveTaskToBack();
+      // Drawers? drawer = await ProxyService.isar
+      //     .getDrawer(cashierId: ProxyService.box.getBusinessId()!);
+      // _routerService
+      //     .replaceWith(DrawerScreenRoute(open: "close", drawer: drawer));
       return false;
     } else {
-      // Handle staying on the current page
-      // ...
       return false;
     }
   }
