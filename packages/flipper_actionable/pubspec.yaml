@@ -15,7 +15,7 @@ dependencies:
   get_storage: ^2.1.1
   get_it: ^7.6.0
   stacked: ^3.3.0
-  flipper_services: ^0.0.1-dev.6
+  flipper_services: ^1.0.0
 
 dev_dependencies:
   flutter_test:

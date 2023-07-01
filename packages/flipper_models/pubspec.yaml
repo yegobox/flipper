@@ -22,7 +22,7 @@ dependencies:
   scrollable_positioned_list: ^0.3.2-dev
   uuid: ^3.0.7
   built_collection: ^5.1.1
-  flipper_services: ^0.0.1-dev.6
+  flipper_services: ^1.0.0
   flipper_routing: ^0.0.1-dev.3
   connectivity_plus: ^4.0.1
   isar: ^3.1.0+1

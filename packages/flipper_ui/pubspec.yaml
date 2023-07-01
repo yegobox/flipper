@@ -14,7 +14,7 @@ dependencies:
   overlay_support: ^2.1.0
   # adding this because I need constants from it,
   # maybe it is time to move all constants to its own package
-  flipper_services: ^0.0.1-dev.6
+  flipper_services: ^1.0.0
   flutter_window_close: ^0.2.2
   window_size:
     git:

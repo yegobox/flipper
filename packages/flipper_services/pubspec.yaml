@@ -1,6 +1,6 @@
 name: flipper_services
 description: flipper models scaffold.
-version: 0.0.1-dev.6
+version: 1.0.0
 
 # publish_to: "none"
 repository: https://github.com/yegobox/packages
