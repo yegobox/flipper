@@ -24,6 +24,7 @@ part 'notifications_state.dart';
 part 'notifications_cubit.freezed.dart';
 
 /// Cubit for managing notifications.
+// class NotificationsCubit extends Cubit<NotificationsState> {
 class NotificationsCubit extends Cubit<NotificationsState> {
   /// Plugin instance.
   final FlutterLocalNotificationsPlugin _notificationsPlugin;
@@ -34,7 +35,12 @@ class NotificationsCubit extends Cubit<NotificationsState> {
     instance = this;
     _checkAppStartup();
   }
-
+  //  NotificationsCubit._(
+  //   this._notificationsPlugin,
+  // ) : super(NotificationsState.initial()) {
+  //   instance = this;
+  //   _checkAppStartup();
+  // }
   /// Singleton instance.
   static late NotificationsCubit instance;
 

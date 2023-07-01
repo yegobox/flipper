@@ -28,6 +28,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 Future<void> onDidReceiveBackgroundNotificationResponse(
   NotificationResponse notificationResponse,
@@ -54,10 +55,11 @@ void main() async {
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
+    NotificationsCubit? notificationsCubit;
 
     ///Will switch to localNotification when it support windows
     if (isAndroid || isIos) {
-      await NotificationsCubit.initialize(
+      notificationsCubit = await NotificationsCubit.initialize(
         flutterLocalNotificationsPlugin: FlutterLocalNotificationsPlugin(),
       );
     }
@@ -128,43 +130,50 @@ void main() async {
     setupBottomSheetUi();
     runApp(
       OverlaySupport.global(
-        child: MaterialApp.router(
-          debugShowCheckedModeBanner: true,
-          title: 'flipper',
-          // Define the light theme for the app, based on defined colors and
-          // properties above.
-          //TODOimplement my own as this is killing design
-          // theme: GThemeGenerator.generate(),
-          // darkTheme: GThemeGenerator.generateDark(),
-          theme: ThemeData(
-            useMaterial3: true,
-            textTheme: GoogleFonts.poppinsTextTheme(),
+        child: MultiRepositoryProvider(
+          providers: const [],
+          child: MultiBlocProvider(
+            providers: [
+              BlocProvider.value(value: notificationsCubit!),
+            ],
+            child: MaterialApp.router(
+              debugShowCheckedModeBanner: true,
+              title: 'flipper',
+              // Define the light theme for the app, based on defined colors and
+              // properties above.
+              //TODOimplement my own as this is killing design
+              // theme: GThemeGenerator.generate(),
+              // darkTheme: GThemeGenerator.generateDark(),
+              theme: ThemeData(
+                useMaterial3: true,
+                textTheme: GoogleFonts.poppinsTextTheme(),
+              ),
+              localizationsDelegates: [
+                FirebaseUILocalizations.withDefaultOverrides(
+                  const LabelOverrides(),
+                ),
+                const FlipperLocalizationsDelegate(),
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                CountryLocalizations.delegate
+              ],
+              supportedLocales: const [
+                Locale('en'), // English
+                Locale('es'), // Spanish
+              ],
+              locale: const Locale('en'),
+              // locale: model
+              //     .languageService.locale,
+              // themeMode: model.settingService.themeMode.value,
+              themeMode: ThemeMode.system,
+              routerDelegate: stackedRouter.delegate(),
+              routeInformationParser: stackedRouter.defaultRouteParser(),
+            ).animate().fadeIn(
+                  delay: const Duration(milliseconds: 50),
+                  duration: const Duration(milliseconds: 400),
+                ),
           ),
-          localizationsDelegates: [
-            FirebaseUILocalizations.withDefaultOverrides(
-              const LabelOverrides(),
-            ),
-            const FlipperLocalizationsDelegate(),
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            CountryLocalizations.delegate
-          ],
-          supportedLocales: const [
-            Locale('en'), // English
-            Locale('es'), // Spanish
-          ],
-
-          locale: const Locale('en'),
-          // locale: model
-          //     .languageService.locale,
-          // themeMode: model.settingService.themeMode.value,
-          themeMode: ThemeMode.system,
-          routerDelegate: stackedRouter.delegate(),
-          routeInformationParser: stackedRouter.defaultRouteParser(),
-        ).animate().fadeIn(
-              delay: const Duration(milliseconds: 50),
-              duration: const Duration(milliseconds: 400),
-            ),
+        ),
       ),
     );
     // close splash screen the app is fully initialized
