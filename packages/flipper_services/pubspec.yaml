@@ -59,17 +59,7 @@ dependencies:
   google_fonts: ^4.0.3
   shared_preferences: ^2.1.1
   newrelic_mobile: ^1.0.1
-  flutter_local_notifications:
-    git:
-      url: https://github.com/Merrit/flutter_local_notifications.git
-      ref: 310ea54cf3fafeea087a60608d6f9f4c3b6080b7
-      path: flutter_local_notifications
-  flutter_local_notifications_linux:
-    git:
-      url: https://github.com/Merrit/flutter_local_notifications.git
-      ref: 03b9104dfa284eff2d43f04250ef8e3aa8c7161e
-      path: flutter_local_notifications_linux
-  # ----------------- End flutter_local_notifications override --------------- #
+  flutter_local_notifications: ^14.1.1
   local_notifier: ^0.1.5
   window_manager: ^0.3.0
   launcher_entry: ^0.1.1
