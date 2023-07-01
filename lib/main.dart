@@ -55,14 +55,7 @@ void main() async {
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
-    NotificationsCubit? notificationsCubit;
 
-    ///Will switch to localNotification when it support windows
-    if (isAndroid || isIos) {
-      notificationsCubit = await NotificationsCubit.initialize(
-        flutterLocalNotificationsPlugin: FlutterLocalNotificationsPlugin(),
-      );
-    }
     if (isWindows || isLinux) {
       // TODO: implement when windows notifification is supported in localNotification plugin
       /// ref: https://github.com/Merrit/adventure_list
@@ -128,56 +121,103 @@ void main() async {
     );
     setupDialogUi();
     setupBottomSheetUi();
-    runApp(
-      OverlaySupport.global(
-        child: MultiRepositoryProvider(
-          providers: const [],
-          child: MultiBlocProvider(
-            providers: notificationsCubit == null
-                ? []
-                : [
-                    BlocProvider.value(value: notificationsCubit),
-                  ],
-            child: MaterialApp.router(
-              debugShowCheckedModeBanner: true,
-              title: 'flipper',
-              // Define the light theme for the app, based on defined colors and
-              // properties above.
-              //TODOimplement my own as this is killing design
-              // theme: GThemeGenerator.generate(),
-              // darkTheme: GThemeGenerator.generateDark(),
-              theme: ThemeData(
-                useMaterial3: true,
-                textTheme: GoogleFonts.poppinsTextTheme(),
-              ),
-              localizationsDelegates: [
-                FirebaseUILocalizations.withDefaultOverrides(
-                  const LabelOverrides(),
-                ),
-                const FlipperLocalizationsDelegate(),
-                GlobalMaterialLocalizations.delegate,
-                GlobalWidgetsLocalizations.delegate,
-                CountryLocalizations.delegate
+
+    ///Will switch to localNotification when it support windows
+    if (isAndroid || isIos) {
+      final notificationsCubit = await NotificationsCubit.initialize(
+        flutterLocalNotificationsPlugin: FlutterLocalNotificationsPlugin(),
+      );
+      runApp(
+        OverlaySupport.global(
+          child: MultiRepositoryProvider(
+            providers: const [],
+            child: MultiBlocProvider(
+              providers: [
+                BlocProvider.value(value: notificationsCubit),
               ],
-              supportedLocales: const [
-                Locale('en'), // English
-                Locale('es'), // Spanish
-              ],
-              locale: const Locale('en'),
-              // locale: model
-              //     .languageService.locale,
-              // themeMode: model.settingService.themeMode.value,
-              themeMode: ThemeMode.system,
-              routerDelegate: stackedRouter.delegate(),
-              routeInformationParser: stackedRouter.defaultRouteParser(),
-            ).animate().fadeIn(
-                  delay: const Duration(milliseconds: 50),
-                  duration: const Duration(milliseconds: 400),
+              child: MaterialApp.router(
+                debugShowCheckedModeBanner: true,
+                title: 'flipper',
+                // Define the light theme for the app, based on defined colors and
+                // properties above.
+                //TODOimplement my own as this is killing design
+                // theme: GThemeGenerator.generate(),
+                // darkTheme: GThemeGenerator.generateDark(),
+                theme: ThemeData(
+                  useMaterial3: true,
+                  textTheme: GoogleFonts.poppinsTextTheme(),
                 ),
+                localizationsDelegates: [
+                  FirebaseUILocalizations.withDefaultOverrides(
+                    const LabelOverrides(),
+                  ),
+                  const FlipperLocalizationsDelegate(),
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
+                  CountryLocalizations.delegate
+                ],
+                supportedLocales: const [
+                  Locale('en'), // English
+                  Locale('es'), // Spanish
+                ],
+                locale: const Locale('en'),
+                // locale: model
+                //     .languageService.locale,
+                // themeMode: model.settingService.themeMode.value,
+                themeMode: ThemeMode.system,
+                routerDelegate: stackedRouter.delegate(),
+                routeInformationParser: stackedRouter.defaultRouteParser(),
+              ).animate().fadeIn(
+                    delay: const Duration(milliseconds: 50),
+                    duration: const Duration(milliseconds: 400),
+                  ),
+            ),
           ),
         ),
-      ),
-    );
+      );
+    } else {
+      runApp(
+        OverlaySupport.global(
+          child: MaterialApp.router(
+            debugShowCheckedModeBanner: true,
+            title: 'flipper',
+            // Define the light theme for the app, based on defined colors and
+            // properties above.
+            //TODOimplement my own as this is killing design
+            // theme: GThemeGenerator.generate(),
+            // darkTheme: GThemeGenerator.generateDark(),
+            theme: ThemeData(
+              useMaterial3: true,
+              textTheme: GoogleFonts.poppinsTextTheme(),
+            ),
+            localizationsDelegates: [
+              FirebaseUILocalizations.withDefaultOverrides(
+                const LabelOverrides(),
+              ),
+              const FlipperLocalizationsDelegate(),
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              CountryLocalizations.delegate
+            ],
+            supportedLocales: const [
+              Locale('en'), // English
+              Locale('es'), // Spanish
+            ],
+            locale: const Locale('en'),
+            // locale: model
+            //     .languageService.locale,
+            // themeMode: model.settingService.themeMode.value,
+            themeMode: ThemeMode.system,
+            routerDelegate: stackedRouter.delegate(),
+            routeInformationParser: stackedRouter.defaultRouteParser(),
+          ).animate().fadeIn(
+                delay: const Duration(milliseconds: 50),
+                duration: const Duration(milliseconds: 400),
+              ),
+        ),
+      );
+    }
+
     // close splash screen the app is fully initialized
     FlutterNativeSplash.remove();
   }, (error, stack) async {
