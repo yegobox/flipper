@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/init_app.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_socials/ui/widgets/list_of_messages.dart';
@@ -51,10 +52,7 @@ class _ChatListViewMobileState extends State<ChatListViewMobile>
               ProxyService.remote.listenToChanges();
             }
           });
-
-          ProxyService.isar.sendScheduleMessages();
-          ProxyService.isar
-              .loadConversations(businessId: ProxyService.box.getBusinessId()!);
+          InitApp.init();
         },
         builder: (build, viewModel, child) {
           return AnnotatedRegion<SystemUiOverlayStyle>(
