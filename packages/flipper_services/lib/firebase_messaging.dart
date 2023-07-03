@@ -70,7 +70,6 @@ class FirebaseMessagingService implements Messaging {
           throw Exception("Failed to retrieve social settings.");
         }
         setting.deviceToken = _token;
-        setting.token = setting.bToken;
         ProxyService.isar.patchSocialSetting(setting: setting);
       } else {
         await appService.logSocial();

@@ -12,7 +12,7 @@ description: A super app for africans
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundatversion:
-version: 1.170.279337956163+1688223216
+version: 1.170.281026179380+1688383103
 #....
 # The packages below are just refrences for what packages being used
 # so not referenced in the app! check each package for more real package used
@@ -25,7 +25,7 @@ dependencies:
     sdk: flutter
   universal_platform: ^1.0.0+1
   animations: ^2.0.0
-  sentry_flutter: ^7.5.2
+  sentry_flutter: ^7.8.0
   # fluent_ui:
   system_theme: ^2.0.0
   # flutter_acrylic: ^0.1.0

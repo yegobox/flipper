@@ -55,6 +55,8 @@ class _ChatListViewMobileState extends State<ChatListViewMobile>
           ProxyService.isar.sendScheduleMessages();
           ProxyService.isar
               .loadConversations(businessId: ProxyService.box.getBusinessId()!);
+          ProxyService.messaging
+              .initializeFirebaseMessagingAndSubscribeToBusinessNotifications();
         },
         builder: (build, viewModel, child) {
           return RefreshIndicator(

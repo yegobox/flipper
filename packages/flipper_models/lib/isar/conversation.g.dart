@@ -3305,13 +3305,13 @@ Conversation _$ConversationFromJson(Map<String, dynamic> json) => Conversation(
       channelType: json['channelType'] as String,
       fromNumber: json['fromNumber'] as String,
       toNumber: json['toNumber'] as String,
+      businessId: json['businessId'] as int,
       createdAt: json['createdAt'] as String?,
       respondedBy: json['respondedBy'] as String?,
       messageType: json['messageType'] as String?,
       phoneNumberId: json['phoneNumberId'] as String?,
       conversationId: json['conversationId'] as String?,
       businessPhoneNumber: json['businessPhoneNumber'] as String?,
-      businessId: json['businessId'] as int,
       scheduledAt: json['scheduledAt'] == null
           ? null
           : DateTime.parse(json['scheduledAt'] as String),

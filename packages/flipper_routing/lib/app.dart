@@ -147,4 +147,4 @@ class App {}
 
 /// intresting package: https://pub.dev/packages/xdg_desktop_portal
 /// this guy used google calendar in innovative way: https://github.com/Merrit/adventure_list/issues/7
-
+// https://codepush.dev/

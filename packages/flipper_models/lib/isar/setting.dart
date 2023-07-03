@@ -23,7 +23,6 @@ class Setting extends IJsonSerializable {
     this.deviceToken,
     this.businessPhoneNumber,
     this.autoRespond,
-    this.bToken,
     this.businessId,
     this.createdAt,
     this.token,
@@ -46,10 +45,9 @@ class Setting extends IJsonSerializable {
   String? deviceToken;
   String? businessPhoneNumber;
   bool? autoRespond;
-  String? bToken;
   String? token;
   @Index()
-  @JsonKey(fromJson: _toInt)
+  // @JsonKey(fromJson: _toInt)
   int? businessId;
   String? createdAt;
   factory Setting.fromRecord(RecordModel record) =>
@@ -59,8 +57,4 @@ class Setting extends IJsonSerializable {
       _$SettingFromJson(json);
   @override
   Map<String, dynamic> toJson() => _$SettingToJson(this);
-
-  static int _toInt(String value) {
-    return int.parse(value);
-  }
 }

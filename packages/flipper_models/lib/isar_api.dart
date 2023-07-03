@@ -2667,16 +2667,10 @@ class IsarAPI<M> implements IsarApiInterface {
     /// so we need to wait 20 seconds to make another call, I will need to investigate on server later
     // await Future.delayed(Duration(seconds: 20));
     int businessId = ProxyService.box.getBusinessId()!;
-    final http.Response response =
-        await socialsHttpClient.patch(Uri.parse("$commApi/settings"),
-            body: json.encode({
-              "token": setting.token,
-              "businessPhoneNumber": setting.businessPhoneNumber,
-              "enrolledInBot": setting.enrolledInBot,
-              "autoRespond": setting.autoRespond,
-              "businessId": businessId,
-              "deviceToken": setting.deviceToken
-            }));
+    final http.Response response = await socialsHttpClient.patch(
+        Uri.parse("$commApi/settings"),
+        body: json.encode(
+            {"businessId": businessId, "deviceToken": setting.deviceToken}));
     // convert response to Setting
     if (response.statusCode != 200 && response.statusCode != 403) {
       throw Exception(
