@@ -120,7 +120,11 @@ void main() async {
     setupBottomSheetUi();
 
     ///Will switch to localNotification when it support windows
-
+    if (isAndroid || isIos) {
+      await NotificationsCubit.initialize(
+        flutterLocalNotificationsPlugin: FlutterLocalNotificationsPlugin(),
+      );
+    }
     runApp(
       OverlaySupport.global(
         child: MaterialApp.router(

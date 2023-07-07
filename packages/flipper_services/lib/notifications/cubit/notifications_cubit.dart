@@ -25,13 +25,13 @@ part 'notifications_cubit.freezed.dart';
 
 /// Cubit for managing notifications.
 // class NotificationsCubit extends Cubit<NotificationsState> {
-class NotificationsCubit extends Cubit<NotificationsState> {
+class NotificationsCubit {
   /// Plugin instance.
   final FlutterLocalNotificationsPlugin _notificationsPlugin;
 
   NotificationsCubit._(
     this._notificationsPlugin,
-  ) : super(NotificationsState.initial()) {
+  ) {
     instance = this;
     _checkAppStartup();
   }
@@ -127,24 +127,11 @@ class NotificationsCubit extends Cubit<NotificationsState> {
     await _notificationsPlugin.cancel(id);
   }
 
-  /// Disable notifications.
-  ///
-  /// This will also cancel all scheduled notifications.
-  Future<void> disable() async {
-    await _notificationsPlugin.cancelAll();
-    emit(state.copyWith(enabled: false));
-  }
-
-  /// Enable notifications.
-  Future<void> enable() async {
-    emit(state.copyWith(enabled: true));
-  }
-
   /// Set the taskbar and system tray icon notification badge.
   ///
   /// Only works on Linux and Windows.
   Future<void> setNotificationBadge(int count) async {
-    if (state.overdueTasksCount == count) return;
+    //if (state.overdueTasksCount == count) return;
 
     if (isLinux) {
       await _setNotificationBadgeLinux(count);
@@ -152,7 +139,7 @@ class NotificationsCubit extends Cubit<NotificationsState> {
       await _setNotificationBadgeWindows(count);
     }
 
-    emit(state.copyWith(overdueTasksCount: count));
+    //emit(state.copyWith(overdueTasksCount: count));
   }
 
   /// Schedule a notification for a task.
@@ -210,21 +197,6 @@ class NotificationsCubit extends Cubit<NotificationsState> {
   }) async {
     // log.v('Showing notification: $title, $body, $payload');
 
-    if (!state.enabled) {
-      // log.v('Notifications are disabled. Not showing notification.');
-      return;
-    }
-
-    if (!state.permissionGranted) {
-      await _requestPermission();
-      if (!state.permissionGranted) {
-        // log.v(
-        //   'Notifications permission not granted. Not showing notification.',
-        // );
-        return;
-      }
-    }
-
     id ??= _generateNotificationId();
 
     const notificationDetails = NotificationDetails(
@@ -272,10 +244,6 @@ class NotificationsCubit extends Cubit<NotificationsState> {
     }
 
     // log.i('App started from notification');
-
-    emit(state.copyWith(
-      notificationResponse: notificationResponse,
-    ));
   }
 
   /// Generate a random id for a notification.
@@ -289,7 +257,6 @@ class NotificationsCubit extends Cubit<NotificationsState> {
   Future<void> _requestPermission() async {
     // Currently only Android requires permission.
     if (defaultTargetPlatform != TargetPlatform.android) {
-      emit(state.copyWith(permissionGranted: true));
       return;
     }
 
@@ -307,8 +274,6 @@ class NotificationsCubit extends Cubit<NotificationsState> {
     } else {
       // log.i('Notifications permission denied');
     }
-
-    emit(state.copyWith(permissionGranted: permissionGranted));
   }
 
   /// Schedule a notification on desktop.
@@ -324,11 +289,6 @@ class NotificationsCubit extends Cubit<NotificationsState> {
     final task = Conversation.fromJson(jsonDecode(notification.payload!));
 
     // log.v('Scheduling notification for task: ${task.id}');
-
-    if (!state.enabled) {
-      // log.v('Notifications are disabled. Not scheduling notification.');
-      return;
-    }
 
     final dueDate = task.createdAt;
     if (dueDate == null) {
@@ -455,11 +415,6 @@ class NotificationsCubit extends Cubit<NotificationsState> {
     final conversation =
         Conversation.fromJson(jsonDecode(notification.payload!));
     // log.v('Scheduling notification for task: ${task.id}');
-
-    if (!state.enabled) {
-      // log.v('Notifications are disabled. Not scheduling notification.');
-      return;
-    }
 
     final createdAt = conversation.createdAt;
 
