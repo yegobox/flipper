@@ -170,7 +170,7 @@ class HomeViewMobile extends ViewModelWidget<social.HomeViewModel> {
                           height: 45,
                           width: 140,
                           child: OutlinedButton(
-                            onPressed: viewModel.showBottomSheet,
+                            onPressed: viewModel.sendUsIntrestRequest,
                             style: ButtonStyle(
                               side: MaterialStateProperty.all<BorderSide>(
                                 const BorderSide(color: Color(0xff006AFE)),

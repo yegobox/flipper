@@ -120,7 +120,7 @@ class FirebaseMessagingService implements Messaging {
           .getConversation(messageId: conversation.messageId!);
       if (conversationExistOnLocal == null) {
         if (showLocalNotification) {
-          await NotificationsCubit.instance.scheduleNotification(conversation);
+         // await NotificationsCubit.instance.scheduleNotification(conversation);
         }
         await ProxyService.isar.create(data: conversation);
       }

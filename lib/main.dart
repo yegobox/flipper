@@ -120,100 +120,47 @@ void main() async {
     setupBottomSheetUi();
 
     ///Will switch to localNotification when it support windows
-    if (isAndroid || isIos) {
-      final notificationsCubit = await NotificationsCubit.initialize(
-        flutterLocalNotificationsPlugin: FlutterLocalNotificationsPlugin(),
-      );
-      runApp(
-        OverlaySupport.global(
-          child: MultiRepositoryProvider(
-            providers: const [],
-            child: MultiBlocProvider(
-              providers: [
-                BlocProvider.value(value: notificationsCubit),
-              ],
-              child: MaterialApp.router(
-                debugShowCheckedModeBanner: true,
-                title: 'flipper',
-                // Define the light theme for the app, based on defined colors and
-                // properties above.
-                //TODOimplement my own as this is killing design
-                // theme: GThemeGenerator.generate(),
-                // darkTheme: GThemeGenerator.generateDark(),
-                theme: ThemeData(
-                  useMaterial3: true,
-                  textTheme: GoogleFonts.poppinsTextTheme(),
-                ),
-                localizationsDelegates: [
-                  FirebaseUILocalizations.withDefaultOverrides(
-                    const LabelOverrides(),
-                  ),
-                  const FlipperLocalizationsDelegate(),
-                  GlobalMaterialLocalizations.delegate,
-                  GlobalWidgetsLocalizations.delegate,
-                  CountryLocalizations.delegate
-                ],
-                supportedLocales: const [
-                  Locale('en'), // English
-                  Locale('es'), // Spanish
-                ],
-                locale: const Locale('en'),
-                // locale: model
-                //     .languageService.locale,
-                // themeMode: model.settingService.themeMode.value,
-                themeMode: ThemeMode.system,
-                routerDelegate: stackedRouter.delegate(),
-                routeInformationParser: stackedRouter.defaultRouteParser(),
-              ).animate().fadeIn(
-                    delay: const Duration(milliseconds: 50),
-                    duration: const Duration(milliseconds: 400),
-                  ),
-            ),
+
+    runApp(
+      OverlaySupport.global(
+        child: MaterialApp.router(
+          debugShowCheckedModeBanner: true,
+          title: 'flipper',
+          // Define the light theme for the app, based on defined colors and
+          // properties above.
+          //TODOimplement my own as this is killing design
+          // theme: GThemeGenerator.generate(),
+          // darkTheme: GThemeGenerator.generateDark(),
+          theme: ThemeData(
+            useMaterial3: true,
+            textTheme: GoogleFonts.poppinsTextTheme(),
           ),
-        ),
-      );
-    } else {
-      runApp(
-        OverlaySupport.global(
-          child: MaterialApp.router(
-            debugShowCheckedModeBanner: true,
-            title: 'flipper',
-            // Define the light theme for the app, based on defined colors and
-            // properties above.
-            //TODOimplement my own as this is killing design
-            // theme: GThemeGenerator.generate(),
-            // darkTheme: GThemeGenerator.generateDark(),
-            theme: ThemeData(
-              useMaterial3: true,
-              textTheme: GoogleFonts.poppinsTextTheme(),
+          localizationsDelegates: [
+            FirebaseUILocalizations.withDefaultOverrides(
+              const LabelOverrides(),
             ),
-            localizationsDelegates: [
-              FirebaseUILocalizations.withDefaultOverrides(
-                const LabelOverrides(),
-              ),
-              const FlipperLocalizationsDelegate(),
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              CountryLocalizations.delegate
-            ],
-            supportedLocales: const [
-              Locale('en'), // English
-              Locale('es'), // Spanish
-            ],
-            locale: const Locale('en'),
-            // locale: model
-            //     .languageService.locale,
-            // themeMode: model.settingService.themeMode.value,
-            themeMode: ThemeMode.system,
-            routerDelegate: stackedRouter.delegate(),
-            routeInformationParser: stackedRouter.defaultRouteParser(),
-          ).animate().fadeIn(
-                delay: const Duration(milliseconds: 50),
-                duration: const Duration(milliseconds: 400),
-              ),
-        ),
-      );
-    }
+            const FlipperLocalizationsDelegate(),
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            CountryLocalizations.delegate
+          ],
+          supportedLocales: const [
+            Locale('en'), // English
+            Locale('es'), // Spanish
+          ],
+          locale: const Locale('en'),
+          // locale: model
+          //     .languageService.locale,
+          // themeMode: model.settingService.themeMode.value,
+          themeMode: ThemeMode.system,
+          routerDelegate: stackedRouter.delegate(),
+          routeInformationParser: stackedRouter.defaultRouteParser(),
+        ).animate().fadeIn(
+              delay: const Duration(milliseconds: 50),
+              duration: const Duration(milliseconds: 400),
+            ),
+      ),
+    );
 
     // close splash screen the app is fully initialized
     FlutterNativeSplash.remove();
