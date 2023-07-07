@@ -2797,8 +2797,11 @@ class IsarAPI<M> implements IsarApiInterface {
         ProxyService.box.write(key: 'createdAt', value: createdAt);
         ProxyService.box.write(key: 'id', value: id);
       } else {
+        log(jsonDecode(response.body).toString());
         log("there is no last key to use in query and that is fine!");
       }
+    } else {
+      print(response.statusCode);
     }
   }
 
