@@ -1,10 +1,10 @@
 name: flipper
 repository: https://github.com/yegobox/flipper
 packages:
-  - "**"
   - packages/**
   - open-sources/**
   - lib/flipper_localize/**
+  - "**"
 
 ignore:
   - "*web*"
