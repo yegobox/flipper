@@ -1340,11 +1340,18 @@ class IsarAPI<M> implements IsarApiInterface {
     }
   }
 
+  bool isEmail(String input) {
+    // Implement your logic to check if input is an email
+    // You can use regular expressions or any other email validation mechanism
+    // For simplicity, this example checks if the input contains '@'
+    return input.contains('@');
+  }
+
   @override
   Future<IUser> login(
       {required String userPhone, required bool skipDefaultAppSetup}) async {
     String phoneNumber = userPhone;
-    if (!phoneNumber.startsWith('+')) {
+    if (!isEmail(userPhone) && !phoneNumber.startsWith('+')) {
       phoneNumber = '+' + phoneNumber;
     }
 
