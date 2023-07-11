@@ -20,29 +20,6 @@ class _CashbookState extends State<Cashbook> {
     return Scaffold(
       appBar: CustomAppBar(
         closeButton: CLOSEBUTTON.WIDGET,
-        customTrailingWidget: Container(
-          child: FutureBuilder<ITenant?>(
-              future: ProxyService.isar
-                  .getTenantBYUserId(userId: ProxyService.box.getUserId()!),
-              builder: (a, snapshoot) {
-                if (snapshoot.connectionState == ConnectionState.waiting ||
-                    !snapshoot.hasData) {
-                  return const SizedBox.shrink();
-                }
-                final data = snapshoot.data;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 12.0),
-                  child: SizedBox(
-                      height: 40,
-                      width: 40,
-                      child: ProfileWidget(
-                        tenant: data!,
-                        size: 25,
-                        showIcon: false,
-                      )),
-                );
-              }),
-        ),
         customLeadingWidget: Container(
             child: Text(
           '  Cash Book',
@@ -150,7 +127,7 @@ class _CashbookState extends State<Cashbook> {
                           ),
                         ),
                         child: const Text('Cash Out',
-                            style: TextStyle(color: Colors.white)),
+                            style: TextStyle(color: Colors.black)),
                       ),
                     ),
                   ),
