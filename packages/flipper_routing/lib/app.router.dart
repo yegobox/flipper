@@ -521,6 +521,14 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         barrierDismissible: false,
       );
     },
+    CashbookRoute.name: (routeData) {
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: const _i2.Cashbook(),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
     SettingPageRoute.name: (routeData) {
       final args = routeData.argsAs<SettingPageArgs>(
           orElse: () => const SettingPageArgs());
@@ -718,6 +726,10 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         _i3.RouteConfig(
           CheckOutRoute.name,
           path: '/check-out',
+        ),
+        _i3.RouteConfig(
+          CashbookRoute.name,
+          path: '/Cashbook',
         ),
         _i3.RouteConfig(
           SettingPageRoute.name,
@@ -1988,6 +2000,18 @@ class CheckOutArgs {
   String toString() {
     return 'CheckOutArgs{key: $key, isBigScreen: $isBigScreen}';
   }
+}
+
+/// generated route for
+/// [_i2.Cashbook]
+class CashbookRoute extends _i3.PageRouteInfo<void> {
+  const CashbookRoute()
+      : super(
+          CashbookRoute.name,
+          path: '/Cashbook',
+        );
+
+  static const String name = 'Cashbook';
 }
 
 /// generated route for

@@ -25,7 +25,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 Future<void> onDidReceiveBackgroundNotificationResponse(
   NotificationResponse notificationResponse,

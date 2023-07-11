@@ -11,6 +11,7 @@ import 'customappbar.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'widgets/analytics_gauge/flipper_analytic.dart';
 
 class Apps extends StatefulWidget {
   final TextEditingController controller;
@@ -46,7 +47,10 @@ class _AppsState extends State<Apps> {
               isBigScreen: widget.isBigScreen,
             ));
             return;
-          case "settings":
+          case "Cashbook":
+            _routerService.navigateTo(CashbookRoute());
+            return;
+          case "Settings":
             _routerService.navigateTo(SettingPageRoute());
             return;
           case "Support":
@@ -84,8 +88,8 @@ class _AppsState extends State<Apps> {
                 backgroundColor: backgroundColor,
               ),
               child: SizedBox(
-                height: 90,
-                width: 90,
+                height: 50,
+                width: 50,
                 child: Icon(
                   iconData,
                   color: Colors.white,
@@ -148,17 +152,23 @@ class _AppsState extends State<Apps> {
           scrollDirection: Axis.horizontal,
           child: Column(
             children: [
+              SizedBox(height: 80),
+              SemiCircleGauge(
+                dataOnGreenSide: 10000,
+                dataOnRedSide: 5000,
+                startPadding: 10,
+              ),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   _buildCustomPaintWithIcon(
                       iconData: FluentIcons.dialpad_24_regular,
                       backgroundColor: Colors.blue,
                       page: "POS"),
+                  SizedBox(width: 25),
                   _buildCustomPaintWithIcon(
-                      iconData: FluentIcons.communication_20_regular,
-                      backgroundColor: Color(0xff99DDFF),
-                      page: "Connecta"),
+                      iconData: FluentIcons.book_coins_24_regular,
+                      backgroundColor: Color.fromARGB(255, 6, 224, 61),
+                      page: "Cashbook"),
                   _buildCustomPaintWithIcon(
                       iconData: FluentIcons.arrow_trending_lines_24_regular,
                       backgroundColor: Colors.red,
@@ -166,11 +176,18 @@ class _AppsState extends State<Apps> {
                 ],
               ),
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
+                  _buildCustomPaintWithIcon(
+                      iconData: FluentIcons.communication_20_regular,
+                      backgroundColor: Color(0xff99DDFF),
+                      page: "Connecta"),
+                  SizedBox(width: 10),
                   _buildCustomPaintWithIcon(
                       iconData: FluentIcons.settings_16_regular,
                       backgroundColor: Colors.blueGrey,
-                      page: "settings"),
+                      page: "Settings"),
+                  SizedBox(width: 30),
                   _buildCustomPaintWithIcon(
                       iconData: Icons.call,
                       backgroundColor: Colors.blue,
