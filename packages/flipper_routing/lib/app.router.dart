@@ -250,7 +250,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         routeData: routeData,
         child: _i2.Payments(
           key: args.key,
-          order: args.order,
+          transaction: args.transaction,
         ),
         opaque: true,
         barrierDismissible: false,
@@ -263,7 +263,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         child: _i2.CollectCashView(
           key: args.key,
           paymentType: args.paymentType,
-          order: args.order,
+          transaction: args.transaction,
         ),
         opaque: true,
         barrierDismissible: false,
@@ -275,8 +275,8 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         routeData: routeData,
         child: _i2.AfterSale(
           key: args.key,
-          totalOrderAmount: args.totalOrderAmount,
-          order: args.order,
+          totalTransactionAmount: args.totalTransactionAmount,
+          transaction: args.transaction,
           receiptType: args.receiptType,
         ),
         opaque: true,
@@ -289,7 +289,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         routeData: routeData,
         child: _i2.TransactionDetail(
           key: args.key,
-          order: args.order,
+          transaction: args.transaction,
         ),
         opaque: true,
         barrierDismissible: false,
@@ -351,7 +351,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         routeData: routeData,
         child: _i2.Customers(
           key: args.key,
-          orderId: args.orderId,
+          transactionId: args.transactionId,
         ),
         opaque: true,
         barrierDismissible: false,
@@ -477,7 +477,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         routeData: routeData,
         child: _i2.Tickets(
           key: args.key,
-          order: args.order,
+          transaction: args.transaction,
         ),
         opaque: true,
         barrierDismissible: false,
@@ -489,7 +489,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         routeData: routeData,
         child: _i2.NewTicket(
           key: args.key,
-          order: args.order,
+          transaction: args.transaction,
         ),
         opaque: true,
         barrierDismissible: false,
@@ -1325,13 +1325,13 @@ class SellArgs {
 class PaymentsRoute extends _i3.PageRouteInfo<PaymentsArgs> {
   PaymentsRoute({
     _i4.Key? key,
-    required _i8.Order order,
+    required _i8.Transaction transaction,
   }) : super(
           PaymentsRoute.name,
           path: '/Payments',
           args: PaymentsArgs(
             key: key,
-            order: order,
+            transaction: transaction,
           ),
         );
 
@@ -1341,16 +1341,16 @@ class PaymentsRoute extends _i3.PageRouteInfo<PaymentsArgs> {
 class PaymentsArgs {
   const PaymentsArgs({
     this.key,
-    required this.order,
+    required this.transaction,
   });
 
   final _i4.Key? key;
 
-  final _i8.Order order;
+  final _i8.Transaction transaction;
 
   @override
   String toString() {
-    return 'PaymentsArgs{key: $key, order: $order}';
+    return 'PaymentsArgs{key: $key, transaction: $transaction}';
   }
 }
 
@@ -1360,14 +1360,14 @@ class CollectCashViewRoute extends _i3.PageRouteInfo<CollectCashViewArgs> {
   CollectCashViewRoute({
     _i4.Key? key,
     required String paymentType,
-    required _i8.Order order,
+    required _i8.Transaction transaction,
   }) : super(
           CollectCashViewRoute.name,
           path: '/collect-cash-view',
           args: CollectCashViewArgs(
             key: key,
             paymentType: paymentType,
-            order: order,
+            transaction: transaction,
           ),
         );
 
@@ -1378,18 +1378,18 @@ class CollectCashViewArgs {
   const CollectCashViewArgs({
     this.key,
     required this.paymentType,
-    required this.order,
+    required this.transaction,
   });
 
   final _i4.Key? key;
 
   final String paymentType;
 
-  final _i8.Order order;
+  final _i8.Transaction transaction;
 
   @override
   String toString() {
-    return 'CollectCashViewArgs{key: $key, paymentType: $paymentType, order: $order}';
+    return 'CollectCashViewArgs{key: $key, paymentType: $paymentType, transaction: $transaction}';
   }
 }
 
@@ -1398,16 +1398,16 @@ class CollectCashViewArgs {
 class AfterSaleRoute extends _i3.PageRouteInfo<AfterSaleArgs> {
   AfterSaleRoute({
     _i4.Key? key,
-    required double totalOrderAmount,
-    required _i8.Order order,
+    required double totalTransactionAmount,
+    required _i8.Transaction transaction,
     String? receiptType = "ns",
   }) : super(
           AfterSaleRoute.name,
           path: '/after-sale',
           args: AfterSaleArgs(
             key: key,
-            totalOrderAmount: totalOrderAmount,
-            order: order,
+            totalTransactionAmount: totalTransactionAmount,
+            transaction: transaction,
             receiptType: receiptType,
           ),
         );
@@ -1418,22 +1418,22 @@ class AfterSaleRoute extends _i3.PageRouteInfo<AfterSaleArgs> {
 class AfterSaleArgs {
   const AfterSaleArgs({
     this.key,
-    required this.totalOrderAmount,
-    required this.order,
+    required this.totalTransactionAmount,
+    required this.transaction,
     this.receiptType = "ns",
   });
 
   final _i4.Key? key;
 
-  final double totalOrderAmount;
+  final double totalTransactionAmount;
 
-  final _i8.Order order;
+  final _i8.Transaction transaction;
 
   final String? receiptType;
 
   @override
   String toString() {
-    return 'AfterSaleArgs{key: $key, totalOrderAmount: $totalOrderAmount, order: $order, receiptType: $receiptType}';
+    return 'AfterSaleArgs{key: $key, totalTransactionAmount: $totalTransactionAmount, transaction: $transaction, receiptType: $receiptType}';
   }
 }
 
@@ -1442,13 +1442,13 @@ class AfterSaleArgs {
 class TransactionDetailRoute extends _i3.PageRouteInfo<TransactionDetailArgs> {
   TransactionDetailRoute({
     _i4.Key? key,
-    required _i8.Order order,
+    required _i8.Transaction transaction,
   }) : super(
           TransactionDetailRoute.name,
           path: '/transaction-detail',
           args: TransactionDetailArgs(
             key: key,
-            order: order,
+            transaction: transaction,
           ),
         );
 
@@ -1458,16 +1458,16 @@ class TransactionDetailRoute extends _i3.PageRouteInfo<TransactionDetailArgs> {
 class TransactionDetailArgs {
   const TransactionDetailArgs({
     this.key,
-    required this.order,
+    required this.transaction,
   });
 
   final _i4.Key? key;
 
-  final _i8.Order order;
+  final _i8.Transaction transaction;
 
   @override
   String toString() {
-    return 'TransactionDetailArgs{key: $key, order: $order}';
+    return 'TransactionDetailArgs{key: $key, transaction: $transaction}';
   }
 }
 
@@ -1587,13 +1587,13 @@ class InAppBrowserRoute extends _i3.PageRouteInfo<void> {
 class CustomersRoute extends _i3.PageRouteInfo<CustomersArgs> {
   CustomersRoute({
     _i4.Key? key,
-    required int orderId,
+    required int transactionId,
   }) : super(
           CustomersRoute.name,
           path: '/Customers',
           args: CustomersArgs(
             key: key,
-            orderId: orderId,
+            transactionId: transactionId,
           ),
         );
 
@@ -1603,16 +1603,16 @@ class CustomersRoute extends _i3.PageRouteInfo<CustomersArgs> {
 class CustomersArgs {
   const CustomersArgs({
     this.key,
-    required this.orderId,
+    required this.transactionId,
   });
 
   final _i4.Key? key;
 
-  final int orderId;
+  final int transactionId;
 
   @override
   String toString() {
-    return 'CustomersArgs{key: $key, orderId: $orderId}';
+    return 'CustomersArgs{key: $key, transactionId: $transactionId}';
   }
 }
 
@@ -1861,13 +1861,13 @@ class ConversationHistoryArgs {
 class TicketsRoute extends _i3.PageRouteInfo<TicketsArgs> {
   TicketsRoute({
     _i4.Key? key,
-    _i8.Order? order,
+    _i8.Transaction? transaction,
   }) : super(
           TicketsRoute.name,
           path: '/Tickets',
           args: TicketsArgs(
             key: key,
-            order: order,
+            transaction: transaction,
           ),
         );
 
@@ -1877,16 +1877,16 @@ class TicketsRoute extends _i3.PageRouteInfo<TicketsArgs> {
 class TicketsArgs {
   const TicketsArgs({
     this.key,
-    this.order,
+    this.transaction,
   });
 
   final _i4.Key? key;
 
-  final _i8.Order? order;
+  final _i8.Transaction? transaction;
 
   @override
   String toString() {
-    return 'TicketsArgs{key: $key, order: $order}';
+    return 'TicketsArgs{key: $key, transaction: $transaction}';
   }
 }
 
@@ -1895,13 +1895,13 @@ class TicketsArgs {
 class NewTicketRoute extends _i3.PageRouteInfo<NewTicketArgs> {
   NewTicketRoute({
     _i4.Key? key,
-    required _i8.Order order,
+    required _i8.Transaction transaction,
   }) : super(
           NewTicketRoute.name,
           path: '/new-ticket',
           args: NewTicketArgs(
             key: key,
-            order: order,
+            transaction: transaction,
           ),
         );
 
@@ -1911,16 +1911,16 @@ class NewTicketRoute extends _i3.PageRouteInfo<NewTicketArgs> {
 class NewTicketArgs {
   const NewTicketArgs({
     this.key,
-    required this.order,
+    required this.transaction,
   });
 
   final _i4.Key? key;
 
-  final _i8.Order order;
+  final _i8.Transaction transaction;
 
   @override
   String toString() {
-    return 'NewTicketArgs{key: $key, order: $order}';
+    return 'NewTicketArgs{key: $key, transaction: $transaction}';
   }
 }
 

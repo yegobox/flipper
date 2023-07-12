@@ -9,15 +9,15 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:stacked/stacked.dart';
 
 class TransactionDetail extends StatefulWidget {
-  const TransactionDetail({Key? key, required this.order}) : super(key: key);
-  final Order order;
+  const TransactionDetail({Key? key, required this.transaction}) : super(key: key);
+  final Transaction transaction;
   @override
   State<TransactionDetail> createState() => _TransactionDetailState();
 }
 
 class _TransactionDetailState extends State<TransactionDetail> {
   List<Widget> _list(
-      {required List<OrderItem> items, required HomeViewModel model}) {
+      {required List<TransactionItem> items, required HomeViewModel model}) {
     return items
         .map((item) => Column(
               children: [
@@ -83,16 +83,16 @@ class _TransactionDetailState extends State<TransactionDetail> {
     return ViewModelBuilder<HomeViewModel>.reactive(
         viewModelBuilder: () => HomeViewModel(),
         onViewModelReady: (model) async {
-          List<OrderItem> items = await ProxyService.isar
-              .orderItems(orderId: widget.order.id!, doneWithOrder: false);
+          List<TransactionItem> items = await ProxyService.isar
+              .transactionItems(transactionId: widget.transaction.id!, doneWithTransaction: false);
 
-          model.completedOrderItemsList = items;
+          model.completedTransactionItemsList = items;
         },
         builder: (context, model, child) {
           return Scaffold(
             appBar: AppBar(
               title: Text(
-                  'FRW ' + widget.order.subTotal.toInt().toString() + " Sale"),
+                  'FRW ' + widget.transaction.subTotal.toInt().toString() + " Sale"),
               elevation: 1,
             ),
             body: Column(
@@ -100,22 +100,22 @@ class _TransactionDetailState extends State<TransactionDetail> {
                 OutlinedButton(
                   onPressed: () {
                     _routerService.navigateTo(AfterSaleRoute(
-                        totalOrderAmount: widget.order.subTotal,
+                        totalTransactionAmount: widget.transaction.subTotal,
                         receiptType: ReceiptType.nr,
-                        order: widget.order));
+                        transaction: widget.transaction));
                   },
                   child: const Text('Issue Refund'),
                 ),
                 OutlinedButton(
                   onPressed: () {
                     _routerService.navigateTo(AfterSaleRoute(
-                        totalOrderAmount: widget.order.subTotal,
+                        totalTransactionAmount: widget.transaction.subTotal,
                         receiptType: ReceiptType.cs,
-                        order: widget.order));
+                        transaction: widget.transaction));
                   },
                   child: const Text('New receipt'),
                 ),
-                ..._list(items: model.completedOrderItemsList, model: model),
+                ..._list(items: model.completedTransactionItemsList, model: model),
               ],
             ),
           );
@@ -124,9 +124,9 @@ class _TransactionDetailState extends State<TransactionDetail> {
 
   Future<void> refund(int id, HomeViewModel model) async {
     ProxyService.isar.refund(itemId: id);
-    List<OrderItem> items = await ProxyService.isar
-        .orderItems(orderId: widget.order.id!, doneWithOrder: false);
+    List<TransactionItem> items = await ProxyService.isar
+        .transactionItems(transactionId: widget.transaction.id!, doneWithTransaction: false);
 
-    model.completedOrderItemsList = items;
+    model.completedTransactionItemsList = items;
   }
 }

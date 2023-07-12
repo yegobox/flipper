@@ -10,9 +10,9 @@ import 'package:stacked/stacked.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class Tickets extends StatefulWidget {
-  const Tickets({super.key, this.order});
-  // final List<Order> tickets;
-  final Order? order;
+  const Tickets({super.key, this.transaction});
+  // final List<Transaction> tickets;
+  final Transaction? transaction;
   @override
   State<Tickets> createState() => _TicketsState();
 }
@@ -82,9 +82,9 @@ class _TicketsState extends State<Tickets> with SingleTickerProviderStateMixin {
                                   fontSize: 20,
                                   color: Color(0xff006AFE))),
                           onPressed: () {
-                            if (widget.order != null) {
+                            if (widget.transaction != null) {
                               _routerService.navigateTo(
-                                  NewTicketRoute(order: widget.order!));
+                                  NewTicketRoute(transaction: widget.transaction!));
                             }
                           },
                         ),
@@ -101,16 +101,16 @@ class _TicketsState extends State<Tickets> with SingleTickerProviderStateMixin {
                     Padding(
                       padding: const EdgeInsets.only(
                           left: 24.0, top: 20.0, right: 20.0),
-                      child: StreamBuilder<List<Order>>(
+                      child: StreamBuilder<List<Transaction>>(
                           stream: ProxyService.isar.ticketsStreams(),
                           builder: (context, snapshot) {
                             if (snapshot.hasData) {
-                              List<Order> data = snapshot.data!;
+                              List<Transaction> data = snapshot.data!;
                               return Column(
                                 children: data.map((e) {
                                   return GestureDetector(
                                     onTap: () async {
-                                      await model.resumeOrder(ticketId: e.id!);
+                                      await model.resumeTransaction(ticketId: e.id!);
                                       _routerService
                                           .clearStackAndShow(FlipperAppRoute());
                                     },

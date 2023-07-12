@@ -31,13 +31,13 @@ class _PreviewSaleBottomSheetState extends State<PreviewSaleBottomSheet> {
         navigationBar: CupertinoNavigationBar(
             leading: Container(),
             middle: Row(children: [
-              StreamBuilder<List<OrderItem>>(
-                  stream: ProxyService.isar.orderItemsStream(),
+              StreamBuilder<List<TransactionItem>>(
+                  stream: ProxyService.isar.transactionItemsStream(),
                   builder: (context, snapshot) {
-                    final orderItems = snapshot.data ??
+                    final transactionItems = snapshot.data ??
                         []; // Retrieve the data from the stream
-                    final saleCounts = orderItems
-                        .length; // Calculate the saleCounts based on the orderItems
+                    final saleCounts = transactionItems
+                        .length; // Calculate the saleCounts based on the transactionItems
 
                     return Text(
                       "Preview Sale${saleCounts != 0 ? "($saleCounts)" : ""}",
@@ -54,10 +54,10 @@ class _PreviewSaleBottomSheetState extends State<PreviewSaleBottomSheet> {
             builder: (a, model, c) {
               return SafeArea(
                 bottom: false,
-                child: StreamBuilder<List<OrderItem>>(
-                    stream: ProxyService.isar.orderItemsStream(),
+                child: StreamBuilder<List<TransactionItem>>(
+                    stream: ProxyService.isar.transactionItemsStream(),
                     builder: (context, snapshot) {
-                      final orderItems = snapshot.data ?? [];
+                      final transactionItems = snapshot.data ?? [];
                       return Column(
                         children: [
                           Expanded(
@@ -67,19 +67,19 @@ class _PreviewSaleBottomSheetState extends State<PreviewSaleBottomSheet> {
                               controller: ModalScrollController.of(context),
                               physics: const ClampingScrollPhysics(),
                               children: [
-                                AddCustomerButton(orderId: model.kOrder!.id!),
+                                AddCustomerButton(transactionId: model.kTransaction!.id!),
                                 ...buildItems(
                                   context: context,
                                   callback: (item) async {
-                                    model.kOrder!.subTotal =
-                                        model.kOrder!.subTotal -
+                                    model.kTransaction!.subTotal =
+                                        model.kTransaction!.subTotal -
                                             (item.price * item.qty);
                                     await ProxyService.isar
-                                        .update(data: model.kOrder);
-                                    model.deleteOrderItem(
+                                        .update(data: model.kTransaction);
+                                    model.deleteTransactionItem(
                                         id: item.id, context: context);
                                   },
-                                  items: orderItems,
+                                  items: transactionItems,
                                 ),
                                 if (widget.model.totalDiscount > 0)
                                   ListTile(
@@ -113,7 +113,7 @@ class _PreviewSaleBottomSheetState extends State<PreviewSaleBottomSheet> {
                             padding: const EdgeInsets.only(bottom: 60.0),
                             child: Container(
                               child: ChargeButton(
-                                duePay: orderItems.fold(
+                                duePay: transactionItems.fold(
                                     0, (a, b) => a! + (b.price * b.qty)),
                                 model: model,
                               ),

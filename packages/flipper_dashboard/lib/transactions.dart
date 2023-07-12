@@ -147,11 +147,11 @@ class _TransactionsState extends State<Transactions> {
     return zlist;
   }
 
-  List<Widget> _normalTransactions({required List<Order> completedOrder}) {
-    for (Order order in completedOrder) {
-      if (lastSeen != order.createdAt.substring(0, 10)) {
+  List<Widget> _normalTransactions({required List<Transaction> completedTransaction}) {
+    for (Transaction transaction in completedTransaction) {
+      if (lastSeen != transaction.createdAt.substring(0, 10)) {
         setState(() {
-          lastSeen = order.createdAt.substring(0, 10);
+          lastSeen = transaction.createdAt.substring(0, 10);
         });
 
         list.add(
@@ -161,7 +161,7 @@ class _TransactionsState extends State<Transactions> {
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Text(DateFormat.yMMMEd()
-                    .format(DateTime.parse(order.createdAt))),
+                    .format(DateTime.parse(transaction.createdAt))),
               ],
             ),
           ),
@@ -172,14 +172,14 @@ class _TransactionsState extends State<Transactions> {
           margin: const EdgeInsets.all(4),
           child: GestureDetector(
             onTap: () => _routerService
-                .replaceWith(TransactionDetailRoute(order: order)),
+                .replaceWith(TransactionDetailRoute(transaction: transaction)),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 const Icon(Icons.wallet),
-                Text(order.subTotal.toString()),
+                Text(transaction.subTotal.toString()),
                 const Spacer(),
-                Text(order.createdAt.toString().substring(11, 19)),
+                Text(transaction.createdAt.toString().substring(11, 19)),
                 const Icon(FluentIcons.arrow_forward_20_regular),
               ],
             ),
@@ -194,15 +194,15 @@ class _TransactionsState extends State<Transactions> {
   Widget build(BuildContext context) {
     return ViewModelBuilder<HomeViewModel>.reactive(
         onViewModelReady: (model) async {
-          List<Order> completedOrders = await ProxyService.isar
-              .completedOrders(branchId: ProxyService.box.getBranchId()!);
+          List<Transaction> completedTransactions = await ProxyService.isar
+              .completedTransactions(branchId: ProxyService.box.getBranchId()!);
           Drawers? drawer = await ProxyService.isar
               .getDrawer(cashierId: ProxyService.box.getBusinessId()!);
 
-          model.completedOrdersList = completedOrders;
+          model.completedTransactionsList = completedTransactions;
 
           setState(() {
-            list = _normalTransactions(completedOrder: completedOrders);
+            list = _normalTransactions(completedTransaction: completedTransactions);
           });
           // for rra z report
           setState(() {

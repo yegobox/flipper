@@ -3,20 +3,20 @@ import 'package:flipper_services/proxy.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:flipper_models/sync_service.dart';
 import 'package:pocketbase/pocketbase.dart';
-part 'order.g.dart';
+part 'transaction.g.dart';
 
 @JsonSerializable()
 @Collection()
-class Order extends IJsonSerializable {
+class Transaction extends IJsonSerializable {
   // @JsonKey(name: 'localId')
   Id? id;
   late String reference;
-  late String orderNumber;
+  late String transactionNumber;
   @Index()
   late int branchId;
   @Index(composite: [CompositeIndex('branchId')])
   late String status;
-  late String orderType;
+  late String transactionType;
   late bool active;
   late bool draft;
   late double subTotal;
@@ -24,8 +24,8 @@ class Order extends IJsonSerializable {
   late double cashReceived;
   late double customerChangeDue;
   late String createdAt;
-  // add receipt type offerered on this order
-  /// a comma separated of the receipt type offered on this order eg. NR, NS etc...
+  // add receipt type offerered on this transaction
+  /// a comma separated of the receipt type offered on this transaction eg. NR, NS etc...
   String? receiptType;
   String? updatedAt;
   @Index()
@@ -40,12 +40,12 @@ class Order extends IJsonSerializable {
   int? localId;
   String? ticketName;
 
-  Order(
+  Transaction(
       {required this.reference,
-      required this.orderNumber,
+      required this.transactionNumber,
       required this.branchId,
       required this.status,
-      required this.orderType,
+      required this.transactionType,
       required this.active,
       required this.draft,
       required this.subTotal,
@@ -63,20 +63,20 @@ class Order extends IJsonSerializable {
       this.action,
       this.remoteID,
       this.ticketName});
-  factory Order.fromRecord(RecordModel record) =>
-      Order.fromJson(record.toJson());
+  factory Transaction.fromRecord(RecordModel record) =>
+      Transaction.fromJson(record.toJson());
 
-  factory Order.fromJson(Map<String, dynamic> json) {
+  factory Transaction.fromJson(Map<String, dynamic> json) {
     /// assign remoteID to the value of id because this method is used to encode
     /// data from remote server and id from remote server is considered remoteID on local
     json['remoteID'] = json['id'];
     json.remove('id');
-    return _$OrderFromJson(json);
+    return _$TransactionFromJson(json);
   }
 
   @override
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = _$OrderToJson(this);
+    final Map<String, dynamic> data = _$TransactionToJson(this);
     if (id != null) {
       data['localId'] = id;
       data['businessPhoneNumber'] = ProxyService.box.getUserPhone();

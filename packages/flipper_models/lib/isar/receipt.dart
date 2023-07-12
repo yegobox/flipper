@@ -18,5 +18,5 @@ class Receipt {
   late String qrCode;
   late String receiptType;
   @Index()
-  late int orderId;
+  late int transactionId;
 }

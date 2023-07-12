@@ -88,13 +88,13 @@ final stockMock = Stock(
   ..productId = 2
   ..active = false;
 
-// order mock
-Order? OrderFMock = Order(
+// transaction mock
+Transaction? TransactionFMock = Transaction(
   reference: Uuid().v1(),
-  orderNumber: Uuid().v1(),
+  transactionNumber: Uuid().v1(),
   draft: true,
   status: "pending",
-  orderType: 'local',
+  transactionType: 'local',
   active: true,
   reported: false,
   subTotal: 0,

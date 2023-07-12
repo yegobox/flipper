@@ -5,7 +5,7 @@ import 'package:flipper_services/constants.dart';
 abstract class IsarApiInterface {
   Future<List<Product>> products({required int branchId});
   Future<List<JTenant>> signup({required Map business});
-  Future<Order?> pendingOrder({required int branchId});
+  Future<Transaction?> pendingTransaction({required int branchId});
   Future<IUser> login(
       {required String userPhone, required bool skipDefaultAppSetup});
   Future<List<Business>> businesses({required int userId});
@@ -13,7 +13,7 @@ abstract class IsarApiInterface {
   Future<List<Branch>> branches({required int businessId});
   Future<List<Stock?>> stocks({required int productId});
   Stream<Stock> stockByVariantIdStream({required int variantId});
-  Stream<Order?> completedOrdersStream(
+  Stream<Transaction?> completedTransactionsStream(
       {required String status, required int branchId});
   Stream<List<Product>> productStreams({required int branchId});
   Stream<Business> businessStream({required int businessId});
@@ -22,8 +22,8 @@ abstract class IsarApiInterface {
   Future<List<PColor>> colors({required int branchId});
   Future<List<Category>> categories({required int branchId});
   Stream<List<Category>> categoriesStream({required int branchId});
-  Stream<Order?> pendingOrderStream();
-  Stream<List<Order>> pendingOrderStreams();
+  Stream<Transaction?> pendingTransactionStream();
+  Stream<List<Transaction>> pendingTransactionStreams();
   Future<List<IUnit>> units({required int branchId});
   Future<T?> create<T>({required T data});
   Future<T?> update<T>({required T data});
@@ -62,20 +62,20 @@ abstract class IsarApiInterface {
 
   Future<Voucher?> consumeVoucher({required int voucherCode});
 
-  ///create an order if no pending order exist should create a new one
+  ///create an transaction if no pending transaction exist should create a new one
   ///then if it exist should return the existing one!
-  Future<Order> manageOrder({
-    String orderType = 'custom',
+  Future<Transaction> manageTransaction({
+    String transactionType = 'custom',
   });
 
-  Future<List<Order>> completedOrders(
+  Future<List<Transaction>> completedTransactions(
       {required int branchId, String? status = completeStatus});
-  Future<OrderItem?> getOrderItem({required int id});
+  Future<TransactionItem?> getTransactionItem({required int id});
 
   Future<Variant?> getCustomVariant();
   Future<Spenn> spennPayment({required double amount, required phoneNumber});
   Future<void> collectCashPayment(
-      {required double cashReceived, required Order order});
+      {required double cashReceived, required Transaction transaction});
 
 // app settings and users settings
   Future<Setting?> getSetting({required int businessId});
@@ -98,28 +98,41 @@ abstract class IsarApiInterface {
   Future<List<Business>> getContacts();
 
   Future<Business?> getBusiness();
-  Future<Customer?> addCustomer({required Map customer, required int orderId});
-  Future assingOrderToCustomer({required int customerId, required int orderId});
+  Future<Customer?> addCustomer(
+      {required Map customer, required int transactionId});
+  Future assingTransactionToCustomer(
+      {required int customerId, required int transactionId});
   Stream<Customer?> getCustomer({required String key});
-  Stream<Customer?> getCustomerByOrderId({required int id});
-  Future<Order?> getOrderById({required int id});
-  Future<List<Order>> tickets();
-  Stream<List<Order>> ticketsStreams();
+  Stream<Customer?> getCustomerByTransactionId({required int id});
+
+  Future<Transaction?> getTransactionById({required int id});
+  Future<List<Transaction>> tickets();
+  Stream<List<Transaction>> ticketsStreams();
+  Future<List<Transaction>> getTransactions();
+  Future<List<Transaction>> getCompletedTransactions();
+  Future<List<Transaction>> getCashInTransactions();
+  Future<List<Transaction>> getLocalCashInTransactions();
+  Future<List<Transaction>> getCashOutTransactions();
+  Future<List<Transaction>> getLocalCashOutTransactions();
+  Future<List<Transaction>> getTransactionsByCustomerId({required int customerId});
+  Future<int> deleteTransactionByIndex({required int transactionIndex});
+
   Future<List<Variant>> getVariantByProductId({required int productId});
 
-  Future<int> sendReport({required List<OrderItem> orderItems});
+  Future<int> sendReport({required List<TransactionItem> transactionItems});
   Future<void> createGoogleSheetDoc({required String email});
   Future<Business?> getBusinessById({required int id});
-  Future<OrderItem?> getOrderItemByVariantId(
-      {required int variantId, required int? orderId});
-  Future<List<OrderItem>> getOrderItemsByOrderId({required int? orderId});
+  Future<TransactionItem?> getTransactionItemByVariantId(
+      {required int variantId, required int? transactionId});
+  Future<List<TransactionItem>> getTransactionItemsByTransactionId(
+      {required int? transactionId});
   //abstract method to update business
   // Future<void> updateBusiness({required int id, required Map business});
 
   //analytics
   int lifeTimeCustomersForbranch({required int branchId});
 
-  Future<List<Order>> weeklyOrdersReport({
+  Future<List<Transaction>> weeklyTransactionsReport({
     required DateTime weekStartDate,
     required DateTime weekEndDate,
     required int branchId,
@@ -130,7 +143,8 @@ abstract class IsarApiInterface {
 
   Future<List<Discount>> getDiscounts({required int branchId});
 
-  Future<void> addOrderItem({required Order order, required OrderItem item});
+  Future<void> addTransactionItem(
+      {required Transaction transaction, required TransactionItem item});
 
   // Conversation createConversation({required Conversation conversation});
 
@@ -179,19 +193,19 @@ abstract class IsarApiInterface {
 
   Future<List<Product>> productsFuture({required int branchId});
 
-  /// get a list of orderItems given orderId
-  Future<List<OrderItem>> orderItems(
-      {required int orderId, required bool doneWithOrder});
-  Stream<List<OrderItem>> orderItemsStream();
+  /// get a list of transactionItems given transactionId
+  Future<List<TransactionItem>> transactionItems(
+      {required int transactionId, required bool doneWithTransaction});
+  Stream<List<TransactionItem>> transactionItemsStream();
   Future<Variant?> getVariantById({required int id});
   Future<bool> isTaxEnabled();
   Future<Receipt?> createReceipt(
       {required ReceiptSignature signature,
-      required Order order,
+      required Transaction transaction,
       required String qrCode,
       required String receiptType,
       required Counter counter});
-  Future<Receipt?> getReceipt({required int orderId});
+  Future<Receipt?> getReceipt({required int transactionId});
 
   Future<void> refund({required int itemId});
   Future<bool> isDrawerOpen({required int cashierId});
@@ -210,13 +224,13 @@ abstract class IsarApiInterface {
   Future<void> loadCounterFromOnline({required int businessId});
 
   String dbPath();
-  Future<Customer?> nGetCustomerByOrderId({required int id});
+  Future<Customer?> nGetCustomerByTransactionId({required int id});
   Future<bool> bindProduct({required int productId, required int tenantId});
   Future<Product?> findProductByTenantId({required int tenantId});
 
   Future<void> deleteAllProducts();
   Future<Stock?> getStockById({required int id});
-  Future<List<Order>> getLocalOrders();
+  Future<List<Transaction>> getLocalTransactions();
 
   /// socials methods
   Stream<Social> socialsStream({required int businessId});

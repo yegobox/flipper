@@ -400,17 +400,17 @@ class ProductViewModel extends TenantViewModel {
     ProxyService.isar.delete(id: id, endPoint: 'discount');
   }
 
-  /// loop through order's items and update item with discount in consideration
+  /// loop through transaction's items and update item with discount in consideration
   /// a discount can not go beyond the item's price
   Future<bool> applyDiscount({required Discount discount}) async {
     int branchId = ProxyService.box.getBranchId()!;
-    Order? order =
-        await ProxyService.keypad.getPendingOrder(branchId: branchId);
+    Transaction? transaction =
+        await ProxyService.keypad.getPendingTransaction(branchId: branchId);
 
-    if (order != null) {
-      List<OrderItem> orderItems =
-          await ProxyService.isar.getOrderItemsByOrderId(orderId: order.id!);
-      for (OrderItem item in orderItems) {
+    if (transaction != null) {
+      List<TransactionItem> transactionItems =
+          await ProxyService.isar.getTransactionItemsByTransactionId(transactionId: transaction.id!);
+      for (TransactionItem item in transactionItems) {
         if (item.price.toInt() <= discount.amount! && item.discount == null) {
           item.discount = item.price;
 

@@ -24,11 +24,11 @@ class SynchronizationService<M extends IJsonSerializable>
       // Convert the model to JSON using the `toJson()` method
       Map<String, dynamic> json = model.toJson();
 
-      if (endpoint == "orders") {
-        List<OrderItem> itemOnOrder = await ProxyService.isar
-            .orderItems(orderId: json["id"], doneWithOrder: true);
-        log(itemOnOrder.length.toString(), name: "ItemOnOrder");
-        String namesString = itemOnOrder.map((item) => item.name).join(',');
+      if (endpoint == "transactions") {
+        List<TransactionItem> itemOnTransaction = await ProxyService.isar
+            .transactionItems(transactionId: json["id"], doneWithTransaction: true);
+        log(itemOnTransaction.length.toString(), name: "ItemOnTransaction");
+        String namesString = itemOnTransaction.map((item) => item.name).join(',');
         json["itemName"] = namesString;
       }
 

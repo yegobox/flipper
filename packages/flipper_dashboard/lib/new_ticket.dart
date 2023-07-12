@@ -7,8 +7,8 @@ import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 class NewTicket extends StatefulWidget {
-  const NewTicket({super.key, required this.order});
-  final Order order;
+  const NewTicket({super.key, required this.transaction});
+  final Transaction transaction;
   @override
   State<NewTicket> createState() => _NewTicketState();
 }
@@ -54,7 +54,7 @@ class _NewTicketState extends State<NewTicket>
                     if (_sub.currentState!.validate()) {
                       model.saveTicket(
                           ticketName: _swipeController.text,
-                          order: widget.order,
+                          transaction: widget.transaction,
                           ticketNote: _noteController.text);
                       _routerService.clearStackAndShow(FlipperAppRoute());
                     }
