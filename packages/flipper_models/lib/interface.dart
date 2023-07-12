@@ -115,7 +115,7 @@ abstract class IsarApiInterface {
   Future<List<Transaction>> getCashOutTransactions();
   Future<List<Transaction>> getLocalCashOutTransactions();
   Future<List<double>> getTransactionsAmountsSum();
-  Future<List<double>> getzLocalTransactionsAmountsSum();
+  Future<List<double>> getLocalTransactionsAmountsSum();
   Future<List<Transaction>> getTransactionsByCustomerId({required int customerId});
   Future<int> deleteTransactionByIndex({required int transactionIndex});
 

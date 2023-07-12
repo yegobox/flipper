@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flipper_models/view_models/cashbook_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -66,7 +68,7 @@ class _CashbookState extends State<Cashbook> {
                   SizedBox(
                     width: MediaQuery.of(context).size.width,
                     height: 200,
-                    child: TransactionList(context,model),
+                    child: TransactionList(context, model),
                   ),
                   SizedBox(height: 10),
                   Row(
@@ -170,19 +172,30 @@ class _CashbookState extends State<Cashbook> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return CircularProgressIndicator();
         } else if (snapshot.hasError) {
+          log(snapshot.error.toString());
           return Text('Error: ${snapshot.error}');
         } else if (!snapshot.hasData) {
+          log('No transactions');
           return Text('No transactions');
         } else {
           final transactions = snapshot.data!;
-
+          if (transactions.length == 0) {
+            return Center(
+              child: Text('No records',
+                  style: GoogleFonts.poppins(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                  )),
+            );
+          }
           return ListView.builder(
             itemCount: transactions.length,
             itemBuilder: (context, index) {
               final transaction = transactions[index];
               return ListTile(
-                leading: 
-                transaction.transactionType == 'in' ? Icon(Icons.add) : Icon(Icons.remove),// Icon before the title
+                leading: transaction.transactionType == 'in'
+                    ? Icon(Icons.add)
+                    : Icon(Icons.remove), // Icon before the title
                 title: Text(transaction.cashReceived.toString()),
                 onTap: () {
                   null;

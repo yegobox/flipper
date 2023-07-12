@@ -295,7 +295,7 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<List<double>> getTransactionsAmountSum() async {
+  Future<List<double>> getTransactionsAmountsSum() async {
     List<double> cashInOut = [];
     double In = 0;
     double Out = 0;
@@ -304,6 +304,8 @@ class IsarAPI<M> implements IsarApiInterface {
         .filter()
         .statusEqualTo(completeStatus)
         .transactionTypeEqualTo('Cash In')
+        .or()
+        .transactionTypeEqualTo('Sale')
         .findAll();
     for (final transaction in cashIn) {
       In = In + transaction.subTotal.toInt();
@@ -325,7 +327,7 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<List<double>> getLocalTransactionsAmountSum() async {
+  Future<List<double>> getLocalTransactionsAmountsSum() async {
     final branchId = ProxyService.box.getBranchId()!;
     List<double> cashInOut = [];
     double In = 0;
