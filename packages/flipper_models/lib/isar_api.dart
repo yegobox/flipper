@@ -160,7 +160,8 @@ class IsarAPI<M> implements IsarApiInterface {
   }) async {
     int branchId = ProxyService.box.getBranchId()!;
 
-    Transaction? existTransaction = await pendingTransaction(branchId: branchId);
+    Transaction? existTransaction =
+        await pendingTransaction(branchId: branchId);
 
     if (existTransaction == null) {
       final transaction = Transaction(
@@ -223,13 +224,15 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<List<Transaction>> getTransactionsByCustomerId({required int customerId}) async {
+  Future<List<Transaction>> getTransactionsByCustomerId(
+      {required int customerId}) async {
     return await isar.transactions
-    .where()
-    .filter()
-    .customerIdEqualTo(customerId)
-    .findAll();
+        .where()
+        .filter()
+        .customerIdEqualTo(customerId)
+        .findAll();
   }
+
   @override
   Future<List<Transaction>> getTransactions() async {
     List<Transaction> transactions = await isar.transactions.where().findAll();
@@ -239,32 +242,33 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<List<Transaction>> getCompletedTransactions() async {
     List<Transaction> completedTransactions = await isar.transactions
-    .where()
-    .filter()
-    .statusEqualTo(completeStatus)
-    .findAll();
+        .where()
+        .filter()
+        .statusEqualTo(completeStatus)
+        .findAll();
     return completedTransactions;
   }
 
   @override
   Future<List<Transaction>> getLocalCashInTransactions() async {
     final branchId = ProxyService.box.getBranchId()!;
-    List<Transaction> localCashInTransactions = await isar.transactions.where()
-    .filter()
-    .statusEqualTo(completeStatus)
-    .transactionTypeEqualTo('Cash In')
-    .branchIdEqualTo(branchId)
-    .findAll();
+    List<Transaction> localCashInTransactions = await isar.transactions
+        .where()
+        .filter()
+        .statusEqualTo(completeStatus)
+        .transactionTypeEqualTo('Cash In')
+        .branchIdEqualTo(branchId)
+        .findAll();
     return localCashInTransactions;
   }
 
   @override
   Future<List<Transaction>> getCashInTransactions() async {
     List<Transaction> cashInTransactions = await isar.transactions
-    .filter()
-    .statusEqualTo(completeStatus)
-    .transactionTypeEqualTo('Cash In')
-    .findAll();
+        .filter()
+        .statusEqualTo(completeStatus)
+        .transactionTypeEqualTo('Cash In')
+        .findAll();
     return cashInTransactions;
   }
 
@@ -272,22 +276,84 @@ class IsarAPI<M> implements IsarApiInterface {
   Future<List<Transaction>> getLocalCashOutTransactions() async {
     final branchId = ProxyService.box.getBranchId()!;
     List<Transaction> localCashOutTransactions = await isar.transactions
-    .filter()
-    .statusEqualTo(completeStatus)
-    .transactionTypeEqualTo('Cash Out')
-    .branchIdEqualTo(branchId)
-    .findAll();
+        .filter()
+        .statusEqualTo(completeStatus)
+        .transactionTypeEqualTo('Cash Out')
+        .branchIdEqualTo(branchId)
+        .findAll();
     return localCashOutTransactions;
   }
 
   @override
   Future<List<Transaction>> getCashOutTransactions() async {
     List<Transaction> cashOutTransactions = await isar.transactions
-    .filter()
-    .statusEqualTo(completeStatus)
-    .transactionTypeEqualTo('Cash Out')
-    .findAll();
+        .filter()
+        .statusEqualTo(completeStatus)
+        .transactionTypeEqualTo('Cash Out')
+        .findAll();
     return cashOutTransactions;
+  }
+
+  @override
+  Future<List<double>> getTransactionsAmountSum() async {
+    List<double> cashInOut = [];
+    double In = 0;
+    double Out = 0;
+    List<Transaction> cashIn = await isar.transactions
+        .where()
+        .filter()
+        .statusEqualTo(completeStatus)
+        .transactionTypeEqualTo('Cash In')
+        .findAll();
+    for (final transaction in cashIn) {
+      In = In + transaction.subTotal.toInt();
+    }
+    cashInOut.add(In);
+
+    List<Transaction> cashOut = await isar.transactions
+        .where()
+        .filter()
+        .statusEqualTo(completeStatus)
+        .transactionTypeEqualTo('Cash Out')
+        .findAll();
+    for (final transaction in cashOut) {
+      Out = Out + transaction.subTotal.toInt();
+    }
+    cashInOut.add(Out);
+
+    return cashInOut;
+  }
+
+  @override
+  Future<List<double>> getLocalTransactionsAmountSum() async {
+    final branchId = ProxyService.box.getBranchId()!;
+    List<double> cashInOut = [];
+    double In = 0;
+    double Out = 0;
+    List<Transaction> cashIn = await isar.transactions
+        .where()
+        .filter()
+        .statusEqualTo(completeStatus)
+        .transactionTypeEqualTo('Cash In')
+        .branchIdEqualTo(branchId)
+        .findAll();
+    for (final transaction in cashIn) {
+      In = In + transaction.subTotal.toInt();
+    }
+    cashInOut.add(In);
+
+    List<Transaction> cashOut = await isar.transactions
+        .where()
+        .filter()
+        .statusEqualTo(completeStatus)
+        .transactionTypeEqualTo('Cash Out')
+        .findAll();
+    for (final transaction in cashOut) {
+      Out = Out + transaction.subTotal.toInt();
+    }
+    cashInOut.add(Out);
+
+    return cashInOut;
   }
 
   @override
@@ -480,7 +546,8 @@ class IsarAPI<M> implements IsarApiInterface {
   Future assingTransactionToCustomer(
       {required int customerId, required int transactionId}) async {
     // get transaction where id = transactionId from db
-    Transaction? transaction = await isar.transactions.filter().idEqualTo(transactionId).findFirst();
+    Transaction? transaction =
+        await isar.transactions.filter().idEqualTo(transactionId).findFirst();
 
     transaction!.customerId = customerId;
     // update transaction to db
@@ -553,8 +620,8 @@ class IsarAPI<M> implements IsarApiInterface {
       {required double cashReceived, required Transaction transaction}) async {
     transaction.status = completeStatus;
 
-    List<TransactionItem> items =
-        await transactionItems(transactionId: transaction.id!, doneWithTransaction: false);
+    List<TransactionItem> items = await transactionItems(
+        transactionId: transaction.id!, doneWithTransaction: false);
 
     transaction.customerChangeDue = (cashReceived - transaction.subTotal);
 
@@ -1201,7 +1268,10 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<List<TransactionItem>> getTransactionItemsByTransactionId(
       {required int? transactionId}) async {
-    return isar.transactionItems.where().transactionIdEqualTo(transactionId!).findAll();
+    return isar.transactionItems
+        .where()
+        .transactionIdEqualTo(transactionId!)
+        .findAll();
   }
 
   @override
@@ -2009,7 +2079,8 @@ class IsarAPI<M> implements IsarApiInterface {
             .branchIdEqualTo(branchId)
             .findAllSync()
             .where((transaction) =>
-                DateTime.parse(transaction.createdAt).difference(date).inDays >= -7)
+                DateTime.parse(transaction.createdAt).difference(date).inDays >=
+                -7)
             .toList();
         if (transactions.isNotEmpty) {
           for (var i = 0; i < transactions.length; i++) {
@@ -2085,7 +2156,10 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<Receipt?> getReceipt({required int transactionId}) {
     return isar.writeTxn(() async {
-      return await isar.receipts.where().transactionIdEqualTo(transactionId).findFirst();
+      return await isar.receipts
+          .where()
+          .transactionIdEqualTo(transactionId)
+          .findFirst();
     });
   }
 
@@ -2917,8 +2991,10 @@ class IsarAPI<M> implements IsarApiInterface {
   Stream<List<TransactionItem>> transactionItemsStream() {
     return pendingTransactionStream().asyncMap((transaction) async {
       if (transaction != null) {
-        final items =
-            await isar.transactionItems.where().transactionIdEqualTo(transaction.id!).findAll();
+        final items = await isar.transactionItems
+            .where()
+            .transactionIdEqualTo(transaction.id!)
+            .findAll();
         return items;
       } else {
         return <TransactionItem>[];
