@@ -522,9 +522,14 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       );
     },
     CashbookRoute.name: (routeData) {
+      final args =
+          routeData.argsAs<CashbookArgs>(orElse: () => const CashbookArgs());
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i2.Cashbook(),
+        child: _i2.Cashbook(
+          key: args.key,
+          hasBeenPressed: args.hasBeenPressed,
+        ),
         opaque: true,
         barrierDismissible: false,
       );
@@ -2004,14 +2009,36 @@ class CheckOutArgs {
 
 /// generated route for
 /// [_i2.Cashbook]
-class CashbookRoute extends _i3.PageRouteInfo<void> {
-  const CashbookRoute()
-      : super(
+class CashbookRoute extends _i3.PageRouteInfo<CashbookArgs> {
+  CashbookRoute({
+    _i4.Key? key,
+    bool hasBeenPressed = false,
+  }) : super(
           CashbookRoute.name,
           path: '/Cashbook',
+          args: CashbookArgs(
+            key: key,
+            hasBeenPressed: hasBeenPressed,
+          ),
         );
 
   static const String name = 'Cashbook';
+}
+
+class CashbookArgs {
+  const CashbookArgs({
+    this.key,
+    this.hasBeenPressed = false,
+  });
+
+  final _i4.Key? key;
+
+  final bool hasBeenPressed;
+
+  @override
+  String toString() {
+    return 'CashbookArgs{key: $key, hasBeenPressed: $hasBeenPressed}';
+  }
 }
 
 /// generated route for

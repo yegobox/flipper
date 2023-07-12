@@ -14,7 +14,6 @@ class _TransactionListState extends State<TransactionList> {
       children: [
         ListTile(
           title: Text('Transaction 1'),
-          
         ),
         ListTile(
           title: Text('Transaction 2'),
