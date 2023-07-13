@@ -27,6 +27,7 @@ class Apps extends StatefulWidget {
         isBigScreen = isBigScreen,
         model = model,
         super(key: key);
+  List<double> cashInAndOut = [1, 1];
 
   @override
   State<Apps> createState() => _AppsState();
@@ -231,12 +232,9 @@ class _AppsState extends State<Apps> {
           child: Column(
             children: [
               SizedBox(height: 80),
-              SemiCircleGauge(
-                dataOnGreenSide: 10000,
-                dataOnRedSide: 5000,
-                startPadding: 10,
-              ),
+              _buildGauge(context, widget.model),
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   _buildCustomPaintWithIcon(
                       iconData: FluentIcons.dialpad_24_regular,
@@ -254,7 +252,7 @@ class _AppsState extends State<Apps> {
                 ],
               ),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   _buildCustomPaintWithIcon(
                       iconData: FluentIcons.communication_20_regular,
@@ -280,6 +278,25 @@ class _AppsState extends State<Apps> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildGauge(
+      BuildContext context, HomeViewModel model) {
+    return FutureBuilder<List<double>>(
+      initialData: null,
+      future:
+          model.getTransactionsAmountsSum(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return SemiCircleGauge(dataOnGreenSide: 0, dataOnRedSide: 0, startPadding: 10);
+        } else {
+          final sums = snapshot.data!;
+          double green = sums.elementAt(0);
+          double red = sums.elementAt(1);
+          return SemiCircleGauge(dataOnGreenSide: green, dataOnRedSide: red, startPadding: 10);
+        }
+      },
     );
   }
 }

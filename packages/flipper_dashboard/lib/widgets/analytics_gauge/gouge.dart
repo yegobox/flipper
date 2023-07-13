@@ -25,9 +25,32 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge> {
   Widget build(BuildContext context) {
     double radius = MediaQuery.of(context).size.height / 6;
     double totalData = widget.dataOnGreenSide + widget.dataOnRedSide;
-    double greenAngle = (widget.dataOnGreenSide / totalData) * math.pi;
-    double redAngle = (widget.dataOnRedSide / totalData) * math.pi;
+    double greenAngle = 0;
+    double redAngle = 0;
 
+    if ((widget.dataOnGreenSide == 0) && (widget.dataOnRedSide == 0)) {
+      greenAngle = math.pi / 2;
+      redAngle = math.pi / 2;
+    } else {
+      greenAngle = (widget.dataOnGreenSide / totalData) * math.pi;
+      redAngle = (widget.dataOnRedSide / totalData) * math.pi;
+    }
+
+    Widget resultText;
+    if (widget.dataOnGreenSide > widget.dataOnRedSide) {
+      resultText = Text('Net profit',
+          style: GoogleFonts.poppins(fontSize: 18, color: Colors.grey));
+    }
+    else if (widget.dataOnRedSide > widget.dataOnGreenSide){
+      resultText = Text('Net loss',
+                    style:
+                        GoogleFonts.poppins(fontSize: 18, color: Colors.grey));
+    }
+    else{
+      resultText = Text('No transations found',
+                    style:
+                        GoogleFonts.poppins(fontSize: 18, color: Colors.grey));
+    }
     return SizedBox(
       width: radius *
           2, // Make width equal to twice the radius for a circular gauge
@@ -42,18 +65,15 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                Text('5000 RWF',
+                Text(
+                    (widget.dataOnGreenSide + widget.dataOnRedSide).toString() +
+                        ' RWF',
                     style: GoogleFonts.poppins(
                         fontSize: 22,
                         color: Colors.black,
                         fontWeight: FontWeight.w600)),
                 SizedBox(height: 10),
-                Text(
-                    widget.dataOnGreenSide > widget.dataOnRedSide
-                        ? 'Net profit'
-                        : 'Net loss',
-                    style:
-                        GoogleFonts.poppins(fontSize: 18, color: Colors.grey)),
+                resultText,
                 SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,

@@ -20,8 +20,7 @@ class Cashbook extends StatefulWidget {
   bool isBigScreen;
   bool newTransactionPressed;
   String newTransactionType;
-  int totalCashIn = 0;
-  int totalCashOut = 0;
+  List<double> cashInAndOut = [1, 1];
   @override
   _CashbookState createState() => _CashbookState();
 }
@@ -40,7 +39,7 @@ class _CashbookState extends State<Cashbook> {
       fireOnViewModelReadyOnce: true,
       viewModelBuilder: () => HomeViewModel(),
       onViewModelReady: (model) async {
-        model.getTransactions();
+        widget.cashInAndOut = await model.getTransactionsAmountsSum();
       },
       builder: (context, model, child) {
         return Scaffold(
@@ -62,8 +61,8 @@ class _CashbookState extends State<Cashbook> {
                 children: [
                   SizedBox(height: 80),
                   SemiCircleGauge(
-                    dataOnGreenSide: 4000,
-                    dataOnRedSide: 5000,
+                    dataOnGreenSide: widget.cashInAndOut.elementAt(0),
+                    dataOnRedSide: widget.cashInAndOut.elementAt(1),
                     startPadding: 10,
                   ),
                   SizedBox(height: 20),
