@@ -922,4 +922,44 @@ class HomeViewModel extends ReactiveViewModel {
   @override
   List<ListenableServiceMixin> get listenableServices =>
       [keypad, app, productService, settingService];
+
+
+
+//Transaction functions
+  Stream<List<Transaction>> getTransactions() {
+    Stream<List<Transaction>> res = ProxyService.isar.getTransactions();
+    return res;
+  }
+
+  Stream<List<Transaction>> getLocalTransactions() {
+    Stream<List<Transaction>> res = ProxyService.isar.getLocalTransactionsStream();
+    return res;
+  }
+
+  Stream<List<Transaction>> getCashInTransactions() {
+    Stream<List<Transaction>> res = ProxyService.isar.getCashInTransactions();
+    return res;
+  }
+
+  Stream<List<Transaction>> getCashOutTransactions() {
+    Stream<List<Transaction>> res = ProxyService.isar.getCashOutTransactions();
+    return res;
+  }
+
+  Future<int> deleteTransactionByIndex(int transactionIndex) async {
+    Transaction? target = await getTransactionByIndex(transactionIndex);
+    await ProxyService.isar.deleteTransactionByIndex(transactionIndex: transactionIndex);
+    notifyListeners();
+    ProxyService.app.pushDataToServer();
+    if (target != null) {
+      return target.id!;
+    }
+    return 403;
+  }
+
+  Future<Transaction?> getTransactionByIndex(int transactionIndex) async {
+    Transaction? res =
+        await ProxyService.isar.getTransactionById(id: transactionIndex);
+    return res;
+  }
 }

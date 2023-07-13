@@ -108,15 +108,16 @@ abstract class IsarApiInterface {
   Future<Transaction?> getTransactionById({required int id});
   Future<List<Transaction>> tickets();
   Stream<List<Transaction>> ticketsStreams();
-  Future<List<Transaction>> getTransactions();
-  Future<List<Transaction>> getCompletedTransactions();
-  Future<List<Transaction>> getCashInTransactions();
-  Future<List<Transaction>> getLocalCashInTransactions();
-  Future<List<Transaction>> getCashOutTransactions();
-  Future<List<Transaction>> getLocalCashOutTransactions();
+  Stream<List<Transaction>> getTransactions();
+  Stream<List<Transaction>> getLocalTransactionsStream();
+  Stream<List<Transaction>> getCompletedTransactions();
+  Stream<List<Transaction>> getCashInTransactions();
+  Stream<List<Transaction>> getLocalCashInTransactions();
+  Stream<List<Transaction>> getCashOutTransactions();
+  Stream<List<Transaction>> getLocalCashOutTransactions();
   Future<List<double>> getTransactionsAmountsSum();
   Future<List<double>> getLocalTransactionsAmountsSum();
-  Future<List<Transaction>> getTransactionsByCustomerId({required int customerId});
+  Stream<List<Transaction>> getTransactionsByCustomerId({required int customerId});
   Future<int> deleteTransactionByIndex({required int transactionIndex});
 
   Future<List<Variant>> getVariantByProductId({required int productId});

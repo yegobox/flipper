@@ -17,24 +17,24 @@ class CashbookViewModel extends ProductViewModel {
 
   bool inUpdateProcess = false;
 
-  Future<List<Transaction>> getTransactions() async {
-    List<Transaction> res = await ProxyService.isar.getTransactions();
-    return res;
+  Stream<List<Transaction>> getTransactions() async* {
+    Stream<List<Transaction>> res = await ProxyService.isar.getTransactions();
+    yield* res;
   }
 
-  Future<List<Transaction>> getLocalTransactions() async {
-    List<Transaction> res = await ProxyService.isar.getLocalTransactions();
-    return res;
+  Stream<List<Transaction>> getLocalTransactions() async* {
+    Stream<List<Transaction>> res = await ProxyService.isar.getLocalTransactionsStream();
+    yield* res;
   }
 
-  Future<List<Transaction>> getCashInTransactions() async {
-    List<Transaction> res = await ProxyService.isar.getCashInTransactions();
-    return res;
+  Stream<List<Transaction>> getCashInTransactions() async* {
+    Stream<List<Transaction>> res = await ProxyService.isar.getCashInTransactions();
+    yield* res;
   }
 
-  Future<List<Transaction>> getCashOutTransactions() async {
-    List<Transaction> res = await ProxyService.isar.getCashOutTransactions();
-    return res;
+  Stream<List<Transaction>> getCashOutTransactions() async* {
+    Stream<List<Transaction>> res = await ProxyService.isar.getCashOutTransactions();
+    yield* res;
   }
 
   Future<int> deleteTransactionByIndex(int transactionIndex) async {

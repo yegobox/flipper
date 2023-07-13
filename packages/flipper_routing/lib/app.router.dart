@@ -522,13 +522,14 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       );
     },
     CashbookRoute.name: (routeData) {
-      final args =
-          routeData.argsAs<CashbookArgs>(orElse: () => const CashbookArgs());
+      final args = routeData.argsAs<CashbookArgs>();
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: _i2.Cashbook(
           key: args.key,
-          hasBeenPressed: args.hasBeenPressed,
+          isBigScreen: args.isBigScreen,
+          newTransactionPressed: args.newTransactionPressed,
+          newTransactionType: args.newTransactionType,
         ),
         opaque: true,
         barrierDismissible: false,
@@ -2012,13 +2013,17 @@ class CheckOutArgs {
 class CashbookRoute extends _i3.PageRouteInfo<CashbookArgs> {
   CashbookRoute({
     _i4.Key? key,
-    bool hasBeenPressed = false,
+    required bool isBigScreen,
+    bool newTransactionPressed = false,
+    String newTransactionType = 'none',
   }) : super(
           CashbookRoute.name,
           path: '/Cashbook',
           args: CashbookArgs(
             key: key,
-            hasBeenPressed: hasBeenPressed,
+            isBigScreen: isBigScreen,
+            newTransactionPressed: newTransactionPressed,
+            newTransactionType: newTransactionType,
           ),
         );
 
@@ -2028,16 +2033,22 @@ class CashbookRoute extends _i3.PageRouteInfo<CashbookArgs> {
 class CashbookArgs {
   const CashbookArgs({
     this.key,
-    this.hasBeenPressed = false,
+    required this.isBigScreen,
+    this.newTransactionPressed = false,
+    this.newTransactionType = 'none',
   });
 
   final _i4.Key? key;
 
-  final bool hasBeenPressed;
+  final bool isBigScreen;
+
+  final bool newTransactionPressed;
+
+  final String newTransactionType;
 
   @override
   String toString() {
-    return 'CashbookArgs{key: $key, hasBeenPressed: $hasBeenPressed}';
+    return 'CashbookArgs{key: $key, isBigScreen: $isBigScreen, newTransactionPressed: $newTransactionPressed, newTransactionType: $newTransactionType}';
   }
 }
 

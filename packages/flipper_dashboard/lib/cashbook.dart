@@ -8,18 +8,26 @@ import 'widgets/analytics_gauge/flipper_analytic.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
+import 'keypad_view.dart';
 
 class Cashbook extends StatefulWidget {
-  Cashbook({Key? key, this.hasBeenPressed = false}) : super(key: key);
-  bool hasBeenPressed;
+  Cashbook(
+      {Key? key,
+      required this.isBigScreen,
+      this.newTransactionPressed = false,
+      this.newTransactionType = 'none'})
+      : super(key: key);
+  bool isBigScreen;
+  bool newTransactionPressed;
+  String newTransactionType;
+  int totalCashIn = 0;
+  int totalCashOut = 0;
   @override
   _CashbookState createState() => _CashbookState();
 }
 
 class _CashbookState extends State<Cashbook> {
   List<int> transactionIds = [];
-  int totalCashIn = 0;
-  int totalCashOut = 0;
 
   @override
   void initState() {
@@ -28,9 +36,9 @@ class _CashbookState extends State<Cashbook> {
 
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<CashbookViewModel>.reactive(
+    return ViewModelBuilder<HomeViewModel>.reactive(
       fireOnViewModelReadyOnce: true,
-      viewModelBuilder: () => CashbookViewModel(),
+      viewModelBuilder: () => HomeViewModel(),
       onViewModelReady: (model) async {
         model.getTransactions();
       },
@@ -54,105 +62,172 @@ class _CashbookState extends State<Cashbook> {
                 children: [
                   SizedBox(height: 80),
                   SemiCircleGauge(
-                    dataOnGreenSide: 10000,
+                    dataOnGreenSide: 4000,
                     dataOnRedSide: 5000,
                     startPadding: 10,
                   ),
                   SizedBox(height: 20),
-                  Text('Today',
-                      style: GoogleFonts.poppins(
-                          fontSize: 17,
-                          color: Colors.lightBlue,
-                          fontWeight: FontWeight.w600)),
-                  SizedBox(height: 20),
                   SizedBox(
-                    width: MediaQuery.of(context).size.width,
-                    height: 200,
-                    child: TransactionList(context, model),
-                  ),
-                  SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(top: 75.0),
-                        child: SizedBox(
-                          height: 45,
-                          width: 140,
-                          child: OutlinedButton(
-                            onPressed: null,
-                            style: ButtonStyle(
-                              side: MaterialStateProperty.all<BorderSide>(
-                                const BorderSide(color: Colors.green),
-                              ),
-                              shape: MaterialStateProperty.resolveWith<
-                                  OutlinedBorder>(
-                                (states) => RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10.0),
-                                ),
-                              ),
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                  const Color(0x008000)),
-                              overlayColor:
-                                  MaterialStateProperty.resolveWith<Color?>(
-                                (Set<MaterialState> states) {
-                                  if (states.contains(MaterialState.hovered)) {
-                                    return Colors.green.withOpacity(0.04);
-                                  }
-                                  if (states.contains(MaterialState.focused) ||
-                                      states.contains(MaterialState.pressed)) {
-                                    return Colors.green.withOpacity(0.12);
-                                  }
-                                  return null; // Defer to the widget's default.
-                                },
-                              ),
-                            ),
-                            child: const Text('Cash In',
-                                style: TextStyle(color: Colors.black)),
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 20),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 75.0),
-                        child: SizedBox(
-                          height: 45,
-                          width: 140,
-                          child: OutlinedButton(
-                            onPressed: null,
-                            style: ButtonStyle(
-                              side: MaterialStateProperty.all<BorderSide>(
-                                const BorderSide(color: Colors.red),
-                              ),
-                              shape: MaterialStateProperty.resolveWith<
-                                  OutlinedBorder>(
-                                (states) => RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10.0),
-                                ),
-                              ),
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                  const Color(0x800000)),
-                              overlayColor:
-                                  MaterialStateProperty.resolveWith<Color?>(
-                                (Set<MaterialState> states) {
-                                  if (states.contains(MaterialState.hovered)) {
-                                    return Colors.red.withOpacity(0.04);
-                                  }
-                                  if (states.contains(MaterialState.focused) ||
-                                      states.contains(MaterialState.pressed)) {
-                                    return Colors.red.withOpacity(0.12);
-                                  }
-                                  return null; // Defer to the widget's default.
-                                },
-                              ),
-                            ),
-                            child: const Text('Cash Out',
-                                style: TextStyle(color: Colors.black)),
-                          ),
-                        ),
-                      ),
-                    ],
-                  )
+                      width: MediaQuery.of(context).size.width,
+                      height: 400,
+                      child: widget.newTransactionPressed == false
+                          ? Column(
+                              children: [
+                                Text('Today',
+                                    style: GoogleFonts.poppins(
+                                        fontSize: 17,
+                                        color: Colors.lightBlue,
+                                        fontWeight: FontWeight.w600)),
+                                SizedBox(height: 20),
+                                TransactionList(context, model),
+                                SizedBox(height: 10),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 75.0),
+                                      child: SizedBox(
+                                        height: 45,
+                                        width: 140,
+                                        child: OutlinedButton(
+                                          onPressed: () {
+                                            setState(() {
+                                              widget.newTransactionPressed =
+                                                  true;
+                                              widget.newTransactionType =
+                                                  'cash_in';
+                                            });
+                                          },
+                                          style: ButtonStyle(
+                                            side: MaterialStateProperty.all<
+                                                BorderSide>(
+                                              const BorderSide(
+                                                  color: Colors.green),
+                                            ),
+                                            shape: MaterialStateProperty
+                                                .resolveWith<OutlinedBorder>(
+                                              (states) =>
+                                                  RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(10.0),
+                                              ),
+                                            ),
+                                            backgroundColor:
+                                                MaterialStateProperty.all<
+                                                        Color>(
+                                                    const Color(0x008000)),
+                                            overlayColor: MaterialStateProperty
+                                                .resolveWith<Color?>(
+                                              (Set<MaterialState> states) {
+                                                if (states.contains(
+                                                    MaterialState.hovered)) {
+                                                  return Colors.green
+                                                      .withOpacity(0.04);
+                                                }
+                                                if (states.contains(
+                                                        MaterialState
+                                                            .focused) ||
+                                                    states.contains(
+                                                        MaterialState
+                                                            .pressed)) {
+                                                  return Colors.green
+                                                      .withOpacity(0.12);
+                                                }
+                                                return null; // Defer to the widget's default.
+                                              },
+                                            ),
+                                          ),
+                                          child: const Text('Cash In',
+                                              style: TextStyle(
+                                                  color: Colors.black)),
+                                        ),
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 75.0),
+                                      child: SizedBox(
+                                        height: 45,
+                                        width: 140,
+                                        child: OutlinedButton(
+                                          onPressed: () {
+                                            setState(() {
+                                              widget.newTransactionPressed =
+                                                  true;
+                                              widget.newTransactionType =
+                                                  'cash_out';
+                                            });
+                                          },
+                                          style: ButtonStyle(
+                                            side: MaterialStateProperty.all<
+                                                BorderSide>(
+                                              const BorderSide(
+                                                  color: Colors.red),
+                                            ),
+                                            shape: MaterialStateProperty
+                                                .resolveWith<OutlinedBorder>(
+                                              (states) =>
+                                                  RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(10.0),
+                                              ),
+                                            ),
+                                            backgroundColor:
+                                                MaterialStateProperty.all<
+                                                        Color>(
+                                                    const Color(0x800000)),
+                                            overlayColor: MaterialStateProperty
+                                                .resolveWith<Color?>(
+                                              (Set<MaterialState> states) {
+                                                if (states.contains(
+                                                    MaterialState.hovered)) {
+                                                  return Colors.red
+                                                      .withOpacity(0.04);
+                                                }
+                                                if (states.contains(
+                                                        MaterialState
+                                                            .focused) ||
+                                                    states.contains(
+                                                        MaterialState
+                                                            .pressed)) {
+                                                  return Colors.red
+                                                      .withOpacity(0.12);
+                                                }
+                                                return null; // Defer to the widget's default.
+                                              },
+                                            ),
+                                          ),
+                                          child: const Text('Cash Out',
+                                              style: TextStyle(
+                                                  color: Colors.black)),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              ],
+                            )
+                          : Column(
+                              children: [
+                                if (widget.newTransactionType == 'cash_in')
+                                  Text('Cash In',
+                                      style: GoogleFonts.poppins(
+                                          fontSize: 17,
+                                          fontWeight: FontWeight.bold))
+                                else if (widget.newTransactionType ==
+                                    'cash_out')
+                                  Text('Cash Out',
+                                      style: GoogleFonts.poppins(
+                                          fontSize: 17,
+                                          fontWeight: FontWeight.bold)),
+                                SizedBox(height: 10),
+                                KeyPadView(
+                                  model: model,
+                                  isBigScreen: widget.isBigScreen,
+                                )
+                              ],
+                            ))
+
                   //List of transactions will go here
                   //Then the add transaction buttons underneath
                 ],
@@ -164,12 +239,13 @@ class _CashbookState extends State<Cashbook> {
     );
   }
 
-  Widget TransactionList(BuildContext context, CashbookViewModel model) {
-    return FutureBuilder<List<Transaction>>(
+  Widget TransactionList(BuildContext context, HomeViewModel model) {
+    return StreamBuilder<List<Transaction>>(
       initialData: null,
-      future: ProxyService.isar.getTransactions(),
+      stream: ProxyService.isar.getTransactions(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
+          log("waiting");
           return CircularProgressIndicator();
         } else if (snapshot.hasError) {
           log(snapshot.error.toString());
@@ -188,15 +264,19 @@ class _CashbookState extends State<Cashbook> {
                   )),
             );
           }
+          log(transactions[0].toString());
           return ListView.builder(
+            shrinkWrap: true,
             itemCount: transactions.length,
             itemBuilder: (context, index) {
               final transaction = transactions[index];
               return ListTile(
-                leading: transaction.transactionType == 'in'
-                    ? Icon(Icons.add)
-                    : Icon(Icons.remove), // Icon before the title
-                title: Text(transaction.cashReceived.toString()),
+                leading: transaction.transactionType == 'cash_out'
+                    ? Icon(Icons.remove)
+                    : Icon(Icons.add), // Icon before the title
+                title: Text(transaction.subTotal.toString() + ' RWF'),
+                subtitle: Text(transaction.status.toString()),
+
                 onTap: () {
                   null;
                   // Navigator.push(

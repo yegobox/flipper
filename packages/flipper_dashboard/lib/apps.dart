@@ -48,7 +48,8 @@ class _AppsState extends State<Apps> {
             ));
             return;
           case "Cashbook":
-            _routerService.navigateTo(CashbookRoute());
+            _routerService
+                .navigateTo(CashbookRoute(isBigScreen: widget.isBigScreen));
             return;
           case "Settings":
             _routerService.navigateTo(SettingPageRoute());
@@ -80,30 +81,107 @@ class _AppsState extends State<Apps> {
         }
       },
       child: Padding(
-        padding: const EdgeInsets.only(left: 10.0, right: 10.0, top: 40),
-        child: Column(
-          children: [
-            CustomPaint(
-              painter: RPSCustomPainter(
-                backgroundColor: backgroundColor,
-              ),
-              child: SizedBox(
-                height: 50,
-                width: 50,
-                child: Icon(
-                  iconData,
-                  color: Colors.white,
+          padding: const EdgeInsets.only(left: 10.0, right: 10.0, top: 10),
+          child: Column(
+            children: [
+              Container(
+                width: 59,
+                height: 59,
+                clipBehavior: Clip.antiAlias,
+                decoration: ShapeDecoration(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                ),
+                child: Stack(
+                  children: [
+                    Positioned(
+                      left: 0,
+                      top: 0,
+                      child: Container(
+                        width: 59,
+                        height: 59,
+                        decoration: ShapeDecoration(
+                          color:
+                              Colors.black.withOpacity(0.00009999999747378752),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(2)),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      left: 0,
+                      top: 0,
+                      child: Container(
+                        width: 59,
+                        height: 59,
+                        decoration: ShapeDecoration(
+                          color: backgroundColor,
+                          shape: RoundedRectangleBorder(
+                            side: BorderSide(
+                              width: 0.12,
+                              strokeAlign: BorderSide.strokeAlignCenter,
+                            ),
+                          ),
+                        ),
+                        child: Stack(
+                          children: [
+                            Positioned(
+                              left: 0,
+                              top: 0,
+                              child: Container(
+                                width: 59,
+                                height: 59,
+                                decoration: ShapeDecoration(
+                                  shape: RoundedRectangleBorder(
+                                    side: BorderSide(
+                                      width: 0.12,
+                                      strokeAlign: BorderSide.strokeAlignCenter,
+                                    ),
+                                  ),
+                                ),
+                                child: Stack(
+                                  children: [
+                                    Positioned(
+                                      left: 0,
+                                      top: 0,
+                                      child: Container(
+                                        width: 59,
+                                        height: 59,
+                                        child: SizedBox(
+                                          child: Icon(
+                                            iconData,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: backgroundColor,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              left: 0,
+                              top: 0,
+                              child: Container(width: 59, height: 59),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-            SizedBox(height: 8),
-            Text(
-              page,
-              style: primaryTextStyle.copyWith(color: Colors.grey),
-            )
-          ],
-        ),
-      ),
+              SizedBox(height: 8),
+              Text(
+                page,
+                style: primaryTextStyle.copyWith(color: Colors.grey),
+              )
+            ],
+          )),
     );
   }
 

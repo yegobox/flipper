@@ -48,7 +48,10 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge> {
                         color: Colors.black,
                         fontWeight: FontWeight.w600)),
                 SizedBox(height: 10),
-                Text('Net profit',
+                Text(
+                    widget.dataOnGreenSide > widget.dataOnRedSide
+                        ? 'Net profit'
+                        : 'Net loss',
                     style:
                         GoogleFonts.poppins(fontSize: 18, color: Colors.grey)),
                 SizedBox(height: 20),

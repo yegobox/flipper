@@ -224,73 +224,99 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<List<Transaction>> getTransactionsByCustomerId(
-      {required int customerId}) async {
-    return await isar.transactions
+  Stream<List<Transaction>> getTransactionsByCustomerId(
+      {required int customerId}) async* {
+    yield* await isar.transactions
         .where()
         .filter()
         .customerIdEqualTo(customerId)
-        .findAll();
+        .watch();
   }
 
   @override
-  Future<List<Transaction>> getTransactions() async {
-    List<Transaction> transactions = await isar.transactions.where().findAll();
+  Stream<List<Transaction>> getTransactions() {
+    Stream<List<Transaction>> transactions =
+        isar.transactions.where().build().watch(fireImmediately: true);
     return transactions;
   }
 
   @override
-  Future<List<Transaction>> getCompletedTransactions() async {
-    List<Transaction> completedTransactions = await isar.transactions
+  Stream<List<Transaction>> getLocalTransactionsStream() {
+    final branchId = ProxyService.box.getBranchId()!;
+    Stream<List<Transaction>> transactions = isar.transactions
+        .where()
+        .filter()
+        .branchIdEqualTo(branchId)
+        .build()
+        .watch(fireImmediately: true);
+    return transactions;
+  }
+
+  @override
+  Stream<List<Transaction>> getCompletedTransactions() {
+    Stream<List<Transaction>> completedTransactions = isar.transactions
         .where()
         .filter()
         .statusEqualTo(completeStatus)
-        .findAll();
+        .build()
+        .watch(fireImmediately: true);
     return completedTransactions;
   }
 
   @override
-  Future<List<Transaction>> getLocalCashInTransactions() async {
+  Stream<List<Transaction>> getLocalCashInTransactions() {
     final branchId = ProxyService.box.getBranchId()!;
-    List<Transaction> localCashInTransactions = await isar.transactions
+    Stream<List<Transaction>> localCashInTransactions = isar.transactions
         .where()
         .filter()
         .statusEqualTo(completeStatus)
         .transactionTypeEqualTo('Cash In')
+        .or()
+        .transactionTypeEqualTo('Sale')
+        .or()
+        .transactionTypeEqualTo('custom')
         .branchIdEqualTo(branchId)
-        .findAll();
+        .build()
+        .watch(fireImmediately: true);
     return localCashInTransactions;
   }
 
   @override
-  Future<List<Transaction>> getCashInTransactions() async {
-    List<Transaction> cashInTransactions = await isar.transactions
+  Stream<List<Transaction>> getCashInTransactions() {
+    Stream<List<Transaction>> cashInTransactions = isar.transactions
         .filter()
         .statusEqualTo(completeStatus)
         .transactionTypeEqualTo('Cash In')
-        .findAll();
+        .or()
+        .transactionTypeEqualTo('Sale')
+        .or()
+        .transactionTypeEqualTo('custom')
+        .build()
+        .watch(fireImmediately: true);
     return cashInTransactions;
   }
 
   @override
-  Future<List<Transaction>> getLocalCashOutTransactions() async {
+  Stream<List<Transaction>> getLocalCashOutTransactions() {
     final branchId = ProxyService.box.getBranchId()!;
-    List<Transaction> localCashOutTransactions = await isar.transactions
+    Stream<List<Transaction>> localCashOutTransactions = isar.transactions
         .filter()
         .statusEqualTo(completeStatus)
         .transactionTypeEqualTo('Cash Out')
         .branchIdEqualTo(branchId)
-        .findAll();
+        .build()
+        .watch(fireImmediately: true);
     return localCashOutTransactions;
   }
 
   @override
-  Future<List<Transaction>> getCashOutTransactions() async {
-    List<Transaction> cashOutTransactions = await isar.transactions
+  Stream<List<Transaction>> getCashOutTransactions() {
+    Stream<List<Transaction>> cashOutTransactions = isar.transactions
         .filter()
         .statusEqualTo(completeStatus)
         .transactionTypeEqualTo('Cash Out')
-        .findAll();
+        .build()
+        .watch(fireImmediately: true);
     return cashOutTransactions;
   }
 
@@ -306,6 +332,8 @@ class IsarAPI<M> implements IsarApiInterface {
         .transactionTypeEqualTo('Cash In')
         .or()
         .transactionTypeEqualTo('Sale')
+        .or()
+        .transactionTypeEqualTo('custom')
         .findAll();
     for (final transaction in cashIn) {
       In = In + transaction.subTotal.toInt();
@@ -337,6 +365,10 @@ class IsarAPI<M> implements IsarApiInterface {
         .filter()
         .statusEqualTo(completeStatus)
         .transactionTypeEqualTo('Cash In')
+        .or()
+        .transactionTypeEqualTo('Sale')
+        .or()
+        .transactionTypeEqualTo('custom')
         .branchIdEqualTo(branchId)
         .findAll();
     for (final transaction in cashIn) {
