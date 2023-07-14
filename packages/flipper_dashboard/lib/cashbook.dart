@@ -1,6 +1,6 @@
 import 'dart:developer';
 
-import 'package:flipper_models/view_models/cashbook_viewmodel.dart';
+import 'package:flipper_dashboard/create/category_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'customappbar.dart';
@@ -20,6 +20,17 @@ class Cashbook extends StatefulWidget {
   bool isBigScreen;
   bool newTransactionPressed;
   String newTransactionType;
+  String transactionPeriod = "Today";
+  List<String> transactionPeriodOptions = [
+    "Today",
+    "This Week",
+    "This Month",
+    "This Year"
+  ];
+
+  String profitType = "Net Profit";
+  List<String> profitTypeOptions = ["Net Profit", "Gross Profit"];
+
   List<double> cashInAndOut = [1, 1];
   @override
   _CashbookState createState() => _CashbookState();
@@ -38,9 +49,7 @@ class _CashbookState extends State<Cashbook> {
     return ViewModelBuilder<HomeViewModel>.reactive(
       fireOnViewModelReadyOnce: true,
       viewModelBuilder: () => HomeViewModel(),
-      onViewModelReady: (model) async {
-        widget.cashInAndOut = await model.getTransactionsAmountsSum();
-      },
+      onViewModelReady: (model) async {},
       builder: (context, model, child) {
         return Scaffold(
           appBar: CustomAppBar(
@@ -59,26 +68,30 @@ class _CashbookState extends State<Cashbook> {
               scrollDirection: Axis.horizontal,
               child: Column(
                 children: [
+                  Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        PeriodDropDown(),
+                        SizedBox(width: 40),
+                        ProfitDropDown(),
+                      ]),
                   SizedBox(height: 80),
-                  SemiCircleGauge(
-                    dataOnGreenSide: widget.cashInAndOut.elementAt(0),
-                    dataOnRedSide: widget.cashInAndOut.elementAt(1),
-                    startPadding: 10,
-                  ),
-                  SizedBox(height: 20),
+                  _buildGauge(context, model),
                   SizedBox(
                       width: MediaQuery.of(context).size.width,
                       height: 400,
                       child: widget.newTransactionPressed == false
                           ? Column(
                               children: [
-                                Text('Today',
+                                Text(widget.transactionPeriod,
                                     style: GoogleFonts.poppins(
                                         fontSize: 17,
                                         color: Colors.lightBlue,
                                         fontWeight: FontWeight.w600)),
                                 SizedBox(height: 20),
-                                TransactionList(context, model),
+                                Expanded(
+                                  child: TransactionList(context, model),
+                                ),
                                 SizedBox(height: 10),
                                 Row(
                                   mainAxisAlignment:
@@ -208,21 +221,30 @@ class _CashbookState extends State<Cashbook> {
                             )
                           : Column(
                               children: [
-                                if (widget.newTransactionType == 'cash_in')
-                                  Text('Cash In',
-                                      style: GoogleFonts.poppins(
-                                          fontSize: 17,
-                                          fontWeight: FontWeight.bold))
-                                else if (widget.newTransactionType ==
-                                    'cash_out')
-                                  Text('Cash Out',
-                                      style: GoogleFonts.poppins(
-                                          fontSize: 17,
-                                          fontWeight: FontWeight.bold)),
-                                SizedBox(height: 10),
-                                KeyPadView(
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    if (widget.newTransactionType == 'cash_in')
+                                      Text('Record Cash In',
+                                          style: GoogleFonts.poppins(
+                                              fontSize: 17,
+                                              fontWeight: FontWeight.bold))
+                                    else if (widget.newTransactionType ==
+                                        'cash_out')
+                                      Text('Record Cash Out',
+                                          style: GoogleFonts.poppins(
+                                              fontSize: 17,
+                                              fontWeight: FontWeight.bold)),
+                                    CategorySelector(
+                                        categories: model.categories)
+                                  ],
+                                ),
+                                KeyPadView.cashBookMode(
                                   model: model,
                                   isBigScreen: widget.isBigScreen,
+                                  transactionMode: true,
+                                  transactionType: widget.newTransactionType,
                                 )
                               ],
                             ))
@@ -234,6 +256,25 @@ class _CashbookState extends State<Cashbook> {
             ),
           ),
         );
+      },
+    );
+  }
+
+  Widget _buildGauge(BuildContext context, HomeViewModel model) {
+    return FutureBuilder<List<double>>(
+      initialData: null,
+      future: model.getTransactionsAmountsSum(period: widget.transactionPeriod),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return SemiCircleGauge(
+              dataOnGreenSide: 0, dataOnRedSide: 0, startPadding: 10);
+        } else {
+          final sums = snapshot.data!;
+          double green = sums.elementAt(0);
+          double red = sums.elementAt(1);
+          return SemiCircleGauge(
+              dataOnGreenSide: green, dataOnRedSide: red, startPadding: 10);
+        }
       },
     );
   }
@@ -251,19 +292,21 @@ class _CashbookState extends State<Cashbook> {
           return Text('Error: ${snapshot.error}');
         } else if (!snapshot.hasData) {
           log('No transactions');
-          return Text('No transactions');
+          return Text(
+              'No records for ' + widget.transactionPeriod.toLowerCase());
         } else {
           final transactions = snapshot.data!;
           if (transactions.length == 0) {
             return Center(
-              child: Text('No records',
+              child: Text(
+                  'No records for ' + widget.transactionPeriod.toLowerCase(),
                   style: GoogleFonts.poppins(
                     fontSize: 17,
                     fontWeight: FontWeight.w600,
                   )),
             );
           }
-          log(transactions[0].toString());
+          log(transactions.length.toString() + "h");
           return ListView.builder(
             shrinkWrap: true,
             itemCount: transactions.length,
@@ -289,6 +332,44 @@ class _CashbookState extends State<Cashbook> {
             },
           );
         }
+      },
+    );
+  }
+
+  Widget PeriodDropDown() {
+    return DropdownButton<String>(
+      value: widget.transactionPeriod,
+      items: widget.transactionPeriodOptions
+          .map<DropdownMenuItem<String>>((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(
+            value,
+          ),
+        );
+      }).toList(),
+      onChanged: (String? newPeriod) {
+        setState(() {
+          widget.transactionPeriod = newPeriod!;
+        });
+      },
+    );
+  }
+
+  Widget ProfitDropDown() {
+    return DropdownButton<String>(
+      value: widget.profitType,
+      items: widget.profitTypeOptions
+          .map<DropdownMenuItem<String>>((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(value),
+        );
+      }).toList(),
+      onChanged: (String? newProfitType) {
+        setState(() {
+          widget.profitType = newProfitType!;
+        });
       },
     );
   }

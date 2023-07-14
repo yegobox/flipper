@@ -1,6 +1,7 @@
 library flipper_models;
 
 import 'dart:async';
+import 'dart:developer';
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_routing/receipt_types.dart';
@@ -34,6 +35,7 @@ class HomeViewModel extends ReactiveViewModel {
   Locale? klocale;
 
   Locale? get locale => klocale;
+  get categories => app.categories;
 
   String? getSetting() {
     klocale = Locale(ProxyService.box.read(key: 'defaultLanguage') ?? 'en');
@@ -92,9 +94,10 @@ class HomeViewModel extends ReactiveViewModel {
   void keyboardKeyPressed({required String key}) async {
     ProxyService.analytics.trackEvent("keypad", {'feature_name': 'keypad_tab'});
 
-    Transaction? pendingTransaction = await ProxyService.isar.manageTransaction();
-    List<TransactionItem> items = await ProxyService.isar
-        .transactionItems(transactionId: pendingTransaction.id!, doneWithTransaction: false);
+    Transaction? pendingTransaction =
+        await ProxyService.isar.manageTransaction();
+    List<TransactionItem> items = await ProxyService.isar.transactionItems(
+        transactionId: pendingTransaction.id!, doneWithTransaction: false);
 
     switch (key) {
       case 'C':
@@ -123,17 +126,20 @@ class HomeViewModel extends ReactiveViewModel {
     }
   }
 
-  void handleClearKey(List<TransactionItem> items, Transaction pendingTransaction) async {
+  void handleClearKey(
+      List<TransactionItem> items, Transaction pendingTransaction) async {
     if (items.isEmpty) {
       ProxyService.keypad.reset();
       return;
     }
 
     TransactionItem itemToDelete = items.last;
-    await ProxyService.isar.delete(id: itemToDelete.id!, endPoint: 'transactionItem');
+    await ProxyService.isar
+        .delete(id: itemToDelete.id!, endPoint: 'transactionItem');
 
     List<TransactionItem> updatedItems = await ProxyService.isar
-        .transactionItems(transactionId: pendingTransaction.id!, doneWithTransaction: false);
+        .transactionItems(
+            transactionId: pendingTransaction.id!, doneWithTransaction: false);
     pendingTransaction.subTotal =
         updatedItems.fold(0, (a, b) => a + (b.price * b.qty));
     pendingTransaction.updatedAt = DateTime.now().toIso8601String();
@@ -147,7 +153,8 @@ class HomeViewModel extends ReactiveViewModel {
     rebuildUi();
   }
 
-  void handleSingleDigitKey(List<TransactionItem> items, Transaction pendingTransaction) async {
+  void handleSingleDigitKey(
+      List<TransactionItem> items, Transaction pendingTransaction) async {
     double amount = double.parse(ProxyService.keypad.key);
 
     if (amount == 0.0) return;
@@ -166,24 +173,27 @@ class HomeViewModel extends ReactiveViewModel {
         : variation.productName;
 
     if (items.isEmpty) {
-      TransactionItem newItem =
-          newTransactionItem(amount, variation, name, pendingTransaction, stock!);
-      await ProxyService.isar.addTransactionItem(transaction: pendingTransaction, item: newItem);
-      items = await ProxyService.isar
-          .transactionItems(transactionId: pendingTransaction.id!, doneWithTransaction: false);
+      TransactionItem newItem = newTransactionItem(
+          amount, variation, name, pendingTransaction, stock!);
+      await ProxyService.isar
+          .addTransactionItem(transaction: pendingTransaction, item: newItem);
+      items = await ProxyService.isar.transactionItems(
+          transactionId: pendingTransaction.id!, doneWithTransaction: false);
     } else {
-      items = await ProxyService.isar
-          .transactionItems(transactionId: pendingTransaction.id!, doneWithTransaction: false);
+      items = await ProxyService.isar.transactionItems(
+          transactionId: pendingTransaction.id!, doneWithTransaction: false);
     }
 
-    pendingTransaction.subTotal = items.fold(0, (a, b) => a + (b.price * b.qty));
+    pendingTransaction.subTotal =
+        items.fold(0, (a, b) => a + (b.price * b.qty));
     pendingTransaction.updatedAt = DateTime.now().toIso8601String();
     await ProxyService.isar.update(data: pendingTransaction);
 
     keypad.setTransaction(pendingTransaction);
   }
 
-  void handleMultipleDigitKey(List<TransactionItem> items, Transaction pendingTransaction) async {
+  void handleMultipleDigitKey(
+      List<TransactionItem> items, Transaction pendingTransaction) async {
     double amount = double.parse(ProxyService.keypad.key);
     Variant? variation = await ProxyService.isar.getCustomVariant();
     if (variation == null) return;
@@ -207,19 +217,19 @@ class HomeViewModel extends ReactiveViewModel {
         existTransactionItem.qty = existTransactionItem.qty + 1;
         existTransactionItem.price = amount / 1; // price of one unit
 
-        List<TransactionItem> items = await ProxyService.isar
-            .transactionItems(transactionId: pendingTransaction.id!, doneWithTransaction: false);
+        List<TransactionItem> items = await ProxyService.isar.transactionItems(
+            transactionId: pendingTransaction.id!, doneWithTransaction: false);
         pendingTransaction.subTotal =
             items.fold(0, (a, b) => a + (b.price * b.qty) + amount);
         pendingTransaction.updatedAt = DateTime.now().toIso8601String();
         ProxyService.isar.update(data: pendingTransaction);
         ProxyService.isar.update(data: existTransactionItem);
       } else {
-        TransactionItem newItem =
-            newTransactionItem(amount, variation, name, pendingTransaction, stock!);
+        TransactionItem newItem = newTransactionItem(
+            amount, variation, name, pendingTransaction, stock!);
 
-        List<TransactionItem> items = await ProxyService.isar
-            .transactionItems(transactionId: pendingTransaction.id!, doneWithTransaction: false);
+        List<TransactionItem> items = await ProxyService.isar.transactionItems(
+            transactionId: pendingTransaction.id!, doneWithTransaction: false);
         pendingTransaction.subTotal =
             items.fold(0, (a, b) => a + (b.price * b.qty) + amount);
         pendingTransaction.updatedAt = DateTime.now().toIso8601String();
@@ -235,18 +245,19 @@ class HomeViewModel extends ReactiveViewModel {
       item.taxAmt = double.parse((amount * 18 / 118).toStringAsFixed(2));
       await ProxyService.isar.update(data: item);
 
-      pendingTransaction.subTotal = items.fold(0, (a, b) => a + (b.price * b.qty));
+      pendingTransaction.subTotal =
+          items.fold(0, (a, b) => a + (b.price * b.qty));
       pendingTransaction.updatedAt = DateTime.now().toIso8601String();
       await ProxyService.isar.update(data: pendingTransaction);
 
-      Transaction? updatedTransaction =
-          await ProxyService.isar.getTransactionById(id: pendingTransaction.id!);
+      Transaction? updatedTransaction = await ProxyService.isar
+          .getTransactionById(id: pendingTransaction.id!);
       keypad.setTransaction(updatedTransaction);
     }
   }
 
-  TransactionItem newTransactionItem(double amount, Variant variation, String name,
-      Transaction pendingTransaction, Stock stock) {
+  TransactionItem newTransactionItem(double amount, Variant variation,
+      String name, Transaction pendingTransaction, Stock stock) {
     return TransactionItem(
       id: syncIdInt(),
       qty: 1,
@@ -367,10 +378,12 @@ class HomeViewModel extends ReactiveViewModel {
         : variation.productName;
 
     /// if variation  given it exist in the transactionItems of currentPending transaction then we update the transaction with new count
-    Transaction pendingTransaction = await ProxyService.isar.manageTransaction();
+    Transaction pendingTransaction =
+        await ProxyService.isar.manageTransaction();
 
-    TransactionItem? existTransactionItem = await ProxyService.isar.getTransactionItemByVariantId(
-        variantId: variationId, transactionId: pendingTransaction.id!);
+    TransactionItem? existTransactionItem = await ProxyService.isar
+        .getTransactionItemByVariantId(
+            variantId: variationId, transactionId: pendingTransaction.id!);
     if (stock == null) {
       /// directly create stock for this variant, there is cases seen on production
       /// where a variant might not have a stock related to it, this might be because of faulty sync
@@ -411,9 +424,10 @@ class HomeViewModel extends ReactiveViewModel {
       item.qty += quantity.toDouble();
       item.price = amountTotal / quantity;
 
-      List<TransactionItem> items = await ProxyService.isar
-          .transactionItems(transactionId: pendingTransaction.id!, doneWithTransaction: false);
-      pendingTransaction.subTotal = items.fold(0, (a, b) => a + (b.price * b.qty));
+      List<TransactionItem> items = await ProxyService.isar.transactionItems(
+          transactionId: pendingTransaction.id!, doneWithTransaction: false);
+      pendingTransaction.subTotal =
+          items.fold(0, (a, b) => a + (b.price * b.qty));
       pendingTransaction.updatedAt = DateTime.now().toIso8601String();
       await ProxyService.isar.update(data: pendingTransaction);
       await ProxyService.isar.update(data: item);
@@ -470,12 +484,14 @@ class HomeViewModel extends ReactiveViewModel {
       doneWithTransaction: false,
     );
 
-    List<TransactionItem> items = await ProxyService.isar
-        .transactionItems(transactionId: pendingTransaction.id!, doneWithTransaction: false);
-    pendingTransaction.subTotal = items.fold(0, (a, b) => a + (b.price * b.qty));
+    List<TransactionItem> items = await ProxyService.isar.transactionItems(
+        transactionId: pendingTransaction.id!, doneWithTransaction: false);
+    pendingTransaction.subTotal =
+        items.fold(0, (a, b) => a + (b.price * b.qty));
     pendingTransaction.updatedAt = DateTime.now().toIso8601String();
     await ProxyService.isar.update(data: pendingTransaction);
-    await ProxyService.isar.addTransactionItem(transaction: pendingTransaction, item: newItem);
+    await ProxyService.isar
+        .addTransactionItem(transaction: pendingTransaction, item: newItem);
   }
 
   Future collectSPENNPayment(
@@ -486,16 +502,16 @@ class HomeViewModel extends ReactiveViewModel {
     }
     await ProxyService.isar
         .spennPayment(amount: cashReceived, phoneNumber: phoneNumber);
-    await ProxyService.isar
-        .collectCashPayment(cashReceived: cashReceived, transaction: kTransaction!);
+    await ProxyService.isar.collectCashPayment(
+        cashReceived: cashReceived, transaction: kTransaction!);
   }
 
   Future<void> collectCashPayment() async {
     if (kTransaction == null && amountTotal != 0.0) {
       return;
     }
-    await ProxyService.isar
-        .collectCashPayment(cashReceived: keypad.cashReceived, transaction: kTransaction!);
+    await ProxyService.isar.collectCashPayment(
+        cashReceived: keypad.cashReceived, transaction: kTransaction!);
   }
 
   void registerLocation() async {
@@ -532,8 +548,8 @@ class HomeViewModel extends ReactiveViewModel {
 
   Future<void> assignToSale(
       {required int customerId, required int transactionId}) async {
-    ProxyService.isar
-        .assingTransactionToCustomer(customerId: customerId, transactionId: transactionId);
+    ProxyService.isar.assingTransactionToCustomer(
+        customerId: customerId, transactionId: transactionId);
   }
 
   /// as of when one sale is complete trying to sell second product
@@ -548,7 +564,8 @@ class HomeViewModel extends ReactiveViewModel {
     if (kTransaction == null) {
       return;
     }
-    Transaction? transaction = await ProxyService.isar.getTransactionById(id: kTransaction!.id!);
+    Transaction? transaction =
+        await ProxyService.isar.getTransactionById(id: kTransaction!.id!);
     // Map map = transaction!;
     transaction!.note = note;
     ProxyService.isar.update(data: transaction);
@@ -571,11 +588,13 @@ class HomeViewModel extends ReactiveViewModel {
   }
 
   Future resumeTransaction({required int ticketId}) async {
-    Transaction? _transaction = await ProxyService.isar.getTransactionById(id: ticketId);
+    Transaction? _transaction =
+        await ProxyService.isar.getTransactionById(id: ticketId);
 
     _transaction!.status = pendingStatus;
     await ProxyService.isar.update(data: _transaction);
-    await keypad.getPendingTransaction(branchId: ProxyService.box.getBranchId()!);
+    await keypad.getPendingTransaction(
+        branchId: ProxyService.box.getBranchId()!);
     await await updatePayable();
   }
 
@@ -596,8 +615,8 @@ class HomeViewModel extends ReactiveViewModel {
 
     if (keypad.transaction == null) return 0.0;
 
-    List<TransactionItem> items = await ProxyService.isar
-        .transactionItems(transactionId: keypad.transaction!.id!, doneWithTransaction: false);
+    List<TransactionItem> items = await ProxyService.isar.transactionItems(
+        transactionId: keypad.transaction!.id!, doneWithTransaction: false);
 
     num? totalPayable = items.fold(0, (a, b) => a! + (b.price * b.qty));
 
@@ -623,9 +642,10 @@ class HomeViewModel extends ReactiveViewModel {
       {required int id, required BuildContext context}) async {
     await ProxyService.isar.delete(id: id, endPoint: 'transactionItem');
 
-    Transaction? pendingTransaction = await ProxyService.isar.manageTransaction();
-    List<TransactionItem> items = await ProxyService.isar
-        .transactionItems(transactionId: pendingTransaction.id!, doneWithTransaction: false);
+    Transaction? pendingTransaction =
+        await ProxyService.isar.manageTransaction();
+    List<TransactionItem> items = await ProxyService.isar.transactionItems(
+        transactionId: pendingTransaction.id!, doneWithTransaction: false);
 
     updatePayable();
 
@@ -670,7 +690,8 @@ class HomeViewModel extends ReactiveViewModel {
     Set<TransactionItem> allItems = {};
     for (Transaction completedTransaction in completedTransactions) {
       List<TransactionItem> transactionItems = await ProxyService.isar
-          .getTransactionItemsByTransactionId(transactionId: completedTransaction.id!);
+          .getTransactionItemsByTransactionId(
+              transactionId: completedTransaction.id!);
       allItems.addAll(transactionItems.toSet());
     }
     transactionItems = allItems.toList();
@@ -684,8 +705,10 @@ class HomeViewModel extends ReactiveViewModel {
       required Transaction otransaction}) async {
     // get receipt from isar related to this transaction
     // get refreshed transaction with cash received
-    Transaction? transaction = await ProxyService.isar.getTransactionById(id: otransaction.id!);
-    Receipt? receipt = await ProxyService.isar.getReceipt(transactionId: transaction!.id!);
+    Transaction? transaction =
+        await ProxyService.isar.getTransactionById(id: otransaction.id!);
+    Receipt? receipt =
+        await ProxyService.isar.getReceipt(transactionId: transaction!.id!);
     // get time formatted like hhmmss
     Print print = Print();
     print.feed(items);
@@ -738,8 +761,8 @@ class HomeViewModel extends ReactiveViewModel {
       callback("The counter is not up to date");
       return false;
     }
-    Customer? customer =
-        await ProxyService.isar.nGetCustomerByTransactionId(id: transaction.id!);
+    Customer? customer = await ProxyService.isar
+        .nGetCustomerByTransactionId(id: transaction.id!);
     ReceiptSignature? receiptSignature = await ProxyService.tax.createReceipt(
         transaction: transaction,
         items: items,
@@ -844,7 +867,8 @@ class HomeViewModel extends ReactiveViewModel {
   }
 
   List<TransactionItem> _completedTransactionItems = [];
-  List<TransactionItem> get completedTransactionItemsList => _completedTransactionItems;
+  List<TransactionItem> get completedTransactionItemsList =>
+      _completedTransactionItems;
   set completedTransactionItemsList(List<TransactionItem> value) {
     _completedTransactionItems = value;
     notifyListeners();
@@ -923,21 +947,23 @@ class HomeViewModel extends ReactiveViewModel {
   List<ListenableServiceMixin> get listenableServices =>
       [keypad, app, productService, settingService];
 
-
-
 //Transaction functions
   Stream<List<Transaction>> getTransactions() {
     Stream<List<Transaction>> res = ProxyService.isar.getTransactions();
     return res;
   }
 
-  Future<List<double>> getTransactionsAmountsSum() async {
-    List<double> res = await ProxyService.isar.getTransactionsAmountsSum();
+  Future<List<double>> getTransactionsAmountsSum(
+      {required String period}) async {
+    List<double> res =
+        await ProxyService.isar.getTransactionsAmountsSum(period: period);
+    
     return res;
   }
 
   Stream<List<Transaction>> getLocalTransactions() {
-    Stream<List<Transaction>> res = ProxyService.isar.getLocalTransactionsStream();
+    Stream<List<Transaction>> res =
+        ProxyService.isar.getLocalTransactionsStream();
     return res;
   }
 
@@ -953,7 +979,8 @@ class HomeViewModel extends ReactiveViewModel {
 
   Future<int> deleteTransactionByIndex(int transactionIndex) async {
     Transaction? target = await getTransactionByIndex(transactionIndex);
-    await ProxyService.isar.deleteTransactionByIndex(transactionIndex: transactionIndex);
+    await ProxyService.isar
+        .deleteTransactionByIndex(transactionIndex: transactionIndex);
     notifyListeners();
     ProxyService.app.pushDataToServer();
     if (target != null) {

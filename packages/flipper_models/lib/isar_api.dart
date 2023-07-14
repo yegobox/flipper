@@ -321,7 +321,22 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<List<double>> getTransactionsAmountsSum() async {
+  Future<List<double>> getTransactionsAmountsSum(
+      {required String period}) async {
+    DateTime oldDate;
+    DateTime temporaryDate;
+
+    if (period == 'Today') {
+      DateTime tempToday = DateTime.now();
+      oldDate = DateTime(tempToday.year, tempToday.month, tempToday.day);
+    } else if (period == 'This Week') {
+      oldDate = DateTime.now().subtract(Duration(days: 7));
+    } else if (period == 'This Month') {
+      oldDate = DateTime.now().subtract(Duration(days: 30));
+    } else {
+      oldDate = DateTime.now().subtract(Duration(days: 365));
+    }
+
     List<double> cashInOut = [];
     double In = 0;
     double Out = 0;
@@ -335,8 +350,12 @@ class IsarAPI<M> implements IsarApiInterface {
         .or()
         .transactionTypeEqualTo('custom')
         .findAll();
+    int count = 0;
     for (final transaction in cashIn) {
-      In = In + transaction.subTotal.toInt();
+      temporaryDate = DateTime.parse(transaction.createdAt);
+      if (temporaryDate.isAfter(oldDate)) {
+        In = In + transaction.subTotal.toDouble();
+      }
     }
     cashInOut.add(In);
 
@@ -347,7 +366,10 @@ class IsarAPI<M> implements IsarApiInterface {
         .transactionTypeEqualTo('Cash Out')
         .findAll();
     for (final transaction in cashOut) {
-      Out = Out + transaction.subTotal.toInt();
+      temporaryDate = DateTime.parse(transaction.createdAt);
+      if (temporaryDate.isAfter(oldDate)) {
+        Out = Out + transaction.subTotal.toDouble();
+      }
     }
     cashInOut.add(Out);
 
@@ -355,8 +377,23 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<List<double>> getLocalTransactionsAmountsSum() async {
+  Future<List<double>> getLocalTransactionsAmountsSum(
+      {required String period}) async {
     final branchId = ProxyService.box.getBranchId()!;
+    DateTime oldDate;
+    DateTime temporaryDate;
+
+    if (period == 'Today') {
+      DateTime tempToday = DateTime.now();
+      oldDate = DateTime(tempToday.year, tempToday.month, tempToday.day);
+    } else if (period == 'This Week') {
+      oldDate = DateTime.now().subtract(Duration(days: 7));
+    } else if (period == 'This Month') {
+      oldDate = DateTime.now().subtract(Duration(days: 30));
+    } else {
+      oldDate = DateTime.now().subtract(Duration(days: 365));
+    }
+
     List<double> cashInOut = [];
     double In = 0;
     double Out = 0;
@@ -372,7 +409,10 @@ class IsarAPI<M> implements IsarApiInterface {
         .branchIdEqualTo(branchId)
         .findAll();
     for (final transaction in cashIn) {
-      In = In + transaction.subTotal.toInt();
+      temporaryDate = DateTime.parse(transaction.createdAt);
+      if (temporaryDate.isAfter(oldDate)) {
+        In = In + transaction.subTotal.toDouble();
+      }
     }
     cashInOut.add(In);
 
@@ -383,7 +423,10 @@ class IsarAPI<M> implements IsarApiInterface {
         .transactionTypeEqualTo('Cash Out')
         .findAll();
     for (final transaction in cashOut) {
-      Out = Out + transaction.subTotal.toInt();
+      temporaryDate = DateTime.parse(transaction.createdAt);
+      if (temporaryDate.isAfter(oldDate)) {
+        Out = Out + transaction.subTotal.toDouble();
+      }
     }
     cashInOut.add(Out);
 

@@ -151,68 +151,6 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
                         ? 25
                         : 0,
               ),
-              bottomNavigationBar: !isWindows
-                  ? NavigationBarTheme(
-                      data: NavigationBarThemeData(
-                        backgroundColor: Colors.white,
-                        indicatorColor: Colors.white,
-                        labelTextStyle: MaterialStateProperty.all(
-                          const TextStyle(
-                              fontSize: 14, fontWeight: FontWeight.w400),
-                        ),
-                      ),
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          border: Border(
-                            top: BorderSide(
-                              color: Colors.black26,
-                              width: 1.0,
-                            ),
-                          ),
-                        ),
-                        child: NavigationBar(
-                          height: 50,
-                          selectedIndex: tabselected,
-                          labelBehavior:
-                              NavigationDestinationLabelBehavior.alwaysHide,
-                          backgroundColor: Colors.white,
-                          elevation: 0,
-                          animationDuration: const Duration(seconds: 2),
-                          onDestinationSelected: (index) {
-                            setState(() {
-                              tabselected = index;
-                            });
-                          },
-                          // fluent icons: https://github.com/microsoft/fluentui-system-icons/blob/main/icons_regular.md
-                          destinations: [
-                            NavigationDestination(
-                              icon: Icon(FluentIcons.home_24_regular),
-                              label: 'Home',
-                              selectedIcon: Icon(
-                                FluentIcons.home_24_regular,
-                                color: const Color(0xff006AFE),
-                              ),
-                            ),
-                            // NavigationDestination(
-                            //   icon:
-                            //       Icon(FluentIcons.apps_list_detail_24_regular),
-                            //   label: 'Transactions',
-                            //   selectedIcon: Icon(
-                            //       FluentIcons.apps_list_detail_24_regular,
-                            //       color: const Color(0xff006AFE)),
-                            // ),
-                            NavigationDestination(
-                              icon: Icon(FluentIcons.navigation_20_regular),
-                              label: 'More',
-                              selectedIcon: Icon(
-                                  FluentIcons.navigation_20_regular,
-                                  color: Color(0xff006AFE)),
-                            ),
-                          ],
-                        ),
-                      ),
-                    )
-                  : SizedBox.shrink(),
               body: LayoutBuilder(
                   builder: (BuildContext context, BoxConstraints constraints) {
                 if (constraints.maxWidth < 600) {

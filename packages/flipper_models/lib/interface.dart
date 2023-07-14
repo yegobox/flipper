@@ -115,8 +115,8 @@ abstract class IsarApiInterface {
   Stream<List<Transaction>> getLocalCashInTransactions();
   Stream<List<Transaction>> getCashOutTransactions();
   Stream<List<Transaction>> getLocalCashOutTransactions();
-  Future<List<double>> getTransactionsAmountsSum();
-  Future<List<double>> getLocalTransactionsAmountsSum();
+  Future<List<double>> getTransactionsAmountsSum({required String period});
+  Future<List<double>> getLocalTransactionsAmountsSum({required String period});
   Stream<List<Transaction>> getTransactionsByCustomerId({required int customerId});
   Future<int> deleteTransactionByIndex({required int transactionIndex});
 

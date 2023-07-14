@@ -281,20 +281,20 @@ class _AppsState extends State<Apps> {
     );
   }
 
-  Widget _buildGauge(
-      BuildContext context, HomeViewModel model) {
+  Widget _buildGauge(BuildContext context, HomeViewModel model) {
     return FutureBuilder<List<double>>(
       initialData: null,
-      future:
-          model.getTransactionsAmountsSum(),
+      future: model.getTransactionsAmountsSum(period: 'Today'),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return SemiCircleGauge(dataOnGreenSide: 0, dataOnRedSide: 0, startPadding: 10);
+          return SemiCircleGauge(
+              dataOnGreenSide: 0, dataOnRedSide: 0, startPadding: 10);
         } else {
           final sums = snapshot.data!;
           double green = sums.elementAt(0);
           double red = sums.elementAt(1);
-          return SemiCircleGauge(dataOnGreenSide: green, dataOnRedSide: red, startPadding: 10);
+          return SemiCircleGauge(
+              dataOnGreenSide: green, dataOnRedSide: red, startPadding: 10);
         }
       },
     );
