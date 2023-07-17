@@ -21,19 +21,28 @@ abstract class RemoteInterface {
 
 class RemoteService implements RemoteInterface {
   late PocketBase pb;
+  late String url;
+
   Future<RemoteInterface> getInstance() async {
-    late String url;
     try {
       url =
           kDebugMode ? 'https://uat-db.yegobox.com' : 'https://db.yegobox.com';
       pb = PocketBase(url);
       await pb.admins.authWithPassword('info@yegobox.com', '5nUeS5TjpArcSGd');
-    } on SocketException catch (e) {
-      log(e.toString());
-    } on ClientException catch (e) {
-      log(e.toString());
-    } catch (e) {}
-    return this;
+      return this;
+    } catch (e) {
+      return retryConnect();
+    }
+  }
+
+  Future<RemoteInterface> retryConnect() async {
+    await Future.delayed(Duration(seconds: 5));
+    try {
+      await pb.admins.authWithPassword('info@yegobox.com', '5nUeS5TjpArcSGd');
+      return this;
+    } catch (e) {
+      throw Exception("Failed to initialize RemoteInterface.");
+    }
   }
 
   @override
