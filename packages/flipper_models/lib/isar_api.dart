@@ -235,6 +235,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Stream<List<Transaction>> getTransactions() {
+
     Stream<List<Transaction>> transactions =
         isar.transactions.where().build().watch(fireImmediately: true);
     return transactions;

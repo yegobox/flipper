@@ -37,19 +37,18 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge> {
     }
 
     Widget resultText;
+    double profitOrLoss = 0;
     if (widget.dataOnGreenSide > widget.dataOnRedSide) {
       resultText = Text('Net profit',
           style: GoogleFonts.poppins(fontSize: 18, color: Colors.grey));
-    }
-    else if (widget.dataOnRedSide > widget.dataOnGreenSide){
+      profitOrLoss = widget.dataOnGreenSide - widget.dataOnRedSide;
+    } else if (widget.dataOnRedSide > widget.dataOnGreenSide) {
       resultText = Text('Net loss',
-                    style:
-                        GoogleFonts.poppins(fontSize: 18, color: Colors.grey));
-    }
-    else{
+          style: GoogleFonts.poppins(fontSize: 18, color: Colors.grey));
+      profitOrLoss = widget.dataOnRedSide - widget.dataOnGreenSide;
+    } else {
       resultText = Text('No transations found',
-                    style:
-                        GoogleFonts.poppins(fontSize: 18, color: Colors.grey));
+          style: GoogleFonts.poppins(fontSize: 18, color: Colors.grey));
     }
     return SizedBox(
       width: radius *
@@ -65,9 +64,7 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                Text(
-                    (widget.dataOnGreenSide + widget.dataOnRedSide).toString() +
-                        ' RWF',
+                Text(profitOrLoss.toString() + ' RWF',
                     style: GoogleFonts.poppins(
                         fontSize: 22,
                         color: Colors.black,

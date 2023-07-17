@@ -76,7 +76,7 @@ class _CashbookState extends State<Cashbook> {
                         ProfitDropDown(),
                       ]),
                   SizedBox(height: 80),
-                  _buildGauge(context, model),
+                  buildGaugeOrList(context, model, 'gauge'),
                   SizedBox(
                       width: MediaQuery.of(context).size.width,
                       height: 400,
@@ -90,7 +90,8 @@ class _CashbookState extends State<Cashbook> {
                                         fontWeight: FontWeight.w600)),
                                 SizedBox(height: 20),
                                 Expanded(
-                                  child: TransactionList(context, model),
+                                  child:
+                                      buildGaugeOrList(context, model, 'list'),
                                 ),
                                 SizedBox(height: 10),
                                 Row(
@@ -260,26 +261,8 @@ class _CashbookState extends State<Cashbook> {
     );
   }
 
-  Widget _buildGauge(BuildContext context, HomeViewModel model) {
-    return FutureBuilder<List<double>>(
-      initialData: null,
-      future: model.getTransactionsAmountsSum(period: widget.transactionPeriod),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return SemiCircleGauge(
-              dataOnGreenSide: 0, dataOnRedSide: 0, startPadding: 10);
-        } else {
-          final sums = snapshot.data!;
-          double green = sums.elementAt(0);
-          double red = sums.elementAt(1);
-          return SemiCircleGauge(
-              dataOnGreenSide: green, dataOnRedSide: red, startPadding: 10);
-        }
-      },
-    );
-  }
-
-  Widget TransactionList(BuildContext context, HomeViewModel model) {
+  Widget buildGaugeOrList(
+      BuildContext context, HomeViewModel model, String widgetType) {
     return StreamBuilder<List<Transaction>>(
       initialData: null,
       stream: ProxyService.isar.getTransactions(),
@@ -296,41 +279,86 @@ class _CashbookState extends State<Cashbook> {
               'No records for ' + widget.transactionPeriod.toLowerCase());
         } else {
           final transactions = snapshot.data!;
-          if (transactions.length == 0) {
-            return Center(
-              child: Text(
-                  'No records for ' + widget.transactionPeriod.toLowerCase(),
-                  style: GoogleFonts.poppins(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w600,
-                  )),
-            );
-          }
-          log(transactions.length.toString() + "h");
-          return ListView.builder(
-            shrinkWrap: true,
-            itemCount: transactions.length,
-            itemBuilder: (context, index) {
-              final transaction = transactions[index];
-              return ListTile(
-                leading: transaction.transactionType == 'cash_out'
-                    ? Icon(Icons.remove)
-                    : Icon(Icons.add), // Icon before the title
-                title: Text(transaction.subTotal.toString() + ' RWF'),
-                subtitle: Text(transaction.status.toString()),
+          DateTime oldDate;
+          DateTime temporaryDate;
 
-                onTap: () {
-                  null;
-                  // Navigator.push(
-                  //   context,
-                  //   MaterialPageRoute(
-                  //     builder: (context) => EditRecordPage(recordId: record.id),
-                  //   ),
-                  // );
+          if (widget.transactionPeriod == 'Today') {
+            DateTime tempToday = DateTime.now();
+            oldDate = DateTime(tempToday.year, tempToday.month, tempToday.day);
+          } else if (widget.transactionPeriod == 'This Week') {
+            oldDate = DateTime.now().subtract(Duration(days: 7));
+            oldDate = DateTime(oldDate.year, oldDate.month, oldDate.day);
+          } else if (widget.transactionPeriod == 'This Month') {
+            oldDate = DateTime.now().subtract(Duration(days: 30));
+            oldDate = DateTime(oldDate.year, oldDate.month, oldDate.day);
+          } else {
+            oldDate = DateTime.now().subtract(Duration(days: 365));
+            oldDate = DateTime(oldDate.year, oldDate.month, oldDate.day);
+          }
+
+          List<Transaction> filteredTransactions = [];
+          for (final transaction in transactions) {
+            temporaryDate = DateTime.parse(transaction.createdAt);
+            if (temporaryDate.isAfter(oldDate)) {
+              filteredTransactions.add(transaction);
+            }
+          }
+
+          switch (widgetType) {
+            case 'gauge':
+              double sum_cash_in = 0;
+              double sum_cash_out = 0;
+              for (final transaction in filteredTransactions) {
+                if (transaction.transactionType == 'cash_out') {
+                  sum_cash_out = transaction.subTotal + sum_cash_out;
+                } else {
+                  sum_cash_in = transaction.subTotal + sum_cash_in;
+                }
+              }
+              return SemiCircleGauge(
+                  dataOnGreenSide: sum_cash_in,
+                  dataOnRedSide: sum_cash_out,
+                  startPadding: 10);
+
+            case 'list':
+              if (filteredTransactions.length == 0) {
+                return Center(
+                  child: Text(
+                      'No records for ' +
+                          widget.transactionPeriod.toLowerCase(),
+                      style: GoogleFonts.poppins(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w600,
+                      )),
+                );
+              }
+              return ListView.builder(
+                shrinkWrap: true,
+                itemCount: filteredTransactions.length,
+                itemBuilder: (context, index) {
+                  final transaction = filteredTransactions[index];
+                  return ListTile(
+                    leading: transaction.transactionType == 'cash_out'
+                        ? Icon(Icons.remove)
+                        : Icon(Icons.add), // Icon before the title
+                    title: Text(transaction.subTotal.toString() + ' RWF'),
+                    subtitle: Text(transaction.status.toString()),
+
+                    onTap: () {
+                      null;
+                    },
+                  );
                 },
               );
-            },
-          );
+            default:
+              return Center(
+                child: Text('Incorrect widget type',
+                    style: GoogleFonts.poppins(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w600,
+                    )),
+              );
+          }
         }
       },
     );
