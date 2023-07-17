@@ -18,6 +18,14 @@ class Apps extends StatefulWidget {
   final bool isBigScreen;
   final HomeViewModel model;
 
+  String transactionPeriod = "Today";
+  List<String> transactionPeriodOptions = [
+    "Today",
+    "This Week",
+    "This Month",
+    "This Year"
+  ];
+
   Apps({
     Key? key,
     required final TextEditingController controller,
@@ -231,6 +239,9 @@ class _AppsState extends State<Apps> {
           scrollDirection: Axis.horizontal,
           child: Column(
             children: [
+              Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+                PeriodDropDown(),
+              ]),
               SizedBox(height: 80),
               _buildGauge(context, widget.model),
               Row(
@@ -282,20 +293,74 @@ class _AppsState extends State<Apps> {
   }
 
   Widget _buildGauge(BuildContext context, HomeViewModel model) {
-    return FutureBuilder<List<double>>(
+    return StreamBuilder<List<Transaction>>(
       initialData: null,
-      future: model.getTransactionsAmountsSum(period: 'Today'),
+      stream: ProxyService.isar.getTransactions(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return SemiCircleGauge(
               dataOnGreenSide: 0, dataOnRedSide: 0, startPadding: 10);
         } else {
-          final sums = snapshot.data!;
-          double green = sums.elementAt(0);
-          double red = sums.elementAt(1);
+          final transactions = snapshot.data!;
+          DateTime oldDate;
+          DateTime temporaryDate;
+
+          if (widget.transactionPeriod == 'Today') {
+            DateTime tempToday = DateTime.now();
+            oldDate = DateTime(tempToday.year, tempToday.month, tempToday.day);
+          } else if (widget.transactionPeriod == 'This Week') {
+            oldDate = DateTime.now().subtract(Duration(days: 7));
+            oldDate = DateTime(oldDate.year, oldDate.month, oldDate.day);
+          } else if (widget.transactionPeriod == 'This Month') {
+            oldDate = DateTime.now().subtract(Duration(days: 30));
+            oldDate = DateTime(oldDate.year, oldDate.month, oldDate.day);
+          } else {
+            oldDate = DateTime.now().subtract(Duration(days: 365));
+            oldDate = DateTime(oldDate.year, oldDate.month, oldDate.day);
+          }
+
+          List<Transaction> filteredTransactions = [];
+          for (final transaction in transactions) {
+            temporaryDate = DateTime.parse(transaction.createdAt);
+            if (temporaryDate.isAfter(oldDate)) {
+              filteredTransactions.add(transaction);
+            }
+          }
+
+          double sum_cash_in = 0;
+          double sum_cash_out = 0;
+          for (final transaction in filteredTransactions) {
+            if (transaction.transactionType == 'cash_out') {
+              sum_cash_out = transaction.subTotal + sum_cash_out;
+            } else {
+              sum_cash_in = transaction.subTotal + sum_cash_in;
+            }
+          }
           return SemiCircleGauge(
-              dataOnGreenSide: green, dataOnRedSide: red, startPadding: 10);
+              dataOnGreenSide: sum_cash_in,
+              dataOnRedSide: sum_cash_out,
+              startPadding: 10);
         }
+      },
+    );
+  }
+
+  Widget PeriodDropDown() {
+    return DropdownButton<String>(
+      value: widget.transactionPeriod,
+      items: widget.transactionPeriodOptions
+          .map<DropdownMenuItem<String>>((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(
+            value,
+          ),
+        );
+      }).toList(),
+      onChanged: (String? newPeriod) {
+        setState(() {
+          widget.transactionPeriod = newPeriod!;
+        });
       },
     );
   }
