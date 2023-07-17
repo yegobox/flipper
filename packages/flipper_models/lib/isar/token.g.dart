@@ -22,23 +22,28 @@ const TokenSchema = CollectionSchema(
       name: r'businessId',
       type: IsarType.long,
     ),
-    r'token': PropertySchema(
+    r'lastTouched': PropertySchema(
       id: 1,
+      name: r'lastTouched',
+      type: IsarType.string,
+    ),
+    r'token': PropertySchema(
+      id: 2,
       name: r'token',
       type: IsarType.string,
     ),
     r'type': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'type',
       type: IsarType.string,
     ),
     r'validFrom': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'validFrom',
       type: IsarType.dateTime,
     ),
     r'validUntil': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'validUntil',
       type: IsarType.dateTime,
     )
@@ -61,6 +66,19 @@ const TokenSchema = CollectionSchema(
           caseSensitive: false,
         )
       ],
+    ),
+    r'lastTouched': IndexSchema(
+      id: -1197289422054722944,
+      name: r'lastTouched',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'lastTouched',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
     )
   },
   links: {},
@@ -77,6 +95,12 @@ int _tokenEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  {
+    final value = object.lastTouched;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.token.length * 3;
   bytesCount += 3 + object.type.length * 3;
   return bytesCount;
@@ -89,10 +113,11 @@ void _tokenSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeLong(offsets[0], object.businessId);
-  writer.writeString(offsets[1], object.token);
-  writer.writeString(offsets[2], object.type);
-  writer.writeDateTime(offsets[3], object.validFrom);
-  writer.writeDateTime(offsets[4], object.validUntil);
+  writer.writeString(offsets[1], object.lastTouched);
+  writer.writeString(offsets[2], object.token);
+  writer.writeString(offsets[3], object.type);
+  writer.writeDateTime(offsets[4], object.validFrom);
+  writer.writeDateTime(offsets[5], object.validUntil);
 }
 
 Token _tokenDeserialize(
@@ -103,12 +128,13 @@ Token _tokenDeserialize(
 ) {
   final object = Token(
     businessId: reader.readLong(offsets[0]),
-    token: reader.readString(offsets[1]),
-    type: reader.readString(offsets[2]),
-    validFrom: reader.readDateTime(offsets[3]),
-    validUntil: reader.readDateTime(offsets[4]),
+    token: reader.readString(offsets[2]),
+    type: reader.readString(offsets[3]),
+    validFrom: reader.readDateTime(offsets[4]),
+    validUntil: reader.readDateTime(offsets[5]),
   );
   object.id = id;
+  object.lastTouched = reader.readStringOrNull(offsets[1]);
   return object;
 }
 
@@ -122,12 +148,14 @@ P _tokenDeserializeProp<P>(
     case 0:
       return (reader.readLong(offset)) as P;
     case 1:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 2:
       return (reader.readString(offset)) as P;
     case 3:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 4:
+      return (reader.readDateTime(offset)) as P;
+    case 5:
       return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -317,6 +345,71 @@ extension TokenQueryWhere on QueryBuilder<Token, Token, QWhereClause> {
       ));
     });
   }
+
+  QueryBuilder<Token, Token, QAfterWhereClause> lastTouchedIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'lastTouched',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<Token, Token, QAfterWhereClause> lastTouchedIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'lastTouched',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Token, Token, QAfterWhereClause> lastTouchedEqualTo(
+      String? lastTouched) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'lastTouched',
+        value: [lastTouched],
+      ));
+    });
+  }
+
+  QueryBuilder<Token, Token, QAfterWhereClause> lastTouchedNotEqualTo(
+      String? lastTouched) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [],
+              upper: [lastTouched],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [lastTouched],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [lastTouched],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [],
+              upper: [lastTouched],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
 }
 
 extension TokenQueryFilter on QueryBuilder<Token, Token, QFilterCondition> {
@@ -421,6 +514,152 @@ extension TokenQueryFilter on QueryBuilder<Token, Token, QFilterCondition> {
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Token, Token, QAfterFilterCondition> lastTouchedIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'lastTouched',
+      ));
+    });
+  }
+
+  QueryBuilder<Token, Token, QAfterFilterCondition> lastTouchedIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'lastTouched',
+      ));
+    });
+  }
+
+  QueryBuilder<Token, Token, QAfterFilterCondition> lastTouchedEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lastTouched',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Token, Token, QAfterFilterCondition> lastTouchedGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'lastTouched',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Token, Token, QAfterFilterCondition> lastTouchedLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'lastTouched',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Token, Token, QAfterFilterCondition> lastTouchedBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'lastTouched',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Token, Token, QAfterFilterCondition> lastTouchedStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'lastTouched',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Token, Token, QAfterFilterCondition> lastTouchedEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'lastTouched',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Token, Token, QAfterFilterCondition> lastTouchedContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'lastTouched',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Token, Token, QAfterFilterCondition> lastTouchedMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'lastTouched',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Token, Token, QAfterFilterCondition> lastTouchedIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lastTouched',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Token, Token, QAfterFilterCondition> lastTouchedIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'lastTouched',
+        value: '',
       ));
     });
   }
@@ -805,6 +1044,18 @@ extension TokenQuerySortBy on QueryBuilder<Token, Token, QSortBy> {
     });
   }
 
+  QueryBuilder<Token, Token, QAfterSortBy> sortByLastTouched() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastTouched', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Token, Token, QAfterSortBy> sortByLastTouchedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastTouched', Sort.desc);
+    });
+  }
+
   QueryBuilder<Token, Token, QAfterSortBy> sortByToken() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'token', Sort.asc);
@@ -879,6 +1130,18 @@ extension TokenQuerySortThenBy on QueryBuilder<Token, Token, QSortThenBy> {
     });
   }
 
+  QueryBuilder<Token, Token, QAfterSortBy> thenByLastTouched() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastTouched', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Token, Token, QAfterSortBy> thenByLastTouchedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastTouched', Sort.desc);
+    });
+  }
+
   QueryBuilder<Token, Token, QAfterSortBy> thenByToken() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'token', Sort.asc);
@@ -935,6 +1198,13 @@ extension TokenQueryWhereDistinct on QueryBuilder<Token, Token, QDistinct> {
     });
   }
 
+  QueryBuilder<Token, Token, QDistinct> distinctByLastTouched(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'lastTouched', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<Token, Token, QDistinct> distinctByToken(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -975,6 +1245,12 @@ extension TokenQueryProperty on QueryBuilder<Token, Token, QQueryProperty> {
     });
   }
 
+  QueryBuilder<Token, String?, QQueryOperations> lastTouchedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'lastTouched');
+    });
+  }
+
   QueryBuilder<Token, String, QQueryOperations> tokenProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'token');
@@ -1010,7 +1286,9 @@ Token _$TokenFromJson(Map<String, dynamic> json) => Token(
       businessId: json['businessId'] as int,
       validFrom: DateTime.parse(json['validFrom'] as String),
       validUntil: DateTime.parse(json['validUntil'] as String),
-    )..id = json['id'] as int;
+    )
+      ..id = json['id'] as int
+      ..lastTouched = json['lastTouched'] as String?;
 
 Map<String, dynamic> _$TokenToJson(Token instance) => <String, dynamic>{
       'id': instance.id,
@@ -1019,4 +1297,5 @@ Map<String, dynamic> _$TokenToJson(Token instance) => <String, dynamic>{
       'validFrom': instance.validFrom.toIso8601String(),
       'validUntil': instance.validUntil.toIso8601String(),
       'businessId': instance.businessId,
+      'lastTouched': instance.lastTouched,
     };

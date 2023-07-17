@@ -10,6 +10,7 @@ import 'isar_models.dart';
 
 abstract class IJsonSerializable {
   Map<String, dynamic> toJson();
+  String? get lastTouched;
 }
 
 class SynchronizationService<M extends IJsonSerializable>

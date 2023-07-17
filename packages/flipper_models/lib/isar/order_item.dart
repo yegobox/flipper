@@ -90,7 +90,8 @@ class OrderItem extends IJsonSerializable {
   String? regrNm;
   String? modrId;
   String? modrNm;
-
+  @Index()
+  String? lastTouched;
   OrderItem({
     this.id,
     required this.name,

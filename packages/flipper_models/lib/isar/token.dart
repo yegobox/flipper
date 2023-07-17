@@ -24,6 +24,9 @@ class Token extends IJsonSerializable {
   @Index()
   int businessId;
 
+  @Index()
+  String? lastTouched;
+
   factory Token.fromRecord(RecordModel record) =>
       Token.fromJson(record.toJson());
 

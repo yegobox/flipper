@@ -50,6 +50,8 @@ class Setting extends IJsonSerializable {
   // @JsonKey(fromJson: _toInt)
   int? businessId;
   String? createdAt;
+  @Index()
+  String? lastTouched;
   factory Setting.fromRecord(RecordModel record) =>
       Setting.fromJson(record.toJson());
 

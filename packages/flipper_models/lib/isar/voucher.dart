@@ -1,4 +1,3 @@
-import 'package:flipper_models/isar/feature.dart';
 import 'package:isar/isar.dart';
 part 'voucher.g.dart';
 

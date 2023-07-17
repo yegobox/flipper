@@ -132,133 +132,138 @@ const OrderItemSchema = CollectionSchema(
       name: r'itemTyCd',
       type: IsarType.string,
     ),
-    r'localId': PropertySchema(
+    r'lastTouched': PropertySchema(
       id: 23,
+      name: r'lastTouched',
+      type: IsarType.string,
+    ),
+    r'localId': PropertySchema(
+      id: 24,
       name: r'localId',
       type: IsarType.long,
     ),
     r'modrId': PropertySchema(
-      id: 24,
+      id: 25,
       name: r'modrId',
       type: IsarType.string,
     ),
     r'modrNm': PropertySchema(
-      id: 25,
+      id: 26,
       name: r'modrNm',
       type: IsarType.string,
     ),
     r'name': PropertySchema(
-      id: 26,
+      id: 27,
       name: r'name',
       type: IsarType.string,
     ),
     r'orderId': PropertySchema(
-      id: 27,
+      id: 28,
       name: r'orderId',
       type: IsarType.long,
     ),
     r'orgnNatCd': PropertySchema(
-      id: 28,
+      id: 29,
       name: r'orgnNatCd',
       type: IsarType.string,
     ),
     r'pkg': PropertySchema(
-      id: 29,
+      id: 30,
       name: r'pkg',
       type: IsarType.string,
     ),
     r'pkgUnitCd': PropertySchema(
-      id: 30,
+      id: 31,
       name: r'pkgUnitCd',
       type: IsarType.string,
     ),
     r'prc': PropertySchema(
-      id: 31,
+      id: 32,
       name: r'prc',
       type: IsarType.double,
     ),
     r'price': PropertySchema(
-      id: 32,
+      id: 33,
       name: r'price',
       type: IsarType.double,
     ),
     r'qty': PropertySchema(
-      id: 33,
+      id: 34,
       name: r'qty',
       type: IsarType.double,
     ),
     r'qtyUnitCd': PropertySchema(
-      id: 34,
+      id: 35,
       name: r'qtyUnitCd',
       type: IsarType.string,
     ),
     r'regrId': PropertySchema(
-      id: 35,
+      id: 36,
       name: r'regrId',
       type: IsarType.string,
     ),
     r'regrNm': PropertySchema(
-      id: 36,
+      id: 37,
       name: r'regrNm',
       type: IsarType.string,
     ),
     r'remainingStock': PropertySchema(
-      id: 37,
+      id: 38,
       name: r'remainingStock',
       type: IsarType.double,
     ),
     r'reported': PropertySchema(
-      id: 38,
+      id: 39,
       name: r'reported',
       type: IsarType.bool,
     ),
     r'splyAmt': PropertySchema(
-      id: 39,
+      id: 40,
       name: r'splyAmt',
       type: IsarType.double,
     ),
     r'taxAmt': PropertySchema(
-      id: 40,
+      id: 41,
       name: r'taxAmt',
       type: IsarType.double,
     ),
     r'taxTyCd': PropertySchema(
-      id: 41,
+      id: 42,
       name: r'taxTyCd',
       type: IsarType.string,
     ),
     r'taxblAmt': PropertySchema(
-      id: 42,
+      id: 43,
       name: r'taxblAmt',
       type: IsarType.double,
     ),
     r'tin': PropertySchema(
-      id: 43,
+      id: 44,
       name: r'tin',
       type: IsarType.long,
     ),
     r'totAmt': PropertySchema(
-      id: 44,
+      id: 45,
       name: r'totAmt',
       type: IsarType.double,
     ),
     r'type': PropertySchema(
-      id: 45,
+      id: 46,
       name: r'type',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 46,
+      id: 47,
       name: r'updatedAt',
       type: IsarType.string,
     ),
     r'useYn': PropertySchema(
-      id: 47,
+      id: 48,
       name: r'useYn',
       type: IsarType.string,
     ),
     r'variantId': PropertySchema(
-      id: 48,
+      id: 49,
       name: r'variantId',
       type: IsarType.long,
     )
@@ -297,6 +302,19 @@ const OrderItemSchema = CollectionSchema(
           name: r'orderId',
           type: IndexType.value,
           caseSensitive: false,
+        )
+      ],
+    ),
+    r'lastTouched': IndexSchema(
+      id: -1197289422054722944,
+      name: r'lastTouched',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'lastTouched',
+          type: IndexType.hash,
+          caseSensitive: true,
         )
       ],
     )
@@ -407,6 +425,12 @@ int _orderItemEstimateSize(
     }
   }
   {
+    final value = object.lastTouched;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
     final value = object.modrId;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
@@ -506,32 +530,33 @@ void _orderItemSerialize(
   writer.writeString(offsets[20], object.itemSeq);
   writer.writeString(offsets[21], object.itemStdNm);
   writer.writeString(offsets[22], object.itemTyCd);
-  writer.writeLong(offsets[23], object.localId);
-  writer.writeString(offsets[24], object.modrId);
-  writer.writeString(offsets[25], object.modrNm);
-  writer.writeString(offsets[26], object.name);
-  writer.writeLong(offsets[27], object.orderId);
-  writer.writeString(offsets[28], object.orgnNatCd);
-  writer.writeString(offsets[29], object.pkg);
-  writer.writeString(offsets[30], object.pkgUnitCd);
-  writer.writeDouble(offsets[31], object.prc);
-  writer.writeDouble(offsets[32], object.price);
-  writer.writeDouble(offsets[33], object.qty);
-  writer.writeString(offsets[34], object.qtyUnitCd);
-  writer.writeString(offsets[35], object.regrId);
-  writer.writeString(offsets[36], object.regrNm);
-  writer.writeDouble(offsets[37], object.remainingStock);
-  writer.writeBool(offsets[38], object.reported);
-  writer.writeDouble(offsets[39], object.splyAmt);
-  writer.writeDouble(offsets[40], object.taxAmt);
-  writer.writeString(offsets[41], object.taxTyCd);
-  writer.writeDouble(offsets[42], object.taxblAmt);
-  writer.writeLong(offsets[43], object.tin);
-  writer.writeDouble(offsets[44], object.totAmt);
-  writer.writeString(offsets[45], object.type);
-  writer.writeString(offsets[46], object.updatedAt);
-  writer.writeString(offsets[47], object.useYn);
-  writer.writeLong(offsets[48], object.variantId);
+  writer.writeString(offsets[23], object.lastTouched);
+  writer.writeLong(offsets[24], object.localId);
+  writer.writeString(offsets[25], object.modrId);
+  writer.writeString(offsets[26], object.modrNm);
+  writer.writeString(offsets[27], object.name);
+  writer.writeLong(offsets[28], object.orderId);
+  writer.writeString(offsets[29], object.orgnNatCd);
+  writer.writeString(offsets[30], object.pkg);
+  writer.writeString(offsets[31], object.pkgUnitCd);
+  writer.writeDouble(offsets[32], object.prc);
+  writer.writeDouble(offsets[33], object.price);
+  writer.writeDouble(offsets[34], object.qty);
+  writer.writeString(offsets[35], object.qtyUnitCd);
+  writer.writeString(offsets[36], object.regrId);
+  writer.writeString(offsets[37], object.regrNm);
+  writer.writeDouble(offsets[38], object.remainingStock);
+  writer.writeBool(offsets[39], object.reported);
+  writer.writeDouble(offsets[40], object.splyAmt);
+  writer.writeDouble(offsets[41], object.taxAmt);
+  writer.writeString(offsets[42], object.taxTyCd);
+  writer.writeDouble(offsets[43], object.taxblAmt);
+  writer.writeLong(offsets[44], object.tin);
+  writer.writeDouble(offsets[45], object.totAmt);
+  writer.writeString(offsets[46], object.type);
+  writer.writeString(offsets[47], object.updatedAt);
+  writer.writeString(offsets[48], object.useYn);
+  writer.writeLong(offsets[49], object.variantId);
 }
 
 OrderItem _orderItemDeserialize(
@@ -564,34 +589,35 @@ OrderItem _orderItemDeserialize(
     itemSeq: reader.readStringOrNull(offsets[20]),
     itemStdNm: reader.readStringOrNull(offsets[21]),
     itemTyCd: reader.readStringOrNull(offsets[22]),
-    modrId: reader.readStringOrNull(offsets[24]),
-    modrNm: reader.readStringOrNull(offsets[25]),
-    name: reader.readString(offsets[26]),
-    orderId: reader.readLong(offsets[27]),
-    orgnNatCd: reader.readStringOrNull(offsets[28]),
-    pkg: reader.readStringOrNull(offsets[29]),
-    pkgUnitCd: reader.readStringOrNull(offsets[30]),
-    prc: reader.readDoubleOrNull(offsets[31]),
-    price: reader.readDouble(offsets[32]),
-    qty: reader.readDouble(offsets[33]),
-    qtyUnitCd: reader.readStringOrNull(offsets[34]),
-    regrId: reader.readStringOrNull(offsets[35]),
-    regrNm: reader.readStringOrNull(offsets[36]),
-    remainingStock: reader.readDouble(offsets[37]),
-    reported: reader.readBoolOrNull(offsets[38]),
-    splyAmt: reader.readDoubleOrNull(offsets[39]),
-    taxAmt: reader.readDoubleOrNull(offsets[40]),
-    taxTyCd: reader.readStringOrNull(offsets[41]),
-    taxblAmt: reader.readDoubleOrNull(offsets[42]),
-    tin: reader.readLongOrNull(offsets[43]),
-    totAmt: reader.readDoubleOrNull(offsets[44]),
-    type: reader.readStringOrNull(offsets[45]),
-    updatedAt: reader.readString(offsets[46]),
-    useYn: reader.readStringOrNull(offsets[47]),
-    variantId: reader.readLong(offsets[48]),
+    modrId: reader.readStringOrNull(offsets[25]),
+    modrNm: reader.readStringOrNull(offsets[26]),
+    name: reader.readString(offsets[27]),
+    orderId: reader.readLong(offsets[28]),
+    orgnNatCd: reader.readStringOrNull(offsets[29]),
+    pkg: reader.readStringOrNull(offsets[30]),
+    pkgUnitCd: reader.readStringOrNull(offsets[31]),
+    prc: reader.readDoubleOrNull(offsets[32]),
+    price: reader.readDouble(offsets[33]),
+    qty: reader.readDouble(offsets[34]),
+    qtyUnitCd: reader.readStringOrNull(offsets[35]),
+    regrId: reader.readStringOrNull(offsets[36]),
+    regrNm: reader.readStringOrNull(offsets[37]),
+    remainingStock: reader.readDouble(offsets[38]),
+    reported: reader.readBoolOrNull(offsets[39]),
+    splyAmt: reader.readDoubleOrNull(offsets[40]),
+    taxAmt: reader.readDoubleOrNull(offsets[41]),
+    taxTyCd: reader.readStringOrNull(offsets[42]),
+    taxblAmt: reader.readDoubleOrNull(offsets[43]),
+    tin: reader.readLongOrNull(offsets[44]),
+    totAmt: reader.readDoubleOrNull(offsets[45]),
+    type: reader.readStringOrNull(offsets[46]),
+    updatedAt: reader.readString(offsets[47]),
+    useYn: reader.readStringOrNull(offsets[48]),
+    variantId: reader.readLong(offsets[49]),
   );
   object.action = reader.readStringOrNull(offsets[0]);
-  object.localId = reader.readLongOrNull(offsets[23]);
+  object.lastTouched = reader.readStringOrNull(offsets[23]);
+  object.localId = reader.readLongOrNull(offsets[24]);
   return object;
 }
 
@@ -649,56 +675,58 @@ P _orderItemDeserializeProp<P>(
     case 22:
       return (reader.readStringOrNull(offset)) as P;
     case 23:
-      return (reader.readLongOrNull(offset)) as P;
-    case 24:
       return (reader.readStringOrNull(offset)) as P;
+    case 24:
+      return (reader.readLongOrNull(offset)) as P;
     case 25:
       return (reader.readStringOrNull(offset)) as P;
     case 26:
-      return (reader.readString(offset)) as P;
-    case 27:
-      return (reader.readLong(offset)) as P;
-    case 28:
       return (reader.readStringOrNull(offset)) as P;
+    case 27:
+      return (reader.readString(offset)) as P;
+    case 28:
+      return (reader.readLong(offset)) as P;
     case 29:
       return (reader.readStringOrNull(offset)) as P;
     case 30:
       return (reader.readStringOrNull(offset)) as P;
     case 31:
-      return (reader.readDoubleOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 32:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 33:
       return (reader.readDouble(offset)) as P;
     case 34:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDouble(offset)) as P;
     case 35:
       return (reader.readStringOrNull(offset)) as P;
     case 36:
       return (reader.readStringOrNull(offset)) as P;
     case 37:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 38:
-      return (reader.readBoolOrNull(offset)) as P;
+      return (reader.readDouble(offset)) as P;
     case 39:
-      return (reader.readDoubleOrNull(offset)) as P;
+      return (reader.readBoolOrNull(offset)) as P;
     case 40:
       return (reader.readDoubleOrNull(offset)) as P;
     case 41:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 42:
-      return (reader.readDoubleOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 43:
-      return (reader.readLongOrNull(offset)) as P;
-    case 44:
       return (reader.readDoubleOrNull(offset)) as P;
+    case 44:
+      return (reader.readLongOrNull(offset)) as P;
     case 45:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 46:
-      return (reader.readString(offset)) as P;
-    case 47:
       return (reader.readStringOrNull(offset)) as P;
+    case 47:
+      return (reader.readString(offset)) as P;
     case 48:
+      return (reader.readStringOrNull(offset)) as P;
+    case 49:
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1085,6 +1113,71 @@ extension OrderItemQueryWhere
         upper: [variantId, upperOrderId],
         includeUpper: includeUpper,
       ));
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterWhereClause> lastTouchedIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'lastTouched',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterWhereClause> lastTouchedIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'lastTouched',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterWhereClause> lastTouchedEqualTo(
+      String? lastTouched) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'lastTouched',
+        value: [lastTouched],
+      ));
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterWhereClause> lastTouchedNotEqualTo(
+      String? lastTouched) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [],
+              upper: [lastTouched],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [lastTouched],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [lastTouched],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [],
+              upper: [lastTouched],
+              includeUpper: false,
+            ));
+      }
     });
   }
 }
@@ -3874,6 +3967,158 @@ extension OrderItemQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'itemTyCd',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition>
+      lastTouchedIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'lastTouched',
+      ));
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition>
+      lastTouchedIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'lastTouched',
+      ));
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition> lastTouchedEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lastTouched',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition>
+      lastTouchedGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'lastTouched',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition> lastTouchedLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'lastTouched',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition> lastTouchedBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'lastTouched',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition>
+      lastTouchedStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'lastTouched',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition> lastTouchedEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'lastTouched',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition> lastTouchedContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'lastTouched',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition> lastTouchedMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'lastTouched',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition>
+      lastTouchedIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lastTouched',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterFilterCondition>
+      lastTouchedIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'lastTouched',
         value: '',
       ));
     });
@@ -6894,6 +7139,18 @@ extension OrderItemQuerySortBy on QueryBuilder<OrderItem, OrderItem, QSortBy> {
     });
   }
 
+  QueryBuilder<OrderItem, OrderItem, QAfterSortBy> sortByLastTouched() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastTouched', Sort.asc);
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterSortBy> sortByLastTouchedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastTouched', Sort.desc);
+    });
+  }
+
   QueryBuilder<OrderItem, OrderItem, QAfterSortBy> sortByLocalId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'localId', Sort.asc);
@@ -7497,6 +7754,18 @@ extension OrderItemQuerySortThenBy
     });
   }
 
+  QueryBuilder<OrderItem, OrderItem, QAfterSortBy> thenByLastTouched() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastTouched', Sort.asc);
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterSortBy> thenByLastTouchedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastTouched', Sort.desc);
+    });
+  }
+
   QueryBuilder<OrderItem, OrderItem, QAfterSortBy> thenByLocalId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'localId', Sort.asc);
@@ -7966,6 +8235,13 @@ extension OrderItemQueryWhereDistinct
     });
   }
 
+  QueryBuilder<OrderItem, OrderItem, QDistinct> distinctByLastTouched(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'lastTouched', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<OrderItem, OrderItem, QDistinct> distinctByLocalId() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'localId');
@@ -8282,6 +8558,12 @@ extension OrderItemQueryProperty
     });
   }
 
+  QueryBuilder<OrderItem, String?, QQueryOperations> lastTouchedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'lastTouched');
+    });
+  }
+
   QueryBuilder<OrderItem, int?, QQueryOperations> localIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'localId');
@@ -8493,6 +8775,7 @@ OrderItem _$OrderItemFromJson(Map<String, dynamic> json) => OrderItem(
       modrId: json['modrId'] as String?,
       modrNm: json['modrNm'] as String?,
     )
+      ..lastTouched = json['lastTouched'] as String?
       ..action = json['action'] as String?
       ..localId = json['localId'] as int?;
 
@@ -8545,6 +8828,7 @@ Map<String, dynamic> _$OrderItemToJson(OrderItem instance) => <String, dynamic>{
       'regrNm': instance.regrNm,
       'modrId': instance.modrId,
       'modrNm': instance.modrNm,
+      'lastTouched': instance.lastTouched,
       'action': instance.action,
       'localId': instance.localId,
     };

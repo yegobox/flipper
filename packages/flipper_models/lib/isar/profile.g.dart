@@ -62,43 +62,48 @@ const ProfileSchema = CollectionSchema(
       name: r'email',
       type: IsarType.string,
     ),
-    r'livingAt': PropertySchema(
+    r'lastTouched': PropertySchema(
       id: 9,
+      name: r'lastTouched',
+      type: IsarType.string,
+    ),
+    r'livingAt': PropertySchema(
+      id: 10,
       name: r'livingAt',
       type: IsarType.string,
     ),
     r'name': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'name',
       type: IsarType.string,
     ),
     r'nationalId': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'nationalId',
       type: IsarType.string,
     ),
     r'phone': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'phone',
       type: IsarType.string,
     ),
     r'pincode': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'pincode',
       type: IsarType.string,
     ),
     r'profilePic': PropertySchema(
-      id: 14,
+      id: 15,
       name: r'profilePic',
       type: IsarType.string,
     ),
     r'state': PropertySchema(
-      id: 15,
+      id: 16,
       name: r'state',
       type: IsarType.string,
     ),
     r'vaccinationCode': PropertySchema(
-      id: 16,
+      id: 17,
       name: r'vaccinationCode',
       type: IsarType.string,
     )
@@ -119,6 +124,19 @@ const ProfileSchema = CollectionSchema(
           name: r'businessId',
           type: IndexType.value,
           caseSensitive: false,
+        )
+      ],
+    ),
+    r'lastTouched': IndexSchema(
+      id: -1197289422054722944,
+      name: r'lastTouched',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'lastTouched',
+          type: IndexType.hash,
+          caseSensitive: true,
         )
       ],
     )
@@ -166,6 +184,12 @@ int _profileEstimateSize(
   bytesCount += 3 + object.district.length * 3;
   {
     final value = object.email;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.lastTouched;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
     }
@@ -226,14 +250,15 @@ void _profileSerialize(
   writer.writeString(offsets[6], object.coverPic);
   writer.writeString(offsets[7], object.district);
   writer.writeString(offsets[8], object.email);
-  writer.writeString(offsets[9], object.livingAt);
-  writer.writeString(offsets[10], object.name);
-  writer.writeString(offsets[11], object.nationalId);
-  writer.writeString(offsets[12], object.phone);
-  writer.writeString(offsets[13], object.pincode);
-  writer.writeString(offsets[14], object.profilePic);
-  writer.writeString(offsets[15], object.state);
-  writer.writeString(offsets[16], object.vaccinationCode);
+  writer.writeString(offsets[9], object.lastTouched);
+  writer.writeString(offsets[10], object.livingAt);
+  writer.writeString(offsets[11], object.name);
+  writer.writeString(offsets[12], object.nationalId);
+  writer.writeString(offsets[13], object.phone);
+  writer.writeString(offsets[14], object.pincode);
+  writer.writeString(offsets[15], object.profilePic);
+  writer.writeString(offsets[16], object.state);
+  writer.writeString(offsets[17], object.vaccinationCode);
 }
 
 Profile _profileDeserialize(
@@ -253,15 +278,16 @@ Profile _profileDeserialize(
     district: reader.readString(offsets[7]),
     email: reader.readStringOrNull(offsets[8]),
     id: id,
-    livingAt: reader.readString(offsets[9]),
-    name: reader.readStringOrNull(offsets[10]),
-    nationalId: reader.readStringOrNull(offsets[11]),
-    phone: reader.readStringOrNull(offsets[12]),
-    pincode: reader.readStringOrNull(offsets[13]),
-    profilePic: reader.readStringOrNull(offsets[14]),
-    state: reader.readStringOrNull(offsets[15]),
-    vaccinationCode: reader.readString(offsets[16]),
+    livingAt: reader.readString(offsets[10]),
+    name: reader.readStringOrNull(offsets[11]),
+    nationalId: reader.readStringOrNull(offsets[12]),
+    phone: reader.readStringOrNull(offsets[13]),
+    pincode: reader.readStringOrNull(offsets[14]),
+    profilePic: reader.readStringOrNull(offsets[15]),
+    state: reader.readStringOrNull(offsets[16]),
+    vaccinationCode: reader.readString(offsets[17]),
   );
+  object.lastTouched = reader.readStringOrNull(offsets[9]);
   return object;
 }
 
@@ -291,9 +317,9 @@ P _profileDeserializeProp<P>(
     case 8:
       return (reader.readStringOrNull(offset)) as P;
     case 9:
-      return (reader.readString(offset)) as P;
-    case 10:
       return (reader.readStringOrNull(offset)) as P;
+    case 10:
+      return (reader.readString(offset)) as P;
     case 11:
       return (reader.readStringOrNull(offset)) as P;
     case 12:
@@ -305,6 +331,8 @@ P _profileDeserializeProp<P>(
     case 15:
       return (reader.readStringOrNull(offset)) as P;
     case 16:
+      return (reader.readStringOrNull(offset)) as P;
+    case 17:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -492,6 +520,71 @@ extension ProfileQueryWhere on QueryBuilder<Profile, Profile, QWhereClause> {
         upper: [upperBusinessId],
         includeUpper: includeUpper,
       ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterWhereClause> lastTouchedIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'lastTouched',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterWhereClause> lastTouchedIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'lastTouched',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterWhereClause> lastTouchedEqualTo(
+      String? lastTouched) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'lastTouched',
+        value: [lastTouched],
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterWhereClause> lastTouchedNotEqualTo(
+      String? lastTouched) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [],
+              upper: [lastTouched],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [lastTouched],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [lastTouched],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [],
+              upper: [lastTouched],
+              includeUpper: false,
+            ));
+      }
     });
   }
 }
@@ -1719,6 +1812,153 @@ extension ProfileQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> lastTouchedIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'lastTouched',
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> lastTouchedIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'lastTouched',
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> lastTouchedEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lastTouched',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> lastTouchedGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'lastTouched',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> lastTouchedLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'lastTouched',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> lastTouchedBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'lastTouched',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> lastTouchedStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'lastTouched',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> lastTouchedEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'lastTouched',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> lastTouchedContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'lastTouched',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> lastTouchedMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'lastTouched',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition> lastTouchedIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lastTouched',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterFilterCondition>
+      lastTouchedIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'lastTouched',
+        value: '',
       ));
     });
   }
@@ -2979,6 +3219,18 @@ extension ProfileQuerySortBy on QueryBuilder<Profile, Profile, QSortBy> {
     });
   }
 
+  QueryBuilder<Profile, Profile, QAfterSortBy> sortByLastTouched() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastTouched', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterSortBy> sortByLastTouchedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastTouched', Sort.desc);
+    });
+  }
+
   QueryBuilder<Profile, Profile, QAfterSortBy> sortByLivingAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'livingAt', Sort.asc);
@@ -3198,6 +3450,18 @@ extension ProfileQuerySortThenBy
     });
   }
 
+  QueryBuilder<Profile, Profile, QAfterSortBy> thenByLastTouched() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastTouched', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterSortBy> thenByLastTouchedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastTouched', Sort.desc);
+    });
+  }
+
   QueryBuilder<Profile, Profile, QAfterSortBy> thenByLivingAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'livingAt', Sort.asc);
@@ -3359,6 +3623,13 @@ extension ProfileQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Profile, Profile, QDistinct> distinctByLastTouched(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'lastTouched', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<Profile, Profile, QDistinct> distinctByLivingAt(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -3479,6 +3750,12 @@ extension ProfileQueryProperty
     });
   }
 
+  QueryBuilder<Profile, String?, QQueryOperations> lastTouchedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'lastTouched');
+    });
+  }
+
   QueryBuilder<Profile, String, QQueryOperations> livingAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'livingAt');
@@ -3551,7 +3828,7 @@ Profile _$ProfileFromJson(Map<String, dynamic> json) => Profile(
       district: json['district'] as String,
       businessId: json['businessId'] as int,
       nationalId: json['nationalId'] as String?,
-    );
+    )..lastTouched = json['lastTouched'] as String?;
 
 Map<String, dynamic> _$ProfileToJson(Profile instance) => <String, dynamic>{
       'id': instance.id,
@@ -3572,4 +3849,5 @@ Map<String, dynamic> _$ProfileToJson(Profile instance) => <String, dynamic>{
       'district': instance.district,
       'businessId': instance.businessId,
       'nationalId': instance.nationalId,
+      'lastTouched': instance.lastTouched,
     };
