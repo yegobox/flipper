@@ -46,8 +46,13 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge> {
       resultText = Text('Net loss',
           style: GoogleFonts.poppins(fontSize: 18, color: Colors.grey));
       profitOrLoss = widget.dataOnRedSide - widget.dataOnGreenSide;
+    } else if ((widget.dataOnRedSide == widget.dataOnGreenSide) &&
+        (widget.dataOnRedSide > 0)) {
+      resultText = Text('Balanced',
+          style: GoogleFonts.poppins(fontSize: 18, color: Colors.grey));
+      profitOrLoss = widget.dataOnRedSide - widget.dataOnGreenSide;
     } else {
-      resultText = Text('No transations found',
+      resultText = Text('No transactions found',
           style: GoogleFonts.poppins(fontSize: 18, color: Colors.grey));
     }
     return SizedBox(

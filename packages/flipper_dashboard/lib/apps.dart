@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flipper_services/proxy.dart';
-import 'button.dart';
+import 'widgets/dropdown.dart';
 import 'customappbar.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -26,6 +26,8 @@ class Apps extends StatefulWidget {
     "This Year"
   ];
 
+  String profitType = "Net Profit";
+  List<String> profitTypeOptions = ["Net Profit", "Gross Profit"];
   Apps({
     Key? key,
     required final TextEditingController controller,
@@ -240,7 +242,25 @@ class _AppsState extends State<Apps> {
           child: Column(
             children: [
               Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-                PeriodDropDown(),
+                ReusableDropdown(
+                  options: widget.transactionPeriodOptions,
+                  selectedOption: widget.transactionPeriod,
+                  onChanged: (String? newPeriod) {
+                    setState(() {
+                      widget.transactionPeriod = newPeriod!;
+                    });
+                  },
+                ),
+                SizedBox(width: 100),
+                ReusableDropdown(
+                  options: widget.profitTypeOptions,
+                  selectedOption: widget.profitType,
+                  onChanged: (String? newProfitType) {
+                    setState(() {
+                      widget.profitType = newProfitType!;
+                    });
+                  },
+                ),
               ]),
               SizedBox(height: 80),
               _buildGauge(context, widget.model),

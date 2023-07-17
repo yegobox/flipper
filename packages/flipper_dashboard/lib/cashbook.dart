@@ -9,6 +9,7 @@ import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 import 'keypad_view.dart';
+import 'widgets/dropdown.dart';
 
 class Cashbook extends StatefulWidget {
   Cashbook(
@@ -71,9 +72,25 @@ class _CashbookState extends State<Cashbook> {
                   Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        PeriodDropDown(),
-                        SizedBox(width: 40),
-                        ProfitDropDown(),
+                        ReusableDropdown(
+                          options: widget.transactionPeriodOptions,
+                          selectedOption: widget.transactionPeriod,
+                          onChanged: (String? newPeriod) {
+                            setState(() {
+                              widget.transactionPeriod = newPeriod!;
+                            });
+                          },
+                        ),
+                        SizedBox(width: 100),
+                        ReusableDropdown(
+                          options: widget.profitTypeOptions,
+                          selectedOption: widget.profitType,
+                          onChanged: (String? newProfitType) {
+                            setState(() {
+                              widget.profitType = newProfitType!;
+                            });
+                          },
+                        ),
                       ]),
                   SizedBox(height: 80),
                   buildGaugeOrList(context, model, 'gauge'),
@@ -360,44 +377,6 @@ class _CashbookState extends State<Cashbook> {
               );
           }
         }
-      },
-    );
-  }
-
-  Widget PeriodDropDown() {
-    return DropdownButton<String>(
-      value: widget.transactionPeriod,
-      items: widget.transactionPeriodOptions
-          .map<DropdownMenuItem<String>>((String value) {
-        return DropdownMenuItem<String>(
-          value: value,
-          child: Text(
-            value,
-          ),
-        );
-      }).toList(),
-      onChanged: (String? newPeriod) {
-        setState(() {
-          widget.transactionPeriod = newPeriod!;
-        });
-      },
-    );
-  }
-
-  Widget ProfitDropDown() {
-    return DropdownButton<String>(
-      value: widget.profitType,
-      items: widget.profitTypeOptions
-          .map<DropdownMenuItem<String>>((String value) {
-        return DropdownMenuItem<String>(
-          value: value,
-          child: Text(value),
-        );
-      }).toList(),
-      onChanged: (String? newProfitType) {
-        setState(() {
-          widget.profitType = newProfitType!;
-        });
       },
     );
   }
