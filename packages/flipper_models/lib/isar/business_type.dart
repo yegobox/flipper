@@ -8,6 +8,7 @@ part 'business_type.g.dart';
 class BusinessType extends IJsonSerializable {
   int id;
   String typeName;
+  String? lastTouched;
   BusinessType({required this.id, required this.typeName});
   factory BusinessType.fromJson(Map<String, dynamic> json) =>
       _$BusinessTypeFromJson(json);
