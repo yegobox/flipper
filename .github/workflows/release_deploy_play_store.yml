@@ -27,6 +27,7 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: "stable"
+          version: '3.10.5' #firebase_auth_desktop is broken with  3.10.6
       - run: git submodule update --init
       - name: Configure Missing files
         run: |
@@ -87,6 +88,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+          version: '3.10.5' #firebase_auth_desktop is broken with  3.10.6
       - run: flutter doctor -v
 
       # Checkout gallery code and get packages.
