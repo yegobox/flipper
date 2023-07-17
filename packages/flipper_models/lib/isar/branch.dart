@@ -1,9 +1,4 @@
-// To parse this JSON data, do
-//
-//     final branch = branchFromJson(jsonString);
 library flipper_models;
-
-import 'dart:convert';
 
 import 'package:isar/isar.dart';
 import 'package:json_annotation/json_annotation.dart';

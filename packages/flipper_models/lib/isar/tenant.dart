@@ -27,6 +27,8 @@ class ITenant extends IJsonSerializable {
   int userId;
   String? imageUrl;
 
+  @Index()
+  String? lastTouched;
   factory ITenant.fromRecord(RecordModel record) =>
       ITenant.fromJson(record.toJson());
 

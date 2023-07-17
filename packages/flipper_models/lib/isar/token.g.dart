@@ -66,6 +66,19 @@ const TokenSchema = CollectionSchema(
           caseSensitive: false,
         )
       ],
+    ),
+    r'lastTouched': IndexSchema(
+      id: -1197289422054722944,
+      name: r'lastTouched',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'lastTouched',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
     )
   },
   links: {},
@@ -121,6 +134,7 @@ Token _tokenDeserialize(
     validUntil: reader.readDateTime(offsets[5]),
   );
   object.id = id;
+  object.lastTouched = reader.readStringOrNull(offsets[1]);
   return object;
 }
 
@@ -329,6 +343,71 @@ extension TokenQueryWhere on QueryBuilder<Token, Token, QWhereClause> {
         upper: [upperBusinessId],
         includeUpper: includeUpper,
       ));
+    });
+  }
+
+  QueryBuilder<Token, Token, QAfterWhereClause> lastTouchedIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'lastTouched',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<Token, Token, QAfterWhereClause> lastTouchedIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'lastTouched',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Token, Token, QAfterWhereClause> lastTouchedEqualTo(
+      String? lastTouched) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'lastTouched',
+        value: [lastTouched],
+      ));
+    });
+  }
+
+  QueryBuilder<Token, Token, QAfterWhereClause> lastTouchedNotEqualTo(
+      String? lastTouched) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [],
+              upper: [lastTouched],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [lastTouched],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [lastTouched],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [],
+              upper: [lastTouched],
+              includeUpper: false,
+            ));
+      }
     });
   }
 }
@@ -1207,7 +1286,9 @@ Token _$TokenFromJson(Map<String, dynamic> json) => Token(
       businessId: json['businessId'] as int,
       validFrom: DateTime.parse(json['validFrom'] as String),
       validUntil: DateTime.parse(json['validUntil'] as String),
-    )..id = json['id'] as int;
+    )
+      ..id = json['id'] as int
+      ..lastTouched = json['lastTouched'] as String?;
 
 Map<String, dynamic> _$TokenToJson(Token instance) => <String, dynamic>{
       'id': instance.id,
@@ -1216,4 +1297,5 @@ Map<String, dynamic> _$TokenToJson(Token instance) => <String, dynamic>{
       'validFrom': instance.validFrom.toIso8601String(),
       'validUntil': instance.validUntil.toIso8601String(),
       'businessId': instance.businessId,
+      'lastTouched': instance.lastTouched,
     };

@@ -63,7 +63,21 @@ const ITenantSchema = CollectionSchema(
   deserialize: _iTenantDeserialize,
   deserializeProp: _iTenantDeserializeProp,
   idName: r'id',
-  indexes: {},
+  indexes: {
+    r'lastTouched': IndexSchema(
+      id: -1197289422054722944,
+      name: r'lastTouched',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'lastTouched',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
+    )
+  },
   links: {},
   embeddedSchemas: {},
   getId: _iTenantGetId,
@@ -128,6 +142,7 @@ ITenant _iTenantDeserialize(
     userId: reader.readLong(offsets[7]),
   );
   object.imageUrl = reader.readStringOrNull(offsets[2]);
+  object.lastTouched = reader.readStringOrNull(offsets[3]);
   return object;
 }
 
@@ -242,6 +257,71 @@ extension ITenantQueryWhere on QueryBuilder<ITenant, ITenant, QWhereClause> {
         upper: upperId,
         includeUpper: includeUpper,
       ));
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterWhereClause> lastTouchedIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'lastTouched',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterWhereClause> lastTouchedIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'lastTouched',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterWhereClause> lastTouchedEqualTo(
+      String? lastTouched) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'lastTouched',
+        value: [lastTouched],
+      ));
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterWhereClause> lastTouchedNotEqualTo(
+      String? lastTouched) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [],
+              upper: [lastTouched],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [lastTouched],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [lastTouched],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [],
+              upper: [lastTouched],
+              includeUpper: false,
+            ));
+      }
     });
   }
 }
@@ -1457,7 +1537,9 @@ ITenant _$ITenantFromJson(Map<String, dynamic> json) => ITenant(
       nfcEnabled: json['nfcEnabled'] as bool,
       businessId: json['businessId'] as int,
       userId: json['userId'] as int,
-    )..imageUrl = json['imageUrl'] as String?;
+    )
+      ..imageUrl = json['imageUrl'] as String?
+      ..lastTouched = json['lastTouched'] as String?;
 
 Map<String, dynamic> _$ITenantToJson(ITenant instance) => <String, dynamic>{
       'id': instance.id,
@@ -1468,4 +1550,5 @@ Map<String, dynamic> _$ITenantToJson(ITenant instance) => <String, dynamic>{
       'businessId': instance.businessId,
       'userId': instance.userId,
       'imageUrl': instance.imageUrl,
+      'lastTouched': instance.lastTouched,
     };

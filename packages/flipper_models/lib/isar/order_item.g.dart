@@ -304,6 +304,19 @@ const OrderItemSchema = CollectionSchema(
           caseSensitive: false,
         )
       ],
+    ),
+    r'lastTouched': IndexSchema(
+      id: -1197289422054722944,
+      name: r'lastTouched',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'lastTouched',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
     )
   },
   links: {},
@@ -603,6 +616,7 @@ OrderItem _orderItemDeserialize(
     variantId: reader.readLong(offsets[49]),
   );
   object.action = reader.readStringOrNull(offsets[0]);
+  object.lastTouched = reader.readStringOrNull(offsets[23]);
   object.localId = reader.readLongOrNull(offsets[24]);
   return object;
 }
@@ -1099,6 +1113,71 @@ extension OrderItemQueryWhere
         upper: [variantId, upperOrderId],
         includeUpper: includeUpper,
       ));
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterWhereClause> lastTouchedIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'lastTouched',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterWhereClause> lastTouchedIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'lastTouched',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterWhereClause> lastTouchedEqualTo(
+      String? lastTouched) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'lastTouched',
+        value: [lastTouched],
+      ));
+    });
+  }
+
+  QueryBuilder<OrderItem, OrderItem, QAfterWhereClause> lastTouchedNotEqualTo(
+      String? lastTouched) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [],
+              upper: [lastTouched],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [lastTouched],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [lastTouched],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [],
+              upper: [lastTouched],
+              includeUpper: false,
+            ));
+      }
     });
   }
 }
@@ -8696,6 +8775,7 @@ OrderItem _$OrderItemFromJson(Map<String, dynamic> json) => OrderItem(
       modrId: json['modrId'] as String?,
       modrNm: json['modrNm'] as String?,
     )
+      ..lastTouched = json['lastTouched'] as String?
       ..action = json['action'] as String?
       ..localId = json['localId'] as int?;
 
@@ -8748,6 +8828,7 @@ Map<String, dynamic> _$OrderItemToJson(OrderItem instance) => <String, dynamic>{
       'regrNm': instance.regrNm,
       'modrId': instance.modrId,
       'modrNm': instance.modrNm,
+      'lastTouched': instance.lastTouched,
       'action': instance.action,
       'localId': instance.localId,
     };

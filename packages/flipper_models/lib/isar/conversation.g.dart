@@ -134,6 +134,19 @@ const ConversationSchema = CollectionSchema(
           caseSensitive: true,
         )
       ],
+    ),
+    r'lastTouched': IndexSchema(
+      id: -1197289422054722944,
+      name: r'lastTouched',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'lastTouched',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
     )
   },
   links: {},
@@ -257,6 +270,7 @@ Conversation _conversationDeserialize(
     userName: reader.readString(offsets[16]),
   );
   object.id = id;
+  object.lastTouched = reader.readStringOrNull(offsets[9]);
   return object;
 }
 
@@ -525,6 +539,73 @@ extension ConversationQueryWhere
               indexName: r'messageId',
               lower: [],
               upper: [messageId],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterWhereClause>
+      lastTouchedIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'lastTouched',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterWhereClause>
+      lastTouchedIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'lastTouched',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterWhereClause>
+      lastTouchedEqualTo(String? lastTouched) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'lastTouched',
+        value: [lastTouched],
+      ));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterWhereClause>
+      lastTouchedNotEqualTo(String? lastTouched) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [],
+              upper: [lastTouched],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [lastTouched],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [lastTouched],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [],
+              upper: [lastTouched],
               includeUpper: false,
             ));
       }
@@ -3524,7 +3605,7 @@ Conversation _$ConversationFromJson(Map<String, dynamic> json) => Conversation(
           : DateTime.parse(json['scheduledAt'] as String),
       delivered: json['delivered'] as bool?,
       messageId: json['messageId'] as String?,
-    );
+    )..lastTouched = json['lastTouched'] as String?;
 
 Map<String, dynamic> _$ConversationToJson(Conversation instance) =>
     <String, dynamic>{
@@ -3544,4 +3625,5 @@ Map<String, dynamic> _$ConversationToJson(Conversation instance) =>
       'businessId': instance.businessId,
       'scheduledAt': instance.scheduledAt?.toIso8601String(),
       'delivered': instance.delivered,
+      'lastTouched': instance.lastTouched,
     };

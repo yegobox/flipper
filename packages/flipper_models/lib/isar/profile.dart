@@ -51,6 +51,9 @@ class Profile extends IJsonSerializable {
   int businessId;
   String? nationalId;
 
+  @Index()
+  String? lastTouched;
+
   factory Profile.fromRecord(RecordModel record) =>
       Profile.fromJson(record.toJson());
 

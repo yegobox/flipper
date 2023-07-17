@@ -139,6 +139,19 @@ const SettingSchema = CollectionSchema(
           caseSensitive: false,
         )
       ],
+    ),
+    r'lastTouched': IndexSchema(
+      id: -1197289422054722944,
+      name: r'lastTouched',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'lastTouched',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
     )
   },
   links: {},
@@ -264,6 +277,7 @@ Setting _settingDeserialize(
     type: reader.readStringOrNull(offsets[16]),
     userId: reader.readLongOrNull(offsets[17]),
   );
+  object.lastTouched = reader.readStringOrNull(offsets[12]);
   return object;
 }
 
@@ -633,6 +647,71 @@ extension SettingQueryWhere on QueryBuilder<Setting, Setting, QWhereClause> {
         upper: [upperBusinessId],
         includeUpper: includeUpper,
       ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> lastTouchedIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'lastTouched',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> lastTouchedIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'lastTouched',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> lastTouchedEqualTo(
+      String? lastTouched) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'lastTouched',
+        value: [lastTouched],
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> lastTouchedNotEqualTo(
+      String? lastTouched) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [],
+              upper: [lastTouched],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [lastTouched],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [lastTouched],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [],
+              upper: [lastTouched],
+              includeUpper: false,
+            ));
+      }
     });
   }
 }
@@ -3078,7 +3157,7 @@ Setting _$SettingFromJson(Map<String, dynamic> json) => Setting(
       businessId: json['businessId'] as int?,
       createdAt: json['createdAt'] as String?,
       token: json['token'] as String?,
-    );
+    )..lastTouched = json['lastTouched'] as String?;
 
 Map<String, dynamic> _$SettingToJson(Setting instance) => <String, dynamic>{
       'email': instance.email,
@@ -3098,4 +3177,5 @@ Map<String, dynamic> _$SettingToJson(Setting instance) => <String, dynamic>{
       'token': instance.token,
       'businessId': instance.businessId,
       'createdAt': instance.createdAt,
+      'lastTouched': instance.lastTouched,
     };

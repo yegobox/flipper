@@ -36,6 +36,9 @@ class Conversation extends IJsonSerializable {
 
   bool? delivered;
 
+   @Index()
+  String? lastTouched;
+
   Conversation(
       {required this.userName,
       required this.body,

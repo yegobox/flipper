@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:intl/intl.dart';
 import 'package:html_unescape/html_unescape.dart';
 import 'dart:convert';
 import 'dart:developer';

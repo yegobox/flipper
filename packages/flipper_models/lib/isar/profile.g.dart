@@ -126,6 +126,19 @@ const ProfileSchema = CollectionSchema(
           caseSensitive: false,
         )
       ],
+    ),
+    r'lastTouched': IndexSchema(
+      id: -1197289422054722944,
+      name: r'lastTouched',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'lastTouched',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
     )
   },
   links: {},
@@ -274,6 +287,7 @@ Profile _profileDeserialize(
     state: reader.readStringOrNull(offsets[16]),
     vaccinationCode: reader.readString(offsets[17]),
   );
+  object.lastTouched = reader.readStringOrNull(offsets[9]);
   return object;
 }
 
@@ -506,6 +520,71 @@ extension ProfileQueryWhere on QueryBuilder<Profile, Profile, QWhereClause> {
         upper: [upperBusinessId],
         includeUpper: includeUpper,
       ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterWhereClause> lastTouchedIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'lastTouched',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterWhereClause> lastTouchedIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'lastTouched',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterWhereClause> lastTouchedEqualTo(
+      String? lastTouched) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'lastTouched',
+        value: [lastTouched],
+      ));
+    });
+  }
+
+  QueryBuilder<Profile, Profile, QAfterWhereClause> lastTouchedNotEqualTo(
+      String? lastTouched) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [],
+              upper: [lastTouched],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [lastTouched],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [lastTouched],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [],
+              upper: [lastTouched],
+              includeUpper: false,
+            ));
+      }
     });
   }
 }
@@ -3749,7 +3828,7 @@ Profile _$ProfileFromJson(Map<String, dynamic> json) => Profile(
       district: json['district'] as String,
       businessId: json['businessId'] as int,
       nationalId: json['nationalId'] as String?,
-    );
+    )..lastTouched = json['lastTouched'] as String?;
 
 Map<String, dynamic> _$ProfileToJson(Profile instance) => <String, dynamic>{
       'id': instance.id,
@@ -3770,4 +3849,5 @@ Map<String, dynamic> _$ProfileToJson(Profile instance) => <String, dynamic>{
       'district': instance.district,
       'businessId': instance.businessId,
       'nationalId': instance.nationalId,
+      'lastTouched': instance.lastTouched,
     };
