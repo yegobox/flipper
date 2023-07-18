@@ -26,8 +26,9 @@ jobs:
           java-version: "8.x"
       - uses: subosito/flutter-action@v2
         with:
+          flutter-version: '3.10.5' #firebase_auth_desktop is broken with  3.10.6
           channel: "stable"
-          version: '3.10.5' #firebase_auth_desktop is broken with  3.10.6
+          
       - run: git submodule update --init
       - name: Configure Missing files
         run: |
@@ -87,8 +88,8 @@ jobs:
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
+          flutter-version: '3.10.5' #firebase_auth_desktop is broken with  3.10.6
           channel: stable
-          version: '3.10.5' #firebase_auth_desktop is broken with  3.10.6
       - run: flutter doctor -v
 
       # Checkout gallery code and get packages.
