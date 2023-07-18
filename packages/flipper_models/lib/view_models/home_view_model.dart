@@ -114,7 +114,9 @@ class HomeViewModel extends ReactiveViewModel {
         ProxyService.keypad.reset();
         rebuildUi();
         break;
-
+      case 'check':
+        log("Check!");
+        break;
       default:
         ProxyService.keypad.addKey(key);
         if (ProxyService.keypad.key.length == 1) {
@@ -957,7 +959,7 @@ class HomeViewModel extends ReactiveViewModel {
       {required String period}) async {
     List<double> res =
         await ProxyService.isar.getTransactionsAmountsSum(period: period);
-    
+
     return res;
   }
 

@@ -71,7 +71,7 @@ class KeyPadView extends StatelessWidget {
           splashColor: Color(0xFFDFF0FF),
           onTap: () {
             HapticFeedback.lightImpact();
-            model.keyboardKeyPressed(key: '+');
+            model.keyboardKeyPressed(key: 'check');
           },
           child: Container(
             height: MediaQuery.of(context).size.height *
@@ -79,14 +79,7 @@ class KeyPadView extends StatelessWidget {
             width: MediaQuery.of(context).size.width,
 
             alignment: Alignment.center,
-            child: Text(
-              '✔️',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w400,
-                  fontSize: 38,
-                  color: Colors.black),
-            ),
+            child: Icon(Icons.check, color: Colors.black, size: 38),
           ),
         ),
       );

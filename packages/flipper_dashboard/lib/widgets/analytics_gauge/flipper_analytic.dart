@@ -1,2 +1,2 @@
-export 'gouge.dart';
+export 'gauge.dart';
 export 'balances.dart';

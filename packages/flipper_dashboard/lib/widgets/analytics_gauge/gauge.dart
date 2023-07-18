@@ -7,11 +7,13 @@ class SemiCircleGauge extends StatefulWidget {
   final double dataOnRedSide;
   final double maxDataValue;
   final double startPadding;
+  final String profitType;
 
   SemiCircleGauge({
     Key? key,
     required this.dataOnGreenSide,
     required this.dataOnRedSide,
+    required this.profitType,
     this.startPadding = 0.0, // Default startPadding value is 0.0
   })  : maxDataValue = math.max(dataOnGreenSide, dataOnRedSide),
         super(key: key);
@@ -39,11 +41,15 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge> {
     Widget resultText;
     double profitOrLoss = 0;
     if (widget.dataOnGreenSide > widget.dataOnRedSide) {
-      resultText = Text('Net profit',
+      resultText = Text(widget.profitType,
           style: GoogleFonts.poppins(fontSize: 18, color: Colors.grey));
-      profitOrLoss = widget.dataOnGreenSide - widget.dataOnRedSide;
+      if (widget.profitType == "Gross Profit") {
+        profitOrLoss = widget.dataOnGreenSide;
+      } else {
+        profitOrLoss = widget.dataOnGreenSide - widget.dataOnRedSide;
+      }
     } else if (widget.dataOnRedSide > widget.dataOnGreenSide) {
-      resultText = Text('Net loss',
+      resultText = Text('Loss',
           style: GoogleFonts.poppins(fontSize: 18, color: Colors.grey));
       profitOrLoss = widget.dataOnRedSide - widget.dataOnGreenSide;
     } else if ((widget.dataOnRedSide == widget.dataOnGreenSide) &&
@@ -87,11 +93,17 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge> {
                                 fontSize: 19,
                                 color: Colors.black,
                                 fontWeight: FontWeight.w600)),
-                        Text("Gross Profit",
-                            style: GoogleFonts.poppins(
-                                fontSize: 17,
-                                color: Colors.lightBlue.shade200,
-                                fontWeight: FontWeight.w600)),
+                        widget.profitType == "Net Profit"
+                            ? Text("Gross Profit",
+                                style: GoogleFonts.poppins(
+                                    fontSize: 17,
+                                    color: Colors.lightBlue.shade200,
+                                    fontWeight: FontWeight.w600))
+                            : Text("Total Sales",
+                                style: GoogleFonts.poppins(
+                                    fontSize: 17,
+                                    color: Colors.lightBlue.shade200,
+                                    fontWeight: FontWeight.w600))
                       ],
                     ),
                     Column(
@@ -136,7 +148,8 @@ class _GaugePainter extends CustomPainter {
     final greenPaint = Paint()
       ..color = Colors.green
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 5.0;
+      ..strokeWidth = 5.0
+      ..strokeCap = StrokeCap.round;
 
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: radius),
@@ -150,7 +163,8 @@ class _GaugePainter extends CustomPainter {
     final redPaint = Paint()
       ..color = Colors.red
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 5.0;
+      ..strokeWidth = 5.0
+      ..strokeCap = StrokeCap.round;
 
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: radius),

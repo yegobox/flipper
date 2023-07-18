@@ -319,7 +319,7 @@ class _AppsState extends State<Apps> {
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return SemiCircleGauge(
-              dataOnGreenSide: 0, dataOnRedSide: 0, startPadding: 10);
+              dataOnGreenSide: 0, dataOnRedSide: 0, startPadding: 10, profitType: widget.profitType,);
         } else {
           final transactions = snapshot.data!;
           DateTime oldDate;
@@ -359,7 +359,7 @@ class _AppsState extends State<Apps> {
           return SemiCircleGauge(
               dataOnGreenSide: sum_cash_in,
               dataOnRedSide: sum_cash_out,
-              startPadding: 10);
+              startPadding: 10, profitType: widget.profitType,);
         }
       },
     );

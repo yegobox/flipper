@@ -68,6 +68,10 @@ abstract class IsarApiInterface {
     String transactionType = 'custom',
   });
 
+  Future<Transaction> manageCashInOutTransaction({
+    required String transactionType
+  });
+
   Future<List<Transaction>> completedTransactions(
       {required int branchId, String? status = completeStatus});
   Future<TransactionItem?> getTransactionItem({required int id});

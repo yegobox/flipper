@@ -254,7 +254,7 @@ class _CashbookState extends State<Cashbook> {
                                           style: GoogleFonts.poppins(
                                               fontSize: 17,
                                               fontWeight: FontWeight.bold)),
-                                    CategorySelector(
+                                    CategorySelector.transactionMode(
                                         categories: model.categories)
                                   ],
                                 ),
@@ -335,7 +335,8 @@ class _CashbookState extends State<Cashbook> {
               return SemiCircleGauge(
                   dataOnGreenSide: sum_cash_in,
                   dataOnRedSide: sum_cash_out,
-                  startPadding: 10);
+                  startPadding: 10,
+                  profitType: widget.profitType,);
 
             case 'list':
               if (filteredTransactions.length == 0) {

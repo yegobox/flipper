@@ -195,6 +195,46 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
+  Future<Transaction> manageCashInOutTransaction({
+    required String transactionType
+  }) async {
+    int branchId = ProxyService.box.getBranchId()!;
+
+    Transaction? existTransaction =
+        await pendingTransaction(branchId: branchId);
+
+    if (existTransaction == null) {
+      final transaction = Transaction(
+        id: syncIdInt(),
+        reference: syncId(),
+        transactionNumber: syncId(),
+        draft: true,
+        status: pendingStatus,
+        transactionType: transactionType,
+        active: true,
+        reported: false,
+        subTotal: 0,
+        cashReceived: 0,
+        updatedAt: DateTime.now().toIso8601String(),
+        customerChangeDue: 0.0,
+        paymentType: 'Cash',
+        branchId: branchId,
+        createdAt: DateTime.now().toIso8601String(),
+      );
+
+      // save transaction to db
+      Transaction? createdTransaction = await isar.writeTxn(() async {
+        int id = await isar.transactions.put(transaction);
+        ProxyService.box.write(key: 'currentTransactionId', value: id);
+        return await isar.transactions.get(id);
+      });
+      return createdTransaction!;
+    } else {
+      return existTransaction;
+    }
+  }
+
+  @override
   Future<void> addTransactionItem(
       {required Transaction transaction, required TransactionItem item}) async {
     return isar.writeTxn(() async {
