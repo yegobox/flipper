@@ -40,10 +40,6 @@
 [submodule "open-sources/flutter.widgets"]
 	path = open-sources/flutter.widgets
 	url = https://github.com/yegobox/flutter.widgets.git
-# [submodule "open-sources/flutterfire_desktop"]
-# 	path = open-sources/flutterfire_desktop
-# 	url = https://github.com/yegobox/flutterfire_desktop.git
-
 [submodule "open-sources/flutter_luban"]
 	path = open-sources/flutter_luban
 	url = https://github.com/yegobox/flutter_luban.git
@@ -61,3 +57,6 @@
 [submodule "open-sources/plus_plugins"]
 	path = open-sources/plus_plugins
 	url = https://github.com/yegobox/plus_plugins.git
+[submodule "open-sources/flutterfire_desktop"]
+	path = open-sources/flutterfire_desktop
+	url = https://github.com/yegobox/flutterfire_desktop.git

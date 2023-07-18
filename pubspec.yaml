@@ -12,7 +12,7 @@ description: A super app for africans
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundatversion:
-version: 1.170.316502155783+1689657621
+version: 1.170.318191813405+1689699489
 #....
 # The packages below are just refrences for what packages being used
 # so not referenced in the app! check each package for more real package used
@@ -66,7 +66,7 @@ dependencies:
     # path: ./packages/flipper_actionable
   flipper_actionable:
     path: ./packages/flipper_actionable
-  firebase_core: ^2.13.1
+  firebase_core: ^2.15.0
   # firebase_auth: ^4.7.0
   flutter_localization: ^0.1.11
   country_code_picker: ^3.0.0
