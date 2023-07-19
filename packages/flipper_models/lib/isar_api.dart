@@ -298,6 +298,7 @@ class IsarAPI<M> implements IsarApiInterface {
         .where()
         .filter()
         .statusEqualTo(completeStatus)
+        .sortByCreatedAtDesc()
         .build()
         .watch(fireImmediately: true);
     return completedTransactions;
