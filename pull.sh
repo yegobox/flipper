@@ -11,7 +11,7 @@ cd .. && cd system_time_check && git checkout main && git pull origin main
 cd .. && cd flutter_list_drag_and_drop && git checkout main && git pull origin main
 cd .. && cd flutterfire_desktop && git checkout main && git pull origin main
 cd .. && cd flutter_slidable && git checkout dev && git pull origin dev
-cd .. && cd flutter_launcher_icons && git checkout master && git pull origin master
+# cd .. && cd flutter_launcher_icons && git checkout master && git pull origin master
 cd .. && cd flutter_datetime_picker && git checkout master && git pull origin master
 cd .. && cd flutter_luban && git checkout master && git pull origin master
-cd .. && cd form_block && git checkout master && git pull origin master
+cd .. && cd form_block && git checkout stable && git pull origin stable
