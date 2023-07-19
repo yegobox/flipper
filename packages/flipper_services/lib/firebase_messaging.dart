@@ -61,7 +61,8 @@ class FirebaseMessagingService implements Messaging {
 
     if (ProxyService.box.getDefaultApp() == 2 &&
         activeSocialAccount.isNotEmpty &&
-        !ProxyService.box.getIsTokenRegistered()!) {
+        !ProxyService.box.getIsTokenRegistered()! &&
+        !kDebugMode) {
       bool isSocialLoggedIn = await appService.isSocialLoggedin();
 
       if (isSocialLoggedIn) {
@@ -75,19 +76,17 @@ class FirebaseMessagingService implements Messaging {
         await appService.logSocial();
       }
 
-      if (!kDebugMode) {
-        try {
-          await ProxyService.remote.create(
-            collection: {
-              "deviceToken": _token,
-              "businessId": businessId,
-            },
-            collectionName: 'messagings',
-          );
-          ProxyService.box.write(key: 'getIsTokenRegistered', value: true);
-        } catch (e) {
-          ProxyService.box.write(key: 'getIsTokenRegistered', value: true);
-        }
+      try {
+        await ProxyService.remote.create(
+          collection: {
+            "deviceToken": _token,
+            "businessId": businessId,
+          },
+          collectionName: 'messagings',
+        );
+        ProxyService.box.write(key: 'getIsTokenRegistered', value: true);
+      } catch (e) {
+        ProxyService.box.write(key: 'getIsTokenRegistered', value: true);
       }
     }
   }

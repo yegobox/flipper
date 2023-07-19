@@ -5,9 +5,7 @@ import 'package:flipper_services/locator.dart' as loc;
 import 'package:flipper_services/app_service.dart';
 
 class CashbookViewModel extends ProductViewModel {
-  // extends ReactiveViewModel
   final AppService app = loc.locator<AppService>();
-  // ignore: annotate_overrides, overridden_fields
 
   get categories => app.categories;
 
@@ -23,23 +21,27 @@ class CashbookViewModel extends ProductViewModel {
   }
 
   Stream<List<Transaction>> getLocalTransactions() async* {
-    Stream<List<Transaction>> res = await ProxyService.isar.getLocalTransactionsStream();
+    Stream<List<Transaction>> res =
+        await ProxyService.isar.getLocalTransactionsStream();
     yield* res;
   }
 
   Stream<List<Transaction>> getCashInTransactions() async* {
-    Stream<List<Transaction>> res = await ProxyService.isar.getCashInTransactions();
+    Stream<List<Transaction>> res =
+        await ProxyService.isar.getCashInTransactions();
     yield* res;
   }
 
   Stream<List<Transaction>> getCashOutTransactions() async* {
-    Stream<List<Transaction>> res = await ProxyService.isar.getCashOutTransactions();
+    Stream<List<Transaction>> res =
+        await ProxyService.isar.getCashOutTransactions();
     yield* res;
   }
 
   Future<int> deleteTransactionByIndex(int transactionIndex) async {
     Transaction? target = await getTransactionByIndex(transactionIndex);
-    await ProxyService.isar.deleteTransactionByIndex(transactionIndex: transactionIndex);
+    await ProxyService.isar
+        .deleteTransactionByIndex(transactionIndex: transactionIndex);
     notifyListeners();
     ProxyService.app.pushDataToServer();
     if (target != null) {
@@ -53,5 +55,4 @@ class CashbookViewModel extends ProductViewModel {
         await ProxyService.isar.getTransactionById(id: transactionIndex);
     return res;
   }
-
 }
