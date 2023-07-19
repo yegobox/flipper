@@ -25,13 +25,13 @@ abstract class TaxApi {
   // Right now saving purchase is not supported.
   // will do later. (umuntu avuye kurangura.)
   // Future<bool> savePurchases({
-  //   required Order order,
-  //   required List<OrderItem> items,
+  //   required Transaction transaction,
+  //   required List<TransactionItem> items,
   // });
   Future<ReceiptSignature?> createReceipt(
       {Customer? customer,
-      required Order order,
-      required List<OrderItem> items,
+      required Transaction transaction,
+      required List<TransactionItem> items,
       required String receiptType,
       required Counter counter});
 }

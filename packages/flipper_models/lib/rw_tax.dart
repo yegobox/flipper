@@ -129,8 +129,8 @@ class RWTax implements TaxApi {
   @override
   Future<ReceiptSignature?> createReceipt(
       {Customer? customer,
-      required Order order,
-      required List<OrderItem> items,
+      required Transaction transaction,
+      required List<TransactionItem> items,
       required String receiptType,
       required Counter counter}) async {
     Business? business = await ProxyService.isar.getBusiness();
@@ -190,9 +190,9 @@ class RWTax implements TaxApi {
       "bhfId": business.bhfId,
       "invcNo": randomNumber.substring(0, 8) +
           "" +
-          (order.id! / 2 < 5
-                  ? order.id!.toString()
-                  : order.id!.toString().substring(0, 2))
+          (transaction.id! / 2 < 5
+                  ? transaction.id!.toString()
+                  : transaction.id!.toString().substring(0, 2))
               .toString(),
       "orgInvcNo": 0,
       "custTin": customer == null ? "" : customer.tinNumber,
@@ -226,10 +226,10 @@ class RWTax implements TaxApi {
       "totAmt": totalMinusExemptedProducts,
       "prchrAcptcYn": "N",
       "remark": null,
-      "regrId": order.id!,
-      "regrNm": order.id!,
-      "modrId": order.id!,
-      "modrNm": order.id! + order.branchId,
+      "regrId": transaction.id!,
+      "regrNm": transaction.id!,
+      "modrId": transaction.id!,
+      "modrNm": transaction.id! + transaction.branchId,
       "receipt": {
         "curRcptNo": counter.curRcptNo,
         "totRcptNo": counter.totRcptNo,
@@ -238,10 +238,10 @@ class RWTax implements TaxApi {
         "rptNo": date,
         "rcptPbctDt": date,
         "intrlData": itemPrefix +
-            order.id!.toString() +
+            transaction.id!.toString() +
             DateTime.now().microsecondsSinceEpoch.toString().substring(0, 10),
         "rcptSign": itemPrefix +
-            order.id!.toString() +
+            transaction.id!.toString() +
             DateTime.now().microsecondsSinceEpoch.toString().substring(0, 11),
         "jrnl": "",
         "trdeNm": business.name,

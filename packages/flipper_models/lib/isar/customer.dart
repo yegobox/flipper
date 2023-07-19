@@ -9,7 +9,7 @@ class Customer {
   late String email;
   late String phone;
   String? address;
-  late int orderId;
+  late int transactionId;
   late int branchId;
   String? updatedAt;
   String? tinNumber;

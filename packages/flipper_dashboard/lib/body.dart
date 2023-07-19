@@ -28,8 +28,8 @@ Widget PaymentTicketManager(
     payable: PayableView(
       model: model,
       onClick: () {
-        if (model.kOrder != null) {
-          _routerService.navigateTo(PaymentsRoute(order: model.kOrder!));
+        if (model.kTransaction != null) {
+          _routerService.navigateTo(PaymentsRoute(transaction: model.kTransaction!));
         } else {
           showSimpleNotification(
             Text(FLocalization.of(context).noPayable),
@@ -38,10 +38,10 @@ Widget PaymentTicketManager(
           );
         }
       },
-      duePay: model.kOrder?.subTotal,
+      duePay: model.kTransaction?.subTotal,
       ticketHandler: () async {
-        Order order = await ProxyService.isar.manageOrder();
-        _routerService.navigateTo(TicketsRoute(order: order));
+        Transaction transaction = await ProxyService.isar.manageTransaction();
+        _routerService.navigateTo(TicketsRoute(transaction: transaction));
       },
     ),
     controller: controller,

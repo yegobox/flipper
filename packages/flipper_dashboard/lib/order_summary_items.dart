@@ -7,7 +7,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 List<Widget> buildItems(
     {required Function callback,
     required BuildContext context,
-    required List<OrderItem> items}) {
+    required List<TransactionItem> items}) {
   final List<Widget> list = [];
 
   if (items.isEmpty) {
@@ -18,7 +18,7 @@ List<Widget> buildItems(
             height: 120,
           ),
           Text(
-            'Current order has no items',
+            'Current transaction has no items',
             style: GoogleFonts.poppins(
               fontSize: 19,
               fontWeight: FontWeight.w400,
@@ -31,7 +31,7 @@ List<Widget> buildItems(
     return list;
   }
 
-  for (OrderItem item in items) {
+  for (TransactionItem item in items) {
     list.add(
       Slidable(
         key: ValueKey(item.id),

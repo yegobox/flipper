@@ -15,10 +15,10 @@ import 'rounded_loading_button.dart';
 
 class CollectCashView extends StatefulWidget {
   const CollectCashView(
-      {Key? key, required this.paymentType, required this.order})
+      {Key? key, required this.paymentType, required this.transaction})
       : super(key: key);
   final String paymentType;
-  final Order order;
+  final Transaction transaction;
 
   @override
   State<CollectCashView> createState() => _CollectCashViewState();
@@ -111,10 +111,10 @@ class _CollectCashViewState extends State<CollectCashView> {
                                     if (value == null || value.isEmpty) {
                                       return 'Please enter Cash Received';
                                     }
-                                    double totalOrderAmount =
+                                    double totalTransactionAmount =
                                         model.totalPayable;
                                     if (double.parse(value) <
-                                        totalOrderAmount) {
+                                        totalTransactionAmount) {
                                       return "Amount is less than amount payable";
                                     }
                                     return null;
@@ -205,10 +205,10 @@ class _CollectCashViewState extends State<CollectCashView> {
                                         }
                                         _routerService.navigateTo(
                                             AfterSaleRoute(
-                                                totalOrderAmount:
+                                                totalTransactionAmount:
                                                     model.totalPayable,
                                                 receiptType: receiptType,
-                                                order: model.kOrder!));
+                                                transaction: model.kTransaction!));
                                       }
                                     } else {
                                       _btnController.stop();
@@ -229,17 +229,17 @@ class _CollectCashViewState extends State<CollectCashView> {
         },
         onViewModelReady: (model) {
           nub.PubNub pubnub = ProxyService.event.connect();
-          ProxyService.box.write(key: 'orderId', value: model.kOrder!.id!);
+          ProxyService.box.write(key: 'transactionId', value: model.kTransaction!.id!);
           nub.Subscription subscription =
               pubnub.subscribe(channels: {"payment"});
           subscription.messages.listen((event) {
             Spenn payment = Spenn.fromJson(event.payload);
             if (payment.userId.toString() == ProxyService.box.getUserId()) {
-              double totalOrderAmount = model.keypad.totalPayable;
+              double totalTransactionAmount = model.keypad.totalPayable;
               _btnController.success();
 
               _routerService.navigateTo(AfterSaleRoute(
-                  totalOrderAmount: totalOrderAmount, order: model.kOrder!));
+                  totalTransactionAmount: totalTransactionAmount, transaction: model.kTransaction!));
             }
           });
         },

@@ -37,20 +37,20 @@ const CustomerSchema = CollectionSchema(
       name: r'name',
       type: IsarType.string,
     ),
-    r'orderId': PropertySchema(
-      id: 4,
-      name: r'orderId',
-      type: IsarType.long,
-    ),
     r'phone': PropertySchema(
-      id: 5,
+      id: 4,
       name: r'phone',
       type: IsarType.string,
     ),
     r'tinNumber': PropertySchema(
-      id: 6,
+      id: 5,
       name: r'tinNumber',
       type: IsarType.string,
+    ),
+    r'transactionId': PropertySchema(
+      id: 6,
+      name: r'transactionId',
+      type: IsarType.long,
     ),
     r'updatedAt': PropertySchema(
       id: 7,
@@ -112,9 +112,9 @@ void _customerSerialize(
   writer.writeLong(offsets[1], object.branchId);
   writer.writeString(offsets[2], object.email);
   writer.writeString(offsets[3], object.name);
-  writer.writeLong(offsets[4], object.orderId);
-  writer.writeString(offsets[5], object.phone);
-  writer.writeString(offsets[6], object.tinNumber);
+  writer.writeString(offsets[4], object.phone);
+  writer.writeString(offsets[5], object.tinNumber);
+  writer.writeLong(offsets[6], object.transactionId);
   writer.writeString(offsets[7], object.updatedAt);
 }
 
@@ -130,9 +130,9 @@ Customer _customerDeserialize(
   object.email = reader.readString(offsets[2]);
   object.id = id;
   object.name = reader.readString(offsets[3]);
-  object.orderId = reader.readLong(offsets[4]);
-  object.phone = reader.readString(offsets[5]);
-  object.tinNumber = reader.readStringOrNull(offsets[6]);
+  object.phone = reader.readString(offsets[4]);
+  object.tinNumber = reader.readStringOrNull(offsets[5]);
+  object.transactionId = reader.readLong(offsets[6]);
   object.updatedAt = reader.readStringOrNull(offsets[7]);
   return object;
 }
@@ -153,11 +153,11 @@ P _customerDeserializeProp<P>(
     case 3:
       return (reader.readString(offset)) as P;
     case 4:
-      return (reader.readLong(offset)) as P;
-    case 5:
       return (reader.readString(offset)) as P;
-    case 6:
+    case 5:
       return (reader.readStringOrNull(offset)) as P;
+    case 6:
+      return (reader.readLong(offset)) as P;
     case 7:
       return (reader.readStringOrNull(offset)) as P;
     default:
@@ -765,59 +765,6 @@ extension CustomerQueryFilter
     });
   }
 
-  QueryBuilder<Customer, Customer, QAfterFilterCondition> orderIdEqualTo(
-      int value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'orderId',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Customer, Customer, QAfterFilterCondition> orderIdGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'orderId',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Customer, Customer, QAfterFilterCondition> orderIdLessThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'orderId',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Customer, Customer, QAfterFilterCondition> orderIdBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'orderId',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
   QueryBuilder<Customer, Customer, QAfterFilterCondition> phoneEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1095,6 +1042,60 @@ extension CustomerQueryFilter
     });
   }
 
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> transactionIdEqualTo(
+      int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'transactionId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Customer, Customer, QAfterFilterCondition>
+      transactionIdGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'transactionId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> transactionIdLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'transactionId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Customer, Customer, QAfterFilterCondition> transactionIdBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'transactionId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<Customer, Customer, QAfterFilterCondition> updatedAtIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -1298,18 +1299,6 @@ extension CustomerQuerySortBy on QueryBuilder<Customer, Customer, QSortBy> {
     });
   }
 
-  QueryBuilder<Customer, Customer, QAfterSortBy> sortByOrderId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'orderId', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Customer, Customer, QAfterSortBy> sortByOrderIdDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'orderId', Sort.desc);
-    });
-  }
-
   QueryBuilder<Customer, Customer, QAfterSortBy> sortByPhone() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'phone', Sort.asc);
@@ -1331,6 +1320,18 @@ extension CustomerQuerySortBy on QueryBuilder<Customer, Customer, QSortBy> {
   QueryBuilder<Customer, Customer, QAfterSortBy> sortByTinNumberDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'tinNumber', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Customer, Customer, QAfterSortBy> sortByTransactionId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'transactionId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Customer, Customer, QAfterSortBy> sortByTransactionIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'transactionId', Sort.desc);
     });
   }
 
@@ -1409,18 +1410,6 @@ extension CustomerQuerySortThenBy
     });
   }
 
-  QueryBuilder<Customer, Customer, QAfterSortBy> thenByOrderId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'orderId', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Customer, Customer, QAfterSortBy> thenByOrderIdDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'orderId', Sort.desc);
-    });
-  }
-
   QueryBuilder<Customer, Customer, QAfterSortBy> thenByPhone() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'phone', Sort.asc);
@@ -1442,6 +1431,18 @@ extension CustomerQuerySortThenBy
   QueryBuilder<Customer, Customer, QAfterSortBy> thenByTinNumberDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'tinNumber', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Customer, Customer, QAfterSortBy> thenByTransactionId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'transactionId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Customer, Customer, QAfterSortBy> thenByTransactionIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'transactionId', Sort.desc);
     });
   }
 
@@ -1487,12 +1488,6 @@ extension CustomerQueryWhereDistinct
     });
   }
 
-  QueryBuilder<Customer, Customer, QDistinct> distinctByOrderId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'orderId');
-    });
-  }
-
   QueryBuilder<Customer, Customer, QDistinct> distinctByPhone(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -1504,6 +1499,12 @@ extension CustomerQueryWhereDistinct
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'tinNumber', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Customer, Customer, QDistinct> distinctByTransactionId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'transactionId');
     });
   }
 
@@ -1547,12 +1548,6 @@ extension CustomerQueryProperty
     });
   }
 
-  QueryBuilder<Customer, int, QQueryOperations> orderIdProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'orderId');
-    });
-  }
-
   QueryBuilder<Customer, String, QQueryOperations> phoneProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'phone');
@@ -1562,6 +1557,12 @@ extension CustomerQueryProperty
   QueryBuilder<Customer, String?, QQueryOperations> tinNumberProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'tinNumber');
+    });
+  }
+
+  QueryBuilder<Customer, int, QQueryOperations> transactionIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'transactionId');
     });
   }
 

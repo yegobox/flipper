@@ -67,7 +67,7 @@ dependencies:
   # Splash screen handle
   flutter_native_splash: ^2.3.0
   lecle_downloads_path_provider: ^0.0.2+7
-  permission_handler: ^10.1.0
+  permission_handler: ^10.4.3
   flutter_svg: ^2.0.0
   modal_bottom_sheet: ^3.0.0-pre
   flipper_ui: ^1.0.3

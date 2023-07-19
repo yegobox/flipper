@@ -15,12 +15,12 @@ import 'package:intl/intl.dart';
 class AfterSale extends StatefulWidget {
   const AfterSale(
       {Key? key,
-      required this.totalOrderAmount,
-      required this.order,
+      required this.totalTransactionAmount,
+      required this.transaction,
       this.receiptType = "ns"})
       : super(key: key);
-  final double totalOrderAmount;
-  final Order order;
+  final double totalTransactionAmount;
+  final Transaction transaction;
   final String? receiptType;
 
   @override
@@ -67,7 +67,7 @@ class _AfterSaleState extends State<AfterSale> {
                             'FRw' +
                                 NumberFormat('#,###')
                                     .format(model.keypad.cashReceived -
-                                        widget.totalOrderAmount)
+                                        widget.totalTransactionAmount)
                                     .toString() +
                                 ' Change',
                             style: GoogleFonts.poppins(
@@ -93,8 +93,8 @@ class _AfterSaleState extends State<AfterSale> {
                       right: 0,
                       left: 0,
                       child: StreamBuilder<Customer?>(
-                          stream: ProxyService.isar.getCustomerByOrderId(
-                              id: model.kOrder == null ? 0 : model.kOrder!.id!),
+                          stream: ProxyService.isar.getCustomerByTransactionId(
+                              id: model.kTransaction == null ? 0 : model.kTransaction!.id!),
                           builder: (context, snapshot) {
                             return snapshot.data == null
                                 ? Column(
@@ -163,16 +163,16 @@ class _AfterSaleState extends State<AfterSale> {
                                                   Business? business =
                                                       await ProxyService.isar
                                                           .getBusiness();
-                                                  List<OrderItem> items =
+                                                  List<TransactionItem> items =
                                                       await ProxyService.isar
-                                                          .orderItems(
-                                                    doneWithOrder: false,
-                                                    orderId: widget.order.id!,
+                                                          .transactionItems(
+                                                    doneWithTransaction: false,
+                                                    transactionId: widget.transaction.id!,
                                                   );
                                                   model.printReceipt(
                                                       items: items,
                                                       business: business!,
-                                                      oorder: widget.order,
+                                                      otransaction: widget.transaction,
                                                       receiptType:
                                                           widget.receiptType!);
                                                 } else {
@@ -226,7 +226,7 @@ class _AfterSaleState extends State<AfterSale> {
                                                     fontSize: 20,
                                                     color: Color(0xff006AFE))),
                                             onPressed: () {
-                                              // refresh orders
+                                              // refresh transactions
                                               model.keyboardKeyPressed(
                                                   key: 'C');
                                               _routerService.clearStackAndShow(
@@ -273,7 +273,7 @@ class _AfterSaleState extends State<AfterSale> {
                                           child: BoxButton.outline(
                                             title: 'No Receipt',
                                             onTap: () {
-                                              // refresh orders
+                                              // refresh transactions
                                               model.keyboardKeyPressed(
                                                   key:
                                                       'C'); // to clear the keyboard
@@ -313,17 +313,17 @@ class _AfterSaleState extends State<AfterSale> {
           );
         },
         onViewModelReady: (model) async {
-          model.getOrderById();
+          model.getTransactionById();
           // generate rra receipt
           if (await ProxyService.isar.isTaxEnabled()) {
             Business? business = await ProxyService.isar.getBusiness();
-            List<OrderItem> items = await ProxyService.isar
-                .orderItems(orderId: widget.order.id!, doneWithOrder: false);
+            List<TransactionItem> items = await ProxyService.isar
+                .transactionItems(transactionId: widget.transaction.id!, doneWithTransaction: false);
 
             final bool isDone = await model.generateRRAReceipt(
                 items: items,
                 business: business!,
-                order: widget.order,
+                transaction: widget.transaction,
                 receiptType: widget.receiptType,
                 callback: (value) {
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -337,7 +337,7 @@ class _AfterSaleState extends State<AfterSale> {
               model.printReceipt(
                   items: items,
                   business: business,
-                  oorder: widget.order,
+                  otransaction: widget.transaction,
                   receiptType: widget.receiptType!);
             }
           }

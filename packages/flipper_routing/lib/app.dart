@@ -55,6 +55,7 @@ import 'all_routes.dart';
     CustomRoute(page: NewTicket),
     CustomRoute(page: Apps),
     CustomRoute(page: CheckOut),
+    CustomRoute(page: Cashbook),
 
     CustomRoute(page: SettingPage),
     CustomRoute(page: Transactions),

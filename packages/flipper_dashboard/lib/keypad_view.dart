@@ -1,5 +1,7 @@
 library pos;
 
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:universal_platform/universal_platform.dart';
@@ -17,13 +19,122 @@ class AlwaysDisabledFocusNode extends FocusNode {
 
 // ignore: must_be_immutable
 class KeyPadView extends StatelessWidget {
-  KeyPadView({Key? key, required this.model, this.isBigScreen = false})
+  KeyPadView(
+      {Key? key,
+      required this.model,
+      this.isBigScreen = false,
+      this.transactionMode = false,
+      this.transactionType = 'n/a'})
+      : super(key: key);
+
+  KeyPadView.cashBookMode(
+      {Key? key,
+      required this.model,
+      this.isBigScreen = false,
+      required this.transactionMode,
+      required this.transactionType})
       : super(key: key);
   final HomeViewModel model;
   final bool isBigScreen;
+  final bool transactionMode;
+  final String transactionType;
 
   @override
   Widget build(BuildContext context) {
+    Widget plusOrSubmit;
+    if (transactionMode == false) {
+      plusOrSubmit = Expanded(
+        child: InkWell(
+          splashColor: Color(0xFFDFF0FF),
+          onTap: () {
+            HapticFeedback.lightImpact();
+            model.keyboardKeyPressed(key: '+');
+          },
+          child: Container(
+            height: MediaQuery.of(context).size.height *
+                0.2, // 20% of screen height
+            width: MediaQuery.of(context).size.width,
+
+            alignment: Alignment.center,
+            child: Text(
+              '+',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w400,
+                  fontSize: 38,
+                  color: Colors.black),
+            ),
+          ),
+        ),
+      );
+    } else {
+      plusOrSubmit = Expanded(
+        child: InkWell(
+          splashColor: Color(0xFFDFF0FF),
+          onTap: () {
+            log("Key: " + model.key);
+            HapticFeedback.lightImpact();
+            if ((model.kTransaction != null) &&
+                ((model.key != '0') &&
+                    (model.key != '0.0') &&
+                    (model.key != '0.00'))) {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Text('Save $transactionType transaction'),
+                    content:
+                        Text('Are you sure you want to save this transaction?'),
+                    actions: <Widget>[
+                      TextButton(
+                        child: Text('Cancel'),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                      TextButton(
+                        child: Text('Confirm'),
+                        onPressed: () {
+                          // Perform confirm action here
+                          HandleTransactionFromCashBook();
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                    ],
+                  );
+                },
+              );
+            } else {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Text('Alert'),
+                    content: Text('Please enter an amount.'),
+                    actions: <Widget>[
+                      TextButton(
+                        child: Text('Close'),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                    ],
+                  );
+                },
+              );
+            }
+          },
+          child: Container(
+            height: MediaQuery.of(context).size.height *
+                0.2, // 20% of screen height
+            width: MediaQuery.of(context).size.width,
+
+            alignment: Alignment.center,
+            child: Icon(Icons.check, color: Colors.black, size: 38),
+          ),
+        ),
+      );
+    }
     final screenHeight = isBigScreen ? 200 : 600;
     final paddingHeight = screenHeight * 0.1; // 10% of screen height
     return Expanded(
@@ -317,36 +428,17 @@ class KeyPadView extends StatelessWidget {
                         )),
                   ),
                 ),
-                Expanded(
-                  child: InkWell(
-                    splashColor: Color(0xFFDFF0FF),
-                    onTap: () {
-                      HapticFeedback.lightImpact();
-                      model.keyboardKeyPressed(key: '+');
-                    },
-                    child: Container(
-                      height: MediaQuery.of(context).size.height *
-                          0.2, // 20% of screen height
-                      width: MediaQuery.of(context).size.width,
-
-                      alignment: Alignment.center,
-                      child: Text(
-                        '+',
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w400,
-                            fontSize: 38,
-                            color: Colors.black),
-                      ),
-                    ),
-                  ),
-                ),
+                plusOrSubmit,
               ],
             ),
           ),
         ],
       ),
     );
+  }
+
+  void HandleTransactionFromCashBook() async {
+    model.saveCashBookTransaction(cbTransactionType: transactionType);
   }
 }
 

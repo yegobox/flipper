@@ -391,16 +391,16 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
         return await isar.stocks.put(stock);
       });
     }
-    if (data is Order) {
-      final order = data;
+    if (data is Transaction) {
+      final transaction = data;
       await isar.writeTxn(() async {
-        return await isar.orders.put(order);
+        return await isar.transactions.put(transaction);
       });
     }
     if (data is Category) {
-      final order = data;
+      final transaction = data;
       await isar.writeTxn(() async {
-        return await isar.categorys.put(order);
+        return await isar.categorys.put(transaction);
       });
     }
     if (data is IUnit) {
@@ -415,9 +415,9 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
         return await isar.pColors.put(color);
       });
     }
-    if (data is OrderItem) {
+    if (data is TransactionItem) {
       await isar.writeTxn(() async {
-        return await isar.orderItems.put(data);
+        return await isar.transactionItems.put(data);
       });
     }
     if (data is Ebm) {

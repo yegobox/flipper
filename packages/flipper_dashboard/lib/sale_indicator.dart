@@ -21,11 +21,11 @@ class SaleIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(children: [
-      StreamBuilder<List<OrderItem>>(
-        stream: ProxyService.isar.orderItemsStream(),
+      StreamBuilder<List<TransactionItem>>(
+        stream: ProxyService.isar.transactionItemsStream(),
         builder: (context, snapshot) {
-          final List<OrderItem> orderItems = snapshot.data ?? [];
-          final int counts = orderItems.length;
+          final List<TransactionItem> transactionItems = snapshot.data ?? [];
+          final int counts = transactionItems.length;
 
           return counts == 0
               ? Text(

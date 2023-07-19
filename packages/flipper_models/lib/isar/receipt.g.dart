@@ -27,54 +27,54 @@ const ReceiptSchema = CollectionSchema(
       name: r'mrcNo',
       type: IsarType.string,
     ),
-    r'orderId': PropertySchema(
-      id: 2,
-      name: r'orderId',
-      type: IsarType.long,
-    ),
     r'qrCode': PropertySchema(
-      id: 3,
+      id: 2,
       name: r'qrCode',
       type: IsarType.string,
     ),
     r'rcptNo': PropertySchema(
-      id: 4,
+      id: 3,
       name: r'rcptNo',
       type: IsarType.long,
     ),
     r'rcptSign': PropertySchema(
-      id: 5,
+      id: 4,
       name: r'rcptSign',
       type: IsarType.string,
     ),
     r'receiptType': PropertySchema(
-      id: 6,
+      id: 5,
       name: r'receiptType',
       type: IsarType.string,
     ),
     r'resultCd': PropertySchema(
-      id: 7,
+      id: 6,
       name: r'resultCd',
       type: IsarType.string,
     ),
     r'resultDt': PropertySchema(
-      id: 8,
+      id: 7,
       name: r'resultDt',
       type: IsarType.string,
     ),
     r'resultMsg': PropertySchema(
-      id: 9,
+      id: 8,
       name: r'resultMsg',
       type: IsarType.string,
     ),
     r'sdcId': PropertySchema(
-      id: 10,
+      id: 9,
       name: r'sdcId',
       type: IsarType.string,
     ),
     r'totRcptNo': PropertySchema(
-      id: 11,
+      id: 10,
       name: r'totRcptNo',
+      type: IsarType.long,
+    ),
+    r'transactionId': PropertySchema(
+      id: 11,
+      name: r'transactionId',
       type: IsarType.long,
     ),
     r'vsdcRcptPbctDate': PropertySchema(
@@ -89,14 +89,14 @@ const ReceiptSchema = CollectionSchema(
   deserializeProp: _receiptDeserializeProp,
   idName: r'id',
   indexes: {
-    r'orderId': IndexSchema(
-      id: -6176610178429382285,
-      name: r'orderId',
+    r'transactionId': IndexSchema(
+      id: 8561542235958051982,
+      name: r'transactionId',
       unique: false,
       replace: false,
       properties: [
         IndexPropertySchema(
-          name: r'orderId',
+          name: r'transactionId',
           type: IndexType.value,
           caseSensitive: false,
         )
@@ -138,16 +138,16 @@ void _receiptSerialize(
 ) {
   writer.writeString(offsets[0], object.intrlData);
   writer.writeString(offsets[1], object.mrcNo);
-  writer.writeLong(offsets[2], object.orderId);
-  writer.writeString(offsets[3], object.qrCode);
-  writer.writeLong(offsets[4], object.rcptNo);
-  writer.writeString(offsets[5], object.rcptSign);
-  writer.writeString(offsets[6], object.receiptType);
-  writer.writeString(offsets[7], object.resultCd);
-  writer.writeString(offsets[8], object.resultDt);
-  writer.writeString(offsets[9], object.resultMsg);
-  writer.writeString(offsets[10], object.sdcId);
-  writer.writeLong(offsets[11], object.totRcptNo);
+  writer.writeString(offsets[2], object.qrCode);
+  writer.writeLong(offsets[3], object.rcptNo);
+  writer.writeString(offsets[4], object.rcptSign);
+  writer.writeString(offsets[5], object.receiptType);
+  writer.writeString(offsets[6], object.resultCd);
+  writer.writeString(offsets[7], object.resultDt);
+  writer.writeString(offsets[8], object.resultMsg);
+  writer.writeString(offsets[9], object.sdcId);
+  writer.writeLong(offsets[10], object.totRcptNo);
+  writer.writeLong(offsets[11], object.transactionId);
   writer.writeString(offsets[12], object.vsdcRcptPbctDate);
 }
 
@@ -161,16 +161,16 @@ Receipt _receiptDeserialize(
   object.id = id;
   object.intrlData = reader.readString(offsets[0]);
   object.mrcNo = reader.readString(offsets[1]);
-  object.orderId = reader.readLong(offsets[2]);
-  object.qrCode = reader.readString(offsets[3]);
-  object.rcptNo = reader.readLong(offsets[4]);
-  object.rcptSign = reader.readString(offsets[5]);
-  object.receiptType = reader.readString(offsets[6]);
-  object.resultCd = reader.readString(offsets[7]);
-  object.resultDt = reader.readString(offsets[8]);
-  object.resultMsg = reader.readString(offsets[9]);
-  object.sdcId = reader.readString(offsets[10]);
-  object.totRcptNo = reader.readLong(offsets[11]);
+  object.qrCode = reader.readString(offsets[2]);
+  object.rcptNo = reader.readLong(offsets[3]);
+  object.rcptSign = reader.readString(offsets[4]);
+  object.receiptType = reader.readString(offsets[5]);
+  object.resultCd = reader.readString(offsets[6]);
+  object.resultDt = reader.readString(offsets[7]);
+  object.resultMsg = reader.readString(offsets[8]);
+  object.sdcId = reader.readString(offsets[9]);
+  object.totRcptNo = reader.readLong(offsets[10]);
+  object.transactionId = reader.readLong(offsets[11]);
   object.vsdcRcptPbctDate = reader.readString(offsets[12]);
   return object;
 }
@@ -187,11 +187,11 @@ P _receiptDeserializeProp<P>(
     case 1:
       return (reader.readString(offset)) as P;
     case 2:
-      return (reader.readLong(offset)) as P;
-    case 3:
       return (reader.readString(offset)) as P;
-    case 4:
+    case 3:
       return (reader.readLong(offset)) as P;
+    case 4:
+      return (reader.readString(offset)) as P;
     case 5:
       return (reader.readString(offset)) as P;
     case 6:
@@ -203,7 +203,7 @@ P _receiptDeserializeProp<P>(
     case 9:
       return (reader.readString(offset)) as P;
     case 10:
-      return (reader.readString(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 11:
       return (reader.readLong(offset)) as P;
     case 12:
@@ -232,10 +232,10 @@ extension ReceiptQueryWhereSort on QueryBuilder<Receipt, Receipt, QWhere> {
     });
   }
 
-  QueryBuilder<Receipt, Receipt, QAfterWhere> anyOrderId() {
+  QueryBuilder<Receipt, Receipt, QAfterWhere> anyTransactionId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
-        const IndexWhereClause.any(indexName: r'orderId'),
+        const IndexWhereClause.any(indexName: r'transactionId'),
       );
     });
   }
@@ -307,91 +307,91 @@ extension ReceiptQueryWhere on QueryBuilder<Receipt, Receipt, QWhereClause> {
     });
   }
 
-  QueryBuilder<Receipt, Receipt, QAfterWhereClause> orderIdEqualTo(
-      int orderId) {
+  QueryBuilder<Receipt, Receipt, QAfterWhereClause> transactionIdEqualTo(
+      int transactionId) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'orderId',
-        value: [orderId],
+        indexName: r'transactionId',
+        value: [transactionId],
       ));
     });
   }
 
-  QueryBuilder<Receipt, Receipt, QAfterWhereClause> orderIdNotEqualTo(
-      int orderId) {
+  QueryBuilder<Receipt, Receipt, QAfterWhereClause> transactionIdNotEqualTo(
+      int transactionId) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'orderId',
+              indexName: r'transactionId',
               lower: [],
-              upper: [orderId],
+              upper: [transactionId],
               includeUpper: false,
             ))
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'orderId',
-              lower: [orderId],
+              indexName: r'transactionId',
+              lower: [transactionId],
               includeLower: false,
               upper: [],
             ));
       } else {
         return query
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'orderId',
-              lower: [orderId],
+              indexName: r'transactionId',
+              lower: [transactionId],
               includeLower: false,
               upper: [],
             ))
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'orderId',
+              indexName: r'transactionId',
               lower: [],
-              upper: [orderId],
+              upper: [transactionId],
               includeUpper: false,
             ));
       }
     });
   }
 
-  QueryBuilder<Receipt, Receipt, QAfterWhereClause> orderIdGreaterThan(
-    int orderId, {
+  QueryBuilder<Receipt, Receipt, QAfterWhereClause> transactionIdGreaterThan(
+    int transactionId, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'orderId',
-        lower: [orderId],
+        indexName: r'transactionId',
+        lower: [transactionId],
         includeLower: include,
         upper: [],
       ));
     });
   }
 
-  QueryBuilder<Receipt, Receipt, QAfterWhereClause> orderIdLessThan(
-    int orderId, {
+  QueryBuilder<Receipt, Receipt, QAfterWhereClause> transactionIdLessThan(
+    int transactionId, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'orderId',
+        indexName: r'transactionId',
         lower: [],
-        upper: [orderId],
+        upper: [transactionId],
         includeUpper: include,
       ));
     });
   }
 
-  QueryBuilder<Receipt, Receipt, QAfterWhereClause> orderIdBetween(
-    int lowerOrderId,
-    int upperOrderId, {
+  QueryBuilder<Receipt, Receipt, QAfterWhereClause> transactionIdBetween(
+    int lowerTransactionId,
+    int upperTransactionId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'orderId',
-        lower: [lowerOrderId],
+        indexName: r'transactionId',
+        lower: [lowerTransactionId],
         includeLower: includeLower,
-        upper: [upperOrderId],
+        upper: [upperTransactionId],
         includeUpper: includeUpper,
       ));
     });
@@ -708,59 +708,6 @@ extension ReceiptQueryFilter
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'mrcNo',
         value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> orderIdEqualTo(
-      int value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'orderId',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> orderIdGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'orderId',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> orderIdLessThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'orderId',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> orderIdBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'orderId',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
       ));
     });
   }
@@ -1782,6 +1729,60 @@ extension ReceiptQueryFilter
     });
   }
 
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> transactionIdEqualTo(
+      int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'transactionId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition>
+      transactionIdGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'transactionId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> transactionIdLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'transactionId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterFilterCondition> transactionIdBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'transactionId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<Receipt, Receipt, QAfterFilterCondition> vsdcRcptPbctDateEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1949,18 +1950,6 @@ extension ReceiptQuerySortBy on QueryBuilder<Receipt, Receipt, QSortBy> {
     });
   }
 
-  QueryBuilder<Receipt, Receipt, QAfterSortBy> sortByOrderId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'orderId', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Receipt, Receipt, QAfterSortBy> sortByOrderIdDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'orderId', Sort.desc);
-    });
-  }
-
   QueryBuilder<Receipt, Receipt, QAfterSortBy> sortByQrCode() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'qrCode', Sort.asc);
@@ -2069,6 +2058,18 @@ extension ReceiptQuerySortBy on QueryBuilder<Receipt, Receipt, QSortBy> {
     });
   }
 
+  QueryBuilder<Receipt, Receipt, QAfterSortBy> sortByTransactionId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'transactionId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterSortBy> sortByTransactionIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'transactionId', Sort.desc);
+    });
+  }
+
   QueryBuilder<Receipt, Receipt, QAfterSortBy> sortByVsdcRcptPbctDate() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'vsdcRcptPbctDate', Sort.asc);
@@ -2117,18 +2118,6 @@ extension ReceiptQuerySortThenBy
   QueryBuilder<Receipt, Receipt, QAfterSortBy> thenByMrcNoDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'mrcNo', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Receipt, Receipt, QAfterSortBy> thenByOrderId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'orderId', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Receipt, Receipt, QAfterSortBy> thenByOrderIdDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'orderId', Sort.desc);
     });
   }
 
@@ -2240,6 +2229,18 @@ extension ReceiptQuerySortThenBy
     });
   }
 
+  QueryBuilder<Receipt, Receipt, QAfterSortBy> thenByTransactionId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'transactionId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Receipt, Receipt, QAfterSortBy> thenByTransactionIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'transactionId', Sort.desc);
+    });
+  }
+
   QueryBuilder<Receipt, Receipt, QAfterSortBy> thenByVsdcRcptPbctDate() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'vsdcRcptPbctDate', Sort.asc);
@@ -2266,12 +2267,6 @@ extension ReceiptQueryWhereDistinct
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'mrcNo', caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<Receipt, Receipt, QDistinct> distinctByOrderId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'orderId');
     });
   }
 
@@ -2336,6 +2331,12 @@ extension ReceiptQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Receipt, Receipt, QDistinct> distinctByTransactionId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'transactionId');
+    });
+  }
+
   QueryBuilder<Receipt, Receipt, QDistinct> distinctByVsdcRcptPbctDate(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -2362,12 +2363,6 @@ extension ReceiptQueryProperty
   QueryBuilder<Receipt, String, QQueryOperations> mrcNoProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'mrcNo');
-    });
-  }
-
-  QueryBuilder<Receipt, int, QQueryOperations> orderIdProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'orderId');
     });
   }
 
@@ -2422,6 +2417,12 @@ extension ReceiptQueryProperty
   QueryBuilder<Receipt, int, QQueryOperations> totRcptNoProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'totRcptNo');
+    });
+  }
+
+  QueryBuilder<Receipt, int, QQueryOperations> transactionIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'transactionId');
     });
   }
 
