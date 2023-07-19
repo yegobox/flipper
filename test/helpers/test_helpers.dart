@@ -47,10 +47,10 @@ BillingService getAndRegisterBillingService() {
 Future<IsarApiInterface> getAndRegisterApiService() async {
   _removeRegistrationIfExists<IsarApiInterface>();
   Isar isar = await openTempIsar([
-    OrderSchema,
+    TransactionSchema,
     BusinessSchema,
     BranchSchema,
-    OrderItemSchema,
+    TransactionItemSchema,
     ProductSchema,
     VariantSchema,
     ProfileSchema,
@@ -168,7 +168,7 @@ MockLocalStorage getAndRegisterLocalStorage() {
   // when(service.write(key: pageKey, value: 'key')).thenAnswer((_) => true);
   // when(service.write(key: 'branchId', value: anyNamed("value")))
   //     .thenAnswer((_) => true);
-  // when(service.write(key: 'currentOrderId', value: anyNamed("value")))
+  // when(service.write(key: 'currentTransactionId', value: anyNamed("value")))
   //     .thenAnswer((_) => true);
   // when(service.write(key: 'businessId', value: anyNamed("value")))
   //     .thenAnswer((_) => true);

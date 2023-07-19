@@ -236,19 +236,19 @@ class AppService with ListenableServiceMixin {
       StreamController<String>.broadcast();
   static Stream<String> get cleanedData => cleanedDataController.stream;
 
-  // The extracted function for updating and reporting orders
-  Future<void> pushOrders(Order order) async {
+  // The extracted function for updating and reporting transactions
+  Future<void> pushTransactions(Transaction transaction) async {
     /// fix@issue where the createdAt synced on server is older compared to when a transaction was completed.
-    order.updatedAt = DateTime.now().toIso8601String();
-    order.createdAt = DateTime.now().toIso8601String();
+    transaction.updatedAt = DateTime.now().toIso8601String();
+    transaction.createdAt = DateTime.now().toIso8601String();
 
-    RecordModel? variantRecord = await ProxyService.sync.push(order);
+    RecordModel? variantRecord = await ProxyService.sync.push(transaction);
     if (variantRecord != null) {
-      Order o = Order.fromRecord(variantRecord);
+      Transaction o = Transaction.fromRecord(variantRecord);
       o.remoteID = variantRecord.id;
 
       // /// keep the local ID unchanged to avoid complication
-      o.id = order.id;
+      o.id = transaction.id;
 
       await ProxyService.isar.update(data: o);
     }
@@ -256,9 +256,9 @@ class AppService with ListenableServiceMixin {
 
   Future<void> pushDataToServer() async {
     /// push stock
-    List<Order> orders = await ProxyService.isar.getLocalOrders();
-    for (Order order in orders) {
-      await pushOrders(order);
+    List<Transaction> transactions = await ProxyService.isar.getLocalTransactions();
+    for (Transaction transaction in transactions) {
+      await pushTransactions(transaction);
     }
 
     List<Stock> stocks = await ProxyService.isar.getLocalStocks();

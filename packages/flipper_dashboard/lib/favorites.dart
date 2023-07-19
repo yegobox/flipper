@@ -10,7 +10,6 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
-import 'dart:developer';
 import 'animated_row.dart';
 
 class Favorites extends StatefulWidget {

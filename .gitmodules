@@ -60,3 +60,6 @@
 [submodule "open-sources/flutterfire_desktop"]
 	path = open-sources/flutterfire_desktop
 	url = https://github.com/yegobox/flutterfire_desktop.git
+[submodule "open-sources/form_bloc"]
+	path = open-sources/form_bloc
+	url = https://github.com/GiancarloCode/form_bloc.git

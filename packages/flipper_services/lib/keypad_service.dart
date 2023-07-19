@@ -13,9 +13,9 @@ class KeyPadService with ListenableServiceMixin {
 
   String get key => _key.value;
 
-  final _countOrderItems = ReactiveValue<int>(0);
+  final _countTransactionItems = ReactiveValue<int>(0);
 
-  int get countOrderItems => _countOrderItems.value;
+  int get countTransactionItems => _countTransactionItems.value;
 
   final _amountTotal = ReactiveValue<double>(0.00);
 
@@ -47,11 +47,11 @@ class KeyPadService with ListenableServiceMixin {
     _check.value = variantId;
   }
 
-  /// all the time we have one order being processed at the time.
-  /// one order can have multiple order items.
-  final _order = ReactiveValue<Order?>(null);
+  /// all the time we have one transaction being processed at the time.
+  /// one transaction can have multiple transaction items.
+  final _transaction = ReactiveValue<Transaction?>(null);
 
-  Order? get order => _order.value;
+  Transaction? get transaction => _transaction.value;
 
   final _totalPayable = ReactiveValue<double>(0.00);
   double get totalPayable => _totalPayable.value;
@@ -65,39 +65,39 @@ class KeyPadService with ListenableServiceMixin {
     _totalDiscount.value = amount;
   }
 
-  void setOrder(Order? order) async {
-    if (order != null) {
-      _order.value = order;
+  void setTransaction(Transaction? transaction) async {
+    if (transaction != null) {
+      _transaction.value = transaction;
     } else {
-      _order.value = null;
+      _transaction.value = null;
     }
   }
 
-  /// order can not be more than 1 lenght i.e at one instance
-  /// we have one order but an order can have more than 1 orderitem(s)
-  /// it is in this recard in application anywhere else it's okay to access orders[0]
-  Future<Order?> getPendingOrder({required int branchId}) async {
-    Order? order = await ProxyService.isar.pendingOrder(branchId: branchId);
+  /// transaction can not be more than 1 lenght i.e at one instance
+  /// we have one transaction but an transaction can have more than 1 transactionitem(s)
+  /// it is in this recard in application anywhere else it's okay to access transactions[0]
+  Future<Transaction?> getPendingTransaction({required int branchId}) async {
+    Transaction? transaction = await ProxyService.isar.pendingTransaction(branchId: branchId);
 
-    if (order != null) {
-      List<OrderItem> items = await ProxyService.isar
-          .orderItems(orderId: order.id!, doneWithOrder: false);
-      _countOrderItems.value = items.length;
+    if (transaction != null) {
+      List<TransactionItem> items = await ProxyService.isar
+          .transactionItems(transactionId: transaction.id!, doneWithTransaction: false);
+      _countTransactionItems.value = items.length;
     }
-    _order.value = order;
-    return order;
+    _transaction.value = transaction;
+    return transaction;
   }
 
-  /// this function update _orders.value the same as getOrders but this takes id of the order we want
+  /// this function update _transactions.value the same as getTransactions but this takes id of the transaction we want
   /// it is very important to not fonfuse these functions. later on.
-  Future<Order?> getOrderById({required int id}) async {
-    Order? od = await ProxyService.isar.getOrderById(id: id);
-    List<OrderItem> orderItems =
-        await ProxyService.isar.getOrderItemsByOrderId(orderId: od!.id!);
-    _countOrderItems.value = orderItems.length;
+  Future<Transaction?> getTransactionById({required int id}) async {
+    Transaction? od = await ProxyService.isar.getTransactionById(id: id);
+    List<TransactionItem> transactionItems =
+        await ProxyService.isar.getTransactionItemsByTransactionId(transactionId: od!.id!);
+    _countTransactionItems.value = transactionItems.length;
 
-    _order.value = od;
-    return _order.value!;
+    _transaction.value = od;
+    return _transaction.value!;
   }
 
   void reset() {
@@ -148,8 +148,8 @@ class KeyPadService with ListenableServiceMixin {
   KeyPadService() {
     listenToReactiveValues([
       _key,
-      _order,
-      _countOrderItems,
+      _transaction,
+      _countTransactionItems,
       _quantity,
       _amountTotal,
       _check,

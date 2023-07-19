@@ -11,8 +11,8 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 class Customers extends StatelessWidget {
-  Customers({Key? key, required this.orderId}) : super(key: key);
-  final int orderId;
+  Customers({Key? key, required this.transactionId}) : super(key: key);
+  final int transactionId;
   final TextEditingController _seach = TextEditingController();
   final _routerService = locator<RouterService>();
   @override
@@ -64,10 +64,10 @@ class Customers extends StatelessWidget {
                                     onTap: () async {
                                       await model.assignToSale(
                                         customerId: snapshot.data!.id,
-                                        orderId: orderId,
+                                        transactionId: transactionId,
                                       );
                                       model.app.setCustomer(snapshot.data!);
-                                      model.getOrderById();
+                                      model.getTransactionById();
                                       _routerService.pop();
                                     },
                                     onLongPress: () {},
@@ -167,7 +167,7 @@ class Customers extends StatelessWidget {
                           : 'Add Customer',
                       onTap: () {
                         _showModalBottomSheet(
-                            context, orderId, model.searchCustomerkey);
+                            context, transactionId, model.searchCustomerkey);
                       },
                     ),
                   )
@@ -178,7 +178,7 @@ class Customers extends StatelessWidget {
         });
   }
 
-  void _showModalBottomSheet(BuildContext context, int orderId, searchedKey) {
+  void _showModalBottomSheet(BuildContext context, int transactionId, searchedKey) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -189,7 +189,7 @@ class Customers extends StatelessWidget {
         return Padding(
           padding: MediaQuery.of(context).viewInsets,
           child: AddCustomer(
-            orderId: orderId,
+            transactionId: transactionId,
             searchedKey: searchedKey,
           ),
         );

@@ -43,17 +43,17 @@ class PreviewSaleButton extends StatelessWidget {
           ),
         ),
         onPressed: () async {
-          Order? order = await ProxyService.isar
-              .pendingOrder(branchId: ProxyService.box.getBranchId()!);
-          if (order == null) {
+          Transaction? transaction = await ProxyService.isar
+              .pendingTransaction(branchId: ProxyService.box.getBranchId()!);
+          if (transaction == null) {
             showToast(context, 'No item on cart!', color: Colors.red);
             return;
           }
-          if (order.subTotal == 0.0) {
+          if (transaction.subTotal == 0.0) {
             showToast(context, 'No item on cart!', color: Colors.red);
             return;
           }
-          model.keypad.setOrder(order);
+          model.keypad.setTransaction(transaction);
           showBarModalBottomSheet(
             overlayStyle: SystemUiOverlayStyle.light,
             expand: false,
@@ -87,13 +87,13 @@ class PreviewSaleButton extends StatelessWidget {
                 Brightness.light, // set the icon color to light
           ));
         },
-        child: StreamBuilder<List<OrderItem>>(
-            stream: ProxyService.isar.orderItemsStream(),
+        child: StreamBuilder<List<TransactionItem>>(
+            stream: ProxyService.isar.transactionItemsStream(),
             builder: (context, snapshot) {
-              final orderItems =
+              final transactionItems =
                   snapshot.data ?? []; // Retrieve the data from the stream
-              final saleCounts = orderItems
-                  .length; // Calculate the saleCounts based on the orderItems
+              final saleCounts = transactionItems
+                  .length; // Calculate the saleCounts based on the transactionItems
 
               return Text(
                 "Preview Sale${saleCounts != 0 ? "($saleCounts)" : ""}",

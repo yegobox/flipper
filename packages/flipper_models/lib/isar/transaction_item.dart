@@ -2,16 +2,16 @@ import 'package:isar/isar.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:flipper_models/sync_service.dart';
 import 'package:pocketbase/pocketbase.dart';
-part 'order_item.g.dart';
+part 'transaction_item.g.dart';
 
 @JsonSerializable()
 @Collection()
-class OrderItem extends IJsonSerializable {
+class TransactionItem extends IJsonSerializable {
   Id? id;
   late String name;
   @Index()
-  late int orderId;
-  @Index(composite: [CompositeIndex('orderId')])
+  late int transactionId;
+  @Index(composite: [CompositeIndex('transactionId')])
   late int variantId;
   // quantity
   late double qty;
@@ -25,8 +25,8 @@ class OrderItem extends IJsonSerializable {
   late bool isTaxExempted;
   bool? isRefunded;
 
-  /// property to help us adding new item to order
-  bool? doneWithOrder;
+  /// property to help us adding new item to transaction
+  bool? doneWithTransaction;
 
   // RRA fields
   // discount rate
@@ -40,7 +40,7 @@ class OrderItem extends IJsonSerializable {
   double? totAmt;
 
   /// properties from respective variants
-  /// these properties will be populated when adding a variant to orderItem from a variant
+  /// these properties will be populated when adding a variant to transactionItem from a variant
   /// I believe there can be a smart way to clean this duplicate code
   /// but I want things to work in first place then I can refactor later.
   /// add RRA fields
@@ -92,10 +92,11 @@ class OrderItem extends IJsonSerializable {
   String? modrNm;
   @Index()
   String? lastTouched;
-  OrderItem({
+
+  TransactionItem({
     this.id,
     required this.name,
-    required this.orderId,
+    required this.transactionId,
     required this.variantId,
     required this.qty,
     required this.price,
@@ -107,7 +108,7 @@ class OrderItem extends IJsonSerializable {
     required this.updatedAt,
     required this.isTaxExempted,
     this.isRefunded,
-    this.doneWithOrder,
+    this.doneWithTransaction,
     this.dcRt,
     this.dcAmt,
     this.taxblAmt,
@@ -141,22 +142,23 @@ class OrderItem extends IJsonSerializable {
     this.regrNm,
     this.modrId,
     this.modrNm,
+    this.lastTouched,
   });
   //sync String? remoteID;
   String? action;
   int? localId;
 
-  factory OrderItem.fromRecord(RecordModel record) =>
-      OrderItem.fromJson(record.toJson());
+  factory TransactionItem.fromRecord(RecordModel record) =>
+      TransactionItem.fromJson(record.toJson());
 
-  factory OrderItem.fromJson(Map<String, dynamic> json) {
+  factory TransactionItem.fromJson(Map<String, dynamic> json) {
     json.remove('id');
-    return _$OrderItemFromJson(json);
+    return _$TransactionItemFromJson(json);
   }
 
   @override
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = _$OrderItemToJson(this);
+    final Map<String, dynamic> data = _$TransactionItemToJson(this);
     if (id != null) {
       data['localId'] = id;
     }

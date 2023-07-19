@@ -328,9 +328,9 @@ class MockRemote extends _i1.Mock implements _i11.Remote {
         returnValueForMissingStub: false,
       ) as bool);
   @override
-  bool isOrderAvailable() => (super.noSuchMethod(
+  bool isTransactionAvailable() => (super.noSuchMethod(
         Invocation.method(
-          #isOrderAvailable,
+          #isTransactionAvailable,
           [],
         ),
         returnValue: false,
@@ -934,8 +934,8 @@ class MockKeyPadService extends _i1.Mock implements _i14.KeyPadService {
         returnValueForMissingStub: '',
       ) as String);
   @override
-  int get countOrderItems => (super.noSuchMethod(
-        Invocation.getter(#countOrderItems),
+  int get countTransactionItems => (super.noSuchMethod(
+        Invocation.getter(#countTransactionItems),
         returnValue: 0,
         returnValueForMissingStub: 0,
       ) as int);
@@ -1023,35 +1023,35 @@ class MockKeyPadService extends _i1.Mock implements _i14.KeyPadService {
         returnValueForMissingStub: null,
       );
   @override
-  void setOrder(_i9.Order? order) => super.noSuchMethod(
+  void setTransaction(_i9.Transaction? transaction) => super.noSuchMethod(
         Invocation.method(
-          #setOrder,
-          [order],
+          #setTransaction,
+          [transaction],
         ),
         returnValueForMissingStub: null,
       );
   @override
-  _i5.Future<_i9.Order?> getPendingOrder({required int? branchId}) =>
+  _i5.Future<_i9.Transaction?> getPendingTransaction({required int? branchId}) =>
       (super.noSuchMethod(
         Invocation.method(
-          #getPendingOrder,
+          #getPendingTransaction,
           [],
           {#branchId: branchId},
         ),
-        returnValue: _i5.Future<_i9.Order?>.value(),
-        returnValueForMissingStub: _i5.Future<_i9.Order?>.value(),
-      ) as _i5.Future<_i9.Order?>);
+        returnValue: _i5.Future<_i9.Transaction?>.value(),
+        returnValueForMissingStub: _i5.Future<_i9.Transaction?>.value(),
+      ) as _i5.Future<_i9.Transaction?>);
   @override
-  _i5.Future<_i9.Order?> getOrderById({required int? id}) =>
+  _i5.Future<_i9.Transaction?> getTransactionById({required int? id}) =>
       (super.noSuchMethod(
         Invocation.method(
-          #getOrderById,
+          #getTransactionById,
           [],
           {#id: id},
         ),
-        returnValue: _i5.Future<_i9.Order?>.value(),
-        returnValueForMissingStub: _i5.Future<_i9.Order?>.value(),
-      ) as _i5.Future<_i9.Order?>);
+        returnValue: _i5.Future<_i9.Transaction?>.value(),
+        returnValueForMissingStub: _i5.Future<_i9.Transaction?>.value(),
+      ) as _i5.Future<_i9.Transaction?>);
   @override
   void reset() => super.noSuchMethod(
         Invocation.method(
@@ -1629,10 +1629,10 @@ class MockAppService extends _i1.Mock implements _i18.AppService {
         returnValueForMissingStub: _i5.Future<void>.value(),
       ) as _i5.Future<void>);
   @override
-  _i5.Future<void> pushOrders(_i9.Order? order) => (super.noSuchMethod(
+  _i5.Future<void> pushTransactions(_i9.Transaction? transaction) => (super.noSuchMethod(
         Invocation.method(
-          #pushOrders,
-          [order],
+          #pushTransactions,
+          [transaction],
         ),
         returnValue: _i5.Future<void>.value(),
         returnValueForMissingStub: _i5.Future<void>.value(),

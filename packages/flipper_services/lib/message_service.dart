@@ -13,7 +13,7 @@ class MessageService with ReactiveServiceMixin {
   //an order will be shown to the user. in the message service, the same message service can be used for all of the above.
   //the message service will be used by the client, the server, and the order.
   // the message service show the list of all businesses so the customer can select one. and initiate the order. or simply send simple text messages.
-  void initIniateOrderByScannedQRCode(String qrCode) {
+  void initIniateTransactionByScannedQRCode(String qrCode) {
     //the client will initiate the order by scanning a QR code.
   }
   String scanQRCode() {
@@ -23,16 +23,16 @@ class MessageService with ReactiveServiceMixin {
 
   final _orders = ReactiveValue<dynamic>(null);
 
-  Order? get orders => _orders.value;
-  void onNewOrder() {
-    // _orders.value = new OrderF();
+  Transaction? get orders => _orders.value;
+  void onNewTransaction() {
+    // _orders.value = new TransactionF();
   }
   //listen on socket and update orders
 
   //load orders from Objectbox and update the orders list
-  void loadOrders() {
+  void loadTransactions() {
     int branchId = ProxyService.box.getBranchId()!;
-    _orders.value = ProxyService.isar.completedOrders(branchId: branchId);
+    _orders.value = ProxyService.isar.completedTransactions(branchId: branchId);
   }
 
   MessageService() {

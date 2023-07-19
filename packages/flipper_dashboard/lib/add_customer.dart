@@ -10,10 +10,10 @@ import 'package:flipper_models/isar_models.dart';
 final isWindows = UniversalPlatform.isWindows;
 
 class AddCustomer extends StatefulWidget {
-  const AddCustomer({Key? key, required this.orderId, this.searchedKey})
+  const AddCustomer({Key? key, required this.transactionId, this.searchedKey})
       : super(key: key);
   static final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final int orderId;
+  final int transactionId;
   final String? searchedKey;
 
   @override
@@ -129,13 +129,13 @@ class _AddCustomerState extends State<AddCustomer> {
                                       phone: _phoneController.text,
                                       name: _nameController.text,
                                       tinNumber: _tinNumberController.text,
-                                      orderId: widget.orderId,
+                                      transactionId: widget.transactionId,
                                     );
 
                                     Navigator.maybePop(context);
 
-                                    /// this update a model when the Order has the customerId in it then will show related data accordingly!
-                                    model.getOrderById();
+                                    /// this update a model when the Transaction has the customerId in it then will show related data accordingly!
+                                    model.getTransactionById();
                                   }
                                 },
                               )),

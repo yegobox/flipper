@@ -3,12 +3,14 @@ import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 // import 'package:flipper_routing/app.bottomsheets.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class HomeViewModel extends BaseViewModel {
   final _dialogService = locator<DialogService>();
+  
   // final _bottomSheetService = locator<BottomSheetService>();
 
   void showDialog() {
@@ -29,5 +31,10 @@ class HomeViewModel extends BaseViewModel {
     } else {
       throw 'Could not launch $whatsappUri';
     }
+  }
+
+  void returnToApps() {
+    final _routerService = locator<RouterService>();
+    _routerService.navigateTo(const FlipperAppRoute());
   }
 }

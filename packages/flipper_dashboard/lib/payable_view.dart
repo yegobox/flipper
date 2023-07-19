@@ -53,21 +53,21 @@ class PayableView extends StatelessWidget {
               onPressed: () {
                 ticketHandler();
               },
-              child: StreamBuilder<List<Order>>(
+              child: StreamBuilder<List<Transaction>>(
                 stream: ProxyService.isar.ticketsStreams(),
                 builder: (context, snapshot) {
-                  final List<Order> orders = snapshot.data ?? [];
-                  final int tickets = orders.length;
+                  final List<Transaction> transactions = snapshot.data ?? [];
+                  final int tickets = transactions.length;
 
-                  return StreamBuilder<List<Order>>(
-                    stream: ProxyService.isar.pendingOrderStreams(),
+                  return StreamBuilder<List<Transaction>>(
+                    stream: ProxyService.isar.pendingTransactionStreams(),
                     builder: (context, snapshot) {
-                      final List<Order> pendingOrders = snapshot.data ?? [];
-                      final int ordersCount = pendingOrders.length;
+                      final List<Transaction> pendingTransactions = snapshot.data ?? [];
+                      final int transactionsCount = pendingTransactions.length;
 
                       return Ticket(
                         tickets: tickets,
-                        orders: ordersCount,
+                        transactions: transactionsCount,
                         context: context,
                       );
                     },
@@ -87,13 +87,13 @@ class PayableView extends StatelessWidget {
 
   Widget Ticket({
     required int tickets,
-    required int orders,
+    required int transactions,
     required BuildContext context,
   }) {
     final bool hasTickets = tickets > 0;
-    final bool hasNoOrders = orders == 0;
+    final bool hasNoTransactions = transactions == 0;
 
-    return hasTickets || hasNoOrders
+    return hasTickets || hasNoTransactions
         ? Text(
             FLocalization.of(context).tickets,
             textAlign: TextAlign.center,
@@ -110,7 +110,7 @@ class PayableView extends StatelessWidget {
                     fontWeight: FontWeight.w400, fontSize: 17),
               ),
               Text(
-                'New Order${tickets > 1 ? 's' : ''}',
+                'New Transaction${tickets > 1 ? 's' : ''}',
                 textAlign: TextAlign.center,
                 overflow: TextOverflow.ellipsis,
                 style: primaryTextStyle.copyWith(

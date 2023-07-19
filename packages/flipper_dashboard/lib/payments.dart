@@ -10,9 +10,9 @@ import 'package:stacked/stacked.dart';
 import 'package:intl/intl.dart';
 
 class Payments extends StatelessWidget {
-  Payments({Key? key, required this.order}) : super(key: key);
+  Payments({Key? key, required this.transaction}) : super(key: key);
 
-  final Order order;
+  final Transaction transaction;
   final _routerService = locator<RouterService>();
   // TODO: remove duePay get it's value from stream
   @override
@@ -38,19 +38,19 @@ class Payments extends StatelessWidget {
                 child: Stack(
                   children: [
                     Center(
-                      child: StreamBuilder<List<OrderItem>>(
-                        stream: ProxyService.isar.orderItemsStream(),
+                      child: StreamBuilder<List<TransactionItem>>(
+                        stream: ProxyService.isar.transactionItemsStream(),
                         builder: (context, snapshot) {
-                          final orderItems = snapshot.data ?? [];
+                          final transactionItems = snapshot.data ?? [];
 
-                          // Calculate the sum of all orderItems' prices for due
-                          final duePay = orderItems.fold<double>(
-                              0, (sum, orderItem) => sum + orderItem.price);
+                          // Calculate the sum of all transactionItems' prices for due
+                          final duePay = transactionItems.fold<double>(
+                              0, (sum, transactionItem) => sum + transactionItem.price);
 
                           return Column(
                             children: [
                               const SizedBox(height: 40),
-                              model.kOrder != null
+                              model.kTransaction != null
                                   ? Text(
                                       'FRw ' +
                                           NumberFormat('#,###').format(duePay),
@@ -82,7 +82,7 @@ class Payments extends StatelessWidget {
                           GestureDetector(
                             onTap: () {
                               _routerService.navigateTo(CollectCashViewRoute(
-                                  order: order, paymentType: "cash"));
+                                  transaction: transaction, paymentType: "cash"));
                             },
                             child: ListTile(
                               leading: Text(
@@ -138,7 +138,7 @@ class Payments extends StatelessWidget {
                                   onTap: () {
                                     _routerService.navigateTo(
                                         CollectCashViewRoute(
-                                            order: order,
+                                            transaction: transaction,
                                             paymentType: "spenn"));
                                   },
                                   child: const ListTile(

@@ -602,7 +602,7 @@ class Sell extends StatelessWidget {
               disableButton: false,
               showActionButton: true,
               onActionButtonClicked: () async {
-                await model.saveOrder(
+                await model.saveTransaction(
                   variationId: model.checked,
                   amountTotal: model.amountTotal,
                   customItem: false,

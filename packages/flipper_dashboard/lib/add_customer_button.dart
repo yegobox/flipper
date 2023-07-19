@@ -5,10 +5,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 class AddCustomerButton extends StatelessWidget {
-  AddCustomerButton({Key? key, required this.orderId}) : super(key: key);
+  AddCustomerButton({Key? key, required this.transactionId}) : super(key: key);
   final _routerService = locator<RouterService>();
 
-  final int orderId;
+  final int transactionId;
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -40,7 +40,7 @@ class AddCustomerButton extends StatelessWidget {
             ),
             onPressed: () {
               _routerService.navigateTo(CustomersRoute(
-                orderId: orderId,
+                transactionId: transactionId,
               ));
             },
             child: Text("Add Customer",
