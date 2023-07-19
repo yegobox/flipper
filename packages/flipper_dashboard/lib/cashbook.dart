@@ -375,8 +375,14 @@ class _CashbookState extends State<Cashbook> {
                   final transaction = filteredTransactions[index];
                   return ListTile(
                     leading: transaction.transactionType == 'Cash Out'
-                        ? Icon(Icons.remove)
-                        : Icon(Icons.add), // Icon before the title
+                        ? CircleAvatar(
+                            backgroundImage: AssetImage('assets/cash_out.png',
+                                package: 'flipper_dashboard'),
+                          )
+                        : CircleAvatar(
+                            backgroundImage: AssetImage('assets/cash_in.png',
+                                package:
+                                    'flipper_dashboard')), // Icon before the title
                     title: Text(transaction.subTotal.toString() + ' RWF'),
                     subtitle: Text(transaction.status.toString()),
 
