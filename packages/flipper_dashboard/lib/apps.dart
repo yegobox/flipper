@@ -262,6 +262,9 @@ class _AppsState extends State<Apps> {
               ]),
               SizedBox(height: 80),
               _buildGauge(context, widget.model),
+              SizedBox(
+                height: 10,
+              ),
               Row(
                 children: [
                   SizedBox(width: 10),
