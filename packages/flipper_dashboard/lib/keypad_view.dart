@@ -1,5 +1,7 @@
 library pos;
 
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:universal_platform/universal_platform.dart';
@@ -71,7 +73,32 @@ class KeyPadView extends StatelessWidget {
           splashColor: Color(0xFFDFF0FF),
           onTap: () {
             HapticFeedback.lightImpact();
-            model.keyboardKeyPressed(key: 'check');
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text('Save $transactionType transaction'),
+                  content:
+                      Text('Are you sure you want to save this transaction?'),
+                  actions: <Widget>[
+                    TextButton(
+                      child: Text('Cancel'),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                    TextButton(
+                      child: Text('Confirm'),
+                      onPressed: () {
+                        // Perform confirm action here
+                        HandleTransactionFromCashBook();
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ],
+                );
+              },
+            );
           },
           child: Container(
             height: MediaQuery.of(context).size.height *
@@ -384,6 +411,10 @@ class KeyPadView extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void HandleTransactionFromCashBook() async {
+    model.saveCashBookTransaction(cbTransactionType: transactionType);
   }
 }
 

@@ -126,7 +126,7 @@ class _CashbookState extends State<Cashbook> {
                                               widget.newTransactionPressed =
                                                   true;
                                               widget.newTransactionType =
-                                                  'cash_in';
+                                                  'Cash In';
                                             });
                                           },
                                           style: ButtonStyle(
@@ -185,7 +185,7 @@ class _CashbookState extends State<Cashbook> {
                                               widget.newTransactionPressed =
                                                   true;
                                               widget.newTransactionType =
-                                                  'cash_out';
+                                                  'Cash Out';
                                             });
                                           },
                                           style: ButtonStyle(
@@ -243,13 +243,13 @@ class _CashbookState extends State<Cashbook> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceEvenly,
                                   children: [
-                                    if (widget.newTransactionType == 'cash_in')
+                                    if (widget.newTransactionType == 'Cash In')
                                       Text('Record Cash In',
                                           style: GoogleFonts.poppins(
                                               fontSize: 17,
                                               fontWeight: FontWeight.bold))
                                     else if (widget.newTransactionType ==
-                                        'cash_out')
+                                        'Cash Out')
                                       Text('Record Cash Out',
                                           style: GoogleFonts.poppins(
                                               fontSize: 17,
@@ -282,11 +282,20 @@ class _CashbookState extends State<Cashbook> {
       BuildContext context, HomeViewModel model, String widgetType) {
     return StreamBuilder<List<Transaction>>(
       initialData: null,
-      stream: ProxyService.isar.getTransactions(),
+      stream: ProxyService.isar.getCompletedTransactions(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           log("waiting");
-          return CircularProgressIndicator();
+          if (widgetType == 'gauge') {
+            return SemiCircleGauge(
+              dataOnGreenSide: 0,
+              dataOnRedSide: 0,
+              startPadding: 10,
+              profitType: widget.profitType,
+            );
+          } else {
+            return CircularProgressIndicator();
+          }
         } else if (snapshot.hasError) {
           log(snapshot.error.toString());
           return Text('Error: ${snapshot.error}');
@@ -326,17 +335,18 @@ class _CashbookState extends State<Cashbook> {
               double sum_cash_in = 0;
               double sum_cash_out = 0;
               for (final transaction in filteredTransactions) {
-                if (transaction.transactionType == 'cash_out') {
+                if (transaction.transactionType == 'Cash Out') {
                   sum_cash_out = transaction.subTotal + sum_cash_out;
                 } else {
                   sum_cash_in = transaction.subTotal + sum_cash_in;
                 }
               }
               return SemiCircleGauge(
-                  dataOnGreenSide: sum_cash_in,
-                  dataOnRedSide: sum_cash_out,
-                  startPadding: 10,
-                  profitType: widget.profitType,);
+                dataOnGreenSide: sum_cash_in,
+                dataOnRedSide: sum_cash_out,
+                startPadding: 10,
+                profitType: widget.profitType,
+              );
 
             case 'list':
               if (filteredTransactions.length == 0) {
@@ -356,7 +366,7 @@ class _CashbookState extends State<Cashbook> {
                 itemBuilder: (context, index) {
                   final transaction = filteredTransactions[index];
                   return ListTile(
-                    leading: transaction.transactionType == 'cash_out'
+                    leading: transaction.transactionType == 'Cash Out'
                         ? Icon(Icons.remove)
                         : Icon(Icons.add), // Icon before the title
                     title: Text(transaction.subTotal.toString() + ' RWF'),

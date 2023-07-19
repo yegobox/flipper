@@ -315,11 +315,15 @@ class _AppsState extends State<Apps> {
   Widget _buildGauge(BuildContext context, HomeViewModel model) {
     return StreamBuilder<List<Transaction>>(
       initialData: null,
-      stream: ProxyService.isar.getTransactions(),
+      stream: ProxyService.isar.getCompletedTransactions(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return SemiCircleGauge(
-              dataOnGreenSide: 0, dataOnRedSide: 0, startPadding: 10, profitType: widget.profitType,);
+            dataOnGreenSide: 0,
+            dataOnRedSide: 0,
+            startPadding: 10,
+            profitType: widget.profitType,
+          );
         } else {
           final transactions = snapshot.data!;
           DateTime oldDate;
@@ -350,16 +354,18 @@ class _AppsState extends State<Apps> {
           double sum_cash_in = 0;
           double sum_cash_out = 0;
           for (final transaction in filteredTransactions) {
-            if (transaction.transactionType == 'cash_out') {
+            if (transaction.transactionType == 'Cash Out') {
               sum_cash_out = transaction.subTotal + sum_cash_out;
             } else {
               sum_cash_in = transaction.subTotal + sum_cash_in;
             }
           }
           return SemiCircleGauge(
-              dataOnGreenSide: sum_cash_in,
-              dataOnRedSide: sum_cash_out,
-              startPadding: 10, profitType: widget.profitType,);
+            dataOnGreenSide: sum_cash_in,
+            dataOnRedSide: sum_cash_out,
+            startPadding: 10,
+            profitType: widget.profitType,
+          );
         }
       },
     );

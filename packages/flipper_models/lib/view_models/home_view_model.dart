@@ -114,9 +114,6 @@ class HomeViewModel extends ReactiveViewModel {
         ProxyService.keypad.reset();
         rebuildUi();
         break;
-      case 'check':
-        log("Check!");
-        break;
       default:
         ProxyService.keypad.addKey(key);
         if (ProxyService.keypad.key.length == 1) {
@@ -363,6 +360,19 @@ class HomeViewModel extends ReactiveViewModel {
   void toggleCheckbox({required int variantId}) {
     keypad.toggleCheckbox(variantId: variantId);
     rebuildUi();
+  }
+
+  Future<bool> saveCashBookTransaction({required String cbTransactionType}) {
+    Transaction cbTransaction = kTransaction!;
+    cbTransaction.cashReceived = cbTransaction.subTotal;
+    cbTransaction.customerChangeDue = 0;
+    cbTransaction.transactionType = cbTransactionType;
+    cbTransaction.paymentType = "Cash";
+    cbTransaction.status = 'completed';
+
+    ProxyService.isar.update(data: cbTransaction);
+    notifyListeners();
+    return Future<bool>.value(true);
   }
 
   Future<bool> saveTransaction({
@@ -950,7 +960,8 @@ class HomeViewModel extends ReactiveViewModel {
       [keypad, app, productService, settingService];
 
 //Transaction functions
-  Stream<List<Transaction>> getTransactions() {
+  Stream<List<Transaction>> getTransactions(
+      {required String transactionStatus}) {
     Stream<List<Transaction>> res = ProxyService.isar.getTransactions();
     return res;
   }
