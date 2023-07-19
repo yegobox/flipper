@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flipper_dashboard/create/category_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'customappbar.dart';
 import 'widgets/analytics_gauge/flipper_analytic.dart';
 import 'package:flipper_models/isar_models.dart';
@@ -384,7 +385,10 @@ class _CashbookState extends State<Cashbook> {
                                 package:
                                     'flipper_dashboard')), // Icon before the title
                     title: Text(transaction.subTotal.toString() + ' RWF'),
-                    subtitle: Text(transaction.status.toString()),
+                    subtitle: Text(DateFormat('dd/MM/yyyy')
+                        .format(DateTime.parse(transaction.createdAt))),
+                    trailing: Text(DateFormat('HH:mm')
+                        .format(DateTime.parse(transaction.createdAt))),
 
                     onTap: () {
                       null;
