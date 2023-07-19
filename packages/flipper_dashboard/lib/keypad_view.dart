@@ -72,33 +72,57 @@ class KeyPadView extends StatelessWidget {
         child: InkWell(
           splashColor: Color(0xFFDFF0FF),
           onTap: () {
+            log("Key: " + model.key);
             HapticFeedback.lightImpact();
-            showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  title: Text('Save $transactionType transaction'),
-                  content:
-                      Text('Are you sure you want to save this transaction?'),
-                  actions: <Widget>[
-                    TextButton(
-                      child: Text('Cancel'),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                    TextButton(
-                      child: Text('Confirm'),
-                      onPressed: () {
-                        // Perform confirm action here
-                        HandleTransactionFromCashBook();
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                  ],
-                );
-              },
-            );
+            if ((model.kTransaction != null) &&
+                ((model.key != '0') &&
+                    (model.key != '0.0') &&
+                    (model.key != '0.00'))) {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Text('Save $transactionType transaction'),
+                    content:
+                        Text('Are you sure you want to save this transaction?'),
+                    actions: <Widget>[
+                      TextButton(
+                        child: Text('Cancel'),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                      TextButton(
+                        child: Text('Confirm'),
+                        onPressed: () {
+                          // Perform confirm action here
+                          HandleTransactionFromCashBook();
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                    ],
+                  );
+                },
+              );
+            } else {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Text('Alert'),
+                    content: Text('Please enter an amount.'),
+                    actions: <Widget>[
+                      TextButton(
+                        child: Text('Close'),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                    ],
+                  );
+                },
+              );
+            }
           },
           child: Container(
             height: MediaQuery.of(context).size.height *
