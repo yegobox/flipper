@@ -91,108 +91,106 @@ class _AppsState extends State<Apps> {
             ));
         }
       },
-      child: Padding(
-          padding: const EdgeInsets.only(left: 10.0, right: 10.0, top: 10),
+      child: Container(
           child: Column(
-            children: [
-              Container(
-                width: 59,
-                height: 59,
-                clipBehavior: Clip.antiAlias,
-                decoration: ShapeDecoration(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24),
+        children: [
+          Container(
+            width: 59,
+            height: 59,
+            clipBehavior: Clip.antiAlias,
+            decoration: ShapeDecoration(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+              ),
+            ),
+            child: Stack(
+              children: [
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  child: Container(
+                    width: 59,
+                    height: 59,
+                    decoration: ShapeDecoration(
+                      color: Colors.black.withOpacity(0.00009999999747378752),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(2)),
+                    ),
                   ),
                 ),
-                child: Stack(
-                  children: [
-                    Positioned(
-                      left: 0,
-                      top: 0,
-                      child: Container(
-                        width: 59,
-                        height: 59,
-                        decoration: ShapeDecoration(
-                          color:
-                              Colors.black.withOpacity(0.00009999999747378752),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(2)),
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  child: Container(
+                    width: 59,
+                    height: 59,
+                    decoration: ShapeDecoration(
+                      color: backgroundColor,
+                      shape: RoundedRectangleBorder(
+                        side: BorderSide(
+                          width: 0.12,
+                          strokeAlign: BorderSide.strokeAlignCenter,
                         ),
                       ),
                     ),
-                    Positioned(
-                      left: 0,
-                      top: 0,
-                      child: Container(
-                        width: 59,
-                        height: 59,
-                        decoration: ShapeDecoration(
-                          color: backgroundColor,
-                          shape: RoundedRectangleBorder(
-                            side: BorderSide(
-                              width: 0.12,
-                              strokeAlign: BorderSide.strokeAlignCenter,
-                            ),
-                          ),
-                        ),
-                        child: Stack(
-                          children: [
-                            Positioned(
-                              left: 0,
-                              top: 0,
-                              child: Container(
-                                width: 59,
-                                height: 59,
-                                decoration: ShapeDecoration(
-                                  shape: RoundedRectangleBorder(
-                                    side: BorderSide(
-                                      width: 0.12,
-                                      strokeAlign: BorderSide.strokeAlignCenter,
-                                    ),
-                                  ),
-                                ),
-                                child: Stack(
-                                  children: [
-                                    Positioned(
-                                      left: 0,
-                                      top: 0,
-                                      child: Container(
-                                        width: 59,
-                                        height: 59,
-                                        child: SizedBox(
-                                          child: Icon(
-                                            iconData,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: backgroundColor,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                    child: Stack(
+                      children: [
+                        Positioned(
+                          left: 0,
+                          top: 0,
+                          child: Container(
+                            width: 59,
+                            height: 59,
+                            decoration: ShapeDecoration(
+                              shape: RoundedRectangleBorder(
+                                side: BorderSide(
+                                  width: 0.12,
+                                  strokeAlign: BorderSide.strokeAlignCenter,
                                 ),
                               ),
                             ),
-                            Positioned(
-                              left: 0,
-                              top: 0,
-                              child: Container(width: 59, height: 59),
+                            child: Stack(
+                              children: [
+                                Positioned(
+                                  left: 0,
+                                  top: 0,
+                                  child: Container(
+                                    width: 59,
+                                    height: 59,
+                                    child: SizedBox(
+                                      child: Icon(
+                                        iconData,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: backgroundColor,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
-                      ),
+                        Positioned(
+                          left: 0,
+                          top: 0,
+                          child: Container(width: 59, height: 59),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
-              SizedBox(height: 8),
-              Text(
-                page,
-                style: primaryTextStyle.copyWith(color: Colors.grey),
-              )
-            ],
-          )),
+              ],
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            page,
+            style: primaryTextStyle.copyWith(color: Colors.grey),
+          )
+        ],
+      )),
     );
   }
 
@@ -265,40 +263,46 @@ class _AppsState extends State<Apps> {
               SizedBox(height: 80),
               _buildGauge(context, widget.model),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
+                  SizedBox(width: 10),
                   _buildCustomPaintWithIcon(
                       iconData: FluentIcons.dialpad_24_regular,
                       backgroundColor: Colors.blue,
                       page: "POS"),
-                  SizedBox(width: 25),
+                  SizedBox(width: 40),
                   _buildCustomPaintWithIcon(
                       iconData: FluentIcons.book_coins_24_regular,
                       backgroundColor: Color.fromARGB(255, 6, 224, 61),
                       page: "Cashbook"),
+                  SizedBox(width: 15),
                   _buildCustomPaintWithIcon(
                       iconData: FluentIcons.arrow_trending_lines_24_regular,
                       backgroundColor: Colors.red,
                       page: "Transactions"),
                 ],
               ),
+              SizedBox(
+                height: 20,
+              ),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
+                  SizedBox(width: 10),
                   _buildCustomPaintWithIcon(
                       iconData: FluentIcons.communication_20_regular,
                       backgroundColor: Color(0xff99DDFF),
                       page: "Connecta"),
-                  SizedBox(width: 10),
+                  SizedBox(width: 35),
                   _buildCustomPaintWithIcon(
                       iconData: FluentIcons.settings_16_regular,
                       backgroundColor: Colors.blueGrey,
                       page: "Settings"),
-                  SizedBox(width: 30),
+                  SizedBox(width: 45),
                   _buildCustomPaintWithIcon(
                       iconData: Icons.call,
                       backgroundColor: Colors.blue,
                       page: "Support"),
+                  SizedBox(width: 30),
                   // _buildCustomPaintWithIcon(
                   //     iconData: Icons.shopping_bag,
                   //     backgroundColor: Colors.blue,
