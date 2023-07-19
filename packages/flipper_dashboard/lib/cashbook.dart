@@ -255,7 +255,15 @@ class _CashbookState extends State<Cashbook> {
                                               fontSize: 17,
                                               fontWeight: FontWeight.bold)),
                                     CategorySelector.transactionMode(
-                                        categories: model.categories)
+                                        categories: model.categories),
+                                    IconButton(
+                                      icon: Icon(Icons.close),
+                                      onPressed: () {
+                                        setState(() {
+                                          widget.newTransactionPressed = false;
+                                        });
+                                      },
+                                    )
                                   ],
                                 ),
                                 KeyPadView.cashBookMode(
