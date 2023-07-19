@@ -90,18 +90,18 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge> {
                       children: [
                         Text(widget.dataOnGreenSide.toString() + " RWF",
                             style: GoogleFonts.poppins(
-                                fontSize: 19,
+                                fontSize: 17,
                                 color: Colors.black,
                                 fontWeight: FontWeight.w600)),
                         widget.profitType == "Net Profit"
                             ? Text("Gross Profit",
                                 style: GoogleFonts.poppins(
-                                    fontSize: 17,
+                                    fontSize: 16,
                                     color: Colors.lightBlue.shade200,
                                     fontWeight: FontWeight.w600))
                             : Text("Total Sales",
                                 style: GoogleFonts.poppins(
-                                    fontSize: 17,
+                                    fontSize: 16,
                                     color: Colors.lightBlue.shade200,
                                     fontWeight: FontWeight.w600))
                       ],
@@ -110,12 +110,12 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge> {
                       children: [
                         Text(widget.dataOnRedSide.toString() + " RWF",
                             style: GoogleFonts.poppins(
-                                fontSize: 19,
+                                fontSize: 17,
                                 color: Colors.black,
                                 fontWeight: FontWeight.w600)),
                         Text("Expenses",
                             style: GoogleFonts.poppins(
-                                fontSize: 17,
+                                fontSize: 16,
                                 color: Colors.lightBlue.shade200,
                                 fontWeight: FontWeight.w600)),
                       ],
