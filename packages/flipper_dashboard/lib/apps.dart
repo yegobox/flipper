@@ -234,86 +234,70 @@ class _AppsState extends State<Apps> {
           ),
         ),
       ),
-      body: Center(
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Column(
-            children: [
-              Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-                ReusableDropdown(
-                  options: widget.transactionPeriodOptions,
-                  selectedOption: widget.transactionPeriod,
-                  onChanged: (String? newPeriod) {
-                    setState(() {
-                      widget.transactionPeriod = newPeriod!;
-                    });
-                  },
-                ),
-                SizedBox(width: 100),
-                ReusableDropdown(
-                  options: widget.profitTypeOptions,
-                  selectedOption: widget.profitType,
-                  onChanged: (String? newProfitType) {
-                    setState(() {
-                      widget.profitType = newProfitType!;
-                    });
-                  },
-                ),
-              ]),
-              SizedBox(height: 80),
-              _buildGauge(context, widget.model),
-              SizedBox(
-                height: 10,
+      body: Padding(
+        padding: const EdgeInsets.only(top: 8.0),
+        child: Column(
+          children: [
+            ListTile(
+              contentPadding: EdgeInsets.only(left: 19, right: 19),
+              leading: ReusableDropdown(
+                options: widget.transactionPeriodOptions,
+                selectedOption: widget.transactionPeriod,
+                onChanged: (String? newPeriod) {
+                  setState(() {
+                    widget.transactionPeriod = newPeriod!;
+                  });
+                },
               ),
-              Row(
+              trailing: ReusableDropdown(
+                options: widget.profitTypeOptions,
+                selectedOption: widget.profitType,
+                onChanged: (String? newProfitType) {
+                  setState(() {
+                    widget.profitType = newProfitType!;
+                  });
+                },
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 40.0),
+              child: _buildGauge(context, widget.model),
+            ),
+            Expanded(
+              child: GridView.count(
+                crossAxisCount: 3, // Number of items per row
+                padding: EdgeInsets.all(2), // Adjust padding as needed
+                crossAxisSpacing: 10, // Adjust spacing as needed
+                mainAxisSpacing: 10, // Adjust spacing as needed
                 children: [
-                  SizedBox(width: 10),
                   _buildCustomPaintWithIcon(
                       iconData: FluentIcons.dialpad_24_regular,
                       backgroundColor: Colors.blue,
                       page: "POS"),
-                  SizedBox(width: 40),
                   _buildCustomPaintWithIcon(
                       iconData: FluentIcons.book_coins_24_regular,
                       backgroundColor: Color.fromARGB(255, 6, 224, 61),
                       page: "Cashbook"),
-                  SizedBox(width: 15),
                   _buildCustomPaintWithIcon(
                       iconData: FluentIcons.arrow_trending_lines_24_regular,
                       backgroundColor: Colors.red,
                       page: "Transactions"),
-                ],
-              ),
-              SizedBox(
-                height: 20,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  SizedBox(width: 10),
                   _buildCustomPaintWithIcon(
                       iconData: FluentIcons.communication_20_regular,
                       backgroundColor: Color(0xff99DDFF),
                       page: "Connecta"),
-                  SizedBox(width: 35),
                   _buildCustomPaintWithIcon(
                       iconData: FluentIcons.settings_16_regular,
                       backgroundColor: Colors.blueGrey,
                       page: "Settings"),
-                  SizedBox(width: 45),
                   _buildCustomPaintWithIcon(
                       iconData: Icons.call,
                       backgroundColor: Colors.blue,
                       page: "Support"),
-                  SizedBox(width: 30),
-                  // _buildCustomPaintWithIcon(
-                  //     iconData: Icons.shopping_bag,
-                  //     backgroundColor: Colors.blue,
-                  //     page: "Orders"),
                 ],
               ),
-            ],
-          ),
+            )
+          ],
         ),
       ),
     );

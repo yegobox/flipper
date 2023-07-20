@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 
 class SemiCircleGauge extends StatefulWidget {
   final double dataOnGreenSide;
@@ -71,60 +72,69 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge> {
         child: Padding(
           padding: EdgeInsets.only(
               top: widget.startPadding), // Adjust the top padding as desired
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Text(profitOrLoss.toString() + ' RWF',
-                    style: GoogleFonts.poppins(
-                        fontSize: 22,
-                        color: Colors.black,
-                        fontWeight: FontWeight.w600)),
-                SizedBox(height: 10),
-                resultText,
-                SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      children: [
-                        Text(widget.dataOnGreenSide.toString() + " RWF",
-                            style: GoogleFonts.poppins(
-                                fontSize: 17,
-                                color: Colors.black,
-                                fontWeight: FontWeight.w600)),
-                        widget.profitType == "Net Profit"
-                            ? Text("Gross Profit",
-                                style: GoogleFonts.poppins(
-                                    fontSize: 16,
-                                    color: Colors.lightBlue.shade200,
-                                    fontWeight: FontWeight.w600))
-                            : Text("Total Sales",
-                                style: GoogleFonts.poppins(
-                                    fontSize: 16,
-                                    color: Colors.lightBlue.shade200,
-                                    fontWeight: FontWeight.w600))
-                      ],
-                    ),
-                    Column(
-                      children: [
-                        Text(widget.dataOnRedSide.toString() + " RWF",
-                            style: GoogleFonts.poppins(
-                                fontSize: 17,
-                                color: Colors.black,
-                                fontWeight: FontWeight.w600)),
-                        Text("Expenses",
-                            style: GoogleFonts.poppins(
-                                fontSize: 16,
-                                color: Colors.lightBlue.shade200,
-                                fontWeight: FontWeight.w600)),
-                      ],
-                    ),
-                  ],
-                ),
-                SizedBox(height: 20),
-              ],
-            ),
+          child: Column(
+            children: [
+              SizedBox(
+                height: 20,
+              ),
+              Text(
+                  NumberFormat('#,###')
+                          .format(double.parse(profitOrLoss.toString())) +
+                      ' RWF',
+                  style: GoogleFonts.poppins(
+                      fontSize: 22,
+                      color: Colors.black,
+                      fontWeight: FontWeight.w600)),
+              SizedBox(height: 10),
+              resultText,
+              SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    children: [
+                      Text(
+                          NumberFormat('#,###').format(double.parse(
+                                  widget.dataOnGreenSide.toString())) +
+                              " RWF",
+                          style: GoogleFonts.poppins(
+                              fontSize: 17,
+                              color: Colors.black,
+                              fontWeight: FontWeight.w600)),
+                      widget.profitType == "Net Profit"
+                          ? Text("Gross Profit",
+                              style: GoogleFonts.poppins(
+                                  fontSize: 16,
+                                  color: Colors.lightBlue.shade200,
+                                  fontWeight: FontWeight.w600))
+                          : Text("Total Sales",
+                              style: GoogleFonts.poppins(
+                                  fontSize: 16,
+                                  color: Colors.lightBlue.shade200,
+                                  fontWeight: FontWeight.w600))
+                    ],
+                  ),
+                  Column(
+                    children: [
+                      Text(
+                          NumberFormat('#,###').format(double.parse(
+                                  widget.dataOnRedSide.toString())) +
+                              " RWF",
+                          style: GoogleFonts.poppins(
+                              fontSize: 17,
+                              color: Colors.black,
+                              fontWeight: FontWeight.w600)),
+                      Text("Expenses",
+                          style: GoogleFonts.poppins(
+                              fontSize: 16,
+                              color: Colors.lightBlue.shade200,
+                              fontWeight: FontWeight.w600)),
+                    ],
+                  ),
+                ],
+              ),
+              SizedBox(height: 20),
+            ],
           ),
         ),
       ),
@@ -148,7 +158,7 @@ class _GaugePainter extends CustomPainter {
     final greenPaint = Paint()
       ..color = Colors.green
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 5.0
+      ..strokeWidth = 10.0
       ..strokeCap = StrokeCap.round;
 
     canvas.drawArc(
@@ -163,7 +173,7 @@ class _GaugePainter extends CustomPainter {
     final redPaint = Paint()
       ..color = Colors.red
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 5.0
+      ..strokeWidth = 10.0
       ..strokeCap = StrokeCap.round;
 
     canvas.drawArc(

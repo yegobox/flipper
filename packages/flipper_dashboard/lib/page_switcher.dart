@@ -24,12 +24,6 @@ class PageSwitcher extends StatelessWidget {
       case 0:
         return Apps(
             model: model, controller: controller, isBigScreen: isBigScreen);
-      // return CheckOut(
-      //   controller: controller,
-      //   model: model,
-      //   tabController: tabController,
-      //   isBigScreen: isBigScreen,
-      // );
       case 1:
         return Transactions();
       case 2:
