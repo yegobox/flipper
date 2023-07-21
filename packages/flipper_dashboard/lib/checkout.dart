@@ -94,11 +94,30 @@ class _CheckOutState extends State<CheckOut>
             );
           });
     } else {
-      return MobileView(
-        widget: widget,
-        tabController: tabController,
-        textEditController: textEditController,
-      );
+      return ViewModelBuilder<HomeViewModel>.reactive(
+          viewModelBuilder: () => HomeViewModel(),
+          builder: (context, model, child) {
+            return Stack(
+              children: [
+                MobileView(
+                    widget: widget,
+                    tabController: tabController,
+                    textEditController: textEditController,
+                    model: model),
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: PaymentTicketManager(
+                    context: context,
+                    model: model,
+                    controller: textEditController,
+                    nodeDisabled: true,
+                  ),
+                )
+              ],
+            );
+          });
     }
   }
 }
@@ -108,9 +127,10 @@ class MobileView extends StatelessWidget {
     required this.widget,
     required this.tabController,
     required this.textEditController,
+    required this.model,
     Key? key,
   }) : super(key: key);
-
+  final HomeViewModel model;
   final CheckOut widget;
   final TabController tabController;
   final TextEditingController textEditController;
@@ -134,89 +154,79 @@ class MobileView extends StatelessWidget {
         toolbarHeight:
             ProxyService.status.statusText.value?.isNotEmpty == true ? 25 : 0,
       ),
-      body: ViewModelBuilder<HomeViewModel>.reactive(
-          viewModelBuilder: () => HomeViewModel(),
-          builder: (context, model, child) {
-            return Column(
-              children: [
-                Container(
-                  height: 46,
-                  decoration: BoxDecoration(
-                    color: const Color(0xffE5E5E5),
-                    borderRadius: BorderRadius.circular(4.0),
+      body: Column(
+        children: [
+          Container(
+            height: 46,
+            decoration: BoxDecoration(
+              color: const Color(0xffE5E5E5),
+              borderRadius: BorderRadius.circular(4.0),
+            ),
+            child: LayoutBuilder(builder: (context, constraints) {
+              return Container(
+                height: 46,
+                decoration: BoxDecoration(
+                  color: const Color(0xffE5E5E5),
+                  borderRadius: BorderRadius.circular(0.0),
+                ),
+                child: TabBar(
+                  onTap: (v) {
+                    FocusScope.of(context).unfocus();
+                  },
+                  controller: tabController,
+                  // give the indicator a decoration (color and border radius)
+                  indicator: BoxDecoration(
+                    borderRadius: BorderRadius.circular(0.0),
+                    color: const Color(0xffFFFFFF),
                   ),
-                  child: LayoutBuilder(builder: (context, constraints) {
-                    return Container(
-                      height: 46,
-                      decoration: BoxDecoration(
-                        color: const Color(0xffE5E5E5),
-                        borderRadius: BorderRadius.circular(0.0),
+                  labelColor: Colors.black,
+                  tabs: [
+                    // first tab [you can add an icon using the icon property]
+                    Container(
+                      width: 150,
+                      child: Tab(
+                        text: 'Keypad',
                       ),
-                      child: TabBar(
-                        onTap: (v) {
-                          FocusScope.of(context).unfocus();
-                        },
-                        controller: tabController,
-                        // give the indicator a decoration (color and border radius)
-                        indicator: BoxDecoration(
-                          borderRadius: BorderRadius.circular(0.0),
-                          color: const Color(0xffFFFFFF),
-                        ),
-                        labelColor: Colors.black,
-                        tabs: [
-                          // first tab [you can add an icon using the icon property]
-                          Container(
-                            width: 150,
-                            child: Tab(
-                              text: 'Keypad',
-                            ),
-                          ),
+                    ),
 
-                          // second tab [you can add an icon using the icon property]
-                          Container(
-                            width: 150,
-                            child: Tab(
-                              text: 'Library',
-                            ),
-                          ),
-                          Container(
-                            width: 150,
-                            child: Tab(
-                              text: 'Favorites',
-                            ),
-                          ),
-                        ],
+                    // second tab [you can add an icon using the icon property]
+                    Container(
+                      width: 150,
+                      child: Tab(
+                        text: 'Library',
                       ),
-                    );
-                  }),
-                ),
-                // tab bar view here
-                Expanded(
-                  child: TabBarView(
-                    controller: tabController,
-                    children: [
-                      Column(
-                        children: [
-                          KeyPadView(model: model),
-                          Padding(
-                            padding: EdgeInsets.fromLTRB(0.0, 10, 0, 0),
-                            child: PaymentTicketManager(
-                              context: context,
-                              model: model,
-                              controller: textEditController,
-                              nodeDisabled: true,
-                            ),
-                          ),
-                        ],
+                    ),
+                    Container(
+                      width: 150,
+                      child: Tab(
+                        text: 'Favorites',
                       ),
-                      ProductView.normalMode(),
-                      Favorites(),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
+              );
+            }),
+          ),
+          // tab bar view here
+          Expanded(
+            child: TabBarView(
+              controller: tabController,
+              children: [
+                Column(
+                  children: [
+                    KeyPadView(model: model),
+                    SizedBox(
+                      height: 110,
+                    )
+                  ],
+                ),
+                ProductView.normalMode(),
+                Favorites(),
               ],
-            );
-          }),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
