@@ -20,7 +20,7 @@ List<Widget> variantsWidget({required HomeViewModel model}) {
           child: Column(
             children: [
               Divider(
-                color: Colors.grey[400],
+                color: Colors.grey.shade400,
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -40,8 +40,8 @@ List<Widget> variantsWidget({required HomeViewModel model}) {
                                   style: GoogleFonts.poppins(
                                     textStyle: TextStyle(
                                         fontWeight: FontWeight.w700,
-                                        fontSize: 13,
-                                        color: Colors.grey[900]),
+                                        fontSize: 18,
+                                        color: Colors.grey.shade800),
                                   ),
                                 ),
                               )
@@ -53,8 +53,8 @@ List<Widget> variantsWidget({required HomeViewModel model}) {
                       style: GoogleFonts.poppins(
                         textStyle: TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                            color: Colors.grey[500]),
+                            fontSize: 18,
+                            color: Colors.grey.shade400),
                       ),
                     ),
                     Radio<int>(

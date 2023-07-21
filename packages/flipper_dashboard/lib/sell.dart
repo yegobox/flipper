@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'customappbar.dart';
 import 'package:stacked/stacked.dart';
-import 'package:google_fonts/google_fonts.dart';
-
 import 'package:overlay_support/overlay_support.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -72,7 +70,7 @@ class Sell extends StatelessWidget {
                             product.name,
                             style: primaryTextStyle.copyWith(
                                 fontWeight: FontWeight.w500,
-                                fontSize: 14,
+                                fontSize: 17,
                                 color: Colors.grey[800]),
                           ),
                           const SizedBox(
@@ -82,8 +80,8 @@ class Sell extends StatelessWidget {
                             '  CHOOSE ONE',
                             style: primaryTextStyle.copyWith(
                                 fontWeight: FontWeight.w500,
-                                fontSize: 11,
-                                color: Colors.grey[700]),
+                                fontSize: 18,
+                                color: Colors.grey.shade700),
                           )
                         ],
                       ),

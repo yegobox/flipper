@@ -14,7 +14,7 @@ Widget quantityWidget({
       child: Column(
         children: [
           Divider(
-            color: Colors.grey[400],
+            color: Colors.grey.shade300,
           ),
           Row(
             mainAxisSize: MainAxisSize.max,
@@ -27,7 +27,7 @@ Widget quantityWidget({
                   style: GoogleFonts.poppins(
                     textStyle: TextStyle(
                       fontWeight: FontWeight.w900,
-                      fontSize: 10,
+                      fontSize: 18,
                       color: Colors.grey[900],
                     ),
                   ),
@@ -72,7 +72,7 @@ Widget quantityWidget({
               Container(
                 width: 1,
                 height: 50,
-                color: Colors.grey[400],
+                color: Colors.grey.shade300,
               ),
               Expanded(
                   flex: 2,
@@ -85,9 +85,20 @@ Widget quantityWidget({
                           model.customQtyIncrease(double.parse(quantity));
                         }
                       },
+                      decoration: InputDecoration(
+                        // Set the underline color for both unfocused and focused states
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(
+                              color: Colors.grey.shade400), // Change this color
+                        ),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(
+                              color: Colors.grey.shade400), // Change this color
+                        ),
+                      ),
                       style: TextStyle(
                         color: Theme.of(context)
-                            .copyWith(canvasColor: Colors.grey[600])
+                            .copyWith(canvasColor: Colors.grey.shade900)
                             .canvasColor,
                       ),
                       key: Key(model.quantity.toInt().toString()),
@@ -100,7 +111,7 @@ Widget quantityWidget({
               Container(
                 width: 1,
                 height: 50,
-                color: Colors.grey[400],
+                color: Colors.grey.shade300,
               ),
               IconButton(
                 icon: const Icon(
@@ -120,7 +131,7 @@ Widget quantityWidget({
             ],
           ),
           Divider(
-            color: Colors.grey[400],
+            color: Colors.grey.shade300,
           ),
         ],
       ),

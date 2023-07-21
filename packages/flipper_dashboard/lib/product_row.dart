@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flipper_dashboard/text_drawable.dart';
 import 'package:flipper_login/colors.dart';
@@ -68,8 +70,9 @@ class ProductRow extends StatelessWidget {
         ),
         Slidable(
           key: Key('slidable-${product.id!}'),
-          child: GestureDetector(
+          child: InkWell(
             onTap: () {
+              log("tap recognized");
               if (addFavoriteMode != null && addFavoriteMode == true) {
                 String? position = positionString[favIndex!];
                 //Confirmation dialog
