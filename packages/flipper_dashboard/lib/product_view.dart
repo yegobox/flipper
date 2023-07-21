@@ -4,18 +4,18 @@ import 'package:flipper_dashboard/profile.dart';
 import 'package:flipper_dashboard/search_field.dart';
 import 'package:flipper_dashboard/sticky_search.dart';
 import 'package:flipper_dashboard/tenants_list.dart';
+import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/isar_models.dart';
 import 'package:keyboard_visibility_pro/keyboard_visibility_pro.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_services/proxy.dart';
-import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 class ProductView extends StatefulWidget {
   final int? favIndex;
@@ -62,9 +62,6 @@ class _ProductViewState extends State<ProductView> {
       },
       viewModelBuilder: () => ProductViewModel(),
       builder: (context, model, child) {
-        MediaQuery.of(context).size.width; // retrieve device width
-        MediaQuery.of(context).size.height; // retrieve device height
-
         double searchFieldWidth = MediaQuery.of(context).size.width *
             0.61; // set search field width to 90% of device width
 
@@ -76,12 +73,12 @@ class _ProductViewState extends State<ProductView> {
             },
             child: CustomScrollView(
               slivers: [
-                SliverPersistentHeader(
-                  pinned: true,
-                  floating: false,
-                  delegate: StickyHeader(
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
+                SliverPadding(
+                  padding: EdgeInsets.only(top: 15),
+                  sliver: SliverPersistentHeader(
+                    pinned: true,
+                    floating: false,
+                    delegate: StickyHeader(
                       child: Container(
                         height: kToolbarHeight,
                         child: Wrap(direction: Axis.horizontal, children: [
@@ -134,7 +131,7 @@ class _ProductViewState extends State<ProductView> {
                     return SliverList(
                         delegate: SliverChildListDelegate([
                       SizedBox(
-                        height: 10,
+                        height: 8,
                       ),
                       products.isEmpty
                           ? Center(
@@ -153,58 +150,52 @@ class _ProductViewState extends State<ProductView> {
                             )
                           : SizedBox.shrink(),
                       ...products.map((product) {
-                        return FutureBuilder<List<Stock?>>(
-                            future: model.productService
-                                .loadStockByProductId(productId: product.id!),
-                            builder: (BuildContext context, stocks) {
-                              if (stocks.connectionState ==
-                                  ConnectionState.waiting) {
-                                return const SizedBox.shrink();
-                              }
-
-                              return ProductRow(
-                                color: product.color,
-                                stocks: stocks.data ?? [],
-                                model: model,
-                                product: product,
-                                name: product.name,
-                                imageUrl: product.imageUrl,
-                                addFavoriteMode:
-                                    (widget.favIndex != null) ? true : false,
-                                favIndex: widget.favIndex,
-                                edit: (productId) {
-                                  _routerService.navigateTo(AddProductViewRoute(
-                                      productId: productId));
-                                },
-                                addToMenu: (productId) {
-                                  // ignore: todo
-                                  //TODO: work on this add to menu
-                                  // model.addToMenu(productId: productId);
-                                },
-                                delete: (productId) {
-                                  model.deleteProduct(productId: productId);
-                                },
-                                enableNfc: (product) {
-                                  // show a model with tenants to bind product to.
-                                  showMaterialModalBottomSheet(
-                                    expand: false,
-                                    context: context,
-                                    backgroundColor: Colors.white,
-                                    builder: (context) => LayoutBuilder(
-                                      builder: (context, constraints) =>
-                                          SizedBox(
-                                        height: constraints.maxHeight * 0.4,
-                                        child: ListTenants(
-                                          tenants: model.tenants,
-                                          model: model,
-                                          product: product as Product,
+                        return Container(
+                          child: FutureBuilder<List<Stock?>>(
+                              future: model.productService
+                                  .loadStockByProductId(productId: product.id!),
+                              builder: (BuildContext context, stocks) {
+                                return ProductRow(
+                                  color: product.color,
+                                  stocks: stocks.data ?? [],
+                                  model: model,
+                                  product: product,
+                                  name: product.name,
+                                  imageUrl: product.imageUrl,
+                                  addFavoriteMode:
+                                      (widget.favIndex != null) ? true : false,
+                                  favIndex: widget.favIndex,
+                                  edit: (productId) {
+                                    _routerService.navigateTo(
+                                        AddProductViewRoute(
+                                            productId: productId));
+                                  },
+                                  addToMenu: (productId) {},
+                                  delete: (productId) {
+                                    model.deleteProduct(productId: productId);
+                                  },
+                                  enableNfc: (product) {
+                                    // show a model with tenants to bind product to.
+                                    showMaterialModalBottomSheet(
+                                      expand: false,
+                                      context: context,
+                                      backgroundColor: Colors.white,
+                                      builder: (context) => LayoutBuilder(
+                                        builder: (context, constraints) =>
+                                            SizedBox(
+                                          height: constraints.maxHeight * 0.4,
+                                          child: ListTenants(
+                                            tenants: model.tenants,
+                                            model: model,
+                                            product: product as Product,
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  );
-                                },
-                              );
-                            });
+                                    );
+                                  },
+                                );
+                              }),
+                        );
                       }).toList()
                     ]));
                   },

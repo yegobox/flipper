@@ -33,7 +33,12 @@ class _SearchFieldState extends State<SearchField> {
         widget.model.search(value);
       },
       decoration: InputDecoration(
-        border: const OutlineInputBorder(),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.grey.shade400, width: 1.0),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.grey.shade400, width: 1.0),
+        ),
         hintText: 'Search items here',
         prefixIcon: IconButton(
           onPressed: null,
@@ -67,11 +72,5 @@ class _SearchFieldState extends State<SearchField> {
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    widget.controller.dispose();
-    super.dispose();
   }
 }

@@ -9,8 +9,9 @@ class StickyHeader extends SliverPersistentHeaderDelegate {
   Widget build(
       BuildContext context, double shrinkOffset, bool overlapsContent) {
     return Material(
-      elevation: 0.2,
+      elevation: 0.0,
       child: child,
+      shape: Border(bottom: BorderSide.none),
     );
   }
 

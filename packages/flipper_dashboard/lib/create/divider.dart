@@ -13,6 +13,7 @@ class _CenterDividerState extends State<CenterDivider> {
   Widget build(BuildContext context) {
     return Container(
       width: widget.width,
+      height: 0,
       child: const Divider(),
     );
   }

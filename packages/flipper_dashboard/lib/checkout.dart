@@ -150,7 +150,7 @@ class MobileView extends StatelessWidget {
                       height: 46,
                       decoration: BoxDecoration(
                         color: const Color(0xffE5E5E5),
-                        borderRadius: BorderRadius.circular(4.0),
+                        borderRadius: BorderRadius.circular(0.0),
                       ),
                       child: TabBar(
                         onTap: (v) {
@@ -159,7 +159,7 @@ class MobileView extends StatelessWidget {
                         controller: tabController,
                         // give the indicator a decoration (color and border radius)
                         indicator: BoxDecoration(
-                          borderRadius: BorderRadius.circular(4.0),
+                          borderRadius: BorderRadius.circular(0.0),
                           color: const Color(0xffFFFFFF),
                         ),
                         labelColor: Colors.black,
