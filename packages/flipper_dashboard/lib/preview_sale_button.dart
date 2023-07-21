@@ -49,10 +49,6 @@ class PreviewSaleButton extends StatelessWidget {
             showToast(context, 'No item on cart!', color: Colors.red);
             return;
           }
-          if (transaction.subTotal == 0.0) {
-            showToast(context, 'No item on cart!', color: Colors.red);
-            return;
-          }
           model.keypad.setTransaction(transaction);
           showBarModalBottomSheet(
             overlayStyle: SystemUiOverlayStyle.light,

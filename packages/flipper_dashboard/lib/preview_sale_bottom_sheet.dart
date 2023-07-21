@@ -67,7 +67,8 @@ class _PreviewSaleBottomSheetState extends State<PreviewSaleBottomSheet> {
                               controller: ModalScrollController.of(context),
                               physics: const ClampingScrollPhysics(),
                               children: [
-                                AddCustomerButton(transactionId: model.kTransaction!.id!),
+                                AddCustomerButton(
+                                    transactionId: model.kTransaction!.id!),
                                 ...buildItems(
                                   context: context,
                                   callback: (item) async {
