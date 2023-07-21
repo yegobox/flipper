@@ -1,6 +1,7 @@
 import 'package:flipper_models/view_models/gate.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/proxy.dart';
@@ -77,27 +78,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
                     child: Text(
                         widget.open == "open" ? "Open Drawer" : "Close Drawer",
                         style: const TextStyle(color: Colors.white)),
-                    style: ButtonStyle(
-                      shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
-                        (states) => RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                        ),
-                      ),
-                      backgroundColor: MaterialStateProperty.all<Color>(
-                          const Color(0xff006AFE)),
-                      overlayColor: MaterialStateProperty.resolveWith<Color?>(
-                        (Set<MaterialState> states) {
-                          if (states.contains(MaterialState.hovered)) {
-                            return Colors.blue.withOpacity(0.04);
-                          }
-                          if (states.contains(MaterialState.focused) ||
-                              states.contains(MaterialState.pressed)) {
-                            return Colors.blue.withOpacity(0.12);
-                          }
-                          return null; // Defer to the widget's default.
-                        },
-                      ),
-                    ),
+                    style: primaryButtonStyle,
                     onPressed: () async {
                       if (_sub.currentState!.validate()) {
                         if (widget.open == "open") {
