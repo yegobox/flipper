@@ -108,11 +108,14 @@ class _CheckOutState extends State<CheckOut>
                   bottom: 0,
                   left: 0,
                   right: 0,
-                  child: PaymentTicketManager(
-                    context: context,
-                    model: model,
-                    controller: textEditController,
-                    nodeDisabled: true,
+                  child: Container(
+                    color: Colors.white,
+                    child: PaymentTicketManager(
+                      context: context,
+                      model: model,
+                      controller: textEditController,
+                      nodeDisabled: true,
+                    ),
                   ),
                 )
               ],
