@@ -25,16 +25,19 @@ class Social extends IJsonSerializable {
   int? localId;
 
   String? message;
-
-  Social(
-      {required this.isAccountSet,
-      required this.socialType,
-      required this.businessId,
-      required this.message,
-      required this.socialUrl,
-      this.lastTouched,
-      this.remoteID,
-      this.localId});
+  @Index()
+  DateTime? deletedAt;
+  Social({
+    required this.isAccountSet,
+    required this.socialType,
+    required this.businessId,
+    required this.message,
+    required this.socialUrl,
+    this.lastTouched,
+    this.remoteID,
+    this.localId,
+    this.deletedAt,
+  });
   factory Social.fromRecord(RecordModel record) =>
       Social.fromJson(record.toJson());
 

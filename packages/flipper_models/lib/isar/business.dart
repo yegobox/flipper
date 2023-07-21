@@ -22,46 +22,48 @@ part 'business.g.dart';
 @JsonSerializable()
 @Collection()
 class Business extends IJsonSerializable {
-  Business(
-      {this.name,
-      this.currency,
-      this.categoryId = "1",
-      this.latitude,
-      this.longitude,
-      this.userId,
-      this.timeZone,
-      this.channels,
-      this.country,
-      this.businessUrl,
-      this.hexColor,
-      this.imageUrl,
-      this.type,
-      this.active = false,
-      this.metadata,
-      this.lastSeen,
-      this.firstName,
-      this.lastName,
-      this.deviceToken,
-      this.chatUid,
-      this.backUpEnabled = false,
-      this.subscriptionPlan,
-      this.nextBillingDate,
-      this.previousBillingDate,
-      this.isLastSubscriptionPaymentSucceeded,
-      this.backupFileId,
-      this.email,
-      this.lastDbBackup,
-      this.fullName,
-      this.role,
-      this.tinNumber,
-      this.bhfId,
-      this.dvcSrlNo,
-      this.adrs,
-      this.taxEnabled,
-      this.taxServerUrl,
-      this.isDefault,
-      this.id,
-      this.businessTypeId});
+  Business({
+    this.name,
+    this.currency,
+    this.categoryId = "1",
+    this.latitude,
+    this.longitude,
+    this.userId,
+    this.timeZone,
+    this.channels,
+    this.country,
+    this.businessUrl,
+    this.hexColor,
+    this.imageUrl,
+    this.type,
+    this.active = false,
+    this.metadata,
+    this.lastSeen,
+    this.firstName,
+    this.lastName,
+    this.deviceToken,
+    this.chatUid,
+    this.backUpEnabled = false,
+    this.subscriptionPlan,
+    this.nextBillingDate,
+    this.previousBillingDate,
+    this.isLastSubscriptionPaymentSucceeded,
+    this.backupFileId,
+    this.email,
+    this.lastDbBackup,
+    this.fullName,
+    this.role,
+    this.tinNumber,
+    this.bhfId,
+    this.dvcSrlNo,
+    this.adrs,
+    this.taxEnabled,
+    this.taxServerUrl,
+    this.isDefault,
+    this.id,
+    this.businessTypeId,
+    this.deletedAt,
+  });
   Id? id;
   String? name;
   String? currency;
@@ -110,7 +112,8 @@ class Business extends IJsonSerializable {
   String? remoteID;
   String? action;
   int? localId;
-
+  @Index()
+  DateTime? deletedAt;
   factory Business.fromRecord(RecordModel record) =>
       Business.fromJson(record.toJson());
 

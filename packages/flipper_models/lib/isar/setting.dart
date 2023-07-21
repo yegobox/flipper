@@ -26,6 +26,7 @@ class Setting extends IJsonSerializable {
     this.businessId,
     this.createdAt,
     this.token,
+    this.deletedAt,
   });
 
   @JsonKey(includeToJson: false, includeFromJson: false)
@@ -52,6 +53,8 @@ class Setting extends IJsonSerializable {
   String? createdAt;
   @Index()
   String? lastTouched;
+  @Index()
+  DateTime? deletedAt;
   factory Setting.fromRecord(RecordModel record) =>
       Setting.fromJson(record.toJson());
 

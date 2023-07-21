@@ -1,3 +1,4 @@
+import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/mocks.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/locator.dart';
@@ -47,12 +48,12 @@ class ForceDataEntryService {
       '#a29bfe'
     ];
 
-    final PColor color = PColor()
-      ..id = DateTime.now().millisecondsSinceEpoch
-      ..colors = colors
-      ..active = false
-      ..branchId = branchId
-      ..name = '#d63031';
+    final PColor color = PColor(
+        id: syncIdInt(),
+        colors: colors,
+        branchId: branchId,
+        name: "#d63031",
+        active: false);
 
     int branchid = ProxyService.box.getBranchId()!;
     List<PColor> kColors = await ProxyService.isar.colors(branchId: branchid);

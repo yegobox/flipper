@@ -86,15 +86,14 @@ class IsarAPI<M> implements IsarApiInterface {
   Future<Customer?> addCustomer(
       {required Map customer, required int transactionId}) async {
     int branchId = ProxyService.box.getBranchId()!;
-    Customer kCustomer = Customer()
-      ..name = customer['name']
-      ..updatedAt = DateTime.now().toString()
-      ..branchId = branchId
-      ..tinNumber = customer['tinNumber']
-      ..email = customer['email']
-      ..phone = customer['phone']
-      ..address = customer['address']
-      ..transactionId = transactionId;
+    Customer kCustomer = Customer(
+        name: customer['name'],
+        tinNumber: customer['tinNumber'],
+        email: customer['email'],
+        phone: customer['phone'],
+        address: customer['address'],
+        updatedAt: DateTime.now(),
+        branchId: branchId);
     Customer? kcustomer = await isar.writeTxn(() async {
       int id = await isar.customers.put(kCustomer);
       return await isar.customers.get(id);
@@ -676,8 +675,7 @@ class IsarAPI<M> implements IsarApiInterface {
     // get customer where id = customerId from db
     //// and updat this customer with timestamp so it can trigger change!.
     Customer? customer = await isar.customers.get(customerId);
-    customer!.updatedAt = DateTime.now().toIso8601String();
-    customer.transactionId = transactionId;
+    customer!.updatedAt = DateTime.now();
     // save customer to db
     await isar.writeTxn(() async {
       int id = await isar.customers.put(customer);
@@ -847,7 +845,7 @@ class IsarAPI<M> implements IsarApiInterface {
       ),
     );
     if (response.statusCode == 200) {
-      Pin pin = pinFromMap(response.body);
+      Pin pin = Pin.fromJson(json.decode(response.body));
 
       return isar.writeTxn(() async {
         int id = await isar.pins.put(pin);
@@ -995,55 +993,96 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<bool> delete({required int id, String? endPoint}) {
+  Future<bool> delete({required int id, String? endPoint}) async {
+    final DateTime deletionTime = DateTime.now();
+
     switch (endPoint) {
       case 'color':
-        isar.writeTxn(() async {
-          await isar.pColors.delete(id);
-          return true;
+        await isar.writeTxn(() async {
+          PColor? color = await isar.pColors.get(id);
+          if (color != null) {
+            color.deletedAt = deletionTime;
+            await isar.pColors.put(color);
+            return true;
+          }
+          return false;
         });
         break;
       case 'device':
-        isar.writeTxn(() async {
-          await isar.devices.delete(id);
-          return true;
+        await isar.writeTxn(() async {
+          Device? device = await isar.devices.get(id);
+          if (device != null) {
+            device.deletedAt = deletionTime;
+            await isar.devices.put(device);
+            return true;
+          }
+          return false;
         });
         break;
       case 'category':
-        isar.writeTxn(() async {
-          await isar.categorys.delete(id);
-          return true;
+        await isar.writeTxn(() async {
+          Category? category = await isar.categorys.get(id);
+          if (category != null) {
+            category.deletedAt = deletionTime;
+            await isar.categorys.put(category);
+            return true;
+          }
+          return false;
         });
         break;
       case 'product':
-        isar.writeTxn(() async {
-          await isar.products.delete(id);
-          return true;
+        await isar.writeTxn(() async {
+          Product? product = await isar.products.get(id);
+          if (product != null) {
+            product.deletedAt = deletionTime;
+            await isar.products.put(product);
+            return true;
+          }
+          return false;
         });
-        //TODOalso delete related variants
         break;
       case 'variant':
-        isar.writeTxn(() async {
-          await isar.variants.delete(id);
-          return true;
+        await isar.writeTxn(() async {
+          Variant? variant = await isar.variants.get(id);
+          if (variant != null) {
+            variant.deletedAt = deletionTime;
+            await isar.variants.put(variant);
+            return true;
+          }
+          return false;
         });
         break;
       case 'stock':
-        isar.writeTxn(() async {
-          await isar.stocks.delete(id);
-          return true;
+        await isar.writeTxn(() async {
+          Stock? stocks = await isar.stocks.get(id);
+          if (stocks != null) {
+            stocks.deletedAt = deletionTime;
+            await isar.stocks.put(stocks);
+            return true;
+          }
+          return false;
         });
         break;
       case 'setting':
-        isar.writeTxn(() async {
-          await isar.settings.delete(id);
-          return true;
+        await isar.writeTxn(() async {
+          Setting? setting = await isar.settings.get(id);
+          if (setting != null) {
+            setting.deletedAt = deletionTime;
+            await isar.settings.put(setting);
+            return true;
+          }
+          return false;
         });
         break;
       case 'pin':
-        isar.writeTxn(() async {
-          await isar.pins.delete(id);
-          return true;
+        await isar.writeTxn(() async {
+          Pin? product = await isar.pins.get(id);
+          if (product != null) {
+            product.deletedAt = deletionTime;
+            await isar.pins.put(product);
+            return true;
+          }
+          return false;
         });
         break;
       case 'business':
@@ -1072,9 +1111,14 @@ class IsarAPI<M> implements IsarApiInterface {
         });
         break;
       case 'customer':
-        isar.writeTxn(() async {
-          await isar.customers.delete(id);
-          return true;
+        await isar.writeTxn(() async {
+          Customer? customer = await isar.customers.get(id);
+          if (customer != null) {
+            customer.deletedAt = deletionTime;
+            await isar.customers.put(customer);
+            return true;
+          }
+          return false;
         });
         break;
       default:
@@ -1321,7 +1365,12 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<Customer?> nGetCustomerByTransactionId({required int id}) async {
-    return isar.customers.filter().transactionIdEqualTo(id).findFirst();
+    Transaction? transaction = await isar.transactions.get(id);
+    if (transaction == null) {
+      return null;
+    }
+    Customer? customer = await isar.customers.get(transaction.customerId!);
+    return customer;
   }
 
   @override
@@ -1397,7 +1446,7 @@ class IsarAPI<M> implements IsarApiInterface {
     final http.Response response =
         await flipperHttpClient.get(Uri.parse("$apihub/v2/api/pin/$pin"));
     if (response.statusCode == 200) {
-      return pinFromMap(response.body);
+      return Pin.fromJson(json.decode(response.body));
     }
     if (response.statusCode == 404) {
       return null;
@@ -1883,10 +1932,8 @@ class IsarAPI<M> implements IsarApiInterface {
       PColor color = data;
       isar.writeTxn(() async {
         for (String colorName in data.colors!) {
-          await isar.pColors.put(PColor()
-            ..name = colorName
-            ..active = color.active
-            ..branchId = color.branchId);
+          await isar.pColors.put(PColor(
+              name: colorName, active: color.active, branchId: color.branchId));
         }
       });
     }

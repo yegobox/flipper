@@ -1,5 +1,6 @@
 library flipper_models;
 
+import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/mocks.dart';
 import 'package:flipper_services/app_service.dart';
@@ -110,11 +111,11 @@ class SignupViewModel extends ReactiveViewModel {
         ProxyService.box.write(key: 'branchId', value: branches[0].id!);
 
         appService.appInit();
-        final Category category = Category()
-          ..active = true
-          ..focused = true
-          ..name = 'NONE'
-          ..branchId = branches[0].id!;
+        final Category category = Category(
+            active: true,
+            focused: true,
+            name: "NONE",
+            branchId: branches[0].id!);
         await ProxyService.isar.create<Category>(data: category);
         //get default colors for this branch
         final List<String> colors = [
@@ -128,12 +129,12 @@ class SignupViewModel extends ReactiveViewModel {
           '#a29bfe'
         ];
 
-        final PColor color = PColor()
-          ..id = DateTime.now().millisecondsSinceEpoch
-          ..colors = colors
-          ..active = false
-          ..branchId = branches[0].id
-          ..name = 'sample';
+        final PColor color = PColor(
+            id: syncIdInt(),
+            colors: colors,
+            active: false,
+            branchId: branches[0].id,
+            name: 'sample');
 
         await ProxyService.isar.create<PColor>(data: color);
         //now create default units for this branch

@@ -52,78 +52,83 @@ const TransactionSchema = CollectionSchema(
       name: r'customerId',
       type: IsarType.long,
     ),
-    r'draft': PropertySchema(
+    r'deletedAt': PropertySchema(
       id: 7,
+      name: r'deletedAt',
+      type: IsarType.dateTime,
+    ),
+    r'draft': PropertySchema(
+      id: 8,
       name: r'draft',
       type: IsarType.bool,
     ),
     r'lastTouched': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'lastTouched',
       type: IsarType.string,
     ),
     r'localId': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'localId',
       type: IsarType.long,
     ),
     r'note': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'note',
       type: IsarType.string,
     ),
     r'paymentType': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'paymentType',
       type: IsarType.string,
     ),
     r'receiptType': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'receiptType',
       type: IsarType.string,
     ),
     r'reference': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'reference',
       type: IsarType.string,
     ),
     r'remoteID': PropertySchema(
-      id: 14,
+      id: 15,
       name: r'remoteID',
       type: IsarType.string,
     ),
     r'reported': PropertySchema(
-      id: 15,
+      id: 16,
       name: r'reported',
       type: IsarType.bool,
     ),
     r'status': PropertySchema(
-      id: 16,
+      id: 17,
       name: r'status',
       type: IsarType.string,
     ),
     r'subTotal': PropertySchema(
-      id: 17,
+      id: 18,
       name: r'subTotal',
       type: IsarType.double,
     ),
     r'ticketName': PropertySchema(
-      id: 18,
+      id: 19,
       name: r'ticketName',
       type: IsarType.string,
     ),
     r'transactionNumber': PropertySchema(
-      id: 19,
+      id: 20,
       name: r'transactionNumber',
       type: IsarType.string,
     ),
     r'transactionType': PropertySchema(
-      id: 20,
+      id: 21,
       name: r'transactionType',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 21,
+      id: 22,
       name: r'updatedAt',
       type: IsarType.string,
     )
@@ -201,6 +206,19 @@ const TransactionSchema = CollectionSchema(
           name: r'remoteID',
           type: IndexType.hash,
           caseSensitive: true,
+        )
+      ],
+    ),
+    r'deletedAt': IndexSchema(
+      id: -8969437169173379604,
+      name: r'deletedAt',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'deletedAt',
+          type: IndexType.value,
+          caseSensitive: false,
         )
       ],
     )
@@ -283,21 +301,22 @@ void _transactionSerialize(
   writer.writeString(offsets[4], object.createdAt);
   writer.writeDouble(offsets[5], object.customerChangeDue);
   writer.writeLong(offsets[6], object.customerId);
-  writer.writeBool(offsets[7], object.draft);
-  writer.writeString(offsets[8], object.lastTouched);
-  writer.writeLong(offsets[9], object.localId);
-  writer.writeString(offsets[10], object.note);
-  writer.writeString(offsets[11], object.paymentType);
-  writer.writeString(offsets[12], object.receiptType);
-  writer.writeString(offsets[13], object.reference);
-  writer.writeString(offsets[14], object.remoteID);
-  writer.writeBool(offsets[15], object.reported);
-  writer.writeString(offsets[16], object.status);
-  writer.writeDouble(offsets[17], object.subTotal);
-  writer.writeString(offsets[18], object.ticketName);
-  writer.writeString(offsets[19], object.transactionNumber);
-  writer.writeString(offsets[20], object.transactionType);
-  writer.writeString(offsets[21], object.updatedAt);
+  writer.writeDateTime(offsets[7], object.deletedAt);
+  writer.writeBool(offsets[8], object.draft);
+  writer.writeString(offsets[9], object.lastTouched);
+  writer.writeLong(offsets[10], object.localId);
+  writer.writeString(offsets[11], object.note);
+  writer.writeString(offsets[12], object.paymentType);
+  writer.writeString(offsets[13], object.receiptType);
+  writer.writeString(offsets[14], object.reference);
+  writer.writeString(offsets[15], object.remoteID);
+  writer.writeBool(offsets[16], object.reported);
+  writer.writeString(offsets[17], object.status);
+  writer.writeDouble(offsets[18], object.subTotal);
+  writer.writeString(offsets[19], object.ticketName);
+  writer.writeString(offsets[20], object.transactionNumber);
+  writer.writeString(offsets[21], object.transactionType);
+  writer.writeString(offsets[22], object.updatedAt);
 }
 
 Transaction _transactionDeserialize(
@@ -314,23 +333,24 @@ Transaction _transactionDeserialize(
     createdAt: reader.readString(offsets[4]),
     customerChangeDue: reader.readDouble(offsets[5]),
     customerId: reader.readLongOrNull(offsets[6]),
-    draft: reader.readBool(offsets[7]),
+    deletedAt: reader.readDateTimeOrNull(offsets[7]),
+    draft: reader.readBool(offsets[8]),
     id: id,
-    lastTouched: reader.readStringOrNull(offsets[8]),
-    note: reader.readStringOrNull(offsets[10]),
-    paymentType: reader.readString(offsets[11]),
-    receiptType: reader.readStringOrNull(offsets[12]),
-    reference: reader.readString(offsets[13]),
-    remoteID: reader.readStringOrNull(offsets[14]),
-    reported: reader.readBool(offsets[15]),
-    status: reader.readString(offsets[16]),
-    subTotal: reader.readDouble(offsets[17]),
-    ticketName: reader.readStringOrNull(offsets[18]),
-    transactionNumber: reader.readString(offsets[19]),
-    transactionType: reader.readString(offsets[20]),
-    updatedAt: reader.readStringOrNull(offsets[21]),
+    lastTouched: reader.readStringOrNull(offsets[9]),
+    note: reader.readStringOrNull(offsets[11]),
+    paymentType: reader.readString(offsets[12]),
+    receiptType: reader.readStringOrNull(offsets[13]),
+    reference: reader.readString(offsets[14]),
+    remoteID: reader.readStringOrNull(offsets[15]),
+    reported: reader.readBool(offsets[16]),
+    status: reader.readString(offsets[17]),
+    subTotal: reader.readDouble(offsets[18]),
+    ticketName: reader.readStringOrNull(offsets[19]),
+    transactionNumber: reader.readString(offsets[20]),
+    transactionType: reader.readString(offsets[21]),
+    updatedAt: reader.readStringOrNull(offsets[22]),
   );
-  object.localId = reader.readLongOrNull(offsets[9]);
+  object.localId = reader.readLongOrNull(offsets[10]);
   return object;
 }
 
@@ -356,34 +376,36 @@ P _transactionDeserializeProp<P>(
     case 6:
       return (reader.readLongOrNull(offset)) as P;
     case 7:
-      return (reader.readBool(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 8:
-      return (reader.readStringOrNull(offset)) as P;
-    case 9:
-      return (reader.readLongOrNull(offset)) as P;
-    case 10:
-      return (reader.readStringOrNull(offset)) as P;
-    case 11:
-      return (reader.readString(offset)) as P;
-    case 12:
-      return (reader.readStringOrNull(offset)) as P;
-    case 13:
-      return (reader.readString(offset)) as P;
-    case 14:
-      return (reader.readStringOrNull(offset)) as P;
-    case 15:
       return (reader.readBool(offset)) as P;
-    case 16:
-      return (reader.readString(offset)) as P;
-    case 17:
-      return (reader.readDouble(offset)) as P;
-    case 18:
+    case 9:
       return (reader.readStringOrNull(offset)) as P;
-    case 19:
+    case 10:
+      return (reader.readLongOrNull(offset)) as P;
+    case 11:
+      return (reader.readStringOrNull(offset)) as P;
+    case 12:
       return (reader.readString(offset)) as P;
+    case 13:
+      return (reader.readStringOrNull(offset)) as P;
+    case 14:
+      return (reader.readString(offset)) as P;
+    case 15:
+      return (reader.readStringOrNull(offset)) as P;
+    case 16:
+      return (reader.readBool(offset)) as P;
+    case 17:
+      return (reader.readString(offset)) as P;
+    case 18:
+      return (reader.readDouble(offset)) as P;
+    case 19:
+      return (reader.readStringOrNull(offset)) as P;
     case 20:
       return (reader.readString(offset)) as P;
     case 21:
+      return (reader.readString(offset)) as P;
+    case 22:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -423,6 +445,14 @@ extension TransactionQueryWhereSort
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         const IndexWhereClause.any(indexName: r'reported'),
+      );
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterWhere> anyDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'deletedAt'),
       );
     });
   }
@@ -902,6 +932,118 @@ extension TransactionQueryWhere
               includeUpper: false,
             ));
       }
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterWhereClause> deletedAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'deletedAt',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterWhereClause>
+      deletedAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'deletedAt',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterWhereClause> deletedAtEqualTo(
+      DateTime? deletedAt) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'deletedAt',
+        value: [deletedAt],
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterWhereClause> deletedAtNotEqualTo(
+      DateTime? deletedAt) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'deletedAt',
+              lower: [],
+              upper: [deletedAt],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'deletedAt',
+              lower: [deletedAt],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'deletedAt',
+              lower: [deletedAt],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'deletedAt',
+              lower: [],
+              upper: [deletedAt],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterWhereClause>
+      deletedAtGreaterThan(
+    DateTime? deletedAt, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'deletedAt',
+        lower: [deletedAt],
+        includeLower: include,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterWhereClause> deletedAtLessThan(
+    DateTime? deletedAt, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'deletedAt',
+        lower: [],
+        upper: [deletedAt],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterWhereClause> deletedAtBetween(
+    DateTime? lowerDeletedAt,
+    DateTime? upperDeletedAt, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'deletedAt',
+        lower: [lowerDeletedAt],
+        includeLower: includeLower,
+        upper: [upperDeletedAt],
+        includeUpper: includeUpper,
+      ));
     });
   }
 }
@@ -1458,6 +1600,80 @@ extension TransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
         property: r'customerId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      deletedAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'deletedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      deletedAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'deletedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      deletedAtEqualTo(DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      deletedAtGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      deletedAtLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      deletedAtBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'deletedAt',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -3382,6 +3598,18 @@ extension TransactionQuerySortBy
     });
   }
 
+  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByDeletedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.desc);
+    });
+  }
+
   QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByDraft() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'draft', Sort.asc);
@@ -3655,6 +3883,18 @@ extension TransactionQuerySortThenBy
     });
   }
 
+  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByDeletedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.desc);
+    });
+  }
+
   QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByDraft() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'draft', Sort.asc);
@@ -3898,6 +4138,12 @@ extension TransactionQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Transaction, Transaction, QDistinct> distinctByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'deletedAt');
+    });
+  }
+
   QueryBuilder<Transaction, Transaction, QDistinct> distinctByDraft() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'draft');
@@ -4053,6 +4299,12 @@ extension TransactionQueryProperty
     });
   }
 
+  QueryBuilder<Transaction, DateTime?, QQueryOperations> deletedAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'deletedAt');
+    });
+  }
+
   QueryBuilder<Transaction, bool, QQueryOperations> draftProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'draft');
@@ -4173,6 +4425,9 @@ Transaction _$TransactionFromJson(Map<String, dynamic> json) => Transaction(
       action: json['action'] as String?,
       remoteID: json['remoteID'] as String?,
       ticketName: json['ticketName'] as String?,
+      deletedAt: json['deletedAt'] == null
+          ? null
+          : DateTime.parse(json['deletedAt'] as String),
     )..localId = json['localId'] as int?;
 
 Map<String, dynamic> _$TransactionToJson(Transaction instance) =>
@@ -4200,4 +4455,5 @@ Map<String, dynamic> _$TransactionToJson(Transaction instance) =>
       'action': instance.action,
       'localId': instance.localId,
       'ticketName': instance.ticketName,
+      'deletedAt': instance.deletedAt?.toIso8601String(),
     };

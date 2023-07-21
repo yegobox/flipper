@@ -17,7 +17,7 @@ class ITenant extends IJsonSerializable {
       required this.email,
       required this.nfcEnabled,
       required this.businessId,
-      required this.userId});
+      required this.userId,this.deletedAt,});
   Id? id = Isar.autoIncrement;
   String name;
   String phoneNumber;
@@ -29,6 +29,8 @@ class ITenant extends IJsonSerializable {
 
   @Index()
   String? lastTouched;
+   @Index()
+  DateTime? deletedAt;
   factory ITenant.fromRecord(RecordModel record) =>
       ITenant.fromJson(record.toJson());
 

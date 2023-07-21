@@ -10,7 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 class HomeViewModel extends BaseViewModel {
   final _dialogService = locator<DialogService>();
-  
+
   // final _bottomSheetService = locator<BottomSheetService>();
 
   void showDialog() {
@@ -34,6 +34,7 @@ class HomeViewModel extends BaseViewModel {
   }
 
   void returnToApps() {
+    ProxyService.box.write(key: 'defaultApp', value: 1);
     final _routerService = locator<RouterService>();
     _routerService.navigateTo(const FlipperAppRoute());
   }

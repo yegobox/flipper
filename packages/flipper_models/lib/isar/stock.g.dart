@@ -42,58 +42,63 @@ const StockSchema = CollectionSchema(
       name: r'currentStock',
       type: IsarType.double,
     ),
-    r'lastTouched': PropertySchema(
+    r'deletedAt': PropertySchema(
       id: 5,
+      name: r'deletedAt',
+      type: IsarType.dateTime,
+    ),
+    r'lastTouched': PropertySchema(
+      id: 6,
       name: r'lastTouched',
       type: IsarType.string,
     ),
     r'localId': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'localId',
       type: IsarType.long,
     ),
     r'lowStock': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'lowStock',
       type: IsarType.double,
     ),
     r'productId': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'productId',
       type: IsarType.long,
     ),
     r'remoteID': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'remoteID',
       type: IsarType.string,
     ),
     r'retailPrice': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'retailPrice',
       type: IsarType.double,
     ),
     r'rsdQty': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'rsdQty',
       type: IsarType.double,
     ),
     r'showLowStockAlert': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'showLowStockAlert',
       type: IsarType.bool,
     ),
     r'supplyPrice': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'supplyPrice',
       type: IsarType.double,
     ),
     r'value': PropertySchema(
-      id: 14,
+      id: 15,
       name: r'value',
       type: IsarType.double,
     ),
     r'variantId': PropertySchema(
-      id: 15,
+      id: 16,
       name: r'variantId',
       type: IsarType.long,
     )
@@ -199,6 +204,19 @@ const StockSchema = CollectionSchema(
           caseSensitive: true,
         )
       ],
+    ),
+    r'deletedAt': IndexSchema(
+      id: -8969437169173379604,
+      name: r'deletedAt',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'deletedAt',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
     )
   },
   links: {},
@@ -247,17 +265,18 @@ void _stockSerialize(
   writer.writeLong(offsets[2], object.branchId);
   writer.writeBool(offsets[3], object.canTrackingStock);
   writer.writeDouble(offsets[4], object.currentStock);
-  writer.writeString(offsets[5], object.lastTouched);
-  writer.writeLong(offsets[6], object.localId);
-  writer.writeDouble(offsets[7], object.lowStock);
-  writer.writeLong(offsets[8], object.productId);
-  writer.writeString(offsets[9], object.remoteID);
-  writer.writeDouble(offsets[10], object.retailPrice);
-  writer.writeDouble(offsets[11], object.rsdQty);
-  writer.writeBool(offsets[12], object.showLowStockAlert);
-  writer.writeDouble(offsets[13], object.supplyPrice);
-  writer.writeDouble(offsets[14], object.value);
-  writer.writeLong(offsets[15], object.variantId);
+  writer.writeDateTime(offsets[5], object.deletedAt);
+  writer.writeString(offsets[6], object.lastTouched);
+  writer.writeLong(offsets[7], object.localId);
+  writer.writeDouble(offsets[8], object.lowStock);
+  writer.writeLong(offsets[9], object.productId);
+  writer.writeString(offsets[10], object.remoteID);
+  writer.writeDouble(offsets[11], object.retailPrice);
+  writer.writeDouble(offsets[12], object.rsdQty);
+  writer.writeBool(offsets[13], object.showLowStockAlert);
+  writer.writeDouble(offsets[14], object.supplyPrice);
+  writer.writeDouble(offsets[15], object.value);
+  writer.writeLong(offsets[16], object.variantId);
 }
 
 Stock _stockDeserialize(
@@ -272,18 +291,19 @@ Stock _stockDeserialize(
     branchId: reader.readLong(offsets[2]),
     canTrackingStock: reader.readBoolOrNull(offsets[3]),
     currentStock: reader.readDouble(offsets[4]),
+    deletedAt: reader.readDateTimeOrNull(offsets[5]),
     id: id,
-    lastTouched: reader.readStringOrNull(offsets[5]),
-    localId: reader.readLongOrNull(offsets[6]),
-    lowStock: reader.readDoubleOrNull(offsets[7]),
-    productId: reader.readLong(offsets[8]),
-    remoteID: reader.readStringOrNull(offsets[9]),
-    retailPrice: reader.readDoubleOrNull(offsets[10]),
-    rsdQty: reader.readDoubleOrNull(offsets[11]),
-    showLowStockAlert: reader.readBoolOrNull(offsets[12]),
-    supplyPrice: reader.readDoubleOrNull(offsets[13]),
-    value: reader.readDoubleOrNull(offsets[14]),
-    variantId: reader.readLong(offsets[15]),
+    lastTouched: reader.readStringOrNull(offsets[6]),
+    localId: reader.readLongOrNull(offsets[7]),
+    lowStock: reader.readDoubleOrNull(offsets[8]),
+    productId: reader.readLong(offsets[9]),
+    remoteID: reader.readStringOrNull(offsets[10]),
+    retailPrice: reader.readDoubleOrNull(offsets[11]),
+    rsdQty: reader.readDoubleOrNull(offsets[12]),
+    showLowStockAlert: reader.readBoolOrNull(offsets[13]),
+    supplyPrice: reader.readDoubleOrNull(offsets[14]),
+    value: reader.readDoubleOrNull(offsets[15]),
+    variantId: reader.readLong(offsets[16]),
   );
   return object;
 }
@@ -306,26 +326,28 @@ P _stockDeserializeProp<P>(
     case 4:
       return (reader.readDouble(offset)) as P;
     case 5:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 6:
-      return (reader.readLongOrNull(offset)) as P;
-    case 7:
-      return (reader.readDoubleOrNull(offset)) as P;
-    case 8:
-      return (reader.readLong(offset)) as P;
-    case 9:
       return (reader.readStringOrNull(offset)) as P;
-    case 10:
+    case 7:
+      return (reader.readLongOrNull(offset)) as P;
+    case 8:
       return (reader.readDoubleOrNull(offset)) as P;
+    case 9:
+      return (reader.readLong(offset)) as P;
+    case 10:
+      return (reader.readStringOrNull(offset)) as P;
     case 11:
       return (reader.readDoubleOrNull(offset)) as P;
     case 12:
-      return (reader.readBoolOrNull(offset)) as P;
-    case 13:
       return (reader.readDoubleOrNull(offset)) as P;
+    case 13:
+      return (reader.readBoolOrNull(offset)) as P;
     case 14:
       return (reader.readDoubleOrNull(offset)) as P;
     case 15:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 16:
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -387,6 +409,14 @@ extension StockQueryWhereSort on QueryBuilder<Stock, Stock, QWhere> {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         const IndexWhereClause.any(indexName: r'retailPrice'),
+      );
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhere> anyDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'deletedAt'),
       );
     });
   }
@@ -1171,6 +1201,116 @@ extension StockQueryWhere on QueryBuilder<Stock, Stock, QWhereClause> {
       }
     });
   }
+
+  QueryBuilder<Stock, Stock, QAfterWhereClause> deletedAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'deletedAt',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhereClause> deletedAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'deletedAt',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhereClause> deletedAtEqualTo(
+      DateTime? deletedAt) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'deletedAt',
+        value: [deletedAt],
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhereClause> deletedAtNotEqualTo(
+      DateTime? deletedAt) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'deletedAt',
+              lower: [],
+              upper: [deletedAt],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'deletedAt',
+              lower: [deletedAt],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'deletedAt',
+              lower: [deletedAt],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'deletedAt',
+              lower: [],
+              upper: [deletedAt],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhereClause> deletedAtGreaterThan(
+    DateTime? deletedAt, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'deletedAt',
+        lower: [deletedAt],
+        includeLower: include,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhereClause> deletedAtLessThan(
+    DateTime? deletedAt, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'deletedAt',
+        lower: [],
+        upper: [deletedAt],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterWhereClause> deletedAtBetween(
+    DateTime? lowerDeletedAt,
+    DateTime? upperDeletedAt, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'deletedAt',
+        lower: [lowerDeletedAt],
+        includeLower: includeLower,
+        upper: [upperDeletedAt],
+        includeUpper: includeUpper,
+      ));
+    });
+  }
 }
 
 extension StockQueryFilter on QueryBuilder<Stock, Stock, QFilterCondition> {
@@ -1481,6 +1621,75 @@ extension StockQueryFilter on QueryBuilder<Stock, Stock, QFilterCondition> {
         upper: upper,
         includeUpper: includeUpper,
         epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> deletedAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'deletedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> deletedAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'deletedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> deletedAtEqualTo(
+      DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> deletedAtGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> deletedAtLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> deletedAtBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'deletedAt',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
       ));
     });
   }
@@ -2502,6 +2711,18 @@ extension StockQuerySortBy on QueryBuilder<Stock, Stock, QSortBy> {
     });
   }
 
+  QueryBuilder<Stock, Stock, QAfterSortBy> sortByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterSortBy> sortByDeletedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.desc);
+    });
+  }
+
   QueryBuilder<Stock, Stock, QAfterSortBy> sortByLastTouched() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastTouched', Sort.asc);
@@ -2696,6 +2917,18 @@ extension StockQuerySortThenBy on QueryBuilder<Stock, Stock, QSortThenBy> {
     });
   }
 
+  QueryBuilder<Stock, Stock, QAfterSortBy> thenByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterSortBy> thenByDeletedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.desc);
+    });
+  }
+
   QueryBuilder<Stock, Stock, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
@@ -2873,6 +3106,12 @@ extension StockQueryWhereDistinct on QueryBuilder<Stock, Stock, QDistinct> {
     });
   }
 
+  QueryBuilder<Stock, Stock, QDistinct> distinctByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'deletedAt');
+    });
+  }
+
   QueryBuilder<Stock, Stock, QDistinct> distinctByLastTouched(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -2979,6 +3218,12 @@ extension StockQueryProperty on QueryBuilder<Stock, Stock, QQueryProperty> {
     });
   }
 
+  QueryBuilder<Stock, DateTime?, QQueryOperations> deletedAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'deletedAt');
+    });
+  }
+
   QueryBuilder<Stock, String?, QQueryOperations> lastTouchedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'lastTouched');
@@ -3068,6 +3313,9 @@ Stock _$StockFromJson(Map<String, dynamic> json) => Stock(
       lastTouched: json['lastTouched'] as String?,
       remoteID: json['remoteID'] as String?,
       localId: json['localId'] as int?,
+      deletedAt: json['deletedAt'] == null
+          ? null
+          : DateTime.parse(json['deletedAt'] as String),
     );
 
 Map<String, dynamic> _$StockToJson(Stock instance) => <String, dynamic>{
@@ -3088,4 +3336,5 @@ Map<String, dynamic> _$StockToJson(Stock instance) => <String, dynamic>{
       'remoteID': instance.remoteID,
       'localId': instance.localId,
       'action': instance.action,
+      'deletedAt': instance.deletedAt?.toIso8601String(),
     };

@@ -63,7 +63,7 @@ class Customers extends StatelessWidget {
                                   child: GestureDetector(
                                     onTap: () async {
                                       await model.assignToSale(
-                                        customerId: snapshot.data!.id,
+                                        customerId: snapshot.data!.id!,
                                         transactionId: transactionId,
                                       );
                                       model.app.setCustomer(snapshot.data!);
@@ -108,7 +108,7 @@ class Customers extends StatelessWidget {
                                       SlidableAction(
                                         onPressed: (_) {
                                           model.deleteCustomer(
-                                              snapshot.data!.id, (message) {
+                                              snapshot.data!.id!, (message) {
                                             ScaffoldMessenger.of(context)
                                                 .showSnackBar(
                                               SnackBar(
@@ -133,7 +133,7 @@ class Customers extends StatelessWidget {
                                       SlidableAction(
                                         onPressed: (_) {
                                           model.deleteCustomer(
-                                              snapshot.data!.id, (message) {
+                                              snapshot.data!.id!, (message) {
                                             ScaffoldMessenger.of(context)
                                                 .showSnackBar(
                                               SnackBar(
@@ -178,7 +178,8 @@ class Customers extends StatelessWidget {
         });
   }
 
-  void _showModalBottomSheet(BuildContext context, int transactionId, searchedKey) {
+  void _showModalBottomSheet(
+      BuildContext context, int transactionId, searchedKey) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(

@@ -17,93 +17,113 @@ const SettingSchema = CollectionSchema(
   name: r'Setting',
   id: 2542600759502230801,
   properties: {
-    r'attendnaceDocCreated': PropertySchema(
+    r'action': PropertySchema(
       id: 0,
+      name: r'action',
+      type: IsarType.string,
+    ),
+    r'attendnaceDocCreated': PropertySchema(
+      id: 1,
       name: r'attendnaceDocCreated',
       type: IsarType.bool,
     ),
     r'autoPrint': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'autoPrint',
       type: IsarType.bool,
     ),
     r'autoRespond': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'autoRespond',
       type: IsarType.bool,
     ),
     r'businessId': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'businessId',
       type: IsarType.long,
     ),
     r'businessPhoneNumber': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'businessPhoneNumber',
       type: IsarType.string,
     ),
     r'createdAt': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'createdAt',
       type: IsarType.string,
     ),
     r'defaultLanguage': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'defaultLanguage',
       type: IsarType.string,
     ),
+    r'deletedAt': PropertySchema(
+      id: 8,
+      name: r'deletedAt',
+      type: IsarType.dateTime,
+    ),
     r'deviceToken': PropertySchema(
-      id: 7,
+      id: 9,
       name: r'deviceToken',
       type: IsarType.string,
     ),
     r'email': PropertySchema(
-      id: 8,
+      id: 10,
       name: r'email',
       type: IsarType.string,
     ),
     r'enrolledInBot': PropertySchema(
-      id: 9,
+      id: 11,
       name: r'enrolledInBot',
       type: IsarType.bool,
     ),
     r'hasPin': PropertySchema(
-      id: 10,
+      id: 12,
       name: r'hasPin',
       type: IsarType.string,
     ),
     r'isAttendanceEnabled': PropertySchema(
-      id: 11,
+      id: 13,
       name: r'isAttendanceEnabled',
       type: IsarType.bool,
     ),
     r'lastTouched': PropertySchema(
-      id: 12,
+      id: 14,
       name: r'lastTouched',
       type: IsarType.string,
     ),
+    r'localId': PropertySchema(
+      id: 15,
+      name: r'localId',
+      type: IsarType.long,
+    ),
     r'openReceiptFileOSaleComplete': PropertySchema(
-      id: 13,
+      id: 16,
       name: r'openReceiptFileOSaleComplete',
       type: IsarType.bool,
     ),
+    r'remoteID': PropertySchema(
+      id: 17,
+      name: r'remoteID',
+      type: IsarType.string,
+    ),
     r'sendDailyReport': PropertySchema(
-      id: 14,
+      id: 18,
       name: r'sendDailyReport',
       type: IsarType.bool,
     ),
     r'token': PropertySchema(
-      id: 15,
+      id: 19,
       name: r'token',
       type: IsarType.string,
     ),
     r'type': PropertySchema(
-      id: 16,
+      id: 20,
       name: r'type',
       type: IsarType.string,
     ),
     r'userId': PropertySchema(
-      id: 17,
+      id: 21,
       name: r'userId',
       type: IsarType.long,
     )
@@ -152,6 +172,19 @@ const SettingSchema = CollectionSchema(
           caseSensitive: true,
         )
       ],
+    ),
+    r'deletedAt': IndexSchema(
+      id: -8969437169173379604,
+      name: r'deletedAt',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'deletedAt',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
     )
   },
   links: {},
@@ -168,6 +201,12 @@ int _settingEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  {
+    final value = object.action;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   {
     final value = object.businessPhoneNumber;
     if (value != null) {
@@ -211,6 +250,12 @@ int _settingEstimateSize(
     }
   }
   {
+    final value = object.remoteID;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
     final value = object.token;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
@@ -231,24 +276,28 @@ void _settingSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeBool(offsets[0], object.attendnaceDocCreated);
-  writer.writeBool(offsets[1], object.autoPrint);
-  writer.writeBool(offsets[2], object.autoRespond);
-  writer.writeLong(offsets[3], object.businessId);
-  writer.writeString(offsets[4], object.businessPhoneNumber);
-  writer.writeString(offsets[5], object.createdAt);
-  writer.writeString(offsets[6], object.defaultLanguage);
-  writer.writeString(offsets[7], object.deviceToken);
-  writer.writeString(offsets[8], object.email);
-  writer.writeBool(offsets[9], object.enrolledInBot);
-  writer.writeString(offsets[10], object.hasPin);
-  writer.writeBool(offsets[11], object.isAttendanceEnabled);
-  writer.writeString(offsets[12], object.lastTouched);
-  writer.writeBool(offsets[13], object.openReceiptFileOSaleComplete);
-  writer.writeBool(offsets[14], object.sendDailyReport);
-  writer.writeString(offsets[15], object.token);
-  writer.writeString(offsets[16], object.type);
-  writer.writeLong(offsets[17], object.userId);
+  writer.writeString(offsets[0], object.action);
+  writer.writeBool(offsets[1], object.attendnaceDocCreated);
+  writer.writeBool(offsets[2], object.autoPrint);
+  writer.writeBool(offsets[3], object.autoRespond);
+  writer.writeLong(offsets[4], object.businessId);
+  writer.writeString(offsets[5], object.businessPhoneNumber);
+  writer.writeString(offsets[6], object.createdAt);
+  writer.writeString(offsets[7], object.defaultLanguage);
+  writer.writeDateTime(offsets[8], object.deletedAt);
+  writer.writeString(offsets[9], object.deviceToken);
+  writer.writeString(offsets[10], object.email);
+  writer.writeBool(offsets[11], object.enrolledInBot);
+  writer.writeString(offsets[12], object.hasPin);
+  writer.writeBool(offsets[13], object.isAttendanceEnabled);
+  writer.writeString(offsets[14], object.lastTouched);
+  writer.writeLong(offsets[15], object.localId);
+  writer.writeBool(offsets[16], object.openReceiptFileOSaleComplete);
+  writer.writeString(offsets[17], object.remoteID);
+  writer.writeBool(offsets[18], object.sendDailyReport);
+  writer.writeString(offsets[19], object.token);
+  writer.writeString(offsets[20], object.type);
+  writer.writeLong(offsets[21], object.userId);
 }
 
 Setting _settingDeserialize(
@@ -258,26 +307,30 @@ Setting _settingDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Setting(
-    attendnaceDocCreated: reader.readBoolOrNull(offsets[0]),
-    autoPrint: reader.readBoolOrNull(offsets[1]),
-    autoRespond: reader.readBoolOrNull(offsets[2]),
-    businessId: reader.readLongOrNull(offsets[3]),
-    businessPhoneNumber: reader.readStringOrNull(offsets[4]),
-    createdAt: reader.readStringOrNull(offsets[5]),
-    defaultLanguage: reader.readStringOrNull(offsets[6]),
-    deviceToken: reader.readStringOrNull(offsets[7]),
-    email: reader.readStringOrNull(offsets[8]),
-    enrolledInBot: reader.readBoolOrNull(offsets[9]),
-    hasPin: reader.readStringOrNull(offsets[10]),
+    attendnaceDocCreated: reader.readBoolOrNull(offsets[1]),
+    autoPrint: reader.readBoolOrNull(offsets[2]),
+    autoRespond: reader.readBoolOrNull(offsets[3]),
+    businessId: reader.readLongOrNull(offsets[4]),
+    businessPhoneNumber: reader.readStringOrNull(offsets[5]),
+    createdAt: reader.readStringOrNull(offsets[6]),
+    defaultLanguage: reader.readStringOrNull(offsets[7]),
+    deletedAt: reader.readDateTimeOrNull(offsets[8]),
+    deviceToken: reader.readStringOrNull(offsets[9]),
+    email: reader.readStringOrNull(offsets[10]),
+    enrolledInBot: reader.readBoolOrNull(offsets[11]),
+    hasPin: reader.readStringOrNull(offsets[12]),
     id: id,
-    isAttendanceEnabled: reader.readBoolOrNull(offsets[11]),
-    openReceiptFileOSaleComplete: reader.readBoolOrNull(offsets[13]),
-    sendDailyReport: reader.readBoolOrNull(offsets[14]),
-    token: reader.readStringOrNull(offsets[15]),
-    type: reader.readStringOrNull(offsets[16]),
-    userId: reader.readLongOrNull(offsets[17]),
+    isAttendanceEnabled: reader.readBoolOrNull(offsets[13]),
+    openReceiptFileOSaleComplete: reader.readBoolOrNull(offsets[16]),
+    sendDailyReport: reader.readBoolOrNull(offsets[18]),
+    token: reader.readStringOrNull(offsets[19]),
+    type: reader.readStringOrNull(offsets[20]),
+    userId: reader.readLongOrNull(offsets[21]),
   );
-  object.lastTouched = reader.readStringOrNull(offsets[12]);
+  object.action = reader.readStringOrNull(offsets[0]);
+  object.lastTouched = reader.readStringOrNull(offsets[14]);
+  object.localId = reader.readLongOrNull(offsets[15]);
+  object.remoteID = reader.readStringOrNull(offsets[17]);
   return object;
 }
 
@@ -289,15 +342,15 @@ P _settingDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readBoolOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 1:
       return (reader.readBoolOrNull(offset)) as P;
     case 2:
       return (reader.readBoolOrNull(offset)) as P;
     case 3:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readBoolOrNull(offset)) as P;
     case 4:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 5:
       return (reader.readStringOrNull(offset)) as P;
     case 6:
@@ -305,9 +358,9 @@ P _settingDeserializeProp<P>(
     case 7:
       return (reader.readStringOrNull(offset)) as P;
     case 8:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 9:
-      return (reader.readBoolOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 10:
       return (reader.readStringOrNull(offset)) as P;
     case 11:
@@ -317,12 +370,20 @@ P _settingDeserializeProp<P>(
     case 13:
       return (reader.readBoolOrNull(offset)) as P;
     case 14:
-      return (reader.readBoolOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 15:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 16:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readBoolOrNull(offset)) as P;
     case 17:
+      return (reader.readStringOrNull(offset)) as P;
+    case 18:
+      return (reader.readBoolOrNull(offset)) as P;
+    case 19:
+      return (reader.readStringOrNull(offset)) as P;
+    case 20:
+      return (reader.readStringOrNull(offset)) as P;
+    case 21:
       return (reader.readLongOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -360,6 +421,14 @@ extension SettingQueryWhereSort on QueryBuilder<Setting, Setting, QWhere> {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         const IndexWhereClause.any(indexName: r'businessId'),
+      );
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhere> anyDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'deletedAt'),
       );
     });
   }
@@ -714,10 +783,266 @@ extension SettingQueryWhere on QueryBuilder<Setting, Setting, QWhereClause> {
       }
     });
   }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> deletedAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'deletedAt',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> deletedAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'deletedAt',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> deletedAtEqualTo(
+      DateTime? deletedAt) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'deletedAt',
+        value: [deletedAt],
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> deletedAtNotEqualTo(
+      DateTime? deletedAt) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'deletedAt',
+              lower: [],
+              upper: [deletedAt],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'deletedAt',
+              lower: [deletedAt],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'deletedAt',
+              lower: [deletedAt],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'deletedAt',
+              lower: [],
+              upper: [deletedAt],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> deletedAtGreaterThan(
+    DateTime? deletedAt, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'deletedAt',
+        lower: [deletedAt],
+        includeLower: include,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> deletedAtLessThan(
+    DateTime? deletedAt, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'deletedAt',
+        lower: [],
+        upper: [deletedAt],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> deletedAtBetween(
+    DateTime? lowerDeletedAt,
+    DateTime? upperDeletedAt, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'deletedAt',
+        lower: [lowerDeletedAt],
+        includeLower: includeLower,
+        upper: [upperDeletedAt],
+        includeUpper: includeUpper,
+      ));
+    });
+  }
 }
 
 extension SettingQueryFilter
     on QueryBuilder<Setting, Setting, QFilterCondition> {
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> actionIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'action',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> actionIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'action',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> actionEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> actionGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> actionLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> actionBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'action',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> actionStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> actionEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> actionContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> actionMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'action',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> actionIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'action',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> actionIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'action',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Setting, Setting, QAfterFilterCondition>
       attendnaceDocCreatedIsNull() {
     return QueryBuilder.apply(this, (query) {
@@ -1315,6 +1640,75 @@ extension SettingQueryFilter
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'defaultLanguage',
         value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> deletedAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'deletedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> deletedAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'deletedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> deletedAtEqualTo(
+      DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> deletedAtGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> deletedAtLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> deletedAtBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'deletedAt',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
       ));
     });
   }
@@ -2012,6 +2406,75 @@ extension SettingQueryFilter
     });
   }
 
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> localIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'localId',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> localIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'localId',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> localIdEqualTo(
+      int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'localId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> localIdGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'localId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> localIdLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'localId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> localIdBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'localId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<Setting, Setting, QAfterFilterCondition>
       openReceiptFileOSaleCompleteIsNull() {
     return QueryBuilder.apply(this, (query) {
@@ -2036,6 +2499,152 @@ extension SettingQueryFilter
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'openReceiptFileOSaleComplete',
         value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> remoteIDIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'remoteID',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> remoteIDIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'remoteID',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> remoteIDEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'remoteID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> remoteIDGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'remoteID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> remoteIDLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'remoteID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> remoteIDBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'remoteID',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> remoteIDStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'remoteID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> remoteIDEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'remoteID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> remoteIDContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'remoteID',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> remoteIDMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'remoteID',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> remoteIDIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'remoteID',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> remoteIDIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'remoteID',
+        value: '',
       ));
     });
   }
@@ -2437,6 +3046,18 @@ extension SettingQueryLinks
     on QueryBuilder<Setting, Setting, QFilterCondition> {}
 
 extension SettingQuerySortBy on QueryBuilder<Setting, Setting, QSortBy> {
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByAction() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'action', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByActionDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'action', Sort.desc);
+    });
+  }
+
   QueryBuilder<Setting, Setting, QAfterSortBy> sortByAttendnaceDocCreated() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'attendnaceDocCreated', Sort.asc);
@@ -2522,6 +3143,18 @@ extension SettingQuerySortBy on QueryBuilder<Setting, Setting, QSortBy> {
     });
   }
 
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByDeletedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.desc);
+    });
+  }
+
   QueryBuilder<Setting, Setting, QAfterSortBy> sortByDeviceToken() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'deviceToken', Sort.asc);
@@ -2594,6 +3227,18 @@ extension SettingQuerySortBy on QueryBuilder<Setting, Setting, QSortBy> {
     });
   }
 
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByLocalId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByLocalIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localId', Sort.desc);
+    });
+  }
+
   QueryBuilder<Setting, Setting, QAfterSortBy>
       sortByOpenReceiptFileOSaleComplete() {
     return QueryBuilder.apply(this, (query) {
@@ -2605,6 +3250,18 @@ extension SettingQuerySortBy on QueryBuilder<Setting, Setting, QSortBy> {
       sortByOpenReceiptFileOSaleCompleteDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'openReceiptFileOSaleComplete', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByRemoteID() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'remoteID', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByRemoteIDDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'remoteID', Sort.desc);
     });
   }
 
@@ -2659,6 +3316,18 @@ extension SettingQuerySortBy on QueryBuilder<Setting, Setting, QSortBy> {
 
 extension SettingQuerySortThenBy
     on QueryBuilder<Setting, Setting, QSortThenBy> {
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByAction() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'action', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByActionDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'action', Sort.desc);
+    });
+  }
+
   QueryBuilder<Setting, Setting, QAfterSortBy> thenByAttendnaceDocCreated() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'attendnaceDocCreated', Sort.asc);
@@ -2741,6 +3410,18 @@ extension SettingQuerySortThenBy
   QueryBuilder<Setting, Setting, QAfterSortBy> thenByDefaultLanguageDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'defaultLanguage', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByDeletedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.desc);
     });
   }
 
@@ -2828,6 +3509,18 @@ extension SettingQuerySortThenBy
     });
   }
 
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByLocalId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByLocalIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localId', Sort.desc);
+    });
+  }
+
   QueryBuilder<Setting, Setting, QAfterSortBy>
       thenByOpenReceiptFileOSaleComplete() {
     return QueryBuilder.apply(this, (query) {
@@ -2839,6 +3532,18 @@ extension SettingQuerySortThenBy
       thenByOpenReceiptFileOSaleCompleteDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'openReceiptFileOSaleComplete', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByRemoteID() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'remoteID', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByRemoteIDDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'remoteID', Sort.desc);
     });
   }
 
@@ -2893,6 +3598,13 @@ extension SettingQuerySortThenBy
 
 extension SettingQueryWhereDistinct
     on QueryBuilder<Setting, Setting, QDistinct> {
+  QueryBuilder<Setting, Setting, QDistinct> distinctByAction(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'action', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<Setting, Setting, QDistinct> distinctByAttendnaceDocCreated() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'attendnaceDocCreated');
@@ -2940,6 +3652,12 @@ extension SettingQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Setting, Setting, QDistinct> distinctByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'deletedAt');
+    });
+  }
+
   QueryBuilder<Setting, Setting, QDistinct> distinctByDeviceToken(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -2980,10 +3698,23 @@ extension SettingQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Setting, Setting, QDistinct> distinctByLocalId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'localId');
+    });
+  }
+
   QueryBuilder<Setting, Setting, QDistinct>
       distinctByOpenReceiptFileOSaleComplete() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'openReceiptFileOSaleComplete');
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QDistinct> distinctByRemoteID(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'remoteID', caseSensitive: caseSensitive);
     });
   }
 
@@ -3019,6 +3750,12 @@ extension SettingQueryProperty
   QueryBuilder<Setting, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<Setting, String?, QQueryOperations> actionProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'action');
     });
   }
 
@@ -3066,6 +3803,12 @@ extension SettingQueryProperty
     });
   }
 
+  QueryBuilder<Setting, DateTime?, QQueryOperations> deletedAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'deletedAt');
+    });
+  }
+
   QueryBuilder<Setting, String?, QQueryOperations> deviceTokenProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'deviceToken');
@@ -3102,10 +3845,22 @@ extension SettingQueryProperty
     });
   }
 
+  QueryBuilder<Setting, int?, QQueryOperations> localIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'localId');
+    });
+  }
+
   QueryBuilder<Setting, bool?, QQueryOperations>
       openReceiptFileOSaleCompleteProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'openReceiptFileOSaleComplete');
+    });
+  }
+
+  QueryBuilder<Setting, String?, QQueryOperations> remoteIDProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'remoteID');
     });
   }
 
@@ -3157,9 +3912,19 @@ Setting _$SettingFromJson(Map<String, dynamic> json) => Setting(
       businessId: json['businessId'] as int?,
       createdAt: json['createdAt'] as String?,
       token: json['token'] as String?,
-    )..lastTouched = json['lastTouched'] as String?;
+      deletedAt: json['deletedAt'] == null
+          ? null
+          : DateTime.parse(json['deletedAt'] as String),
+    )
+      ..remoteID = json['remoteID'] as String?
+      ..action = json['action'] as String?
+      ..localId = json['localId'] as int?
+      ..lastTouched = json['lastTouched'] as String?;
 
 Map<String, dynamic> _$SettingToJson(Setting instance) => <String, dynamic>{
+      'remoteID': instance.remoteID,
+      'action': instance.action,
+      'localId': instance.localId,
       'email': instance.email,
       'hasPin': instance.hasPin,
       'userId': instance.userId,
@@ -3178,4 +3943,5 @@ Map<String, dynamic> _$SettingToJson(Setting instance) => <String, dynamic>{
       'businessId': instance.businessId,
       'createdAt': instance.createdAt,
       'lastTouched': instance.lastTouched,
+      'deletedAt': instance.deletedAt?.toIso8601String(),
     };

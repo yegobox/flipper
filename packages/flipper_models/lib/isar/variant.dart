@@ -89,7 +89,8 @@ class Variant extends IJsonSerializable {
 
   // only for accor when fetching from remove
   int? localId;
-
+ @Index()
+  DateTime? deletedAt;
   Variant(
       {required this.name,
       required this.sku,
@@ -135,7 +136,7 @@ class Variant extends IJsonSerializable {
       this.modrNm,
       this.rsdQty,
       this.lastTouched,
-      this.remoteID});
+      this.remoteID,this.deletedAt,});
 
   factory Variant.fromRecord(RecordModel record) =>
       Variant.fromJson(record.toJson());

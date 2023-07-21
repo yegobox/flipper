@@ -92,7 +92,8 @@ class TransactionItem extends IJsonSerializable {
   String? modrNm;
   @Index()
   String? lastTouched;
-
+  @Index()
+  DateTime? deletedAt;
   TransactionItem({
     this.id,
     required this.name,
@@ -143,6 +144,7 @@ class TransactionItem extends IJsonSerializable {
     this.modrId,
     this.modrNm,
     this.lastTouched,
+    this.deletedAt,
   });
   //sync String? remoteID;
   String? action;

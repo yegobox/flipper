@@ -114,14 +114,14 @@ class ProductViewModel extends TenantViewModel {
   ///create a new category and refresh list of categories
   Future<void> createCategory() async {
     final int? branchId = ProxyService.box.getBranchId();
-    final categoryId = DateTime.now().millisecondsSinceEpoch;
     if (productName == null) return;
-    final Category category = Category()
-      ..id = categoryId
-      ..active = true
-      ..focused = false
-      ..name = productName!
-      ..branchId = branchId!;
+    final Category category = Category(
+        name: productName!,
+        active: true,
+        focused: false,
+        branchId: branchId!,
+        id: syncIdInt());
+
     await ProxyService.isar.create(data: category);
     app.loadCategories();
   }
@@ -222,14 +222,14 @@ class ProductViewModel extends TenantViewModel {
     int branchId = ProxyService.box.getBranchId()!;
     for (PColor c in colors) {
       if (c.active) {
-        final PColor? _color = await ProxyService.isar.getColor(id: c.id);
+        final PColor? _color = await ProxyService.isar.getColor(id: c.id!);
         _color!.active = false;
         _color.branchId = branchId;
         await ProxyService.isar.update(data: _color);
       }
     }
 
-    final PColor? _color = await ProxyService.isar.getColor(id: color.id);
+    final PColor? _color = await ProxyService.isar.getColor(id: color.id!);
 
     _color!.active = true;
     _color.branchId = branchId;
@@ -408,8 +408,8 @@ class ProductViewModel extends TenantViewModel {
         await ProxyService.keypad.getPendingTransaction(branchId: branchId);
 
     if (transaction != null) {
-      List<TransactionItem> transactionItems =
-          await ProxyService.isar.getTransactionItemsByTransactionId(transactionId: transaction.id!);
+      List<TransactionItem> transactionItems = await ProxyService.isar
+          .getTransactionItemsByTransactionId(transactionId: transaction.id!);
       for (TransactionItem item in transactionItems) {
         if (item.price.toInt() <= discount.amount! && item.discount == null) {
           item.discount = item.price;

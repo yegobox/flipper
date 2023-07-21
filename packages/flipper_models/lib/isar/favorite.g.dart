@@ -27,28 +27,33 @@ const FavoriteSchema = CollectionSchema(
       name: r'branchId',
       type: IsarType.long,
     ),
-    r'favIndex': PropertySchema(
+    r'deletedAt': PropertySchema(
       id: 2,
+      name: r'deletedAt',
+      type: IsarType.dateTime,
+    ),
+    r'favIndex': PropertySchema(
+      id: 3,
       name: r'favIndex',
       type: IsarType.long,
     ),
     r'lastTouched': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'lastTouched',
       type: IsarType.string,
     ),
     r'localId': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'localId',
       type: IsarType.long,
     ),
     r'productId': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'productId',
       type: IsarType.long,
     ),
     r'remoteID': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'remoteID',
       type: IsarType.string,
     )
@@ -97,6 +102,19 @@ const FavoriteSchema = CollectionSchema(
           caseSensitive: true,
         )
       ],
+    ),
+    r'deletedAt': IndexSchema(
+      id: -8969437169173379604,
+      name: r'deletedAt',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'deletedAt',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
     )
   },
   links: {},
@@ -142,11 +160,12 @@ void _favoriteSerialize(
 ) {
   writer.writeString(offsets[0], object.action);
   writer.writeLong(offsets[1], object.branchId);
-  writer.writeLong(offsets[2], object.favIndex);
-  writer.writeString(offsets[3], object.lastTouched);
-  writer.writeLong(offsets[4], object.localId);
-  writer.writeLong(offsets[5], object.productId);
-  writer.writeString(offsets[6], object.remoteID);
+  writer.writeDateTime(offsets[2], object.deletedAt);
+  writer.writeLong(offsets[3], object.favIndex);
+  writer.writeString(offsets[4], object.lastTouched);
+  writer.writeLong(offsets[5], object.localId);
+  writer.writeLong(offsets[6], object.productId);
+  writer.writeString(offsets[7], object.remoteID);
 }
 
 Favorite _favoriteDeserialize(
@@ -156,15 +175,16 @@ Favorite _favoriteDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Favorite(
-    reader.readLongOrNull(offsets[2]),
-    reader.readLongOrNull(offsets[5]),
+    reader.readLongOrNull(offsets[3]),
+    reader.readLongOrNull(offsets[6]),
     reader.readLongOrNull(offsets[1]),
   );
   object.action = reader.readStringOrNull(offsets[0]);
+  object.deletedAt = reader.readDateTimeOrNull(offsets[2]);
   object.id = id;
-  object.lastTouched = reader.readStringOrNull(offsets[3]);
-  object.localId = reader.readLongOrNull(offsets[4]);
-  object.remoteID = reader.readStringOrNull(offsets[6]);
+  object.lastTouched = reader.readStringOrNull(offsets[4]);
+  object.localId = reader.readLongOrNull(offsets[5]);
+  object.remoteID = reader.readStringOrNull(offsets[7]);
   return object;
 }
 
@@ -180,14 +200,16 @@ P _favoriteDeserializeProp<P>(
     case 1:
       return (reader.readLongOrNull(offset)) as P;
     case 2:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 3:
-      return (reader.readStringOrNull(offset)) as P;
-    case 4:
       return (reader.readLongOrNull(offset)) as P;
+    case 4:
+      return (reader.readStringOrNull(offset)) as P;
     case 5:
       return (reader.readLongOrNull(offset)) as P;
     case 6:
+      return (reader.readLongOrNull(offset)) as P;
+    case 7:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -272,6 +294,14 @@ extension FavoriteQueryWhereSort on QueryBuilder<Favorite, Favorite, QWhere> {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         const IndexWhereClause.any(indexName: r'favIndex'),
+      );
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterWhere> anyDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'deletedAt'),
       );
     });
   }
@@ -582,6 +612,116 @@ extension FavoriteQueryWhere on QueryBuilder<Favorite, Favorite, QWhereClause> {
       }
     });
   }
+
+  QueryBuilder<Favorite, Favorite, QAfterWhereClause> deletedAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'deletedAt',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterWhereClause> deletedAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'deletedAt',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterWhereClause> deletedAtEqualTo(
+      DateTime? deletedAt) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'deletedAt',
+        value: [deletedAt],
+      ));
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterWhereClause> deletedAtNotEqualTo(
+      DateTime? deletedAt) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'deletedAt',
+              lower: [],
+              upper: [deletedAt],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'deletedAt',
+              lower: [deletedAt],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'deletedAt',
+              lower: [deletedAt],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'deletedAt',
+              lower: [],
+              upper: [deletedAt],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterWhereClause> deletedAtGreaterThan(
+    DateTime? deletedAt, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'deletedAt',
+        lower: [deletedAt],
+        includeLower: include,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterWhereClause> deletedAtLessThan(
+    DateTime? deletedAt, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'deletedAt',
+        lower: [],
+        upper: [deletedAt],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterWhereClause> deletedAtBetween(
+    DateTime? lowerDeletedAt,
+    DateTime? upperDeletedAt, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'deletedAt',
+        lower: [lowerDeletedAt],
+        includeLower: includeLower,
+        upper: [upperDeletedAt],
+        includeUpper: includeUpper,
+      ));
+    });
+  }
 }
 
 extension FavoriteQueryFilter
@@ -793,6 +933,75 @@ extension FavoriteQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
         property: r'branchId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> deletedAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'deletedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> deletedAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'deletedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> deletedAtEqualTo(
+      DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> deletedAtGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> deletedAtLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> deletedAtBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'deletedAt',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -1403,6 +1612,18 @@ extension FavoriteQuerySortBy on QueryBuilder<Favorite, Favorite, QSortBy> {
     });
   }
 
+  QueryBuilder<Favorite, Favorite, QAfterSortBy> sortByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterSortBy> sortByDeletedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.desc);
+    });
+  }
+
   QueryBuilder<Favorite, Favorite, QAfterSortBy> sortByFavIndex() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'favIndex', Sort.asc);
@@ -1487,6 +1708,18 @@ extension FavoriteQuerySortThenBy
   QueryBuilder<Favorite, Favorite, QAfterSortBy> thenByBranchIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'branchId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterSortBy> thenByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterSortBy> thenByDeletedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.desc);
     });
   }
 
@@ -1578,6 +1811,12 @@ extension FavoriteQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Favorite, Favorite, QDistinct> distinctByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'deletedAt');
+    });
+  }
+
   QueryBuilder<Favorite, Favorite, QDistinct> distinctByFavIndex() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'favIndex');
@@ -1631,6 +1870,12 @@ extension FavoriteQueryProperty
     });
   }
 
+  QueryBuilder<Favorite, DateTime?, QQueryOperations> deletedAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'deletedAt');
+    });
+  }
+
   QueryBuilder<Favorite, int?, QQueryOperations> favIndexProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'favIndex');
@@ -1675,7 +1920,10 @@ Favorite _$FavoriteFromJson(Map<String, dynamic> json) => Favorite(
       ..lastTouched = json['lastTouched'] as String?
       ..remoteID = json['remoteID'] as String?
       ..action = json['action'] as String?
-      ..localId = json['localId'] as int?;
+      ..localId = json['localId'] as int?
+      ..deletedAt = json['deletedAt'] == null
+          ? null
+          : DateTime.parse(json['deletedAt'] as String);
 
 Map<String, dynamic> _$FavoriteToJson(Favorite instance) => <String, dynamic>{
       'id': instance.id,
@@ -1686,4 +1934,5 @@ Map<String, dynamic> _$FavoriteToJson(Favorite instance) => <String, dynamic>{
       'remoteID': instance.remoteID,
       'action': instance.action,
       'localId': instance.localId,
+      'deletedAt': instance.deletedAt?.toIso8601String(),
     };

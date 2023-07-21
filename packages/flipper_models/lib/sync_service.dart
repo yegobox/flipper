@@ -10,7 +10,11 @@ import 'isar_models.dart';
 
 abstract class IJsonSerializable {
   Map<String, dynamic> toJson();
-  String? get lastTouched;
+  String? lastTouched;
+  DateTime? deletedAt;
+  String? remoteID;
+  String? action;
+  int? localId;
 }
 
 class SynchronizationService<M extends IJsonSerializable>

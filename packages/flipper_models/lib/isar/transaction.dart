@@ -39,30 +39,33 @@ class Transaction extends IJsonSerializable {
   String? action;
   int? localId;
   String? ticketName;
-
-  Transaction(
-      {required this.reference,
-      required this.transactionNumber,
-      required this.branchId,
-      required this.status,
-      required this.transactionType,
-      required this.active,
-      required this.draft,
-      required this.subTotal,
-      required this.paymentType,
-      required this.cashReceived,
-      required this.customerChangeDue,
-      required this.createdAt,
-      this.receiptType,
-      this.updatedAt,
-      required this.reported,
-      this.customerId,
-      this.note,
-      this.id,
-      this.lastTouched,
-      this.action,
-      this.remoteID,
-      this.ticketName});
+  @Index()
+  DateTime? deletedAt;
+  Transaction({
+    required this.reference,
+    required this.transactionNumber,
+    required this.branchId,
+    required this.status,
+    required this.transactionType,
+    required this.active,
+    required this.draft,
+    required this.subTotal,
+    required this.paymentType,
+    required this.cashReceived,
+    required this.customerChangeDue,
+    required this.createdAt,
+    this.receiptType,
+    this.updatedAt,
+    required this.reported,
+    this.customerId,
+    this.note,
+    this.id,
+    this.lastTouched,
+    this.action,
+    this.remoteID,
+    this.ticketName,
+    this.deletedAt,
+  });
   factory Transaction.fromRecord(RecordModel record) =>
       Transaction.fromJson(record.toJson());
 

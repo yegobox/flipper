@@ -9,7 +9,12 @@ class BusinessType extends IJsonSerializable {
   int id;
   String typeName;
   String? lastTouched;
-  BusinessType({required this.id, required this.typeName});
+  DateTime? deletedAt;
+  BusinessType({
+    required this.id,
+    required this.typeName,
+    this.deletedAt,
+  });
   factory BusinessType.fromJson(Map<String, dynamic> json) =>
       _$BusinessTypeFromJson(json);
   static List<BusinessType> fromJsonList(String str) => List<BusinessType>.from(

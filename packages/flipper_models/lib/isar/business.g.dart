@@ -87,148 +87,153 @@ const BusinessSchema = CollectionSchema(
       name: r'currency',
       type: IsarType.string,
     ),
-    r'deviceToken': PropertySchema(
+    r'deletedAt': PropertySchema(
       id: 14,
+      name: r'deletedAt',
+      type: IsarType.dateTime,
+    ),
+    r'deviceToken': PropertySchema(
+      id: 15,
       name: r'deviceToken',
       type: IsarType.string,
     ),
     r'dvcSrlNo': PropertySchema(
-      id: 15,
+      id: 16,
       name: r'dvcSrlNo',
       type: IsarType.string,
     ),
     r'email': PropertySchema(
-      id: 16,
+      id: 17,
       name: r'email',
       type: IsarType.string,
     ),
     r'firstName': PropertySchema(
-      id: 17,
+      id: 18,
       name: r'firstName',
       type: IsarType.string,
     ),
     r'fullName': PropertySchema(
-      id: 18,
+      id: 19,
       name: r'fullName',
       type: IsarType.string,
     ),
     r'hexColor': PropertySchema(
-      id: 19,
+      id: 20,
       name: r'hexColor',
       type: IsarType.string,
     ),
     r'imageUrl': PropertySchema(
-      id: 20,
+      id: 21,
       name: r'imageUrl',
       type: IsarType.string,
     ),
     r'isDefault': PropertySchema(
-      id: 21,
+      id: 22,
       name: r'isDefault',
       type: IsarType.bool,
     ),
     r'isLastSubscriptionPaymentSucceeded': PropertySchema(
-      id: 22,
+      id: 23,
       name: r'isLastSubscriptionPaymentSucceeded',
       type: IsarType.bool,
     ),
     r'lastDbBackup': PropertySchema(
-      id: 23,
+      id: 24,
       name: r'lastDbBackup',
       type: IsarType.string,
     ),
     r'lastName': PropertySchema(
-      id: 24,
+      id: 25,
       name: r'lastName',
       type: IsarType.string,
     ),
     r'lastSeen': PropertySchema(
-      id: 25,
+      id: 26,
       name: r'lastSeen',
       type: IsarType.long,
     ),
     r'lastTouched': PropertySchema(
-      id: 26,
+      id: 27,
       name: r'lastTouched',
       type: IsarType.string,
     ),
     r'latitude': PropertySchema(
-      id: 27,
+      id: 28,
       name: r'latitude',
       type: IsarType.string,
     ),
     r'localId': PropertySchema(
-      id: 28,
+      id: 29,
       name: r'localId',
       type: IsarType.long,
     ),
     r'longitude': PropertySchema(
-      id: 29,
+      id: 30,
       name: r'longitude',
       type: IsarType.string,
     ),
     r'metadata': PropertySchema(
-      id: 30,
+      id: 31,
       name: r'metadata',
       type: IsarType.string,
     ),
     r'name': PropertySchema(
-      id: 31,
+      id: 32,
       name: r'name',
       type: IsarType.string,
     ),
     r'nextBillingDate': PropertySchema(
-      id: 32,
+      id: 33,
       name: r'nextBillingDate',
       type: IsarType.string,
     ),
     r'previousBillingDate': PropertySchema(
-      id: 33,
+      id: 34,
       name: r'previousBillingDate',
       type: IsarType.string,
     ),
     r'remoteID': PropertySchema(
-      id: 34,
+      id: 35,
       name: r'remoteID',
       type: IsarType.string,
     ),
     r'role': PropertySchema(
-      id: 35,
+      id: 36,
       name: r'role',
       type: IsarType.string,
     ),
     r'subscriptionPlan': PropertySchema(
-      id: 36,
+      id: 37,
       name: r'subscriptionPlan',
       type: IsarType.string,
     ),
     r'taxEnabled': PropertySchema(
-      id: 37,
+      id: 38,
       name: r'taxEnabled',
       type: IsarType.bool,
     ),
     r'taxServerUrl': PropertySchema(
-      id: 38,
+      id: 39,
       name: r'taxServerUrl',
       type: IsarType.string,
     ),
     r'timeZone': PropertySchema(
-      id: 39,
+      id: 40,
       name: r'timeZone',
       type: IsarType.string,
     ),
     r'tinNumber': PropertySchema(
-      id: 40,
+      id: 41,
       name: r'tinNumber',
       type: IsarType.long,
     ),
     r'type': PropertySchema(
-      id: 41,
+      id: 42,
       name: r'type',
       type: IsarType.string,
     ),
     r'userId': PropertySchema(
-      id: 42,
+      id: 43,
       name: r'userId',
       type: IsarType.string,
     )
@@ -275,6 +280,19 @@ const BusinessSchema = CollectionSchema(
           name: r'remoteID',
           type: IndexType.hash,
           caseSensitive: true,
+        )
+      ],
+    ),
+    r'deletedAt': IndexSchema(
+      id: -8969437169173379604,
+      name: r'deletedAt',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'deletedAt',
+          type: IndexType.value,
+          caseSensitive: false,
         )
       ],
     )
@@ -526,35 +544,36 @@ void _businessSerialize(
   writer.writeString(offsets[11], object.country);
   writer.writeString(offsets[12], object.createdAt);
   writer.writeString(offsets[13], object.currency);
-  writer.writeString(offsets[14], object.deviceToken);
-  writer.writeString(offsets[15], object.dvcSrlNo);
-  writer.writeString(offsets[16], object.email);
-  writer.writeString(offsets[17], object.firstName);
-  writer.writeString(offsets[18], object.fullName);
-  writer.writeString(offsets[19], object.hexColor);
-  writer.writeString(offsets[20], object.imageUrl);
-  writer.writeBool(offsets[21], object.isDefault);
-  writer.writeBool(offsets[22], object.isLastSubscriptionPaymentSucceeded);
-  writer.writeString(offsets[23], object.lastDbBackup);
-  writer.writeString(offsets[24], object.lastName);
-  writer.writeLong(offsets[25], object.lastSeen);
-  writer.writeString(offsets[26], object.lastTouched);
-  writer.writeString(offsets[27], object.latitude);
-  writer.writeLong(offsets[28], object.localId);
-  writer.writeString(offsets[29], object.longitude);
-  writer.writeString(offsets[30], object.metadata);
-  writer.writeString(offsets[31], object.name);
-  writer.writeString(offsets[32], object.nextBillingDate);
-  writer.writeString(offsets[33], object.previousBillingDate);
-  writer.writeString(offsets[34], object.remoteID);
-  writer.writeString(offsets[35], object.role);
-  writer.writeString(offsets[36], object.subscriptionPlan);
-  writer.writeBool(offsets[37], object.taxEnabled);
-  writer.writeString(offsets[38], object.taxServerUrl);
-  writer.writeString(offsets[39], object.timeZone);
-  writer.writeLong(offsets[40], object.tinNumber);
-  writer.writeString(offsets[41], object.type);
-  writer.writeString(offsets[42], object.userId);
+  writer.writeDateTime(offsets[14], object.deletedAt);
+  writer.writeString(offsets[15], object.deviceToken);
+  writer.writeString(offsets[16], object.dvcSrlNo);
+  writer.writeString(offsets[17], object.email);
+  writer.writeString(offsets[18], object.firstName);
+  writer.writeString(offsets[19], object.fullName);
+  writer.writeString(offsets[20], object.hexColor);
+  writer.writeString(offsets[21], object.imageUrl);
+  writer.writeBool(offsets[22], object.isDefault);
+  writer.writeBool(offsets[23], object.isLastSubscriptionPaymentSucceeded);
+  writer.writeString(offsets[24], object.lastDbBackup);
+  writer.writeString(offsets[25], object.lastName);
+  writer.writeLong(offsets[26], object.lastSeen);
+  writer.writeString(offsets[27], object.lastTouched);
+  writer.writeString(offsets[28], object.latitude);
+  writer.writeLong(offsets[29], object.localId);
+  writer.writeString(offsets[30], object.longitude);
+  writer.writeString(offsets[31], object.metadata);
+  writer.writeString(offsets[32], object.name);
+  writer.writeString(offsets[33], object.nextBillingDate);
+  writer.writeString(offsets[34], object.previousBillingDate);
+  writer.writeString(offsets[35], object.remoteID);
+  writer.writeString(offsets[36], object.role);
+  writer.writeString(offsets[37], object.subscriptionPlan);
+  writer.writeBool(offsets[38], object.taxEnabled);
+  writer.writeString(offsets[39], object.taxServerUrl);
+  writer.writeString(offsets[40], object.timeZone);
+  writer.writeLong(offsets[41], object.tinNumber);
+  writer.writeString(offsets[42], object.type);
+  writer.writeString(offsets[43], object.userId);
 }
 
 Business _businessDeserialize(
@@ -576,39 +595,40 @@ Business _businessDeserialize(
     chatUid: reader.readStringOrNull(offsets[10]),
     country: reader.readStringOrNull(offsets[11]),
     currency: reader.readStringOrNull(offsets[13]),
-    deviceToken: reader.readStringOrNull(offsets[14]),
-    dvcSrlNo: reader.readStringOrNull(offsets[15]),
-    email: reader.readStringOrNull(offsets[16]),
-    firstName: reader.readStringOrNull(offsets[17]),
-    fullName: reader.readStringOrNull(offsets[18]),
-    hexColor: reader.readStringOrNull(offsets[19]),
+    deletedAt: reader.readDateTimeOrNull(offsets[14]),
+    deviceToken: reader.readStringOrNull(offsets[15]),
+    dvcSrlNo: reader.readStringOrNull(offsets[16]),
+    email: reader.readStringOrNull(offsets[17]),
+    firstName: reader.readStringOrNull(offsets[18]),
+    fullName: reader.readStringOrNull(offsets[19]),
+    hexColor: reader.readStringOrNull(offsets[20]),
     id: id,
-    imageUrl: reader.readStringOrNull(offsets[20]),
-    isDefault: reader.readBoolOrNull(offsets[21]),
-    isLastSubscriptionPaymentSucceeded: reader.readBoolOrNull(offsets[22]),
-    lastDbBackup: reader.readStringOrNull(offsets[23]),
-    lastName: reader.readStringOrNull(offsets[24]),
-    lastSeen: reader.readLongOrNull(offsets[25]),
-    latitude: reader.readStringOrNull(offsets[27]),
-    longitude: reader.readStringOrNull(offsets[29]),
-    metadata: reader.readStringOrNull(offsets[30]),
-    name: reader.readStringOrNull(offsets[31]),
-    nextBillingDate: reader.readStringOrNull(offsets[32]),
-    previousBillingDate: reader.readStringOrNull(offsets[33]),
-    role: reader.readStringOrNull(offsets[35]),
-    subscriptionPlan: reader.readStringOrNull(offsets[36]),
-    taxEnabled: reader.readBoolOrNull(offsets[37]),
-    taxServerUrl: reader.readStringOrNull(offsets[38]),
-    timeZone: reader.readStringOrNull(offsets[39]),
-    tinNumber: reader.readLongOrNull(offsets[40]),
-    type: reader.readStringOrNull(offsets[41]),
-    userId: reader.readStringOrNull(offsets[42]),
+    imageUrl: reader.readStringOrNull(offsets[21]),
+    isDefault: reader.readBoolOrNull(offsets[22]),
+    isLastSubscriptionPaymentSucceeded: reader.readBoolOrNull(offsets[23]),
+    lastDbBackup: reader.readStringOrNull(offsets[24]),
+    lastName: reader.readStringOrNull(offsets[25]),
+    lastSeen: reader.readLongOrNull(offsets[26]),
+    latitude: reader.readStringOrNull(offsets[28]),
+    longitude: reader.readStringOrNull(offsets[30]),
+    metadata: reader.readStringOrNull(offsets[31]),
+    name: reader.readStringOrNull(offsets[32]),
+    nextBillingDate: reader.readStringOrNull(offsets[33]),
+    previousBillingDate: reader.readStringOrNull(offsets[34]),
+    role: reader.readStringOrNull(offsets[36]),
+    subscriptionPlan: reader.readStringOrNull(offsets[37]),
+    taxEnabled: reader.readBoolOrNull(offsets[38]),
+    taxServerUrl: reader.readStringOrNull(offsets[39]),
+    timeZone: reader.readStringOrNull(offsets[40]),
+    tinNumber: reader.readLongOrNull(offsets[41]),
+    type: reader.readStringOrNull(offsets[42]),
+    userId: reader.readStringOrNull(offsets[43]),
   );
   object.action = reader.readStringOrNull(offsets[0]);
   object.createdAt = reader.readStringOrNull(offsets[12]);
-  object.lastTouched = reader.readStringOrNull(offsets[26]);
-  object.localId = reader.readLongOrNull(offsets[28]);
-  object.remoteID = reader.readStringOrNull(offsets[34]);
+  object.lastTouched = reader.readStringOrNull(offsets[27]);
+  object.localId = reader.readLongOrNull(offsets[29]);
+  object.remoteID = reader.readStringOrNull(offsets[35]);
   return object;
 }
 
@@ -648,7 +668,7 @@ P _businessDeserializeProp<P>(
     case 13:
       return (reader.readStringOrNull(offset)) as P;
     case 14:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 15:
       return (reader.readStringOrNull(offset)) as P;
     case 16:
@@ -662,23 +682,23 @@ P _businessDeserializeProp<P>(
     case 20:
       return (reader.readStringOrNull(offset)) as P;
     case 21:
-      return (reader.readBoolOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 22:
       return (reader.readBoolOrNull(offset)) as P;
     case 23:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readBoolOrNull(offset)) as P;
     case 24:
       return (reader.readStringOrNull(offset)) as P;
     case 25:
-      return (reader.readLongOrNull(offset)) as P;
-    case 26:
       return (reader.readStringOrNull(offset)) as P;
+    case 26:
+      return (reader.readLongOrNull(offset)) as P;
     case 27:
       return (reader.readStringOrNull(offset)) as P;
     case 28:
-      return (reader.readLongOrNull(offset)) as P;
-    case 29:
       return (reader.readStringOrNull(offset)) as P;
+    case 29:
+      return (reader.readLongOrNull(offset)) as P;
     case 30:
       return (reader.readStringOrNull(offset)) as P;
     case 31:
@@ -694,16 +714,18 @@ P _businessDeserializeProp<P>(
     case 36:
       return (reader.readStringOrNull(offset)) as P;
     case 37:
-      return (reader.readBoolOrNull(offset)) as P;
-    case 38:
       return (reader.readStringOrNull(offset)) as P;
+    case 38:
+      return (reader.readBoolOrNull(offset)) as P;
     case 39:
       return (reader.readStringOrNull(offset)) as P;
     case 40:
-      return (reader.readLongOrNull(offset)) as P;
-    case 41:
       return (reader.readStringOrNull(offset)) as P;
+    case 41:
+      return (reader.readLongOrNull(offset)) as P;
     case 42:
+      return (reader.readStringOrNull(offset)) as P;
+    case 43:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -726,6 +748,14 @@ extension BusinessQueryWhereSort on QueryBuilder<Business, Business, QWhere> {
   QueryBuilder<Business, Business, QAfterWhere> anyId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterWhere> anyDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'deletedAt'),
+      );
     });
   }
 }
@@ -988,6 +1018,116 @@ extension BusinessQueryWhere on QueryBuilder<Business, Business, QWhereClause> {
               includeUpper: false,
             ));
       }
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterWhereClause> deletedAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'deletedAt',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterWhereClause> deletedAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'deletedAt',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterWhereClause> deletedAtEqualTo(
+      DateTime? deletedAt) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'deletedAt',
+        value: [deletedAt],
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterWhereClause> deletedAtNotEqualTo(
+      DateTime? deletedAt) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'deletedAt',
+              lower: [],
+              upper: [deletedAt],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'deletedAt',
+              lower: [deletedAt],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'deletedAt',
+              lower: [deletedAt],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'deletedAt',
+              lower: [],
+              upper: [deletedAt],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterWhereClause> deletedAtGreaterThan(
+    DateTime? deletedAt, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'deletedAt',
+        lower: [deletedAt],
+        includeLower: include,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterWhereClause> deletedAtLessThan(
+    DateTime? deletedAt, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'deletedAt',
+        lower: [],
+        upper: [deletedAt],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterWhereClause> deletedAtBetween(
+    DateTime? lowerDeletedAt,
+    DateTime? upperDeletedAt, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'deletedAt',
+        lower: [lowerDeletedAt],
+        includeLower: includeLower,
+        upper: [upperDeletedAt],
+        includeUpper: includeUpper,
+      ));
     });
   }
 }
@@ -2826,6 +2966,75 @@ extension BusinessQueryFilter
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'currency',
         value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> deletedAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'deletedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> deletedAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'deletedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> deletedAtEqualTo(
+      DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> deletedAtGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> deletedAtLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> deletedAtBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'deletedAt',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
       ));
     });
   }
@@ -6750,6 +6959,18 @@ extension BusinessQuerySortBy on QueryBuilder<Business, Business, QSortBy> {
     });
   }
 
+  QueryBuilder<Business, Business, QAfterSortBy> sortByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterSortBy> sortByDeletedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.desc);
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterSortBy> sortByDeviceToken() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'deviceToken', Sort.asc);
@@ -7260,6 +7481,18 @@ extension BusinessQuerySortThenBy
     });
   }
 
+  QueryBuilder<Business, Business, QAfterSortBy> thenByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterSortBy> thenByDeletedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.desc);
+    });
+  }
+
   QueryBuilder<Business, Business, QAfterSortBy> thenByDeviceToken() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'deviceToken', Sort.asc);
@@ -7720,6 +7953,12 @@ extension BusinessQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Business, Business, QDistinct> distinctByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'deletedAt');
+    });
+  }
+
   QueryBuilder<Business, Business, QDistinct> distinctByDeviceToken(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -8014,6 +8253,12 @@ extension BusinessQueryProperty
     });
   }
 
+  QueryBuilder<Business, DateTime?, QQueryOperations> deletedAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'deletedAt');
+    });
+  }
+
   QueryBuilder<Business, String?, QQueryOperations> deviceTokenProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'deviceToken');
@@ -8238,6 +8483,9 @@ Business _$BusinessFromJson(Map<String, dynamic> json) => Business(
       isDefault: json['isDefault'] as bool?,
       id: json['id'] as int?,
       businessTypeId: json['businessTypeId'] as int?,
+      deletedAt: json['deletedAt'] == null
+          ? null
+          : DateTime.parse(json['deletedAt'] as String),
     )
       ..createdAt = json['createdAt'] as String?
       ..lastTouched = json['lastTouched'] as String?
@@ -8291,4 +8539,5 @@ Map<String, dynamic> _$BusinessToJson(Business instance) => <String, dynamic>{
       'remoteID': instance.remoteID,
       'action': instance.action,
       'localId': instance.localId,
+      'deletedAt': instance.deletedAt?.toIso8601String(),
     };

@@ -1,45 +1,48 @@
-// To parse this JSON data, do
-//
-//     final pin = pinFromMap(jsonString);
-
+import 'package:flipper_models/sync_service.dart';
 import 'package:isar/isar.dart';
-import 'dart:convert';
+import 'package:json_annotation/json_annotation.dart';
+import 'package:pocketbase/pocketbase.dart';
 
 part 'pin.g.dart';
 
-Pin pinFromMap(String str) => Pin.fromMap(json.decode(str));
-
-String pinToMap(Pin data) => json.encode(data.toMap());
-
+@JsonSerializable()
 @Collection()
-class Pin {
+class Pin extends IJsonSerializable {
   Pin({
+    this.id,
     required this.userId,
     required this.phoneNumber,
     required this.pin,
     required this.branchId,
     required this.businessId,
   });
-  Id id = Isar.autoIncrement;
+  Id? id;
   late String userId;
   late String phoneNumber;
   late int pin;
   late int branchId;
   late int businessId;
+  @Index()
+  String? lastTouched;
+  @Index()
+  String? remoteID;
+  String? action;
+  int? localId;
+  @Index()
+  DateTime? deletedAt;
 
-  factory Pin.fromMap(Map<String, dynamic> json) => Pin(
-        userId: json["userId"],
-        phoneNumber: json["phoneNumber"],
-        pin: json["pin"],
-        branchId: json["branchId"],
-        businessId: json["businessId"],
-      );
+  factory Pin.fromRecord(RecordModel record) => Pin.fromJson(record.toJson());
+  factory Pin.fromJson(Map<String, dynamic> json) {
+    json.remove('id');
+    return _$PinFromJson(json);
+  }
 
-  Map<String, dynamic> toMap() => {
-        "userId": userId,
-        "phoneNumber": phoneNumber,
-        "pin": pin,
-        "branchId": branchId,
-        "businessId": businessId,
-      };
+  @override
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = _$PinToJson(this);
+    if (id != null) {
+      data['localId'] = id;
+    }
+    return data;
+  }
 }

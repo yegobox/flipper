@@ -10,7 +10,6 @@ part 'product.g.dart';
 @JsonSerializable()
 @Collection()
 class Product extends IJsonSerializable {
-  // @JsonKey(name: 'localId')
   Id? id;
   @Index(caseSensitive: true)
   late String name;
@@ -43,30 +42,33 @@ class Product extends IJsonSerializable {
   String? remoteID;
   String? action;
   int? localId;
-
+  @Index()
+  DateTime? deletedAt;
   final variants = IsarLinks<Variant>();
 
-  Product(
-      {required this.name,
-      required this.color,
-      required this.businessId,
-      required this.branchId,
-      required this.action,
-      this.id,
-      this.description,
-      this.taxId,
-      this.supplierId,
-      this.categoryId,
-      this.createdAt,
-      this.unit,
-      this.imageUrl,
-      this.expiryDate,
-      this.barCode,
-      this.nfcEnabled,
-      this.bindedToTenantId,
-      this.isFavorite,
-      this.lastTouched,
-      this.remoteID});
+  Product({
+    required this.name,
+    required this.color,
+    required this.businessId,
+    required this.branchId,
+    required this.action,
+    this.id,
+    this.description,
+    this.taxId,
+    this.supplierId,
+    this.categoryId,
+    this.createdAt,
+    this.unit,
+    this.imageUrl,
+    this.expiryDate,
+    this.barCode,
+    this.nfcEnabled,
+    this.bindedToTenantId,
+    this.isFavorite,
+    this.lastTouched,
+    this.remoteID,
+    this.deletedAt,
+  });
 
   factory Product.fromRecord(RecordModel record) =>
       Product.fromJson(record.toJson());

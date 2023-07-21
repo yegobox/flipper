@@ -36,24 +36,28 @@ class Stock extends IJsonSerializable {
   String? remoteID;
   int? localId;
   String? action;
-  Stock(
-      {required this.branchId,
-      required this.variantId,
-      required this.currentStock,
-      required this.productId,
-      required this.action,
-      this.id,
-      this.lowStock,
-      this.supplyPrice,
-      this.retailPrice,
-      this.canTrackingStock,
-      this.showLowStockAlert,
-      this.active,
-      this.value,
-      this.rsdQty,
-      this.lastTouched,
-      this.remoteID,
-      this.localId});
+  @Index()
+  DateTime? deletedAt;
+  Stock({
+    required this.branchId,
+    required this.variantId,
+    required this.currentStock,
+    required this.productId,
+    required this.action,
+    this.id,
+    this.lowStock,
+    this.supplyPrice,
+    this.retailPrice,
+    this.canTrackingStock,
+    this.showLowStockAlert,
+    this.active,
+    this.value,
+    this.rsdQty,
+    this.lastTouched,
+    this.remoteID,
+    this.localId,
+    this.deletedAt,
+  });
 
   factory Stock.fromRecord(RecordModel record) =>
       Stock.fromJson(record.toJson());

@@ -37,7 +37,7 @@ class ListCategories extends StatelessWidget {
                   style: const TextStyle(color: Colors.black),
                 ),
                 trailing: Radio<int>(
-                  value: categories[i].id,
+                  value: categories[i].id!,
                   //This radio button is considered selected if its value matches the groupValue.
                   groupValue:
                       categories[i].focused == true ? categories[i].id : 0,

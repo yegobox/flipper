@@ -18,6 +18,7 @@ class Branch extends IJsonSerializable {
     this.longitude,
     this.latitude,
     this.table,
+    this.deletedAt,
     required this.isDefault,
   });
 
@@ -38,7 +39,8 @@ class Branch extends IJsonSerializable {
   String? remoteID;
   String? action;
   int? localId;
-
+  @Index()
+  DateTime? deletedAt;
   factory Branch.fromRecord(RecordModel record) =>
       Branch.fromJson(record.toJson());
 

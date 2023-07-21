@@ -37,48 +37,53 @@ const DeviceSchema = CollectionSchema(
       name: r'defaultApp',
       type: IsarType.long,
     ),
-    r'deviceName': PropertySchema(
+    r'deletedAt': PropertySchema(
       id: 4,
+      name: r'deletedAt',
+      type: IsarType.dateTime,
+    ),
+    r'deviceName': PropertySchema(
+      id: 5,
       name: r'deviceName',
       type: IsarType.string,
     ),
     r'deviceVersion': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'deviceVersion',
       type: IsarType.string,
     ),
     r'lastTouched': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'lastTouched',
       type: IsarType.string,
     ),
     r'linkingCode': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'linkingCode',
       type: IsarType.string,
     ),
     r'localId': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'localId',
       type: IsarType.long,
     ),
     r'phone': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'phone',
       type: IsarType.string,
     ),
     r'pubNubPublished': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'pubNubPublished',
       type: IsarType.bool,
     ),
     r'remoteID': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'remoteID',
       type: IsarType.string,
     ),
     r'userId': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'userId',
       type: IsarType.long,
     )
@@ -112,6 +117,19 @@ const DeviceSchema = CollectionSchema(
           name: r'remoteID',
           type: IndexType.hash,
           caseSensitive: true,
+        )
+      ],
+    ),
+    r'deletedAt': IndexSchema(
+      id: -8969437169173379604,
+      name: r'deletedAt',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'deletedAt',
+          type: IndexType.value,
+          caseSensitive: false,
         )
       ],
     )
@@ -165,15 +183,16 @@ void _deviceSerialize(
   writer.writeLong(offsets[1], object.branchId);
   writer.writeLong(offsets[2], object.businessId);
   writer.writeLong(offsets[3], object.defaultApp);
-  writer.writeString(offsets[4], object.deviceName);
-  writer.writeString(offsets[5], object.deviceVersion);
-  writer.writeString(offsets[6], object.lastTouched);
-  writer.writeString(offsets[7], object.linkingCode);
-  writer.writeLong(offsets[8], object.localId);
-  writer.writeString(offsets[9], object.phone);
-  writer.writeBool(offsets[10], object.pubNubPublished);
-  writer.writeString(offsets[11], object.remoteID);
-  writer.writeLong(offsets[12], object.userId);
+  writer.writeDateTime(offsets[4], object.deletedAt);
+  writer.writeString(offsets[5], object.deviceName);
+  writer.writeString(offsets[6], object.deviceVersion);
+  writer.writeString(offsets[7], object.lastTouched);
+  writer.writeString(offsets[8], object.linkingCode);
+  writer.writeLong(offsets[9], object.localId);
+  writer.writeString(offsets[10], object.phone);
+  writer.writeBool(offsets[11], object.pubNubPublished);
+  writer.writeString(offsets[12], object.remoteID);
+  writer.writeLong(offsets[13], object.userId);
 }
 
 Device _deviceDeserialize(
@@ -186,18 +205,19 @@ Device _deviceDeserialize(
     branchId: reader.readLong(offsets[1]),
     businessId: reader.readLong(offsets[2]),
     defaultApp: reader.readLong(offsets[3]),
-    deviceName: reader.readString(offsets[4]),
-    deviceVersion: reader.readString(offsets[5]),
-    linkingCode: reader.readString(offsets[7]),
-    phone: reader.readString(offsets[9]),
-    pubNubPublished: reader.readBool(offsets[10]),
-    userId: reader.readLong(offsets[12]),
+    deletedAt: reader.readDateTimeOrNull(offsets[4]),
+    deviceName: reader.readString(offsets[5]),
+    deviceVersion: reader.readString(offsets[6]),
+    linkingCode: reader.readString(offsets[8]),
+    phone: reader.readString(offsets[10]),
+    pubNubPublished: reader.readBool(offsets[11]),
+    userId: reader.readLong(offsets[13]),
   );
   object.action = reader.readStringOrNull(offsets[0]);
   object.id = id;
-  object.lastTouched = reader.readStringOrNull(offsets[6]);
-  object.localId = reader.readLongOrNull(offsets[8]);
-  object.remoteID = reader.readStringOrNull(offsets[11]);
+  object.lastTouched = reader.readStringOrNull(offsets[7]);
+  object.localId = reader.readLongOrNull(offsets[9]);
+  object.remoteID = reader.readStringOrNull(offsets[12]);
   return object;
 }
 
@@ -217,22 +237,24 @@ P _deviceDeserializeProp<P>(
     case 3:
       return (reader.readLong(offset)) as P;
     case 4:
-      return (reader.readString(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 5:
       return (reader.readString(offset)) as P;
     case 6:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 7:
-      return (reader.readString(offset)) as P;
-    case 8:
-      return (reader.readLongOrNull(offset)) as P;
-    case 9:
-      return (reader.readString(offset)) as P;
-    case 10:
-      return (reader.readBool(offset)) as P;
-    case 11:
       return (reader.readStringOrNull(offset)) as P;
+    case 8:
+      return (reader.readString(offset)) as P;
+    case 9:
+      return (reader.readLongOrNull(offset)) as P;
+    case 10:
+      return (reader.readString(offset)) as P;
+    case 11:
+      return (reader.readBool(offset)) as P;
     case 12:
+      return (reader.readStringOrNull(offset)) as P;
+    case 13:
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -255,6 +277,14 @@ extension DeviceQueryWhereSort on QueryBuilder<Device, Device, QWhere> {
   QueryBuilder<Device, Device, QAfterWhere> anyId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterWhere> anyDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'deletedAt'),
+      );
     });
   }
 }
@@ -452,6 +482,116 @@ extension DeviceQueryWhere on QueryBuilder<Device, Device, QWhereClause> {
               includeUpper: false,
             ));
       }
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterWhereClause> deletedAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'deletedAt',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterWhereClause> deletedAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'deletedAt',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterWhereClause> deletedAtEqualTo(
+      DateTime? deletedAt) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'deletedAt',
+        value: [deletedAt],
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterWhereClause> deletedAtNotEqualTo(
+      DateTime? deletedAt) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'deletedAt',
+              lower: [],
+              upper: [deletedAt],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'deletedAt',
+              lower: [deletedAt],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'deletedAt',
+              lower: [deletedAt],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'deletedAt',
+              lower: [],
+              upper: [deletedAt],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterWhereClause> deletedAtGreaterThan(
+    DateTime? deletedAt, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'deletedAt',
+        lower: [deletedAt],
+        includeLower: include,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterWhereClause> deletedAtLessThan(
+    DateTime? deletedAt, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'deletedAt',
+        lower: [],
+        upper: [deletedAt],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterWhereClause> deletedAtBetween(
+    DateTime? lowerDeletedAt,
+    DateTime? upperDeletedAt, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'deletedAt',
+        lower: [lowerDeletedAt],
+        includeLower: includeLower,
+        upper: [upperDeletedAt],
+        includeUpper: includeUpper,
+      ));
     });
   }
 }
@@ -754,6 +894,75 @@ extension DeviceQueryFilter on QueryBuilder<Device, Device, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
         property: r'defaultApp',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> deletedAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'deletedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> deletedAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'deletedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> deletedAtEqualTo(
+      DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> deletedAtGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> deletedAtLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> deletedAtBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'deletedAt',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -1828,6 +2037,18 @@ extension DeviceQuerySortBy on QueryBuilder<Device, Device, QSortBy> {
     });
   }
 
+  QueryBuilder<Device, Device, QAfterSortBy> sortByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterSortBy> sortByDeletedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.desc);
+    });
+  }
+
   QueryBuilder<Device, Device, QAfterSortBy> sortByDeviceName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'deviceName', Sort.asc);
@@ -1986,6 +2207,18 @@ extension DeviceQuerySortThenBy on QueryBuilder<Device, Device, QSortThenBy> {
     });
   }
 
+  QueryBuilder<Device, Device, QAfterSortBy> thenByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterSortBy> thenByDeletedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.desc);
+    });
+  }
+
   QueryBuilder<Device, Device, QAfterSortBy> thenByDeviceName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'deviceName', Sort.asc);
@@ -2133,6 +2366,12 @@ extension DeviceQueryWhereDistinct on QueryBuilder<Device, Device, QDistinct> {
     });
   }
 
+  QueryBuilder<Device, Device, QDistinct> distinctByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'deletedAt');
+    });
+  }
+
   QueryBuilder<Device, Device, QDistinct> distinctByDeviceName(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -2226,6 +2465,12 @@ extension DeviceQueryProperty on QueryBuilder<Device, Device, QQueryProperty> {
     });
   }
 
+  QueryBuilder<Device, DateTime?, QQueryOperations> deletedAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'deletedAt');
+    });
+  }
+
   QueryBuilder<Device, String, QQueryOperations> deviceNameProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'deviceName');
@@ -2295,6 +2540,9 @@ Device _$DeviceFromJson(Map<String, dynamic> json) => Device(
       businessId: json['businessId'] as int,
       userId: json['userId'] as int,
       defaultApp: json['defaultApp'] as int,
+      deletedAt: json['deletedAt'] == null
+          ? null
+          : DateTime.parse(json['deletedAt'] as String),
     )
       ..id = json['id'] as int?
       ..lastTouched = json['lastTouched'] as String?
@@ -2317,4 +2565,5 @@ Map<String, dynamic> _$DeviceToJson(Device instance) => <String, dynamic>{
       'remoteID': instance.remoteID,
       'action': instance.action,
       'localId': instance.localId,
+      'deletedAt': instance.deletedAt?.toIso8601String(),
     };

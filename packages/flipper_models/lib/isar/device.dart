@@ -30,17 +30,20 @@ class Device extends IJsonSerializable {
   String? action;
   // only for accor when fetching from remove
   int? localId;
-
-  Device(
-      {required this.linkingCode,
-      required this.deviceName,
-      required this.deviceVersion,
-      required this.pubNubPublished,
-      required this.phone,
-      required this.branchId,
-      required this.businessId,
-      required this.userId,
-      required this.defaultApp});
+  @Index()
+  DateTime? deletedAt;
+  Device({
+    required this.linkingCode,
+    required this.deviceName,
+    required this.deviceVersion,
+    required this.pubNubPublished,
+    required this.phone,
+    required this.branchId,
+    required this.businessId,
+    required this.userId,
+    required this.defaultApp,
+    this.deletedAt,
+  });
   factory Device.fromRecord(RecordModel record) =>
       Device.fromJson(record.toJson());
 

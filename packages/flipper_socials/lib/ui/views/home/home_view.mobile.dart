@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
+import 'package:flipper_services/constants.dart';
 
 import 'home_viewmodel.dart' as social;
 
@@ -46,7 +47,7 @@ class HomeViewMobile extends ViewModelWidget<social.HomeViewModel> {
                                 fontWeight: FontWeight.w600),
                             children: [
                               TextSpan(
-                                text: 'to your suppliers instantly',
+                                text: 'to your vendors instantly',
                                 style: GoogleFonts.poppins(
                                     color: Colors.black,
                                     fontSize: 20,
@@ -171,32 +172,12 @@ class HomeViewMobile extends ViewModelWidget<social.HomeViewModel> {
                           width: 140,
                           child: OutlinedButton(
                             onPressed: viewModel.sendUsIntrestRequest,
-                            style: ButtonStyle(
-                              side: MaterialStateProperty.all<BorderSide>(
-                                const BorderSide(color: Color(0xff006AFE)),
-                              ),
-                              shape: MaterialStateProperty.resolveWith<
-                                  OutlinedBorder>(
-                                (states) => RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10.0),
-                                ),
-                              ),
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                  const Color(0xff006AFE)),
-                              overlayColor:
-                                  MaterialStateProperty.resolveWith<Color?>(
-                                (Set<MaterialState> states) {
-                                  if (states.contains(MaterialState.hovered)) {
-                                    return Colors.blue.withOpacity(0.04);
-                                  }
-                                  if (states.contains(MaterialState.focused) ||
-                                      states.contains(MaterialState.pressed)) {
-                                    return Colors.blue.withOpacity(0.12);
-                                  }
-                                  return null; // Defer to the widget's default.
-                                },
-                              ),
-                            ),
+                            style: primaryButtonStyle.copyWith(
+                                shape: MaterialStateProperty.resolveWith<
+                                        OutlinedBorder>(
+                                    (states) => RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(4)))),
                             child: const Text('Add Channels',
                                 style: TextStyle(color: Colors.white)),
                           ),
@@ -210,32 +191,12 @@ class HomeViewMobile extends ViewModelWidget<social.HomeViewModel> {
                           width: 140,
                           child: OutlinedButton(
                             onPressed: viewModel.returnToApps,
-                            style: ButtonStyle(
-                              side: MaterialStateProperty.all<BorderSide>(
-                                const BorderSide(color: Color(0xff006AFE)),
-                              ),
-                              shape: MaterialStateProperty.resolveWith<
-                                  OutlinedBorder>(
-                                (states) => RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10.0),
-                                ),
-                              ),
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                  const Color(0xff006AFE)),
-                              overlayColor:
-                                  MaterialStateProperty.resolveWith<Color?>(
-                                (Set<MaterialState> states) {
-                                  if (states.contains(MaterialState.hovered)) {
-                                    return Colors.blue.withOpacity(0.04);
-                                  }
-                                  if (states.contains(MaterialState.focused) ||
-                                      states.contains(MaterialState.pressed)) {
-                                    return Colors.blue.withOpacity(0.12);
-                                  }
-                                  return null; // Defer to the widget's default.
-                                },
-                              ),
-                            ),
+                            style: primaryButtonStyle.copyWith(
+                                shape: MaterialStateProperty.resolveWith<
+                                        OutlinedBorder>(
+                                    (states) => RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(4)))),
                             child: const Text('Return to Apps',
                                 style: TextStyle(color: Colors.white)),
                           ),

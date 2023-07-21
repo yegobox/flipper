@@ -32,48 +32,53 @@ const BranchSchema = CollectionSchema(
       name: r'businessId',
       type: IsarType.long,
     ),
-    r'description': PropertySchema(
+    r'deletedAt': PropertySchema(
       id: 3,
+      name: r'deletedAt',
+      type: IsarType.dateTime,
+    ),
+    r'description': PropertySchema(
+      id: 4,
       name: r'description',
       type: IsarType.string,
     ),
     r'isDefault': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'isDefault',
       type: IsarType.bool,
     ),
     r'lastTouched': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'lastTouched',
       type: IsarType.string,
     ),
     r'latitude': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'latitude',
       type: IsarType.string,
     ),
     r'localId': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'localId',
       type: IsarType.long,
     ),
     r'longitude': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'longitude',
       type: IsarType.string,
     ),
     r'name': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'name',
       type: IsarType.string,
     ),
     r'remoteID': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'remoteID',
       type: IsarType.string,
     ),
     r'table': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'table',
       type: IsarType.string,
     )
@@ -107,6 +112,19 @@ const BranchSchema = CollectionSchema(
           name: r'remoteID',
           type: IndexType.hash,
           caseSensitive: true,
+        )
+      ],
+    ),
+    r'deletedAt': IndexSchema(
+      id: -8969437169173379604,
+      name: r'deletedAt',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'deletedAt',
+          type: IndexType.value,
+          caseSensitive: false,
         )
       ],
     )
@@ -185,15 +203,16 @@ void _branchSerialize(
   writer.writeString(offsets[0], object.action);
   writer.writeBool(offsets[1], object.active);
   writer.writeLong(offsets[2], object.businessId);
-  writer.writeString(offsets[3], object.description);
-  writer.writeBool(offsets[4], object.isDefault);
-  writer.writeString(offsets[5], object.lastTouched);
-  writer.writeString(offsets[6], object.latitude);
-  writer.writeLong(offsets[7], object.localId);
-  writer.writeString(offsets[8], object.longitude);
-  writer.writeString(offsets[9], object.name);
-  writer.writeString(offsets[10], object.remoteID);
-  writer.writeString(offsets[11], object.table);
+  writer.writeDateTime(offsets[3], object.deletedAt);
+  writer.writeString(offsets[4], object.description);
+  writer.writeBool(offsets[5], object.isDefault);
+  writer.writeString(offsets[6], object.lastTouched);
+  writer.writeString(offsets[7], object.latitude);
+  writer.writeLong(offsets[8], object.localId);
+  writer.writeString(offsets[9], object.longitude);
+  writer.writeString(offsets[10], object.name);
+  writer.writeString(offsets[11], object.remoteID);
+  writer.writeString(offsets[12], object.table);
 }
 
 Branch _branchDeserialize(
@@ -205,18 +224,19 @@ Branch _branchDeserialize(
   final object = Branch(
     active: reader.readBoolOrNull(offsets[1]),
     businessId: reader.readLongOrNull(offsets[2]),
-    description: reader.readStringOrNull(offsets[3]),
+    deletedAt: reader.readDateTimeOrNull(offsets[3]),
+    description: reader.readStringOrNull(offsets[4]),
     id: id,
-    isDefault: reader.readBool(offsets[4]),
-    latitude: reader.readStringOrNull(offsets[6]),
-    longitude: reader.readStringOrNull(offsets[8]),
-    name: reader.readStringOrNull(offsets[9]),
-    table: reader.readStringOrNull(offsets[11]),
+    isDefault: reader.readBool(offsets[5]),
+    latitude: reader.readStringOrNull(offsets[7]),
+    longitude: reader.readStringOrNull(offsets[9]),
+    name: reader.readStringOrNull(offsets[10]),
+    table: reader.readStringOrNull(offsets[12]),
   );
   object.action = reader.readStringOrNull(offsets[0]);
-  object.lastTouched = reader.readStringOrNull(offsets[5]);
-  object.localId = reader.readLongOrNull(offsets[7]);
-  object.remoteID = reader.readStringOrNull(offsets[10]);
+  object.lastTouched = reader.readStringOrNull(offsets[6]);
+  object.localId = reader.readLongOrNull(offsets[8]);
+  object.remoteID = reader.readStringOrNull(offsets[11]);
   return object;
 }
 
@@ -234,22 +254,24 @@ P _branchDeserializeProp<P>(
     case 2:
       return (reader.readLongOrNull(offset)) as P;
     case 3:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 4:
-      return (reader.readBool(offset)) as P;
-    case 5:
       return (reader.readStringOrNull(offset)) as P;
+    case 5:
+      return (reader.readBool(offset)) as P;
     case 6:
       return (reader.readStringOrNull(offset)) as P;
     case 7:
-      return (reader.readLongOrNull(offset)) as P;
-    case 8:
       return (reader.readStringOrNull(offset)) as P;
+    case 8:
+      return (reader.readLongOrNull(offset)) as P;
     case 9:
       return (reader.readStringOrNull(offset)) as P;
     case 10:
       return (reader.readStringOrNull(offset)) as P;
     case 11:
+      return (reader.readStringOrNull(offset)) as P;
+    case 12:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -272,6 +294,14 @@ extension BranchQueryWhereSort on QueryBuilder<Branch, Branch, QWhere> {
   QueryBuilder<Branch, Branch, QAfterWhere> anyId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterWhere> anyDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'deletedAt'),
+      );
     });
   }
 }
@@ -469,6 +499,116 @@ extension BranchQueryWhere on QueryBuilder<Branch, Branch, QWhereClause> {
               includeUpper: false,
             ));
       }
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterWhereClause> deletedAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'deletedAt',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterWhereClause> deletedAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'deletedAt',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterWhereClause> deletedAtEqualTo(
+      DateTime? deletedAt) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'deletedAt',
+        value: [deletedAt],
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterWhereClause> deletedAtNotEqualTo(
+      DateTime? deletedAt) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'deletedAt',
+              lower: [],
+              upper: [deletedAt],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'deletedAt',
+              lower: [deletedAt],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'deletedAt',
+              lower: [deletedAt],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'deletedAt',
+              lower: [],
+              upper: [deletedAt],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterWhereClause> deletedAtGreaterThan(
+    DateTime? deletedAt, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'deletedAt',
+        lower: [deletedAt],
+        includeLower: include,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterWhereClause> deletedAtLessThan(
+    DateTime? deletedAt, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'deletedAt',
+        lower: [],
+        upper: [deletedAt],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterWhereClause> deletedAtBetween(
+    DateTime? lowerDeletedAt,
+    DateTime? upperDeletedAt, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'deletedAt',
+        lower: [lowerDeletedAt],
+        includeLower: includeLower,
+        upper: [upperDeletedAt],
+        includeUpper: includeUpper,
+      ));
     });
   }
 }
@@ -707,6 +847,75 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
         property: r'businessId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> deletedAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'deletedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> deletedAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'deletedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> deletedAtEqualTo(
+      DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> deletedAtGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> deletedAtLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterFilterCondition> deletedAtBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'deletedAt',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -1925,6 +2134,18 @@ extension BranchQuerySortBy on QueryBuilder<Branch, Branch, QSortBy> {
     });
   }
 
+  QueryBuilder<Branch, Branch, QAfterSortBy> sortByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterSortBy> sortByDeletedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.desc);
+    });
+  }
+
   QueryBuilder<Branch, Branch, QAfterSortBy> sortByDescription() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'description', Sort.asc);
@@ -2071,6 +2292,18 @@ extension BranchQuerySortThenBy on QueryBuilder<Branch, Branch, QSortThenBy> {
     });
   }
 
+  QueryBuilder<Branch, Branch, QAfterSortBy> thenByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Branch, Branch, QAfterSortBy> thenByDeletedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.desc);
+    });
+  }
+
   QueryBuilder<Branch, Branch, QAfterSortBy> thenByDescription() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'description', Sort.asc);
@@ -2212,6 +2445,12 @@ extension BranchQueryWhereDistinct on QueryBuilder<Branch, Branch, QDistinct> {
     });
   }
 
+  QueryBuilder<Branch, Branch, QDistinct> distinctByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'deletedAt');
+    });
+  }
+
   QueryBuilder<Branch, Branch, QDistinct> distinctByDescription(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -2299,6 +2538,12 @@ extension BranchQueryProperty on QueryBuilder<Branch, Branch, QQueryProperty> {
     });
   }
 
+  QueryBuilder<Branch, DateTime?, QQueryOperations> deletedAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'deletedAt');
+    });
+  }
+
   QueryBuilder<Branch, String?, QQueryOperations> descriptionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'description');
@@ -2367,6 +2612,9 @@ Branch _$BranchFromJson(Map<String, dynamic> json) => Branch(
       longitude: json['longitude'] as String?,
       latitude: json['latitude'] as String?,
       table: json['table'] as String?,
+      deletedAt: json['deletedAt'] == null
+          ? null
+          : DateTime.parse(json['deletedAt'] as String),
       isDefault: json['isDefault'] as bool,
     )
       ..lastTouched = json['lastTouched'] as String?
@@ -2388,4 +2636,5 @@ Map<String, dynamic> _$BranchToJson(Branch instance) => <String, dynamic>{
       'remoteID': instance.remoteID,
       'action': instance.action,
       'localId': instance.localId,
+      'deletedAt': instance.deletedAt?.toIso8601String(),
     };

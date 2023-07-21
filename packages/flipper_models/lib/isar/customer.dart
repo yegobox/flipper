@@ -1,16 +1,52 @@
 import 'package:isar/isar.dart';
-
+import 'package:json_annotation/json_annotation.dart';
+import 'package:pocketbase/pocketbase.dart';
+import 'package:flipper_models/sync_service.dart';
 part 'customer.g.dart';
 
+@JsonSerializable()
 @Collection()
-class Customer {
-  Id id = Isar.autoIncrement;
+class Customer extends IJsonSerializable {
+  Id? id;
   late String name;
   late String email;
   late String phone;
   String? address;
-  late int transactionId;
   late int branchId;
-  String? updatedAt;
+  DateTime? updatedAt;
   String? tinNumber;
+  Customer({
+    this.id,
+    required this.name,
+    required this.email,
+    required this.phone,
+    this.address,
+    required this.branchId,
+    this.updatedAt,
+    this.tinNumber,
+  });
+  @Index()
+  String? lastTouched;
+  @Index()
+  String? remoteID;
+  String? action;
+  int? localId;
+  @Index()
+  DateTime? deletedAt;
+
+  factory Customer.fromRecord(RecordModel record) =>
+      Customer.fromJson(record.toJson());
+  factory Customer.fromJson(Map<String, dynamic> json) {
+    json.remove('id');
+    return _$CustomerFromJson(json);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = _$CustomerToJson(this);
+    if (id != null) {
+      data['localId'] = id;
+    }
+    return data;
+  }
 }

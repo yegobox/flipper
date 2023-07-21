@@ -1,7 +1,6 @@
 library flipper_models;
 
 import 'dart:async';
-import 'dart:developer';
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_routing/receipt_types.dart';

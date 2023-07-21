@@ -57,63 +57,68 @@ const ProductSchema = CollectionSchema(
       name: r'createdAt',
       type: IsarType.string,
     ),
-    r'description': PropertySchema(
+    r'deletedAt': PropertySchema(
       id: 8,
+      name: r'deletedAt',
+      type: IsarType.dateTime,
+    ),
+    r'description': PropertySchema(
+      id: 9,
       name: r'description',
       type: IsarType.string,
     ),
     r'expiryDate': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'expiryDate',
       type: IsarType.string,
     ),
     r'imageUrl': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'imageUrl',
       type: IsarType.string,
     ),
     r'isFavorite': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'isFavorite',
       type: IsarType.bool,
     ),
     r'lastTouched': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'lastTouched',
       type: IsarType.string,
     ),
     r'localId': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'localId',
       type: IsarType.long,
     ),
     r'name': PropertySchema(
-      id: 14,
+      id: 15,
       name: r'name',
       type: IsarType.string,
     ),
     r'nfcEnabled': PropertySchema(
-      id: 15,
+      id: 16,
       name: r'nfcEnabled',
       type: IsarType.bool,
     ),
     r'remoteID': PropertySchema(
-      id: 16,
+      id: 17,
       name: r'remoteID',
       type: IsarType.string,
     ),
     r'supplierId': PropertySchema(
-      id: 17,
+      id: 18,
       name: r'supplierId',
       type: IsarType.string,
     ),
     r'taxId': PropertySchema(
-      id: 18,
+      id: 19,
       name: r'taxId',
       type: IsarType.string,
     ),
     r'unit': PropertySchema(
-      id: 19,
+      id: 20,
       name: r'unit',
       type: IsarType.string,
     )
@@ -199,6 +204,19 @@ const ProductSchema = CollectionSchema(
           name: r'remoteID',
           type: IndexType.hash,
           caseSensitive: true,
+        )
+      ],
+    ),
+    r'deletedAt': IndexSchema(
+      id: -8969437169173379604,
+      name: r'deletedAt',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'deletedAt',
+          type: IndexType.value,
+          caseSensitive: false,
         )
       ],
     )
@@ -315,18 +333,19 @@ void _productSerialize(
   writer.writeString(offsets[5], object.categoryId);
   writer.writeString(offsets[6], object.color);
   writer.writeString(offsets[7], object.createdAt);
-  writer.writeString(offsets[8], object.description);
-  writer.writeString(offsets[9], object.expiryDate);
-  writer.writeString(offsets[10], object.imageUrl);
-  writer.writeBool(offsets[11], object.isFavorite);
-  writer.writeString(offsets[12], object.lastTouched);
-  writer.writeLong(offsets[13], object.localId);
-  writer.writeString(offsets[14], object.name);
-  writer.writeBool(offsets[15], object.nfcEnabled);
-  writer.writeString(offsets[16], object.remoteID);
-  writer.writeString(offsets[17], object.supplierId);
-  writer.writeString(offsets[18], object.taxId);
-  writer.writeString(offsets[19], object.unit);
+  writer.writeDateTime(offsets[8], object.deletedAt);
+  writer.writeString(offsets[9], object.description);
+  writer.writeString(offsets[10], object.expiryDate);
+  writer.writeString(offsets[11], object.imageUrl);
+  writer.writeBool(offsets[12], object.isFavorite);
+  writer.writeString(offsets[13], object.lastTouched);
+  writer.writeLong(offsets[14], object.localId);
+  writer.writeString(offsets[15], object.name);
+  writer.writeBool(offsets[16], object.nfcEnabled);
+  writer.writeString(offsets[17], object.remoteID);
+  writer.writeString(offsets[18], object.supplierId);
+  writer.writeString(offsets[19], object.taxId);
+  writer.writeString(offsets[20], object.unit);
 }
 
 Product _productDeserialize(
@@ -344,20 +363,21 @@ Product _productDeserialize(
     categoryId: reader.readStringOrNull(offsets[5]),
     color: reader.readString(offsets[6]),
     createdAt: reader.readStringOrNull(offsets[7]),
-    description: reader.readStringOrNull(offsets[8]),
-    expiryDate: reader.readStringOrNull(offsets[9]),
+    deletedAt: reader.readDateTimeOrNull(offsets[8]),
+    description: reader.readStringOrNull(offsets[9]),
+    expiryDate: reader.readStringOrNull(offsets[10]),
     id: id,
-    imageUrl: reader.readStringOrNull(offsets[10]),
-    isFavorite: reader.readBoolOrNull(offsets[11]),
-    lastTouched: reader.readStringOrNull(offsets[12]),
-    name: reader.readString(offsets[14]),
-    nfcEnabled: reader.readBoolOrNull(offsets[15]),
-    remoteID: reader.readStringOrNull(offsets[16]),
-    supplierId: reader.readStringOrNull(offsets[17]),
-    taxId: reader.readStringOrNull(offsets[18]),
-    unit: reader.readStringOrNull(offsets[19]),
+    imageUrl: reader.readStringOrNull(offsets[11]),
+    isFavorite: reader.readBoolOrNull(offsets[12]),
+    lastTouched: reader.readStringOrNull(offsets[13]),
+    name: reader.readString(offsets[15]),
+    nfcEnabled: reader.readBoolOrNull(offsets[16]),
+    remoteID: reader.readStringOrNull(offsets[17]),
+    supplierId: reader.readStringOrNull(offsets[18]),
+    taxId: reader.readStringOrNull(offsets[19]),
+    unit: reader.readStringOrNull(offsets[20]),
   );
-  object.localId = reader.readLongOrNull(offsets[13]);
+  object.localId = reader.readLongOrNull(offsets[14]);
   return object;
 }
 
@@ -385,28 +405,30 @@ P _productDeserializeProp<P>(
     case 7:
       return (reader.readStringOrNull(offset)) as P;
     case 8:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 9:
       return (reader.readStringOrNull(offset)) as P;
     case 10:
       return (reader.readStringOrNull(offset)) as P;
     case 11:
-      return (reader.readBoolOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 12:
-      return (reader.readStringOrNull(offset)) as P;
-    case 13:
-      return (reader.readLongOrNull(offset)) as P;
-    case 14:
-      return (reader.readString(offset)) as P;
-    case 15:
       return (reader.readBoolOrNull(offset)) as P;
-    case 16:
+    case 13:
       return (reader.readStringOrNull(offset)) as P;
+    case 14:
+      return (reader.readLongOrNull(offset)) as P;
+    case 15:
+      return (reader.readString(offset)) as P;
+    case 16:
+      return (reader.readBoolOrNull(offset)) as P;
     case 17:
       return (reader.readStringOrNull(offset)) as P;
     case 18:
       return (reader.readStringOrNull(offset)) as P;
     case 19:
+      return (reader.readStringOrNull(offset)) as P;
+    case 20:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -445,6 +467,14 @@ extension ProductQueryWhereSort on QueryBuilder<Product, Product, QWhere> {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         const IndexWhereClause.any(indexName: r'bindedToTenantId'),
+      );
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterWhere> anyDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'deletedAt'),
       );
     });
   }
@@ -953,6 +983,116 @@ extension ProductQueryWhere on QueryBuilder<Product, Product, QWhereClause> {
               includeUpper: false,
             ));
       }
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterWhereClause> deletedAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'deletedAt',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterWhereClause> deletedAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'deletedAt',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterWhereClause> deletedAtEqualTo(
+      DateTime? deletedAt) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'deletedAt',
+        value: [deletedAt],
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterWhereClause> deletedAtNotEqualTo(
+      DateTime? deletedAt) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'deletedAt',
+              lower: [],
+              upper: [deletedAt],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'deletedAt',
+              lower: [deletedAt],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'deletedAt',
+              lower: [deletedAt],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'deletedAt',
+              lower: [],
+              upper: [deletedAt],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterWhereClause> deletedAtGreaterThan(
+    DateTime? deletedAt, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'deletedAt',
+        lower: [deletedAt],
+        includeLower: include,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterWhereClause> deletedAtLessThan(
+    DateTime? deletedAt, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'deletedAt',
+        lower: [],
+        upper: [deletedAt],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterWhereClause> deletedAtBetween(
+    DateTime? lowerDeletedAt,
+    DateTime? upperDeletedAt, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'deletedAt',
+        lower: [lowerDeletedAt],
+        includeLower: includeLower,
+        upper: [upperDeletedAt],
+        includeUpper: includeUpper,
+      ));
     });
   }
 }
@@ -1848,6 +1988,75 @@ extension ProductQueryFilter
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'createdAt',
         value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> deletedAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'deletedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> deletedAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'deletedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> deletedAtEqualTo(
+      DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> deletedAtGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> deletedAtLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> deletedAtBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'deletedAt',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
       ));
     });
   }
@@ -3502,6 +3711,18 @@ extension ProductQuerySortBy on QueryBuilder<Product, Product, QSortBy> {
     });
   }
 
+  QueryBuilder<Product, Product, QAfterSortBy> sortByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> sortByDeletedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.desc);
+    });
+  }
+
   QueryBuilder<Product, Product, QAfterSortBy> sortByDescription() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'description', Sort.asc);
@@ -3745,6 +3966,18 @@ extension ProductQuerySortThenBy
     });
   }
 
+  QueryBuilder<Product, Product, QAfterSortBy> thenByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> thenByDeletedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'deletedAt', Sort.desc);
+    });
+  }
+
   QueryBuilder<Product, Product, QAfterSortBy> thenByDescription() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'description', Sort.asc);
@@ -3957,6 +4190,12 @@ extension ProductQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Product, Product, QDistinct> distinctByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'deletedAt');
+    });
+  }
+
   QueryBuilder<Product, Product, QDistinct> distinctByDescription(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -4095,6 +4334,12 @@ extension ProductQueryProperty
     });
   }
 
+  QueryBuilder<Product, DateTime?, QQueryOperations> deletedAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'deletedAt');
+    });
+  }
+
   QueryBuilder<Product, String?, QQueryOperations> descriptionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'description');
@@ -4193,6 +4438,9 @@ Product _$ProductFromJson(Map<String, dynamic> json) => Product(
       isFavorite: json['isFavorite'] as bool?,
       lastTouched: json['lastTouched'] as String?,
       remoteID: json['remoteID'] as String?,
+      deletedAt: json['deletedAt'] == null
+          ? null
+          : DateTime.parse(json['deletedAt'] as String),
     )..localId = json['localId'] as int?;
 
 Map<String, dynamic> _$ProductToJson(Product instance) => <String, dynamic>{
@@ -4217,4 +4465,5 @@ Map<String, dynamic> _$ProductToJson(Product instance) => <String, dynamic>{
       'remoteID': instance.remoteID,
       'action': instance.action,
       'localId': instance.localId,
+      'deletedAt': instance.deletedAt?.toIso8601String(),
     };

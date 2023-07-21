@@ -10,12 +10,14 @@ part 'token.g.dart';
 @JsonSerializable()
 @Collection()
 class Token extends IJsonSerializable {
-  Token(
-      {required this.type,
-      required this.token,
-      required this.businessId,
-      required this.validFrom,
-      required this.validUntil});
+  Token({
+    required this.type,
+    required this.token,
+    required this.businessId,
+    required this.validFrom,
+    required this.validUntil,
+    this.deletedAt,
+  });
   Id id = Isar.autoIncrement;
   String type;
   String token;
@@ -26,7 +28,8 @@ class Token extends IJsonSerializable {
 
   @Index()
   String? lastTouched;
-
+  @Index()
+  DateTime? deletedAt;
   factory Token.fromRecord(RecordModel record) =>
       Token.fromJson(record.toJson());
 

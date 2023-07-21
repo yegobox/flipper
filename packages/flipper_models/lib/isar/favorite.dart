@@ -25,7 +25,8 @@ class Favorite extends IJsonSerializable {
   String? action;
   // only for accor when fetching from remove
   int? localId;
-
+  @Index()
+  DateTime? deletedAt;
   Favorite(this.favIndex, this.productId, this.branchId);
 
   factory Favorite.fromRecord(RecordModel record) =>

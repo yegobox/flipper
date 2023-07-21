@@ -36,26 +36,30 @@ class Conversation extends IJsonSerializable {
 
   bool? delivered;
 
-   @Index()
+  @Index()
   String? lastTouched;
+  @Index()
+  DateTime? deletedAt;
+  Conversation({
+    required this.userName,
+    required this.body,
+    required this.avatar,
+    required this.channelType,
+    required this.fromNumber,
+    required this.toNumber,
+    required this.businessId,
+    this.createdAt,
+    this.respondedBy,
+    this.messageType,
+    this.phoneNumberId,
+    this.conversationId,
+    this.businessPhoneNumber,
+    this.scheduledAt,
+    this.delivered,
+    this.messageId,
+    this.deletedAt,
+  });
 
-  Conversation(
-      {required this.userName,
-      required this.body,
-      required this.avatar,
-      required this.channelType,
-      required this.fromNumber,
-      required this.toNumber,
-      required this.businessId,
-      this.createdAt,
-      this.respondedBy,
-      this.messageType,
-      this.phoneNumberId,
-      this.conversationId,
-      this.businessPhoneNumber,
-      this.scheduledAt,
-      this.delivered,
-      this.messageId});
   factory Conversation.fromRecord(RecordModel record) =>
       Conversation.fromJson(record.toJson());
 

@@ -29,6 +29,7 @@ class Profile extends IJsonSerializable {
     required this.district,
     required this.businessId,
     required this.nationalId,
+    this.deletedAt,
   });
 
   Id id = Isar.autoIncrement;
@@ -53,7 +54,8 @@ class Profile extends IJsonSerializable {
 
   @Index()
   String? lastTouched;
-
+  @Index()
+  DateTime? deletedAt;
   factory Profile.fromRecord(RecordModel record) =>
       Profile.fromJson(record.toJson());
 
