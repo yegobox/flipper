@@ -72,7 +72,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
                 child: Container(
                   color: Colors.white70,
                   width: double.infinity,
-                  height: 40,
+                  height: 60,
                   child: OutlinedButton(
                     child: Text(
                         widget.open == "open" ? "Open Drawer" : "Close Drawer",

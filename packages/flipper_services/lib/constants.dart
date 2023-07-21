@@ -61,6 +61,7 @@ TextStyle primaryTextStyle = GoogleFonts.poppins(
   fontWeight: FontWeight.w500,
 );
 const String kPackageId = 'rw.flipper';
+final Color activeColor = Colors.blue.withOpacity(0.04);
 
 /// The paths to the app's icons.
 abstract class AppIcons {

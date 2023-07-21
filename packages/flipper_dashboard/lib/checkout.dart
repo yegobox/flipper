@@ -139,47 +139,56 @@ class MobileView extends StatelessWidget {
           builder: (context, model, child) {
             return Column(
               children: [
-                // give the tab bar a height [can change height to preferred height]
-                Padding(
-                  padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
-                  child: Container(
-                    height: 46,
-                    decoration: BoxDecoration(
-                      color: const Color(0xffE5E5E5),
-                      borderRadius: BorderRadius.circular(4.0),
-                    ),
-                    child: Padding(
-                      padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
-                      child: LayoutBuilder(builder: (context, constraints) {
-                        return TabBar(
-                          onTap: (v) {
-                            FocusScope.of(context).unfocus();
-                          },
-                          controller: tabController,
-                          // give the indicator a decoration (color and border radius)
-                          indicator: BoxDecoration(
-                            borderRadius: BorderRadius.circular(4.0),
-                            color: const Color(0xffFFFFFF),
-                          ),
-                          labelColor: Colors.black,
-                          tabs: const [
-                            // first tab [you can add an icon using the icon property]
-                            Tab(
+                Container(
+                  height: 46,
+                  decoration: BoxDecoration(
+                    color: const Color(0xffE5E5E5),
+                    borderRadius: BorderRadius.circular(4.0),
+                  ),
+                  child: LayoutBuilder(builder: (context, constraints) {
+                    return Container(
+                      height: 46,
+                      decoration: BoxDecoration(
+                        color: const Color(0xffE5E5E5),
+                        borderRadius: BorderRadius.circular(4.0),
+                      ),
+                      child: TabBar(
+                        onTap: (v) {
+                          FocusScope.of(context).unfocus();
+                        },
+                        controller: tabController,
+                        // give the indicator a decoration (color and border radius)
+                        indicator: BoxDecoration(
+                          borderRadius: BorderRadius.circular(4.0),
+                          color: const Color(0xffFFFFFF),
+                        ),
+                        labelColor: Colors.black,
+                        tabs: [
+                          // first tab [you can add an icon using the icon property]
+                          Container(
+                            width: 150,
+                            child: Tab(
                               text: 'Keypad',
                             ),
+                          ),
 
-                            // second tab [you can add an icon using the icon property]
-                            Tab(
+                          // second tab [you can add an icon using the icon property]
+                          Container(
+                            width: 150,
+                            child: Tab(
                               text: 'Library',
                             ),
-                            Tab(
+                          ),
+                          Container(
+                            width: 150,
+                            child: Tab(
                               text: 'Favorites',
                             ),
-                          ],
-                        );
-                      }),
-                    ),
-                  ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
                 ),
                 // tab bar view here
                 Expanded(

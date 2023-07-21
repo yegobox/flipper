@@ -2232,6 +2232,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Stream<List<Category>> categoriesStream({required int branchId}) {
+    log(branchId.toString(), name: "load stream of categoris");
     return isar.categorys
         .where()
         .branchIdEqualTo(branchId)

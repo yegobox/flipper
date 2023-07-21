@@ -1,6 +1,7 @@
+import 'dart:developer';
+
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_routing/app.locator.dart';
-import 'package:flipper_ui/helpers/utils.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +15,7 @@ import 'divider.dart';
 
 class ListCategories extends StatelessWidget {
   ListCategories({Key? key, required this.categories}) : super(key: key);
-  final List<Category> categories;
+  final List<Category>? categories;
   final _routerService = locator<RouterService>();
   Wrap categoryList(
       {required List<Category> categories,
@@ -37,9 +38,6 @@ class ListCategories extends StatelessWidget {
                 ),
                 trailing: Radio<int>(
                   value: categories[i].id,
-                  activeColor: Theme.of(context)
-                      .copyWith(canvasColor: HexColor('#2996CC'))
-                      .canvasColor,
                   //This radio button is considered selected if its value matches the groupValue.
                   groupValue:
                       categories[i].focused == true ? categories[i].id : 0,
@@ -72,6 +70,7 @@ class ListCategories extends StatelessWidget {
         return Scaffold(
           appBar: CustomAppBar(
             onPop: () {
+              log('back');
               _routerService.pop();
             },
             showActionButton: false,
@@ -84,27 +83,12 @@ class ListCategories extends StatelessWidget {
               stream: ProxyService.isar
                   .categoriesStream(branchId: ProxyService.box.getBranchId()!),
               builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Text(
-                    'Loading...',
-                    style: GoogleFonts.poppins(
-                        color: Colors.black,
-                        fontSize: 17,
-                        fontWeight: FontWeight.w400),
-                  );
-                }
-                return ListView(
+                return Column(
                   children: <Widget>[
-                    const Center(
-                      child: CenterDivider(
-                        width: double.infinity,
-                      ),
-                    ),
                     GestureDetector(
                       onTap: () {
-                        // GoRouter.of(context).push(Routes.category);
-                        _routerService.navigateTo(
-                            ListCategoriesRoute(categories: categories));
+                        log("on tap");
+                        _routerService.navigateTo(AddCategoryRoute());
                       },
                       child: ListTile(
                         title: Text('Create Category ',
@@ -120,7 +104,7 @@ class ListCategories extends StatelessWidget {
                       ),
                     ),
                     categoryList(
-                      categories: snapshot.data!,
+                      categories: snapshot.data ?? [],
                       context: context,
                       model: model,
                     ),
