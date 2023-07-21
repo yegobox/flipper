@@ -29,26 +29,27 @@ class _PreviewSaleBottomSheetState extends State<PreviewSaleBottomSheet> {
       body: Material(
           child: CupertinoPageScaffold(
         navigationBar: CupertinoNavigationBar(
-            leading: Container(),
+            leading: SizedBox.shrink(),
             middle: Row(children: [
               StreamBuilder<List<TransactionItem>>(
                   stream: ProxyService.isar.transactionItemsStream(),
                   builder: (context, snapshot) {
-                    final transactionItems = snapshot.data ??
-                        []; // Retrieve the data from the stream
-                    final saleCounts = transactionItems
-                        .length; // Calculate the saleCounts based on the transactionItems
+                    final transactionItems = snapshot.data ?? [];
+                    final saleCounts = transactionItems.length;
 
                     return Text(
                       "Preview Sale${saleCounts != 0 ? "($saleCounts)" : ""}",
                       style: GoogleFonts.poppins(
                         fontWeight: FontWeight.w600,
                         fontSize: 15,
-                        color: const Color(0xffFFFFFF),
+                        color: Color.fromARGB(255, 17, 1, 1),
                       ),
                     );
                   })
-            ])),
+            ]),
+            trailing: GestureDetector(
+                onTap: () => Navigator.of(context).pop(),
+                child: Icon(Icons.close))),
         child: ViewModelBuilder<HomeViewModel>.reactive(
             viewModelBuilder: () => HomeViewModel(),
             builder: (a, model, c) {
@@ -58,68 +59,72 @@ class _PreviewSaleBottomSheetState extends State<PreviewSaleBottomSheet> {
                     stream: ProxyService.isar.transactionItemsStream(),
                     builder: (context, snapshot) {
                       final transactionItems = snapshot.data ?? [];
-                      return Column(
+                      return Stack(
                         children: [
-                          Expanded(
-                            child: ListView(
-                              reverse: widget.reverse,
-                              shrinkWrap: true,
-                              controller: ModalScrollController.of(context),
-                              physics: const ClampingScrollPhysics(),
-                              children: [
-                                AddCustomerButton(
-                                    transactionId: model.kTransaction!.id!),
-                                ...buildItems(
-                                  context: context,
-                                  callback: (item) async {
-                                    model.kTransaction!.subTotal =
-                                        model.kTransaction!.subTotal -
-                                            (item.price * item.qty);
-                                    await ProxyService.isar
-                                        .update(data: model.kTransaction);
-                                    model.deleteTransactionItem(
-                                        id: item.id, context: context);
-                                  },
-                                  items: transactionItems,
-                                ),
-                                if (widget.model.totalDiscount > 0)
-                                  ListTile(
-                                    contentPadding: const EdgeInsets.only(
-                                        left: 40.0, right: 40.0),
-                                    trailing: Text(
-                                      '- RWF ' +
-                                          NumberFormat('#,###')
-                                              .format(
-                                                  widget.model.totalDiscount)
-                                              .toString(),
-                                      style: GoogleFonts.poppins(
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 15,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                    leading: Text(
-                                      'Discounts',
-                                      style: GoogleFonts.poppins(
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 15,
-                                        color: Colors.black,
-                                      ),
+                          ListView(
+                            reverse: widget.reverse,
+                            shrinkWrap: true,
+                            controller: ModalScrollController.of(context),
+                            physics: const ClampingScrollPhysics(),
+                            children: [
+                              AddCustomerButton(
+                                  transactionId: model.kTransaction!.id!),
+                              ...buildItems(
+                                context: context,
+                                callback: (item) async {
+                                  model.kTransaction!.subTotal =
+                                      model.kTransaction!.subTotal -
+                                          (item.price * item.qty);
+                                  await ProxyService.isar
+                                      .update(data: model.kTransaction);
+                                  model.deleteTransactionItem(
+                                      id: item.id, context: context);
+                                },
+                                items: transactionItems,
+                              ),
+                              if (widget.model.totalDiscount > 0)
+                                ListTile(
+                                  contentPadding: const EdgeInsets.only(
+                                      left: 40.0, right: 40.0),
+                                  trailing: Text(
+                                    '- RWF ' +
+                                        NumberFormat('#,###')
+                                            .format(widget.model.totalDiscount)
+                                            .toString(),
+                                    style: GoogleFonts.poppins(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 15,
+                                      color: Colors.black,
                                     ),
                                   ),
-                              ],
-                            ),
+                                  leading: Text(
+                                    'Discounts',
+                                    style: GoogleFonts.poppins(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 15,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                              SizedBox(
+                                  height:
+                                      100), // Add a SizedBox to provide space between ListView and ChargeButton
+                            ],
                           ),
                           Padding(
-                            padding: const EdgeInsets.only(bottom: 60.0),
-                            child: Container(
+                            padding: const EdgeInsets.only(bottom: 9.0),
+                            child: Align(
+                              alignment: Alignment.bottomCenter,
                               child: ChargeButton(
                                 duePay: transactionItems.fold(
-                                    0, (a, b) => a! + (b.price * b.qty)),
+                                  0,
+                                  (a, b) => a! + (b.price * b.qty),
+                                ),
                                 model: model,
                               ),
                             ),
-                          )
+                          ),
+                          SizedBox(height: 20)
                         ],
                       );
                     }),

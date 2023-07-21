@@ -53,14 +53,15 @@ class PreviewSaleButton extends StatelessWidget {
           showBarModalBottomSheet(
             overlayStyle: SystemUiOverlayStyle.light,
             expand: false,
-            shape: const RoundedRectangleBorder(
-              side: BorderSide(color: Colors.white),
-            ),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(10),
+                    topRight: Radius.circular(10))),
             context: context,
             useRootNavigator: true,
-            topControl: SizedBox(
-              height: 89,
-            ),
+            // topControl: SizedBox(
+            //   height: 89,
+            // ),
             barrierColor: Colors.black.withOpacity(0.25),
             backgroundColor: Colors.transparent,
             builder: (context) => Container(
