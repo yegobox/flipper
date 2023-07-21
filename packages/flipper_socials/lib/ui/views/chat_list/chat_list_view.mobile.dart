@@ -44,7 +44,7 @@ class _ChatListViewMobileState extends State<ChatListViewMobile>
     final size = MediaQuery.of(context).size;
     return ViewModelBuilder<ChatListViewModel>.reactive(
         viewModelBuilder: () => ChatListViewModel(),
-        onViewModelReady: (viewModel) {
+        onViewModelReady: (viewModel) async {
           SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
             if (ProxyService.box.getBranchId() != null &&
                 ProxyService.box.getBusinessId() != null &&
@@ -53,10 +53,10 @@ class _ChatListViewMobileState extends State<ChatListViewMobile>
             }
           });
           ProxyService.isar.sendScheduleMessages();
+          await ProxyService.messaging
+              .initializeFirebaseMessagingAndSubscribeToBusinessNotifications();
           ProxyService.isar
               .loadConversations(businessId: ProxyService.box.getBusinessId()!);
-          ProxyService.messaging
-              .initializeFirebaseMessagingAndSubscribeToBusinessNotifications();
         },
         builder: (build, viewModel, child) {
           return RefreshIndicator(

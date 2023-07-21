@@ -1,4 +1,5 @@
 import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_carousel_slider/carousel_slider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -182,27 +183,11 @@ class _LandingState extends State<Landing> {
                   width: 368,
                   height: 68,
                   child: OutlinedButton(
-                    style: ButtonStyle(
-                      shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
-                        (states) => RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(2.0),
-                        ),
-                      ),
-                      backgroundColor: MaterialStateProperty.all<Color>(
-                          const Color(0xFF01B8E4)),
-                      overlayColor: MaterialStateProperty.resolveWith<Color?>(
-                        (Set<MaterialState> states) {
-                          if (states.contains(MaterialState.hovered)) {
-                            return Color(0xFF01B8E4);
-                          }
-                          if (states.contains(MaterialState.focused) ||
-                              states.contains(MaterialState.pressed)) {
-                            return Color(0xFF01B8E4);
-                          }
-                          return null; // Defer to the widget's default.
-                        },
-                      ),
-                    ),
+                    style: primaryButtonStyle.copyWith(
+                        shape:
+                            MaterialStateProperty.resolveWith<OutlinedBorder>(
+                                (states) => RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(4)))),
                     onPressed: () async {
                       //Navigate to signinpage.dart
                       final _routerService = locator<RouterService>();

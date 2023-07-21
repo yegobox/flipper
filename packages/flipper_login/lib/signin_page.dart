@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_services/constants.dart';
 
 const _googleClientId =
     '455580464649-3nhpbm3bp02stjuh0g01ovfr0kemi00j.apps.googleusercontent.com';
@@ -37,30 +38,10 @@ class AuthOptionPage extends StatelessWidget {
           width: 368,
           height: 68,
           child: OutlinedButton(
-            style: ButtonStyle(
-              shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
-                (states) => RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(2.0),
-                  side: BorderSide(
-                      color: const Color(
-                          0xFF01B8E4)), // Add this line to set the border color
-                ),
-              ),
-              backgroundColor:
-                  MaterialStateProperty.all<Color>(const Color(0xFF01B8E4)),
-              overlayColor: MaterialStateProperty.resolveWith<Color?>(
-                (Set<MaterialState> states) {
-                  if (states.contains(MaterialState.hovered)) {
-                    return const Color(0xFF01B8E4);
-                  }
-                  if (states.contains(MaterialState.focused) ||
-                      states.contains(MaterialState.pressed)) {
-                    return const Color(0xFF01B8E4);
-                  }
-                  return null; // Defer to the widget's default.
-                },
-              ),
-            ),
+            style: primaryButtonStyle.copyWith(
+                shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
+                    (states) => RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4)))),
             onPressed: () async {
               final _routerService = locator<RouterService>();
               _routerService.clearStackAndShow(CountryPickerRoute());

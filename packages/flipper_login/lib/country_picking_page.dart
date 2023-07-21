@@ -1,4 +1,5 @@
 import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -34,7 +35,7 @@ class _CountryPickerState extends State<CountryPicker> {
                     _routerService.navigateTo(AuthOptionPageRoute());
                   },
                   icon: Image.asset('assets/fav.png',
-                      height: 110, width: 110, package: 'flipper_login'),
+                      height: 90, width: 45, package: 'flipper_login'),
                   color: Colors.black,
                 ),
               ),
@@ -43,7 +44,7 @@ class _CountryPickerState extends State<CountryPicker> {
                 right: 30,
                 child: Text("Sign In",
                     style: GoogleFonts.poppins(
-                        fontSize: 28, fontWeight: FontWeight.bold)),
+                        fontSize: 17, fontWeight: FontWeight.normal)),
               ),
               Padding(
                 padding: EdgeInsets.all(20.0), // add padding here
@@ -52,7 +53,7 @@ class _CountryPickerState extends State<CountryPicker> {
                     SizedBox(height: screenHeight * 0.15),
                     Text('Select the country where your business is located',
                         style: GoogleFonts.poppins(
-                            fontSize: 24, fontWeight: FontWeight.bold)),
+                            fontSize: 28, fontWeight: FontWeight.normal)),
                     SizedBox(height: screenHeight * 0.03),
                     SizedBox(
                       width: 400,
@@ -80,7 +81,11 @@ class _CountryPickerState extends State<CountryPicker> {
                               style: GoogleFonts.poppins(fontSize: 20)),
                         ),
                         Checkbox(
+                          activeColor: activeColor,
+                          checkColor: activeColor,
+                          focusColor: activeColor,
                           value: termsAndCondValue,
+                          shape: CircleBorder(),
                           onChanged: (bool? value) {
                             setState(() {
                               termsAndCondValue = value!;
@@ -100,36 +105,17 @@ class _CountryPickerState extends State<CountryPicker> {
                       width: 368,
                       height: 68,
                       child: OutlinedButton(
-                        style: ButtonStyle(
-                          shape:
-                              MaterialStateProperty.resolveWith<OutlinedBorder>(
-                            (states) => RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(2.0),
-                                side: BorderSide(color: Color(0xFF01B8E4))),
-                          ),
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                              const Color(0xFF01B8E4)),
-                          overlayColor:
-                              MaterialStateProperty.resolveWith<Color?>(
-                            (Set<MaterialState> states) {
-                              if (states.contains(MaterialState.hovered)) {
-                                return Color(0xFF01B8E4);
-                              }
-                              if (states.contains(MaterialState.focused) ||
-                                  states.contains(MaterialState.pressed)) {
-                                return Color(0xFF01B8E4);
-                              }
-                              return null; // Defer to the widget's default.
-                            },
-                          ),
-                        ),
+                        style: primaryButtonStyle.copyWith(
+                            shape: MaterialStateProperty.resolveWith<
+                                    OutlinedBorder>(
+                                (states) => RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(4)))),
                         onPressed: () async {
                           if (termsAndCondValue) {
                             //Navigate to signinpage.dart
                             final _routerService = locator<RouterService>();
-                            _routerService.navigateTo(
-                                PhoneInputScreenRoute(
-                                    countryCode: pickedCountry));
+                            _routerService.navigateTo(PhoneInputScreenRoute(
+                                countryCode: pickedCountry));
                           } else {
                             final snackBar = SnackBar(
                               content: const Text(
