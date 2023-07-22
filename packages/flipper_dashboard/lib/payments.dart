@@ -1,6 +1,7 @@
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_routing/receipt_types.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -23,6 +24,10 @@ class _PaymentsState extends State<Payments> {
   final _routerService = locator<RouterService>();
   Map<String, bool> isFocusedMap = {};
   bool cashPayment = false;
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _cash = TextEditingController();
+
+  String? paymentType;
   @override
   void initState() {
     super.initState();
@@ -114,23 +119,41 @@ class _PaymentsState extends State<Payments> {
                                 child: Padding(
                                   padding: const EdgeInsets.only(
                                       left: 62, right: 62, top: 79),
-                                  child: TextFormField(
-                                    // controller: ,
-                                    onChanged: (value) {},
-                                    decoration: InputDecoration(
-                                      focusedBorder: OutlineInputBorder(
+                                  child: Form(
+                                    key: _formKey,
+                                    child: TextFormField(
+                                      controller: _cash,
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return 'Please enter Cash Received';
+                                        }
+                                        double totalTransactionAmount =
+                                            model.totalPayable;
+                                        if (double.parse(value) <
+                                            totalTransactionAmount) {
+                                          return "Amount is less than amount payable";
+                                        }
+                                        return null;
+                                      },
+                                      onFieldSubmitted: (value) {
+                                        _cash.text = value;
+                                      },
+                                      onChanged: (value) {},
+                                      decoration: InputDecoration(
+                                        focusedBorder: OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                                color: Colors.grey.shade400,
+                                                width: 1.0),
+                                            borderRadius:
+                                                BorderRadius.circular(4.0)),
+                                        enabledBorder: OutlineInputBorder(
                                           borderSide: BorderSide(
-                                              color: Colors.grey.shade400,
-                                              width: 1.0),
-                                          borderRadius:
-                                              BorderRadius.circular(4.0)),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                            color: Colors.black.withOpacity(
-                                                0.10000000149011612),
-                                            width: 0.5),
+                                              color: Colors.black.withOpacity(
+                                                  0.10000000149011612),
+                                              width: 0.5),
+                                        ),
+                                        hintText: 'Amount Received',
                                       ),
-                                      hintText: 'Amount Received',
                                     ),
                                   ),
                                 ),
@@ -205,10 +228,13 @@ class _PaymentsState extends State<Payments> {
                                               borderRadius:
                                                   BorderRadius.circular(4)))),
                                   onPressed: () async {
-                                    final _routerService =
-                                        locator<RouterService>();
-                                    _routerService.clearStackAndShow(
-                                        CountryPickerRoute());
+                                    if (paymentType == "Cash") {
+                                      if (_formKey.currentState!.validate()) {
+                                        await confirmPayment(model);
+                                      }
+                                    } else {
+                                      await confirmPayment(model);
+                                    }
                                   },
                                   child: Row(children: [
                                     Spacer(),
@@ -243,6 +269,21 @@ class _PaymentsState extends State<Payments> {
         viewModelBuilder: () => HomeViewModel());
   }
 
+  Future<void> confirmPayment(HomeViewModel model) async {
+    await model.collectCashPayment();
+    String receiptType = "ns";
+    if (ProxyService.box.isPoroformaMode()) {
+      receiptType = ReceiptType.ps;
+    }
+    if (ProxyService.box.isTrainingMode()) {
+      receiptType = ReceiptType.ts;
+    }
+    _routerService.navigateTo(AfterSaleRoute(
+        totalTransactionAmount: model.totalPayable,
+        receiptType: receiptType,
+        transaction: model.kTransaction!));
+  }
+
   Widget buildButton({required IconData icon, required String type}) {
     final isFocused = isFocusedMap[type] ?? false;
     final textColor = isFocused ? Color(0xFF00FE38) : Colors.black;
@@ -253,6 +294,7 @@ class _PaymentsState extends State<Payments> {
       child: TextButton(
           onPressed: () {
             setState(() {
+              paymentType = type;
               // Reset the old button's state to false if it existed
               isFocusedMap.forEach((key, value) {
                 if (value && key != type) {
