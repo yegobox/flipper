@@ -77,6 +77,36 @@ ButtonStyle primary2ButtonStyle = ButtonStyle(
     },
   ),
 );
+
+ButtonStyle primary3ButtonStyle = ButtonStyle(
+  shape: MaterialStateProperty.resolveWith<OutlinedBorder>((states) =>
+      RoundedRectangleBorder(borderRadius: BorderRadius.circular(0))),
+  side: MaterialStateProperty.resolveWith<BorderSide>((states) => BorderSide(
+        color: Color(0xFF98C3FE).withOpacity(0.8),
+      )),
+);
+
+ButtonStyle primary4ButtonStyle = ButtonStyle(
+  shape: MaterialStateProperty.resolveWith<OutlinedBorder>((states) =>
+      RoundedRectangleBorder(borderRadius: BorderRadius.circular(0))),
+  side: MaterialStateProperty.resolveWith<BorderSide>((states) => BorderSide(
+        color: Color(0xFF00FE38).withOpacity(0.8),
+      )),
+  backgroundColor: MaterialStateProperty.all<Color>(
+      const Color(0xFF00FE38).withOpacity(0.8)),
+  overlayColor: MaterialStateProperty.resolveWith<Color?>(
+    (Set<MaterialState> states) {
+      if (states.contains(MaterialState.hovered)) {
+        return Color(0xFF00FE38).withOpacity(0.8);
+      }
+      if (states.contains(MaterialState.focused) ||
+          states.contains(MaterialState.pressed)) {
+        return Color(0xFF00FE38).withOpacity(0.8);
+      }
+      return null;
+    },
+  ),
+);
 TextStyle primaryTextStyle = GoogleFonts.poppins(
   fontSize: 16.0,
   fontWeight: FontWeight.w500,

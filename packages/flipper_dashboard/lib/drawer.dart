@@ -78,7 +78,11 @@ class _DrawerScreenState extends State<DrawerScreen> {
                     child: Text(
                         widget.open == "open" ? "Open Drawer" : "Close Drawer",
                         style: const TextStyle(color: Colors.white)),
-                    style: primaryButtonStyle,
+                    style: primaryButtonStyle.copyWith(
+                        shape:
+                            MaterialStateProperty.resolveWith<OutlinedBorder>(
+                                (states) => RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(4)))),
                     onPressed: () async {
                       if (_sub.currentState!.validate()) {
                         if (widget.open == "open") {

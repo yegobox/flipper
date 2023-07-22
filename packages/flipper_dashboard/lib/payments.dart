@@ -2,6 +2,7 @@ import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flutter/material.dart';
@@ -9,12 +10,33 @@ import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 import 'package:intl/intl.dart';
 
-class Payments extends StatelessWidget {
+class Payments extends StatefulWidget {
   Payments({Key? key, required this.transaction}) : super(key: key);
 
   final Transaction transaction;
+
+  @override
+  State<Payments> createState() => _PaymentsState();
+}
+
+class _PaymentsState extends State<Payments> {
   final _routerService = locator<RouterService>();
-  // TODO: remove duePay get it's value from stream
+  Map<String, bool> isFocusedMap = {};
+  bool cashPayment = false;
+  @override
+  void initState() {
+    super.initState();
+    // Initialize the focused state for each button type
+    isFocusedMap = {
+      "Cash": false,
+      "Card": false,
+      "Mobile": false,
+      "Bank": false,
+      "Cheque": false,
+      "Credit": false,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<HomeViewModel>.reactive(
@@ -29,9 +51,10 @@ class Payments extends StatelessWidget {
                   _routerService.pop();
                 },
                 rightActionButtonName: 'Split payment',
-                icon: Icons.close,
+                icon: Icons.arrow_back,
                 multi: 3,
                 bottomSpacer: 52,
+                title: 'Confirm Payment',
               ),
               body: SizedBox(
                 width: double.infinity,
@@ -42,30 +65,74 @@ class Payments extends StatelessWidget {
                         stream: ProxyService.isar.transactionItemsStream(),
                         builder: (context, snapshot) {
                           final transactionItems = snapshot.data ?? [];
-
-                          // Calculate the sum of all transactionItems' prices for due
                           final duePay = transactionItems.fold<double>(
-                              0, (sum, transactionItem) => sum + transactionItem.price);
+                              0,
+                              (sum, transactionItem) =>
+                                  sum + transactionItem.price);
 
                           return Column(
                             children: [
-                              const SizedBox(height: 40),
+                              const SizedBox(height: 205),
                               model.kTransaction != null
                                   ? Text(
                                       'FRw ' +
                                           NumberFormat('#,###').format(duePay),
-                                      style: const TextStyle(
-                                        fontSize: 20.0,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                      style: GoogleFonts.poppins(
+                                          fontWeight: FontWeight.w400,
+                                          fontSize: 20,
+                                          color: Colors.black),
                                     )
                                   : const Text('0.00'),
                               const SizedBox(height: 40),
-                              const Text(
-                                'Select Payment type Below',
-                                style: TextStyle(
-                                  fontSize: 18.0,
-                                  fontWeight: FontWeight.bold,
+                              SizedBox(
+                                width: 186,
+                                height: 70.63,
+                                child: OutlinedButton(
+                                  style: primary3ButtonStyle.copyWith(
+                                      shape: MaterialStateProperty.resolveWith<
+                                              OutlinedBorder>(
+                                          (states) => RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(4)))),
+                                  onPressed: () async {
+                                    final _routerService =
+                                        locator<RouterService>();
+                                    _routerService.clearStackAndShow(
+                                        CountryPickerRoute());
+                                  },
+                                  child: Text(
+                                    "Send Invoice",
+                                    style: GoogleFonts.poppins(
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 20,
+                                        color: Color(0xFF01B8E4)),
+                                  ),
+                                ),
+                              ),
+                              Visibility(
+                                visible: cashPayment,
+                                child: Padding(
+                                  padding: const EdgeInsets.only(
+                                      left: 62, right: 62, top: 79),
+                                  child: TextFormField(
+                                    // controller: ,
+                                    onChanged: (value) {},
+                                    decoration: InputDecoration(
+                                      focusedBorder: OutlineInputBorder(
+                                          borderSide: BorderSide(
+                                              color: Colors.grey.shade400,
+                                              width: 1.0),
+                                          borderRadius:
+                                              BorderRadius.circular(4.0)),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: Colors.black.withOpacity(
+                                                0.10000000149011612),
+                                            width: 0.5),
+                                      ),
+                                      hintText: 'Amount Received',
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],
@@ -73,94 +140,97 @@ class Payments extends StatelessWidget {
                         },
                       ),
                     ),
+                    SizedBox(
+                      height: 47,
+                    ),
                     Positioned(
-                      bottom: 60.0,
+                      bottom: 17,
                       right: 0,
                       left: 0,
-                      child: Column(
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              _routerService.navigateTo(CollectCashViewRoute(
-                                  transaction: transaction, paymentType: "cash"));
-                            },
-                            child: ListTile(
-                              leading: Text(
-                                'Cash',
-                                style: TextStyle(
-                                  fontSize: 18.0,
-                                  fontWeight: FontWeight.bold,
+                      child: SizedBox(
+                        height: 240,
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Wrap(
+                                    alignment: WrapAlignment.start,
+                                    spacing: 0,
+                                    runSpacing: 0,
+                                    children: [
+                                      buildButton(
+                                          icon: Icons.currency_exchange,
+                                          type: "Cash"),
+                                      buildButton(
+                                          icon: Icons.payment, type: "Card"),
+                                      buildButton(
+                                          icon: Icons.smartphone,
+                                          type: "Mobile"),
+                                      //done first row
+                                      buildButton(
+                                          icon: Icons.account_balance,
+                                          type: "Bank"),
+                                      buildButton(
+                                          icon: Icons.fact_check,
+                                          type: "Cheque"),
+                                      buildButton(
+                                          icon: Icons.credit_card,
+                                          type: "Credit"),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                        bottom: 10,
+                        right: 0,
+                        left: 0,
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                  left: 25.5, right: 25.5),
+                              child: SizedBox(
+                                width: double.infinity,
+                                child: OutlinedButton(
+                                  style: primary4ButtonStyle.copyWith(
+                                      shape: MaterialStateProperty.resolveWith<
+                                              OutlinedBorder>(
+                                          (states) => RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(4)))),
+                                  onPressed: () async {
+                                    final _routerService =
+                                        locator<RouterService>();
+                                    _routerService.clearStackAndShow(
+                                        CountryPickerRoute());
+                                  },
+                                  child: Row(children: [
+                                    Spacer(),
+                                    Text(
+                                      "Confirm Payment",
+                                      style: GoogleFonts.poppins(
+                                          fontWeight: FontWeight.w400,
+                                          fontSize: 20,
+                                          color: Colors.white),
+                                    ),
+                                    Spacer(),
+                                    Icon(
+                                      Icons.arrow_forward,
+                                      color: Colors.white,
+                                      size: 24,
+                                    ),
+                                  ]),
                                 ),
                               ),
-                              trailing: TextButton(
-                                  onPressed: null,
-                                  style: primaryButtonStyle.copyWith(
-                                      shape: MaterialStateProperty.resolveWith<
-                                          OutlinedBorder>(
-                                        (states) => RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(4.0),
-                                        ),
-                                      ),
-                                      textStyle:
-                                          MaterialStatePropertyAll<TextStyle>(
-                                              TextStyle(color: Colors.white)),
-                                      backgroundColor:
-                                          MaterialStateProperty.all<Color>(
-                                              const Color(0xff006AFE)),
-                                      overlayColor: MaterialStateProperty
-                                          .resolveWith<Color?>(
-                                        (Set<MaterialState> states) {
-                                          if (states.contains(
-                                              MaterialState.hovered)) {
-                                            return Colors.blue
-                                                .withOpacity(0.04);
-                                          }
-                                          if (states.contains(
-                                                  MaterialState.focused) ||
-                                              states.contains(
-                                                  MaterialState.pressed)) {
-                                            return Colors.blue
-                                                .withOpacity(0.12);
-                                          }
-                                          return null;
-                                        },
-                                      )),
-                                  child: Text(
-                                    "Pay",
-                                    style: primaryTextStyle.copyWith(
-                                        color: Colors.white),
-                                  )),
-                            ),
-                          ),
-                          ProxyService.remoteConfig.isSpennPaymentAvailable()
-                              ? GestureDetector(
-                                  onTap: () {
-                                    _routerService.navigateTo(
-                                        CollectCashViewRoute(
-                                            transaction: transaction,
-                                            paymentType: "spenn"));
-                                  },
-                                  child: const ListTile(
-                                    leading: Text(
-                                      'SPENN',
-                                      style: TextStyle(
-                                        fontSize: 18.0,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    trailing: Icon(
-                                      Icons.arrow_forward_ios,
-                                      color: Colors.pink,
-                                      size: 24.0,
-                                      semanticLabel: 'SPENN',
-                                    ),
-                                  ),
-                                )
-                              : const SizedBox.shrink(),
-                        ],
-                      ),
-                    )
+                            )
+                          ],
+                        ))
                   ],
                 ),
               ),
@@ -171,5 +241,76 @@ class Payments extends StatelessWidget {
           model.updatePayable();
         },
         viewModelBuilder: () => HomeViewModel());
+  }
+
+  Widget buildButton({required IconData icon, required String type}) {
+    final isFocused = isFocusedMap[type] ?? false;
+    final textColor = isFocused ? Color(0xFF00FE38) : Colors.black;
+
+    return SizedBox(
+      height: 96,
+      width: 136,
+      child: TextButton(
+          onPressed: () {
+            setState(() {
+              // Reset the old button's state to false if it existed
+              isFocusedMap.forEach((key, value) {
+                if (value && key != type) {
+                  isFocusedMap[key] = false;
+                }
+              });
+
+              // Toggle the focused state for the current button type
+              isFocusedMap[type] = !(isFocusedMap[type] ?? false);
+
+              // Add any additional logic if needed
+              if (type == "Cash" && isFocusedMap[type] == true) {
+                cashPayment = true;
+              } else {
+                cashPayment = false;
+              }
+            });
+          },
+          style: primaryButtonStyle.copyWith(
+              shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
+                (states) => RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(0.0),
+                ),
+              ),
+              side: MaterialStateProperty.resolveWith<BorderSide>((states) =>
+                  BorderSide(
+                      color: Colors.black.withOpacity(0.25), width: 0.50)),
+              textStyle: MaterialStatePropertyAll<TextStyle>(
+                  TextStyle(color: Colors.white)),
+              backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
+              overlayColor: MaterialStateProperty.resolveWith<Color?>(
+                (Set<MaterialState> states) {
+                  if (states.contains(MaterialState.hovered)) {
+                    return Colors.white;
+                  }
+                  if (states.contains(MaterialState.focused) ||
+                      states.contains(MaterialState.pressed)) {
+                    return Colors.white;
+                  }
+                  return null;
+                },
+              )),
+          child: Column(
+            children: [
+              SizedBox(
+                height: 52,
+                width: 52,
+                child: Icon(icon, color: Colors.black),
+              ),
+              Text(
+                type,
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: textColor,
+                ),
+              )
+            ],
+          )),
+    );
   }
 }

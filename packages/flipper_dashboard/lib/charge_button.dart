@@ -18,7 +18,7 @@ class ChargeButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(19.0, 0, 19.0, 0),
+      padding: const EdgeInsets.fromLTRB(19.0, 30, 19.0, 0),
       child: SizedBox(
         height: 40,
         width: double.infinity,
