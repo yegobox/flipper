@@ -505,24 +505,27 @@ class HomeViewModel extends ReactiveViewModel {
         .addTransactionItem(transaction: pendingTransaction, item: newItem);
   }
 
-  Future collectSPENNPayment(
-      {required String phoneNumber, required double cashReceived}) async {
-    if (kTransaction == null && amountTotal != 0.0) {
-      //should show a global snack bar
-      return;
-    }
+  Future<String> collectSPENNPayment(
+      {required String phoneNumber,
+      required double cashReceived,
+      required String paymentType}) async {
     await ProxyService.isar
         .spennPayment(amount: cashReceived, phoneNumber: phoneNumber);
-    await ProxyService.isar.collectCashPayment(
-        cashReceived: cashReceived, transaction: kTransaction!);
+    await ProxyService.isar.collectPayment(
+        cashReceived: cashReceived,
+        transaction: kTransaction!,
+        paymentType: paymentType);
+    return "PaymentRecorded";
   }
 
-  Future<void> collectCashPayment() async {
+  Future<void> collectPayment({required String paymentType}) async {
     if (kTransaction == null && amountTotal != 0.0) {
       return;
     }
-    await ProxyService.isar.collectCashPayment(
-        cashReceived: keypad.cashReceived, transaction: kTransaction!);
+    await ProxyService.isar.collectPayment(
+        cashReceived: keypad.cashReceived,
+        transaction: kTransaction!,
+        paymentType: paymentType);
   }
 
   void registerLocation() async {

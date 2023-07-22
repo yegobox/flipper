@@ -4,12 +4,14 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_routing/receipt_types.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 import 'package:intl/intl.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 
 class Payments extends StatefulWidget {
   Payments({Key? key, required this.transaction}) : super(key: key);
@@ -61,6 +63,7 @@ class _PaymentsState extends State<Payments> {
                 bottomSpacer: 52,
                 title: 'Confirm Payment',
               ),
+              resizeToAvoidBottomInset: false,
               body: SizedBox(
                 width: double.infinity,
                 child: Stack(
@@ -77,7 +80,7 @@ class _PaymentsState extends State<Payments> {
 
                           return Column(
                             children: [
-                              const SizedBox(height: 205),
+                              const SizedBox(height: 145),
                               model.kTransaction != null
                                   ? Text(
                                       'FRw ' +
@@ -118,10 +121,11 @@ class _PaymentsState extends State<Payments> {
                                 visible: cashPayment,
                                 child: Padding(
                                   padding: const EdgeInsets.only(
-                                      left: 62, right: 62, top: 79),
+                                      left: 62, right: 62, top: 49),
                                   child: Form(
                                     key: _formKey,
                                     child: TextFormField(
+                                      keyboardType: TextInputType.number,
                                       controller: _cash,
                                       validator: (value) {
                                         if (value == null || value.isEmpty) {
@@ -183,22 +187,25 @@ class _PaymentsState extends State<Payments> {
                                     runSpacing: 0,
                                     children: [
                                       buildButton(
-                                          icon: Icons.currency_exchange,
+                                          icon: FluentIcons
+                                              .money_calculator_24_regular,
                                           type: "Cash"),
                                       buildButton(
                                           icon: Icons.payment, type: "Card"),
                                       buildButton(
-                                          icon: Icons.smartphone,
+                                          icon: FluentIcons.phone_28_regular,
                                           type: "Mobile"),
                                       //done first row
                                       buildButton(
-                                          icon: Icons.account_balance,
+                                          icon: FluentIcons.savings_24_regular,
                                           type: "Bank"),
                                       buildButton(
-                                          icon: Icons.fact_check,
+                                          icon: FluentIcons
+                                              .checkmark_circle_24_regular,
                                           type: "Cheque"),
                                       buildButton(
-                                          icon: Icons.credit_card,
+                                          icon: FluentIcons
+                                              .wallet_credit_card_20_regular,
                                           type: "Credit"),
                                     ],
                                   ),
@@ -233,6 +240,15 @@ class _PaymentsState extends State<Payments> {
                                         await confirmPayment(model);
                                       }
                                     } else {
+                                      if (paymentType == null) {
+                                        showSimpleNotification(
+                                            const Text(
+                                                "You need to choose payment method"),
+                                            background: Colors.red,
+                                            position:
+                                                NotificationPosition.bottom);
+                                        return;
+                                      }
                                       await confirmPayment(model);
                                     }
                                   },
@@ -247,7 +263,7 @@ class _PaymentsState extends State<Payments> {
                                     ),
                                     Spacer(),
                                     Icon(
-                                      Icons.arrow_forward,
+                                      FluentIcons.arrow_forward_24_regular,
                                       color: Colors.white,
                                       size: 24,
                                     ),
@@ -270,7 +286,11 @@ class _PaymentsState extends State<Payments> {
   }
 
   Future<void> confirmPayment(HomeViewModel model) async {
-    await model.collectCashPayment();
+    await model.collectPayment(paymentType: paymentType!);
+    double amount = _cash.text.isEmpty
+        ? model.kTransaction!.subTotal
+        : double.parse(_cash.text);
+    model.keypad.setCashReceived(amount: amount);
     String receiptType = "ns";
     if (ProxyService.box.isPoroformaMode()) {
       receiptType = ReceiptType.ps;
@@ -279,7 +299,7 @@ class _PaymentsState extends State<Payments> {
       receiptType = ReceiptType.ts;
     }
     _routerService.navigateTo(AfterSaleRoute(
-        totalTransactionAmount: model.totalPayable,
+        totalTransactionAmount: model.kTransaction!.subTotal,
         receiptType: receiptType,
         transaction: model.kTransaction!));
   }

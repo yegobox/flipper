@@ -732,15 +732,17 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<void> collectCashPayment(
-      {required double cashReceived, required Transaction transaction}) async {
+  Future<void> collectPayment(
+      {required double cashReceived,
+      required Transaction transaction,
+      required String paymentType}) async {
     transaction.status = completeStatus;
 
     List<TransactionItem> items = await transactionItems(
         transactionId: transaction.id!, doneWithTransaction: false);
 
     transaction.customerChangeDue = (cashReceived - transaction.subTotal);
-
+    transaction.paymentType = paymentType;
     transaction.cashReceived = cashReceived;
     transaction.updatedAt = DateTime.now().toIso8601String();
 

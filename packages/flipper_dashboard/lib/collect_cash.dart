@@ -187,13 +187,13 @@ class _CollectCashViewState extends State<CollectCashView> {
                                         amount: double.parse(_cash.text));
                                     if (_formKey.currentState!.validate()) {
                                       if (widget.paymentType == 'spenn') {
-                                        await model.collectSPENNPayment(
-                                          phoneNumber: _phone.text,
-                                          cashReceived:
-                                              double.parse(_cash.text),
-                                        );
+                                        // await model.collectSPENNPayment(
+                                        //   phoneNumber: _phone.text,
+                                        //   cashReceived:
+                                        //       double.parse(_cash.text),
+                                        // );
                                       } else {
-                                        await model.collectCashPayment();
+                                        // await model.collectPayment();
                                         _btnController.success();
                                         String receiptType = "ns";
                                         if (ProxyService.box
@@ -208,7 +208,8 @@ class _CollectCashViewState extends State<CollectCashView> {
                                                 totalTransactionAmount:
                                                     model.totalPayable,
                                                 receiptType: receiptType,
-                                                transaction: model.kTransaction!));
+                                                transaction:
+                                                    model.kTransaction!));
                                       }
                                     } else {
                                       _btnController.stop();
@@ -229,7 +230,8 @@ class _CollectCashViewState extends State<CollectCashView> {
         },
         onViewModelReady: (model) {
           nub.PubNub pubnub = ProxyService.event.connect();
-          ProxyService.box.write(key: 'transactionId', value: model.kTransaction!.id!);
+          ProxyService.box
+              .write(key: 'transactionId', value: model.kTransaction!.id!);
           nub.Subscription subscription =
               pubnub.subscribe(channels: {"payment"});
           subscription.messages.listen((event) {
@@ -239,7 +241,8 @@ class _CollectCashViewState extends State<CollectCashView> {
               _btnController.success();
 
               _routerService.navigateTo(AfterSaleRoute(
-                  totalTransactionAmount: totalTransactionAmount, transaction: model.kTransaction!));
+                  totalTransactionAmount: totalTransactionAmount,
+                  transaction: model.kTransaction!));
             }
           });
         },

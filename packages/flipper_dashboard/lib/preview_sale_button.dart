@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/toast.dart';
@@ -43,6 +45,12 @@ class PreviewSaleButton extends StatelessWidget {
           ),
         ),
         onPressed: () async {
+          HapticFeedback.lightImpact();
+          log("nav payment route");
+
+          /// if there is something on keyboard, it will be added to the cart automatically
+          /// TODO: Add this into settings if a user have a dirty keypad to take it as he want to add it to cart
+          model.keyboardKeyPressed(key: '+');
           Transaction? transaction = await ProxyService.isar
               .pendingTransaction(branchId: ProxyService.box.getBranchId()!);
           if (transaction == null) {
