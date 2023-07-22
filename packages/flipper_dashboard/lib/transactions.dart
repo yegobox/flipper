@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
@@ -8,6 +10,9 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:stacked/stacked.dart';
+import 'customappbar.dart';
+import 'widgets/custom_gradient_app_icon.dart';
+import 'widgets/radio_buttons.dart';
 
 class Transactions extends StatefulWidget {
   const Transactions({Key? key}) : super(key: key);
@@ -25,6 +30,8 @@ class _TransactionsState extends State<Transactions> {
   final _routerService = locator<RouterService>();
   String lastSeen = "";
   bool defaultTransactions = true;
+  int displayedTransactionType = 0;
+  List<String> transactionTypeOptions = ["All", "Sales", "Purchases"];
   List<Widget> list = [];
   List<Widget> zlist = [];
   List<Widget> _zTransactions({required Drawers drawer}) {
@@ -147,21 +154,57 @@ class _TransactionsState extends State<Transactions> {
     return zlist;
   }
 
-  List<Widget> _normalTransactions({required List<Transaction> completedTransaction}) {
+  String isEquivalentToToday(String isoString) {
+    DateTime dateTime = DateTime.parse(isoString);
+    DateTime today = DateTime.now();
+
+    if (dateTime.year == today.year &&
+        dateTime.month == today.month &&
+        dateTime.day == today.day) {
+      return 'Today';
+    } else {
+      return DateFormat.yMMMEd().format(DateTime.parse(isoString));
+    }
+  }
+
+  List<Widget> _normalTransactions(
+      {required List<Transaction> completedTransaction}) {
     for (Transaction transaction in completedTransaction) {
+      if (displayedTransactionType == 1 &&
+          transaction.transactionType == 'Cash Out') {
+        continue;
+      }
+      if (displayedTransactionType == 2 &&
+          transaction.transactionType != 'Cash Out') {
+        continue;
+      }
+      Color gradientColorOne = transaction.transactionType == 'Cash Out'
+          ? Colors.red
+          : Colors.greenAccent;
+      Color gradientColorTwo =
+          transaction.transactionType == 'Cash Out' ? Colors.red : Colors.blue;
+      String typeOfTransaction =
+          transaction.transactionType == 'Cash Out' ? 'Cash Out' : 'Cash In';
       if (lastSeen != transaction.createdAt.substring(0, 10)) {
-        setState(() {
-          lastSeen = transaction.createdAt.substring(0, 10);
-        });
+        lastSeen = transaction.createdAt.substring(0, 10);
 
         list.add(
           Container(
-            margin: const EdgeInsets.fromLTRB(80, 0, 0, 0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
+            margin: const EdgeInsets.fromLTRB(30, 0, 0, 0),
+            child: Column(
               children: [
-                Text(DateFormat.yMMMEd()
-                    .format(DateTime.parse(transaction.createdAt))),
+                SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Text(isEquivalentToToday(transaction.createdAt),
+                        style: GoogleFonts.poppins(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w400,
+                            color: Color(0xFF006AFE))),
+                  ],
+                ),
+                SizedBox(height: 10),
               ],
             ),
           ),
@@ -176,11 +219,35 @@ class _TransactionsState extends State<Transactions> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                const Icon(Icons.wallet),
-                Text(transaction.subTotal.toString()),
+                SizedBox(width: 5),
+                CustomGradientAppIcon(
+                    icon: FluentIcons.receipt_money_20_regular,
+                    gradientColorOne: gradientColorOne,
+                    gradientColorTwo: gradientColorTwo),
+                SizedBox(width: 10),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(transaction.subTotal.toString() + " RWF",
+                        style: GoogleFonts.poppins(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        )),
+                    Text(typeOfTransaction,
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey,
+                        )),
+                  ],
+                ),
                 const Spacer(),
-                Text(transaction.createdAt.toString().substring(11, 19)),
-                const Icon(FluentIcons.arrow_forward_20_regular),
+                Text(transaction.createdAt.toString().substring(11, 16),
+                    style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.grey)),
+                const Icon(FluentIcons.chevron_right_20_regular),
               ],
             ),
           ),
@@ -194,16 +261,9 @@ class _TransactionsState extends State<Transactions> {
   Widget build(BuildContext context) {
     return ViewModelBuilder<HomeViewModel>.reactive(
         onViewModelReady: (model) async {
-          List<Transaction> completedTransactions = await ProxyService.isar
-              .completedTransactions(branchId: ProxyService.box.getBranchId()!);
           Drawers? drawer = await ProxyService.isar
               .getDrawer(cashierId: ProxyService.box.getBusinessId()!);
 
-          model.completedTransactionsList = completedTransactions;
-
-          setState(() {
-            list = _normalTransactions(completedTransaction: completedTransactions);
-          });
           // for rra z report
           setState(() {
             zlist = _zTransactions(drawer: drawer!);
@@ -212,45 +272,31 @@ class _TransactionsState extends State<Transactions> {
         viewModelBuilder: () => HomeViewModel(),
         builder: (context, model, child) {
           return Scaffold(
-            appBar: AppBar(
-              backgroundColor: Colors.white,
-              leading: const SizedBox.shrink(),
-              title: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Transactions',
-                      style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w400,
-                          fontSize: 15,
-                          color: Colors.black),
-                    ),
-                    SizedBox(
-                      width: 30,
-                      child: SwitchListTile(
-                          value: !defaultTransactions,
-                          onChanged: (value) {
+            appBar: CustomAppBar(
+                closeButton: CLOSEBUTTON.WIDGET,
+                customLeadingWidget: Container(
+                    child: Text(
+                  '  Transactions',
+                  style: GoogleFonts.poppins(
+                      fontSize: 17,
+                      color: Colors.grey,
+                      fontWeight: FontWeight.w600),
+                ))),
+            body: defaultTransactions
+                ? Column(
+                    children: [
+                      RadioButtons(
+                          buttonLabels: transactionTypeOptions,
+                          onChanged: (newPeriod) {
                             setState(() {
-                              defaultTransactions = !defaultTransactions;
+                              list = [];
+                              displayedTransactionType = newPeriod;
                             });
                           }),
-                    )
-                  ]),
-              elevation: 0,
-            ),
-            body: defaultTransactions
-                ? (list.isEmpty
-                    ? Center(
-                        child: Text(
-                        "No Transactions",
-                        style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w400,
-                            fontSize: 15,
-                            color: Colors.black),
-                      ))
-                    : ListView(
-                        children: list,
-                      ))
+                      Divider(),
+                      buildList(context, model),
+                    ],
+                  )
                 : (zlist.isEmpty
                     ? Center(
                         child: Text(
@@ -265,5 +311,35 @@ class _TransactionsState extends State<Transactions> {
                       )),
           );
         });
+  }
+
+  Widget buildList(BuildContext context, HomeViewModel model) {
+    return StreamBuilder<List<Transaction>>(
+      initialData: null,
+      stream: ProxyService.isar.localCompletedTransactions(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator();
+        } else if (snapshot.hasError) {
+          log(snapshot.error.toString());
+          return Text('Error: ${snapshot.error}');
+        } else if (!snapshot.hasData) {
+          log('No transactions');
+          return Center(
+              child: Text(
+            "No Transactions",
+            style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w400, fontSize: 15, color: Colors.black),
+          ));
+        } else {
+          list = _normalTransactions(completedTransaction: snapshot.data!);
+          return Expanded(
+            child: ListView(
+              children: list,
+            ),
+          );
+        }
+      },
+    );
   }
 }

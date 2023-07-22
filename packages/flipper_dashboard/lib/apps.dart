@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flipper_services/proxy.dart';
 import 'widgets/dropdown.dart';
 import 'customappbar.dart';
+import 'widgets/custom_gradient_app_icon.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -95,110 +96,10 @@ class _AppsState extends State<Apps> {
       child: Container(
           child: Column(
         children: [
-          Container(
-            width: 59,
-            height: 59,
-            clipBehavior: Clip.antiAlias,
-            decoration: ShapeDecoration(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24),
-              ),
-            ),
-            child: Stack(
-              children: [
-                Positioned(
-                  left: 0,
-                  top: 0,
-                  child: Container(
-                    width: 59,
-                    height: 59,
-                    decoration: ShapeDecoration(
-                      color: Colors.black.withOpacity(0.00009999999747378752),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(2)),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  left: 0,
-                  top: 0,
-                  child: Container(
-                    width: 59,
-                    height: 59,
-                    decoration: ShapeDecoration(
-                      gradient: LinearGradient(
-                          colors: [gradientColorOne, gradientColorTwo],
-                          stops: [0.25, 0.9],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight),
-                      shape: RoundedRectangleBorder(
-                        side: BorderSide(
-                          width: 0.12,
-                          strokeAlign: BorderSide.strokeAlignCenter,
-                        ),
-                      ),
-                    ),
-                    child: Stack(
-                      children: [
-                        Positioned(
-                          left: 0,
-                          top: 0,
-                          child: Container(
-                            width: 59,
-                            height: 59,
-                            decoration: ShapeDecoration(
-                              shape: RoundedRectangleBorder(
-                                side: BorderSide(
-                                  width: 0.12,
-                                  strokeAlign: BorderSide.strokeAlignCenter,
-                                ),
-                              ),
-                            ),
-                            child: Stack(
-                              children: [
-                                Positioned(
-                                  left: 0,
-                                  top: 0,
-                                  child: Container(
-                                    width: 59,
-                                    height: 59,
-                                    child: SizedBox(
-                                      child: Icon(
-                                        iconData,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                          colors: [
-                                            gradientColorOne,
-                                            gradientColorTwo
-                                          ],
-                                          stops: [
-                                            0.25,
-                                            0.9
-                                          ],
-                                          begin: Alignment.topLeft,
-                                          end: Alignment.bottomRight),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          left: 0,
-                          top: 0,
-                          child: Container(width: 59, height: 59),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+          CustomGradientAppIcon(
+              icon: iconData,
+              gradientColorOne: gradientColorOne,
+              gradientColorTwo: gradientColorTwo),
           SizedBox(height: 8),
           Text(
             page,

@@ -2517,6 +2517,21 @@ class IsarAPI<M> implements IsarApiInterface {
         .findAll();
   }
 
+  @override
+  Stream<List<Transaction>> localCompletedTransactions() {
+    String status = completeStatus;
+    int branchId = ProxyService.box.getBranchId()!;
+    return isar.transactions
+        .where()
+        .filter()
+        .branchIdEqualTo(branchId)
+        .and()
+        .statusEqualTo(status)
+        .sortByCreatedAtDesc()
+        .build()
+        .watch(fireImmediately: true);
+  }
+
   /// Do not call this function in production
   @override
   Future<void> deleteAllProducts() async {

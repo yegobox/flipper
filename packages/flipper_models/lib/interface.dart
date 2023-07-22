@@ -68,13 +68,13 @@ abstract class IsarApiInterface {
     String transactionType = 'custom',
   });
 
-  Future<Transaction> manageCashInOutTransaction({
-    required String transactionType
-  });
+  Future<Transaction> manageCashInOutTransaction(
+      {required String transactionType});
 
   Future<List<Transaction>> completedTransactions(
       {required int branchId, String? status = completeStatus});
   Future<TransactionItem?> getTransactionItem({required int id});
+  Stream<List<Transaction>> localCompletedTransactions();
 
   Future<Variant?> getCustomVariant();
   Future<Spenn> spennPayment({required double amount, required phoneNumber});
@@ -121,7 +121,8 @@ abstract class IsarApiInterface {
   Stream<List<Transaction>> getLocalCashOutTransactions();
   Future<List<double>> getTransactionsAmountsSum({required String period});
   Future<List<double>> getLocalTransactionsAmountsSum({required String period});
-  Stream<List<Transaction>> getTransactionsByCustomerId({required int customerId});
+  Stream<List<Transaction>> getTransactionsByCustomerId(
+      {required int customerId});
   Future<int> deleteTransactionByIndex({required int transactionIndex});
 
   Future<List<Variant>> getVariantByProductId({required int productId});
