@@ -124,6 +124,7 @@ class IsarAPI<M> implements IsarApiInterface {
         .branchIdEqualTo(branchId)
         .and()
         .lastTouchedIsNull()
+        .sortByCreatedAtDesc()
         .build()
         .watch(fireImmediately: true)
         .asyncMap((event) => event.first);
@@ -2512,6 +2513,7 @@ class IsarAPI<M> implements IsarApiInterface {
     return await isar.transactions
         .where()
         .statusBranchIdEqualTo(status!, branchId)
+        .sortByCreatedAtDesc()
         .findAll();
   }
 

@@ -47,7 +47,8 @@ class _AppsState extends State<Apps> {
   final _routerService = locator<RouterService>();
   Widget _buildCustomPaintWithIcon(
       {required IconData iconData,
-      required Color backgroundColor,
+      required Color gradientColorOne,
+      required Color gradientColorTwo,
       required String page}) {
     return GestureDetector(
       onTap: () async {
@@ -125,7 +126,11 @@ class _AppsState extends State<Apps> {
                     width: 59,
                     height: 59,
                     decoration: ShapeDecoration(
-                      color: backgroundColor,
+                      gradient: LinearGradient(
+                          colors: [gradientColorOne, gradientColorTwo],
+                          stops: [0.25, 0.9],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight),
                       shape: RoundedRectangleBorder(
                         side: BorderSide(
                           width: 0.12,
@@ -164,7 +169,17 @@ class _AppsState extends State<Apps> {
                                       ),
                                     ),
                                     decoration: BoxDecoration(
-                                      color: backgroundColor,
+                                      gradient: LinearGradient(
+                                          colors: [
+                                            gradientColorOne,
+                                            gradientColorTwo
+                                          ],
+                                          stops: [
+                                            0.25,
+                                            0.9
+                                          ],
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight),
                                     ),
                                   ),
                                 ),
@@ -263,6 +278,7 @@ class _AppsState extends State<Apps> {
               padding: const EdgeInsets.only(top: 40.0),
               child: _buildGauge(context, widget.model),
             ),
+            SizedBox(height: 20),
             Expanded(
               child: GridView.count(
                 crossAxisCount: 3, // Number of items per row
@@ -272,27 +288,33 @@ class _AppsState extends State<Apps> {
                 children: [
                   _buildCustomPaintWithIcon(
                       iconData: FluentIcons.dialpad_24_regular,
-                      backgroundColor: Colors.blue,
+                      gradientColorOne: Colors.greenAccent,
+                      gradientColorTwo: Colors.blue,
                       page: "POS"),
                   _buildCustomPaintWithIcon(
                       iconData: FluentIcons.book_coins_24_regular,
-                      backgroundColor: Color.fromARGB(255, 6, 224, 61),
+                      gradientColorOne: Colors.purpleAccent,
+                      gradientColorTwo: Colors.lightBlue,
                       page: "Cashbook"),
                   _buildCustomPaintWithIcon(
                       iconData: FluentIcons.arrow_trending_lines_24_regular,
-                      backgroundColor: Colors.red,
+                      gradientColorOne: Colors.pink,
+                      gradientColorTwo: Colors.purpleAccent,
                       page: "Transactions"),
                   _buildCustomPaintWithIcon(
                       iconData: FluentIcons.communication_20_regular,
-                      backgroundColor: Color(0xff99DDFF),
+                      gradientColorOne: Colors.cyan,
+                      gradientColorTwo: Colors.lightBlue,
                       page: "Connecta"),
                   _buildCustomPaintWithIcon(
                       iconData: FluentIcons.settings_16_regular,
-                      backgroundColor: Colors.blueGrey,
+                      gradientColorOne: Colors.orange,
+                      gradientColorTwo: Colors.deepOrange,
                       page: "Settings"),
                   _buildCustomPaintWithIcon(
                       iconData: Icons.call,
-                      backgroundColor: Colors.blue,
+                      gradientColorOne: Colors.lightBlue,
+                      gradientColorTwo: Colors.blue,
                       page: "Support"),
                 ],
               ),
@@ -312,7 +334,7 @@ class _AppsState extends State<Apps> {
           return SemiCircleGauge(
             dataOnGreenSide: 0,
             dataOnRedSide: 0,
-            startPadding: 10,
+            startPadding: 0,
             profitType: widget.profitType,
           );
         } else {
@@ -354,7 +376,7 @@ class _AppsState extends State<Apps> {
           return SemiCircleGauge(
             dataOnGreenSide: sum_cash_in,
             dataOnRedSide: sum_cash_out,
-            startPadding: 10,
+            startPadding: 0,
             profitType: widget.profitType,
           );
         }
