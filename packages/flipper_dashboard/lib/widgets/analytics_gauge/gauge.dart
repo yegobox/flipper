@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'package:flipper_dashboard/create/divider.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -106,9 +105,11 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge> {
                         NumberFormat('#,###').format(double.parse(
                                 widget.dataOnGreenSide.toString())) +
                             " RWF",
+                        textAlign: TextAlign.center,
                         style: GoogleFonts.poppins(
                             fontSize: 20,
-                            color: Colors.black,
+                            height: 3,
+                            color: Colors.black.withOpacity(0.4099999964237213),
                             fontWeight: FontWeight.w600)),
                     widget.profitType == "Net Profit"
                         ? Text("Gross Profit",
@@ -126,12 +127,14 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge> {
                 Column(
                   children: [
                     Text(
+                        textAlign: TextAlign.center,
                         NumberFormat('#,###').format(
                                 double.parse(widget.dataOnRedSide.toString())) +
                             " RWF",
                         style: GoogleFonts.poppins(
                             fontSize: 20,
-                            color: Colors.black,
+                            height: 3,
+                            color: Colors.black.withOpacity(0.4099999964237213),
                             fontWeight: FontWeight.w600)),
                     Text("Expenses",
                         style: GoogleFonts.poppins(

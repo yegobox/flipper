@@ -112,6 +112,7 @@ class _AppsState extends State<Apps> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(
+        bottomSpacer: 48.99,
         closeButton: CLOSEBUTTON.WIDGET,
         customTrailingWidget: Container(
           child: FutureBuilder<ITenant?>(

@@ -216,10 +216,10 @@ class PMobile extends StatelessWidget {
 
         Widget buildContent() {
           final borderRadius = BorderRadius.only(
-            topLeft: Radius.circular(10),
-            topRight: Radius.circular(10),
-            bottomLeft: Radius.circular(10),
-            bottomRight: Radius.circular(10),
+            topLeft: Radius.circular(4),
+            topRight: Radius.circular(4),
+            bottomLeft: Radius.circular(4),
+            bottomRight: Radius.circular(4),
           );
 
           return GestureDetector(
