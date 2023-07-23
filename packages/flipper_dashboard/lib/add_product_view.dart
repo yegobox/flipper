@@ -164,7 +164,7 @@ class _AddProductViewState extends State<AddProductView> {
           child: Scaffold(
             appBar: CustomAppBar(
               onPop: () async {
-                _routerService.navigateTo(CheckOutRoute(isBigScreen: false));
+                _routerService.back();
               },
               title: 'Create Product',
               disableButton: model.lock,

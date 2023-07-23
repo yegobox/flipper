@@ -36,7 +36,7 @@ class _ReusableDropdownState extends State<ReusableDropdown> {
             child: Text(
               value,
               style: GoogleFonts.poppins(
-                  fontSize: 15, color: Colors.grey.shade600),
+                  fontSize: 18, color: Colors.grey.shade600),
             ),
           );
         }).toList(),

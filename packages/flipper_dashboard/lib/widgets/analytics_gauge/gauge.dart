@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'package:flipper_dashboard/create/divider.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -59,84 +60,95 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge> {
           style: GoogleFonts.poppins(fontSize: 18, color: Colors.grey));
       profitOrLoss = widget.dataOnRedSide - widget.dataOnGreenSide;
     } else {
-      resultText = Text('No transactions found',
+      resultText = Text('No transactions',
           style: GoogleFonts.poppins(fontSize: 18, color: Colors.grey));
     }
     return SizedBox(
-      width: radius *
-          2, // Make width equal to twice the radius for a circular gauge
       height: radius * 1.3,
-      child: CustomPaint(
-        painter:
-            _GaugePainter(greenAngle, redAngle, radius, widget.maxDataValue),
-        child: Padding(
-          padding: EdgeInsets.only(
-              top: widget.startPadding), // Adjust the top padding as desired
-          child: Column(
-            children: [
-              SizedBox(
-                height: 20,
-              ),
-              Text(
-                  NumberFormat('#,###')
-                          .format(double.parse(profitOrLoss.toString())) +
-                      ' RWF',
-                  style: GoogleFonts.poppins(
-                      fontSize: 22,
-                      color: Colors.black,
-                      fontWeight: FontWeight.w600)),
-              SizedBox(height: 10),
-              resultText,
-              SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
+        children: [
+          CustomPaint(
+            painter: _GaugePainter(
+                greenAngle, redAngle, radius, widget.maxDataValue),
+            child: Padding(
+              padding: EdgeInsets.only(
+                  top:
+                      widget.startPadding), // Adjust the top padding as desired
+              child: Column(
                 children: [
-                  Column(
-                    children: [
-                      Text(
-                          NumberFormat('#,###').format(double.parse(
-                                  widget.dataOnGreenSide.toString())) +
-                              " RWF",
-                          style: GoogleFonts.poppins(
-                              fontSize: 17,
-                              color: Colors.black,
-                              fontWeight: FontWeight.w600)),
-                      widget.profitType == "Net Profit"
-                          ? Text("Gross Profit",
-                              style: GoogleFonts.poppins(
-                                  fontSize: 16,
-                                  color: Colors.lightBlue.shade200,
-                                  fontWeight: FontWeight.w600))
-                          : Text("Total Sales",
-                              style: GoogleFonts.poppins(
-                                  fontSize: 16,
-                                  color: Colors.lightBlue.shade200,
-                                  fontWeight: FontWeight.w600))
-                    ],
+                  SizedBox(
+                    height: 20,
                   ),
-                  Column(
-                    children: [
-                      Text(
-                          NumberFormat('#,###').format(double.parse(
-                                  widget.dataOnRedSide.toString())) +
-                              " RWF",
-                          style: GoogleFonts.poppins(
-                              fontSize: 17,
-                              color: Colors.black,
-                              fontWeight: FontWeight.w600)),
-                      Text("Expenses",
-                          style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              color: Colors.lightBlue.shade200,
-                              fontWeight: FontWeight.w600)),
-                    ],
-                  ),
+                  Text(
+                      NumberFormat('#,###')
+                              .format(double.parse(profitOrLoss.toString())) +
+                          ' RWF',
+                      style: GoogleFonts.poppins(
+                          fontSize: 22,
+                          color: Colors.black,
+                          fontWeight: FontWeight.w600)),
+                  SizedBox(height: 10),
+                  resultText,
+                  SizedBox(height: 20),
                 ],
               ),
-              SizedBox(height: 20),
-            ],
+            ),
           ),
-        ),
+          Padding(
+            padding: const EdgeInsets.only(left: 51.0, right: 51.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Column(
+                  children: [
+                    Text(
+                        NumberFormat('#,###').format(double.parse(
+                                widget.dataOnGreenSide.toString())) +
+                            " RWF",
+                        style: GoogleFonts.poppins(
+                            fontSize: 20,
+                            color: Colors.black,
+                            fontWeight: FontWeight.w600)),
+                    widget.profitType == "Net Profit"
+                        ? Text("Gross Profit",
+                            style: GoogleFonts.poppins(
+                                fontSize: 20,
+                                color: Colors.lightBlue.shade200,
+                                fontWeight: FontWeight.w600))
+                        : Text("Total Sales",
+                            style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                color: Colors.lightBlue.shade200,
+                                fontWeight: FontWeight.w600))
+                  ],
+                ),
+                Column(
+                  children: [
+                    Text(
+                        NumberFormat('#,###').format(
+                                double.parse(widget.dataOnRedSide.toString())) +
+                            " RWF",
+                        style: GoogleFonts.poppins(
+                            fontSize: 20,
+                            color: Colors.black,
+                            fontWeight: FontWeight.w600)),
+                    Text("Expenses",
+                        style: GoogleFonts.poppins(
+                            fontSize: 20,
+                            color: Colors.lightBlue.shade200,
+                            fontWeight: FontWeight.w600)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Divider(
+              thickness: 0.5,
+            ),
+          ),
+        ],
       ),
     );
   }

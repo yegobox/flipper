@@ -16,7 +16,7 @@ class AddCategory extends StatelessWidget {
           appBar: CustomAppBar(
             onPop: () async {
               model.createCategory();
-              _routerService.pop();
+              _routerService.back();
             },
             title: 'Create Category',
             icon: Icons.keyboard_backspace,

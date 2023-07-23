@@ -123,6 +123,7 @@ class IsarAPI<M> implements IsarApiInterface {
         .branchIdEqualTo(branchId)
         .and()
         .lastTouchedIsNull()
+        .sortByCreatedAtDesc()
         .build()
         .watch(fireImmediately: true)
         .asyncMap((event) => event.first);
@@ -2561,7 +2562,23 @@ class IsarAPI<M> implements IsarApiInterface {
     return await isar.transactions
         .where()
         .statusBranchIdEqualTo(status!, branchId)
+        .sortByCreatedAtDesc()
         .findAll();
+  }
+
+  @override
+  Stream<List<Transaction>> localCompletedTransactions() {
+    String status = completeStatus;
+    int branchId = ProxyService.box.getBranchId()!;
+    return isar.transactions
+        .where()
+        .filter()
+        .branchIdEqualTo(branchId)
+        .and()
+        .statusEqualTo(status)
+        .sortByCreatedAtDesc()
+        .build()
+        .watch(fireImmediately: true);
   }
 
   /// Do not call this function in production

@@ -57,7 +57,7 @@ class CategorySelector extends StatelessWidget {
     Widget dynamicChild = GestureDetector(
         onTap: () {
           _routerService
-              .replaceWith(ListCategoriesRoute(categories: categories));
+              .navigateTo(ListCategoriesRoute(categories: categories));
         },
         child: Wrap(
           children: <Widget>[
@@ -82,7 +82,7 @@ class CategorySelector extends StatelessWidget {
             child: GestureDetector(
               onTap: () {
                 _routerService
-                    .replaceWith(ListCategoriesRoute(categories: categories));
+                    .navigateTo(ListCategoriesRoute(categories: categories));
               },
               child: ListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 0.3),

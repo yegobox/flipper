@@ -81,7 +81,9 @@ class _CustomAppBarState extends State<CustomAppBar> {
               child: widget.additionalText,
             ),
             const Expanded(
-              child: Divider(),
+              child: Divider(
+                thickness: 0.5,
+              ),
             )
           ],
         ),

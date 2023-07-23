@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flipper_services/proxy.dart';
 import 'widgets/dropdown.dart';
 import 'customappbar.dart';
+import 'widgets/custom_gradient_app_icon.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -47,7 +48,8 @@ class _AppsState extends State<Apps> {
   final _routerService = locator<RouterService>();
   Widget _buildCustomPaintWithIcon(
       {required IconData iconData,
-      required Color backgroundColor,
+      required Color gradientColorOne,
+      required Color gradientColorTwo,
       required String page}) {
     return GestureDetector(
       onTap: () async {
@@ -91,106 +93,18 @@ class _AppsState extends State<Apps> {
             ));
         }
       },
-      child: Container(
-          child: Column(
+      child: Column(
         children: [
-          Container(
-            width: 59,
-            height: 59,
-            clipBehavior: Clip.antiAlias,
-            decoration: ShapeDecoration(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24),
-              ),
-            ),
-            child: Stack(
-              children: [
-                Positioned(
-                  left: 0,
-                  top: 0,
-                  child: Container(
-                    width: 59,
-                    height: 59,
-                    decoration: ShapeDecoration(
-                      color: Colors.black.withOpacity(0.00009999999747378752),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(2)),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  left: 0,
-                  top: 0,
-                  child: Container(
-                    width: 59,
-                    height: 59,
-                    decoration: ShapeDecoration(
-                      color: backgroundColor,
-                      shape: RoundedRectangleBorder(
-                        side: BorderSide(
-                          width: 0.12,
-                          strokeAlign: BorderSide.strokeAlignCenter,
-                        ),
-                      ),
-                    ),
-                    child: Stack(
-                      children: [
-                        Positioned(
-                          left: 0,
-                          top: 0,
-                          child: Container(
-                            width: 59,
-                            height: 59,
-                            decoration: ShapeDecoration(
-                              shape: RoundedRectangleBorder(
-                                side: BorderSide(
-                                  width: 0.12,
-                                  strokeAlign: BorderSide.strokeAlignCenter,
-                                ),
-                              ),
-                            ),
-                            child: Stack(
-                              children: [
-                                Positioned(
-                                  left: 0,
-                                  top: 0,
-                                  child: Container(
-                                    width: 59,
-                                    height: 59,
-                                    child: SizedBox(
-                                      child: Icon(
-                                        iconData,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: backgroundColor,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          left: 0,
-                          top: 0,
-                          child: Container(width: 59, height: 59),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 8),
+          CustomGradientAppIcon(
+              icon: iconData,
+              gradientColorOne: gradientColorOne,
+              gradientColorTwo: gradientColorTwo),
           Text(
             page,
             style: primaryTextStyle.copyWith(color: Colors.grey),
           )
         ],
-      )),
+      ),
     );
   }
 
@@ -239,7 +153,7 @@ class _AppsState extends State<Apps> {
         child: Column(
           children: [
             ListTile(
-              contentPadding: EdgeInsets.only(left: 19, right: 19),
+              contentPadding: EdgeInsets.only(left: 30, right: 0),
               leading: ReusableDropdown(
                 options: widget.transactionPeriodOptions,
                 selectedOption: widget.transactionPeriod,
@@ -260,41 +174,53 @@ class _AppsState extends State<Apps> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.only(top: 40.0),
+              padding: const EdgeInsets.only(top: 60.0),
               child: _buildGauge(context, widget.model),
             ),
-            Expanded(
-              child: GridView.count(
-                crossAxisCount: 3, // Number of items per row
-                padding: EdgeInsets.all(2), // Adjust padding as needed
-                crossAxisSpacing: 10, // Adjust spacing as needed
-                mainAxisSpacing: 10, // Adjust spacing as needed
-                children: [
-                  _buildCustomPaintWithIcon(
-                      iconData: FluentIcons.dialpad_24_regular,
-                      backgroundColor: Colors.blue,
-                      page: "POS"),
-                  _buildCustomPaintWithIcon(
-                      iconData: FluentIcons.book_coins_24_regular,
-                      backgroundColor: Color.fromARGB(255, 6, 224, 61),
-                      page: "Cashbook"),
-                  _buildCustomPaintWithIcon(
-                      iconData: FluentIcons.arrow_trending_lines_24_regular,
-                      backgroundColor: Colors.red,
-                      page: "Transactions"),
-                  _buildCustomPaintWithIcon(
-                      iconData: FluentIcons.communication_20_regular,
-                      backgroundColor: Color(0xff99DDFF),
-                      page: "Connecta"),
-                  _buildCustomPaintWithIcon(
-                      iconData: FluentIcons.settings_16_regular,
-                      backgroundColor: Colors.blueGrey,
-                      page: "Settings"),
-                  _buildCustomPaintWithIcon(
-                      iconData: Icons.call,
-                      backgroundColor: Colors.blue,
-                      page: "Support"),
-                ],
+            SizedBox(height: 5),
+            Padding(
+              padding: const EdgeInsets.only(left: 36.0, right: 36.0),
+              child: SizedBox(
+                height: 320,
+                width: 320,
+                child: GridView.count(
+                  crossAxisCount: 3,
+                  crossAxisSpacing: 0,
+                  mainAxisSpacing: 0,
+                  padding: EdgeInsets.zero,
+                  children: [
+                    _buildCustomPaintWithIcon(
+                        iconData: FluentIcons.dialpad_24_regular,
+                        gradientColorOne: Colors.greenAccent,
+                        gradientColorTwo: Colors.blue,
+                        page: "POS"),
+                    _buildCustomPaintWithIcon(
+                        iconData: FluentIcons.book_coins_24_regular,
+                        gradientColorOne: Colors.purpleAccent,
+                        gradientColorTwo: Colors.lightBlue,
+                        page: "Cashbook"),
+                    _buildCustomPaintWithIcon(
+                        iconData: FluentIcons.arrow_trending_lines_24_regular,
+                        gradientColorOne: Colors.pink,
+                        gradientColorTwo: Colors.purpleAccent,
+                        page: "Transactions"),
+                    _buildCustomPaintWithIcon(
+                        iconData: FluentIcons.communication_20_regular,
+                        gradientColorOne: Colors.cyan,
+                        gradientColorTwo: Colors.lightBlue,
+                        page: "Connecta"),
+                    _buildCustomPaintWithIcon(
+                        iconData: FluentIcons.settings_16_regular,
+                        gradientColorOne: Colors.orange,
+                        gradientColorTwo: Colors.deepOrange,
+                        page: "Settings"),
+                    _buildCustomPaintWithIcon(
+                        iconData: Icons.call,
+                        gradientColorOne: Colors.lightBlue,
+                        gradientColorTwo: Colors.blue,
+                        page: "Support"),
+                  ],
+                ),
               ),
             )
           ],
@@ -312,7 +238,7 @@ class _AppsState extends State<Apps> {
           return SemiCircleGauge(
             dataOnGreenSide: 0,
             dataOnRedSide: 0,
-            startPadding: 10,
+            startPadding: 0,
             profitType: widget.profitType,
           );
         } else {
@@ -354,7 +280,7 @@ class _AppsState extends State<Apps> {
           return SemiCircleGauge(
             dataOnGreenSide: sum_cash_in,
             dataOnRedSide: sum_cash_out,
-            startPadding: 10,
+            startPadding: 0,
             profitType: widget.profitType,
           );
         }

@@ -71,7 +71,7 @@ class ListCategories extends StatelessWidget {
           appBar: CustomAppBar(
             onPop: () {
               log('back');
-              _routerService.navigateTo(AddProductViewRoute());
+              _routerService.back();
             },
             showActionButton: false,
             title: 'Category',

@@ -97,7 +97,7 @@ class _CashbookState extends State<Cashbook> {
                   buildGaugeOrList(context, model, 'gauge'),
                   SizedBox(
                       width: MediaQuery.of(context).size.width,
-                      height: 400,
+                      height: MediaQuery.of(context).size.height * 0.5,
                       child: widget.newTransactionPressed == false
                           ? Column(
                               children: [
@@ -106,12 +106,11 @@ class _CashbookState extends State<Cashbook> {
                                         fontSize: 17,
                                         color: Colors.lightBlue,
                                         fontWeight: FontWeight.w600)),
-                                SizedBox(height: 20),
+                                SizedBox(height: 5),
                                 Expanded(
                                   child:
                                       buildGaugeOrList(context, model, 'list'),
                                 ),
-                                SizedBox(height: 10),
                                 Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceEvenly,
@@ -134,7 +133,7 @@ class _CashbookState extends State<Cashbook> {
                                             side: MaterialStateProperty.all<
                                                 BorderSide>(
                                               const BorderSide(
-                                                  color: Colors.green),
+                                                  color: Color(0xFF00FE38)),
                                             ),
                                             shape: MaterialStateProperty
                                                 .resolveWith<OutlinedBorder>(
@@ -146,32 +145,20 @@ class _CashbookState extends State<Cashbook> {
                                             ),
                                             backgroundColor:
                                                 MaterialStateProperty.all<
-                                                        Color>(
-                                                    const Color(0x008000)),
+                                                    Color>(Color(0xFF00FE38)),
                                             overlayColor: MaterialStateProperty
                                                 .resolveWith<Color?>(
                                               (Set<MaterialState> states) {
-                                                if (states.contains(
-                                                    MaterialState.hovered)) {
-                                                  return Colors.green
-                                                      .withOpacity(0.04);
-                                                }
-                                                if (states.contains(
-                                                        MaterialState
-                                                            .focused) ||
-                                                    states.contains(
-                                                        MaterialState
-                                                            .pressed)) {
-                                                  return Colors.green
-                                                      .withOpacity(0.12);
-                                                }
-                                                return null; // Defer to the widget's default.
+                                                return Color(
+                                                    0xFF00FE38); // Defer to the widget's default.
                                               },
                                             ),
                                           ),
-                                          child: const Text('Cash In',
+                                          child: const Text('+ Cash In',
                                               style: TextStyle(
-                                                  color: Colors.black)),
+                                                  color: Colors.white,
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w600)),
                                         ),
                                       ),
                                     ),
@@ -193,7 +180,7 @@ class _CashbookState extends State<Cashbook> {
                                             side: MaterialStateProperty.all<
                                                 BorderSide>(
                                               const BorderSide(
-                                                  color: Colors.red),
+                                                  color: Color(0xFFFF0331)),
                                             ),
                                             shape: MaterialStateProperty
                                                 .resolveWith<OutlinedBorder>(
@@ -205,32 +192,20 @@ class _CashbookState extends State<Cashbook> {
                                             ),
                                             backgroundColor:
                                                 MaterialStateProperty.all<
-                                                        Color>(
-                                                    const Color(0x800000)),
+                                                    Color>(Color(0xFFFF0331)),
                                             overlayColor: MaterialStateProperty
                                                 .resolveWith<Color?>(
                                               (Set<MaterialState> states) {
-                                                if (states.contains(
-                                                    MaterialState.hovered)) {
-                                                  return Colors.red
-                                                      .withOpacity(0.04);
-                                                }
-                                                if (states.contains(
-                                                        MaterialState
-                                                            .focused) ||
-                                                    states.contains(
-                                                        MaterialState
-                                                            .pressed)) {
-                                                  return Colors.red
-                                                      .withOpacity(0.12);
-                                                }
-                                                return null; // Defer to the widget's default.
+                                                return Color(
+                                                    0xFFFF0331); // Defer to the widget's default.
                                               },
                                             ),
                                           ),
-                                          child: const Text('Cash Out',
+                                          child: const Text('- Cash Out',
                                               style: TextStyle(
-                                                  color: Colors.black)),
+                                                  color: Colors.white,
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w600)),
                                         ),
                                       ),
                                     ),
@@ -299,7 +274,7 @@ class _CashbookState extends State<Cashbook> {
             return SemiCircleGauge(
               dataOnGreenSide: 0,
               dataOnRedSide: 0,
-              startPadding: 10,
+              startPadding: 0,
               profitType: widget.profitType,
             );
           } else {
@@ -353,7 +328,7 @@ class _CashbookState extends State<Cashbook> {
               return SemiCircleGauge(
                 dataOnGreenSide: sum_cash_in,
                 dataOnRedSide: sum_cash_out,
-                startPadding: 10,
+                startPadding: 0,
                 profitType: widget.profitType,
               );
 
