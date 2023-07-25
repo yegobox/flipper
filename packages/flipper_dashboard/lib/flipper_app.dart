@@ -10,14 +10,14 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:move_to_background/move_to_background.dart';
+import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:move_to_background/move_to_background.dart';
+import 'package:nfc_manager/nfc_manager.dart';
+import 'package:permission_handler/permission_handler.dart' as perm;
 import 'package:stacked/stacked.dart';
 
-import 'package:permission_handler/permission_handler.dart' as perm;
 import 'page_switcher.dart';
-import 'package:flutter_windowmanager/flutter_windowmanager.dart';
-import 'package:nfc_manager/nfc_manager.dart';
 
 class FlipperApp extends StatefulWidget {
   const FlipperApp({Key? key}) : super(key: key);
@@ -154,12 +154,11 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
                   builder: (BuildContext context, BoxConstraints constraints) {
                 if (constraints.maxWidth < 600) {
                   // this is a phone
-                  return SafeArea(
-                    child: PageSwitcher(
-                      controller: controller,
-                      model: model,
-                      currentPage: tabselected,
-                    ),
+
+                  return PageSwitcher(
+                    controller: controller,
+                    model: model,
+                    currentPage: tabselected,
                   );
                 } else {
                   return Row(

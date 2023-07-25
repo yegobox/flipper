@@ -11,7 +11,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:stacked/stacked.dart';
 import 'customappbar.dart';
-import 'widgets/custom_gradient_app_icon.dart';
+import 'widgets/mini_app_icon.dart';
 import 'widgets/radio_buttons.dart';
 
 class Transactions extends StatefulWidget {
@@ -220,9 +220,11 @@ class _TransactionsState extends State<Transactions> {
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 SizedBox(width: 5),
-                CustomGradientAppIcon(
+                MiniAppIcon(
                     icon: FluentIcons.receipt_money_20_regular,
                     gradientColorOne: gradientColorOne,
+                    page: "Transaction",
+                    showPageName: false,
                     gradientColorTwo: gradientColorTwo),
                 SizedBox(width: 10),
                 Column(

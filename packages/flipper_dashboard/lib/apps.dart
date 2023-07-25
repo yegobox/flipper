@@ -1,4 +1,3 @@
-import 'package:flipper_services/constants.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_dashboard/profile.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
@@ -8,7 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flipper_services/proxy.dart';
 import 'widgets/dropdown.dart';
 import 'customappbar.dart';
-import 'widgets/custom_gradient_app_icon.dart';
+import 'widgets/mini_app_icon.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -95,14 +94,12 @@ class _AppsState extends State<Apps> {
       },
       child: Column(
         children: [
-          CustomGradientAppIcon(
+          MiniAppIcon(
               icon: iconData,
               gradientColorOne: gradientColorOne,
+              page: page,
+              showPageName: true,
               gradientColorTwo: gradientColorTwo),
-          Text(
-            page,
-            style: primaryTextStyle.copyWith(color: Colors.grey),
-          )
         ],
       ),
     );
@@ -182,8 +179,8 @@ class _AppsState extends State<Apps> {
             Padding(
               padding: const EdgeInsets.only(left: 36.0, right: 36.0),
               child: SizedBox(
-                height: 320,
-                width: 320,
+                height: 340,
+                width: 340,
                 child: GridView.count(
                   crossAxisCount: 3,
                   crossAxisSpacing: 0,
