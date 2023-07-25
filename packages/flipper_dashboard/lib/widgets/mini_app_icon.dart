@@ -21,20 +21,18 @@ class MiniAppIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        SizedBox(
-          width: 72,
-          height: 72,
-          child: Material(
-            color: gradientColorOne,
+        Container(
+          height: 72.0,
+          width: 72.0,
+          decoration: ShapeDecoration(
             shape: ContinuousRectangleBorder(
-              borderRadius: BorderRadius.circular(80.0),
-            ),
-            elevation: 0.0,
-            child: Center(
-              child: Icon(
-                icon,
-                color: Colors.white,
-              ),
+                borderRadius: BorderRadius.circular(80.0)),
+            color: gradientColorOne,
+          ),
+          child: Center(
+            child: Icon(
+              icon,
+              color: Colors.white,
             ),
           ),
         ),
