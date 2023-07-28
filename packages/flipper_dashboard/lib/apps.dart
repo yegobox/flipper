@@ -172,7 +172,7 @@ class _AppsState extends State<Apps> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.only(top: 60.0),
+              padding: const EdgeInsets.only(top: 70.0),
               child: _buildGauge(context, widget.model),
             ),
             SizedBox(height: 5),
@@ -184,7 +184,7 @@ class _AppsState extends State<Apps> {
                 child: GridView.count(
                   crossAxisCount: 3,
                   crossAxisSpacing: 0,
-                  mainAxisSpacing: 0,
+                  mainAxisSpacing: 1,
                   padding: EdgeInsets.zero,
                   children: [
                     _buildCustomPaintWithIcon(

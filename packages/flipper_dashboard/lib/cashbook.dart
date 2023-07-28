@@ -56,205 +56,197 @@ class _CashbookState extends State<Cashbook> {
         return Scaffold(
           appBar: CustomAppBar(
             closeButton: CLOSEBUTTON.WIDGET,
-            customLeadingWidget: Container(
-                child: Text(
-              '  Cash Book',
-              style: GoogleFonts.poppins(
-                  fontSize: 17,
-                  color: Colors.grey,
-                  fontWeight: FontWeight.w600),
-            )),
+            title: ' Cash Book',
+            customLeadingWidget: GestureDetector(
+              onTap: () {
+                Navigator.pop(context);
+              },
+              child: Icon(Icons.arrow_back),
+            ),
           ),
-          body: Center(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Column(
-                children: [
-                  Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        ReusableDropdown(
-                          options: widget.transactionPeriodOptions,
-                          selectedOption: widget.transactionPeriod,
-                          onChanged: (String? newPeriod) {
-                            setState(() {
-                              widget.transactionPeriod = newPeriod!;
-                            });
-                          },
-                        ),
-                        SizedBox(width: 100),
-                        ReusableDropdown(
-                          options: widget.profitTypeOptions,
-                          selectedOption: widget.profitType,
-                          onChanged: (String? newProfitType) {
-                            setState(() {
-                              widget.profitType = newProfitType!;
-                            });
-                          },
-                        ),
-                      ]),
-                  SizedBox(height: 80),
-                  buildGaugeOrList(context, model, 'gauge'),
-                  SizedBox(
-                      width: MediaQuery.of(context).size.width,
-                      height: MediaQuery.of(context).size.height * 0.5,
-                      child: widget.newTransactionPressed == false
-                          ? Column(
-                              children: [
-                                Text(widget.transactionPeriod,
-                                    style: GoogleFonts.poppins(
-                                        fontSize: 17,
-                                        color: Colors.lightBlue,
-                                        fontWeight: FontWeight.w600)),
-                                SizedBox(height: 5),
-                                Expanded(
-                                  child:
-                                      buildGaugeOrList(context, model, 'list'),
-                                ),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.only(top: 75.0),
-                                      child: SizedBox(
-                                        height: 45,
-                                        width: 140,
-                                        child: OutlinedButton(
-                                          onPressed: () {
-                                            setState(() {
-                                              widget.newTransactionPressed =
-                                                  true;
-                                              widget.newTransactionType =
-                                                  'Cash In';
-                                            });
-                                          },
-                                          style: ButtonStyle(
-                                            side: MaterialStateProperty.all<
-                                                BorderSide>(
-                                              const BorderSide(
-                                                  color: Color(0xFF00FE38)),
-                                            ),
-                                            shape: MaterialStateProperty
-                                                .resolveWith<OutlinedBorder>(
-                                              (states) =>
-                                                  RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(10.0),
-                                              ),
-                                            ),
-                                            backgroundColor:
-                                                MaterialStateProperty.all<
-                                                    Color>(Color(0xFF00FE38)),
-                                            overlayColor: MaterialStateProperty
-                                                .resolveWith<Color?>(
-                                              (Set<MaterialState> states) {
-                                                return Color(
-                                                    0xFF00FE38); // Defer to the widget's default.
-                                              },
+          body: Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            child: Column(
+              children: [
+                ListTile(
+                  contentPadding: EdgeInsets.only(left: 30, right: 0),
+                  leading: ReusableDropdown(
+                    options: widget.transactionPeriodOptions,
+                    selectedOption: widget.transactionPeriod,
+                    onChanged: (String? newPeriod) {
+                      setState(() {
+                        widget.transactionPeriod = newPeriod!;
+                      });
+                    },
+                  ),
+                  trailing: ReusableDropdown(
+                    options: widget.profitTypeOptions,
+                    selectedOption: widget.profitType,
+                    onChanged: (String? newProfitType) {
+                      setState(() {
+                        widget.profitType = newProfitType!;
+                      });
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 70.0),
+                  child: buildGaugeOrList(context, model, 'gauge'),
+                ),
+                SizedBox(
+                    width: MediaQuery.of(context).size.width,
+                    height: MediaQuery.of(context).size.height * 0.45,
+                    child: widget.newTransactionPressed == false
+                        ? Column(
+                            children: [
+                              Text(widget.transactionPeriod,
+                                  style: GoogleFonts.poppins(
+                                      fontSize: 17,
+                                      color: Colors.lightBlue,
+                                      fontWeight: FontWeight.w600)),
+                              SizedBox(height: 15),
+                              Expanded(
+                                child: buildGaugeOrList(context, model, 'list'),
+                              ),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 15.0),
+                                    child: SizedBox(
+                                      height: 45,
+                                      width: 140,
+                                      child: OutlinedButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            widget.newTransactionPressed = true;
+                                            widget.newTransactionType =
+                                                'Cash In';
+                                          });
+                                        },
+                                        style: ButtonStyle(
+                                          side: MaterialStateProperty.all<
+                                              BorderSide>(
+                                            const BorderSide(
+                                                color: Color(0xFF00FE38)),
+                                          ),
+                                          shape: MaterialStateProperty
+                                              .resolveWith<OutlinedBorder>(
+                                            (states) => RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(10.0),
                                             ),
                                           ),
-                                          child: const Text('+ Cash In',
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.w600)),
+                                          backgroundColor:
+                                              MaterialStateProperty.all<Color>(
+                                                  Color(0xFF00FE38)),
+                                          overlayColor: MaterialStateProperty
+                                              .resolveWith<Color?>(
+                                            (Set<MaterialState> states) {
+                                              return Color(
+                                                  0xFF00FE38); // Defer to the widget's default.
+                                            },
+                                          ),
                                         ),
+                                        child: const Text('+ Cash In',
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w600)),
                                       ),
                                     ),
-                                    Padding(
-                                      padding: const EdgeInsets.only(top: 75.0),
-                                      child: SizedBox(
-                                        height: 45,
-                                        width: 140,
-                                        child: OutlinedButton(
-                                          onPressed: () {
-                                            setState(() {
-                                              widget.newTransactionPressed =
-                                                  true;
-                                              widget.newTransactionType =
-                                                  'Cash Out';
-                                            });
-                                          },
-                                          style: ButtonStyle(
-                                            side: MaterialStateProperty.all<
-                                                BorderSide>(
-                                              const BorderSide(
-                                                  color: Color(0xFFFF0331)),
-                                            ),
-                                            shape: MaterialStateProperty
-                                                .resolveWith<OutlinedBorder>(
-                                              (states) =>
-                                                  RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(10.0),
-                                              ),
-                                            ),
-                                            backgroundColor:
-                                                MaterialStateProperty.all<
-                                                    Color>(Color(0xFFFF0331)),
-                                            overlayColor: MaterialStateProperty
-                                                .resolveWith<Color?>(
-                                              (Set<MaterialState> states) {
-                                                return Color(
-                                                    0xFFFF0331); // Defer to the widget's default.
-                                              },
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 15.0),
+                                    child: SizedBox(
+                                      height: 45,
+                                      width: 140,
+                                      child: OutlinedButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            widget.newTransactionPressed = true;
+                                            widget.newTransactionType =
+                                                'Cash Out';
+                                          });
+                                        },
+                                        style: ButtonStyle(
+                                          side: MaterialStateProperty.all<
+                                              BorderSide>(
+                                            const BorderSide(
+                                                color: Color(0xFFFF0331)),
+                                          ),
+                                          shape: MaterialStateProperty
+                                              .resolveWith<OutlinedBorder>(
+                                            (states) => RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(10.0),
                                             ),
                                           ),
-                                          child: const Text('- Cash Out',
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.w600)),
+                                          backgroundColor:
+                                              MaterialStateProperty.all<Color>(
+                                                  Color(0xFFFF0331)),
+                                          overlayColor: MaterialStateProperty
+                                              .resolveWith<Color?>(
+                                            (Set<MaterialState> states) {
+                                              return Color(
+                                                  0xFFFF0331); // Defer to the widget's default.
+                                            },
+                                          ),
                                         ),
+                                        child: const Text('- Cash Out',
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w600)),
                                       ),
                                     ),
-                                  ],
-                                )
-                              ],
-                            )
-                          : Column(
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    if (widget.newTransactionType == 'Cash In')
-                                      Text('Record Cash In',
-                                          style: GoogleFonts.poppins(
-                                              fontSize: 17,
-                                              fontWeight: FontWeight.bold))
-                                    else if (widget.newTransactionType ==
-                                        'Cash Out')
-                                      Text('Record Cash Out',
-                                          style: GoogleFonts.poppins(
-                                              fontSize: 17,
-                                              fontWeight: FontWeight.bold)),
-                                    CategorySelector.transactionMode(
-                                        categories: model.categories),
-                                    IconButton(
-                                      icon: Icon(Icons.close),
-                                      onPressed: () {
-                                        setState(() {
-                                          widget.newTransactionPressed = false;
-                                        });
-                                      },
-                                    )
-                                  ],
-                                ),
-                                KeyPadView.cashBookMode(
-                                  model: model,
-                                  isBigScreen: widget.isBigScreen,
-                                  transactionMode: true,
-                                  transactionType: widget.newTransactionType,
-                                )
-                              ],
-                            ))
+                                  ),
+                                ],
+                              )
+                            ],
+                          )
+                        : Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  if (widget.newTransactionType == 'Cash In')
+                                    Text('Record Cash In',
+                                        style: GoogleFonts.poppins(
+                                            fontSize: 17,
+                                            fontWeight: FontWeight.bold))
+                                  else if (widget.newTransactionType ==
+                                      'Cash Out')
+                                    Text('Record Cash Out',
+                                        style: GoogleFonts.poppins(
+                                            fontSize: 17,
+                                            fontWeight: FontWeight.bold)),
+                                  CategorySelector.transactionMode(
+                                      categories: model.categories),
+                                  IconButton(
+                                    icon: Icon(Icons.close),
+                                    onPressed: () {
+                                      setState(() {
+                                        widget.newTransactionPressed = false;
+                                      });
+                                    },
+                                  )
+                                ],
+                              ),
+                              KeyPadView.cashBookMode(
+                                model: model,
+                                isBigScreen: widget.isBigScreen,
+                                transactionMode: true,
+                                transactionType: widget.newTransactionType,
+                              )
+                            ],
+                          ))
 
-                  //List of transactions will go here
-                  //Then the add transaction buttons underneath
-                ],
-              ),
+                //List of transactions will go here
+                //Then the add transaction buttons underneath
+              ],
             ),
           ),
         );
