@@ -84,7 +84,7 @@ class App {}
 // NOTE: we have custom toast service you can call it like this  showToast(
 //                                 context, 'Binded to ${tenants[index].name}');
 // flutter attach -d <DEVICE_ID>
-
+// 
 // FIXME: windows is not building
 // https://github.com/flutter/flutter/issues/102451#issuecomment-1124651845
 // https://github.com/mogol/flutter_secure_storage/issues/379
