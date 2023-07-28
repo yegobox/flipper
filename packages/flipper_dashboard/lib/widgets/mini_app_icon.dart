@@ -25,10 +25,11 @@ class MiniAppIcon extends StatelessWidget {
           height: 72.0,
           width: 72.0,
           decoration: ShapeDecoration(
-            shape: ContinuousRectangleBorder(
-                borderRadius: BorderRadius.circular(80.0)),
-            color: gradientColorOne,
-          ),
+              shape: ContinuousRectangleBorder(
+                  side: BorderSide.none,
+                  borderRadius: BorderRadius.circular(80.0)),
+              color: gradientColorOne,
+              shadows: []),
           child: Center(
             child: Icon(
               icon,
