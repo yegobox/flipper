@@ -64,7 +64,7 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge> {
           style: GoogleFonts.poppins(fontSize: 18, color: Colors.grey));
     }
     return SizedBox(
-      height: radius * 1.3,
+      height: radius * 1.5,
       child: Column(
         children: [
           CustomPaint(
@@ -89,13 +89,13 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge> {
                           fontWeight: FontWeight.w600)),
                   SizedBox(height: 10),
                   resultText,
-                  SizedBox(height: 20),
+                  SizedBox(height: 15),
                 ],
               ),
             ),
           ),
           Padding(
-            padding: const EdgeInsets.only(left: 51.0, right: 51.0),
+            padding: const EdgeInsets.only(left: 41.0, right: 41.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -120,7 +120,7 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge> {
                                 fontWeight: FontWeight.w600))
                         : Text("Total Sales",
                             style: GoogleFonts.poppins(
-                                fontSize: 16,
+                                fontSize: 20,
                                 color: Colors.lightBlue.shade200,
                                 fontWeight: FontWeight.w600))
                   ],

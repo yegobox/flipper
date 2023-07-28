@@ -70,9 +70,9 @@ class _CustomAppBarState extends State<CustomAppBar> {
                       widget.title ?? '',
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
-                          color: Colors.black,
                           fontSize: 17,
-                          fontWeight: FontWeight.w400),
+                          color: Colors.black,
+                          fontWeight: FontWeight.w600),
                     ),
               trailing: buildTrailing(),
               dense: true,

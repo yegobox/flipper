@@ -178,13 +178,21 @@ class _TransactionsState extends State<Transactions> {
           transaction.transactionType != 'Cash Out') {
         continue;
       }
-      Color gradientColorOne = transaction.transactionType == 'Cash Out'
+      Color gradientColorOne = (transaction.transactionType == 'Cash Out')
           ? Colors.red
-          : Colors.greenAccent;
-      Color gradientColorTwo =
-          transaction.transactionType == 'Cash Out' ? Colors.red : Colors.blue;
-      String typeOfTransaction =
-          transaction.transactionType == 'Cash Out' ? 'Cash Out' : 'Cash In';
+          : (transaction.transactionType == 'Cash In')
+              ? Colors.blueAccent
+              : Colors.greenAccent;
+      Color gradientColorTwo = (transaction.transactionType == 'Cash Out')
+          ? Colors.red
+          : (transaction.transactionType == 'Cash In')
+              ? Colors.blueAccent
+              : Colors.greenAccent;
+      String typeOfTransaction = transaction.transactionType == 'Cash Out'
+          ? 'Cash Out'
+          : (transaction.transactionType == 'Cash In')
+              ? 'Cash In'
+              : 'Sales';
       if (lastSeen != transaction.createdAt.substring(0, 10)) {
         lastSeen = transaction.createdAt.substring(0, 10);
 
@@ -215,19 +223,28 @@ class _TransactionsState extends State<Transactions> {
           margin: const EdgeInsets.all(4),
           child: GestureDetector(
             onTap: () => _routerService
-                .replaceWith(TransactionDetailRoute(transaction: transaction)),
+                .navigateTo(TransactionDetailRoute(transaction: transaction)),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 SizedBox(width: 5),
-                MiniAppIcon(
-                    icon: FluentIcons.receipt_money_20_regular,
-                    gradientColorOne: gradientColorOne,
-                    page: "Transaction",
-                    showPageName: false,
-                    gradientColorTwo: gradientColorTwo),
+                Column(
+                  children: [
+                    Center(
+                      child: MiniAppIcon(
+                        icon: FluentIcons.receipt_money_20_regular,
+                        gradientColorOne: gradientColorOne,
+                        page: "Transaction",
+                        showPageName: false,
+                        gradientColorTwo: gradientColorTwo,
+                        sideSize: 50,
+                      ),
+                    ),
+                  ],
+                ),
                 SizedBox(width: 10),
                 Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(transaction.subTotal.toString() + " RWF",
@@ -275,15 +292,15 @@ class _TransactionsState extends State<Transactions> {
         builder: (context, model, child) {
           return Scaffold(
             appBar: CustomAppBar(
-                closeButton: CLOSEBUTTON.WIDGET,
-                customLeadingWidget: Container(
-                    child: Text(
-                  '  Transactions',
-                  style: GoogleFonts.poppins(
-                      fontSize: 17,
-                      color: Colors.grey,
-                      fontWeight: FontWeight.w600),
-                ))),
+              closeButton: CLOSEBUTTON.WIDGET,
+              title: ' Transactions',
+              customLeadingWidget: GestureDetector(
+                onTap: () {
+                  Navigator.pop(context);
+                },
+                child: Icon(Icons.arrow_back),
+              ),
+            ),
             body: defaultTransactions
                 ? Column(
                     children: [

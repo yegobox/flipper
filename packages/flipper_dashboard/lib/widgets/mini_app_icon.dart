@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class MiniAppIcon extends StatelessWidget {
   const MiniAppIcon(
@@ -8,7 +9,7 @@ class MiniAppIcon extends StatelessWidget {
       required this.gradientColorTwo,
       required this.page,
       this.showPageName = true,
-      this.sideSize = 59.0});
+      this.sideSize = 72.0});
 
   final IconData icon;
   final Color gradientColorOne;
@@ -22,8 +23,8 @@ class MiniAppIcon extends StatelessWidget {
     return Column(
       children: [
         Container(
-          height: 72.0,
-          width: 72.0,
+          height: sideSize,
+          width: sideSize,
           decoration: ShapeDecoration(
               shape: ContinuousRectangleBorder(
                   side: BorderSide.none,
@@ -41,9 +42,7 @@ class MiniAppIcon extends StatelessWidget {
           padding: const EdgeInsets.all(10.0),
           child: Visibility(
             visible: showPageName,
-            child: Text(
-              page,
-            ),
+            child: Text(page, style: GoogleFonts.poppins(fontSize: 13)),
           ),
         )
       ],
