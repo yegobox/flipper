@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -27,14 +28,15 @@ class SemiCircleGauge extends StatefulWidget {
 class _SemiCircleGaugeState extends State<SemiCircleGauge> {
   @override
   Widget build(BuildContext context) {
-    double radius = MediaQuery.of(context).size.height / 6;
+    double radius = MediaQuery.of(context).size.width / 3;
     double totalData = widget.dataOnGreenSide + widget.dataOnRedSide;
     double greenAngle = 0;
     double redAngle = 0;
+    double greyAngle = math.pi;
 
     if ((widget.dataOnGreenSide == 0) && (widget.dataOnRedSide == 0)) {
-      greenAngle = math.pi / 2;
-      redAngle = math.pi / 2;
+      greenAngle = math.pi / 30;
+      redAngle = math.pi / 30;
     } else {
       greenAngle = (widget.dataOnGreenSide / totalData) * math.pi;
       redAngle = (widget.dataOnRedSide / totalData) * math.pi;
@@ -69,7 +71,7 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge> {
         children: [
           CustomPaint(
             painter: _GaugePainter(
-                greenAngle, redAngle, radius, widget.maxDataValue),
+                greenAngle, redAngle, radius, widget.maxDataValue, greyAngle),
             child: Padding(
               padding: EdgeInsets.only(
                   top:
@@ -160,13 +162,28 @@ class _GaugePainter extends CustomPainter {
   final double redAngle;
   final double radius;
   final double maxDataValue;
+  final double greyAngle;
 
-  _GaugePainter(this.greenAngle, this.redAngle, this.radius, this.maxDataValue);
+  _GaugePainter(this.greenAngle, this.redAngle, this.radius, this.maxDataValue,
+      this.greyAngle);
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
+    log(redAngle.toString(), name: "redAngle");
 
+    final greyPaint = Paint()
+      ..color = Colors.grey
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 10.0
+      ..strokeCap = StrokeCap.round;
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      math.pi,
+      greyAngle,
+      false,
+      greyPaint,
+    );
     // Draw the green semi-circle
     final greenPaint = Paint()
       ..color = Colors.green

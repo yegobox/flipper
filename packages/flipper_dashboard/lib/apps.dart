@@ -172,7 +172,7 @@ class _AppsState extends State<Apps> {
               padding: const EdgeInsets.only(top: 70.0),
               child: _buildGauge(context, widget.model),
             ),
-            SizedBox(height: 40),
+            // SizedBox(height: 40),
             Padding(
               padding: const EdgeInsets.only(left: 36.0, right: 36.0),
               child: Stack(
@@ -188,8 +188,8 @@ class _AppsState extends State<Apps> {
                       children: [
                         _buildCustomPaintWithIcon(
                             iconData: FluentIcons.dialpad_24_regular,
-                            gradientColorOne: Colors.greenAccent,
-                            gradientColorTwo: Colors.blue,
+                            gradientColorOne: const Color(0xff006AFE),
+                            gradientColorTwo: const Color(0xff006AFE),
                             page: "POS"),
                         _buildCustomPaintWithIcon(
                             iconData: FluentIcons.book_coins_24_regular,
