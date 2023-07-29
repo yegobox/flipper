@@ -6,14 +6,12 @@ class MiniAppIcon extends StatelessWidget {
       {super.key,
       required this.icon,
       required this.gradientColorOne,
-      required this.gradientColorTwo,
       required this.page,
       this.showPageName = true,
       this.sideSize = 72.0});
 
   final IconData icon;
   final Color gradientColorOne;
-  final Color gradientColorTwo;
   final double sideSize;
   final String page;
   final bool showPageName;

@@ -48,8 +48,7 @@ class _AppsState extends State<Apps> {
   final _routerService = locator<RouterService>();
   Widget _buildCustomPaintWithIcon(
       {required IconData iconData,
-      required Color gradientColorOne,
-      required Color gradientColorTwo,
+      required Color color,
       required String page}) {
     return GestureDetector(
       onTap: () async {
@@ -94,11 +93,11 @@ class _AppsState extends State<Apps> {
         }
       },
       child: MiniAppIcon(
-          icon: iconData,
-          gradientColorOne: gradientColorOne,
-          page: page,
-          showPageName: true,
-          gradientColorTwo: gradientColorTwo),
+        icon: iconData,
+        gradientColorOne: color,
+        page: page,
+        showPageName: true,
+      ),
     );
   }
 
@@ -106,6 +105,7 @@ class _AppsState extends State<Apps> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(
+        isDividerVisible: false,
         bottomSpacer: 48.99,
         closeButton: CLOSEBUTTON.WIDGET,
         customTrailingWidget: Container(
@@ -173,70 +173,60 @@ class _AppsState extends State<Apps> {
               child: _buildGauge(context, widget.model),
             ),
             // SizedBox(height: 40),
-            Padding(
-              padding: const EdgeInsets.only(left: 36.0, right: 36.0),
-              child: Stack(
-                children: [
-                  SizedBox(
-                    height: 340,
-                    width: 340,
-                    child: GridView.count(
-                      crossAxisCount: 3,
-                      crossAxisSpacing: 0,
-                      mainAxisSpacing: 1,
-                      padding: EdgeInsets.zero,
-                      children: [
-                        _buildCustomPaintWithIcon(
-                            iconData: FluentIcons.dialpad_24_regular,
-                            gradientColorOne: const Color(0xff006AFE),
-                            gradientColorTwo: const Color(0xff006AFE),
-                            page: "POS"),
-                        _buildCustomPaintWithIcon(
-                            iconData: FluentIcons.book_coins_24_regular,
-                            gradientColorOne: Colors.purpleAccent,
-                            gradientColorTwo: Colors.lightBlue,
-                            page: "Cashbook"),
-                        _buildCustomPaintWithIcon(
-                            iconData:
-                                FluentIcons.arrow_trending_lines_24_regular,
-                            gradientColorOne: Colors.pink,
-                            gradientColorTwo: Colors.purpleAccent,
-                            page: "Transactions"),
-                        _buildCustomPaintWithIcon(
-                            iconData: FluentIcons.communication_20_regular,
-                            gradientColorOne: Colors.cyan,
-                            gradientColorTwo: Colors.lightBlue,
-                            page: "Connecta"),
-                        _buildCustomPaintWithIcon(
-                            iconData: FluentIcons.settings_16_regular,
-                            gradientColorOne: Colors.orange,
-                            gradientColorTwo: Colors.deepOrange,
-                            page: "Settings"),
-                        _buildCustomPaintWithIcon(
-                            iconData: Icons.call,
-                            gradientColorOne: Colors.lightBlue,
-                            gradientColorTwo: Colors.blue,
-                            page: "Support"),
-                      ],
-                    ),
+            Stack(
+              children: [
+                SizedBox(
+                  height: 340,
+                  width: 340,
+                  child: GridView.count(
+                    crossAxisCount: 3,
+                    crossAxisSpacing: 0,
+                    mainAxisSpacing: 1,
+                    padding: EdgeInsets.zero,
+                    children: [
+                      _buildCustomPaintWithIcon(
+                          iconData: FluentIcons.dialpad_24_regular,
+                          color: const Color(0xff006AFE),
+                          page: "POS"),
+                      _buildCustomPaintWithIcon(
+                          iconData: FluentIcons.book_add_24_regular,
+                          color: Colors.purpleAccent,
+                          page: "Cashbook"),
+                      _buildCustomPaintWithIcon(
+                          iconData: FluentIcons.arrow_trending_lines_24_regular,
+                          color: Colors.pink,
+                          page: "Transactions"),
+                      _buildCustomPaintWithIcon(
+                          iconData: FluentIcons.communication_20_regular,
+                          color: Colors.cyan,
+                          page: "Connecta"),
+                      _buildCustomPaintWithIcon(
+                          iconData: FluentIcons.settings_16_regular,
+                          color: Colors.orange,
+                          page: "Settings"),
+                      _buildCustomPaintWithIcon(
+                          iconData: Icons.call,
+                          color: Colors.lightBlue,
+                          page: "Support"),
+                    ],
                   ),
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    child: Center(
-                      child: Text(
-                        'From yegobox',
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          color: Colors.black.withOpacity(0.3100000023841858),
-                          fontWeight: FontWeight.w400,
-                        ),
+                ),
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: Text(
+                      'From yegobox',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: Colors.black.withOpacity(0.3100000023841858),
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
-                  )
-                ],
-              ),
+                  ),
+                )
+              ],
             )
           ],
         ),

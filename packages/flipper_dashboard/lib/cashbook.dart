@@ -1,5 +1,8 @@
 import 'dart:developer';
 
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_dashboard/create/category_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -40,7 +43,7 @@ class Cashbook extends StatefulWidget {
 
 class _CashbookState extends State<Cashbook> {
   List<int> transactionIds = [];
-
+  final _routerService = locator<RouterService>();
   @override
   void initState() {
     super.initState();
@@ -55,14 +58,12 @@ class _CashbookState extends State<Cashbook> {
       builder: (context, model, child) {
         return Scaffold(
           appBar: CustomAppBar(
-            closeButton: CLOSEBUTTON.WIDGET,
-            title: ' Cash Book',
-            customLeadingWidget: GestureDetector(
-              onTap: () {
-                Navigator.pop(context);
-              },
-              child: Icon(Icons.arrow_back),
-            ),
+            isDividerVisible: false,
+            title: 'Cash Book',
+            icon: Icons.close,
+            onPop: () async {
+              _routerService.back();
+            },
           ),
           body: Padding(
             padding: const EdgeInsets.only(top: 8.0),

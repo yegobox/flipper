@@ -25,7 +25,8 @@ class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
       this.multi,
       this.bottomSpacer,
       this.customLeadingWidget,
-      this.customTrailingWidget});
+      this.customTrailingWidget,
+      this.isDividerVisible});
 
   final String? rightActionButtonName;
   final String? leftActionButtonName;
@@ -43,6 +44,7 @@ class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
   final Widget? additionalText;
   final StatelessWidget? customLeadingWidget;
   final StatelessWidget? customTrailingWidget;
+  final bool? isDividerVisible;
 
   @override
   State<CustomAppBar> createState() => _CustomAppBarState();
@@ -80,11 +82,13 @@ class _CustomAppBarState extends State<CustomAppBar> {
             Container(
               child: widget.additionalText,
             ),
-            const Expanded(
-              child: Divider(
-                thickness: 0.5,
-              ),
-            )
+            Visibility(
+                visible: widget.isDividerVisible ?? true,
+                child: const Expanded(
+                  child: Divider(
+                    thickness: 0.5,
+                  ),
+                ))
           ],
         ),
       ),

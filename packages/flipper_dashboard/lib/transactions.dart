@@ -236,7 +236,6 @@ class _TransactionsState extends State<Transactions> {
                         gradientColorOne: gradientColorOne,
                         page: "Transaction",
                         showPageName: false,
-                        gradientColorTwo: gradientColorTwo,
                         sideSize: 50,
                       ),
                     ),
