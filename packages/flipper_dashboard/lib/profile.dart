@@ -227,22 +227,21 @@ class PMobile extends StatelessWidget {
               _dialogService.showCustomDialog(
                   variant: DialogType.logOut, title: 'Log out');
             },
-            child: hasImage
+            //TODO: remove negation from !hasImage if profile image is fully supported
+            // removed if from showing it because it need more work to follow ContinuousRectangleBorder specs
+            child: !hasImage
                 ? SizedBox(
                     width: isDesktopOrWeb ? 50 : 100,
                     height: isDesktopOrWeb ? 50 : 100,
                     child: Container(
                       width: isDesktopOrWeb ? 50 : 100,
                       height: isDesktopOrWeb ? 50 : 100,
-                      decoration: BoxDecoration(
-                        color: Colors.transparent,
-                        borderRadius:
-                            borderRadius, // Adjust the border radius value to your desired amount
-                        border: Border.all(
-                          color: Colors.transparent,
-                          width: 2.0,
-                        ),
-                      ),
+                      decoration: ShapeDecoration(
+                          shape: ContinuousRectangleBorder(
+                              side: BorderSide(width: 1, color: Colors.white),
+                              borderRadius: BorderRadius.circular(80.0)),
+                          color: Colors.amberAccent,
+                          shadows: []),
                       child: ClipRRect(
                         borderRadius:
                             borderRadius, // Same border radius value as above

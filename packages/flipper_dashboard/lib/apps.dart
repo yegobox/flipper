@@ -3,6 +3,7 @@ import 'package:flipper_dashboard/profile.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flipper_services/proxy.dart';
 import 'widgets/dropdown.dart';
@@ -92,16 +93,12 @@ class _AppsState extends State<Apps> {
             ));
         }
       },
-      child: Column(
-        children: [
-          MiniAppIcon(
-              icon: iconData,
-              gradientColorOne: gradientColorOne,
-              page: page,
-              showPageName: true,
-              gradientColorTwo: gradientColorTwo),
-        ],
-      ),
+      child: MiniAppIcon(
+          icon: iconData,
+          gradientColorOne: gradientColorOne,
+          page: page,
+          showPageName: true,
+          gradientColorTwo: gradientColorTwo),
     );
   }
 
@@ -175,50 +172,70 @@ class _AppsState extends State<Apps> {
               padding: const EdgeInsets.only(top: 70.0),
               child: _buildGauge(context, widget.model),
             ),
-            SizedBox(height: 5),
+            SizedBox(height: 40),
             Padding(
               padding: const EdgeInsets.only(left: 36.0, right: 36.0),
-              child: SizedBox(
-                height: 340,
-                width: 340,
-                child: GridView.count(
-                  crossAxisCount: 3,
-                  crossAxisSpacing: 0,
-                  mainAxisSpacing: 1,
-                  padding: EdgeInsets.zero,
-                  children: [
-                    _buildCustomPaintWithIcon(
-                        iconData: FluentIcons.dialpad_24_regular,
-                        gradientColorOne: Colors.greenAccent,
-                        gradientColorTwo: Colors.blue,
-                        page: "POS"),
-                    _buildCustomPaintWithIcon(
-                        iconData: FluentIcons.book_coins_24_regular,
-                        gradientColorOne: Colors.purpleAccent,
-                        gradientColorTwo: Colors.lightBlue,
-                        page: "Cashbook"),
-                    _buildCustomPaintWithIcon(
-                        iconData: FluentIcons.arrow_trending_lines_24_regular,
-                        gradientColorOne: Colors.pink,
-                        gradientColorTwo: Colors.purpleAccent,
-                        page: "Transactions"),
-                    _buildCustomPaintWithIcon(
-                        iconData: FluentIcons.communication_20_regular,
-                        gradientColorOne: Colors.cyan,
-                        gradientColorTwo: Colors.lightBlue,
-                        page: "Connecta"),
-                    _buildCustomPaintWithIcon(
-                        iconData: FluentIcons.settings_16_regular,
-                        gradientColorOne: Colors.orange,
-                        gradientColorTwo: Colors.deepOrange,
-                        page: "Settings"),
-                    _buildCustomPaintWithIcon(
-                        iconData: Icons.call,
-                        gradientColorOne: Colors.lightBlue,
-                        gradientColorTwo: Colors.blue,
-                        page: "Support"),
-                  ],
-                ),
+              child: Stack(
+                children: [
+                  SizedBox(
+                    height: 340,
+                    width: 340,
+                    child: GridView.count(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 0,
+                      mainAxisSpacing: 1,
+                      padding: EdgeInsets.zero,
+                      children: [
+                        _buildCustomPaintWithIcon(
+                            iconData: FluentIcons.dialpad_24_regular,
+                            gradientColorOne: Colors.greenAccent,
+                            gradientColorTwo: Colors.blue,
+                            page: "POS"),
+                        _buildCustomPaintWithIcon(
+                            iconData: FluentIcons.book_coins_24_regular,
+                            gradientColorOne: Colors.purpleAccent,
+                            gradientColorTwo: Colors.lightBlue,
+                            page: "Cashbook"),
+                        _buildCustomPaintWithIcon(
+                            iconData:
+                                FluentIcons.arrow_trending_lines_24_regular,
+                            gradientColorOne: Colors.pink,
+                            gradientColorTwo: Colors.purpleAccent,
+                            page: "Transactions"),
+                        _buildCustomPaintWithIcon(
+                            iconData: FluentIcons.communication_20_regular,
+                            gradientColorOne: Colors.cyan,
+                            gradientColorTwo: Colors.lightBlue,
+                            page: "Connecta"),
+                        _buildCustomPaintWithIcon(
+                            iconData: FluentIcons.settings_16_regular,
+                            gradientColorOne: Colors.orange,
+                            gradientColorTwo: Colors.deepOrange,
+                            page: "Settings"),
+                        _buildCustomPaintWithIcon(
+                            iconData: Icons.call,
+                            gradientColorOne: Colors.lightBlue,
+                            gradientColorTwo: Colors.blue,
+                            page: "Support"),
+                      ],
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: Center(
+                      child: Text(
+                        'From yegobox',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: Colors.black.withOpacity(0.3100000023841858),
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                    ),
+                  )
+                ],
               ),
             )
           ],

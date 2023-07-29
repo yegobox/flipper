@@ -76,15 +76,12 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge> {
                       widget.startPadding), // Adjust the top padding as desired
               child: Column(
                 children: [
-                  SizedBox(
-                    height: 20,
-                  ),
                   Text(
                       NumberFormat('#,###')
                               .format(double.parse(profitOrLoss.toString())) +
                           ' RWF',
                       style: GoogleFonts.poppins(
-                          fontSize: 22,
+                          fontSize: 40,
                           color: Colors.black,
                           fontWeight: FontWeight.w600)),
                   SizedBox(height: 10),

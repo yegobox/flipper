@@ -7,7 +7,6 @@ final List<Color> colors = [
   Colors.blue,
   Colors.green,
   Colors.red,
-  Colors.yellow,
   Colors.orange,
   Colors.purple,
   Colors.teal,
@@ -50,21 +49,16 @@ class _GmailLikeLetterState extends State<GmailLikeLetter>
         child: Container(
           width: 100,
           height: 100,
-          decoration: BoxDecoration(
-            color: colors[Random().nextInt(colors.length)],
-            borderRadius: BorderRadius.circular(5),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.shade200,
-                blurRadius: 5,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
+          decoration: ShapeDecoration(
+              shape: ContinuousRectangleBorder(
+                  side: BorderSide(width: 1, color: Colors.white),
+                  borderRadius: BorderRadius.circular(80.0)),
+              color: colors[Random().nextInt(colors.length)],
+              shadows: []),
           child: Center(
             child: Text(
-              widget.tenant.name != null && widget.tenant.name!.length > 0
-                  ? widget.tenant.name!.substring(0, 2).toUpperCase()
+              widget.tenant.name.length > 0
+                  ? widget.tenant.name.substring(0, 2).toUpperCase()
                   : '',
               style: TextStyle(
                 fontSize: 18,

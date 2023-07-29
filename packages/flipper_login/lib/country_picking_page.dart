@@ -81,7 +81,7 @@ class _CountryPickerState extends State<CountryPicker> {
                               style: GoogleFonts.poppins(fontSize: 20)),
                         ),
                         Checkbox(
-                          activeColor: activeColor,
+                          activeColor: const Color(0xff006AFE),
                           checkColor: activeColor,
                           focusColor: activeColor,
                           value: termsAndCondValue,

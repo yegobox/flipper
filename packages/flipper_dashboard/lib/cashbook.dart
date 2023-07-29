@@ -115,7 +115,7 @@ class _CashbookState extends State<Cashbook> {
                                   Padding(
                                     padding: const EdgeInsets.only(top: 15.0),
                                     child: SizedBox(
-                                      height: 45,
+                                      height: 60,
                                       width: 140,
                                       child: OutlinedButton(
                                         onPressed: () {
@@ -149,18 +149,30 @@ class _CashbookState extends State<Cashbook> {
                                             },
                                           ),
                                         ),
-                                        child: const Text('+ Cash In',
-                                            style: TextStyle(
+                                        child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Icon(
+                                                Icons.add,
                                                 color: Colors.white,
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w600)),
+                                              ),
+                                              Text(
+                                                'Cash In',
+                                                style: GoogleFonts.poppins(
+                                                  fontSize: 14,
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ]),
                                       ),
                                     ),
                                   ),
                                   Padding(
                                     padding: const EdgeInsets.only(top: 15.0),
                                     child: SizedBox(
-                                      height: 45,
+                                      height: 60,
                                       width: 140,
                                       child: OutlinedButton(
                                         onPressed: () {
@@ -194,11 +206,23 @@ class _CashbookState extends State<Cashbook> {
                                             },
                                           ),
                                         ),
-                                        child: const Text('- Cash Out',
-                                            style: TextStyle(
+                                        child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Icon(
+                                                Icons.remove,
                                                 color: Colors.white,
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w600)),
+                                              ),
+                                              Text(
+                                                'Cash Out',
+                                                style: GoogleFonts.poppins(
+                                                  fontSize: 14,
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ]),
                                       ),
                                     ),
                                   ),
