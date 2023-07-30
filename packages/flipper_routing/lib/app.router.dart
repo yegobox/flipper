@@ -256,27 +256,15 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         barrierDismissible: false,
       );
     },
-    CollectCashViewRoute.name: (routeData) {
-      final args = routeData.argsAs<CollectCashViewArgs>();
+    PaymentConfirmationRoute.name: (routeData) {
+      final args = routeData.argsAs<PaymentConfirmationArgs>();
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i2.CollectCashView(
-          key: args.key,
-          paymentType: args.paymentType,
-          transaction: args.transaction,
-        ),
-        opaque: true,
-        barrierDismissible: false,
-      );
-    },
-    AfterSaleRoute.name: (routeData) {
-      final args = routeData.argsAs<AfterSaleArgs>();
-      return _i3.CustomPage<dynamic>(
-        routeData: routeData,
-        child: _i2.AfterSale(
+        child: _i2.PaymentConfirmation(
           key: args.key,
           totalTransactionAmount: args.totalTransactionAmount,
           transaction: args.transaction,
+          paymentType: args.paymentType,
           receiptType: args.receiptType,
         ),
         opaque: true,
@@ -634,12 +622,8 @@ class StackedRouterWeb extends _i3.RootStackRouter {
           path: '/Payments',
         ),
         _i3.RouteConfig(
-          CollectCashViewRoute.name,
-          path: '/collect-cash-view',
-        ),
-        _i3.RouteConfig(
-          AfterSaleRoute.name,
-          path: '/after-sale',
+          PaymentConfirmationRoute.name,
+          path: '/payment-confirmation',
         ),
         _i3.RouteConfig(
           TransactionDetailRoute.name,
@@ -1108,7 +1092,7 @@ class AddDiscountArgs {
 class ListCategoriesRoute extends _i3.PageRouteInfo<ListCategoriesArgs> {
   ListCategoriesRoute({
     _i4.Key? key,
-    required List<_i8.Category> categories,
+    required List<_i8.Category>? categories,
   }) : super(
           ListCategoriesRoute.name,
           path: '/list-categories',
@@ -1129,7 +1113,7 @@ class ListCategoriesArgs {
 
   final _i4.Key? key;
 
-  final List<_i8.Category> categories;
+  final List<_i8.Category>? categories;
 
   @override
   String toString() {
@@ -1361,71 +1345,36 @@ class PaymentsArgs {
 }
 
 /// generated route for
-/// [_i2.CollectCashView]
-class CollectCashViewRoute extends _i3.PageRouteInfo<CollectCashViewArgs> {
-  CollectCashViewRoute({
-    _i4.Key? key,
-    required String paymentType,
-    required _i8.Transaction transaction,
-  }) : super(
-          CollectCashViewRoute.name,
-          path: '/collect-cash-view',
-          args: CollectCashViewArgs(
-            key: key,
-            paymentType: paymentType,
-            transaction: transaction,
-          ),
-        );
-
-  static const String name = 'CollectCashView';
-}
-
-class CollectCashViewArgs {
-  const CollectCashViewArgs({
-    this.key,
-    required this.paymentType,
-    required this.transaction,
-  });
-
-  final _i4.Key? key;
-
-  final String paymentType;
-
-  final _i8.Transaction transaction;
-
-  @override
-  String toString() {
-    return 'CollectCashViewArgs{key: $key, paymentType: $paymentType, transaction: $transaction}';
-  }
-}
-
-/// generated route for
-/// [_i2.AfterSale]
-class AfterSaleRoute extends _i3.PageRouteInfo<AfterSaleArgs> {
-  AfterSaleRoute({
+/// [_i2.PaymentConfirmation]
+class PaymentConfirmationRoute
+    extends _i3.PageRouteInfo<PaymentConfirmationArgs> {
+  PaymentConfirmationRoute({
     _i4.Key? key,
     required double totalTransactionAmount,
     required _i8.Transaction transaction,
+    required String paymentType,
     String? receiptType = "ns",
   }) : super(
-          AfterSaleRoute.name,
-          path: '/after-sale',
-          args: AfterSaleArgs(
+          PaymentConfirmationRoute.name,
+          path: '/payment-confirmation',
+          args: PaymentConfirmationArgs(
             key: key,
             totalTransactionAmount: totalTransactionAmount,
             transaction: transaction,
+            paymentType: paymentType,
             receiptType: receiptType,
           ),
         );
 
-  static const String name = 'AfterSale';
+  static const String name = 'PaymentConfirmation';
 }
 
-class AfterSaleArgs {
-  const AfterSaleArgs({
+class PaymentConfirmationArgs {
+  const PaymentConfirmationArgs({
     this.key,
     required this.totalTransactionAmount,
     required this.transaction,
+    required this.paymentType,
     this.receiptType = "ns",
   });
 
@@ -1435,11 +1384,13 @@ class AfterSaleArgs {
 
   final _i8.Transaction transaction;
 
+  final String paymentType;
+
   final String? receiptType;
 
   @override
   String toString() {
-    return 'AfterSaleArgs{key: $key, totalTransactionAmount: $totalTransactionAmount, transaction: $transaction, receiptType: $receiptType}';
+    return 'PaymentConfirmationArgs{key: $key, totalTransactionAmount: $totalTransactionAmount, transaction: $transaction, paymentType: $paymentType, receiptType: $receiptType}';
   }
 }
 

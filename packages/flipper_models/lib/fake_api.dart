@@ -420,7 +420,7 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
         return await isar.transactionItems.put(data);
       });
     }
-    if (data is Ebm) {
+    if (data is EBM) {
       final ebm = data;
       await isar.writeTxn(() async {
         ProxyService.box.write(key: "serverUrl", value: ebm.taxServerUrl);

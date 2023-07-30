@@ -1,5 +1,6 @@
 import 'package:flipper_dashboard/bottom_sheet.dart';
 import 'package:flipper_dashboard/customappbar.dart';
+import 'package:flipper_dashboard/widgets/mini_app_icon.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_ui/bottom_sheets/tax_configuration.dart';
 import 'package:flipper_services/proxy.dart';
@@ -7,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:stacked/stacked.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class TaxConfiguration extends StatefulWidget {
   const TaxConfiguration({
@@ -44,15 +46,6 @@ class _TaxConfigurationState extends State<TaxConfiguration> {
             business?.bhfId != null &&
             business?.dvcSrlNo != null &&
             business?.taxEnabled == true;
-        if (!model.isEbmActive) {
-          taxConfiguration(
-            context: context,
-            body: <Widget>[
-              Center(child: Text("Call $_supportLine for EBM configuration"))
-            ],
-            header: header(title: 'Activate EBM', context: context),
-          );
-        }
       },
       builder: (context, model, child) {
         return Scaffold(
@@ -66,49 +59,52 @@ class _TaxConfigurationState extends State<TaxConfiguration> {
           ),
           body: Column(
             children: [
-              Center(
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  child: Icon(
-                    Icons.calculate,
-                    size: 64,
-                    color: Theme.of(context).primaryColor,
-                  ),
-                ),
+              Padding(
+                padding: const EdgeInsets.only(left: 13.0),
+                child: Visibility(
+                    visible: !isTaxEnabled,
+                    child: InkWell(
+                      onTap: () async {
+                        int businessId = ProxyService.box.getBusinessId()!;
+                        final initialMessage =
+                            "I am writing to request support to add EBM to flipper, my businessID is: ${businessId}";
+                        final Uri whatsappUri = Uri.parse(
+                            'https://wa.me/250788360058?text=${Uri.encodeComponent(initialMessage)}');
+                        if (await canLaunchUrl(whatsappUri)) {
+                          await launchUrl(whatsappUri,
+                              mode: LaunchMode.externalApplication);
+                        } else {
+                          throw 'Could not launch $whatsappUri';
+                        }
+                      },
+                      child: MiniAppIcon(
+                        icon: Icons.call,
+                        gradientColorOne: Colors.lightBlue,
+                        page: "Support",
+                        showPageName: true,
+                      ),
+                    )),
               ),
-              SwitchListTile.adaptive(
-                  title: const Text('Enable EBM'),
-                  value: model.isEbmActive,
-                  onChanged: (value) {
-                    // model.isEbmActive = true;
-                    if (!model.isEbmActive) {
-                      taxConfiguration(
-                        context: context,
-                        body: <Widget>[
-                          Center(
-                              child: Text(
-                                  "Call $_supportLine for EBM configuration"))
-                        ],
-                        header: header(title: 'Activate EBM', context: context),
-                      );
-                    }
-                  }),
-              if (isTaxEnabled)
-                SwitchListTile.adaptive(
+              Visibility(
+                visible: isTaxEnabled,
+                child: SwitchListTile.adaptive(
                     title: const Text('Training mode'),
                     value: model.isTrainingModeEnabled,
                     onChanged: (value) {
                       model.isTrainingModeEnabled =
                           !model.isTrainingModeEnabled;
                     }),
-              if (isTaxEnabled)
-                SwitchListTile.adaptive(
+              ),
+              Visibility(
+                visible: isTaxEnabled,
+                child: SwitchListTile.adaptive(
                     title: const Text('Proforma mode'),
                     value: model.isProformaModeEnabled,
                     onChanged: (value) {
                       model.isProformaModeEnabled =
                           !model.isProformaModeEnabled;
-                    })
+                    }),
+              )
             ],
           ),
         );

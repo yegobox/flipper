@@ -22,10 +22,13 @@ class ChargeButton extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(19.0, 30, 19.0, 0),
       child: SizedBox(
-        height: 40,
+        height: 60,
         width: double.infinity,
         child: TextButton(
-          style: primary2ButtonStyle,
+          style: primaryButtonStyle.copyWith(
+              shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
+                  (states) => RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4)))),
           onPressed: () {
             _routerService
                 .navigateTo(PaymentsRoute(transaction: model.kTransaction!));

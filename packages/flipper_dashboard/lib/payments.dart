@@ -171,7 +171,7 @@ class _PaymentsState extends State<Payments> {
                       height: 47,
                     ),
                     Positioned(
-                      bottom: 17,
+                      bottom: 37,
                       right: 0,
                       left: 0,
                       child: SizedBox(
@@ -216,6 +216,9 @@ class _PaymentsState extends State<Payments> {
                         ),
                       ),
                     ),
+                    SizedBox(
+                      height: 10,
+                    ),
                     Positioned(
                         bottom: 10,
                         right: 0,
@@ -227,8 +230,9 @@ class _PaymentsState extends State<Payments> {
                                   left: 25.5, right: 25.5),
                               child: SizedBox(
                                 width: double.infinity,
+                                height: 60,
                                 child: OutlinedButton(
-                                  style: primary4ButtonStyle.copyWith(
+                                  style: primaryButtonStyle.copyWith(
                                       shape: MaterialStateProperty.resolveWith<
                                               OutlinedBorder>(
                                           (states) => RoundedRectangleBorder(
@@ -298,15 +302,16 @@ class _PaymentsState extends State<Payments> {
     if (ProxyService.box.isTrainingMode()) {
       receiptType = ReceiptType.ts;
     }
-    _routerService.navigateTo(AfterSaleRoute(
+    _routerService.navigateTo(PaymentConfirmationRoute(
         totalTransactionAmount: model.kTransaction!.subTotal,
         receiptType: receiptType,
+        paymentType: paymentType!,
         transaction: model.kTransaction!));
   }
 
   Widget buildButton({required IconData icon, required String type}) {
     final isFocused = isFocusedMap[type] ?? false;
-    final textColor = isFocused ? Color(0xFF00FE38) : Colors.black;
+    final textColor = isFocused ? Color(0xff006AFE) : Colors.black;
 
     return SizedBox(
       height: 96,

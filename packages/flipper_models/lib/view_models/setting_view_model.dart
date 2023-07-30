@@ -173,12 +173,6 @@ class SettingViewModel extends HomeViewModel {
       if (voucher != null) {
         ProxyService.billing.addPoints(points: voucher.value, userId: userId);
         List<Feature> features = [];
-        // TODOvoucher.features will not work on isar
-        // need to tweak it.
-        // TODO: fix the bellow commented code
-        // for (Feature feature in voucher.features) {
-        //   features.add(feature);
-        // }
         ProxyService.billing.updateSubscription(
           descriptor: voucher.descriptor,
           userId: userId,

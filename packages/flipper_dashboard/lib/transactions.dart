@@ -183,11 +183,6 @@ class _TransactionsState extends State<Transactions> {
           : (transaction.transactionType == 'Cash In')
               ? Colors.blueAccent
               : Colors.greenAccent;
-      Color gradientColorTwo = (transaction.transactionType == 'Cash Out')
-          ? Colors.red
-          : (transaction.transactionType == 'Cash In')
-              ? Colors.blueAccent
-              : Colors.greenAccent;
       String typeOfTransaction = transaction.transactionType == 'Cash Out'
           ? 'Cash Out'
           : (transaction.transactionType == 'Cash In')

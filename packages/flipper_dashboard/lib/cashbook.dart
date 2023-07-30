@@ -1,7 +1,6 @@
 import 'dart:developer';
 
 import 'package:flipper_routing/app.locator.dart';
-import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_dashboard/create/category_selector.dart';
 import 'package:flutter/material.dart';
