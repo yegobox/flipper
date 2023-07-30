@@ -350,6 +350,7 @@ class RemoteService implements RemoteInterface {
         business.dvcSrlNo = ebm.dvcSrlNo;
         ProxyService.isar.update(data: business);
       } else if (localEbm != null &&
+          ebm.lastTouched != null &&
           ebm.lastTouched!.isFutureDateCompareTo(localEbm.lastTouched!)) {
         ebm.id = ebm.localId;
         await ProxyService.isar.update(data: ebm);
