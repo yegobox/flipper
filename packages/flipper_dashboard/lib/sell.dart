@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
@@ -42,6 +44,7 @@ class Sell extends StatelessWidget {
             disableButton: false,
             showActionButton: true,
             onActionButtonClicked: () async {
+              log(model.amountTotal.toString());
               bool saved = await model.saveTransaction(
                 variationId: model.checked,
                 amountTotal: model.amountTotal,

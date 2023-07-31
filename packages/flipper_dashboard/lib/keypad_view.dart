@@ -8,6 +8,8 @@ import 'package:universal_platform/universal_platform.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:intl/intl.dart';
+import 'package:flipper_dashboard/create/category_selector.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 final isMacOs = UniversalPlatform.isMacOS;
@@ -142,17 +144,57 @@ class KeyPadView extends StatelessWidget {
         mainAxisSize: MainAxisSize.min, // set main axis size to min
         children: [
           Padding(
-            padding: EdgeInsets.symmetric(vertical: paddingHeight),
-            child: Text(
-              NumberFormat('#,###').format(double.parse(model.keypad.key)) +
-                  " RWF",
-              style: GoogleFonts.poppins(
-                fontSize: 35,
-                fontWeight: FontWeight.w500,
-                color: const Color(0xff000000),
-                height: 1.5,
-              ),
-            ),
+            padding: EdgeInsets.symmetric(
+                vertical: transactionMode ? paddingHeight / 3 : paddingHeight),
+            child: transactionMode
+                ? SizedBox(
+                    height: 80,
+                    child: Column(
+                      children: [
+                        Text(
+                          NumberFormat('#,###')
+                                  .format(double.parse(model.keypad.key)) +
+                              " RWF",
+                          style: GoogleFonts.poppins(
+                            fontSize: 35,
+                            fontWeight: FontWeight.w500,
+                            color: const Color(0xff000000),
+                            height: transactionMode ? 1 : 1.5,
+                          ),
+                        ),
+                        SizedBox(height: 20),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            SizedBox(width: 10),
+                            transactionType == 'Cash In'
+                                ? Text('Cash in for',
+                                    style: GoogleFonts.poppins(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold))
+                                : Text('Cash out for',
+                                    style: GoogleFonts.poppins(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold)),
+                            Spacer(),
+                            CategorySelector.transactionMode(
+                                categories: model.categories),
+                          ],
+                        )
+                      ],
+                    ),
+                  )
+                : Text(
+                    NumberFormat('#,###')
+                            .format(double.parse(model.keypad.key)) +
+                        " RWF",
+                    style: GoogleFonts.poppins(
+                      fontSize: 35,
+                      fontWeight: FontWeight.w500,
+                      color: const Color(0xff000000),
+                      height: 1.5,
+                    ),
+                  ),
           ),
           Expanded(
             child: Row(

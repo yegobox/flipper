@@ -98,7 +98,7 @@ class PreviewSaleButton extends StatelessWidget {
                   .length; // Calculate the saleCounts based on the transactionItems
 
               return Text(
-                "Preview Sale${saleCounts != 0 ? "($saleCounts)" : ""}",
+                "Preview Sale ${saleCounts != 0 ? "($saleCounts)" : ""}",
                 style: GoogleFonts.poppins(
                   fontWeight: FontWeight.w600,
                   fontSize: 15,

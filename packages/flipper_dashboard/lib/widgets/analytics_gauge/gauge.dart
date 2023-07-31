@@ -11,13 +11,15 @@ class SemiCircleGauge extends StatefulWidget {
   final double maxDataValue;
   final double startPadding;
   final String profitType;
+  final bool areValueColumnsVisible;
 
   SemiCircleGauge({
     Key? key,
     required this.dataOnGreenSide,
     required this.dataOnRedSide,
     required this.profitType,
-    this.startPadding = 0.0, // Default startPadding value is 0.0
+    this.startPadding = 0.0,
+    this.areValueColumnsVisible = true, // Default startPadding value is 0.0
   })  : maxDataValue = math.max(dataOnGreenSide, dataOnRedSide),
         super(key: key);
 
@@ -28,7 +30,9 @@ class SemiCircleGauge extends StatefulWidget {
 class _SemiCircleGaugeState extends State<SemiCircleGauge> {
   @override
   Widget build(BuildContext context) {
-    double radius = MediaQuery.of(context).size.width / 3;
+    double radius = widget.areValueColumnsVisible
+        ? MediaQuery.of(context).size.width / 3
+        : MediaQuery.of(context).size.width / 3.5;
     double totalData = widget.dataOnGreenSide + widget.dataOnRedSide;
     double greenAngle = 0;
     double redAngle = 0;
@@ -46,7 +50,9 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge> {
     double profitOrLoss = 0;
     if (widget.dataOnGreenSide > widget.dataOnRedSide) {
       resultText = Text(widget.profitType,
-          style: GoogleFonts.poppins(fontSize: 18, color: Colors.grey));
+          style: GoogleFonts.poppins(
+              fontSize: widget.areValueColumnsVisible ? 18 : 15,
+              color: Colors.grey));
       if (widget.profitType == "Gross Profit") {
         profitOrLoss = widget.dataOnGreenSide;
       } else {
@@ -66,7 +72,7 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge> {
           style: GoogleFonts.poppins(fontSize: 18, color: Colors.grey));
     }
     return SizedBox(
-      height: radius * 1.5,
+      height: (widget.areValueColumnsVisible) ? radius * 1.6 : radius * 1.25,
       child: Column(
         children: [
           CustomPaint(
@@ -83,69 +89,71 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge> {
                               .format(double.parse(profitOrLoss.toString())) +
                           ' RWF',
                       style: GoogleFonts.poppins(
-                          fontSize: 40,
+                          fontSize: widget.areValueColumnsVisible ? 28 : 24,
                           color: Colors.black,
                           fontWeight: FontWeight.w600)),
                   SizedBox(height: 10),
                   resultText,
-                  SizedBox(height: 15),
                 ],
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.only(left: 41.0, right: 41.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Column(
-                  children: [
-                    Text(
-                        NumberFormat('#,###').format(double.parse(
-                                widget.dataOnGreenSide.toString())) +
-                            " RWF",
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.poppins(
-                            fontSize: 20,
-                            height: 3,
-                            color: Colors.black.withOpacity(0.4099999964237213),
-                            fontWeight: FontWeight.w600)),
-                    widget.profitType == "Net Profit"
-                        ? Text("Gross Profit",
-                            style: GoogleFonts.poppins(
-                                fontSize: 20,
-                                color: Colors.lightBlue.shade200,
-                                fontWeight: FontWeight.w600))
-                        : Text("Total Sales",
-                            style: GoogleFonts.poppins(
-                                fontSize: 20,
-                                color: Colors.lightBlue.shade200,
-                                fontWeight: FontWeight.w600))
-                  ],
-                ),
-                Column(
-                  children: [
-                    Text(
-                        textAlign: TextAlign.center,
-                        NumberFormat('#,###').format(
-                                double.parse(widget.dataOnRedSide.toString())) +
-                            " RWF",
-                        style: GoogleFonts.poppins(
-                            fontSize: 20,
-                            height: 3,
-                            color: Colors.black.withOpacity(0.4099999964237213),
-                            fontWeight: FontWeight.w600)),
-                    Text("Expenses",
-                        style: GoogleFonts.poppins(
-                            fontSize: 20,
-                            color: Colors.lightBlue.shade200,
-                            fontWeight: FontWeight.w600)),
-                  ],
-                ),
-              ],
+          if (widget.areValueColumnsVisible)
+            Padding(
+              padding: const EdgeInsets.only(left: 41.0, right: 41.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Column(
+                    children: [
+                      Text(
+                          NumberFormat('#,###').format(double.parse(
+                                  widget.dataOnGreenSide.toString())) +
+                              " RWF",
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.poppins(
+                              fontSize: 20,
+                              height: 3,
+                              color:
+                                  Colors.black.withOpacity(0.4099999964237213),
+                              fontWeight: FontWeight.w600)),
+                      widget.profitType == "Net Profit"
+                          ? Text("Gross Profit",
+                              style: GoogleFonts.poppins(
+                                  fontSize: 20,
+                                  color: Colors.lightBlue.shade200,
+                                  fontWeight: FontWeight.w600))
+                          : Text("Total Sales",
+                              style: GoogleFonts.poppins(
+                                  fontSize: 20,
+                                  color: Colors.lightBlue.shade200,
+                                  fontWeight: FontWeight.w600))
+                    ],
+                  ),
+                  Column(
+                    children: [
+                      Text(
+                          textAlign: TextAlign.center,
+                          NumberFormat('#,###').format(double.parse(
+                                  widget.dataOnRedSide.toString())) +
+                              " RWF",
+                          style: GoogleFonts.poppins(
+                              fontSize: 20,
+                              height: 3,
+                              color:
+                                  Colors.black.withOpacity(0.4099999964237213),
+                              fontWeight: FontWeight.w600)),
+                      Text("Expenses",
+                          style: GoogleFonts.poppins(
+                              fontSize: 20,
+                              color: Colors.lightBlue.shade200,
+                              fontWeight: FontWeight.w600)),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
           Expanded(
             child: Divider(
               thickness: 0.5,

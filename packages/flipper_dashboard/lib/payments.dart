@@ -73,10 +73,7 @@ class _PaymentsState extends State<Payments> {
                         stream: ProxyService.isar.transactionItemsStream(),
                         builder: (context, snapshot) {
                           final transactionItems = snapshot.data ?? [];
-                          final duePay = transactionItems.fold<double>(
-                              0,
-                              (sum, transactionItem) =>
-                                  sum + transactionItem.price);
+                          final duePay = widget.transaction.subTotal;
 
                           return Column(
                             children: [

@@ -1,6 +1,7 @@
 library flipper_models;
 
 import 'dart:async';
+import 'dart:developer';
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_routing/receipt_types.dart';
@@ -279,7 +280,10 @@ class HomeViewModel extends ReactiveViewModel {
   /// for the initation of writing this transactionId in a box for later use!.
   Future<void> getTransactionById() async {
     int? id = ProxyService.box.read(key: 'transactionId');
-    await ProxyService.keypad.getTransactionById(id: id!);
+    if (id != null) {
+      log("id is: $id");
+      await ProxyService.keypad.getTransactionById(id: id);
+    }
   }
 
   ///list products availabe for sell
@@ -361,13 +365,23 @@ class HomeViewModel extends ReactiveViewModel {
     rebuildUi();
   }
 
-  Future<bool> saveCashBookTransaction({required String cbTransactionType}) {
+  Future<bool> saveCashBookTransaction(
+      {required String cbTransactionType}) async {
     Transaction cbTransaction = kTransaction!;
     cbTransaction.cashReceived = cbTransaction.subTotal;
     cbTransaction.customerChangeDue = 0;
     cbTransaction.transactionType = cbTransactionType;
     cbTransaction.paymentType = "Cash";
     cbTransaction.status = 'completed';
+
+    List<TransactionItem> cbTransactionItems = await ProxyService.isar
+        .transactionItems(
+            transactionId: cbTransaction.id!, doneWithTransaction: false);
+
+    for (var item in cbTransactionItems) {
+      item.doneWithTransaction = true;
+      await ProxyService.isar.update(data: item);
+    }
 
     ProxyService.isar.update(data: cbTransaction);
     notifyListeners();

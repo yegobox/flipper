@@ -30,6 +30,7 @@ class ChargeButton extends StatelessWidget {
                   (states) => RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(4)))),
           onPressed: () {
+            model.kTransaction!.subTotal = duePay!;
             _routerService
                 .navigateTo(PaymentsRoute(transaction: model.kTransaction!));
           },
