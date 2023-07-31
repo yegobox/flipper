@@ -72,7 +72,8 @@ class IsarAPI<M> implements IsarApiInterface {
           SocialSchema,
           ConversationSchema,
           DeviceSchema,
-          FavoriteSchema
+          FavoriteSchema,
+          EBMSchema
         ],
         directory: appDocDir.path,
       );
@@ -2002,6 +2003,12 @@ class IsarAPI<M> implements IsarApiInterface {
         return Future.value(null);
       });
     }
+    if (data is EBM) {
+      await isar.writeTxn(() async {
+        await isar.eBMs.put(data);
+        return Future.value(null);
+      });
+    }
     return Future.value(null);
   }
 
@@ -2077,7 +2084,7 @@ class IsarAPI<M> implements IsarApiInterface {
         return await isar.transactionItems.put(data);
       });
     }
-    if (data is Ebm) {
+    if (data is EBM) {
       final ebm = data;
       await isar.writeTxn(() async {
         ProxyService.box.write(key: "serverUrl", value: ebm.taxServerUrl);
@@ -3246,5 +3253,10 @@ class IsarAPI<M> implements IsarApiInterface {
       businessId: ProxyService.box.getBusinessId()!,
     );
     return await create(data: reply) as Conversation;
+  }
+
+  @override
+  Future<EBM?> getEbmByBranchId({required int branchId}) async {
+    return await isar.eBMs.filter().branchIdEqualTo(branchId).findFirst();
   }
 }

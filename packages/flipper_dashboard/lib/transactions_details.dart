@@ -279,11 +279,14 @@ class _TransactionDetailState extends State<TransactionDetail> {
                                 width: 160,
                                 child: OutlinedButton(
                                   onPressed: () {
-                                    _routerService.navigateTo(AfterSaleRoute(
-                                        totalTransactionAmount:
-                                            widget.transaction.subTotal,
-                                        receiptType: ReceiptType.cs,
-                                        transaction: widget.transaction));
+                                    _routerService.navigateTo(
+                                        PaymentConfirmationRoute(
+                                            totalTransactionAmount:
+                                                widget.transaction.subTotal,
+                                            receiptType: ReceiptType.cs,
+                                            paymentType:
+                                                widget.transaction.paymentType,
+                                            transaction: widget.transaction));
                                   },
                                   style: ButtonStyle(
                                     side: MaterialStateProperty.all<BorderSide>(

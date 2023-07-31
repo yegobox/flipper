@@ -79,7 +79,9 @@ abstract class IsarApiInterface {
   Future<Variant?> getCustomVariant();
   Future<Spenn> spennPayment({required double amount, required phoneNumber});
   Future<void> collectPayment(
-      {required double cashReceived, required Transaction transaction,required String paymentType});
+      {required double cashReceived,
+      required Transaction transaction,
+      required String paymentType});
 
 // app settings and users settings
   Future<Setting?> getSetting({required int businessId});
@@ -285,4 +287,5 @@ abstract class IsarApiInterface {
   Future<List<Device>> getLocalDevices();
   Future<Conversation> sendMessage(
       {required String message, required Conversation latestConversation});
+  Future<EBM?> getEbmByBranchId({required int branchId});
 }

@@ -67,9 +67,6 @@ class PreviewSaleButton extends StatelessWidget {
                     topRight: Radius.circular(10))),
             context: context,
             useRootNavigator: true,
-            // topControl: SizedBox(
-            //   height: 89,
-            // ),
             barrierColor: Colors.black.withOpacity(0.25),
             backgroundColor: Colors.transparent,
             builder: (context) => Container(

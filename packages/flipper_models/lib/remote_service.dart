@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -111,6 +112,7 @@ class RemoteService implements RemoteInterface {
       }
 
       final collections = [
+        'rra',
         'stocks',
         'variants',
         'products',
@@ -145,6 +147,10 @@ class RemoteService implements RemoteInterface {
             case 'socials':
               await handleItem(
                   model: Social.fromJson(item.toJson()), branchId: branchId);
+              break;
+            case 'rra':
+              await handleItem(
+                  model: EBM.fromJson(item.toJson()), branchId: branchId);
               break;
             default:
               break;
@@ -196,6 +202,12 @@ class RemoteService implements RemoteInterface {
               deviceEvent.record!, branchId, businessId, 'devices');
         }
       });
+      pb.collection('rra').subscribe("*", (deviceEvent) async {
+        if (deviceEvent.action == "create" || deviceEvent.action == "update") {
+          await handleRemoteData(
+              deviceEvent.record!, branchId, businessId, 'rra');
+        }
+      });
     }
 
     // Add the return statement at the end of the method
@@ -222,7 +234,9 @@ class RemoteService implements RemoteInterface {
         break;
       case 'devices':
         await handleItem(model: Device.fromJson(jsonData), branchId: branchId);
-
+        break;
+      case 'rra':
+        await handleItem(model: EBM.fromJson(jsonData), branchId: branchId);
         break;
       case 'socials':
         await handleItem(model: Social.fromJson(jsonData), branchId: branchId);
@@ -316,6 +330,30 @@ class RemoteService implements RemoteInterface {
               .isFutureDateCompareTo(localSocial.lastTouched!)) {
         remoteSocial.id = remoteSocial.localId;
         await ProxyService.isar.update(data: remoteSocial);
+      }
+    }
+    if (model is EBM) {
+      final ebm = EBM.fromJson(model.toJson());
+      final localEbm =
+          await ProxyService.isar.getEbmByBranchId(branchId: ebm.branchId);
+
+      if (localEbm == null &&
+          ebm.businessId == ProxyService.box.getBusinessId()) {
+        ebm.id = syncIdInt();
+        ebm.lastTouched = DateTime.now().toIso8601String();
+        await ProxyService.isar.create(data: ebm);
+        // update business
+        Business? business = await ProxyService.isar.getBusiness();
+        business!.bhfId = ebm.bhfId;
+        business.taxServerUrl = ebm.taxServerUrl;
+        business.tinNumber = ebm.tinNumber;
+        business.dvcSrlNo = ebm.dvcSrlNo;
+        ProxyService.isar.update(data: business);
+      } else if (localEbm != null &&
+          ebm.lastTouched != null &&
+          ebm.lastTouched!.isFutureDateCompareTo(localEbm.lastTouched!)) {
+        ebm.id = ebm.localId;
+        await ProxyService.isar.update(data: ebm);
       }
     }
   }
