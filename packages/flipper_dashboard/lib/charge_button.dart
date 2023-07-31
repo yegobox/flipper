@@ -27,6 +27,7 @@ class ChargeButton extends StatelessWidget {
         child: TextButton(
           style: primary2ButtonStyle,
           onPressed: () {
+            model.kTransaction!.subTotal = duePay!;
             _routerService
                 .navigateTo(PaymentsRoute(transaction: model.kTransaction!));
           },

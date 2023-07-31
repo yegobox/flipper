@@ -183,11 +183,6 @@ class _TransactionsState extends State<Transactions> {
           : (transaction.transactionType == 'Cash In')
               ? Colors.blueAccent
               : Colors.greenAccent;
-      Color gradientColorTwo = (transaction.transactionType == 'Cash Out')
-          ? Colors.red
-          : (transaction.transactionType == 'Cash In')
-              ? Colors.blueAccent
-              : Colors.greenAccent;
       String typeOfTransaction = transaction.transactionType == 'Cash Out'
           ? 'Cash Out'
           : (transaction.transactionType == 'Cash In')
@@ -233,7 +228,7 @@ class _TransactionsState extends State<Transactions> {
                     Center(
                       child: MiniAppIcon(
                         icon: FluentIcons.receipt_money_20_regular,
-                        gradientColorOne: gradientColorOne,
+                        color: gradientColorOne,
                         page: "Transaction",
                         showPageName: false,
                         sideSize: 50,
@@ -246,7 +241,10 @@ class _TransactionsState extends State<Transactions> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(transaction.subTotal.toString() + " RWF",
+                    Text(
+                        NumberFormat('#,###').format(
+                                double.parse(transaction.subTotal.toString())) +
+                            " RWF",
                         style: GoogleFonts.poppins(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,

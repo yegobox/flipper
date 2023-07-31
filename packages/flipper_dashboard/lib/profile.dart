@@ -70,7 +70,7 @@ class _ProfileWidgetState extends State<ProfileWidget>
                         visible: widget.showIcon,
                         child: IconButton(
                           icon: Icon(Icons.camera),
-                          color: Colors.red,
+                          color: Colors.white,
                           iconSize: 40,
                           onPressed: () {
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -166,7 +166,11 @@ class PDesktop extends StatelessWidget {
                       ),
                       child: ClipOval(
                         child: CachedNetworkImage(
-                          imageUrl: data!.imageUrl!,
+                          imageUrl: data == null
+                              ? 'https://yegobox-flipper.s3.eu-west-2.amazonaws.com/lRsBL.png'
+                              : data.imageUrl == null
+                                  ? 'https://yegobox-flipper.s3.eu-west-2.amazonaws.com/lRsBL.png'
+                                  : data.imageUrl!,
                           placeholder: (context, url) => GmailLikeLetter(
                             tenant: widget.tenant,
                             size: widget.size,
@@ -213,7 +217,6 @@ class PMobile extends StatelessWidget {
       builder: (context, snapshot) {
         final data = snapshot.data;
         final hasImage = data?.imageUrl != null;
-
         Widget buildContent() {
           final borderRadius = BorderRadius.only(
             topLeft: Radius.circular(4),
@@ -246,7 +249,11 @@ class PMobile extends StatelessWidget {
                         borderRadius:
                             borderRadius, // Same border radius value as above
                         child: CachedNetworkImage(
-                          imageUrl: data == null ? '' : data.imageUrl!,
+                          imageUrl: data == null
+                              ? 'https://yegobox-flipper.s3.eu-west-2.amazonaws.com/lRsBL.png'
+                              : data.imageUrl == null
+                                  ? 'https://yegobox-flipper.s3.eu-west-2.amazonaws.com/lRsBL.png'
+                                  : data.imageUrl!,
                           placeholder: (context, url) => GmailLikeLetter(
                             tenant: widget.tenant,
                             size: widget.size,

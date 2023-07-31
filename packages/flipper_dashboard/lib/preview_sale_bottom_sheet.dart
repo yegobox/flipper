@@ -38,7 +38,7 @@ class _PreviewSaleBottomSheetState extends State<PreviewSaleBottomSheet> {
                     final saleCounts = transactionItems.length;
 
                     return Text(
-                      "Preview Sale${saleCounts != 0 ? "($saleCounts)" : ""}",
+                      "Preview Sale ${saleCounts != 0 ? "($saleCounts)" : ""}",
                       style: GoogleFonts.poppins(
                         fontWeight: FontWeight.w600,
                         fontSize: 15,

@@ -2,8 +2,9 @@ import 'dart:developer';
 
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:flipper_dashboard/create/category_selector.dart';
+import 'widgets/mini_app_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -94,9 +95,7 @@ class _CashbookState extends State<Cashbook> {
                   padding: const EdgeInsets.only(top: 70.0),
                   child: buildGaugeOrList(context, model, 'gauge'),
                 ),
-                SizedBox(
-                    width: MediaQuery.of(context).size.width,
-                    height: MediaQuery.of(context).size.height * 0.45,
+                Expanded(
                     child: widget.newTransactionPressed == false
                         ? Column(
                             children: [
@@ -105,7 +104,7 @@ class _CashbookState extends State<Cashbook> {
                                       fontSize: 17,
                                       color: Colors.lightBlue,
                                       fontWeight: FontWeight.w600)),
-                              SizedBox(height: 15),
+                              SizedBox(height: 5),
                               Expanded(
                                 child: buildGaugeOrList(context, model, 'list'),
                               ),
@@ -116,8 +115,8 @@ class _CashbookState extends State<Cashbook> {
                                   Padding(
                                     padding: const EdgeInsets.only(top: 15.0),
                                     child: SizedBox(
-                                      height: 60,
-                                      width: 140,
+                                      height: 41,
+                                      width: 150,
                                       child: OutlinedButton(
                                         onPressed: () {
                                           setState(() {
@@ -152,12 +151,13 @@ class _CashbookState extends State<Cashbook> {
                                         ),
                                         child: Row(
                                             mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
+                                                MainAxisAlignment.start,
                                             children: [
                                               Icon(
                                                 Icons.add,
                                                 color: Colors.white,
                                               ),
+                                              Spacer(),
                                               Text(
                                                 'Cash In',
                                                 style: GoogleFonts.poppins(
@@ -173,8 +173,8 @@ class _CashbookState extends State<Cashbook> {
                                   Padding(
                                     padding: const EdgeInsets.only(top: 15.0),
                                     child: SizedBox(
-                                      height: 60,
-                                      width: 140,
+                                      height: 41,
+                                      width: 150,
                                       child: OutlinedButton(
                                         onPressed: () {
                                           setState(() {
@@ -209,12 +209,13 @@ class _CashbookState extends State<Cashbook> {
                                         ),
                                         child: Row(
                                             mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
+                                                MainAxisAlignment.start,
                                             children: [
                                               Icon(
                                                 Icons.remove,
                                                 color: Colors.white,
                                               ),
+                                              Spacer(),
                                               Text(
                                                 'Cash Out',
                                                 style: GoogleFonts.poppins(
@@ -234,22 +235,25 @@ class _CashbookState extends State<Cashbook> {
                         : Column(
                             children: [
                               Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
+                                mainAxisAlignment: MainAxisAlignment.start,
                                 children: [
+                                  SizedBox(width: 10),
+                                  SvgPicture.asset(
+                                    'assets/flipper_keypad_blue.svg',
+                                    package: 'flipper_dashboard',
+                                  ),
                                   if (widget.newTransactionType == 'Cash In')
-                                    Text('Record Cash In',
+                                    Text(' Cash In',
                                         style: GoogleFonts.poppins(
-                                            fontSize: 17,
+                                            fontSize: 16,
                                             fontWeight: FontWeight.bold))
                                   else if (widget.newTransactionType ==
                                       'Cash Out')
-                                    Text('Record Cash Out',
+                                    Text(' Cash Out',
                                         style: GoogleFonts.poppins(
-                                            fontSize: 17,
+                                            fontSize: 16,
                                             fontWeight: FontWeight.bold)),
-                                  CategorySelector.transactionMode(
-                                      categories: model.categories),
+                                  Spacer(),
                                   IconButton(
                                     icon: Icon(Icons.close),
                                     onPressed: () {
@@ -267,7 +271,8 @@ class _CashbookState extends State<Cashbook> {
                                 transactionType: widget.newTransactionType,
                               )
                             ],
-                          ))
+                          )),
+                SizedBox(height: 31),
 
                 //List of transactions will go here
                 //Then the add transaction buttons underneath
@@ -295,6 +300,7 @@ class _CashbookState extends State<Cashbook> {
                 dataOnRedSide: 0,
                 startPadding: 0,
                 profitType: widget.profitType,
+                areValueColumnsVisible: !widget.newTransactionPressed,
               );
             } else {
               return CircularProgressIndicator();
@@ -350,6 +356,7 @@ class _CashbookState extends State<Cashbook> {
                   dataOnRedSide: sum_cash_out,
                   startPadding: 0,
                   profitType: widget.profitType,
+                  areValueColumnsVisible: !widget.newTransactionPressed,
                 );
 
               case 'list':
@@ -369,25 +376,50 @@ class _CashbookState extends State<Cashbook> {
                   itemCount: filteredTransactions.length,
                   itemBuilder: (context, index) {
                     final transaction = filteredTransactions[index];
-                    return ListTile(
-                      leading: transaction.transactionType == 'Cash Out'
-                          ? CircleAvatar(
-                              backgroundImage: AssetImage('assets/cash_out.png',
-                                  package: 'flipper_dashboard'),
-                            )
-                          : CircleAvatar(
-                              backgroundImage: AssetImage('assets/cash_in.png',
-                                  package:
-                                      'flipper_dashboard')), // Icon before the title
-                      title: Text(transaction.subTotal.toString() + ' RWF'),
-                      subtitle: Text(DateFormat('dd/MM/yyyy')
-                          .format(DateTime.parse(transaction.createdAt))),
-                      trailing: Text(DateFormat('HH:mm')
-                          .format(DateTime.parse(transaction.createdAt))),
+                    return Container(
+                      height: 70,
+                      child: ListTile(
+                        leading: Container(
+                          height: 75,
+                          width: 55,
+                          child: Center(
+                            child: MiniAppIcon(
+                              icon: 'assets/flipper_transaction_icon.svg',
+                              color: transaction.transactionType != 'Cash Out'
+                                  ? Color(0xFF4CAF50)
+                                  : Color(0xFFFF0331),
+                              page: transaction.transactionType != 'Cash Out'
+                                  ? "Income"
+                                  : "Expense",
+                              showPageName: false,
+                              sideSize: 55,
+                            ),
+                          ),
+                        ), // Icon before the title
+                        title: Text(
+                            NumberFormat('#,###').format(double.parse(
+                                    transaction.subTotal.toString())) +
+                                " RWF",
+                            style: GoogleFonts.poppins(
+                                fontSize: 17, fontWeight: FontWeight.bold)),
+                        subtitle: Text(
+                            DateFormat('dd/MM/yyyy')
+                                .format(DateTime.parse(transaction.createdAt)),
+                            style: GoogleFonts.poppins(
+                                fontSize: 17,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey)),
+                        trailing: Text(
+                            DateFormat('HH:mm')
+                                .format(DateTime.parse(transaction.createdAt)),
+                            style: GoogleFonts.poppins(
+                                fontSize: 17,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey)),
 
-                      onTap: () {
-                        null;
-                      },
+                        onTap: () => _routerService.navigateTo(
+                            TransactionDetailRoute(transaction: transaction)),
+                      ),
                     );
                   },
                 );
