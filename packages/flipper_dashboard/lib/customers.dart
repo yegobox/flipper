@@ -11,8 +11,8 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 class Customers extends StatelessWidget {
-  Customers({Key? key, required this.transactionId}) : super(key: key);
-  final int transactionId;
+  Customers({Key? key, this.transactionId}) : super(key: key);
+  final int? transactionId;
   final TextEditingController _seach = TextEditingController();
   final _routerService = locator<RouterService>();
   @override
@@ -64,7 +64,7 @@ class Customers extends StatelessWidget {
                                     onTap: () async {
                                       await model.assignToSale(
                                         customerId: snapshot.data!.id!,
-                                        transactionId: transactionId,
+                                        transactionId: transactionId ?? 0,
                                       );
                                       model.app.setCustomer(snapshot.data!);
                                       model.getTransactionById();
@@ -166,8 +166,8 @@ class Customers extends StatelessWidget {
                               '"'
                           : 'Add Customer',
                       onTap: () {
-                        _showModalBottomSheet(
-                            context, transactionId, model.searchCustomerkey);
+                        _showModalBottomSheet(context, transactionId ?? 0,
+                            model.searchCustomerkey);
                       },
                     ),
                   )

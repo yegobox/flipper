@@ -3,6 +3,7 @@ import 'dart:core';
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/server_definitions.dart';
 import 'package:flipper_models/sync.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:pocketbase/pocketbase.dart';
 
@@ -20,7 +21,11 @@ abstract class IJsonSerializable {
 class SynchronizationService<M extends IJsonSerializable>
     implements SyncApiInterface<M> {
   @override
-  Future<RecordModel?> push(M model) async {
+  Future<void> push() async {
+    await dirtyData();
+  }
+
+  Future<RecordModel?> _push(M model) async {
     Type modelType = model.runtimeType;
     // Use the model type to get the corresponding endpoint from the map
     String? endpoint = serverDefinitions[modelType];
@@ -79,5 +84,104 @@ class SynchronizationService<M extends IJsonSerializable>
   @override
   void pull() async {
     ProxyService.remote.listenToChanges();
+  }
+
+  // The extracted function for updating and reporting transactions
+  Future<void> _pushTransactions(Transaction transaction) async {
+    /// fix@issue where the createdAt synced on server is older compared to when a transaction was completed.
+    transaction.updatedAt = DateTime.now().toIso8601String();
+    transaction.createdAt = DateTime.now().toIso8601String();
+
+    RecordModel? variantRecord = await _push(transaction as M);
+    if (variantRecord != null) {
+      Transaction o = Transaction.fromRecord(variantRecord);
+      o.remoteID = variantRecord.id;
+
+      // /// keep the local ID unchanged to avoid complication
+      o.id = transaction.id;
+
+      await ProxyService.isar.update(data: o);
+    }
+  }
+
+  @override
+  Future<void> dirtyData() async {
+    final data = await ProxyService.isar.getUnSyncedData();
+
+    for (Transaction transaction in data.transactions) {
+      await _pushTransactions(transaction);
+    }
+    for (Stock stock in data.stocks) {
+      int stockId = stock.id!;
+
+      RecordModel? stockRecord = await _push(stock as M);
+      if (stockRecord != null) {
+        Stock s = Stock.fromRecord(stockRecord);
+        s.remoteID = stockRecord.id;
+
+        /// keep the local ID unchanged to avoid complication
+        s.id = stockId;
+        s.action = AppActions.updated;
+
+        await ProxyService.isar.update(data: s);
+      }
+    }
+    for (Variant variant in data.variants) {
+      int variantId = variant.id!;
+
+      RecordModel? variantRecord = await _push(variant as M);
+      if (variantRecord != null) {
+        Variant va = Variant.fromRecord(variantRecord);
+        va.remoteID = variantRecord.id;
+
+        // /// keep the local ID unchanged to avoid complication
+        va.id = variantId;
+        va.action = AppActions.updated;
+        await ProxyService.isar.update(data: va);
+      }
+    }
+
+    for (Product product in data.products) {
+      RecordModel? record = await _push(product as M);
+      int oldId = product.id!;
+      if (record != null) {
+        Product product = Product.fromRecord(record);
+        product.remoteID = record.id;
+
+        /// keep the local ID unchanged to avoid complication
+        product.id = oldId;
+        product.action = AppActions.updated;
+        await ProxyService.isar.update(data: product);
+      }
+    }
+
+    for (Favorite favorite in data.favorites) {
+      RecordModel? record = await _push(favorite as M);
+      int oldId = favorite.id!;
+      if (record != null) {
+        Favorite fav = Favorite.fromRecord(record);
+        fav.remoteID = record.id;
+
+        /// keep the local ID unchanged to avoid complication
+        fav.id = oldId;
+        fav.action = AppActions.updated;
+        await ProxyService.isar.update(data: fav);
+      }
+    }
+
+    /// pushing devices
+    for (Device device in data.devices) {
+      RecordModel? record = await _push(device as M);
+      int oldId = device.id!;
+      if (record != null) {
+        Device dev = Device.fromRecord(record);
+        dev.remoteID = record.id;
+
+        /// keep the local ID unchanged to avoid complication
+        dev.id = oldId;
+        dev.action = AppActions.updated;
+        await ProxyService.isar.update(data: dev);
+      }
+    }
   }
 }

@@ -74,14 +74,14 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
       // AppLifecycleState.
       case AppLifecycleState.resumed:
         nfc();
-        ProxyService.app.pushDataToServer();
+        ProxyService.sync.push();
         break;
       case AppLifecycleState.paused:
         // AppService.cleanedDataController.close();
-        ProxyService.app.pushDataToServer();
+        ProxyService.sync.push();
         break;
       default:
-        ProxyService.app.pushDataToServer();
+        ProxyService.sync.push();
         break;
     }
   }

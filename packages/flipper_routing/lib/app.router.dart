@@ -334,7 +334,8 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       );
     },
     CustomersRoute.name: (routeData) {
-      final args = routeData.argsAs<CustomersArgs>();
+      final args =
+          routeData.argsAs<CustomersArgs>(orElse: () => const CustomersArgs());
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: _i2.Customers(
@@ -1544,7 +1545,7 @@ class InAppBrowserRoute extends _i3.PageRouteInfo<void> {
 class CustomersRoute extends _i3.PageRouteInfo<CustomersArgs> {
   CustomersRoute({
     _i4.Key? key,
-    required int transactionId,
+    int? transactionId,
   }) : super(
           CustomersRoute.name,
           path: '/Customers',
@@ -1560,12 +1561,12 @@ class CustomersRoute extends _i3.PageRouteInfo<CustomersArgs> {
 class CustomersArgs {
   const CustomersArgs({
     this.key,
-    required this.transactionId,
+    this.transactionId,
   });
 
   final _i4.Key? key;
 
-  final int transactionId;
+  final int? transactionId;
 
   @override
   String toString() {

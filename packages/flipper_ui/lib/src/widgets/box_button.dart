@@ -40,7 +40,7 @@ class BoxButton extends StatelessWidget {
       child: AnimatedContainer(
         duration: Duration(milliseconds: 350),
         width: double.infinity,
-        height: 48,
+        height: 60,
         alignment: Alignment.center,
         decoration: !outline
             ? BoxDecoration(

@@ -43,7 +43,7 @@ class CashbookViewModel extends ProductViewModel {
     await ProxyService.isar
         .deleteTransactionByIndex(transactionIndex: transactionIndex);
     notifyListeners();
-    ProxyService.app.pushDataToServer();
+    ProxyService.sync.push();
     if (target != null) {
       return target.id!;
     }
