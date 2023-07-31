@@ -79,7 +79,7 @@ class _TaxConfigurationState extends State<TaxConfiguration> {
                       },
                       child: MiniAppIcon(
                         icon: Icons.call,
-                        gradientColorOne: Colors.lightBlue,
+                        color: Colors.lightBlue,
                         page: "Support",
                         showPageName: true,
                       ),
