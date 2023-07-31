@@ -167,14 +167,18 @@ class RemoteService implements RemoteInterface {
     int businessId = ProxyService.box.getBusinessId() ?? 0;
     if (branchId != 0 || businessId != 0) {
       pb.collection('socials').subscribe("*", (socialEvent) async {
-        if (socialEvent.action == "create" || socialEvent.action == "update") {
+        if (socialEvent.action == "create" ||
+            socialEvent.action == "update" ||
+            socialEvent.action == "delete") {
           await handleRemoteData(
               socialEvent.record!, branchId, businessId, 'socials');
         }
       });
 
       pb.collection('stocks').subscribe("*", (stockEvent) async {
-        if (stockEvent.action == "create" || stockEvent.action == "update") {
+        if (stockEvent.action == "create" ||
+            stockEvent.action == "update" ||
+            stockEvent.action == "delete") {
           await handleRemoteData(
               stockEvent.record!, branchId, businessId, 'stocks');
         }
@@ -182,7 +186,8 @@ class RemoteService implements RemoteInterface {
 
       pb.collection('variants').subscribe("*", (variantEvent) async {
         if (variantEvent.action == "create" ||
-            variantEvent.action == "update") {
+            variantEvent.action == "update" ||
+            variantEvent.action == "delete") {
           await handleRemoteData(
               variantEvent.record!, branchId, businessId, 'variants');
         }
@@ -190,20 +195,25 @@ class RemoteService implements RemoteInterface {
 
       pb.collection('products').subscribe("*", (productEvent) async {
         if (productEvent.action == "create" ||
-            productEvent.action == "update") {
+            productEvent.action == "update" ||
+            productEvent.action == "delete") {
           await handleRemoteData(
               productEvent.record!, branchId, businessId, 'products');
         }
       });
 
       pb.collection('devices').subscribe("*", (deviceEvent) async {
-        if (deviceEvent.action == "create" || deviceEvent.action == "update") {
+        if (deviceEvent.action == "create" ||
+            deviceEvent.action == "update" ||
+            deviceEvent.action == "delete") {
           await handleRemoteData(
               deviceEvent.record!, branchId, businessId, 'devices');
         }
       });
       pb.collection('rra').subscribe("*", (deviceEvent) async {
-        if (deviceEvent.action == "create" || deviceEvent.action == "update") {
+        if (deviceEvent.action == "create" ||
+            deviceEvent.action == "update" ||
+            deviceEvent.action == "delete") {
           await handleRemoteData(
               deviceEvent.record!, branchId, businessId, 'rra');
         }
@@ -250,6 +260,7 @@ class RemoteService implements RemoteInterface {
   Future<void> handleItem<T>({required T model, required int branchId}) async {
     if (model is Stock) {
       final remoteStock = Stock.fromJson(model.toJson());
+
       final localStock =
           await ProxyService.isar.getStockById(id: remoteStock.localId!);
 

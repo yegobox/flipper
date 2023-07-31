@@ -520,6 +520,7 @@ class IsarAPI<M> implements IsarApiInterface {
     return isar.favorites
         .filter()
         .favIndexEqualTo(favIndex)
+        .deletedAtIsNull()
         .build()
         .watch(fireImmediately: true)
         .asyncMap((event) => event.first);
@@ -762,7 +763,7 @@ class IsarAPI<M> implements IsarApiInterface {
     // remove currentTransactionId from local storage to leave a room
     // for listening to new transaction that will be created
     ProxyService.box.remove(key: 'currentTransactionId');
-    ProxyService.app.pushDataToServer();
+    ProxyService.sync.push();
   }
 
   @override
@@ -1006,6 +1007,7 @@ class IsarAPI<M> implements IsarApiInterface {
           PColor? color = await isar.pColors.get(id);
           if (color != null) {
             color.deletedAt = deletionTime;
+            color.action = AppActions.deleted;
             await isar.pColors.put(color);
             return true;
           }
@@ -1017,6 +1019,7 @@ class IsarAPI<M> implements IsarApiInterface {
           Device? device = await isar.devices.get(id);
           if (device != null) {
             device.deletedAt = deletionTime;
+            device.action = AppActions.deleted;
             await isar.devices.put(device);
             return true;
           }
@@ -1028,6 +1031,7 @@ class IsarAPI<M> implements IsarApiInterface {
           Category? category = await isar.categorys.get(id);
           if (category != null) {
             category.deletedAt = deletionTime;
+            category.action = AppActions.deleted;
             await isar.categorys.put(category);
             return true;
           }
@@ -1039,6 +1043,7 @@ class IsarAPI<M> implements IsarApiInterface {
           Product? product = await isar.products.get(id);
           if (product != null) {
             product.deletedAt = deletionTime;
+            product.action = AppActions.deleted;
             await isar.products.put(product);
             return true;
           }
@@ -1050,6 +1055,7 @@ class IsarAPI<M> implements IsarApiInterface {
           Variant? variant = await isar.variants.get(id);
           if (variant != null) {
             variant.deletedAt = deletionTime;
+            variant.action = AppActions.deleted;
             await isar.variants.put(variant);
             return true;
           }
@@ -1061,6 +1067,7 @@ class IsarAPI<M> implements IsarApiInterface {
           Stock? stocks = await isar.stocks.get(id);
           if (stocks != null) {
             stocks.deletedAt = deletionTime;
+            stocks.action = AppActions.deleted;
             await isar.stocks.put(stocks);
             return true;
           }
@@ -1072,6 +1079,7 @@ class IsarAPI<M> implements IsarApiInterface {
           Setting? setting = await isar.settings.get(id);
           if (setting != null) {
             setting.deletedAt = deletionTime;
+            setting.action = AppActions.deleted;
             await isar.settings.put(setting);
             return true;
           }
@@ -1080,10 +1088,11 @@ class IsarAPI<M> implements IsarApiInterface {
         break;
       case 'pin':
         await isar.writeTxn(() async {
-          Pin? product = await isar.pins.get(id);
-          if (product != null) {
-            product.deletedAt = deletionTime;
-            await isar.pins.put(product);
+          Pin? pin = await isar.pins.get(id);
+          if (pin != null) {
+            pin.deletedAt = deletionTime;
+            pin.action = AppActions.deleted;
+            await isar.pins.put(pin);
             return true;
           }
           return false;
@@ -1119,6 +1128,7 @@ class IsarAPI<M> implements IsarApiInterface {
           Customer? customer = await isar.customers.get(id);
           if (customer != null) {
             customer.deletedAt = deletionTime;
+            customer.action = AppActions.deleted;
             await isar.customers.put(customer);
             return true;
           }
@@ -1355,6 +1365,8 @@ class IsarAPI<M> implements IsarApiInterface {
         .emailEqualTo(key)
         .or()
         .phoneEqualTo(key)
+        .and()
+        .deletedAtIsNull()
         .build()
         .watch(fireImmediately: true)
         .asyncMap((event) => event.first);
@@ -1772,8 +1784,9 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Stream<List<Product>> productStreams({required int branchId}) {
     return isar.products
-        .where()
+        .filter()
         .branchIdEqualTo(branchId)
+        .deletedAtIsNull()
         .sortByLastTouchedDesc()
         .watch(fireImmediately: true);
   }
@@ -2604,115 +2617,6 @@ class IsarAPI<M> implements IsarApiInterface {
     return await isar.stocks.get(id);
   }
 
-  /// internal function that I am still brain storming about
-  Future<List<T>> getLocalData<T>(String modelName) async {
-    log(ProxyService.box.getBranchId().toString(), name: 'getLocal$modelName');
-    if (ProxyService.box.getBranchId() == null) return [];
-
-    final Map<String, IsarCollection<dynamic>> collectionMap = {
-      'Stock': isar.stocks,
-      'Variant': isar.variants,
-      // Add more model names and corresponding collection instances as needed
-    };
-    final collection = collectionMap[modelName];
-    if (collection == null) {
-      throw Exception('No collection found for model: $modelName');
-    }
-    if (collection is IsarCollection<Variant>) {
-      return await collection
-          .filter()
-          .lastTouchedIsNull()
-          .or()
-          .actionEqualTo('update')
-          .and()
-          .branchIdEqualTo(ProxyService.box.getBranchId()!)
-          .findAll() as List<T>;
-    }
-    return await [];
-  }
-
-  @override
-  Future<List<Device>> getLocalDevices() async {
-    log(ProxyService.box.getBranchId().toString(), name: 'getLocalStocks');
-    if (ProxyService.box.getBranchId() == null) return [];
-    return await isar.devices
-        .filter()
-        .lastTouchedIsNull()
-        .or()
-        .actionEqualTo('update')
-        .and()
-        .branchIdEqualTo(ProxyService.box.getBranchId()!)
-        .findAll();
-  }
-
-  @override
-  Future<List<Stock>> getLocalStocks() async {
-    log(ProxyService.box.getBranchId().toString(), name: 'getLocalStocks');
-    if (ProxyService.box.getBranchId() == null) return [];
-    return await isar.stocks
-        .filter()
-        .lastTouchedIsNull()
-        .or()
-        .actionEqualTo('update')
-        .and()
-        .branchIdEqualTo(ProxyService.box.getBranchId()!)
-        .findAll();
-  }
-
-  @override
-  Future<List<Variant>> getLocalVariants() async {
-    log(ProxyService.box.getBranchId().toString(), name: 'getLocalVariants');
-    if (ProxyService.box.getBranchId() == null) return [];
-    return await isar.variants
-        .filter()
-        .lastTouchedIsNull()
-        .or()
-        .actionEqualTo('update')
-        .and()
-        .branchIdEqualTo(ProxyService.box.getBranchId()!)
-        .findAll();
-  }
-
-  @override
-  Future<List<Product>> getLocalProducts() async {
-    if (ProxyService.box.getBranchId() == null) return [];
-    return await isar.products
-        .filter()
-        .lastTouchedIsNull()
-        .or()
-        .actionEqualTo('update')
-        .and()
-        .branchIdEqualTo(ProxyService.box.getBranchId()!)
-        .findAll();
-  }
-
-  @override
-  Future<List<Favorite>> getLocalFavorite() async {
-    if (ProxyService.box.getBranchId() == null) return [];
-    return await isar.favorites
-        .filter()
-        .lastTouchedIsNull()
-        .or()
-        .actionEqualTo('update')
-        .and()
-        .branchIdEqualTo(ProxyService.box.getBranchId()!)
-        .findAll();
-  }
-
-  @override
-  Future<List<Transaction>> getLocalTransactions() async {
-    if (ProxyService.box.getBranchId() == null) return [];
-    return await isar.transactions
-        .filter()
-        .statusEqualTo(completeStatus)
-        .lastTouchedIsNull()
-        .or()
-        .actionEqualTo('update')
-        .and()
-        .branchIdEqualTo(ProxyService.box.getBranchId()!)
-        .findAll();
-  }
-
   @override
   Stream<Social> socialsStream({required int businessId}) {
     log("socialsStream called", name: "${businessId}");
@@ -3258,5 +3162,98 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<EBM?> getEbmByBranchId({required int branchId}) async {
     return await isar.eBMs.filter().branchIdEqualTo(branchId).findFirst();
+  }
+
+  @override
+  Future<
+      ({
+        List<Stock> stocks,
+        List<Variant> variants,
+        List<Product> products,
+        List<Favorite> favorites,
+        List<Device> devices,
+        List<Transaction> transactions
+      })> getUnSyncedData() async {
+    List<Stock> stocks = await isar.stocks
+        .filter()
+        .lastTouchedIsNull()
+        .or()
+        .actionEqualTo(AppActions.update)
+        .or()
+        .actionEqualTo(AppActions.create)
+        .or()
+        .actionEqualTo(AppActions.deleted)
+        .and()
+        .branchIdEqualTo(ProxyService.box.getBranchId()!)
+        .findAll();
+    List<Variant> variants = await isar.variants
+        .filter()
+        .lastTouchedIsNull()
+        .or()
+        .actionEqualTo(AppActions.update)
+        .or()
+        .actionEqualTo(AppActions.create)
+        .or()
+        .actionEqualTo(AppActions.deleted)
+        .and()
+        .branchIdEqualTo(ProxyService.box.getBranchId()!)
+        .findAll();
+    List<Product> products = await isar.products
+        .filter()
+        .lastTouchedIsNull()
+        .or()
+        .actionEqualTo(AppActions.update)
+        .or()
+        .actionEqualTo(AppActions.create)
+        .or()
+        .actionEqualTo(AppActions.deleted)
+        .and()
+        .branchIdEqualTo(ProxyService.box.getBranchId()!)
+        .findAll();
+    List<Favorite> favorites = await isar.favorites
+        .filter()
+        .lastTouchedIsNull()
+        .or()
+        .actionEqualTo(AppActions.update)
+        .or()
+        .actionEqualTo(AppActions.create)
+        .or()
+        .actionEqualTo(AppActions.deleted)
+        .and()
+        .branchIdEqualTo(ProxyService.box.getBranchId()!)
+        .findAll();
+    List<Device> devices = await isar.devices
+        .filter()
+        .lastTouchedIsNull()
+        .or()
+        .actionEqualTo(AppActions.update)
+        .or()
+        .actionEqualTo(AppActions.create)
+        .or()
+        .actionEqualTo(AppActions.deleted)
+        .and()
+        .branchIdEqualTo(ProxyService.box.getBranchId()!)
+        .findAll();
+    List<Transaction> transactions = await isar.transactions
+        .filter()
+        .statusEqualTo(completeStatus)
+        .lastTouchedIsNull()
+        .or()
+        .actionEqualTo(AppActions.update)
+        .or()
+        .actionEqualTo(AppActions.create)
+        .or()
+        .actionEqualTo(AppActions.deleted)
+        .and()
+        .branchIdEqualTo(ProxyService.box.getBranchId()!)
+        .findAll();
+    return (
+      stocks: stocks,
+      variants: variants,
+      products: products,
+      favorites: favorites,
+      devices: devices,
+      transactions: transactions
+    );
   }
 }

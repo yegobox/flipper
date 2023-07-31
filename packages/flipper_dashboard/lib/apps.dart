@@ -86,6 +86,9 @@ class _AppsState extends State<Apps> {
           case "Transactions":
             _routerService.navigateTo(TransactionsRoute());
             return;
+          case "Contacts":
+            _routerService.navigateTo(CustomersRoute());
+            break;
           default:
             _routerService.navigateTo(CheckOutRoute(
               isBigScreen: widget.isBigScreen,
@@ -172,7 +175,6 @@ class _AppsState extends State<Apps> {
               padding: const EdgeInsets.only(top: 70.0),
               child: _buildGauge(context, widget.model),
             ),
-            // SizedBox(height: 40),
             Stack(
               children: [
                 SizedBox(
@@ -204,6 +206,10 @@ class _AppsState extends State<Apps> {
                           iconData: FluentIcons.settings_16_regular,
                           color: Colors.orange,
                           page: "Settings"),
+                      _buildCustomPaintWithIcon(
+                          iconData: FluentIcons.people_32_regular,
+                          color: Colors.cyan,
+                          page: "Contacts"),
                       _buildCustomPaintWithIcon(
                           iconData: Icons.call,
                           color: Colors.lightBlue,

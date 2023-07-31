@@ -240,7 +240,6 @@ abstract class IsarApiInterface {
 
   Future<void> deleteAllProducts();
   Future<Stock?> getStockById({required int id});
-  Future<List<Transaction>> getLocalTransactions();
 
   /// socials methods
   Stream<Social> socialsStream({required int businessId});
@@ -279,12 +278,15 @@ abstract class IsarApiInterface {
   Future<Stock?> addStockToVariant({required Variant variant});
   Stream<Product> getProductStream({required int prodIndex});
 
-  //sync related
-  Future<List<Product>> getLocalProducts();
-  Future<List<Favorite>> getLocalFavorite();
-  Future<List<Variant>> getLocalVariants();
-  Future<List<Stock>> getLocalStocks();
-  Future<List<Device>> getLocalDevices();
+  Future<
+      ({
+        List<Stock> stocks,
+        List<Variant> variants,
+        List<Product> products,
+        List<Favorite> favorites,
+        List<Device> devices,
+        List<Transaction> transactions
+      })> getUnSyncedData();
   Future<Conversation> sendMessage(
       {required String message, required Conversation latestConversation});
   Future<EBM?> getEbmByBranchId({required int branchId});

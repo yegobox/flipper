@@ -345,7 +345,7 @@ class ProductViewModel extends TenantViewModel {
         ProxyService.tax.saveItem(variation: variant);
       }
     }
-    ProxyService.app.pushDataToServer();
+    ProxyService.sync.push();
     return response == 200;
   }
 
@@ -357,7 +357,7 @@ class ProductViewModel extends TenantViewModel {
 
     int res = await ProxyService.isar.addFavorite(data: favorite);
     rebuildUi();
-    ProxyService.app.pushDataToServer();
+    ProxyService.sync.push();
     return res;
   }
 
