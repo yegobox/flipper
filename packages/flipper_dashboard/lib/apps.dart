@@ -225,7 +225,7 @@ class _AppsState extends State<Apps> {
                       style: GoogleFonts.poppins(
                         fontSize: 12,
                         color: Colors.black.withOpacity(0.3100000023841858),
-                        fontWeight: FontWeight.w400,
+                        fontWeight: FontWeight.w900,
                       ),
                     ),
                   ),
