@@ -189,7 +189,7 @@ class _AppsState extends State<Apps> {
                           color: const Color(0xff006AFE),
                           page: "POS"),
                       _buildCustomPaintWithIcon(
-                          iconData: "assets/flipper_wallet.svg",
+                          iconData: FluentIcons.calculator_24_regular,
                           color: Color(0xFF66AAFF),
                           page: "Cashbook"),
                       _buildCustomPaintWithIcon(

@@ -227,7 +227,7 @@ class _TransactionsState extends State<Transactions> {
                   children: [
                     Center(
                       child: MiniAppIcon(
-                        icon: FluentIcons.receipt_money_20_regular,
+                        icon: 'assets/flipper_transaction_icon.svg',
                         color: gradientColorOne,
                         page: "Transaction",
                         showPageName: false,
@@ -289,29 +289,30 @@ class _TransactionsState extends State<Transactions> {
         builder: (context, model, child) {
           return Scaffold(
             appBar: CustomAppBar(
-              closeButton: CLOSEBUTTON.WIDGET,
-              title: ' Transactions',
-              customLeadingWidget: GestureDetector(
-                onTap: () {
-                  Navigator.pop(context);
-                },
-                child: Icon(Icons.arrow_back),
-              ),
+              isDividerVisible: false,
+              title: 'Transactions',
+              icon: Icons.close,
+              onPop: () async {
+                _routerService.back();
+              },
             ),
             body: defaultTransactions
-                ? Column(
-                    children: [
-                      RadioButtons(
-                          buttonLabels: transactionTypeOptions,
-                          onChanged: (newPeriod) {
-                            setState(() {
-                              list = [];
-                              displayedTransactionType = newPeriod;
-                            });
-                          }),
-                      Divider(),
-                      buildList(context, model),
-                    ],
+                ? Padding(
+                    padding: const EdgeInsets.only(left: 13.0),
+                    child: Column(
+                      children: [
+                        RadioButtons(
+                            buttonLabels: transactionTypeOptions,
+                            onChanged: (newPeriod) {
+                              setState(() {
+                                list = [];
+                                displayedTransactionType = newPeriod;
+                              });
+                            }),
+                        Divider(),
+                        buildList(context, model),
+                      ],
+                    ),
                   )
                 : (zlist.isEmpty
                     ? Center(

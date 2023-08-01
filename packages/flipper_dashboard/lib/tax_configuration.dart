@@ -1,8 +1,7 @@
-import 'package:flipper_dashboard/bottom_sheet.dart';
+
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_dashboard/widgets/mini_app_icon.dart';
 import 'package:flipper_models/isar_models.dart';
-import 'package:flipper_ui/bottom_sheets/tax_configuration.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_routing/app.locator.dart';

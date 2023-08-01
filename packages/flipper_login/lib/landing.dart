@@ -143,7 +143,7 @@ class _LandingState extends State<Landing> {
                     style: ButtonStyle(
                       shape: MaterialStateProperty.all<OutlinedBorder>(
                         RoundedRectangleBorder(
-                          borderRadius: BorderRadius.zero,
+                          borderRadius: BorderRadius.circular(4),
                         ),
                       ),
                       side: MaterialStateProperty.resolveWith(

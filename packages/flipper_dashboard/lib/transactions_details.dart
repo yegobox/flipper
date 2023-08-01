@@ -196,19 +196,17 @@ class _TransactionDetailState extends State<TransactionDetail> {
           }
           return Scaffold(
             appBar: CustomAppBar(
-              closeButton: CLOSEBUTTON.WIDGET,
+              isDividerVisible: false,
               title: ' ' +
                   transactionType +
                   ' : ' +
                   NumberFormat('#,###').format(
                       double.parse(widget.transaction.subTotal.toString())) +
                   " RWF",
-              customLeadingWidget: GestureDetector(
-                onTap: () {
-                  Navigator.pop(context);
-                },
-                child: Icon(Icons.arrow_back),
-              ),
+              icon: Icons.close,
+              onPop: () async {
+                _routerService.back();
+              },
             ),
             body: Column(
               children: [
