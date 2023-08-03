@@ -340,6 +340,19 @@ const TransactionItemSchema = CollectionSchema(
           caseSensitive: false,
         )
       ],
+    ),
+    r'remoteID': IndexSchema(
+      id: 8280972950722306723,
+      name: r'remoteID',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'remoteID',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
     )
   },
   links: {},
@@ -1350,6 +1363,73 @@ extension TransactionItemQueryWhere
         upper: [upperDeletedAt],
         includeUpper: includeUpper,
       ));
+    });
+  }
+
+  QueryBuilder<TransactionItem, TransactionItem, QAfterWhereClause>
+      remoteIDIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'remoteID',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionItem, TransactionItem, QAfterWhereClause>
+      remoteIDIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'remoteID',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionItem, TransactionItem, QAfterWhereClause>
+      remoteIDEqualTo(String? remoteID) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'remoteID',
+        value: [remoteID],
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionItem, TransactionItem, QAfterWhereClause>
+      remoteIDNotEqualTo(String? remoteID) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'remoteID',
+              lower: [],
+              upper: [remoteID],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'remoteID',
+              lower: [remoteID],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'remoteID',
+              lower: [remoteID],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'remoteID',
+              lower: [],
+              upper: [remoteID],
+              includeUpper: false,
+            ));
+      }
     });
   }
 }
@@ -9691,7 +9771,6 @@ TransactionItem _$TransactionItemFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$TransactionItemToJson(TransactionItem instance) =>
     <String, dynamic>{
-      'remoteID': instance.remoteID,
       'id': instance.id,
       'name': instance.name,
       'transactionId': instance.transactionId,
@@ -9742,6 +9821,7 @@ Map<String, dynamic> _$TransactionItemToJson(TransactionItem instance) =>
       'modrNm': instance.modrNm,
       'lastTouched': instance.lastTouched,
       'deletedAt': instance.deletedAt?.toIso8601String(),
+      'remoteID': instance.remoteID,
       'action': instance.action,
       'localId': instance.localId,
     };

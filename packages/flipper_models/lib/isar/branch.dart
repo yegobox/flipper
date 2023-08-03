@@ -47,11 +47,8 @@ class Branch extends IJsonSerializable {
   factory Branch.fromJson(Map<String, dynamic> json) {
     /// assign remoteID to the value of id because this method is used to encode
     /// data from remote server and id from remote server is considered remoteID on local
-    if (json['id'] is int) {
-      json['remoteID'] = json['id'].toString();
-    } else {
-      json['remoteID'] = json['id'];
-    }
+    json['remoteID'] = json['id'];
+    json.remove('id');
     return _$BranchFromJson(json);
   }
 

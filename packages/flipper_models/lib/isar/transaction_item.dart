@@ -146,7 +146,8 @@ class TransactionItem extends IJsonSerializable {
     this.lastTouched,
     this.deletedAt,
   });
-  //sync String? remoteID;
+  @Index()
+  String? remoteID;
   String? action;
   int? localId;
 
@@ -154,6 +155,7 @@ class TransactionItem extends IJsonSerializable {
       TransactionItem.fromJson(record.toJson());
 
   factory TransactionItem.fromJson(Map<String, dynamic> json) {
+    json['remoteID'] = json['id'];
     json.remove('id');
     return _$TransactionItemFromJson(json);
   }

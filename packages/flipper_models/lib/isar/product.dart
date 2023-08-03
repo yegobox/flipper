@@ -73,6 +73,7 @@ class Product extends IJsonSerializable {
   factory Product.fromRecord(RecordModel record) =>
       Product.fromJson(record.toJson());
   factory Product.fromJson(Map<String, dynamic> json) {
+    json['remoteID'] = json['id'];
     json.remove('id');
     return _$ProductFromJson(json);
   }
