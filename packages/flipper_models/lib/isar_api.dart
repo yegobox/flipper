@@ -3172,7 +3172,8 @@ class IsarAPI<M> implements IsarApiInterface {
         List<Product> products,
         List<Favorite> favorites,
         List<Device> devices,
-        List<Transaction> transactions
+        List<Transaction> transactions,
+        List<TransactionItem> transactionItems
       })> getUnSyncedData() async {
     List<Stock> stocks = await isar.stocks
         .filter()
@@ -3247,13 +3248,24 @@ class IsarAPI<M> implements IsarApiInterface {
         .and()
         .branchIdEqualTo(ProxyService.box.getBranchId()!)
         .findAll();
+    List<TransactionItem> transactionItems = await isar.transactionItems
+        .filter()
+        .lastTouchedIsNull()
+        .or()
+        .actionEqualTo(AppActions.update)
+        .or()
+        .actionEqualTo(AppActions.create)
+        .or()
+        .actionEqualTo(AppActions.deleted)
+        .findAll();
     return (
       stocks: stocks,
       variants: variants,
       products: products,
       favorites: favorites,
       devices: devices,
-      transactions: transactions
+      transactions: transactions,
+      transactionItems: transactionItems
     );
   }
 }

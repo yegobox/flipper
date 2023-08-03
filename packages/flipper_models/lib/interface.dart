@@ -285,7 +285,8 @@ abstract class IsarApiInterface {
         List<Product> products,
         List<Favorite> favorites,
         List<Device> devices,
-        List<Transaction> transactions
+        List<Transaction> transactions,
+        List<TransactionItem> transactionItems
       })> getUnSyncedData();
   Future<Conversation> sendMessage(
       {required String message, required Conversation latestConversation});

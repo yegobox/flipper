@@ -63,7 +63,7 @@ class SynchronizationService<M extends IJsonSerializable>
       // Assume that `json` is a variable holding a JSON object
       //because there is a case where I might update yet there is no equivalent
       //object remote, in this case we will fallback in create
-      if (json['action'] == 'update') {
+      if (json['action'] == 'update' || json['action'] == 'delete') {
         var remoteID = json["remoteID"];
         if (remoteID != null) {
           json["id"] = remoteID;
@@ -75,7 +75,6 @@ class SynchronizationService<M extends IJsonSerializable>
         result = await ProxyService.remote
             .create(collection: json, collectionName: endpoint);
       }
-
       return result;
     }
     return null;
@@ -110,6 +109,21 @@ class SynchronizationService<M extends IJsonSerializable>
 
     for (Transaction transaction in data.transactions) {
       await _pushTransactions(transaction);
+    }
+    for (TransactionItem item in data.transactionItems) {
+      int transactionItemId = item.id!;
+
+      RecordModel? stockRecord = await _push(item as M);
+      if (stockRecord != null) {
+        TransactionItem iItem = TransactionItem.fromRecord(stockRecord);
+        iItem.remoteID = stockRecord.id;
+
+        /// keep the local ID unchanged to avoid complication
+        iItem.id = transactionItemId;
+        iItem.action = AppActions.updated;
+
+        await ProxyService.isar.update(data: iItem);
+      }
     }
     for (Stock stock in data.stocks) {
       int stockId = stock.id!;
