@@ -194,12 +194,7 @@ int _profileEstimateSize(
       bytesCount += 3 + value.length * 3;
     }
   }
-  {
-    final value = object.action;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
+  bytesCount += 3 + object.action.length * 3;
   {
     final value = object.address;
     if (value != null) {
@@ -337,7 +332,7 @@ Profile _profileDeserialize(
     state: reader.readStringOrNull(offsets[20]),
     vaccinationCode: reader.readString(offsets[21]),
   );
-  object.action = reader.readStringOrNull(offsets[1]);
+  object.action = reader.readString(offsets[1]);
   object.lastTouched = reader.readStringOrNull(offsets[11]);
   object.localId = reader.readLongOrNull(offsets[13]);
   object.remoteID = reader.readStringOrNull(offsets[19]);
@@ -354,7 +349,7 @@ P _profileDeserializeProp<P>(
     case 0:
       return (reader.readStringOrNull(offset)) as P;
     case 1:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 2:
       return (reader.readStringOrNull(offset)) as P;
     case 3:
@@ -916,24 +911,8 @@ extension ProfileQueryFilter
     });
   }
 
-  QueryBuilder<Profile, Profile, QAfterFilterCondition> actionIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'action',
-      ));
-    });
-  }
-
-  QueryBuilder<Profile, Profile, QAfterFilterCondition> actionIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'action',
-      ));
-    });
-  }
-
   QueryBuilder<Profile, Profile, QAfterFilterCondition> actionEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -946,7 +925,7 @@ extension ProfileQueryFilter
   }
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> actionGreaterThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -961,7 +940,7 @@ extension ProfileQueryFilter
   }
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> actionLessThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -976,8 +955,8 @@ extension ProfileQueryFilter
   }
 
   QueryBuilder<Profile, Profile, QAfterFilterCondition> actionBetween(
-    String? lower,
-    String? upper, {
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -4433,7 +4412,7 @@ extension ProfileQueryProperty
     });
   }
 
-  QueryBuilder<Profile, String?, QQueryOperations> actionProperty() {
+  QueryBuilder<Profile, String, QQueryOperations> actionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'action');
     });
@@ -4588,7 +4567,7 @@ Profile _$ProfileFromJson(Map<String, dynamic> json) => Profile(
           : DateTime.parse(json['deletedAt'] as String),
     )
       ..remoteID = json['remoteID'] as String?
-      ..action = json['action'] as String?
+      ..action = json['action'] as String
       ..localId = json['localId'] as int?
       ..lastTouched = json['lastTouched'] as String?;
 

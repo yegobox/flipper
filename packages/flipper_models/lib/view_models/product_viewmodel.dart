@@ -352,8 +352,12 @@ class ProductViewModel extends TenantViewModel {
   /// Add a product into the favorites
   Future<int> addFavorite(
       {required int favIndex, required int productId}) async {
-    final favorite =
-        Favorite(favIndex, productId, ProxyService.box.getBranchId());
+    final favorite = Favorite(
+      favIndex: favIndex,
+      productId: productId,
+      branchId: ProxyService.box.getBranchId(),
+      action: AppActions.create,
+    );
 
     int res = await ProxyService.isar.addFavorite(data: favorite);
     rebuildUi();

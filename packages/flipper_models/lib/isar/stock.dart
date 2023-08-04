@@ -35,7 +35,7 @@ class Stock extends IJsonSerializable {
   @Index()
   String? remoteID;
   int? localId;
-  String? action;
+  String action;
   @Index()
   DateTime? deletedAt;
   Stock({
@@ -63,7 +63,11 @@ class Stock extends IJsonSerializable {
       Stock.fromJson(record.toJson());
 
   factory Stock.fromJson(Map<String, dynamic> json) {
-    json['remoteID'] = json['id'];
+    json['deletedAt'] = json['deletedAt'] == null ||
+            (json['deletedAt'] is String && json['deletedAt'].isEmpty)
+        ? null
+        : json['deletedAt'];
+    json['remoteID'] = json['id'] is int ? json['id'].toString() : json['id'];
     json.remove('id');
     return _$StockFromJson(json);
   }

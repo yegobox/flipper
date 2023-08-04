@@ -14,7 +14,7 @@ BusinessType _$BusinessTypeFromJson(Map<String, dynamic> json) => BusinessType(
           : DateTime.parse(json['deletedAt'] as String),
     )
       ..remoteID = json['remoteID'] as String?
-      ..action = json['action'] as String?
+      ..action = json['action'] as String
       ..localId = json['localId'] as int?
       ..lastTouched = json['lastTouched'] as String?;
 

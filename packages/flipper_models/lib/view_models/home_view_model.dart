@@ -259,14 +259,16 @@ class HomeViewModel extends ReactiveViewModel {
 
   TransactionItem newTransactionItem(double amount, Variant variation,
       String name, Transaction pendingTransaction, Stock stock) {
+    int branchId = ProxyService.box.getBranchId()!;
     return TransactionItem(
       id: syncIdInt(),
       qty: 1,
+      action: AppActions.create,
       price: amount / 1,
       variantId: variation.id!,
       name: name,
+      branchId: branchId,
       discount: 0.0,
-      reported: false,
       doneWithTransaction: false,
       transactionId: pendingTransaction.id!,
       createdAt: DateTime.now().toString(),
@@ -460,16 +462,17 @@ class HomeViewModel extends ReactiveViewModel {
       await ProxyService.isar.update(data: item);
       return;
     }
-
+    int branchId = ProxyService.box.getBranchId()!;
     // Create a new transaction item
     TransactionItem newItem = TransactionItem(
       id: syncIdInt(),
+      branchId: branchId,
+      action: AppActions.create,
       qty: isCustom ? 1.0 : quantity,
       price: amountTotal / quantity,
       variantId: variationId,
       name: name,
       discount: 0.0,
-      reported: false,
       transactionId: pendingTransaction.id!,
       createdAt: DateTime.now().toString(),
       updatedAt: DateTime.now().toString(),

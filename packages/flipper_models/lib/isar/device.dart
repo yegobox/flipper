@@ -27,12 +27,13 @@ class Device extends IJsonSerializable {
   String? lastTouched;
   @Index()
   String? remoteID;
-  String? action;
+  String action;
   // only for accor when fetching from remove
   int? localId;
   @Index()
   DateTime? deletedAt;
   Device({
+    required this.action,
     required this.linkingCode,
     required this.deviceName,
     required this.deviceVersion,
@@ -48,7 +49,7 @@ class Device extends IJsonSerializable {
       Device.fromJson(record.toJson());
 
   factory Device.fromJson(Map<String, dynamic> json) {
-    json['remoteID'] = json['id'];
+    json['remoteID'] = json['id'] is int ? json['id'].toString() : json['id'];
     json.remove('id');
     return _$DeviceFromJson(json);
   }

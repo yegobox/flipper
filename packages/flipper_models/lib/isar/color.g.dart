@@ -123,12 +123,7 @@ int _pColorEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  {
-    final value = object.action;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
+  bytesCount += 3 + object.action.length * 3;
   {
     final list = object.colors;
     if (list != null) {
@@ -186,7 +181,7 @@ PColor _pColorDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = PColor(
-    action: reader.readStringOrNull(offsets[0]),
+    action: reader.readString(offsets[0]),
     active: reader.readBool(offsets[1]),
     branchId: reader.readLongOrNull(offsets[2]),
     colors: reader.readStringList(offsets[3]),
@@ -208,7 +203,7 @@ P _pColorDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 1:
       return (reader.readBool(offset)) as P;
     case 2:
@@ -566,24 +561,8 @@ extension PColorQueryWhere on QueryBuilder<PColor, PColor, QWhereClause> {
 }
 
 extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> actionIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'action',
-      ));
-    });
-  }
-
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> actionIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'action',
-      ));
-    });
-  }
-
   QueryBuilder<PColor, PColor, QAfterFilterCondition> actionEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -596,7 +575,7 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> actionGreaterThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -611,7 +590,7 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> actionLessThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -626,8 +605,8 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> actionBetween(
-    String? lower,
-    String? upper, {
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -1945,7 +1924,7 @@ extension PColorQueryProperty on QueryBuilder<PColor, PColor, QQueryProperty> {
     });
   }
 
-  QueryBuilder<PColor, String?, QQueryOperations> actionProperty() {
+  QueryBuilder<PColor, String, QQueryOperations> actionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'action');
     });
@@ -2013,7 +1992,7 @@ PColor _$PColorFromJson(Map<String, dynamic> json) => PColor(
       active: json['active'] as bool,
       lastTouched: json['lastTouched'] as String?,
       remoteID: json['remoteID'] as String?,
-      action: json['action'] as String?,
+      action: json['action'] as String,
       localId: json['localId'] as int?,
       deletedAt: json['deletedAt'] == null
           ? null

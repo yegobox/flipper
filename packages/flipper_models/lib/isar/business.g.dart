@@ -311,12 +311,7 @@ int _businessEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  {
-    final value = object.action;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
+  bytesCount += 3 + object.action.length * 3;
   {
     final value = object.adrs;
     if (value != null) {
@@ -583,6 +578,7 @@ Business _businessDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Business(
+    action: reader.readString(offsets[0]),
     active: reader.readBoolOrNull(offsets[1]),
     adrs: reader.readStringOrNull(offsets[2]),
     backUpEnabled: reader.readBoolOrNull(offsets[3]),
@@ -624,7 +620,6 @@ Business _businessDeserialize(
     type: reader.readStringOrNull(offsets[42]),
     userId: reader.readStringOrNull(offsets[43]),
   );
-  object.action = reader.readStringOrNull(offsets[0]);
   object.createdAt = reader.readStringOrNull(offsets[12]);
   object.lastTouched = reader.readStringOrNull(offsets[27]);
   object.localId = reader.readLongOrNull(offsets[29]);
@@ -640,7 +635,7 @@ P _businessDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 1:
       return (reader.readBoolOrNull(offset)) as P;
     case 2:
@@ -1134,24 +1129,8 @@ extension BusinessQueryWhere on QueryBuilder<Business, Business, QWhereClause> {
 
 extension BusinessQueryFilter
     on QueryBuilder<Business, Business, QFilterCondition> {
-  QueryBuilder<Business, Business, QAfterFilterCondition> actionIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'action',
-      ));
-    });
-  }
-
-  QueryBuilder<Business, Business, QAfterFilterCondition> actionIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'action',
-      ));
-    });
-  }
-
   QueryBuilder<Business, Business, QAfterFilterCondition> actionEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1164,7 +1143,7 @@ extension BusinessQueryFilter
   }
 
   QueryBuilder<Business, Business, QAfterFilterCondition> actionGreaterThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -1179,7 +1158,7 @@ extension BusinessQueryFilter
   }
 
   QueryBuilder<Business, Business, QAfterFilterCondition> actionLessThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -1194,8 +1173,8 @@ extension BusinessQueryFilter
   }
 
   QueryBuilder<Business, Business, QAfterFilterCondition> actionBetween(
-    String? lower,
-    String? upper, {
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -8169,7 +8148,7 @@ extension BusinessQueryProperty
     });
   }
 
-  QueryBuilder<Business, String?, QQueryOperations> actionProperty() {
+  QueryBuilder<Business, String, QQueryOperations> actionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'action');
     });
@@ -8441,6 +8420,7 @@ extension BusinessQueryProperty
 // **************************************************************************
 
 Business _$BusinessFromJson(Map<String, dynamic> json) => Business(
+      action: json['action'] as String,
       name: json['name'] as String?,
       currency: json['currency'] as String?,
       categoryId: json['categoryId'] as String? ?? "1",
@@ -8490,7 +8470,6 @@ Business _$BusinessFromJson(Map<String, dynamic> json) => Business(
       ..createdAt = json['createdAt'] as String?
       ..lastTouched = json['lastTouched'] as String?
       ..remoteID = json['remoteID'] as String?
-      ..action = json['action'] as String?
       ..localId = json['localId'] as int?;
 
 Map<String, dynamic> _$BusinessToJson(Business instance) => <String, dynamic>{

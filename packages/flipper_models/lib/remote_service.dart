@@ -118,6 +118,8 @@ class RemoteService implements RemoteInterface {
         'products',
         'devices',
         'socials',
+        'transactionItems',
+        'transactions'
       ];
 
       for (final collectionName in collections) {
@@ -127,30 +129,48 @@ class RemoteService implements RemoteInterface {
             .then((event) => event.items);
 
         await Future.forEach(records, (RecordModel item) async {
+          Map<String, dynamic> originalJson = item.toJson();
+
+          // Create a copy of the original JSON
+          Map<String, dynamic> updatedJson = Map.from(originalJson);
+
+          // Update the 'action' property in the copied JSON
+          /// we change action from remote fetched data to remote
+          /// so that we don't push these data back when property has not changed
+          updatedJson['action'] = AppActions.remote;
           switch (collectionName) {
             case 'stocks':
               await handleItem(
-                  model: Stock.fromJson(item.toJson()), branchId: branchId);
+                  model: Stock.fromJson(updatedJson), branchId: branchId);
               break;
             case 'variants':
               await handleItem(
-                  model: Variant.fromJson(item.toJson()), branchId: branchId);
+                  model: Variant.fromJson(updatedJson), branchId: branchId);
               break;
             case 'products':
               await handleItem(
-                  model: Product.fromJson(item.toJson()), branchId: branchId);
+                  model: Product.fromJson(updatedJson), branchId: branchId);
               break;
             case 'devices':
               await handleItem(
-                  model: Device.fromJson(item.toJson()), branchId: branchId);
+                  model: Device.fromJson(updatedJson), branchId: branchId);
               break;
             case 'socials':
               await handleItem(
-                  model: Social.fromJson(item.toJson()), branchId: branchId);
+                  model: Social.fromJson(updatedJson), branchId: branchId);
               break;
             case 'rra':
               await handleItem(
-                  model: EBM.fromJson(item.toJson()), branchId: branchId);
+                  model: EBM.fromJson(updatedJson), branchId: branchId);
+              break;
+            case 'transactions':
+              await handleItem(
+                  model: Transaction.fromJson(updatedJson), branchId: branchId);
+              break;
+            case 'transactionItems':
+              await handleItem(
+                  model: TransactionItem.fromJson(updatedJson),
+                  branchId: branchId);
               break;
             default:
               break;
@@ -230,7 +250,15 @@ class RemoteService implements RemoteInterface {
     int businessId,
     String collectionName,
   ) async {
-    Map<String, dynamic> jsonData = item.toJson();
+    Map<String, dynamic> originalJson = item.toJson();
+
+    // Create a copy of the original JSON
+    Map<String, dynamic> jsonData = Map.from(originalJson);
+
+    // Update the 'action' property in the copied JSON
+    /// we change action from remote fetched data to remote
+    /// so that we don't push these data back when property has not changed
+    jsonData['action'] = AppActions.remote;
     switch (collectionName) {
       case 'stocks':
         await handleItem(model: Stock.fromJson(jsonData), branchId: branchId);
@@ -240,7 +268,6 @@ class RemoteService implements RemoteInterface {
         break;
       case 'products':
         await handleItem(model: Product.fromJson(jsonData), branchId: branchId);
-
         break;
       case 'devices':
         await handleItem(model: Device.fromJson(jsonData), branchId: branchId);
@@ -250,7 +277,13 @@ class RemoteService implements RemoteInterface {
         break;
       case 'socials':
         await handleItem(model: Social.fromJson(jsonData), branchId: branchId);
-
+      case 'transactions':
+        await handleItem(
+            model: Transaction.fromJson(jsonData), branchId: branchId);
+        break;
+      case 'transactionItems':
+        await handleItem(
+            model: TransactionItem.fromJson(jsonData), branchId: branchId);
         break;
       default:
         break;
@@ -259,9 +292,9 @@ class RemoteService implements RemoteInterface {
 
   Future<void> handleItem<T>({required T model, required int branchId}) async {
     if (model is Stock) {
-      final remoteStock = Stock.fromJson(model.toJson());
+      Stock remoteStock = Stock.fromJson(model.toJson());
 
-      final localStock =
+      Stock? localStock =
           await ProxyService.isar.getStockById(id: remoteStock.localId!);
 
       if (localStock == null && remoteStock.branchId == branchId) {
@@ -277,8 +310,8 @@ class RemoteService implements RemoteInterface {
       }
     }
     if (model is Variant) {
-      final remoteVariant = Variant.fromJson(model.toJson());
-      final localVariant =
+      Variant remoteVariant = Variant.fromJson(model.toJson());
+      Variant? localVariant =
           await ProxyService.isar.getVariantById(id: remoteVariant.localId!);
 
       if (localVariant == null && remoteVariant.branchId == branchId) {
@@ -294,8 +327,8 @@ class RemoteService implements RemoteInterface {
       }
     }
     if (model is Product) {
-      final remoteProduct = Product.fromJson(model.toJson());
-      final localProduct =
+      Product remoteProduct = Product.fromJson(model.toJson());
+      Product? localProduct =
           await ProxyService.isar.getProduct(id: remoteProduct.localId!);
 
       if (localProduct == null && remoteProduct.branchId == branchId) {
@@ -311,8 +344,8 @@ class RemoteService implements RemoteInterface {
       }
     }
     if (model is Device) {
-      final remoteDevice = Device.fromJson(model.toJson());
-      final localDevice =
+      Device remoteDevice = Device.fromJson(model.toJson());
+      Device? localDevice =
           await ProxyService.isar.getDeviceById(id: remoteDevice.localId!);
 
       if (localDevice == null && remoteDevice.branchId == branchId) {
@@ -328,8 +361,8 @@ class RemoteService implements RemoteInterface {
       }
     }
     if (model is Social) {
-      final remoteSocial = Social.fromJson(model.toJson());
-      final localSocial =
+      Social remoteSocial = Social.fromJson(model.toJson());
+      Social? localSocial =
           await ProxyService.isar.getSocialById(id: remoteSocial.localId!);
 
       if (localSocial == null &&
@@ -344,8 +377,8 @@ class RemoteService implements RemoteInterface {
       }
     }
     if (model is EBM) {
-      final ebm = EBM.fromJson(model.toJson());
-      final localEbm =
+      EBM ebm = EBM.fromJson(model.toJson());
+      EBM? localEbm =
           await ProxyService.isar.getEbmByBranchId(branchId: ebm.branchId);
 
       if (localEbm == null &&
@@ -365,6 +398,37 @@ class RemoteService implements RemoteInterface {
           ebm.lastTouched!.isFutureDateCompareTo(localEbm.lastTouched!)) {
         ebm.id = ebm.localId;
         await ProxyService.isar.update(data: ebm);
+      }
+    }
+    if (model is Transaction) {
+      Transaction remoteTransaction = Transaction.fromJson(model.toJson());
+      Transaction? localTransaction = await ProxyService.isar
+          .getTransactionById(id: remoteTransaction.localId!);
+
+      if (localTransaction == null &&
+          remoteTransaction.branchId == ProxyService.box.getBranchId()) {
+        remoteTransaction.id = remoteTransaction.localId;
+        await ProxyService.isar.create(data: remoteTransaction);
+      } else if (localTransaction != null &&
+          remoteTransaction.lastTouched!
+              .isFutureDateCompareTo(localTransaction.lastTouched!)) {
+        remoteTransaction.id = remoteTransaction.localId;
+        await ProxyService.isar.update(data: remoteTransaction);
+      }
+    }
+    if (model is TransactionItem) {
+      TransactionItem? remoteTransactionItem =
+          TransactionItem.fromJson(model.toJson());
+      TransactionItem? localTransaction = await ProxyService.isar
+          .getTransactionItemById(id: remoteTransactionItem.localId!);
+
+      if (localTransaction == null) {
+        remoteTransactionItem.id = remoteTransactionItem.localId;
+        await ProxyService.isar.create(data: remoteTransactionItem);
+      } else if (remoteTransactionItem.lastTouched!
+          .isFutureDateCompareTo(localTransaction.lastTouched!)) {
+        remoteTransactionItem.id = remoteTransactionItem.localId;
+        await ProxyService.isar.update(data: remoteTransactionItem);
       }
     }
   }

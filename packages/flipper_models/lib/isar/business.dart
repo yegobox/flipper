@@ -2,6 +2,7 @@ library flipper_models;
 
 import 'dart:convert';
 
+import 'package:flipper_services/constants.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:flipper_models/sync_service.dart';
 import 'package:isar/isar.dart';
@@ -23,6 +24,7 @@ part 'business.g.dart';
 @Collection()
 class Business extends IJsonSerializable {
   Business({
+    required this.action,
     this.name,
     this.currency,
     this.categoryId = "1",
@@ -110,7 +112,7 @@ class Business extends IJsonSerializable {
   String? lastTouched;
   @Index()
   String? remoteID;
-  String? action;
+  String action;
   int? localId;
   @Index()
   DateTime? deletedAt;
@@ -123,8 +125,10 @@ class Business extends IJsonSerializable {
     if (json['id'] is int) {
       json['remoteID'] = json['id'].toString();
     } else {
-      json['remoteID'] = json['id'];
+      json['remoteID'] = json['id'] is int ? json['id'].toString() : json['id'];
     }
+    // this line ony added in both business and branch as they are not part of sync schemd
+     json['action'] = AppActions.create;
     return _$BusinessFromJson(json);
   }
 

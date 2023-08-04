@@ -17,8 +17,6 @@ class Transaction extends IJsonSerializable {
   @Index(composite: [CompositeIndex('branchId')])
   late String status;
   late String transactionType;
-  late bool active;
-  late bool draft;
   late double subTotal;
   late String paymentType;
   late double cashReceived;
@@ -28,15 +26,14 @@ class Transaction extends IJsonSerializable {
   /// a comma separated of the receipt type offered on this transaction eg. NR, NS etc...
   String? receiptType;
   String? updatedAt;
-  @Index()
-  late bool reported;
+ 
   int? customerId;
   String? note;
   @Index()
   String? lastTouched;
   @Index()
   String? remoteID;
-  String? action;
+  String action;
   int? localId;
   String? ticketName;
   @Index()
@@ -47,8 +44,6 @@ class Transaction extends IJsonSerializable {
     required this.branchId,
     required this.status,
     required this.transactionType,
-    required this.active,
-    required this.draft,
     required this.subTotal,
     required this.paymentType,
     required this.cashReceived,
@@ -56,12 +51,11 @@ class Transaction extends IJsonSerializable {
     required this.createdAt,
     this.receiptType,
     this.updatedAt,
-    required this.reported,
     this.customerId,
     this.note,
     this.id,
     this.lastTouched,
-    this.action,
+    required this.action,
     this.remoteID,
     this.ticketName,
     this.deletedAt,
@@ -72,7 +66,11 @@ class Transaction extends IJsonSerializable {
   factory Transaction.fromJson(Map<String, dynamic> json) {
     /// assign remoteID to the value of id because this method is used to encode
     /// data from remote server and id from remote server is considered remoteID on local
-    json['remoteID'] = json['id'];
+    json['deletedAt'] = json['deletedAt'] == null ||
+            (json['deletedAt'] is String && json['deletedAt'].isEmpty)
+        ? null
+        : json['deletedAt'];
+    json['remoteID'] = json['id'] is int ? json['id'].toString() : json['id'];
     json.remove('id');
     return _$TransactionFromJson(json);
   }

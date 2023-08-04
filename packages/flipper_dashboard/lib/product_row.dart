@@ -5,6 +5,7 @@ import 'package:flipper_dashboard/text_drawable.dart';
 import 'package:flipper_login/colors.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
@@ -202,21 +203,25 @@ class ProductRow extends StatelessWidget {
                     width: 10), // Add spacing between the title and trailing
                 Container(
                   width: 80,
-                  child: stocks.isEmpty
-                      ? const Text(
+                  child: StreamBuilder<List<Variant>>(
+                    stream: ProxyService.isar
+                        .geVariantStreamByProductId(productId: product.id!),
+                    builder: (context, snapshot) {
+                      if (snapshot.data?.isNotEmpty == true &&
+                          snapshot.data!.length > 1) {
+                        return const Text(
                           ' Prices',
                           style: TextStyle(color: Colors.black),
-                        )
-                      : product.variants.isNotEmpty &&
-                              product.variants.length > 1
-                          ? const Text(
-                              ' Prices',
-                              style: TextStyle(color: Colors.black),
-                            )
-                          : Text(
-                              'RWF ' + stocks.first!.retailPrice.toString(),
-                              style: const TextStyle(color: Colors.black),
-                            ),
+                        );
+                      } else {
+                        // Here, we can use the 'stocks' list directly (assuming it is already fetched).
+                        return Text(
+                          'RWF ' + stocks.first!.retailPrice.toString(),
+                          style: const TextStyle(color: Colors.black),
+                        );
+                      }
+                    },
+                  ),
                 ),
               ],
             ),

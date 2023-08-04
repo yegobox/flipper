@@ -37,190 +37,190 @@ const TransactionItemSchema = CollectionSchema(
       name: r'bhfId',
       type: IsarType.string,
     ),
-    r'createdAt': PropertySchema(
+    r'branchId': PropertySchema(
       id: 4,
+      name: r'branchId',
+      type: IsarType.long,
+    ),
+    r'createdAt': PropertySchema(
+      id: 5,
       name: r'createdAt',
       type: IsarType.string,
     ),
     r'dcAmt': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'dcAmt',
       type: IsarType.double,
     ),
     r'dcRt': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'dcRt',
       type: IsarType.double,
     ),
     r'deletedAt': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'deletedAt',
       type: IsarType.dateTime,
     ),
     r'dftPrc': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'dftPrc',
       type: IsarType.double,
     ),
     r'discount': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'discount',
       type: IsarType.double,
     ),
     r'doneWithTransaction': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'doneWithTransaction',
       type: IsarType.bool,
     ),
     r'isRefunded': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'isRefunded',
       type: IsarType.bool,
     ),
     r'isTaxExempted': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'isTaxExempted',
       type: IsarType.bool,
     ),
     r'isrcAmt': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'isrcAmt',
       type: IsarType.string,
     ),
     r'isrcAplcbYn': PropertySchema(
-      id: 14,
+      id: 15,
       name: r'isrcAplcbYn',
       type: IsarType.string,
     ),
     r'isrcRt': PropertySchema(
-      id: 15,
+      id: 16,
       name: r'isrcRt',
       type: IsarType.string,
     ),
     r'isrccCd': PropertySchema(
-      id: 16,
+      id: 17,
       name: r'isrccCd',
       type: IsarType.string,
     ),
     r'isrccNm': PropertySchema(
-      id: 17,
+      id: 18,
       name: r'isrccNm',
       type: IsarType.string,
     ),
     r'itemCd': PropertySchema(
-      id: 18,
+      id: 19,
       name: r'itemCd',
       type: IsarType.string,
     ),
     r'itemClsCd': PropertySchema(
-      id: 19,
+      id: 20,
       name: r'itemClsCd',
       type: IsarType.string,
     ),
     r'itemNm': PropertySchema(
-      id: 20,
+      id: 21,
       name: r'itemNm',
       type: IsarType.string,
     ),
     r'itemSeq': PropertySchema(
-      id: 21,
+      id: 22,
       name: r'itemSeq',
       type: IsarType.string,
     ),
     r'itemStdNm': PropertySchema(
-      id: 22,
+      id: 23,
       name: r'itemStdNm',
       type: IsarType.string,
     ),
     r'itemTyCd': PropertySchema(
-      id: 23,
+      id: 24,
       name: r'itemTyCd',
       type: IsarType.string,
     ),
     r'lastTouched': PropertySchema(
-      id: 24,
+      id: 25,
       name: r'lastTouched',
       type: IsarType.string,
     ),
     r'localId': PropertySchema(
-      id: 25,
+      id: 26,
       name: r'localId',
       type: IsarType.long,
     ),
     r'modrId': PropertySchema(
-      id: 26,
+      id: 27,
       name: r'modrId',
       type: IsarType.string,
     ),
     r'modrNm': PropertySchema(
-      id: 27,
+      id: 28,
       name: r'modrNm',
       type: IsarType.string,
     ),
     r'name': PropertySchema(
-      id: 28,
+      id: 29,
       name: r'name',
       type: IsarType.string,
     ),
     r'orgnNatCd': PropertySchema(
-      id: 29,
+      id: 30,
       name: r'orgnNatCd',
       type: IsarType.string,
     ),
     r'pkg': PropertySchema(
-      id: 30,
+      id: 31,
       name: r'pkg',
       type: IsarType.string,
     ),
     r'pkgUnitCd': PropertySchema(
-      id: 31,
+      id: 32,
       name: r'pkgUnitCd',
       type: IsarType.string,
     ),
     r'prc': PropertySchema(
-      id: 32,
+      id: 33,
       name: r'prc',
       type: IsarType.double,
     ),
     r'price': PropertySchema(
-      id: 33,
+      id: 34,
       name: r'price',
       type: IsarType.double,
     ),
     r'qty': PropertySchema(
-      id: 34,
+      id: 35,
       name: r'qty',
       type: IsarType.double,
     ),
     r'qtyUnitCd': PropertySchema(
-      id: 35,
+      id: 36,
       name: r'qtyUnitCd',
       type: IsarType.string,
     ),
     r'regrId': PropertySchema(
-      id: 36,
+      id: 37,
       name: r'regrId',
       type: IsarType.string,
     ),
     r'regrNm': PropertySchema(
-      id: 37,
+      id: 38,
       name: r'regrNm',
       type: IsarType.string,
     ),
     r'remainingStock': PropertySchema(
-      id: 38,
+      id: 39,
       name: r'remainingStock',
       type: IsarType.double,
     ),
     r'remoteID': PropertySchema(
-      id: 39,
+      id: 40,
       name: r'remoteID',
       type: IsarType.string,
-    ),
-    r'reported': PropertySchema(
-      id: 40,
-      name: r'reported',
-      type: IsarType.bool,
     ),
     r'splyAmt': PropertySchema(
       id: 41,
@@ -369,12 +369,7 @@ int _transactionItemEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  {
-    final value = object.action;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
+  bytesCount += 3 + object.action.length * 3;
   {
     final value = object.addInfo;
     if (value != null) {
@@ -553,43 +548,43 @@ void _transactionItemSerialize(
   writer.writeString(offsets[1], object.addInfo);
   writer.writeString(offsets[2], object.bcd);
   writer.writeString(offsets[3], object.bhfId);
-  writer.writeString(offsets[4], object.createdAt);
-  writer.writeDouble(offsets[5], object.dcAmt);
-  writer.writeDouble(offsets[6], object.dcRt);
-  writer.writeDateTime(offsets[7], object.deletedAt);
-  writer.writeDouble(offsets[8], object.dftPrc);
-  writer.writeDouble(offsets[9], object.discount);
-  writer.writeBool(offsets[10], object.doneWithTransaction);
-  writer.writeBool(offsets[11], object.isRefunded);
-  writer.writeBool(offsets[12], object.isTaxExempted);
-  writer.writeString(offsets[13], object.isrcAmt);
-  writer.writeString(offsets[14], object.isrcAplcbYn);
-  writer.writeString(offsets[15], object.isrcRt);
-  writer.writeString(offsets[16], object.isrccCd);
-  writer.writeString(offsets[17], object.isrccNm);
-  writer.writeString(offsets[18], object.itemCd);
-  writer.writeString(offsets[19], object.itemClsCd);
-  writer.writeString(offsets[20], object.itemNm);
-  writer.writeString(offsets[21], object.itemSeq);
-  writer.writeString(offsets[22], object.itemStdNm);
-  writer.writeString(offsets[23], object.itemTyCd);
-  writer.writeString(offsets[24], object.lastTouched);
-  writer.writeLong(offsets[25], object.localId);
-  writer.writeString(offsets[26], object.modrId);
-  writer.writeString(offsets[27], object.modrNm);
-  writer.writeString(offsets[28], object.name);
-  writer.writeString(offsets[29], object.orgnNatCd);
-  writer.writeString(offsets[30], object.pkg);
-  writer.writeString(offsets[31], object.pkgUnitCd);
-  writer.writeDouble(offsets[32], object.prc);
-  writer.writeDouble(offsets[33], object.price);
-  writer.writeDouble(offsets[34], object.qty);
-  writer.writeString(offsets[35], object.qtyUnitCd);
-  writer.writeString(offsets[36], object.regrId);
-  writer.writeString(offsets[37], object.regrNm);
-  writer.writeDouble(offsets[38], object.remainingStock);
-  writer.writeString(offsets[39], object.remoteID);
-  writer.writeBool(offsets[40], object.reported);
+  writer.writeLong(offsets[4], object.branchId);
+  writer.writeString(offsets[5], object.createdAt);
+  writer.writeDouble(offsets[6], object.dcAmt);
+  writer.writeDouble(offsets[7], object.dcRt);
+  writer.writeDateTime(offsets[8], object.deletedAt);
+  writer.writeDouble(offsets[9], object.dftPrc);
+  writer.writeDouble(offsets[10], object.discount);
+  writer.writeBool(offsets[11], object.doneWithTransaction);
+  writer.writeBool(offsets[12], object.isRefunded);
+  writer.writeBool(offsets[13], object.isTaxExempted);
+  writer.writeString(offsets[14], object.isrcAmt);
+  writer.writeString(offsets[15], object.isrcAplcbYn);
+  writer.writeString(offsets[16], object.isrcRt);
+  writer.writeString(offsets[17], object.isrccCd);
+  writer.writeString(offsets[18], object.isrccNm);
+  writer.writeString(offsets[19], object.itemCd);
+  writer.writeString(offsets[20], object.itemClsCd);
+  writer.writeString(offsets[21], object.itemNm);
+  writer.writeString(offsets[22], object.itemSeq);
+  writer.writeString(offsets[23], object.itemStdNm);
+  writer.writeString(offsets[24], object.itemTyCd);
+  writer.writeString(offsets[25], object.lastTouched);
+  writer.writeLong(offsets[26], object.localId);
+  writer.writeString(offsets[27], object.modrId);
+  writer.writeString(offsets[28], object.modrNm);
+  writer.writeString(offsets[29], object.name);
+  writer.writeString(offsets[30], object.orgnNatCd);
+  writer.writeString(offsets[31], object.pkg);
+  writer.writeString(offsets[32], object.pkgUnitCd);
+  writer.writeDouble(offsets[33], object.prc);
+  writer.writeDouble(offsets[34], object.price);
+  writer.writeDouble(offsets[35], object.qty);
+  writer.writeString(offsets[36], object.qtyUnitCd);
+  writer.writeString(offsets[37], object.regrId);
+  writer.writeString(offsets[38], object.regrNm);
+  writer.writeDouble(offsets[39], object.remainingStock);
+  writer.writeString(offsets[40], object.remoteID);
   writer.writeDouble(offsets[41], object.splyAmt);
   writer.writeDouble(offsets[42], object.taxAmt);
   writer.writeString(offsets[43], object.taxTyCd);
@@ -610,45 +605,46 @@ TransactionItem _transactionItemDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = TransactionItem(
+    action: reader.readString(offsets[0]),
     addInfo: reader.readStringOrNull(offsets[1]),
     bcd: reader.readStringOrNull(offsets[2]),
     bhfId: reader.readStringOrNull(offsets[3]),
-    createdAt: reader.readString(offsets[4]),
-    dcAmt: reader.readDoubleOrNull(offsets[5]),
-    dcRt: reader.readDoubleOrNull(offsets[6]),
-    deletedAt: reader.readDateTimeOrNull(offsets[7]),
-    dftPrc: reader.readDoubleOrNull(offsets[8]),
-    discount: reader.readDoubleOrNull(offsets[9]),
-    doneWithTransaction: reader.readBoolOrNull(offsets[10]),
+    branchId: reader.readLong(offsets[4]),
+    createdAt: reader.readString(offsets[5]),
+    dcAmt: reader.readDoubleOrNull(offsets[6]),
+    dcRt: reader.readDoubleOrNull(offsets[7]),
+    deletedAt: reader.readDateTimeOrNull(offsets[8]),
+    dftPrc: reader.readDoubleOrNull(offsets[9]),
+    discount: reader.readDoubleOrNull(offsets[10]),
+    doneWithTransaction: reader.readBoolOrNull(offsets[11]),
     id: id,
-    isRefunded: reader.readBoolOrNull(offsets[11]),
-    isTaxExempted: reader.readBool(offsets[12]),
-    isrcAmt: reader.readStringOrNull(offsets[13]),
-    isrcAplcbYn: reader.readStringOrNull(offsets[14]),
-    isrcRt: reader.readStringOrNull(offsets[15]),
-    isrccCd: reader.readStringOrNull(offsets[16]),
-    isrccNm: reader.readStringOrNull(offsets[17]),
-    itemCd: reader.readStringOrNull(offsets[18]),
-    itemClsCd: reader.readStringOrNull(offsets[19]),
-    itemNm: reader.readStringOrNull(offsets[20]),
-    itemSeq: reader.readStringOrNull(offsets[21]),
-    itemStdNm: reader.readStringOrNull(offsets[22]),
-    itemTyCd: reader.readStringOrNull(offsets[23]),
-    lastTouched: reader.readStringOrNull(offsets[24]),
-    modrId: reader.readStringOrNull(offsets[26]),
-    modrNm: reader.readStringOrNull(offsets[27]),
-    name: reader.readString(offsets[28]),
-    orgnNatCd: reader.readStringOrNull(offsets[29]),
-    pkg: reader.readStringOrNull(offsets[30]),
-    pkgUnitCd: reader.readStringOrNull(offsets[31]),
-    prc: reader.readDoubleOrNull(offsets[32]),
-    price: reader.readDouble(offsets[33]),
-    qty: reader.readDouble(offsets[34]),
-    qtyUnitCd: reader.readStringOrNull(offsets[35]),
-    regrId: reader.readStringOrNull(offsets[36]),
-    regrNm: reader.readStringOrNull(offsets[37]),
-    remainingStock: reader.readDouble(offsets[38]),
-    reported: reader.readBoolOrNull(offsets[40]),
+    isRefunded: reader.readBoolOrNull(offsets[12]),
+    isTaxExempted: reader.readBool(offsets[13]),
+    isrcAmt: reader.readStringOrNull(offsets[14]),
+    isrcAplcbYn: reader.readStringOrNull(offsets[15]),
+    isrcRt: reader.readStringOrNull(offsets[16]),
+    isrccCd: reader.readStringOrNull(offsets[17]),
+    isrccNm: reader.readStringOrNull(offsets[18]),
+    itemCd: reader.readStringOrNull(offsets[19]),
+    itemClsCd: reader.readStringOrNull(offsets[20]),
+    itemNm: reader.readStringOrNull(offsets[21]),
+    itemSeq: reader.readStringOrNull(offsets[22]),
+    itemStdNm: reader.readStringOrNull(offsets[23]),
+    itemTyCd: reader.readStringOrNull(offsets[24]),
+    lastTouched: reader.readStringOrNull(offsets[25]),
+    modrId: reader.readStringOrNull(offsets[27]),
+    modrNm: reader.readStringOrNull(offsets[28]),
+    name: reader.readString(offsets[29]),
+    orgnNatCd: reader.readStringOrNull(offsets[30]),
+    pkg: reader.readStringOrNull(offsets[31]),
+    pkgUnitCd: reader.readStringOrNull(offsets[32]),
+    prc: reader.readDoubleOrNull(offsets[33]),
+    price: reader.readDouble(offsets[34]),
+    qty: reader.readDouble(offsets[35]),
+    qtyUnitCd: reader.readStringOrNull(offsets[36]),
+    regrId: reader.readStringOrNull(offsets[37]),
+    regrNm: reader.readStringOrNull(offsets[38]),
+    remainingStock: reader.readDouble(offsets[39]),
     splyAmt: reader.readDoubleOrNull(offsets[41]),
     taxAmt: reader.readDoubleOrNull(offsets[42]),
     taxTyCd: reader.readStringOrNull(offsets[43]),
@@ -661,9 +657,8 @@ TransactionItem _transactionItemDeserialize(
     useYn: reader.readStringOrNull(offsets[50]),
     variantId: reader.readLong(offsets[51]),
   );
-  object.action = reader.readStringOrNull(offsets[0]);
-  object.localId = reader.readLongOrNull(offsets[25]);
-  object.remoteID = reader.readStringOrNull(offsets[39]);
+  object.localId = reader.readLongOrNull(offsets[26]);
+  object.remoteID = reader.readStringOrNull(offsets[40]);
   return object;
 }
 
@@ -675,7 +670,7 @@ P _transactionItemDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 1:
       return (reader.readStringOrNull(offset)) as P;
     case 2:
@@ -683,25 +678,25 @@ P _transactionItemDeserializeProp<P>(
     case 3:
       return (reader.readStringOrNull(offset)) as P;
     case 4:
-      return (reader.readString(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 5:
-      return (reader.readDoubleOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 6:
       return (reader.readDoubleOrNull(offset)) as P;
     case 7:
-      return (reader.readDateTimeOrNull(offset)) as P;
-    case 8:
       return (reader.readDoubleOrNull(offset)) as P;
+    case 8:
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 9:
       return (reader.readDoubleOrNull(offset)) as P;
     case 10:
-      return (reader.readBoolOrNull(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 11:
       return (reader.readBoolOrNull(offset)) as P;
     case 12:
-      return (reader.readBool(offset)) as P;
+      return (reader.readBoolOrNull(offset)) as P;
     case 13:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 14:
       return (reader.readStringOrNull(offset)) as P;
     case 15:
@@ -725,37 +720,37 @@ P _transactionItemDeserializeProp<P>(
     case 24:
       return (reader.readStringOrNull(offset)) as P;
     case 25:
-      return (reader.readLongOrNull(offset)) as P;
-    case 26:
       return (reader.readStringOrNull(offset)) as P;
+    case 26:
+      return (reader.readLongOrNull(offset)) as P;
     case 27:
       return (reader.readStringOrNull(offset)) as P;
     case 28:
-      return (reader.readString(offset)) as P;
-    case 29:
       return (reader.readStringOrNull(offset)) as P;
+    case 29:
+      return (reader.readString(offset)) as P;
     case 30:
       return (reader.readStringOrNull(offset)) as P;
     case 31:
       return (reader.readStringOrNull(offset)) as P;
     case 32:
-      return (reader.readDoubleOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 33:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 34:
       return (reader.readDouble(offset)) as P;
     case 35:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDouble(offset)) as P;
     case 36:
       return (reader.readStringOrNull(offset)) as P;
     case 37:
       return (reader.readStringOrNull(offset)) as P;
     case 38:
-      return (reader.readDouble(offset)) as P;
-    case 39:
       return (reader.readStringOrNull(offset)) as P;
+    case 39:
+      return (reader.readDouble(offset)) as P;
     case 40:
-      return (reader.readBoolOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 41:
       return (reader.readDoubleOrNull(offset)) as P;
     case 42:
@@ -1437,26 +1432,8 @@ extension TransactionItemQueryWhere
 extension TransactionItemQueryFilter
     on QueryBuilder<TransactionItem, TransactionItem, QFilterCondition> {
   QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
-      actionIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'action',
-      ));
-    });
-  }
-
-  QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
-      actionIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'action',
-      ));
-    });
-  }
-
-  QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
       actionEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1470,7 +1447,7 @@ extension TransactionItemQueryFilter
 
   QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
       actionGreaterThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -1486,7 +1463,7 @@ extension TransactionItemQueryFilter
 
   QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
       actionLessThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -1502,8 +1479,8 @@ extension TransactionItemQueryFilter
 
   QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
       actionBetween(
-    String? lower,
-    String? upper, {
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -2048,6 +2025,62 @@ extension TransactionItemQueryFilter
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'bhfId',
         value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
+      branchIdEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'branchId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
+      branchIdGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'branchId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
+      branchIdLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'branchId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
+      branchIdBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'branchId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
       ));
     });
   }
@@ -6465,34 +6498,6 @@ extension TransactionItemQueryFilter
   }
 
   QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
-      reportedIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'reported',
-      ));
-    });
-  }
-
-  QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
-      reportedIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'reported',
-      ));
-    });
-  }
-
-  QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
-      reportedEqualTo(bool? value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'reported',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
       splyAmtIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -7673,6 +7678,20 @@ extension TransactionItemQuerySortBy
   }
 
   QueryBuilder<TransactionItem, TransactionItem, QAfterSortBy>
+      sortByBranchId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'branchId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TransactionItem, TransactionItem, QAfterSortBy>
+      sortByBranchIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'branchId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TransactionItem, TransactionItem, QAfterSortBy>
       sortByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.asc);
@@ -8153,20 +8172,6 @@ extension TransactionItemQuerySortBy
     });
   }
 
-  QueryBuilder<TransactionItem, TransactionItem, QAfterSortBy>
-      sortByReported() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'reported', Sort.asc);
-    });
-  }
-
-  QueryBuilder<TransactionItem, TransactionItem, QAfterSortBy>
-      sortByReportedDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'reported', Sort.desc);
-    });
-  }
-
   QueryBuilder<TransactionItem, TransactionItem, QAfterSortBy> sortBySplyAmt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'splyAmt', Sort.asc);
@@ -8364,6 +8369,20 @@ extension TransactionItemQuerySortThenBy
       thenByBhfIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'bhfId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TransactionItem, TransactionItem, QAfterSortBy>
+      thenByBranchId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'branchId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TransactionItem, TransactionItem, QAfterSortBy>
+      thenByBranchIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'branchId', Sort.desc);
     });
   }
 
@@ -8860,20 +8879,6 @@ extension TransactionItemQuerySortThenBy
     });
   }
 
-  QueryBuilder<TransactionItem, TransactionItem, QAfterSortBy>
-      thenByReported() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'reported', Sort.asc);
-    });
-  }
-
-  QueryBuilder<TransactionItem, TransactionItem, QAfterSortBy>
-      thenByReportedDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'reported', Sort.desc);
-    });
-  }
-
   QueryBuilder<TransactionItem, TransactionItem, QAfterSortBy> thenBySplyAmt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'splyAmt', Sort.asc);
@@ -9048,6 +9053,13 @@ extension TransactionItemQueryWhereDistinct
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'bhfId', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<TransactionItem, TransactionItem, QDistinct>
+      distinctByBranchId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'branchId');
     });
   }
 
@@ -9298,13 +9310,6 @@ extension TransactionItemQueryWhereDistinct
   }
 
   QueryBuilder<TransactionItem, TransactionItem, QDistinct>
-      distinctByReported() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'reported');
-    });
-  }
-
-  QueryBuilder<TransactionItem, TransactionItem, QDistinct>
       distinctBySplyAmt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'splyAmt');
@@ -9387,7 +9392,7 @@ extension TransactionItemQueryProperty
     });
   }
 
-  QueryBuilder<TransactionItem, String?, QQueryOperations> actionProperty() {
+  QueryBuilder<TransactionItem, String, QQueryOperations> actionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'action');
     });
@@ -9408,6 +9413,12 @@ extension TransactionItemQueryProperty
   QueryBuilder<TransactionItem, String?, QQueryOperations> bhfIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'bhfId');
+    });
+  }
+
+  QueryBuilder<TransactionItem, int, QQueryOperations> branchIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'branchId');
     });
   }
 
@@ -9633,12 +9644,6 @@ extension TransactionItemQueryProperty
     });
   }
 
-  QueryBuilder<TransactionItem, bool?, QQueryOperations> reportedProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'reported');
-    });
-  }
-
   QueryBuilder<TransactionItem, double?, QQueryOperations> splyAmtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'splyAmt');
@@ -9712,15 +9717,16 @@ extension TransactionItemQueryProperty
 
 TransactionItem _$TransactionItemFromJson(Map<String, dynamic> json) =>
     TransactionItem(
+      action: json['action'] as String,
       id: json['id'] as int?,
       name: json['name'] as String,
       transactionId: json['transactionId'] as int,
       variantId: json['variantId'] as int,
       qty: (json['qty'] as num).toDouble(),
       price: (json['price'] as num).toDouble(),
+      branchId: json['branchId'] as int,
       discount: (json['discount'] as num?)?.toDouble(),
       type: json['type'] as String?,
-      reported: json['reported'] as bool?,
       remainingStock: (json['remainingStock'] as num).toDouble(),
       createdAt: json['createdAt'] as String,
       updatedAt: json['updatedAt'] as String,
@@ -9766,7 +9772,6 @@ TransactionItem _$TransactionItemFromJson(Map<String, dynamic> json) =>
           : DateTime.parse(json['deletedAt'] as String),
     )
       ..remoteID = json['remoteID'] as String?
-      ..action = json['action'] as String?
       ..localId = json['localId'] as int?;
 
 Map<String, dynamic> _$TransactionItemToJson(TransactionItem instance) =>
@@ -9779,7 +9784,6 @@ Map<String, dynamic> _$TransactionItemToJson(TransactionItem instance) =>
       'price': instance.price,
       'discount': instance.discount,
       'type': instance.type,
-      'reported': instance.reported,
       'remainingStock': instance.remainingStock,
       'createdAt': instance.createdAt,
       'updatedAt': instance.updatedAt,
@@ -9824,4 +9828,5 @@ Map<String, dynamic> _$TransactionItemToJson(TransactionItem instance) =>
       'remoteID': instance.remoteID,
       'action': instance.action,
       'localId': instance.localId,
+      'branchId': instance.branchId,
     };

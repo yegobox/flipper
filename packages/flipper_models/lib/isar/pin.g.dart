@@ -128,12 +128,7 @@ int _pinEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  {
-    final value = object.action;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
+  bytesCount += 3 + object.action.length * 3;
   {
     final value = object.lastTouched;
     if (value != null) {
@@ -176,6 +171,7 @@ Pin _pinDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Pin(
+    action: reader.readString(offsets[0]),
     branchId: reader.readLong(offsets[1]),
     businessId: reader.readLong(offsets[2]),
     id: id,
@@ -183,7 +179,6 @@ Pin _pinDeserialize(
     pin: reader.readLong(offsets[7]),
     userId: reader.readString(offsets[9]),
   );
-  object.action = reader.readStringOrNull(offsets[0]);
   object.deletedAt = reader.readDateTimeOrNull(offsets[3]);
   object.lastTouched = reader.readStringOrNull(offsets[4]);
   object.localId = reader.readLongOrNull(offsets[5]);
@@ -199,7 +194,7 @@ P _pinDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 1:
       return (reader.readLong(offset)) as P;
     case 2:
@@ -558,24 +553,8 @@ extension PinQueryWhere on QueryBuilder<Pin, Pin, QWhereClause> {
 }
 
 extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> actionIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'action',
-      ));
-    });
-  }
-
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> actionIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'action',
-      ));
-    });
-  }
-
   QueryBuilder<Pin, Pin, QAfterFilterCondition> actionEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -588,7 +567,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
   }
 
   QueryBuilder<Pin, Pin, QAfterFilterCondition> actionGreaterThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -603,7 +582,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
   }
 
   QueryBuilder<Pin, Pin, QAfterFilterCondition> actionLessThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -618,8 +597,8 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
   }
 
   QueryBuilder<Pin, Pin, QAfterFilterCondition> actionBetween(
-    String? lower,
-    String? upper, {
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -1946,7 +1925,7 @@ extension PinQueryProperty on QueryBuilder<Pin, Pin, QQueryProperty> {
     });
   }
 
-  QueryBuilder<Pin, String?, QQueryOperations> actionProperty() {
+  QueryBuilder<Pin, String, QQueryOperations> actionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'action');
     });
@@ -2012,6 +1991,7 @@ extension PinQueryProperty on QueryBuilder<Pin, Pin, QQueryProperty> {
 // **************************************************************************
 
 Pin _$PinFromJson(Map<String, dynamic> json) => Pin(
+      action: json['action'] as String,
       id: json['id'] as int?,
       userId: json['userId'] as String,
       phoneNumber: json['phoneNumber'] as String,
@@ -2021,7 +2001,6 @@ Pin _$PinFromJson(Map<String, dynamic> json) => Pin(
     )
       ..lastTouched = json['lastTouched'] as String?
       ..remoteID = json['remoteID'] as String?
-      ..action = json['action'] as String?
       ..localId = json['localId'] as int?
       ..deletedAt = json['deletedAt'] == null
           ? null

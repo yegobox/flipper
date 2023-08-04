@@ -125,12 +125,7 @@ int _iTenantEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  {
-    final value = object.action;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
+  bytesCount += 3 + object.action.length * 3;
   bytesCount += 3 + object.email.length * 3;
   {
     final value = object.imageUrl;
@@ -191,7 +186,7 @@ ITenant _iTenantDeserialize(
     phoneNumber: reader.readString(offsets[9]),
     userId: reader.readLong(offsets[11]),
   );
-  object.action = reader.readStringOrNull(offsets[0]);
+  object.action = reader.readString(offsets[0]);
   object.imageUrl = reader.readStringOrNull(offsets[4]);
   object.lastTouched = reader.readStringOrNull(offsets[5]);
   object.localId = reader.readLongOrNull(offsets[6]);
@@ -207,7 +202,7 @@ P _iTenantDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 1:
       return (reader.readLong(offset)) as P;
     case 2:
@@ -507,24 +502,8 @@ extension ITenantQueryWhere on QueryBuilder<ITenant, ITenant, QWhereClause> {
 
 extension ITenantQueryFilter
     on QueryBuilder<ITenant, ITenant, QFilterCondition> {
-  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> actionIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'action',
-      ));
-    });
-  }
-
-  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> actionIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'action',
-      ));
-    });
-  }
-
   QueryBuilder<ITenant, ITenant, QAfterFilterCondition> actionEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -537,7 +516,7 @@ extension ITenantQueryFilter
   }
 
   QueryBuilder<ITenant, ITenant, QAfterFilterCondition> actionGreaterThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -552,7 +531,7 @@ extension ITenantQueryFilter
   }
 
   QueryBuilder<ITenant, ITenant, QAfterFilterCondition> actionLessThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -567,8 +546,8 @@ extension ITenantQueryFilter
   }
 
   QueryBuilder<ITenant, ITenant, QAfterFilterCondition> actionBetween(
-    String? lower,
-    String? upper, {
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -2207,7 +2186,7 @@ extension ITenantQueryProperty
     });
   }
 
-  QueryBuilder<ITenant, String?, QQueryOperations> actionProperty() {
+  QueryBuilder<ITenant, String, QQueryOperations> actionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'action');
     });
@@ -2297,7 +2276,7 @@ ITenant _$ITenantFromJson(Map<String, dynamic> json) => ITenant(
           : DateTime.parse(json['deletedAt'] as String),
     )
       ..remoteID = json['remoteID'] as String?
-      ..action = json['action'] as String?
+      ..action = json['action'] as String
       ..localId = json['localId'] as int?
       ..imageUrl = json['imageUrl'] as String?
       ..lastTouched = json['lastTouched'] as String?;

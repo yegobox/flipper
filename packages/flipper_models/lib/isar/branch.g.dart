@@ -143,12 +143,7 @@ int _branchEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  {
-    final value = object.action;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
+  bytesCount += 3 + object.action.length * 3;
   {
     final value = object.description;
     if (value != null) {
@@ -222,6 +217,7 @@ Branch _branchDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Branch(
+    action: reader.readString(offsets[0]),
     active: reader.readBoolOrNull(offsets[1]),
     businessId: reader.readLongOrNull(offsets[2]),
     deletedAt: reader.readDateTimeOrNull(offsets[3]),
@@ -233,7 +229,6 @@ Branch _branchDeserialize(
     name: reader.readStringOrNull(offsets[10]),
     table: reader.readStringOrNull(offsets[12]),
   );
-  object.action = reader.readStringOrNull(offsets[0]);
   object.lastTouched = reader.readStringOrNull(offsets[6]);
   object.localId = reader.readLongOrNull(offsets[8]);
   object.remoteID = reader.readStringOrNull(offsets[11]);
@@ -248,7 +243,7 @@ P _branchDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 1:
       return (reader.readBoolOrNull(offset)) as P;
     case 2:
@@ -614,24 +609,8 @@ extension BranchQueryWhere on QueryBuilder<Branch, Branch, QWhereClause> {
 }
 
 extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
-  QueryBuilder<Branch, Branch, QAfterFilterCondition> actionIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'action',
-      ));
-    });
-  }
-
-  QueryBuilder<Branch, Branch, QAfterFilterCondition> actionIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'action',
-      ));
-    });
-  }
-
   QueryBuilder<Branch, Branch, QAfterFilterCondition> actionEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -644,7 +623,7 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> actionGreaterThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -659,7 +638,7 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> actionLessThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -674,8 +653,8 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> actionBetween(
-    String? lower,
-    String? upper, {
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -2520,7 +2499,7 @@ extension BranchQueryProperty on QueryBuilder<Branch, Branch, QQueryProperty> {
     });
   }
 
-  QueryBuilder<Branch, String?, QQueryOperations> actionProperty() {
+  QueryBuilder<Branch, String, QQueryOperations> actionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'action');
     });
@@ -2604,6 +2583,8 @@ extension BranchQueryProperty on QueryBuilder<Branch, Branch, QQueryProperty> {
 // **************************************************************************
 
 Branch _$BranchFromJson(Map<String, dynamic> json) => Branch(
+      isDefault: json['isDefault'] as bool,
+      action: json['action'] as String,
       id: json['id'] as int?,
       active: json['active'] as bool?,
       description: json['description'] as String?,
@@ -2615,11 +2596,9 @@ Branch _$BranchFromJson(Map<String, dynamic> json) => Branch(
       deletedAt: json['deletedAt'] == null
           ? null
           : DateTime.parse(json['deletedAt'] as String),
-      isDefault: json['isDefault'] as bool,
     )
       ..lastTouched = json['lastTouched'] as String?
       ..remoteID = json['remoteID'] as String?
-      ..action = json['action'] as String?
       ..localId = json['localId'] as int?;
 
 Map<String, dynamic> _$BranchToJson(Branch instance) => <String, dynamic>{

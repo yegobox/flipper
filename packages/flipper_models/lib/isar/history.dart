@@ -21,11 +21,12 @@ class History extends IJsonSerializable {
   String? lastTouched;
   @Index()
   String? remoteID;
-  String? action;
+  String action;
   int? localId;
   late DateTime createdAt;
 
-  History({required this.modelId, required this.createdAt, this.action});
+  History(
+      {required this.modelId, required this.createdAt, required this.action});
 
   factory History.fromRecord(RecordModel record) =>
       History.fromJson(record.toJson());

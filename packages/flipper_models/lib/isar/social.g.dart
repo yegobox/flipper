@@ -128,12 +128,7 @@ int _socialEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  {
-    final value = object.action;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
+  bytesCount += 3 + object.action.length * 3;
   {
     final value = object.lastTouched;
     if (value != null) {
@@ -192,7 +187,7 @@ Social _socialDeserialize(
     socialType: reader.readString(offsets[8]),
     socialUrl: reader.readString(offsets[9]),
   );
-  object.action = reader.readStringOrNull(offsets[0]);
+  object.action = reader.readString(offsets[0]);
   object.id = id;
   return object;
 }
@@ -205,7 +200,7 @@ P _socialDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 1:
       return (reader.readLong(offset)) as P;
     case 2:
@@ -565,24 +560,8 @@ extension SocialQueryWhere on QueryBuilder<Social, Social, QWhereClause> {
 }
 
 extension SocialQueryFilter on QueryBuilder<Social, Social, QFilterCondition> {
-  QueryBuilder<Social, Social, QAfterFilterCondition> actionIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'action',
-      ));
-    });
-  }
-
-  QueryBuilder<Social, Social, QAfterFilterCondition> actionIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'action',
-      ));
-    });
-  }
-
   QueryBuilder<Social, Social, QAfterFilterCondition> actionEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -595,7 +574,7 @@ extension SocialQueryFilter on QueryBuilder<Social, Social, QFilterCondition> {
   }
 
   QueryBuilder<Social, Social, QAfterFilterCondition> actionGreaterThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -610,7 +589,7 @@ extension SocialQueryFilter on QueryBuilder<Social, Social, QFilterCondition> {
   }
 
   QueryBuilder<Social, Social, QAfterFilterCondition> actionLessThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -625,8 +604,8 @@ extension SocialQueryFilter on QueryBuilder<Social, Social, QFilterCondition> {
   }
 
   QueryBuilder<Social, Social, QAfterFilterCondition> actionBetween(
-    String? lower,
-    String? upper, {
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -2014,7 +1993,7 @@ extension SocialQueryProperty on QueryBuilder<Social, Social, QQueryProperty> {
     });
   }
 
-  QueryBuilder<Social, String?, QQueryOperations> actionProperty() {
+  QueryBuilder<Social, String, QQueryOperations> actionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'action');
     });
@@ -2091,7 +2070,7 @@ Social _$SocialFromJson(Map<String, dynamic> json) => Social(
       deletedAt: json['deletedAt'] == null
           ? null
           : DateTime.parse(json['deletedAt'] as String),
-    )..action = json['action'] as String?;
+    )..action = json['action'] as String;
 
 Map<String, dynamic> _$SocialToJson(Social instance) => <String, dynamic>{
       'action': instance.action,

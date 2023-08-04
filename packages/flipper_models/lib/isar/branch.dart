@@ -1,5 +1,6 @@
 library flipper_models;
 
+import 'package:flipper_services/constants.dart';
 import 'package:isar/isar.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:flipper_models/sync_service.dart';
@@ -10,6 +11,8 @@ part 'branch.g.dart';
 @Collection()
 class Branch extends IJsonSerializable {
   Branch({
+    required this.isDefault,
+    required this.action,
     this.id,
     this.active,
     this.description,
@@ -19,7 +22,6 @@ class Branch extends IJsonSerializable {
     this.latitude,
     this.table,
     this.deletedAt,
-    required this.isDefault,
   });
 
   Id? id = Isar.autoIncrement;
@@ -37,7 +39,7 @@ class Branch extends IJsonSerializable {
   String? lastTouched;
   @Index()
   String? remoteID;
-  String? action;
+  String action;
   int? localId;
   @Index()
   DateTime? deletedAt;
@@ -47,8 +49,11 @@ class Branch extends IJsonSerializable {
   factory Branch.fromJson(Map<String, dynamic> json) {
     /// assign remoteID to the value of id because this method is used to encode
     /// data from remote server and id from remote server is considered remoteID on local
-    json['remoteID'] = json['id'];
+    json['remoteID'] = json['id'] is int ? json['id'].toString() : json['id'];
     json.remove('id');
+    // this line ony added in both business and branch as they are not part of sync schemd
+    json['action'] = AppActions.create;
+
     return _$BranchFromJson(json);
   }
 

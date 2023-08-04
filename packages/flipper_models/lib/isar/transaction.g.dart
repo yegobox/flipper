@@ -22,113 +22,98 @@ const TransactionSchema = CollectionSchema(
       name: r'action',
       type: IsarType.string,
     ),
-    r'active': PropertySchema(
-      id: 1,
-      name: r'active',
-      type: IsarType.bool,
-    ),
     r'branchId': PropertySchema(
-      id: 2,
+      id: 1,
       name: r'branchId',
       type: IsarType.long,
     ),
     r'cashReceived': PropertySchema(
-      id: 3,
+      id: 2,
       name: r'cashReceived',
       type: IsarType.double,
     ),
     r'createdAt': PropertySchema(
-      id: 4,
+      id: 3,
       name: r'createdAt',
       type: IsarType.string,
     ),
     r'customerChangeDue': PropertySchema(
-      id: 5,
+      id: 4,
       name: r'customerChangeDue',
       type: IsarType.double,
     ),
     r'customerId': PropertySchema(
-      id: 6,
+      id: 5,
       name: r'customerId',
       type: IsarType.long,
     ),
     r'deletedAt': PropertySchema(
-      id: 7,
+      id: 6,
       name: r'deletedAt',
       type: IsarType.dateTime,
     ),
-    r'draft': PropertySchema(
-      id: 8,
-      name: r'draft',
-      type: IsarType.bool,
-    ),
     r'lastTouched': PropertySchema(
-      id: 9,
+      id: 7,
       name: r'lastTouched',
       type: IsarType.string,
     ),
     r'localId': PropertySchema(
-      id: 10,
+      id: 8,
       name: r'localId',
       type: IsarType.long,
     ),
     r'note': PropertySchema(
-      id: 11,
+      id: 9,
       name: r'note',
       type: IsarType.string,
     ),
     r'paymentType': PropertySchema(
-      id: 12,
+      id: 10,
       name: r'paymentType',
       type: IsarType.string,
     ),
     r'receiptType': PropertySchema(
-      id: 13,
+      id: 11,
       name: r'receiptType',
       type: IsarType.string,
     ),
     r'reference': PropertySchema(
-      id: 14,
+      id: 12,
       name: r'reference',
       type: IsarType.string,
     ),
     r'remoteID': PropertySchema(
-      id: 15,
+      id: 13,
       name: r'remoteID',
       type: IsarType.string,
     ),
-    r'reported': PropertySchema(
-      id: 16,
-      name: r'reported',
-      type: IsarType.bool,
-    ),
     r'status': PropertySchema(
-      id: 17,
+      id: 14,
       name: r'status',
       type: IsarType.string,
     ),
     r'subTotal': PropertySchema(
-      id: 18,
+      id: 15,
       name: r'subTotal',
       type: IsarType.double,
     ),
     r'ticketName': PropertySchema(
-      id: 19,
+      id: 16,
       name: r'ticketName',
       type: IsarType.string,
     ),
     r'transactionNumber': PropertySchema(
-      id: 20,
+      id: 17,
       name: r'transactionNumber',
       type: IsarType.string,
     ),
     r'transactionType': PropertySchema(
-      id: 21,
+      id: 18,
       name: r'transactionType',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 22,
+      id: 19,
       name: r'updatedAt',
       type: IsarType.string,
     )
@@ -165,19 +150,6 @@ const TransactionSchema = CollectionSchema(
         ),
         IndexPropertySchema(
           name: r'branchId',
-          type: IndexType.value,
-          caseSensitive: false,
-        )
-      ],
-    ),
-    r'reported': IndexSchema(
-      id: -3616965814624702900,
-      name: r'reported',
-      unique: false,
-      replace: false,
-      properties: [
-        IndexPropertySchema(
-          name: r'reported',
           type: IndexType.value,
           caseSensitive: false,
         )
@@ -237,12 +209,7 @@ int _transactionEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  {
-    final value = object.action;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
+  bytesCount += 3 + object.action.length * 3;
   bytesCount += 3 + object.createdAt.length * 3;
   {
     final value = object.lastTouched;
@@ -295,28 +262,25 @@ void _transactionSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeString(offsets[0], object.action);
-  writer.writeBool(offsets[1], object.active);
-  writer.writeLong(offsets[2], object.branchId);
-  writer.writeDouble(offsets[3], object.cashReceived);
-  writer.writeString(offsets[4], object.createdAt);
-  writer.writeDouble(offsets[5], object.customerChangeDue);
-  writer.writeLong(offsets[6], object.customerId);
-  writer.writeDateTime(offsets[7], object.deletedAt);
-  writer.writeBool(offsets[8], object.draft);
-  writer.writeString(offsets[9], object.lastTouched);
-  writer.writeLong(offsets[10], object.localId);
-  writer.writeString(offsets[11], object.note);
-  writer.writeString(offsets[12], object.paymentType);
-  writer.writeString(offsets[13], object.receiptType);
-  writer.writeString(offsets[14], object.reference);
-  writer.writeString(offsets[15], object.remoteID);
-  writer.writeBool(offsets[16], object.reported);
-  writer.writeString(offsets[17], object.status);
-  writer.writeDouble(offsets[18], object.subTotal);
-  writer.writeString(offsets[19], object.ticketName);
-  writer.writeString(offsets[20], object.transactionNumber);
-  writer.writeString(offsets[21], object.transactionType);
-  writer.writeString(offsets[22], object.updatedAt);
+  writer.writeLong(offsets[1], object.branchId);
+  writer.writeDouble(offsets[2], object.cashReceived);
+  writer.writeString(offsets[3], object.createdAt);
+  writer.writeDouble(offsets[4], object.customerChangeDue);
+  writer.writeLong(offsets[5], object.customerId);
+  writer.writeDateTime(offsets[6], object.deletedAt);
+  writer.writeString(offsets[7], object.lastTouched);
+  writer.writeLong(offsets[8], object.localId);
+  writer.writeString(offsets[9], object.note);
+  writer.writeString(offsets[10], object.paymentType);
+  writer.writeString(offsets[11], object.receiptType);
+  writer.writeString(offsets[12], object.reference);
+  writer.writeString(offsets[13], object.remoteID);
+  writer.writeString(offsets[14], object.status);
+  writer.writeDouble(offsets[15], object.subTotal);
+  writer.writeString(offsets[16], object.ticketName);
+  writer.writeString(offsets[17], object.transactionNumber);
+  writer.writeString(offsets[18], object.transactionType);
+  writer.writeString(offsets[19], object.updatedAt);
 }
 
 Transaction _transactionDeserialize(
@@ -326,31 +290,28 @@ Transaction _transactionDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Transaction(
-    action: reader.readStringOrNull(offsets[0]),
-    active: reader.readBool(offsets[1]),
-    branchId: reader.readLong(offsets[2]),
-    cashReceived: reader.readDouble(offsets[3]),
-    createdAt: reader.readString(offsets[4]),
-    customerChangeDue: reader.readDouble(offsets[5]),
-    customerId: reader.readLongOrNull(offsets[6]),
-    deletedAt: reader.readDateTimeOrNull(offsets[7]),
-    draft: reader.readBool(offsets[8]),
+    action: reader.readString(offsets[0]),
+    branchId: reader.readLong(offsets[1]),
+    cashReceived: reader.readDouble(offsets[2]),
+    createdAt: reader.readString(offsets[3]),
+    customerChangeDue: reader.readDouble(offsets[4]),
+    customerId: reader.readLongOrNull(offsets[5]),
+    deletedAt: reader.readDateTimeOrNull(offsets[6]),
     id: id,
-    lastTouched: reader.readStringOrNull(offsets[9]),
-    note: reader.readStringOrNull(offsets[11]),
-    paymentType: reader.readString(offsets[12]),
-    receiptType: reader.readStringOrNull(offsets[13]),
-    reference: reader.readString(offsets[14]),
-    remoteID: reader.readStringOrNull(offsets[15]),
-    reported: reader.readBool(offsets[16]),
-    status: reader.readString(offsets[17]),
-    subTotal: reader.readDouble(offsets[18]),
-    ticketName: reader.readStringOrNull(offsets[19]),
-    transactionNumber: reader.readString(offsets[20]),
-    transactionType: reader.readString(offsets[21]),
-    updatedAt: reader.readStringOrNull(offsets[22]),
+    lastTouched: reader.readStringOrNull(offsets[7]),
+    note: reader.readStringOrNull(offsets[9]),
+    paymentType: reader.readString(offsets[10]),
+    receiptType: reader.readStringOrNull(offsets[11]),
+    reference: reader.readString(offsets[12]),
+    remoteID: reader.readStringOrNull(offsets[13]),
+    status: reader.readString(offsets[14]),
+    subTotal: reader.readDouble(offsets[15]),
+    ticketName: reader.readStringOrNull(offsets[16]),
+    transactionNumber: reader.readString(offsets[17]),
+    transactionType: reader.readString(offsets[18]),
+    updatedAt: reader.readStringOrNull(offsets[19]),
   );
-  object.localId = reader.readLongOrNull(offsets[10]);
+  object.localId = reader.readLongOrNull(offsets[8]);
   return object;
 }
 
@@ -362,27 +323,27 @@ P _transactionDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readStringOrNull(offset)) as P;
-    case 1:
-      return (reader.readBool(offset)) as P;
-    case 2:
-      return (reader.readLong(offset)) as P;
-    case 3:
-      return (reader.readDouble(offset)) as P;
-    case 4:
       return (reader.readString(offset)) as P;
-    case 5:
+    case 1:
+      return (reader.readLong(offset)) as P;
+    case 2:
       return (reader.readDouble(offset)) as P;
-    case 6:
+    case 3:
+      return (reader.readString(offset)) as P;
+    case 4:
+      return (reader.readDouble(offset)) as P;
+    case 5:
       return (reader.readLongOrNull(offset)) as P;
-    case 7:
+    case 6:
       return (reader.readDateTimeOrNull(offset)) as P;
+    case 7:
+      return (reader.readStringOrNull(offset)) as P;
     case 8:
-      return (reader.readBool(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 9:
       return (reader.readStringOrNull(offset)) as P;
     case 10:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 11:
       return (reader.readStringOrNull(offset)) as P;
     case 12:
@@ -392,20 +353,14 @@ P _transactionDeserializeProp<P>(
     case 14:
       return (reader.readString(offset)) as P;
     case 15:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDouble(offset)) as P;
     case 16:
-      return (reader.readBool(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 17:
       return (reader.readString(offset)) as P;
     case 18:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 19:
-      return (reader.readStringOrNull(offset)) as P;
-    case 20:
-      return (reader.readString(offset)) as P;
-    case 21:
-      return (reader.readString(offset)) as P;
-    case 22:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -437,14 +392,6 @@ extension TransactionQueryWhereSort
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         const IndexWhereClause.any(indexName: r'branchId'),
-      );
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterWhere> anyReported() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        const IndexWhereClause.any(indexName: r'reported'),
       );
     });
   }
@@ -757,51 +704,6 @@ extension TransactionQueryWhere
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterWhereClause> reportedEqualTo(
-      bool reported) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'reported',
-        value: [reported],
-      ));
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterWhereClause> reportedNotEqualTo(
-      bool reported) {
-    return QueryBuilder.apply(this, (query) {
-      if (query.whereSort == Sort.asc) {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'reported',
-              lower: [],
-              upper: [reported],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'reported',
-              lower: [reported],
-              includeLower: false,
-              upper: [],
-            ));
-      } else {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'reported',
-              lower: [reported],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'reported',
-              lower: [],
-              upper: [reported],
-              includeUpper: false,
-            ));
-      }
-    });
-  }
-
   QueryBuilder<Transaction, Transaction, QAfterWhereClause>
       lastTouchedIsNull() {
     return QueryBuilder.apply(this, (query) {
@@ -1050,25 +952,8 @@ extension TransactionQueryWhere
 
 extension TransactionQueryFilter
     on QueryBuilder<Transaction, Transaction, QFilterCondition> {
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> actionIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'action',
-      ));
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
-      actionIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'action',
-      ));
-    });
-  }
-
   QueryBuilder<Transaction, Transaction, QAfterFilterCondition> actionEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1082,7 +967,7 @@ extension TransactionQueryFilter
 
   QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
       actionGreaterThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -1097,7 +982,7 @@ extension TransactionQueryFilter
   }
 
   QueryBuilder<Transaction, Transaction, QAfterFilterCondition> actionLessThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -1112,8 +997,8 @@ extension TransactionQueryFilter
   }
 
   QueryBuilder<Transaction, Transaction, QAfterFilterCondition> actionBetween(
-    String? lower,
-    String? upper, {
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -1197,16 +1082,6 @@ extension TransactionQueryFilter
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'action',
         value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> activeEqualTo(
-      bool value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'active',
-        value: value,
       ));
     });
   }
@@ -1678,16 +1553,6 @@ extension TransactionQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> draftEqualTo(
-      bool value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'draft',
-        value: value,
       ));
     });
   }
@@ -2714,16 +2579,6 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> reportedEqualTo(
-      bool value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'reported',
-        value: value,
-      ));
-    });
-  }
-
   QueryBuilder<Transaction, Transaction, QAfterFilterCondition> statusEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -3523,18 +3378,6 @@ extension TransactionQuerySortBy
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByActive() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'active', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByActiveDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'active', Sort.desc);
-    });
-  }
-
   QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByBranchId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'branchId', Sort.asc);
@@ -3607,18 +3450,6 @@ extension TransactionQuerySortBy
   QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByDeletedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'deletedAt', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByDraft() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'draft', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByDraftDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'draft', Sort.desc);
     });
   }
 
@@ -3703,18 +3534,6 @@ extension TransactionQuerySortBy
   QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByRemoteIDDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'remoteID', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByReported() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'reported', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByReportedDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'reported', Sort.desc);
     });
   }
 
@@ -3808,18 +3627,6 @@ extension TransactionQuerySortThenBy
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByActive() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'active', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByActiveDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'active', Sort.desc);
-    });
-  }
-
   QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByBranchId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'branchId', Sort.asc);
@@ -3892,18 +3699,6 @@ extension TransactionQuerySortThenBy
   QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByDeletedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'deletedAt', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByDraft() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'draft', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByDraftDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'draft', Sort.desc);
     });
   }
 
@@ -4003,18 +3798,6 @@ extension TransactionQuerySortThenBy
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByReported() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'reported', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByReportedDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'reported', Sort.desc);
-    });
-  }
-
   QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByStatus() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'status', Sort.asc);
@@ -4100,12 +3883,6 @@ extension TransactionQueryWhereDistinct
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QDistinct> distinctByActive() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'active');
-    });
-  }
-
   QueryBuilder<Transaction, Transaction, QDistinct> distinctByBranchId() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'branchId');
@@ -4141,12 +3918,6 @@ extension TransactionQueryWhereDistinct
   QueryBuilder<Transaction, Transaction, QDistinct> distinctByDeletedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'deletedAt');
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QDistinct> distinctByDraft() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'draft');
     });
   }
 
@@ -4195,12 +3966,6 @@ extension TransactionQueryWhereDistinct
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'remoteID', caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<Transaction, Transaction, QDistinct> distinctByReported() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'reported');
     });
   }
 
@@ -4256,15 +4021,9 @@ extension TransactionQueryProperty
     });
   }
 
-  QueryBuilder<Transaction, String?, QQueryOperations> actionProperty() {
+  QueryBuilder<Transaction, String, QQueryOperations> actionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'action');
-    });
-  }
-
-  QueryBuilder<Transaction, bool, QQueryOperations> activeProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'active');
     });
   }
 
@@ -4302,12 +4061,6 @@ extension TransactionQueryProperty
   QueryBuilder<Transaction, DateTime?, QQueryOperations> deletedAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'deletedAt');
-    });
-  }
-
-  QueryBuilder<Transaction, bool, QQueryOperations> draftProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'draft');
     });
   }
 
@@ -4350,12 +4103,6 @@ extension TransactionQueryProperty
   QueryBuilder<Transaction, String?, QQueryOperations> remoteIDProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'remoteID');
-    });
-  }
-
-  QueryBuilder<Transaction, bool, QQueryOperations> reportedProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'reported');
     });
   }
 
@@ -4408,8 +4155,6 @@ Transaction _$TransactionFromJson(Map<String, dynamic> json) => Transaction(
       branchId: json['branchId'] as int,
       status: json['status'] as String,
       transactionType: json['transactionType'] as String,
-      active: json['active'] as bool,
-      draft: json['draft'] as bool,
       subTotal: (json['subTotal'] as num).toDouble(),
       paymentType: json['paymentType'] as String,
       cashReceived: (json['cashReceived'] as num).toDouble(),
@@ -4417,12 +4162,11 @@ Transaction _$TransactionFromJson(Map<String, dynamic> json) => Transaction(
       createdAt: json['createdAt'] as String,
       receiptType: json['receiptType'] as String?,
       updatedAt: json['updatedAt'] as String?,
-      reported: json['reported'] as bool,
       customerId: json['customerId'] as int?,
       note: json['note'] as String?,
       id: json['id'] as int?,
       lastTouched: json['lastTouched'] as String?,
-      action: json['action'] as String?,
+      action: json['action'] as String,
       remoteID: json['remoteID'] as String?,
       ticketName: json['ticketName'] as String?,
       deletedAt: json['deletedAt'] == null
@@ -4438,8 +4182,6 @@ Map<String, dynamic> _$TransactionToJson(Transaction instance) =>
       'branchId': instance.branchId,
       'status': instance.status,
       'transactionType': instance.transactionType,
-      'active': instance.active,
-      'draft': instance.draft,
       'subTotal': instance.subTotal,
       'paymentType': instance.paymentType,
       'cashReceived': instance.cashReceived,
@@ -4447,7 +4189,6 @@ Map<String, dynamic> _$TransactionToJson(Transaction instance) =>
       'createdAt': instance.createdAt,
       'receiptType': instance.receiptType,
       'updatedAt': instance.updatedAt,
-      'reported': instance.reported,
       'customerId': instance.customerId,
       'note': instance.note,
       'lastTouched': instance.lastTouched,

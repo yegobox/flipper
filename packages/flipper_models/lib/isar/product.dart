@@ -40,11 +40,10 @@ class Product extends IJsonSerializable {
   String? lastTouched;
   @Index()
   String? remoteID;
-  String? action;
+  String action;
   int? localId;
   @Index()
   DateTime? deletedAt;
-  final variants = IsarLinks<Variant>();
 
   Product({
     required this.name,
@@ -73,7 +72,11 @@ class Product extends IJsonSerializable {
   factory Product.fromRecord(RecordModel record) =>
       Product.fromJson(record.toJson());
   factory Product.fromJson(Map<String, dynamic> json) {
-    json['remoteID'] = json['id'];
+    json['deletedAt'] = json['deletedAt'] == null ||
+            (json['deletedAt'] is String && json['deletedAt'].isEmpty)
+        ? null
+        : json['deletedAt'];
+    json['remoteID'] = json['id'] is int ? json['id'].toString() : json['id'];
     json.remove('id');
     return _$ProductFromJson(json);
   }

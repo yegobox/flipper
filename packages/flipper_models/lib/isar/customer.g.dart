@@ -138,12 +138,7 @@ int _customerEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  {
-    final value = object.action;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
+  bytesCount += 3 + object.action.length * 3;
   {
     final value = object.address;
     if (value != null) {
@@ -201,6 +196,7 @@ Customer _customerDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Customer(
+    action: reader.readString(offsets[0]),
     address: reader.readStringOrNull(offsets[1]),
     branchId: reader.readLong(offsets[2]),
     email: reader.readString(offsets[4]),
@@ -210,7 +206,6 @@ Customer _customerDeserialize(
     tinNumber: reader.readStringOrNull(offsets[10]),
     updatedAt: reader.readDateTimeOrNull(offsets[11]),
   );
-  object.action = reader.readStringOrNull(offsets[0]);
   object.deletedAt = reader.readDateTimeOrNull(offsets[3]);
   object.lastTouched = reader.readStringOrNull(offsets[5]);
   object.localId = reader.readLongOrNull(offsets[6]);
@@ -226,7 +221,7 @@ P _customerDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 1:
       return (reader.readStringOrNull(offset)) as P;
     case 2:
@@ -591,24 +586,8 @@ extension CustomerQueryWhere on QueryBuilder<Customer, Customer, QWhereClause> {
 
 extension CustomerQueryFilter
     on QueryBuilder<Customer, Customer, QFilterCondition> {
-  QueryBuilder<Customer, Customer, QAfterFilterCondition> actionIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'action',
-      ));
-    });
-  }
-
-  QueryBuilder<Customer, Customer, QAfterFilterCondition> actionIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'action',
-      ));
-    });
-  }
-
   QueryBuilder<Customer, Customer, QAfterFilterCondition> actionEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -621,7 +600,7 @@ extension CustomerQueryFilter
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> actionGreaterThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -636,7 +615,7 @@ extension CustomerQueryFilter
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> actionLessThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -651,8 +630,8 @@ extension CustomerQueryFilter
   }
 
   QueryBuilder<Customer, Customer, QAfterFilterCondition> actionBetween(
-    String? lower,
-    String? upper, {
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -2446,7 +2425,7 @@ extension CustomerQueryProperty
     });
   }
 
-  QueryBuilder<Customer, String?, QQueryOperations> actionProperty() {
+  QueryBuilder<Customer, String, QQueryOperations> actionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'action');
     });
@@ -2528,6 +2507,7 @@ Customer _$CustomerFromJson(Map<String, dynamic> json) => Customer(
       name: json['name'] as String,
       email: json['email'] as String,
       phone: json['phone'] as String,
+      action: json['action'] as String,
       address: json['address'] as String?,
       branchId: json['branchId'] as int,
       updatedAt: json['updatedAt'] == null
@@ -2537,7 +2517,6 @@ Customer _$CustomerFromJson(Map<String, dynamic> json) => Customer(
     )
       ..lastTouched = json['lastTouched'] as String?
       ..remoteID = json['remoteID'] as String?
-      ..action = json['action'] as String?
       ..localId = json['localId'] as int?
       ..deletedAt = json['deletedAt'] == null
           ? null

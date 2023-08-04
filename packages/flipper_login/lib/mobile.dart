@@ -41,10 +41,8 @@ class _MobileLoginState extends State<MobileLogin> {
           Container(
             color: AppColors.mainColor,
             width: double.infinity,
-            height: 400,
+            // height: 400,
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
                 Image.asset(
                   'assets/logo.png',

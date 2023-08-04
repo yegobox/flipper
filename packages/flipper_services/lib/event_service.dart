@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/event_interface.dart';
 import 'package:pubnub/pubnub.dart' as nub;
 import 'package:flipper_services/proxy.dart';
@@ -114,6 +115,7 @@ class EventService implements EventInterface {
                   pubNubPublished: false,
                   branchId: loginData.branchId,
                   businessId: loginData.businessId,
+                  action: AppActions.create,
                   defaultApp: loginData.defaultApp,
                   phone: loginData.phone,
                   userId: loginData.userId,
@@ -173,6 +175,7 @@ class EventService implements EventInterface {
         await ProxyService.isar.create(
             data: Device(
                 pubNubPublished: true,
+                action: AppActions.create,
                 branchId: deviceEvent.branchId,
                 businessId: deviceEvent.businessId,
                 defaultApp: deviceEvent.defaultApp,

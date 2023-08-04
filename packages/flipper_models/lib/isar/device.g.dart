@@ -148,12 +148,7 @@ int _deviceEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  {
-    final value = object.action;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
+  bytesCount += 3 + object.action.length * 3;
   bytesCount += 3 + object.deviceName.length * 3;
   bytesCount += 3 + object.deviceVersion.length * 3;
   {
@@ -202,6 +197,7 @@ Device _deviceDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Device(
+    action: reader.readString(offsets[0]),
     branchId: reader.readLong(offsets[1]),
     businessId: reader.readLong(offsets[2]),
     defaultApp: reader.readLong(offsets[3]),
@@ -213,7 +209,6 @@ Device _deviceDeserialize(
     pubNubPublished: reader.readBool(offsets[11]),
     userId: reader.readLong(offsets[13]),
   );
-  object.action = reader.readStringOrNull(offsets[0]);
   object.id = id;
   object.lastTouched = reader.readStringOrNull(offsets[7]);
   object.localId = reader.readLongOrNull(offsets[9]);
@@ -229,7 +224,7 @@ P _deviceDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 1:
       return (reader.readLong(offset)) as P;
     case 2:
@@ -597,24 +592,8 @@ extension DeviceQueryWhere on QueryBuilder<Device, Device, QWhereClause> {
 }
 
 extension DeviceQueryFilter on QueryBuilder<Device, Device, QFilterCondition> {
-  QueryBuilder<Device, Device, QAfterFilterCondition> actionIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'action',
-      ));
-    });
-  }
-
-  QueryBuilder<Device, Device, QAfterFilterCondition> actionIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'action',
-      ));
-    });
-  }
-
   QueryBuilder<Device, Device, QAfterFilterCondition> actionEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -627,7 +606,7 @@ extension DeviceQueryFilter on QueryBuilder<Device, Device, QFilterCondition> {
   }
 
   QueryBuilder<Device, Device, QAfterFilterCondition> actionGreaterThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -642,7 +621,7 @@ extension DeviceQueryFilter on QueryBuilder<Device, Device, QFilterCondition> {
   }
 
   QueryBuilder<Device, Device, QAfterFilterCondition> actionLessThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -657,8 +636,8 @@ extension DeviceQueryFilter on QueryBuilder<Device, Device, QFilterCondition> {
   }
 
   QueryBuilder<Device, Device, QAfterFilterCondition> actionBetween(
-    String? lower,
-    String? upper, {
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -2441,7 +2420,7 @@ extension DeviceQueryProperty on QueryBuilder<Device, Device, QQueryProperty> {
     });
   }
 
-  QueryBuilder<Device, String?, QQueryOperations> actionProperty() {
+  QueryBuilder<Device, String, QQueryOperations> actionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'action');
     });
@@ -2531,6 +2510,7 @@ extension DeviceQueryProperty on QueryBuilder<Device, Device, QQueryProperty> {
 // **************************************************************************
 
 Device _$DeviceFromJson(Map<String, dynamic> json) => Device(
+      action: json['action'] as String,
       linkingCode: json['linkingCode'] as String,
       deviceName: json['deviceName'] as String,
       deviceVersion: json['deviceVersion'] as String,
@@ -2547,7 +2527,6 @@ Device _$DeviceFromJson(Map<String, dynamic> json) => Device(
       ..id = json['id'] as int?
       ..lastTouched = json['lastTouched'] as String?
       ..remoteID = json['remoteID'] as String?
-      ..action = json['action'] as String?
       ..localId = json['localId'] as int?;
 
 Map<String, dynamic> _$DeviceToJson(Device instance) => <String, dynamic>{

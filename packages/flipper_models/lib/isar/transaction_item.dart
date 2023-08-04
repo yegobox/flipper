@@ -18,7 +18,7 @@ class TransactionItem extends IJsonSerializable {
   late double price;
   double? discount;
   String? type;
-  bool? reported;
+  
   late double remainingStock;
   late String createdAt;
   late String updatedAt;
@@ -95,15 +95,16 @@ class TransactionItem extends IJsonSerializable {
   @Index()
   DateTime? deletedAt;
   TransactionItem({
+    required this.action,
     this.id,
     required this.name,
     required this.transactionId,
     required this.variantId,
     required this.qty,
     required this.price,
+    required this.branchId,
     this.discount,
     this.type,
-    this.reported,
     required this.remainingStock,
     required this.createdAt,
     required this.updatedAt,
@@ -148,14 +149,19 @@ class TransactionItem extends IJsonSerializable {
   });
   @Index()
   String? remoteID;
-  String? action;
+  String action;
   int? localId;
+  int branchId;
 
   factory TransactionItem.fromRecord(RecordModel record) =>
       TransactionItem.fromJson(record.toJson());
 
   factory TransactionItem.fromJson(Map<String, dynamic> json) {
-    json['remoteID'] = json['id'];
+    json['deletedAt'] = json['deletedAt'] == null ||
+            (json['deletedAt'] is String && json['deletedAt'].isEmpty)
+        ? null
+        : json['deletedAt'];
+    json['remoteID'] = json['id'] is int ? json['id'].toString() : json['id'];
     json.remove('id');
     return _$TransactionItemFromJson(json);
   }

@@ -20,6 +20,7 @@ class Customer extends IJsonSerializable {
     required this.name,
     required this.email,
     required this.phone,
+    required this.action,
     this.address,
     required this.branchId,
     this.updatedAt,
@@ -29,7 +30,7 @@ class Customer extends IJsonSerializable {
   String? lastTouched;
   @Index()
   String? remoteID;
-  String? action;
+  String action;
   int? localId;
   @Index()
   DateTime? deletedAt;

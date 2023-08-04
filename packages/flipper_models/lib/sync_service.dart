@@ -14,7 +14,7 @@ abstract class IJsonSerializable {
   String? lastTouched;
   DateTime? deletedAt;
   String? remoteID;
-  String? action;
+  String action = AppActions.create;
   int? localId;
 }
 

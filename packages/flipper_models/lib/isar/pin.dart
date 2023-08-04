@@ -9,6 +9,7 @@ part 'pin.g.dart';
 @Collection()
 class Pin extends IJsonSerializable {
   Pin({
+    required this.action,
     this.id,
     required this.userId,
     required this.phoneNumber,
@@ -26,7 +27,7 @@ class Pin extends IJsonSerializable {
   String? lastTouched;
   @Index()
   String? remoteID;
-  String? action;
+  String action;
   int? localId;
   @Index()
   DateTime? deletedAt;

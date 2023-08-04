@@ -1,6 +1,7 @@
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/mocks.dart';
 import 'package:flipper_services/app_service.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
 
@@ -52,6 +53,7 @@ class ForceDataEntryService {
         id: syncIdInt(),
         colors: colors,
         branchId: branchId,
+        action: AppActions.create,
         name: "#d63031",
         active: false);
 

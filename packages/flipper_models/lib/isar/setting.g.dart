@@ -201,12 +201,7 @@ int _settingEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  {
-    final value = object.action;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
+  bytesCount += 3 + object.action.length * 3;
   {
     final value = object.businessPhoneNumber;
     if (value != null) {
@@ -327,7 +322,7 @@ Setting _settingDeserialize(
     type: reader.readStringOrNull(offsets[20]),
     userId: reader.readLongOrNull(offsets[21]),
   );
-  object.action = reader.readStringOrNull(offsets[0]);
+  object.action = reader.readString(offsets[0]);
   object.lastTouched = reader.readStringOrNull(offsets[14]);
   object.localId = reader.readLongOrNull(offsets[15]);
   object.remoteID = reader.readStringOrNull(offsets[17]);
@@ -342,7 +337,7 @@ P _settingDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 1:
       return (reader.readBoolOrNull(offset)) as P;
     case 2:
@@ -897,24 +892,8 @@ extension SettingQueryWhere on QueryBuilder<Setting, Setting, QWhereClause> {
 
 extension SettingQueryFilter
     on QueryBuilder<Setting, Setting, QFilterCondition> {
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> actionIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'action',
-      ));
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> actionIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'action',
-      ));
-    });
-  }
-
   QueryBuilder<Setting, Setting, QAfterFilterCondition> actionEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -927,7 +906,7 @@ extension SettingQueryFilter
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition> actionGreaterThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -942,7 +921,7 @@ extension SettingQueryFilter
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition> actionLessThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -957,8 +936,8 @@ extension SettingQueryFilter
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition> actionBetween(
-    String? lower,
-    String? upper, {
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -3753,7 +3732,7 @@ extension SettingQueryProperty
     });
   }
 
-  QueryBuilder<Setting, String?, QQueryOperations> actionProperty() {
+  QueryBuilder<Setting, String, QQueryOperations> actionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'action');
     });
@@ -3917,7 +3896,7 @@ Setting _$SettingFromJson(Map<String, dynamic> json) => Setting(
           : DateTime.parse(json['deletedAt'] as String),
     )
       ..remoteID = json['remoteID'] as String?
-      ..action = json['action'] as String?
+      ..action = json['action'] as String
       ..localId = json['localId'] as int?
       ..lastTouched = json['lastTouched'] as String?;
 

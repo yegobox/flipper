@@ -221,14 +221,7 @@ const ProductSchema = CollectionSchema(
       ],
     )
   },
-  links: {
-    r'variants': LinkSchema(
-      id: -6238971154009720285,
-      name: r'variants',
-      target: r'Variant',
-      single: false,
-    )
-  },
+  links: {},
   embeddedSchemas: {},
   getId: _productGetId,
   getLinks: _productGetLinks,
@@ -242,12 +235,7 @@ int _productEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  {
-    final value = object.action;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
+  bytesCount += 3 + object.action.length * 3;
   {
     final value = object.barCode;
     if (value != null) {
@@ -355,7 +343,7 @@ Product _productDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Product(
-    action: reader.readStringOrNull(offsets[0]),
+    action: reader.readString(offsets[0]),
     barCode: reader.readStringOrNull(offsets[1]),
     bindedToTenantId: reader.readLongOrNull(offsets[2]),
     branchId: reader.readLong(offsets[3]),
@@ -389,7 +377,7 @@ P _productDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 1:
       return (reader.readStringOrNull(offset)) as P;
     case 2:
@@ -440,12 +428,11 @@ Id _productGetId(Product object) {
 }
 
 List<IsarLinkBase<dynamic>> _productGetLinks(Product object) {
-  return [object.variants];
+  return [];
 }
 
 void _productAttach(IsarCollection<dynamic> col, Id id, Product object) {
   object.id = id;
-  object.variants.attach(col, col.isar.collection<Variant>(), r'variants', id);
 }
 
 extension ProductQueryWhereSort on QueryBuilder<Product, Product, QWhere> {
@@ -1099,24 +1086,8 @@ extension ProductQueryWhere on QueryBuilder<Product, Product, QWhereClause> {
 
 extension ProductQueryFilter
     on QueryBuilder<Product, Product, QFilterCondition> {
-  QueryBuilder<Product, Product, QAfterFilterCondition> actionIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'action',
-      ));
-    });
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> actionIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'action',
-      ));
-    });
-  }
-
   QueryBuilder<Product, Product, QAfterFilterCondition> actionEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1129,7 +1100,7 @@ extension ProductQueryFilter
   }
 
   QueryBuilder<Product, Product, QAfterFilterCondition> actionGreaterThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -1144,7 +1115,7 @@ extension ProductQueryFilter
   }
 
   QueryBuilder<Product, Product, QAfterFilterCondition> actionLessThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -1159,8 +1130,8 @@ extension ProductQueryFilter
   }
 
   QueryBuilder<Product, Product, QAfterFilterCondition> actionBetween(
-    String? lower,
-    String? upper, {
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -3555,64 +3526,7 @@ extension ProductQueryObject
     on QueryBuilder<Product, Product, QFilterCondition> {}
 
 extension ProductQueryLinks
-    on QueryBuilder<Product, Product, QFilterCondition> {
-  QueryBuilder<Product, Product, QAfterFilterCondition> variants(
-      FilterQuery<Variant> q) {
-    return QueryBuilder.apply(this, (query) {
-      return query.link(q, r'variants');
-    });
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> variantsLengthEqualTo(
-      int length) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'variants', length, true, length, true);
-    });
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> variantsIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'variants', 0, true, 0, true);
-    });
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> variantsIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'variants', 0, false, 999999, true);
-    });
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> variantsLengthLessThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'variants', 0, true, length, include);
-    });
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition>
-      variantsLengthGreaterThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'variants', length, include, 999999, true);
-    });
-  }
-
-  QueryBuilder<Product, Product, QAfterFilterCondition> variantsLengthBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(
-          r'variants', lower, includeLower, upper, includeUpper);
-    });
-  }
-}
+    on QueryBuilder<Product, Product, QFilterCondition> {}
 
 extension ProductQuerySortBy on QueryBuilder<Product, Product, QSortBy> {
   QueryBuilder<Product, Product, QAfterSortBy> sortByAction() {
@@ -4286,7 +4200,7 @@ extension ProductQueryProperty
     });
   }
 
-  QueryBuilder<Product, String?, QQueryOperations> actionProperty() {
+  QueryBuilder<Product, String, QQueryOperations> actionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'action');
     });
@@ -4422,7 +4336,7 @@ Product _$ProductFromJson(Map<String, dynamic> json) => Product(
       color: json['color'] as String,
       businessId: json['businessId'] as int,
       branchId: json['branchId'] as int,
-      action: json['action'] as String?,
+      action: json['action'] as String,
       id: json['id'] as int?,
       description: json['description'] as String?,
       taxId: json['taxId'] as String?,

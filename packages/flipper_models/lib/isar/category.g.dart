@@ -97,12 +97,7 @@ int _categoryEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  {
-    final value = object.action;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
+  bytesCount += 3 + object.action.length * 3;
   {
     final value = object.lastTouched;
     if (value != null) {
@@ -149,7 +144,7 @@ Category _categoryDeserialize(
     id: id,
     name: reader.readString(offsets[7]),
   );
-  object.action = reader.readStringOrNull(offsets[0]);
+  object.action = reader.readString(offsets[0]);
   object.deletedAt = reader.readDateTimeOrNull(offsets[3]);
   object.lastTouched = reader.readStringOrNull(offsets[5]);
   object.localId = reader.readLongOrNull(offsets[6]);
@@ -165,7 +160,7 @@ P _categoryDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 1:
       return (reader.readBool(offset)) as P;
     case 2:
@@ -374,24 +369,8 @@ extension CategoryQueryWhere on QueryBuilder<Category, Category, QWhereClause> {
 
 extension CategoryQueryFilter
     on QueryBuilder<Category, Category, QFilterCondition> {
-  QueryBuilder<Category, Category, QAfterFilterCondition> actionIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'action',
-      ));
-    });
-  }
-
-  QueryBuilder<Category, Category, QAfterFilterCondition> actionIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'action',
-      ));
-    });
-  }
-
   QueryBuilder<Category, Category, QAfterFilterCondition> actionEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -404,7 +383,7 @@ extension CategoryQueryFilter
   }
 
   QueryBuilder<Category, Category, QAfterFilterCondition> actionGreaterThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -419,7 +398,7 @@ extension CategoryQueryFilter
   }
 
   QueryBuilder<Category, Category, QAfterFilterCondition> actionLessThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -434,8 +413,8 @@ extension CategoryQueryFilter
   }
 
   QueryBuilder<Category, Category, QAfterFilterCondition> actionBetween(
-    String? lower,
-    String? upper, {
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -1533,7 +1512,7 @@ extension CategoryQueryProperty
     });
   }
 
-  QueryBuilder<Category, String?, QQueryOperations> actionProperty() {
+  QueryBuilder<Category, String, QQueryOperations> actionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'action');
     });
@@ -1600,7 +1579,7 @@ Category _$CategoryFromJson(Map<String, dynamic> json) => Category(
       branchId: json['branchId'] as int,
     )
       ..remoteID = json['remoteID'] as String?
-      ..action = json['action'] as String?
+      ..action = json['action'] as String
       ..localId = json['localId'] as int?
       ..deletedAt = json['deletedAt'] == null
           ? null

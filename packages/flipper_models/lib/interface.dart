@@ -73,7 +73,7 @@ abstract class IsarApiInterface {
 
   Future<List<Transaction>> completedTransactions(
       {required int branchId, String? status = completeStatus});
-  Future<TransactionItem?> getTransactionItem({required int id});
+  Future<TransactionItem?> getTransactionItemById({required int id});
   Stream<List<Transaction>> localCompletedTransactions();
 
   Future<Variant?> getCustomVariant();
@@ -277,6 +277,7 @@ abstract class IsarApiInterface {
 
   Future<Stock?> addStockToVariant({required Variant variant});
   Stream<Product> getProductStream({required int prodIndex});
+  Stream<List<Variant>> geVariantStreamByProductId({required int productId});
 
   Future<
       ({

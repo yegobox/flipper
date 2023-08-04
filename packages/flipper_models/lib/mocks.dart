@@ -1,4 +1,5 @@
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/app_service.dart';
 
@@ -90,13 +91,13 @@ final stockMock = Stock(
 
 // transaction mock
 Transaction? TransactionFMock = Transaction(
+  action: AppActions.create,
   reference: Uuid().v1(),
   transactionNumber: Uuid().v1(),
-  draft: true,
+ 
   status: "pending",
   transactionType: 'local',
-  active: true,
-  reported: false,
+  
   subTotal: 0,
   cashReceived: 0,
   updatedAt: DateTime.now().toIso8601String(),
@@ -143,6 +144,7 @@ final productMock = Product(
   ..createdAt = DateTime.now().toIso8601String();
 
 final branchMock = Branch(
+  action: AppActions.create,
   id: DateTime.now().millisecondsSinceEpoch,
   active: false,
   description: 'desc',

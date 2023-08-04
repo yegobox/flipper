@@ -100,12 +100,7 @@ int _historyEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  {
-    final value = object.action;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
+  bytesCount += 3 + object.action.length * 3;
   {
     final value = object.lastTouched;
     if (value != null) {
@@ -143,7 +138,7 @@ History _historyDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = History(
-    action: reader.readStringOrNull(offsets[0]),
+    action: reader.readString(offsets[0]),
     createdAt: reader.readDateTime(offsets[1]),
     modelId: reader.readLong(offsets[5]),
   );
@@ -163,7 +158,7 @@ P _historyDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 1:
       return (reader.readDateTime(offset)) as P;
     case 2:
@@ -400,24 +395,8 @@ extension HistoryQueryWhere on QueryBuilder<History, History, QWhereClause> {
 
 extension HistoryQueryFilter
     on QueryBuilder<History, History, QFilterCondition> {
-  QueryBuilder<History, History, QAfterFilterCondition> actionIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'action',
-      ));
-    });
-  }
-
-  QueryBuilder<History, History, QAfterFilterCondition> actionIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'action',
-      ));
-    });
-  }
-
   QueryBuilder<History, History, QAfterFilterCondition> actionEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -430,7 +409,7 @@ extension HistoryQueryFilter
   }
 
   QueryBuilder<History, History, QAfterFilterCondition> actionGreaterThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -445,7 +424,7 @@ extension HistoryQueryFilter
   }
 
   QueryBuilder<History, History, QAfterFilterCondition> actionLessThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -460,8 +439,8 @@ extension HistoryQueryFilter
   }
 
   QueryBuilder<History, History, QAfterFilterCondition> actionBetween(
-    String? lower,
-    String? upper, {
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -1399,7 +1378,7 @@ extension HistoryQueryProperty
     });
   }
 
-  QueryBuilder<History, String?, QQueryOperations> actionProperty() {
+  QueryBuilder<History, String, QQueryOperations> actionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'action');
     });
@@ -1449,7 +1428,7 @@ extension HistoryQueryProperty
 History _$HistoryFromJson(Map<String, dynamic> json) => History(
       modelId: json['modelId'] as int,
       createdAt: DateTime.parse(json['createdAt'] as String),
-      action: json['action'] as String?,
+      action: json['action'] as String,
     )
       ..deletedAt = json['deletedAt'] == null
           ? null

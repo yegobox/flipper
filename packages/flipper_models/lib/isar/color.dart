@@ -18,7 +18,7 @@ class PColor extends IJsonSerializable {
   String? lastTouched;
   @Index()
   String? remoteID;
-  String? action;
+  String action;
   int? localId;
   @Index()
   DateTime? deletedAt;
@@ -30,7 +30,7 @@ class PColor extends IJsonSerializable {
     required this.active,
     this.lastTouched,
     this.remoteID,
-    this.action,
+    required this.action,
     this.localId,
     this.deletedAt,
   });

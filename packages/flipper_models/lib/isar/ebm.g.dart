@@ -138,12 +138,7 @@ int _eBMEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  {
-    final value = object.action;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
+  bytesCount += 3 + object.action.length * 3;
   bytesCount += 3 + object.bhfId.length * 3;
   bytesCount += 3 + object.dvcSrlNo.length * 3;
   {
@@ -195,6 +190,7 @@ EBM _eBMDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = EBM(
+    action: reader.readString(offsets[0]),
     bhfId: reader.readString(offsets[1]),
     branchId: reader.readLong(offsets[2]),
     businessId: reader.readLong(offsets[3]),
@@ -203,7 +199,6 @@ EBM _eBMDeserialize(
     tinNumber: reader.readLong(offsets[10]),
     userId: reader.readString(offsets[11]),
   );
-  object.action = reader.readStringOrNull(offsets[0]);
   object.deletedAt = reader.readDateTimeOrNull(offsets[4]);
   object.id = id;
   object.lastTouched = reader.readStringOrNull(offsets[6]);
@@ -220,7 +215,7 @@ P _eBMDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 1:
       return (reader.readString(offset)) as P;
     case 2:
@@ -583,24 +578,8 @@ extension EBMQueryWhere on QueryBuilder<EBM, EBM, QWhereClause> {
 }
 
 extension EBMQueryFilter on QueryBuilder<EBM, EBM, QFilterCondition> {
-  QueryBuilder<EBM, EBM, QAfterFilterCondition> actionIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'action',
-      ));
-    });
-  }
-
-  QueryBuilder<EBM, EBM, QAfterFilterCondition> actionIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'action',
-      ));
-    });
-  }
-
   QueryBuilder<EBM, EBM, QAfterFilterCondition> actionEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -613,7 +592,7 @@ extension EBMQueryFilter on QueryBuilder<EBM, EBM, QFilterCondition> {
   }
 
   QueryBuilder<EBM, EBM, QAfterFilterCondition> actionGreaterThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -628,7 +607,7 @@ extension EBMQueryFilter on QueryBuilder<EBM, EBM, QFilterCondition> {
   }
 
   QueryBuilder<EBM, EBM, QAfterFilterCondition> actionLessThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -643,8 +622,8 @@ extension EBMQueryFilter on QueryBuilder<EBM, EBM, QFilterCondition> {
   }
 
   QueryBuilder<EBM, EBM, QAfterFilterCondition> actionBetween(
-    String? lower,
-    String? upper, {
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -2305,7 +2284,7 @@ extension EBMQueryProperty on QueryBuilder<EBM, EBM, QQueryProperty> {
     });
   }
 
-  QueryBuilder<EBM, String?, QQueryOperations> actionProperty() {
+  QueryBuilder<EBM, String, QQueryOperations> actionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'action');
     });
@@ -2383,6 +2362,7 @@ extension EBMQueryProperty on QueryBuilder<EBM, EBM, QQueryProperty> {
 // **************************************************************************
 
 EBM _$EBMFromJson(Map<String, dynamic> json) => EBM(
+      action: json['action'] as String,
       bhfId: json['bhfId'] as String,
       tinNumber: json['tinNumber'] as int,
       dvcSrlNo: json['dvcSrlNo'] as String,
@@ -2394,7 +2374,6 @@ EBM _$EBMFromJson(Map<String, dynamic> json) => EBM(
       ..id = json['id'] as int?
       ..lastTouched = json['lastTouched'] as String?
       ..remoteID = json['remoteID'] as String?
-      ..action = json['action'] as String?
       ..localId = json['localId'] as int?
       ..deletedAt = json['deletedAt'] == null
           ? null

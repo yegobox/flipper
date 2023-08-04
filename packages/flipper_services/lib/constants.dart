@@ -8,6 +8,7 @@ class AppActions {
   static const String delete = "delete";
   static const String deleted = "deleted";
   static const String create = "create";
+  static const String remote = "remote";
   static const String created = "created";
 }
 

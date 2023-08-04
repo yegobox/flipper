@@ -131,12 +131,7 @@ int _favoriteEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  {
-    final value = object.action;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
+  bytesCount += 3 + object.action.length * 3;
   {
     final value = object.lastTouched;
     if (value != null) {
@@ -175,11 +170,11 @@ Favorite _favoriteDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Favorite(
-    reader.readLongOrNull(offsets[3]),
-    reader.readLongOrNull(offsets[6]),
-    reader.readLongOrNull(offsets[1]),
+    action: reader.readString(offsets[0]),
+    branchId: reader.readLongOrNull(offsets[1]),
+    favIndex: reader.readLongOrNull(offsets[3]),
+    productId: reader.readLongOrNull(offsets[6]),
   );
-  object.action = reader.readStringOrNull(offsets[0]);
   object.deletedAt = reader.readDateTimeOrNull(offsets[2]);
   object.id = id;
   object.lastTouched = reader.readStringOrNull(offsets[4]);
@@ -196,7 +191,7 @@ P _favoriteDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 1:
       return (reader.readLongOrNull(offset)) as P;
     case 2:
@@ -726,24 +721,8 @@ extension FavoriteQueryWhere on QueryBuilder<Favorite, Favorite, QWhereClause> {
 
 extension FavoriteQueryFilter
     on QueryBuilder<Favorite, Favorite, QFilterCondition> {
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> actionIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'action',
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> actionIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'action',
-      ));
-    });
-  }
-
   QueryBuilder<Favorite, Favorite, QAfterFilterCondition> actionEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -756,7 +735,7 @@ extension FavoriteQueryFilter
   }
 
   QueryBuilder<Favorite, Favorite, QAfterFilterCondition> actionGreaterThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -771,7 +750,7 @@ extension FavoriteQueryFilter
   }
 
   QueryBuilder<Favorite, Favorite, QAfterFilterCondition> actionLessThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -786,8 +765,8 @@ extension FavoriteQueryFilter
   }
 
   QueryBuilder<Favorite, Favorite, QAfterFilterCondition> actionBetween(
-    String? lower,
-    String? upper, {
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -1858,7 +1837,7 @@ extension FavoriteQueryProperty
     });
   }
 
-  QueryBuilder<Favorite, String?, QQueryOperations> actionProperty() {
+  QueryBuilder<Favorite, String, QQueryOperations> actionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'action');
     });
@@ -1912,14 +1891,14 @@ extension FavoriteQueryProperty
 // **************************************************************************
 
 Favorite _$FavoriteFromJson(Map<String, dynamic> json) => Favorite(
-      json['favIndex'] as int?,
-      json['productId'] as int?,
-      json['branchId'] as int?,
+      favIndex: json['favIndex'] as int?,
+      productId: json['productId'] as int?,
+      branchId: json['branchId'] as int?,
+      action: json['action'] as String,
     )
       ..id = json['id'] as int?
       ..lastTouched = json['lastTouched'] as String?
       ..remoteID = json['remoteID'] as String?
-      ..action = json['action'] as String?
       ..localId = json['localId'] as int?
       ..deletedAt = json['deletedAt'] == null
           ? null

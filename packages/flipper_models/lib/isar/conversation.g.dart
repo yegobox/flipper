@@ -196,12 +196,7 @@ int _conversationEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  {
-    final value = object.action;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
+  bytesCount += 3 + object.action.length * 3;
   bytesCount += 3 + object.avatar.length * 3;
   bytesCount += 3 + object.body.length * 3;
   {
@@ -319,7 +314,7 @@ Conversation _conversationDeserialize(
     toNumber: reader.readString(offsets[19]),
     userName: reader.readString(offsets[20]),
   );
-  object.action = reader.readStringOrNull(offsets[0]);
+  object.action = reader.readString(offsets[0]);
   object.id = id;
   object.lastTouched = reader.readStringOrNull(offsets[11]);
   object.localId = reader.readLongOrNull(offsets[12]);
@@ -335,7 +330,7 @@ P _conversationDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 1:
       return (reader.readString(offset)) as P;
     case 2:
@@ -797,26 +792,8 @@ extension ConversationQueryWhere
 
 extension ConversationQueryFilter
     on QueryBuilder<Conversation, Conversation, QFilterCondition> {
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      actionIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'action',
-      ));
-    });
-  }
-
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
-      actionIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'action',
-      ));
-    });
-  }
-
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition> actionEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -830,7 +807,7 @@ extension ConversationQueryFilter
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       actionGreaterThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -846,7 +823,7 @@ extension ConversationQueryFilter
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       actionLessThan(
-    String? value, {
+    String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
@@ -861,8 +838,8 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition> actionBetween(
-    String? lower,
-    String? upper, {
+    String lower,
+    String upper, {
     bool includeLower = true,
     bool includeUpper = true,
     bool caseSensitive = true,
@@ -4234,7 +4211,7 @@ extension ConversationQueryProperty
     });
   }
 
-  QueryBuilder<Conversation, String?, QQueryOperations> actionProperty() {
+  QueryBuilder<Conversation, String, QQueryOperations> actionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'action');
     });
@@ -4393,7 +4370,7 @@ Conversation _$ConversationFromJson(Map<String, dynamic> json) => Conversation(
           : DateTime.parse(json['deletedAt'] as String),
     )
       ..remoteID = json['remoteID'] as String?
-      ..action = json['action'] as String?
+      ..action = json['action'] as String
       ..localId = json['localId'] as int?
       ..lastTouched = json['lastTouched'] as String?;
 
