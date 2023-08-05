@@ -94,7 +94,6 @@ class TransactionItem extends IJsonSerializable {
   @Index()
   DateTime? deletedAt;
   TransactionItem({
-    required this.action,
     this.id,
     required this.action,
     required this.name,
