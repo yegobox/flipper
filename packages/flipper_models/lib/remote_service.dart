@@ -112,20 +112,20 @@ class RemoteService implements RemoteInterface {
       }
 
       final collections = [
-        'rra',
         'stocks',
         'variants',
         'products',
         'devices',
         'socials',
         'transactionItems',
-        'transactions'
+        'transactions',
+        'rra',
       ];
 
       for (final collectionName in collections) {
         final records = await pb
             .collection(collectionName)
-            .getList(page: 1, perPage: 100, filter: 'branchId = $branchId')
+            .getList(page: 1, perPage: 500, filter: 'branchId = $branchId')
             .then((event) => event.items);
 
         await Future.forEach(records, (RecordModel item) async {

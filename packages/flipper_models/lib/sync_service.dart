@@ -75,9 +75,12 @@ class SynchronizationService<M extends IJsonSerializable>
         result = await ProxyService.remote
             .create(collection: json, collectionName: endpoint);
       }
-      Map<String, dynamic> updatedJson = Map.from(result!.toJson());
-      updatedJson['action'] = AppActions.updated;
-      return updatedJson;
+      if (result != null) {
+        Map<String, dynamic> updatedJson = Map.from(result.toJson());
+        updatedJson['action'] = AppActions.updated;
+        return updatedJson;
+      }
+      return null;
     }
     return null;
   }
