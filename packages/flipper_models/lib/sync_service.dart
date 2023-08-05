@@ -25,7 +25,7 @@ class SynchronizationService<M extends IJsonSerializable>
     await dirtyData();
   }
 
-  Future<RecordModel?> _push(M model) async {
+  Future<Map<String, dynamic>?> _push(M model) async {
     Type modelType = model.runtimeType;
     // Use the model type to get the corresponding endpoint from the map
     String? endpoint = serverDefinitions[modelType];
@@ -75,7 +75,9 @@ class SynchronizationService<M extends IJsonSerializable>
         result = await ProxyService.remote
             .create(collection: json, collectionName: endpoint);
       }
-      return result;
+      Map<String, dynamic> updatedJson = Map.from(result!.toJson());
+      updatedJson['action'] = AppActions.updated;
+      return updatedJson;
     }
     return null;
   }
@@ -91,10 +93,10 @@ class SynchronizationService<M extends IJsonSerializable>
     transaction.updatedAt = DateTime.now().toIso8601String();
     transaction.createdAt = DateTime.now().toIso8601String();
 
-    RecordModel? variantRecord = await _push(transaction as M);
+    Map<String, dynamic>? variantRecord = await _push(transaction as M);
     if (variantRecord != null) {
-      Transaction o = Transaction.fromRecord(variantRecord);
-      o.remoteID = variantRecord.id;
+      Transaction o = Transaction.fromJson(variantRecord);
+      o.remoteID = variantRecord['id'];
 
       // /// keep the local ID unchanged to avoid complication
       o.id = transaction.id;
@@ -113,10 +115,10 @@ class SynchronizationService<M extends IJsonSerializable>
     for (TransactionItem item in data.transactionItems) {
       int transactionItemId = item.id!;
 
-      RecordModel? stockRecord = await _push(item as M);
+      Map<String, dynamic>? stockRecord = await _push(item as M);
       if (stockRecord != null) {
-        TransactionItem iItem = TransactionItem.fromRecord(stockRecord);
-        iItem.remoteID = stockRecord.id;
+        TransactionItem iItem = TransactionItem.fromJson(stockRecord);
+        iItem.remoteID = stockRecord['id'];
 
         /// keep the local ID unchanged to avoid complication
         iItem.id = transactionItemId;
@@ -128,10 +130,10 @@ class SynchronizationService<M extends IJsonSerializable>
     for (Stock stock in data.stocks) {
       int stockId = stock.id!;
 
-      RecordModel? stockRecord = await _push(stock as M);
+      Map<String, dynamic>? stockRecord = await _push(stock as M);
       if (stockRecord != null) {
-        Stock s = Stock.fromRecord(stockRecord);
-        s.remoteID = stockRecord.id;
+        Stock s = Stock.fromJson(stockRecord);
+        s.remoteID = stockRecord['id'];
 
         /// keep the local ID unchanged to avoid complication
         s.id = stockId;
@@ -143,10 +145,10 @@ class SynchronizationService<M extends IJsonSerializable>
     for (Variant variant in data.variants) {
       int variantId = variant.id!;
 
-      RecordModel? variantRecord = await _push(variant as M);
+      Map<String, dynamic>? variantRecord = await _push(variant as M);
       if (variantRecord != null) {
-        Variant va = Variant.fromRecord(variantRecord);
-        va.remoteID = variantRecord.id;
+        Variant va = Variant.fromJson(variantRecord);
+        va.remoteID = variantRecord['id'];
 
         // /// keep the local ID unchanged to avoid complication
         va.id = variantId;
@@ -156,11 +158,11 @@ class SynchronizationService<M extends IJsonSerializable>
     }
 
     for (Product product in data.products) {
-      RecordModel? record = await _push(product as M);
+      Map<String, dynamic>? record = await _push(product as M);
       int oldId = product.id!;
       if (record != null) {
-        Product product = Product.fromRecord(record);
-        product.remoteID = record.id;
+        Product product = Product.fromJson(record);
+        product.remoteID = record['id'];
 
         /// keep the local ID unchanged to avoid complication
         product.id = oldId;
@@ -170,11 +172,11 @@ class SynchronizationService<M extends IJsonSerializable>
     }
 
     for (Favorite favorite in data.favorites) {
-      RecordModel? record = await _push(favorite as M);
+      Map<String, dynamic>? record = await _push(favorite as M);
       int oldId = favorite.id!;
       if (record != null) {
-        Favorite fav = Favorite.fromRecord(record);
-        fav.remoteID = record.id;
+        Favorite fav = Favorite.fromJson(record);
+        fav.remoteID = record['id'];
 
         /// keep the local ID unchanged to avoid complication
         fav.id = oldId;
@@ -185,11 +187,11 @@ class SynchronizationService<M extends IJsonSerializable>
 
     /// pushing devices
     for (Device device in data.devices) {
-      RecordModel? record = await _push(device as M);
+      Map<String, dynamic>? record = await _push(device as M);
       int oldId = device.id!;
       if (record != null) {
-        Device dev = Device.fromRecord(record);
-        dev.remoteID = record.id;
+        Device dev = Device.fromJson(record);
+        dev.remoteID = record['id'];
 
         /// keep the local ID unchanged to avoid complication
         dev.id = oldId;

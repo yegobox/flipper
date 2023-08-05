@@ -53,7 +53,6 @@ class Branch extends IJsonSerializable {
     json.remove('id');
     // this line ony added in both business and branch as they are not part of sync schemd
     json['action'] = AppActions.create;
-
     return _$BranchFromJson(json);
   }
 
