@@ -17,10 +17,11 @@ part 'history.g.dart';
 class History extends IJsonSerializable {
   Id? id;
   late int modelId;
+
+  @JsonKey(includeIfNull: true)
+  DateTime? lastTouched;
   @Index()
-  String? lastTouched;
-  @Index()
-  String? remoteID;
+  String? remoteId;
   String action;
   int? localId;
   late DateTime createdAt;

@@ -52,7 +52,8 @@ class Setting extends IJsonSerializable {
   int? businessId;
   String? createdAt;
   @Index()
-  String? lastTouched;
+  @JsonKey(includeIfNull: true)
+  DateTime? lastTouched;
   @Index()
   DateTime? deletedAt;
   factory Setting.fromRecord(RecordModel record) =>

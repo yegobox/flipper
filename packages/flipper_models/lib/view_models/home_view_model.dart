@@ -261,8 +261,9 @@ class HomeViewModel extends ReactiveViewModel {
       String name, Transaction pendingTransaction, Stock stock) {
     int branchId = ProxyService.box.getBranchId()!;
     return TransactionItem(
-      id: syncIdInt(),
+      id: randomNumber(),
       qty: 1,
+      lastTouched: DateTime.now(),
       action: AppActions.create,
       price: amount / 1,
       variantId: variation.id!,
@@ -465,8 +466,9 @@ class HomeViewModel extends ReactiveViewModel {
     int branchId = ProxyService.box.getBranchId()!;
     // Create a new transaction item
     TransactionItem newItem = TransactionItem(
-      id: syncIdInt(),
+      id: randomNumber(),
       branchId: branchId,
+      lastTouched: DateTime.now(),
       action: AppActions.create,
       qty: isCustom ? 1.0 : quantity,
       price: amountTotal / quantity,

@@ -108,10 +108,11 @@ class Business extends IJsonSerializable {
   String? taxServerUrl;
   bool? isDefault;
   int? businessTypeId;
+
+  @JsonKey(includeIfNull: true)
+  DateTime? lastTouched;
   @Index()
-  String? lastTouched;
-  @Index()
-  String? remoteID;
+  String? remoteId;
   String action;
   int? localId;
   @Index()
@@ -120,15 +121,21 @@ class Business extends IJsonSerializable {
       Business.fromJson(record.toJson());
 
   factory Business.fromJson(Map<String, dynamic> json) {
-    /// assign remoteID to the value of id because this method is used to encode
-    /// data from remote server and id from remote server is considered remoteID on local
+    /// assign remoteId to the value of id because this method is used to encode
+    /// data from remote server and id from remote server is considered remoteId on local
     if (json['id'] is int) {
-      json['remoteID'] = json['id'].toString();
+      json['remoteId'] ??= json['id'].toString();
+      json['lastTouched'] ??= json['lastTouched'].toString().isEmpty
+          ? DateTime.now()
+          : json['lastTouched'];
     } else {
-      json['remoteID'] = json['id'] is int ? json['id'].toString() : json['id'];
+      json['remoteId'] ??= json['id'].toString();
+      json['lastTouched'] ??= json['lastTouched'].toString().isEmpty
+          ? DateTime.now()
+          : json['lastTouched'];
     }
     // this line ony added in both business and branch as they are not part of sync schemd
-     json['action'] = AppActions.create;
+    json['action'] = AppActions.create;
     return _$BusinessFromJson(json);
   }
 

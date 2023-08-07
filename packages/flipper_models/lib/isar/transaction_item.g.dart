@@ -145,7 +145,7 @@ const TransactionItemSchema = CollectionSchema(
     r'lastTouched': PropertySchema(
       id: 25,
       name: r'lastTouched',
-      type: IsarType.string,
+      type: IsarType.dateTime,
     ),
     r'localId': PropertySchema(
       id: 26,
@@ -217,9 +217,9 @@ const TransactionItemSchema = CollectionSchema(
       name: r'remainingStock',
       type: IsarType.double,
     ),
-    r'remoteID': PropertySchema(
+    r'remoteId': PropertySchema(
       id: 40,
-      name: r'remoteID',
+      name: r'remoteId',
       type: IsarType.string,
     ),
     r'splyAmt': PropertySchema(
@@ -315,19 +315,6 @@ const TransactionItemSchema = CollectionSchema(
         )
       ],
     ),
-    r'lastTouched': IndexSchema(
-      id: -1197289422054722944,
-      name: r'lastTouched',
-      unique: false,
-      replace: false,
-      properties: [
-        IndexPropertySchema(
-          name: r'lastTouched',
-          type: IndexType.hash,
-          caseSensitive: true,
-        )
-      ],
-    ),
     r'deletedAt': IndexSchema(
       id: -8969437169173379604,
       name: r'deletedAt',
@@ -341,14 +328,14 @@ const TransactionItemSchema = CollectionSchema(
         )
       ],
     ),
-    r'remoteID': IndexSchema(
-      id: 8280972950722306723,
-      name: r'remoteID',
+    r'remoteId': IndexSchema(
+      id: 6301175856541681032,
+      name: r'remoteId',
       unique: false,
       replace: false,
       properties: [
         IndexPropertySchema(
-          name: r'remoteID',
+          name: r'remoteId',
           type: IndexType.hash,
           caseSensitive: true,
         )
@@ -456,12 +443,6 @@ int _transactionItemEstimateSize(
     }
   }
   {
-    final value = object.lastTouched;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
-  {
     final value = object.modrId;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
@@ -511,7 +492,7 @@ int _transactionItemEstimateSize(
     }
   }
   {
-    final value = object.remoteID;
+    final value = object.remoteId;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
     }
@@ -569,7 +550,7 @@ void _transactionItemSerialize(
   writer.writeString(offsets[22], object.itemSeq);
   writer.writeString(offsets[23], object.itemStdNm);
   writer.writeString(offsets[24], object.itemTyCd);
-  writer.writeString(offsets[25], object.lastTouched);
+  writer.writeDateTime(offsets[25], object.lastTouched);
   writer.writeLong(offsets[26], object.localId);
   writer.writeString(offsets[27], object.modrId);
   writer.writeString(offsets[28], object.modrNm);
@@ -584,7 +565,7 @@ void _transactionItemSerialize(
   writer.writeString(offsets[37], object.regrId);
   writer.writeString(offsets[38], object.regrNm);
   writer.writeDouble(offsets[39], object.remainingStock);
-  writer.writeString(offsets[40], object.remoteID);
+  writer.writeString(offsets[40], object.remoteId);
   writer.writeDouble(offsets[41], object.splyAmt);
   writer.writeDouble(offsets[42], object.taxAmt);
   writer.writeString(offsets[43], object.taxTyCd);
@@ -631,7 +612,7 @@ TransactionItem _transactionItemDeserialize(
     itemSeq: reader.readStringOrNull(offsets[22]),
     itemStdNm: reader.readStringOrNull(offsets[23]),
     itemTyCd: reader.readStringOrNull(offsets[24]),
-    lastTouched: reader.readStringOrNull(offsets[25]),
+    lastTouched: reader.readDateTimeOrNull(offsets[25]),
     modrId: reader.readStringOrNull(offsets[27]),
     modrNm: reader.readStringOrNull(offsets[28]),
     name: reader.readString(offsets[29]),
@@ -658,7 +639,7 @@ TransactionItem _transactionItemDeserialize(
     variantId: reader.readLong(offsets[51]),
   );
   object.localId = reader.readLongOrNull(offsets[26]);
-  object.remoteID = reader.readStringOrNull(offsets[40]);
+  object.remoteId = reader.readStringOrNull(offsets[40]);
   return object;
 }
 
@@ -720,7 +701,7 @@ P _transactionItemDeserializeProp<P>(
     case 24:
       return (reader.readStringOrNull(offset)) as P;
     case 25:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 26:
       return (reader.readLongOrNull(offset)) as P;
     case 27:
@@ -1180,73 +1161,6 @@ extension TransactionItemQueryWhere
   }
 
   QueryBuilder<TransactionItem, TransactionItem, QAfterWhereClause>
-      lastTouchedIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'lastTouched',
-        value: [null],
-      ));
-    });
-  }
-
-  QueryBuilder<TransactionItem, TransactionItem, QAfterWhereClause>
-      lastTouchedIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'lastTouched',
-        lower: [null],
-        includeLower: false,
-        upper: [],
-      ));
-    });
-  }
-
-  QueryBuilder<TransactionItem, TransactionItem, QAfterWhereClause>
-      lastTouchedEqualTo(String? lastTouched) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'lastTouched',
-        value: [lastTouched],
-      ));
-    });
-  }
-
-  QueryBuilder<TransactionItem, TransactionItem, QAfterWhereClause>
-      lastTouchedNotEqualTo(String? lastTouched) {
-    return QueryBuilder.apply(this, (query) {
-      if (query.whereSort == Sort.asc) {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'lastTouched',
-              lower: [],
-              upper: [lastTouched],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'lastTouched',
-              lower: [lastTouched],
-              includeLower: false,
-              upper: [],
-            ));
-      } else {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'lastTouched',
-              lower: [lastTouched],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'lastTouched',
-              lower: [],
-              upper: [lastTouched],
-              includeUpper: false,
-            ));
-      }
-    });
-  }
-
-  QueryBuilder<TransactionItem, TransactionItem, QAfterWhereClause>
       deletedAtIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
@@ -1362,20 +1276,20 @@ extension TransactionItemQueryWhere
   }
 
   QueryBuilder<TransactionItem, TransactionItem, QAfterWhereClause>
-      remoteIDIsNull() {
+      remoteIdIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'remoteID',
+        indexName: r'remoteId',
         value: [null],
       ));
     });
   }
 
   QueryBuilder<TransactionItem, TransactionItem, QAfterWhereClause>
-      remoteIDIsNotNull() {
+      remoteIdIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'remoteID',
+        indexName: r'remoteId',
         lower: [null],
         includeLower: false,
         upper: [],
@@ -1384,44 +1298,44 @@ extension TransactionItemQueryWhere
   }
 
   QueryBuilder<TransactionItem, TransactionItem, QAfterWhereClause>
-      remoteIDEqualTo(String? remoteID) {
+      remoteIdEqualTo(String? remoteId) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'remoteID',
-        value: [remoteID],
+        indexName: r'remoteId',
+        value: [remoteId],
       ));
     });
   }
 
   QueryBuilder<TransactionItem, TransactionItem, QAfterWhereClause>
-      remoteIDNotEqualTo(String? remoteID) {
+      remoteIdNotEqualTo(String? remoteId) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'remoteID',
+              indexName: r'remoteId',
               lower: [],
-              upper: [remoteID],
+              upper: [remoteId],
               includeUpper: false,
             ))
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'remoteID',
-              lower: [remoteID],
+              indexName: r'remoteId',
+              lower: [remoteId],
               includeLower: false,
               upper: [],
             ));
       } else {
         return query
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'remoteID',
-              lower: [remoteID],
+              indexName: r'remoteId',
+              lower: [remoteId],
               includeLower: false,
               upper: [],
             ))
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'remoteID',
+              indexName: r'remoteId',
               lower: [],
-              upper: [remoteID],
+              upper: [remoteId],
               includeUpper: false,
             ));
       }
@@ -4484,58 +4398,49 @@ extension TransactionItemQueryFilter
   }
 
   QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
-      lastTouchedEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
+      lastTouchedEqualTo(DateTime? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'lastTouched',
         value: value,
-        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
       lastTouchedGreaterThan(
-    String? value, {
+    DateTime? value, {
     bool include = false,
-    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
         property: r'lastTouched',
         value: value,
-        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
       lastTouchedLessThan(
-    String? value, {
+    DateTime? value, {
     bool include = false,
-    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
         property: r'lastTouched',
         value: value,
-        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
       lastTouchedBetween(
-    String? lower,
-    String? upper, {
+    DateTime? lower,
+    DateTime? upper, {
     bool includeLower = true,
     bool includeUpper = true,
-    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -4544,77 +4449,6 @@ extension TransactionItemQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
-      lastTouchedStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'lastTouched',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
-      lastTouchedEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'lastTouched',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
-      lastTouchedContains(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'lastTouched',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
-      lastTouchedMatches(String pattern, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'lastTouched',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
-      lastTouchedIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'lastTouched',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
-      lastTouchedIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'lastTouched',
-        value: '',
       ));
     });
   }
@@ -6344,31 +6178,31 @@ extension TransactionItemQueryFilter
   }
 
   QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
-      remoteIDIsNull() {
+      remoteIdIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'remoteID',
+        property: r'remoteId',
       ));
     });
   }
 
   QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
-      remoteIDIsNotNull() {
+      remoteIdIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'remoteID',
+        property: r'remoteId',
       ));
     });
   }
 
   QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
-      remoteIDEqualTo(
+      remoteIdEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'remoteID',
+        property: r'remoteId',
         value: value,
         caseSensitive: caseSensitive,
       ));
@@ -6376,7 +6210,7 @@ extension TransactionItemQueryFilter
   }
 
   QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
-      remoteIDGreaterThan(
+      remoteIdGreaterThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
@@ -6384,7 +6218,7 @@ extension TransactionItemQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
-        property: r'remoteID',
+        property: r'remoteId',
         value: value,
         caseSensitive: caseSensitive,
       ));
@@ -6392,7 +6226,7 @@ extension TransactionItemQueryFilter
   }
 
   QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
-      remoteIDLessThan(
+      remoteIdLessThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
@@ -6400,7 +6234,7 @@ extension TransactionItemQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
-        property: r'remoteID',
+        property: r'remoteId',
         value: value,
         caseSensitive: caseSensitive,
       ));
@@ -6408,7 +6242,7 @@ extension TransactionItemQueryFilter
   }
 
   QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
-      remoteIDBetween(
+      remoteIdBetween(
     String? lower,
     String? upper, {
     bool includeLower = true,
@@ -6417,7 +6251,7 @@ extension TransactionItemQueryFilter
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
-        property: r'remoteID',
+        property: r'remoteId',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -6428,13 +6262,13 @@ extension TransactionItemQueryFilter
   }
 
   QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
-      remoteIDStartsWith(
+      remoteIdStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'remoteID',
+        property: r'remoteId',
         value: value,
         caseSensitive: caseSensitive,
       ));
@@ -6442,13 +6276,13 @@ extension TransactionItemQueryFilter
   }
 
   QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
-      remoteIDEndsWith(
+      remoteIdEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'remoteID',
+        property: r'remoteId',
         value: value,
         caseSensitive: caseSensitive,
       ));
@@ -6456,10 +6290,10 @@ extension TransactionItemQueryFilter
   }
 
   QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
-      remoteIDContains(String value, {bool caseSensitive = true}) {
+      remoteIdContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
-        property: r'remoteID',
+        property: r'remoteId',
         value: value,
         caseSensitive: caseSensitive,
       ));
@@ -6467,10 +6301,10 @@ extension TransactionItemQueryFilter
   }
 
   QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
-      remoteIDMatches(String pattern, {bool caseSensitive = true}) {
+      remoteIdMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
-        property: r'remoteID',
+        property: r'remoteId',
         wildcard: pattern,
         caseSensitive: caseSensitive,
       ));
@@ -6478,20 +6312,20 @@ extension TransactionItemQueryFilter
   }
 
   QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
-      remoteIDIsEmpty() {
+      remoteIdIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'remoteID',
+        property: r'remoteId',
         value: '',
       ));
     });
   }
 
   QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
-      remoteIDIsNotEmpty() {
+      remoteIdIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'remoteID',
+        property: r'remoteId',
         value: '',
       ));
     });
@@ -8159,16 +7993,16 @@ extension TransactionItemQuerySortBy
   }
 
   QueryBuilder<TransactionItem, TransactionItem, QAfterSortBy>
-      sortByRemoteID() {
+      sortByRemoteId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'remoteID', Sort.asc);
+      return query.addSortBy(r'remoteId', Sort.asc);
     });
   }
 
   QueryBuilder<TransactionItem, TransactionItem, QAfterSortBy>
-      sortByRemoteIDDesc() {
+      sortByRemoteIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'remoteID', Sort.desc);
+      return query.addSortBy(r'remoteId', Sort.desc);
     });
   }
 
@@ -8866,16 +8700,16 @@ extension TransactionItemQuerySortThenBy
   }
 
   QueryBuilder<TransactionItem, TransactionItem, QAfterSortBy>
-      thenByRemoteID() {
+      thenByRemoteId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'remoteID', Sort.asc);
+      return query.addSortBy(r'remoteId', Sort.asc);
     });
   }
 
   QueryBuilder<TransactionItem, TransactionItem, QAfterSortBy>
-      thenByRemoteIDDesc() {
+      thenByRemoteIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'remoteID', Sort.desc);
+      return query.addSortBy(r'remoteId', Sort.desc);
     });
   }
 
@@ -9201,9 +9035,9 @@ extension TransactionItemQueryWhereDistinct
   }
 
   QueryBuilder<TransactionItem, TransactionItem, QDistinct>
-      distinctByLastTouched({bool caseSensitive = true}) {
+      distinctByLastTouched() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'lastTouched', caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'lastTouched');
     });
   }
 
@@ -9302,10 +9136,10 @@ extension TransactionItemQueryWhereDistinct
     });
   }
 
-  QueryBuilder<TransactionItem, TransactionItem, QDistinct> distinctByRemoteID(
+  QueryBuilder<TransactionItem, TransactionItem, QDistinct> distinctByRemoteId(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'remoteID', caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'remoteId', caseSensitive: caseSensitive);
     });
   }
 
@@ -9546,7 +9380,7 @@ extension TransactionItemQueryProperty
     });
   }
 
-  QueryBuilder<TransactionItem, String?, QQueryOperations>
+  QueryBuilder<TransactionItem, DateTime?, QQueryOperations>
       lastTouchedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'lastTouched');
@@ -9638,9 +9472,9 @@ extension TransactionItemQueryProperty
     });
   }
 
-  QueryBuilder<TransactionItem, String?, QQueryOperations> remoteIDProperty() {
+  QueryBuilder<TransactionItem, String?, QQueryOperations> remoteIdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'remoteID');
+      return query.addPropertyName(r'remoteId');
     });
   }
 
@@ -9717,8 +9551,8 @@ extension TransactionItemQueryProperty
 
 TransactionItem _$TransactionItemFromJson(Map<String, dynamic> json) =>
     TransactionItem(
-      action: json['action'] as String,
       id: json['id'] as int?,
+      action: json['action'] as String,
       name: json['name'] as String,
       transactionId: json['transactionId'] as int,
       variantId: json['variantId'] as int,
@@ -9766,12 +9600,14 @@ TransactionItem _$TransactionItemFromJson(Map<String, dynamic> json) =>
       regrNm: json['regrNm'] as String?,
       modrId: json['modrId'] as String?,
       modrNm: json['modrNm'] as String?,
-      lastTouched: json['lastTouched'] as String?,
+      lastTouched: json['lastTouched'] == null
+          ? null
+          : DateTime.parse(json['lastTouched'] as String),
       deletedAt: json['deletedAt'] == null
           ? null
           : DateTime.parse(json['deletedAt'] as String),
     )
-      ..remoteID = json['remoteID'] as String?
+      ..remoteId = json['remoteId'] as String?
       ..localId = json['localId'] as int?;
 
 Map<String, dynamic> _$TransactionItemToJson(TransactionItem instance) =>
@@ -9823,9 +9659,9 @@ Map<String, dynamic> _$TransactionItemToJson(TransactionItem instance) =>
       'regrNm': instance.regrNm,
       'modrId': instance.modrId,
       'modrNm': instance.modrNm,
-      'lastTouched': instance.lastTouched,
+      'lastTouched': instance.lastTouched?.toIso8601String(),
       'deletedAt': instance.deletedAt?.toIso8601String(),
-      'remoteID': instance.remoteID,
+      'remoteId': instance.remoteId,
       'action': instance.action,
       'localId': instance.localId,
       'branchId': instance.branchId,

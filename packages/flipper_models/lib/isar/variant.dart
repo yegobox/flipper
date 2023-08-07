@@ -77,14 +77,15 @@ class Variant extends IJsonSerializable {
 
   /// property for stock but presented here for easy
   double? rsdQty;
-  @Index()
-  String? lastTouched;
+
+  @JsonKey(includeIfNull: true)
+  DateTime? lastTouched;
   @Index()
   late double supplyPrice;
   @Index()
   late double retailPrice;
   @Index()
-  String? remoteID;
+  String? remoteId;
   String action;
 
   // only for accor when fetching from remove
@@ -135,8 +136,8 @@ class Variant extends IJsonSerializable {
     this.modrId,
     this.modrNm,
     this.rsdQty,
-    this.lastTouched,
-    this.remoteID,
+    required this.lastTouched,
+    this.remoteId,
     this.deletedAt,
   });
 
@@ -148,8 +149,13 @@ class Variant extends IJsonSerializable {
             (json['deletedAt'] is String && json['deletedAt'].isEmpty)
         ? null
         : json['deletedAt'];
-    json['remoteID'] = json['id'] is int ? json['id'].toString() : json['id'];
-    json.remove('id');
+    json['remoteId'] ??= json['id'].toString();
+    json['lastTouched'] =
+        json['lastTouched'].toString().isEmpty || json['lastTouched'] == null
+            ? DateTime.now().toIso8601String()
+            : DateTime.parse(json['lastTouched'] ?? DateTime.now())
+                .toIso8601String();
+    json['id'] = json['localId'];
     return _$VariantFromJson(json);
   }
 

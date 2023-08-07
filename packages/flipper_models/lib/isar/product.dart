@@ -1,6 +1,5 @@
 library flipper_models;
 
-import 'package:flipper_models/isar/variant.dart';
 import 'package:flipper_models/sync_service.dart';
 import 'package:isar/isar.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -36,10 +35,11 @@ class Product extends IJsonSerializable {
   /// as multiple devices can touch the same product, we need to track the device
   /// the onlne generated ID will be the ID other device need to use in updating so
   /// the ID of the product in all devices should be similar and other IDs.
+
+  @JsonKey(includeIfNull: true)
+  DateTime? lastTouched;
   @Index()
-  String? lastTouched;
-  @Index()
-  String? remoteID;
+  String? remoteId;
   String action;
   int? localId;
   @Index()
@@ -64,8 +64,8 @@ class Product extends IJsonSerializable {
     this.nfcEnabled,
     this.bindedToTenantId,
     this.isFavorite,
-    this.lastTouched,
-    this.remoteID,
+    required this.lastTouched,
+    this.remoteId,
     this.deletedAt,
   });
 
@@ -76,8 +76,13 @@ class Product extends IJsonSerializable {
             (json['deletedAt'] is String && json['deletedAt'].isEmpty)
         ? null
         : json['deletedAt'];
-    json['remoteID'] = json['id'] is int ? json['id'].toString() : json['id'];
-    json.remove('id');
+    json['remoteId'] ??= json['id'].toString();
+    json['lastTouched'] =
+        json['lastTouched'].toString().isEmpty || json['lastTouched'] == null
+            ? DateTime.now().toIso8601String()
+            : DateTime.parse(json['lastTouched'] ?? DateTime.now())
+                .toIso8601String();
+    json['id'] = json['localId'];
     return _$ProductFromJson(json);
   }
 

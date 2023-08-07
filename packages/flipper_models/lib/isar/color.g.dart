@@ -45,7 +45,7 @@ const PColorSchema = CollectionSchema(
     r'lastTouched': PropertySchema(
       id: 5,
       name: r'lastTouched',
-      type: IsarType.string,
+      type: IsarType.dateTime,
     ),
     r'localId': PropertySchema(
       id: 6,
@@ -57,9 +57,9 @@ const PColorSchema = CollectionSchema(
       name: r'name',
       type: IsarType.string,
     ),
-    r'remoteID': PropertySchema(
+    r'remoteId': PropertySchema(
       id: 8,
-      name: r'remoteID',
+      name: r'remoteId',
       type: IsarType.string,
     )
   },
@@ -69,27 +69,14 @@ const PColorSchema = CollectionSchema(
   deserializeProp: _pColorDeserializeProp,
   idName: r'id',
   indexes: {
-    r'lastTouched': IndexSchema(
-      id: -1197289422054722944,
-      name: r'lastTouched',
+    r'remoteId': IndexSchema(
+      id: 6301175856541681032,
+      name: r'remoteId',
       unique: false,
       replace: false,
       properties: [
         IndexPropertySchema(
-          name: r'lastTouched',
-          type: IndexType.hash,
-          caseSensitive: true,
-        )
-      ],
-    ),
-    r'remoteID': IndexSchema(
-      id: 8280972950722306723,
-      name: r'remoteID',
-      unique: false,
-      replace: false,
-      properties: [
-        IndexPropertySchema(
-          name: r'remoteID',
+          name: r'remoteId',
           type: IndexType.hash,
           caseSensitive: true,
         )
@@ -137,19 +124,13 @@ int _pColorEstimateSize(
     }
   }
   {
-    final value = object.lastTouched;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
-  {
     final value = object.name;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
     }
   }
   {
-    final value = object.remoteID;
+    final value = object.remoteId;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
     }
@@ -168,10 +149,10 @@ void _pColorSerialize(
   writer.writeLong(offsets[2], object.branchId);
   writer.writeStringList(offsets[3], object.colors);
   writer.writeDateTime(offsets[4], object.deletedAt);
-  writer.writeString(offsets[5], object.lastTouched);
+  writer.writeDateTime(offsets[5], object.lastTouched);
   writer.writeLong(offsets[6], object.localId);
   writer.writeString(offsets[7], object.name);
-  writer.writeString(offsets[8], object.remoteID);
+  writer.writeString(offsets[8], object.remoteId);
 }
 
 PColor _pColorDeserialize(
@@ -187,10 +168,10 @@ PColor _pColorDeserialize(
     colors: reader.readStringList(offsets[3]),
     deletedAt: reader.readDateTimeOrNull(offsets[4]),
     id: id,
-    lastTouched: reader.readStringOrNull(offsets[5]),
+    lastTouched: reader.readDateTimeOrNull(offsets[5]),
     localId: reader.readLongOrNull(offsets[6]),
     name: reader.readStringOrNull(offsets[7]),
-    remoteID: reader.readStringOrNull(offsets[8]),
+    remoteId: reader.readStringOrNull(offsets[8]),
   );
   return object;
 }
@@ -213,7 +194,7 @@ P _pColorDeserializeProp<P>(
     case 4:
       return (reader.readDateTimeOrNull(offset)) as P;
     case 5:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 6:
       return (reader.readLongOrNull(offset)) as P;
     case 7:
@@ -319,19 +300,19 @@ extension PColorQueryWhere on QueryBuilder<PColor, PColor, QWhereClause> {
     });
   }
 
-  QueryBuilder<PColor, PColor, QAfterWhereClause> lastTouchedIsNull() {
+  QueryBuilder<PColor, PColor, QAfterWhereClause> remoteIdIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'lastTouched',
+        indexName: r'remoteId',
         value: [null],
       ));
     });
   }
 
-  QueryBuilder<PColor, PColor, QAfterWhereClause> lastTouchedIsNotNull() {
+  QueryBuilder<PColor, PColor, QAfterWhereClause> remoteIdIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'lastTouched',
+        indexName: r'remoteId',
         lower: [null],
         includeLower: false,
         upper: [],
@@ -339,110 +320,45 @@ extension PColorQueryWhere on QueryBuilder<PColor, PColor, QWhereClause> {
     });
   }
 
-  QueryBuilder<PColor, PColor, QAfterWhereClause> lastTouchedEqualTo(
-      String? lastTouched) {
+  QueryBuilder<PColor, PColor, QAfterWhereClause> remoteIdEqualTo(
+      String? remoteId) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'lastTouched',
-        value: [lastTouched],
+        indexName: r'remoteId',
+        value: [remoteId],
       ));
     });
   }
 
-  QueryBuilder<PColor, PColor, QAfterWhereClause> lastTouchedNotEqualTo(
-      String? lastTouched) {
+  QueryBuilder<PColor, PColor, QAfterWhereClause> remoteIdNotEqualTo(
+      String? remoteId) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'lastTouched',
+              indexName: r'remoteId',
               lower: [],
-              upper: [lastTouched],
+              upper: [remoteId],
               includeUpper: false,
             ))
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'lastTouched',
-              lower: [lastTouched],
+              indexName: r'remoteId',
+              lower: [remoteId],
               includeLower: false,
               upper: [],
             ));
       } else {
         return query
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'lastTouched',
-              lower: [lastTouched],
+              indexName: r'remoteId',
+              lower: [remoteId],
               includeLower: false,
               upper: [],
             ))
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'lastTouched',
+              indexName: r'remoteId',
               lower: [],
-              upper: [lastTouched],
-              includeUpper: false,
-            ));
-      }
-    });
-  }
-
-  QueryBuilder<PColor, PColor, QAfterWhereClause> remoteIDIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'remoteID',
-        value: [null],
-      ));
-    });
-  }
-
-  QueryBuilder<PColor, PColor, QAfterWhereClause> remoteIDIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'remoteID',
-        lower: [null],
-        includeLower: false,
-        upper: [],
-      ));
-    });
-  }
-
-  QueryBuilder<PColor, PColor, QAfterWhereClause> remoteIDEqualTo(
-      String? remoteID) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'remoteID',
-        value: [remoteID],
-      ));
-    });
-  }
-
-  QueryBuilder<PColor, PColor, QAfterWhereClause> remoteIDNotEqualTo(
-      String? remoteID) {
-    return QueryBuilder.apply(this, (query) {
-      if (query.whereSort == Sort.asc) {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'remoteID',
-              lower: [],
-              upper: [remoteID],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'remoteID',
-              lower: [remoteID],
-              includeLower: false,
-              upper: [],
-            ));
-      } else {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'remoteID',
-              lower: [remoteID],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'remoteID',
-              lower: [],
-              upper: [remoteID],
+              upper: [remoteId],
               includeUpper: false,
             ));
       }
@@ -1155,54 +1071,46 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> lastTouchedEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
+      DateTime? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'lastTouched',
         value: value,
-        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> lastTouchedGreaterThan(
-    String? value, {
+    DateTime? value, {
     bool include = false,
-    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
         property: r'lastTouched',
         value: value,
-        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> lastTouchedLessThan(
-    String? value, {
+    DateTime? value, {
     bool include = false,
-    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
         property: r'lastTouched',
         value: value,
-        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<PColor, PColor, QAfterFilterCondition> lastTouchedBetween(
-    String? lower,
-    String? upper, {
+    DateTime? lower,
+    DateTime? upper, {
     bool includeLower = true,
     bool includeUpper = true,
-    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1211,75 +1119,6 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> lastTouchedStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'lastTouched',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> lastTouchedEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'lastTouched',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> lastTouchedContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'lastTouched',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> lastTouchedMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'lastTouched',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> lastTouchedIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'lastTouched',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> lastTouchedIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'lastTouched',
-        value: '',
       ));
     });
   }
@@ -1498,36 +1337,36 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
     });
   }
 
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> remoteIDIsNull() {
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> remoteIdIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'remoteID',
+        property: r'remoteId',
       ));
     });
   }
 
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> remoteIDIsNotNull() {
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> remoteIdIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'remoteID',
+        property: r'remoteId',
       ));
     });
   }
 
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> remoteIDEqualTo(
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> remoteIdEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'remoteID',
+        property: r'remoteId',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> remoteIDGreaterThan(
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> remoteIdGreaterThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
@@ -1535,14 +1374,14 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
-        property: r'remoteID',
+        property: r'remoteId',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> remoteIDLessThan(
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> remoteIdLessThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
@@ -1550,14 +1389,14 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
-        property: r'remoteID',
+        property: r'remoteId',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> remoteIDBetween(
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> remoteIdBetween(
     String? lower,
     String? upper, {
     bool includeLower = true,
@@ -1566,7 +1405,7 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
-        property: r'remoteID',
+        property: r'remoteId',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -1576,69 +1415,69 @@ extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {
     });
   }
 
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> remoteIDStartsWith(
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> remoteIdStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'remoteID',
+        property: r'remoteId',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> remoteIDEndsWith(
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> remoteIdEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'remoteID',
+        property: r'remoteId',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> remoteIDContains(
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> remoteIdContains(
       String value,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
-        property: r'remoteID',
+        property: r'remoteId',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> remoteIDMatches(
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> remoteIdMatches(
       String pattern,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
-        property: r'remoteID',
+        property: r'remoteId',
         wildcard: pattern,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> remoteIDIsEmpty() {
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> remoteIdIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'remoteID',
+        property: r'remoteId',
         value: '',
       ));
     });
   }
 
-  QueryBuilder<PColor, PColor, QAfterFilterCondition> remoteIDIsNotEmpty() {
+  QueryBuilder<PColor, PColor, QAfterFilterCondition> remoteIdIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'remoteID',
+        property: r'remoteId',
         value: '',
       ));
     });
@@ -1734,15 +1573,15 @@ extension PColorQuerySortBy on QueryBuilder<PColor, PColor, QSortBy> {
     });
   }
 
-  QueryBuilder<PColor, PColor, QAfterSortBy> sortByRemoteID() {
+  QueryBuilder<PColor, PColor, QAfterSortBy> sortByRemoteId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'remoteID', Sort.asc);
+      return query.addSortBy(r'remoteId', Sort.asc);
     });
   }
 
-  QueryBuilder<PColor, PColor, QAfterSortBy> sortByRemoteIDDesc() {
+  QueryBuilder<PColor, PColor, QAfterSortBy> sortByRemoteIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'remoteID', Sort.desc);
+      return query.addSortBy(r'remoteId', Sort.desc);
     });
   }
 }
@@ -1844,15 +1683,15 @@ extension PColorQuerySortThenBy on QueryBuilder<PColor, PColor, QSortThenBy> {
     });
   }
 
-  QueryBuilder<PColor, PColor, QAfterSortBy> thenByRemoteID() {
+  QueryBuilder<PColor, PColor, QAfterSortBy> thenByRemoteId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'remoteID', Sort.asc);
+      return query.addSortBy(r'remoteId', Sort.asc);
     });
   }
 
-  QueryBuilder<PColor, PColor, QAfterSortBy> thenByRemoteIDDesc() {
+  QueryBuilder<PColor, PColor, QAfterSortBy> thenByRemoteIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'remoteID', Sort.desc);
+      return query.addSortBy(r'remoteId', Sort.desc);
     });
   }
 }
@@ -1889,10 +1728,9 @@ extension PColorQueryWhereDistinct on QueryBuilder<PColor, PColor, QDistinct> {
     });
   }
 
-  QueryBuilder<PColor, PColor, QDistinct> distinctByLastTouched(
-      {bool caseSensitive = true}) {
+  QueryBuilder<PColor, PColor, QDistinct> distinctByLastTouched() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'lastTouched', caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'lastTouched');
     });
   }
 
@@ -1909,10 +1747,10 @@ extension PColorQueryWhereDistinct on QueryBuilder<PColor, PColor, QDistinct> {
     });
   }
 
-  QueryBuilder<PColor, PColor, QDistinct> distinctByRemoteID(
+  QueryBuilder<PColor, PColor, QDistinct> distinctByRemoteId(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'remoteID', caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'remoteId', caseSensitive: caseSensitive);
     });
   }
 }
@@ -1954,7 +1792,7 @@ extension PColorQueryProperty on QueryBuilder<PColor, PColor, QQueryProperty> {
     });
   }
 
-  QueryBuilder<PColor, String?, QQueryOperations> lastTouchedProperty() {
+  QueryBuilder<PColor, DateTime?, QQueryOperations> lastTouchedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'lastTouched');
     });
@@ -1972,9 +1810,9 @@ extension PColorQueryProperty on QueryBuilder<PColor, PColor, QQueryProperty> {
     });
   }
 
-  QueryBuilder<PColor, String?, QQueryOperations> remoteIDProperty() {
+  QueryBuilder<PColor, String?, QQueryOperations> remoteIdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'remoteID');
+      return query.addPropertyName(r'remoteId');
     });
   }
 }
@@ -1990,8 +1828,10 @@ PColor _$PColorFromJson(Map<String, dynamic> json) => PColor(
           (json['colors'] as List<dynamic>?)?.map((e) => e as String).toList(),
       branchId: json['branchId'] as int?,
       active: json['active'] as bool,
-      lastTouched: json['lastTouched'] as String?,
-      remoteID: json['remoteID'] as String?,
+      lastTouched: json['lastTouched'] == null
+          ? null
+          : DateTime.parse(json['lastTouched'] as String),
+      remoteId: json['remoteId'] as String?,
       action: json['action'] as String,
       localId: json['localId'] as int?,
       deletedAt: json['deletedAt'] == null
@@ -2005,8 +1845,8 @@ Map<String, dynamic> _$PColorToJson(PColor instance) => <String, dynamic>{
       'colors': instance.colors,
       'branchId': instance.branchId,
       'active': instance.active,
-      'lastTouched': instance.lastTouched,
-      'remoteID': instance.remoteID,
+      'lastTouched': instance.lastTouched?.toIso8601String(),
+      'remoteId': instance.remoteId,
       'action': instance.action,
       'localId': instance.localId,
       'deletedAt': instance.deletedAt?.toIso8601String(),

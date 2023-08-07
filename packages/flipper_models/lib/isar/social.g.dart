@@ -22,9 +22,9 @@ const SocialSchema = CollectionSchema(
       name: r'action',
       type: IsarType.string,
     ),
-    r'businessId': PropertySchema(
+    r'branchId': PropertySchema(
       id: 1,
-      name: r'businessId',
+      name: r'branchId',
       type: IsarType.long,
     ),
     r'deletedAt': PropertySchema(
@@ -40,7 +40,7 @@ const SocialSchema = CollectionSchema(
     r'lastTouched': PropertySchema(
       id: 4,
       name: r'lastTouched',
-      type: IsarType.string,
+      type: IsarType.dateTime,
     ),
     r'localId': PropertySchema(
       id: 5,
@@ -52,9 +52,9 @@ const SocialSchema = CollectionSchema(
       name: r'message',
       type: IsarType.string,
     ),
-    r'remoteID': PropertySchema(
+    r'remoteId': PropertySchema(
       id: 7,
-      name: r'remoteID',
+      name: r'remoteId',
       type: IsarType.string,
     ),
     r'socialType': PropertySchema(
@@ -74,27 +74,14 @@ const SocialSchema = CollectionSchema(
   deserializeProp: _socialDeserializeProp,
   idName: r'id',
   indexes: {
-    r'lastTouched': IndexSchema(
-      id: -1197289422054722944,
-      name: r'lastTouched',
+    r'remoteId': IndexSchema(
+      id: 6301175856541681032,
+      name: r'remoteId',
       unique: false,
       replace: false,
       properties: [
         IndexPropertySchema(
-          name: r'lastTouched',
-          type: IndexType.hash,
-          caseSensitive: true,
-        )
-      ],
-    ),
-    r'remoteID': IndexSchema(
-      id: 8280972950722306723,
-      name: r'remoteID',
-      unique: false,
-      replace: false,
-      properties: [
-        IndexPropertySchema(
-          name: r'remoteID',
+          name: r'remoteId',
           type: IndexType.hash,
           caseSensitive: true,
         )
@@ -130,19 +117,13 @@ int _socialEstimateSize(
   var bytesCount = offsets.last;
   bytesCount += 3 + object.action.length * 3;
   {
-    final value = object.lastTouched;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
-  {
     final value = object.message;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
     }
   }
   {
-    final value = object.remoteID;
+    final value = object.remoteId;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
     }
@@ -159,13 +140,13 @@ void _socialSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeString(offsets[0], object.action);
-  writer.writeLong(offsets[1], object.businessId);
+  writer.writeLong(offsets[1], object.branchId);
   writer.writeDateTime(offsets[2], object.deletedAt);
   writer.writeBool(offsets[3], object.isAccountSet);
-  writer.writeString(offsets[4], object.lastTouched);
+  writer.writeDateTime(offsets[4], object.lastTouched);
   writer.writeLong(offsets[5], object.localId);
   writer.writeString(offsets[6], object.message);
-  writer.writeString(offsets[7], object.remoteID);
+  writer.writeString(offsets[7], object.remoteId);
   writer.writeString(offsets[8], object.socialType);
   writer.writeString(offsets[9], object.socialUrl);
 }
@@ -177,13 +158,13 @@ Social _socialDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Social(
-    businessId: reader.readLong(offsets[1]),
+    branchId: reader.readLong(offsets[1]),
     deletedAt: reader.readDateTimeOrNull(offsets[2]),
     isAccountSet: reader.readBool(offsets[3]),
-    lastTouched: reader.readStringOrNull(offsets[4]),
+    lastTouched: reader.readDateTimeOrNull(offsets[4]),
     localId: reader.readLongOrNull(offsets[5]),
     message: reader.readStringOrNull(offsets[6]),
-    remoteID: reader.readStringOrNull(offsets[7]),
+    remoteId: reader.readStringOrNull(offsets[7]),
     socialType: reader.readString(offsets[8]),
     socialUrl: reader.readString(offsets[9]),
   );
@@ -208,7 +189,7 @@ P _socialDeserializeProp<P>(
     case 3:
       return (reader.readBool(offset)) as P;
     case 4:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 5:
       return (reader.readLongOrNull(offset)) as P;
     case 6:
@@ -318,19 +299,19 @@ extension SocialQueryWhere on QueryBuilder<Social, Social, QWhereClause> {
     });
   }
 
-  QueryBuilder<Social, Social, QAfterWhereClause> lastTouchedIsNull() {
+  QueryBuilder<Social, Social, QAfterWhereClause> remoteIdIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'lastTouched',
+        indexName: r'remoteId',
         value: [null],
       ));
     });
   }
 
-  QueryBuilder<Social, Social, QAfterWhereClause> lastTouchedIsNotNull() {
+  QueryBuilder<Social, Social, QAfterWhereClause> remoteIdIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'lastTouched',
+        indexName: r'remoteId',
         lower: [null],
         includeLower: false,
         upper: [],
@@ -338,110 +319,45 @@ extension SocialQueryWhere on QueryBuilder<Social, Social, QWhereClause> {
     });
   }
 
-  QueryBuilder<Social, Social, QAfterWhereClause> lastTouchedEqualTo(
-      String? lastTouched) {
+  QueryBuilder<Social, Social, QAfterWhereClause> remoteIdEqualTo(
+      String? remoteId) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'lastTouched',
-        value: [lastTouched],
+        indexName: r'remoteId',
+        value: [remoteId],
       ));
     });
   }
 
-  QueryBuilder<Social, Social, QAfterWhereClause> lastTouchedNotEqualTo(
-      String? lastTouched) {
+  QueryBuilder<Social, Social, QAfterWhereClause> remoteIdNotEqualTo(
+      String? remoteId) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'lastTouched',
+              indexName: r'remoteId',
               lower: [],
-              upper: [lastTouched],
+              upper: [remoteId],
               includeUpper: false,
             ))
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'lastTouched',
-              lower: [lastTouched],
+              indexName: r'remoteId',
+              lower: [remoteId],
               includeLower: false,
               upper: [],
             ));
       } else {
         return query
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'lastTouched',
-              lower: [lastTouched],
+              indexName: r'remoteId',
+              lower: [remoteId],
               includeLower: false,
               upper: [],
             ))
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'lastTouched',
+              indexName: r'remoteId',
               lower: [],
-              upper: [lastTouched],
-              includeUpper: false,
-            ));
-      }
-    });
-  }
-
-  QueryBuilder<Social, Social, QAfterWhereClause> remoteIDIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'remoteID',
-        value: [null],
-      ));
-    });
-  }
-
-  QueryBuilder<Social, Social, QAfterWhereClause> remoteIDIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'remoteID',
-        lower: [null],
-        includeLower: false,
-        upper: [],
-      ));
-    });
-  }
-
-  QueryBuilder<Social, Social, QAfterWhereClause> remoteIDEqualTo(
-      String? remoteID) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'remoteID',
-        value: [remoteID],
-      ));
-    });
-  }
-
-  QueryBuilder<Social, Social, QAfterWhereClause> remoteIDNotEqualTo(
-      String? remoteID) {
-    return QueryBuilder.apply(this, (query) {
-      if (query.whereSort == Sort.asc) {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'remoteID',
-              lower: [],
-              upper: [remoteID],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'remoteID',
-              lower: [remoteID],
-              includeLower: false,
-              upper: [],
-            ));
-      } else {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'remoteID',
-              lower: [remoteID],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'remoteID',
-              lower: [],
-              upper: [remoteID],
+              upper: [remoteId],
               includeUpper: false,
             ));
       }
@@ -690,43 +606,43 @@ extension SocialQueryFilter on QueryBuilder<Social, Social, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Social, Social, QAfterFilterCondition> businessIdEqualTo(
+  QueryBuilder<Social, Social, QAfterFilterCondition> branchIdEqualTo(
       int value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'businessId',
+        property: r'branchId',
         value: value,
       ));
     });
   }
 
-  QueryBuilder<Social, Social, QAfterFilterCondition> businessIdGreaterThan(
+  QueryBuilder<Social, Social, QAfterFilterCondition> branchIdGreaterThan(
     int value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
-        property: r'businessId',
+        property: r'branchId',
         value: value,
       ));
     });
   }
 
-  QueryBuilder<Social, Social, QAfterFilterCondition> businessIdLessThan(
+  QueryBuilder<Social, Social, QAfterFilterCondition> branchIdLessThan(
     int value, {
     bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
-        property: r'businessId',
+        property: r'branchId',
         value: value,
       ));
     });
   }
 
-  QueryBuilder<Social, Social, QAfterFilterCondition> businessIdBetween(
+  QueryBuilder<Social, Social, QAfterFilterCondition> branchIdBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -734,7 +650,7 @@ extension SocialQueryFilter on QueryBuilder<Social, Social, QFilterCondition> {
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
-        property: r'businessId',
+        property: r'branchId',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -907,54 +823,46 @@ extension SocialQueryFilter on QueryBuilder<Social, Social, QFilterCondition> {
   }
 
   QueryBuilder<Social, Social, QAfterFilterCondition> lastTouchedEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
+      DateTime? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'lastTouched',
         value: value,
-        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<Social, Social, QAfterFilterCondition> lastTouchedGreaterThan(
-    String? value, {
+    DateTime? value, {
     bool include = false,
-    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
         property: r'lastTouched',
         value: value,
-        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<Social, Social, QAfterFilterCondition> lastTouchedLessThan(
-    String? value, {
+    DateTime? value, {
     bool include = false,
-    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
         property: r'lastTouched',
         value: value,
-        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<Social, Social, QAfterFilterCondition> lastTouchedBetween(
-    String? lower,
-    String? upper, {
+    DateTime? lower,
+    DateTime? upper, {
     bool includeLower = true,
     bool includeUpper = true,
-    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -963,75 +871,6 @@ extension SocialQueryFilter on QueryBuilder<Social, Social, QFilterCondition> {
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Social, Social, QAfterFilterCondition> lastTouchedStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'lastTouched',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Social, Social, QAfterFilterCondition> lastTouchedEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'lastTouched',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Social, Social, QAfterFilterCondition> lastTouchedContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'lastTouched',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Social, Social, QAfterFilterCondition> lastTouchedMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'lastTouched',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Social, Social, QAfterFilterCondition> lastTouchedIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'lastTouched',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Social, Social, QAfterFilterCondition> lastTouchedIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'lastTouched',
-        value: '',
       ));
     });
   }
@@ -1251,36 +1090,36 @@ extension SocialQueryFilter on QueryBuilder<Social, Social, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Social, Social, QAfterFilterCondition> remoteIDIsNull() {
+  QueryBuilder<Social, Social, QAfterFilterCondition> remoteIdIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'remoteID',
+        property: r'remoteId',
       ));
     });
   }
 
-  QueryBuilder<Social, Social, QAfterFilterCondition> remoteIDIsNotNull() {
+  QueryBuilder<Social, Social, QAfterFilterCondition> remoteIdIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'remoteID',
+        property: r'remoteId',
       ));
     });
   }
 
-  QueryBuilder<Social, Social, QAfterFilterCondition> remoteIDEqualTo(
+  QueryBuilder<Social, Social, QAfterFilterCondition> remoteIdEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'remoteID',
+        property: r'remoteId',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Social, Social, QAfterFilterCondition> remoteIDGreaterThan(
+  QueryBuilder<Social, Social, QAfterFilterCondition> remoteIdGreaterThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
@@ -1288,14 +1127,14 @@ extension SocialQueryFilter on QueryBuilder<Social, Social, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
-        property: r'remoteID',
+        property: r'remoteId',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Social, Social, QAfterFilterCondition> remoteIDLessThan(
+  QueryBuilder<Social, Social, QAfterFilterCondition> remoteIdLessThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
@@ -1303,14 +1142,14 @@ extension SocialQueryFilter on QueryBuilder<Social, Social, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
-        property: r'remoteID',
+        property: r'remoteId',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Social, Social, QAfterFilterCondition> remoteIDBetween(
+  QueryBuilder<Social, Social, QAfterFilterCondition> remoteIdBetween(
     String? lower,
     String? upper, {
     bool includeLower = true,
@@ -1319,7 +1158,7 @@ extension SocialQueryFilter on QueryBuilder<Social, Social, QFilterCondition> {
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
-        property: r'remoteID',
+        property: r'remoteId',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -1329,69 +1168,69 @@ extension SocialQueryFilter on QueryBuilder<Social, Social, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Social, Social, QAfterFilterCondition> remoteIDStartsWith(
+  QueryBuilder<Social, Social, QAfterFilterCondition> remoteIdStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'remoteID',
+        property: r'remoteId',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Social, Social, QAfterFilterCondition> remoteIDEndsWith(
+  QueryBuilder<Social, Social, QAfterFilterCondition> remoteIdEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'remoteID',
+        property: r'remoteId',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Social, Social, QAfterFilterCondition> remoteIDContains(
+  QueryBuilder<Social, Social, QAfterFilterCondition> remoteIdContains(
       String value,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
-        property: r'remoteID',
+        property: r'remoteId',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Social, Social, QAfterFilterCondition> remoteIDMatches(
+  QueryBuilder<Social, Social, QAfterFilterCondition> remoteIdMatches(
       String pattern,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
-        property: r'remoteID',
+        property: r'remoteId',
         wildcard: pattern,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Social, Social, QAfterFilterCondition> remoteIDIsEmpty() {
+  QueryBuilder<Social, Social, QAfterFilterCondition> remoteIdIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'remoteID',
+        property: r'remoteId',
         value: '',
       ));
     });
   }
 
-  QueryBuilder<Social, Social, QAfterFilterCondition> remoteIDIsNotEmpty() {
+  QueryBuilder<Social, Social, QAfterFilterCondition> remoteIdIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'remoteID',
+        property: r'remoteId',
         value: '',
       ));
     });
@@ -1675,15 +1514,15 @@ extension SocialQuerySortBy on QueryBuilder<Social, Social, QSortBy> {
     });
   }
 
-  QueryBuilder<Social, Social, QAfterSortBy> sortByBusinessId() {
+  QueryBuilder<Social, Social, QAfterSortBy> sortByBranchId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'businessId', Sort.asc);
+      return query.addSortBy(r'branchId', Sort.asc);
     });
   }
 
-  QueryBuilder<Social, Social, QAfterSortBy> sortByBusinessIdDesc() {
+  QueryBuilder<Social, Social, QAfterSortBy> sortByBranchIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'businessId', Sort.desc);
+      return query.addSortBy(r'branchId', Sort.desc);
     });
   }
 
@@ -1747,15 +1586,15 @@ extension SocialQuerySortBy on QueryBuilder<Social, Social, QSortBy> {
     });
   }
 
-  QueryBuilder<Social, Social, QAfterSortBy> sortByRemoteID() {
+  QueryBuilder<Social, Social, QAfterSortBy> sortByRemoteId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'remoteID', Sort.asc);
+      return query.addSortBy(r'remoteId', Sort.asc);
     });
   }
 
-  QueryBuilder<Social, Social, QAfterSortBy> sortByRemoteIDDesc() {
+  QueryBuilder<Social, Social, QAfterSortBy> sortByRemoteIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'remoteID', Sort.desc);
+      return query.addSortBy(r'remoteId', Sort.desc);
     });
   }
 
@@ -1797,15 +1636,15 @@ extension SocialQuerySortThenBy on QueryBuilder<Social, Social, QSortThenBy> {
     });
   }
 
-  QueryBuilder<Social, Social, QAfterSortBy> thenByBusinessId() {
+  QueryBuilder<Social, Social, QAfterSortBy> thenByBranchId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'businessId', Sort.asc);
+      return query.addSortBy(r'branchId', Sort.asc);
     });
   }
 
-  QueryBuilder<Social, Social, QAfterSortBy> thenByBusinessIdDesc() {
+  QueryBuilder<Social, Social, QAfterSortBy> thenByBranchIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'businessId', Sort.desc);
+      return query.addSortBy(r'branchId', Sort.desc);
     });
   }
 
@@ -1881,15 +1720,15 @@ extension SocialQuerySortThenBy on QueryBuilder<Social, Social, QSortThenBy> {
     });
   }
 
-  QueryBuilder<Social, Social, QAfterSortBy> thenByRemoteID() {
+  QueryBuilder<Social, Social, QAfterSortBy> thenByRemoteId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'remoteID', Sort.asc);
+      return query.addSortBy(r'remoteId', Sort.asc);
     });
   }
 
-  QueryBuilder<Social, Social, QAfterSortBy> thenByRemoteIDDesc() {
+  QueryBuilder<Social, Social, QAfterSortBy> thenByRemoteIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'remoteID', Sort.desc);
+      return query.addSortBy(r'remoteId', Sort.desc);
     });
   }
 
@@ -1926,9 +1765,9 @@ extension SocialQueryWhereDistinct on QueryBuilder<Social, Social, QDistinct> {
     });
   }
 
-  QueryBuilder<Social, Social, QDistinct> distinctByBusinessId() {
+  QueryBuilder<Social, Social, QDistinct> distinctByBranchId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'businessId');
+      return query.addDistinctBy(r'branchId');
     });
   }
 
@@ -1944,10 +1783,9 @@ extension SocialQueryWhereDistinct on QueryBuilder<Social, Social, QDistinct> {
     });
   }
 
-  QueryBuilder<Social, Social, QDistinct> distinctByLastTouched(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Social, Social, QDistinct> distinctByLastTouched() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'lastTouched', caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'lastTouched');
     });
   }
 
@@ -1964,10 +1802,10 @@ extension SocialQueryWhereDistinct on QueryBuilder<Social, Social, QDistinct> {
     });
   }
 
-  QueryBuilder<Social, Social, QDistinct> distinctByRemoteID(
+  QueryBuilder<Social, Social, QDistinct> distinctByRemoteId(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'remoteID', caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'remoteId', caseSensitive: caseSensitive);
     });
   }
 
@@ -1999,9 +1837,9 @@ extension SocialQueryProperty on QueryBuilder<Social, Social, QQueryProperty> {
     });
   }
 
-  QueryBuilder<Social, int, QQueryOperations> businessIdProperty() {
+  QueryBuilder<Social, int, QQueryOperations> branchIdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'businessId');
+      return query.addPropertyName(r'branchId');
     });
   }
 
@@ -2017,7 +1855,7 @@ extension SocialQueryProperty on QueryBuilder<Social, Social, QQueryProperty> {
     });
   }
 
-  QueryBuilder<Social, String?, QQueryOperations> lastTouchedProperty() {
+  QueryBuilder<Social, DateTime?, QQueryOperations> lastTouchedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'lastTouched');
     });
@@ -2035,9 +1873,9 @@ extension SocialQueryProperty on QueryBuilder<Social, Social, QQueryProperty> {
     });
   }
 
-  QueryBuilder<Social, String?, QQueryOperations> remoteIDProperty() {
+  QueryBuilder<Social, String?, QQueryOperations> remoteIdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'remoteID');
+      return query.addPropertyName(r'remoteId');
     });
   }
 
@@ -2061,11 +1899,13 @@ extension SocialQueryProperty on QueryBuilder<Social, Social, QQueryProperty> {
 Social _$SocialFromJson(Map<String, dynamic> json) => Social(
       isAccountSet: json['isAccountSet'] as bool,
       socialType: json['socialType'] as String,
-      businessId: json['businessId'] as int,
+      branchId: json['branchId'] as int,
       message: json['message'] as String?,
       socialUrl: json['socialUrl'] as String,
-      lastTouched: json['lastTouched'] as String?,
-      remoteID: json['remoteID'] as String?,
+      lastTouched: json['lastTouched'] == null
+          ? null
+          : DateTime.parse(json['lastTouched'] as String),
+      remoteId: json['remoteId'] as String?,
       localId: json['localId'] as int?,
       deletedAt: json['deletedAt'] == null
           ? null
@@ -2077,9 +1917,9 @@ Map<String, dynamic> _$SocialToJson(Social instance) => <String, dynamic>{
       'isAccountSet': instance.isAccountSet,
       'socialType': instance.socialType,
       'socialUrl': instance.socialUrl,
-      'businessId': instance.businessId,
-      'lastTouched': instance.lastTouched,
-      'remoteID': instance.remoteID,
+      'branchId': instance.branchId,
+      'lastTouched': instance.lastTouched?.toIso8601String(),
+      'remoteId': instance.remoteId,
       'localId': instance.localId,
       'message': instance.message,
       'deletedAt': instance.deletedAt?.toIso8601String(),

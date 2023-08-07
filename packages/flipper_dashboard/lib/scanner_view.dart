@@ -196,7 +196,7 @@ class _ScannViewState extends State<ScannView> {
           'defaultApp': defaultApp,
           'deviceName': Platform.operatingSystem,
           'deviceVersion': Platform.operatingSystemVersion,
-          'linkingCode': syncIdInt().toString()
+          'linkingCode': randomNumber().toString()
         });
       }
     }

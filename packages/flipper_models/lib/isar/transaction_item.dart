@@ -89,8 +89,9 @@ class TransactionItem extends IJsonSerializable {
   String? regrNm;
   String? modrId;
   String? modrNm;
-  @Index()
-  String? lastTouched;
+
+  @JsonKey(includeIfNull: true)
+  DateTime? lastTouched;
   @Index()
   DateTime? deletedAt;
   TransactionItem({
@@ -143,11 +144,11 @@ class TransactionItem extends IJsonSerializable {
     this.regrNm,
     this.modrId,
     this.modrNm,
-    this.lastTouched,
+    required this.lastTouched,
     this.deletedAt,
   });
   @Index()
-  String? remoteID;
+  String? remoteId;
   String action;
   int? localId;
   int branchId;
@@ -160,8 +161,13 @@ class TransactionItem extends IJsonSerializable {
             (json['deletedAt'] is String && json['deletedAt'].isEmpty)
         ? null
         : json['deletedAt'];
-    json['remoteID'] = json['id'] is int ? json['id'].toString() : json['id'];
-    json.remove('id');
+    json['remoteId'] ??= json['id'].toString();
+    json['lastTouched'] =
+        json['lastTouched'].toString().isEmpty || json['lastTouched'] == null
+            ? DateTime.now().toIso8601String()
+            : DateTime.parse(json['lastTouched'] ?? DateTime.now())
+                .toIso8601String();
+    json['id'] = json['localId'];
     return _$TransactionItemFromJson(json);
   }
 

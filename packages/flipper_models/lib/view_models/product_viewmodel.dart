@@ -64,9 +64,10 @@ class ProductViewModel extends TenantViewModel {
     if (isTemp == null) {
       Product product = await ProxyService.isar.createProduct(
           product: Product(
-              id: syncIdInt(),
+              id: randomNumber(),
               name: "temp",
               action: 'create',
+              lastTouched: DateTime.now(),
               businessId: businessId,
               color: "#e74c3c",
               branchId: branchId)
@@ -120,7 +121,7 @@ class ProductViewModel extends TenantViewModel {
         active: true,
         focused: false,
         branchId: branchId!,
-        id: syncIdInt());
+        id: randomNumber());
 
     await ProxyService.isar.create(data: category);
     app.loadCategories();

@@ -35,10 +35,10 @@ class Branch extends IJsonSerializable {
   String? table;
   late bool isDefault;
 
+  @JsonKey(includeIfNull: true)
+  DateTime? lastTouched;
   @Index()
-  String? lastTouched;
-  @Index()
-  String? remoteID;
+  String? remoteId;
   String action;
   int? localId;
   @Index()
@@ -47,10 +47,15 @@ class Branch extends IJsonSerializable {
       Branch.fromJson(record.toJson());
 
   factory Branch.fromJson(Map<String, dynamic> json) {
-    /// assign remoteID to the value of id because this method is used to encode
-    /// data from remote server and id from remote server is considered remoteID on local
-    json['remoteID'] = json['id'] is int ? json['id'].toString() : json['id'];
-    json.remove('id');
+    /// assign remoteId to the value of id because this method is used to encode
+    /// data from remote server and id from remote server is considered remoteId on local
+    json['remoteId'] ??= json['id'].toString();
+    json['lastTouched'] =
+        json['lastTouched'].toString().isEmpty || json['lastTouched'] == null
+            ? DateTime.now().toIso8601String()
+            : DateTime.parse(json['lastTouched'] ?? DateTime.now())
+                .toIso8601String();
+    json['id'] = json['localId'];
     // this line ony added in both business and branch as they are not part of sync schemd
     json['action'] = AppActions.create;
     return _$BranchFromJson(json);

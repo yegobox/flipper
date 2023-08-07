@@ -17,7 +17,8 @@ class Category extends IJsonSerializable {
   DateTime? deletedAt;
 
   @override
-  String? lastTouched;
+  @JsonKey(includeIfNull: true)
+  DateTime? lastTouched;
   Category({
     this.id,
     required this.active,

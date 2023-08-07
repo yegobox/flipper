@@ -30,10 +30,11 @@ class Stock extends IJsonSerializable {
   double? supplyPrice;
   @Index()
   double? retailPrice;
+
+  @JsonKey(includeIfNull: true)
+  DateTime? lastTouched;
   @Index()
-  String? lastTouched;
-  @Index()
-  String? remoteID;
+  String? remoteId;
   int? localId;
   String action;
   @Index()
@@ -53,8 +54,8 @@ class Stock extends IJsonSerializable {
     this.active,
     this.value,
     this.rsdQty,
-    this.lastTouched,
-    this.remoteID,
+    required this.lastTouched,
+    this.remoteId,
     this.localId,
     this.deletedAt,
   });
@@ -67,8 +68,15 @@ class Stock extends IJsonSerializable {
             (json['deletedAt'] is String && json['deletedAt'].isEmpty)
         ? null
         : json['deletedAt'];
-    json['remoteID'] = json['id'] is int ? json['id'].toString() : json['id'];
-    json.remove('id');
+
+    json['remoteId'] ??= json['id'].toString();
+    json['lastTouched'] =
+        json['lastTouched'].toString().isEmpty || json['lastTouched'] == null
+            ? DateTime.now().toIso8601String()
+            : DateTime.parse(json['lastTouched'] ?? DateTime.now())
+                .toIso8601String();
+
+    json['id'] = json['localId'];
     return _$StockFromJson(json);
   }
   @override

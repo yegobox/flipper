@@ -37,7 +37,8 @@ class Conversation extends IJsonSerializable {
   bool? delivered;
 
   @Index()
-  String? lastTouched;
+  @JsonKey(includeIfNull: true)
+  DateTime? lastTouched;
   @Index()
   DateTime? deletedAt;
   Conversation({

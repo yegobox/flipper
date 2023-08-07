@@ -23,10 +23,11 @@ class Pin extends IJsonSerializable {
   late int pin;
   late int branchId;
   late int businessId;
+
+  @JsonKey(includeIfNull: true)
+  DateTime? lastTouched;
   @Index()
-  String? lastTouched;
-  @Index()
-  String? remoteID;
+  String? remoteId;
   String action;
   int? localId;
   @Index()

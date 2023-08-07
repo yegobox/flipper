@@ -242,7 +242,7 @@ abstract class IsarApiInterface {
   Future<Stock?> getStockById({required int id});
 
   /// socials methods
-  Stream<Social> socialsStream({required int businessId});
+  Stream<Social> socialsStream({required int branchId});
   Future<Social?> getSocialById({required int id});
 
   Future<List<BusinessType>> businessTypes();
@@ -273,7 +273,7 @@ abstract class IsarApiInterface {
   Future<bool> updateContact(
       {required Map<String, dynamic> contact, required int businessId});
 
-  Future<List<Social>> activesocialAccounts({required int businessId});
+  Future<List<Social>> activesocialAccounts({required int branchId});
 
   Future<Stock?> addStockToVariant({required Variant variant});
   Stream<Product> getProductStream({required int prodIndex});

@@ -26,10 +26,11 @@ class Customer extends IJsonSerializable {
     this.updatedAt,
     this.tinNumber,
   });
+
+  @JsonKey(includeIfNull: true)
+  DateTime? lastTouched;
   @Index()
-  String? lastTouched;
-  @Index()
-  String? remoteID;
+  String? remoteId;
   String action;
   int? localId;
   @Index()

@@ -130,9 +130,10 @@ class SignupViewModel extends ReactiveViewModel {
         ];
 
         final PColor color = PColor(
-            id: syncIdInt(),
+            id: randomNumber(),
             colors: colors,
             active: false,
+            lastTouched: DateTime.now(),
             action: AppActions.create,
             branchId: branches[0].id,
             name: 'sample');

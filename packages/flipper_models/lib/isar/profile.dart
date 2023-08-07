@@ -53,7 +53,8 @@ class Profile extends IJsonSerializable {
   String? nationalId;
 
   @Index()
-  String? lastTouched;
+  @JsonKey(includeIfNull: true)
+  DateTime? lastTouched;
   @Index()
   DateTime? deletedAt;
   factory Profile.fromRecord(RecordModel record) =>

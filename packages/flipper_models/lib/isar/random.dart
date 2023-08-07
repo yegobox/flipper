@@ -18,14 +18,14 @@ import 'dart:math';
 /// if the function is called 100,000 times, the probability of generating
 /// the same string twice is approximately 1 in 10^12, which is a very low probability.
 
-String syncId() {
+String randomString() {
   final random = Random();
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
   return String.fromCharCodes(Iterable.generate(
       15, (_) => chars.codeUnitAt(random.nextInt(chars.length))));
 }
 
-int syncIdInt() {
+int randomNumber() {
   var rng = Random();
   var number = "";
   for (var i = 0; i < 15; i++) {

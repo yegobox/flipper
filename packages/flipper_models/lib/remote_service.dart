@@ -115,67 +115,79 @@ class RemoteService implements RemoteInterface {
         'stocks',
         'variants',
         'products',
-        'devices',
-        'socials',
         'transactionItems',
         'transactions',
+        'devices',
+        'socials',
         'rra',
       ];
-
       for (final collectionName in collections) {
-        final records = await pb
-            .collection(collectionName)
-            .getList(page: 1, perPage: 500, filter: 'branchId = $branchId')
-            .then((event) => event.items);
+        try {
+          int page = 1;
+          int perPage = 100;
+          int totalPages = 1; // Initialize totalPages to 1
 
-        await Future.forEach(records, (RecordModel item) async {
-          Map<String, dynamic> originalJson = item.toJson();
+          do {
+            final records = await pb.collection(collectionName).getList(
+                  page: page,
+                  perPage: perPage,
+                  filter: 'branchId = $branchId',
+                );
+            totalPages = records.totalPages;
+            await Future.forEach(records.items, (RecordModel item) async {
+              Map<String, dynamic> originalJson = item.toJson();
 
-          // Create a copy of the original JSON
-          Map<String, dynamic> updatedJson = Map.from(originalJson);
+              // Create a copy of the original JSON
+              Map<String, dynamic> updatedJson = Map.from(originalJson);
 
-          // Update the 'action' property in the copied JSON
-          /// we change action from remote fetched data to remote
-          /// so that we don't push these data back when property has not changed
-          updatedJson['action'] = AppActions.remote;
-          switch (collectionName) {
-            case 'stocks':
-              await handleItem(
-                  model: Stock.fromJson(updatedJson), branchId: branchId);
-              break;
-            case 'variants':
-              await handleItem(
-                  model: Variant.fromJson(updatedJson), branchId: branchId);
-              break;
-            case 'products':
-              await handleItem(
-                  model: Product.fromJson(updatedJson), branchId: branchId);
-              break;
-            case 'devices':
-              await handleItem(
-                  model: Device.fromJson(updatedJson), branchId: branchId);
-              break;
-            case 'socials':
-              await handleItem(
-                  model: Social.fromJson(updatedJson), branchId: branchId);
-              break;
-            case 'rra':
-              await handleItem(
-                  model: EBM.fromJson(updatedJson), branchId: branchId);
-              break;
-            case 'transactions':
-              await handleItem(
-                  model: Transaction.fromJson(updatedJson), branchId: branchId);
-              break;
-            case 'transactionItems':
-              await handleItem(
-                  model: TransactionItem.fromJson(updatedJson),
-                  branchId: branchId);
-              break;
-            default:
-              break;
-          }
-        });
+              // Update the 'action' property in the copied JSON
+              /// we change action from remote fetched data to remote
+              /// so that we don't push these data back when property has not changed
+              updatedJson['action'] = AppActions.remote;
+              switch (collectionName) {
+                case 'stocks':
+                  await handleItem(
+                      model: Stock.fromJson(updatedJson), branchId: branchId);
+                  break;
+                case 'variants':
+                  await handleItem(
+                      model: Variant.fromJson(updatedJson), branchId: branchId);
+                  break;
+                case 'products':
+                  await handleItem(
+                      model: Product.fromJson(updatedJson), branchId: branchId);
+                  break;
+                case 'devices':
+                  await handleItem(
+                      model: Device.fromJson(updatedJson), branchId: branchId);
+                  break;
+                case 'socials':
+                  await handleItem(
+                      model: Social.fromJson(updatedJson), branchId: branchId);
+                  break;
+                case 'rra':
+                  await handleItem(
+                      model: EBM.fromJson(updatedJson), branchId: branchId);
+                  break;
+                case 'transactions':
+                  await handleItem(
+                      model: Transaction.fromJson(updatedJson),
+                      branchId: branchId);
+                  break;
+                case 'transactionItems':
+                  await handleItem(
+                      model: TransactionItem.fromJson(updatedJson),
+                      branchId: branchId);
+                  break;
+                default:
+                  break;
+              }
+            });
+            page++; // Move to the next page for the next iteration
+          } while (page <= totalPages);
+        } catch (e) {
+          log(e.toString(), name: 'on Pull ${collectionName}');
+        }
       }
     } on ClientException {
     } on SocketException {
@@ -302,8 +314,8 @@ class RemoteService implements RemoteInterface {
         await ProxyService.isar.create(data: remoteStock);
       } else if (localStock != null &&
           localStock.lastTouched != null &&
-          remoteStock.lastTouched!
-              .isFutureDateCompareTo(localStock.lastTouched!)) {
+          remoteStock.lastTouched
+              .isFutureDateCompareTo(localStock.lastTouched)) {
         remoteStock.id = localStock.localId;
         remoteStock.action = AppActions.updated;
         await ProxyService.isar.update(data: remoteStock);
@@ -319,8 +331,8 @@ class RemoteService implements RemoteInterface {
         await ProxyService.isar.create(data: remoteVariant);
       } else if (localVariant != null &&
           localVariant.lastTouched != null &&
-          remoteVariant.lastTouched!
-              .isFutureDateCompareTo(localVariant.lastTouched!)) {
+          remoteVariant.lastTouched
+              .isFutureDateCompareTo(localVariant.lastTouched)) {
         remoteVariant.id = localVariant.localId;
         remoteVariant.action = AppActions.updated;
         await ProxyService.isar.update(data: remoteVariant);
@@ -336,8 +348,8 @@ class RemoteService implements RemoteInterface {
         await ProxyService.isar.create(data: remoteProduct);
       } else if (localProduct != null &&
           localProduct.lastTouched != null &&
-          remoteProduct.lastTouched!
-              .isFutureDateCompareTo(localProduct.lastTouched!)) {
+          remoteProduct.lastTouched
+              .isFutureDateCompareTo(localProduct.lastTouched)) {
         remoteProduct.id = localProduct.localId;
         remoteProduct.action = AppActions.updated;
         await ProxyService.isar.update(data: remoteProduct);
@@ -353,8 +365,8 @@ class RemoteService implements RemoteInterface {
         await ProxyService.isar.create(data: remoteDevice);
       } else if (localDevice != null &&
           localDevice.lastTouched != null &&
-          remoteDevice.lastTouched!
-              .isFutureDateCompareTo(localDevice.lastTouched!)) {
+          remoteDevice.lastTouched
+              .isFutureDateCompareTo(localDevice.lastTouched)) {
         localDevice.id = localDevice.localId;
         localDevice.action = AppActions.updated;
         await ProxyService.isar.update(data: localDevice);
@@ -366,12 +378,12 @@ class RemoteService implements RemoteInterface {
           await ProxyService.isar.getSocialById(id: remoteSocial.localId!);
 
       if (localSocial == null &&
-          remoteSocial.businessId == ProxyService.box.getBusinessId()) {
+          remoteSocial.branchId == ProxyService.box.getBranchId()) {
         remoteSocial.id = remoteSocial.localId;
         await ProxyService.isar.create(data: remoteSocial);
       } else if (localSocial != null &&
-          remoteSocial.lastTouched!
-              .isFutureDateCompareTo(localSocial.lastTouched!)) {
+          remoteSocial.lastTouched
+              .isFutureDateCompareTo(localSocial.lastTouched)) {
         remoteSocial.id = remoteSocial.localId;
         await ProxyService.isar.update(data: remoteSocial);
       }
@@ -383,8 +395,8 @@ class RemoteService implements RemoteInterface {
 
       if (localEbm == null &&
           ebm.businessId == ProxyService.box.getBusinessId()) {
-        ebm.id = syncIdInt();
-        ebm.lastTouched = DateTime.now().toIso8601String();
+        ebm.id = randomNumber();
+        ebm.lastTouched = DateTime.now();
         await ProxyService.isar.create(data: ebm);
         // update business
         Business? business = await ProxyService.isar.getBusiness();
@@ -395,7 +407,7 @@ class RemoteService implements RemoteInterface {
         ProxyService.isar.update(data: business);
       } else if (localEbm != null &&
           ebm.lastTouched != null &&
-          ebm.lastTouched!.isFutureDateCompareTo(localEbm.lastTouched!)) {
+          ebm.lastTouched.isFutureDateCompareTo(localEbm.lastTouched)) {
         ebm.id = ebm.localId;
         await ProxyService.isar.update(data: ebm);
       }
@@ -410,8 +422,8 @@ class RemoteService implements RemoteInterface {
         remoteTransaction.id = remoteTransaction.localId;
         await ProxyService.isar.create(data: remoteTransaction);
       } else if (localTransaction != null &&
-          remoteTransaction.lastTouched!
-              .isFutureDateCompareTo(localTransaction.lastTouched!)) {
+          remoteTransaction.lastTouched
+              .isFutureDateCompareTo(localTransaction.lastTouched)) {
         remoteTransaction.id = remoteTransaction.localId;
         await ProxyService.isar.update(data: remoteTransaction);
       }
@@ -425,8 +437,8 @@ class RemoteService implements RemoteInterface {
       if (localTransaction == null) {
         remoteTransactionItem.id = remoteTransactionItem.localId;
         await ProxyService.isar.create(data: remoteTransactionItem);
-      } else if (remoteTransactionItem.lastTouched!
-          .isFutureDateCompareTo(localTransaction.lastTouched!)) {
+      } else if (remoteTransactionItem.lastTouched
+          .isFutureDateCompareTo(localTransaction.lastTouched)) {
         remoteTransactionItem.id = remoteTransactionItem.localId;
         await ProxyService.isar.update(data: remoteTransactionItem);
       }

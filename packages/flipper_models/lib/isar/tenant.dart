@@ -10,14 +10,16 @@ part 'tenant.g.dart';
 @JsonSerializable()
 @Collection()
 class ITenant extends IJsonSerializable {
-  ITenant(
-      {this.id,
-      required this.name,
-      required this.phoneNumber,
-      required this.email,
-      required this.nfcEnabled,
-      required this.businessId,
-      required this.userId,this.deletedAt,});
+  ITenant({
+    this.id,
+    required this.name,
+    required this.phoneNumber,
+    required this.email,
+    required this.nfcEnabled,
+    required this.businessId,
+    required this.userId,
+    this.deletedAt,
+  });
   Id? id = Isar.autoIncrement;
   String name;
   String phoneNumber;
@@ -28,8 +30,9 @@ class ITenant extends IJsonSerializable {
   String? imageUrl;
 
   @Index()
-  String? lastTouched;
-   @Index()
+  @JsonKey(includeIfNull: true)
+  DateTime? lastTouched;
+  @Index()
   DateTime? deletedAt;
   factory ITenant.fromRecord(RecordModel record) =>
       ITenant.fromJson(record.toJson());

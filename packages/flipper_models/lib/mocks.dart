@@ -50,6 +50,7 @@ final List<Map<String, dynamic>> mockUnits = [
 final variationMock = Variant(
     action: 'create',
     name: 'Regular',
+    lastTouched: DateTime.now(),
     sku: 'sku',
     productId: 2,
     unit: 'Per Item',
@@ -72,6 +73,7 @@ final variationMock = Variant(
 
 // stock
 final stockMock = Stock(
+    lastTouched: DateTime.now(),
     branchId: 11,
     variantId: 1,
     currentStock: 0.0,
@@ -91,13 +93,12 @@ final stockMock = Stock(
 
 // transaction mock
 Transaction? TransactionFMock = Transaction(
+  lastTouched: DateTime.now(),
   action: AppActions.create,
   reference: Uuid().v1(),
   transactionNumber: Uuid().v1(),
- 
   status: "pending",
   transactionType: 'local',
-  
   subTotal: 0,
   cashReceived: 0,
   updatedAt: DateTime.now().toIso8601String(),
@@ -111,6 +112,7 @@ final AppService _appService = locator<AppService>();
 
 final customProductMock = Product(
     action: 'create',
+    lastTouched: DateTime.now(),
     name: "temp",
     businessId: _appService.businessId!,
     color: "#e74c3c",
@@ -127,6 +129,7 @@ final customProductMock = Product(
   ..createdAt = DateTime.now().toIso8601String();
 
 final productMock = Product(
+    lastTouched: DateTime.now(),
     action: 'create',
     name: "temp",
     businessId: _appService.businessId!,

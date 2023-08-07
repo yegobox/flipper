@@ -14,10 +14,11 @@ class PColor extends IJsonSerializable {
   List<String>? colors;
   late int? branchId;
   late bool active;
+
+  @JsonKey(includeIfNull: true)
+  DateTime? lastTouched;
   @Index()
-  String? lastTouched;
-  @Index()
-  String? remoteID;
+  String? remoteId;
   String action;
   int? localId;
   @Index()
@@ -28,8 +29,8 @@ class PColor extends IJsonSerializable {
     this.colors,
     required this.branchId,
     required this.active,
-    this.lastTouched,
-    this.remoteID,
+    required this.lastTouched,
+    this.remoteId,
     required this.action,
     this.localId,
     this.deletedAt,

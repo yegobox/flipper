@@ -31,6 +31,7 @@ class ForceDataEntryService {
           product: Product(
               name: "Custom Amount",
               action: 'create',
+              lastTouched: DateTime.now(),
               businessId: businessId,
               color: "#e74c3c",
               branchId: branchId)
@@ -50,9 +51,10 @@ class ForceDataEntryService {
     ];
 
     final PColor color = PColor(
-        id: syncIdInt(),
+        id: randomNumber(),
         colors: colors,
         branchId: branchId,
+        lastTouched: DateTime.now(),
         action: AppActions.create,
         name: "#d63031",
         active: false);

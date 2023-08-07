@@ -50,16 +50,16 @@ const EBMSchema = CollectionSchema(
     r'lastTouched': PropertySchema(
       id: 6,
       name: r'lastTouched',
-      type: IsarType.string,
+      type: IsarType.dateTime,
     ),
     r'localId': PropertySchema(
       id: 7,
       name: r'localId',
       type: IsarType.long,
     ),
-    r'remoteID': PropertySchema(
+    r'remoteId': PropertySchema(
       id: 8,
-      name: r'remoteID',
+      name: r'remoteId',
       type: IsarType.string,
     ),
     r'taxServerUrl': PropertySchema(
@@ -84,27 +84,14 @@ const EBMSchema = CollectionSchema(
   deserializeProp: _eBMDeserializeProp,
   idName: r'id',
   indexes: {
-    r'lastTouched': IndexSchema(
-      id: -1197289422054722944,
-      name: r'lastTouched',
+    r'remoteId': IndexSchema(
+      id: 6301175856541681032,
+      name: r'remoteId',
       unique: false,
       replace: false,
       properties: [
         IndexPropertySchema(
-          name: r'lastTouched',
-          type: IndexType.hash,
-          caseSensitive: true,
-        )
-      ],
-    ),
-    r'remoteID': IndexSchema(
-      id: 8280972950722306723,
-      name: r'remoteID',
-      unique: false,
-      replace: false,
-      properties: [
-        IndexPropertySchema(
-          name: r'remoteID',
+          name: r'remoteId',
           type: IndexType.hash,
           caseSensitive: true,
         )
@@ -142,13 +129,7 @@ int _eBMEstimateSize(
   bytesCount += 3 + object.bhfId.length * 3;
   bytesCount += 3 + object.dvcSrlNo.length * 3;
   {
-    final value = object.lastTouched;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
-  {
-    final value = object.remoteID;
+    final value = object.remoteId;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
     }
@@ -175,9 +156,9 @@ void _eBMSerialize(
   writer.writeLong(offsets[3], object.businessId);
   writer.writeDateTime(offsets[4], object.deletedAt);
   writer.writeString(offsets[5], object.dvcSrlNo);
-  writer.writeString(offsets[6], object.lastTouched);
+  writer.writeDateTime(offsets[6], object.lastTouched);
   writer.writeLong(offsets[7], object.localId);
-  writer.writeString(offsets[8], object.remoteID);
+  writer.writeString(offsets[8], object.remoteId);
   writer.writeString(offsets[9], object.taxServerUrl);
   writer.writeLong(offsets[10], object.tinNumber);
   writer.writeString(offsets[11], object.userId);
@@ -201,9 +182,9 @@ EBM _eBMDeserialize(
   );
   object.deletedAt = reader.readDateTimeOrNull(offsets[4]);
   object.id = id;
-  object.lastTouched = reader.readStringOrNull(offsets[6]);
+  object.lastTouched = reader.readDateTimeOrNull(offsets[6]);
   object.localId = reader.readLongOrNull(offsets[7]);
-  object.remoteID = reader.readStringOrNull(offsets[8]);
+  object.remoteId = reader.readStringOrNull(offsets[8]);
   return object;
 }
 
@@ -227,7 +208,7 @@ P _eBMDeserializeProp<P>(
     case 5:
       return (reader.readString(offset)) as P;
     case 6:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 7:
       return (reader.readLongOrNull(offset)) as P;
     case 8:
@@ -337,19 +318,19 @@ extension EBMQueryWhere on QueryBuilder<EBM, EBM, QWhereClause> {
     });
   }
 
-  QueryBuilder<EBM, EBM, QAfterWhereClause> lastTouchedIsNull() {
+  QueryBuilder<EBM, EBM, QAfterWhereClause> remoteIdIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'lastTouched',
+        indexName: r'remoteId',
         value: [null],
       ));
     });
   }
 
-  QueryBuilder<EBM, EBM, QAfterWhereClause> lastTouchedIsNotNull() {
+  QueryBuilder<EBM, EBM, QAfterWhereClause> remoteIdIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'lastTouched',
+        indexName: r'remoteId',
         lower: [null],
         includeLower: false,
         upper: [],
@@ -357,109 +338,44 @@ extension EBMQueryWhere on QueryBuilder<EBM, EBM, QWhereClause> {
     });
   }
 
-  QueryBuilder<EBM, EBM, QAfterWhereClause> lastTouchedEqualTo(
-      String? lastTouched) {
+  QueryBuilder<EBM, EBM, QAfterWhereClause> remoteIdEqualTo(String? remoteId) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'lastTouched',
-        value: [lastTouched],
+        indexName: r'remoteId',
+        value: [remoteId],
       ));
     });
   }
 
-  QueryBuilder<EBM, EBM, QAfterWhereClause> lastTouchedNotEqualTo(
-      String? lastTouched) {
+  QueryBuilder<EBM, EBM, QAfterWhereClause> remoteIdNotEqualTo(
+      String? remoteId) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'lastTouched',
+              indexName: r'remoteId',
               lower: [],
-              upper: [lastTouched],
+              upper: [remoteId],
               includeUpper: false,
             ))
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'lastTouched',
-              lower: [lastTouched],
+              indexName: r'remoteId',
+              lower: [remoteId],
               includeLower: false,
               upper: [],
             ));
       } else {
         return query
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'lastTouched',
-              lower: [lastTouched],
+              indexName: r'remoteId',
+              lower: [remoteId],
               includeLower: false,
               upper: [],
             ))
             .addWhereClause(IndexWhereClause.between(
-              indexName: r'lastTouched',
+              indexName: r'remoteId',
               lower: [],
-              upper: [lastTouched],
-              includeUpper: false,
-            ));
-      }
-    });
-  }
-
-  QueryBuilder<EBM, EBM, QAfterWhereClause> remoteIDIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'remoteID',
-        value: [null],
-      ));
-    });
-  }
-
-  QueryBuilder<EBM, EBM, QAfterWhereClause> remoteIDIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'remoteID',
-        lower: [null],
-        includeLower: false,
-        upper: [],
-      ));
-    });
-  }
-
-  QueryBuilder<EBM, EBM, QAfterWhereClause> remoteIDEqualTo(String? remoteID) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'remoteID',
-        value: [remoteID],
-      ));
-    });
-  }
-
-  QueryBuilder<EBM, EBM, QAfterWhereClause> remoteIDNotEqualTo(
-      String? remoteID) {
-    return QueryBuilder.apply(this, (query) {
-      if (query.whereSort == Sort.asc) {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'remoteID',
-              lower: [],
-              upper: [remoteID],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'remoteID',
-              lower: [remoteID],
-              includeLower: false,
-              upper: [],
-            ));
-      } else {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'remoteID',
-              lower: [remoteID],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'remoteID',
-              lower: [],
-              upper: [remoteID],
+              upper: [remoteId],
               includeUpper: false,
             ));
       }
@@ -1220,54 +1136,46 @@ extension EBMQueryFilter on QueryBuilder<EBM, EBM, QFilterCondition> {
   }
 
   QueryBuilder<EBM, EBM, QAfterFilterCondition> lastTouchedEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
+      DateTime? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'lastTouched',
         value: value,
-        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<EBM, EBM, QAfterFilterCondition> lastTouchedGreaterThan(
-    String? value, {
+    DateTime? value, {
     bool include = false,
-    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
         property: r'lastTouched',
         value: value,
-        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<EBM, EBM, QAfterFilterCondition> lastTouchedLessThan(
-    String? value, {
+    DateTime? value, {
     bool include = false,
-    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
         property: r'lastTouched',
         value: value,
-        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<EBM, EBM, QAfterFilterCondition> lastTouchedBetween(
-    String? lower,
-    String? upper, {
+    DateTime? lower,
+    DateTime? upper, {
     bool includeLower = true,
     bool includeUpper = true,
-    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -1276,75 +1184,6 @@ extension EBMQueryFilter on QueryBuilder<EBM, EBM, QFilterCondition> {
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<EBM, EBM, QAfterFilterCondition> lastTouchedStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'lastTouched',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<EBM, EBM, QAfterFilterCondition> lastTouchedEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'lastTouched',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<EBM, EBM, QAfterFilterCondition> lastTouchedContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'lastTouched',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<EBM, EBM, QAfterFilterCondition> lastTouchedMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'lastTouched',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<EBM, EBM, QAfterFilterCondition> lastTouchedIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'lastTouched',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<EBM, EBM, QAfterFilterCondition> lastTouchedIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'lastTouched',
-        value: '',
       ));
     });
   }
@@ -1417,36 +1256,36 @@ extension EBMQueryFilter on QueryBuilder<EBM, EBM, QFilterCondition> {
     });
   }
 
-  QueryBuilder<EBM, EBM, QAfterFilterCondition> remoteIDIsNull() {
+  QueryBuilder<EBM, EBM, QAfterFilterCondition> remoteIdIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'remoteID',
+        property: r'remoteId',
       ));
     });
   }
 
-  QueryBuilder<EBM, EBM, QAfterFilterCondition> remoteIDIsNotNull() {
+  QueryBuilder<EBM, EBM, QAfterFilterCondition> remoteIdIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'remoteID',
+        property: r'remoteId',
       ));
     });
   }
 
-  QueryBuilder<EBM, EBM, QAfterFilterCondition> remoteIDEqualTo(
+  QueryBuilder<EBM, EBM, QAfterFilterCondition> remoteIdEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'remoteID',
+        property: r'remoteId',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<EBM, EBM, QAfterFilterCondition> remoteIDGreaterThan(
+  QueryBuilder<EBM, EBM, QAfterFilterCondition> remoteIdGreaterThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
@@ -1454,14 +1293,14 @@ extension EBMQueryFilter on QueryBuilder<EBM, EBM, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
-        property: r'remoteID',
+        property: r'remoteId',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<EBM, EBM, QAfterFilterCondition> remoteIDLessThan(
+  QueryBuilder<EBM, EBM, QAfterFilterCondition> remoteIdLessThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
@@ -1469,14 +1308,14 @@ extension EBMQueryFilter on QueryBuilder<EBM, EBM, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
-        property: r'remoteID',
+        property: r'remoteId',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<EBM, EBM, QAfterFilterCondition> remoteIDBetween(
+  QueryBuilder<EBM, EBM, QAfterFilterCondition> remoteIdBetween(
     String? lower,
     String? upper, {
     bool includeLower = true,
@@ -1485,7 +1324,7 @@ extension EBMQueryFilter on QueryBuilder<EBM, EBM, QFilterCondition> {
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
-        property: r'remoteID',
+        property: r'remoteId',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -1495,67 +1334,67 @@ extension EBMQueryFilter on QueryBuilder<EBM, EBM, QFilterCondition> {
     });
   }
 
-  QueryBuilder<EBM, EBM, QAfterFilterCondition> remoteIDStartsWith(
+  QueryBuilder<EBM, EBM, QAfterFilterCondition> remoteIdStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'remoteID',
+        property: r'remoteId',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<EBM, EBM, QAfterFilterCondition> remoteIDEndsWith(
+  QueryBuilder<EBM, EBM, QAfterFilterCondition> remoteIdEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'remoteID',
+        property: r'remoteId',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<EBM, EBM, QAfterFilterCondition> remoteIDContains(String value,
+  QueryBuilder<EBM, EBM, QAfterFilterCondition> remoteIdContains(String value,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
-        property: r'remoteID',
+        property: r'remoteId',
         value: value,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<EBM, EBM, QAfterFilterCondition> remoteIDMatches(String pattern,
+  QueryBuilder<EBM, EBM, QAfterFilterCondition> remoteIdMatches(String pattern,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
-        property: r'remoteID',
+        property: r'remoteId',
         wildcard: pattern,
         caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<EBM, EBM, QAfterFilterCondition> remoteIDIsEmpty() {
+  QueryBuilder<EBM, EBM, QAfterFilterCondition> remoteIdIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'remoteID',
+        property: r'remoteId',
         value: '',
       ));
     });
   }
 
-  QueryBuilder<EBM, EBM, QAfterFilterCondition> remoteIDIsNotEmpty() {
+  QueryBuilder<EBM, EBM, QAfterFilterCondition> remoteIdIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'remoteID',
+        property: r'remoteId',
         value: '',
       ));
     });
@@ -1989,15 +1828,15 @@ extension EBMQuerySortBy on QueryBuilder<EBM, EBM, QSortBy> {
     });
   }
 
-  QueryBuilder<EBM, EBM, QAfterSortBy> sortByRemoteID() {
+  QueryBuilder<EBM, EBM, QAfterSortBy> sortByRemoteId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'remoteID', Sort.asc);
+      return query.addSortBy(r'remoteId', Sort.asc);
     });
   }
 
-  QueryBuilder<EBM, EBM, QAfterSortBy> sortByRemoteIDDesc() {
+  QueryBuilder<EBM, EBM, QAfterSortBy> sortByRemoteIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'remoteID', Sort.desc);
+      return query.addSortBy(r'remoteId', Sort.desc);
     });
   }
 
@@ -2147,15 +1986,15 @@ extension EBMQuerySortThenBy on QueryBuilder<EBM, EBM, QSortThenBy> {
     });
   }
 
-  QueryBuilder<EBM, EBM, QAfterSortBy> thenByRemoteID() {
+  QueryBuilder<EBM, EBM, QAfterSortBy> thenByRemoteId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'remoteID', Sort.asc);
+      return query.addSortBy(r'remoteId', Sort.asc);
     });
   }
 
-  QueryBuilder<EBM, EBM, QAfterSortBy> thenByRemoteIDDesc() {
+  QueryBuilder<EBM, EBM, QAfterSortBy> thenByRemoteIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'remoteID', Sort.desc);
+      return query.addSortBy(r'remoteId', Sort.desc);
     });
   }
 
@@ -2236,10 +2075,9 @@ extension EBMQueryWhereDistinct on QueryBuilder<EBM, EBM, QDistinct> {
     });
   }
 
-  QueryBuilder<EBM, EBM, QDistinct> distinctByLastTouched(
-      {bool caseSensitive = true}) {
+  QueryBuilder<EBM, EBM, QDistinct> distinctByLastTouched() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'lastTouched', caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'lastTouched');
     });
   }
 
@@ -2249,10 +2087,10 @@ extension EBMQueryWhereDistinct on QueryBuilder<EBM, EBM, QDistinct> {
     });
   }
 
-  QueryBuilder<EBM, EBM, QDistinct> distinctByRemoteID(
+  QueryBuilder<EBM, EBM, QDistinct> distinctByRemoteId(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'remoteID', caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'remoteId', caseSensitive: caseSensitive);
     });
   }
 
@@ -2320,7 +2158,7 @@ extension EBMQueryProperty on QueryBuilder<EBM, EBM, QQueryProperty> {
     });
   }
 
-  QueryBuilder<EBM, String?, QQueryOperations> lastTouchedProperty() {
+  QueryBuilder<EBM, DateTime?, QQueryOperations> lastTouchedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'lastTouched');
     });
@@ -2332,9 +2170,9 @@ extension EBMQueryProperty on QueryBuilder<EBM, EBM, QQueryProperty> {
     });
   }
 
-  QueryBuilder<EBM, String?, QQueryOperations> remoteIDProperty() {
+  QueryBuilder<EBM, String?, QQueryOperations> remoteIdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'remoteID');
+      return query.addPropertyName(r'remoteId');
     });
   }
 
@@ -2372,8 +2210,10 @@ EBM _$EBMFromJson(Map<String, dynamic> json) => EBM(
       taxServerUrl: json['taxServerUrl'] as String?,
     )
       ..id = json['id'] as int?
-      ..lastTouched = json['lastTouched'] as String?
-      ..remoteID = json['remoteID'] as String?
+      ..lastTouched = json['lastTouched'] == null
+          ? null
+          : DateTime.parse(json['lastTouched'] as String)
+      ..remoteId = json['remoteId'] as String?
       ..localId = json['localId'] as int?
       ..deletedAt = json['deletedAt'] == null
           ? null
@@ -2388,8 +2228,8 @@ Map<String, dynamic> _$EBMToJson(EBM instance) => <String, dynamic>{
       'taxServerUrl': instance.taxServerUrl,
       'businessId': instance.businessId,
       'branchId': instance.branchId,
-      'lastTouched': instance.lastTouched,
-      'remoteID': instance.remoteID,
+      'lastTouched': instance.lastTouched?.toIso8601String(),
+      'remoteId': instance.remoteId,
       'action': instance.action,
       'localId': instance.localId,
       'deletedAt': instance.deletedAt?.toIso8601String(),

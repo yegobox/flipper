@@ -10,7 +10,7 @@ part 'favorite.g.dart';
 @JsonSerializable()
 @Collection()
 class Favorite extends IJsonSerializable {
-  Id? id = syncIdInt();
+  Id? id = randomNumber();
 
   @Index(unique: true)
   int? favIndex;
@@ -18,10 +18,10 @@ class Favorite extends IJsonSerializable {
   int? productId;
   int? branchId;
 
+  @JsonKey(includeIfNull: true)
+  DateTime? lastTouched;
   @Index()
-  String? lastTouched;
-  @Index()
-  String? remoteID;
+  String? remoteId;
   String action;
   // only for accor when fetching from remove
   int? localId;

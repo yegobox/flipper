@@ -16,13 +16,11 @@ class NoticeSheetModel extends BaseViewModel {
 
   Future<void> expressInterest() async {
     Social social = Social(
-        businessId: ProxyService.box.getBusinessId()!,
+        branchId: ProxyService.box.getBranchId()!,
         isAccountSet: false,
         message: message,
-        localId: syncIdInt(),
-        lastTouched: removeTrailingDash(Hlc.fromDate(
-                DateTime.now(), ProxyService.box.getBranchId()!.toString())
-            .toString()),
+        localId: randomNumber(),
+        lastTouched: DateTime.now(),
         socialType: 'whatapp',
         socialUrl:
             'https://ers84w6ehl.execute-api.us-east-1.amazonaws.com/api');

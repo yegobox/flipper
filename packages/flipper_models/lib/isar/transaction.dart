@@ -26,13 +26,14 @@ class Transaction extends IJsonSerializable {
   /// a comma separated of the receipt type offered on this transaction eg. NR, NS etc...
   String? receiptType;
   String? updatedAt;
- 
+
   int? customerId;
   String? note;
+
+  @JsonKey(includeIfNull: true)
+  DateTime? lastTouched;
   @Index()
-  String? lastTouched;
-  @Index()
-  String? remoteID;
+  String? remoteId;
   String action;
   int? localId;
   String? ticketName;
@@ -54,24 +55,30 @@ class Transaction extends IJsonSerializable {
     this.customerId,
     this.note,
     this.id,
-    this.lastTouched,
+    required this.lastTouched,
     required this.action,
-    this.remoteID,
+    this.remoteId,
     this.ticketName,
     this.deletedAt,
   });
+
   factory Transaction.fromRecord(RecordModel record) =>
       Transaction.fromJson(record.toJson());
 
   factory Transaction.fromJson(Map<String, dynamic> json) {
-    /// assign remoteID to the value of id because this method is used to encode
-    /// data from remote server and id from remote server is considered remoteID on local
+    /// assign remoteId to the value of id because this method is used to encode
+    /// data from remote server and id from remote server is considered remoteId on local
     json['deletedAt'] = json['deletedAt'] == null ||
             (json['deletedAt'] is String && json['deletedAt'].isEmpty)
         ? null
         : json['deletedAt'];
-    json['remoteID'] = json['id'] is int ? json['id'].toString() : json['id'];
-    json.remove('id');
+    json['remoteId'] ??= json['id'].toString();
+    json['lastTouched'] =
+        json['lastTouched'].toString().isEmpty || json['lastTouched'] == null
+            ? DateTime.now().toIso8601String()
+            : DateTime.parse(json['lastTouched'] ?? DateTime.now())
+                .toIso8601String();
+    json['id'] = json['localId'];
     return _$TransactionFromJson(json);
   }
 

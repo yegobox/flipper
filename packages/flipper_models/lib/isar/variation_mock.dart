@@ -4,6 +4,7 @@ final variationMock = Variant(
     name: 'Regular',
     sku: 'sku',
     action: 'create',
+    lastTouched: DateTime.now(),
     productId: 2,
     unit: 'Per Item',
     productName: 'Custom Amount',

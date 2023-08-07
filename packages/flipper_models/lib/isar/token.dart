@@ -27,7 +27,8 @@ class Token extends IJsonSerializable {
   int businessId;
 
   @Index()
-  String? lastTouched;
+  @JsonKey(includeIfNull: true)
+  DateTime? lastTouched;
   @Index()
   DateTime? deletedAt;
   factory Token.fromRecord(RecordModel record) =>

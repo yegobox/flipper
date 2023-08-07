@@ -165,10 +165,11 @@ class IsarAPI<M> implements IsarApiInterface {
 
     if (existTransaction == null) {
       final transaction = Transaction(
-        id: syncIdInt(),
-        reference: syncId(),
+        lastTouched: DateTime.now(),
+        id: randomNumber(),
+        reference: randomString(),
         action: AppActions.create,
-        transactionNumber: syncId(),
+        transactionNumber: randomString(),
         status: pendingStatus,
         transactionType: transactionType,
         subTotal: 0,
@@ -202,10 +203,11 @@ class IsarAPI<M> implements IsarApiInterface {
 
     if (existTransaction == null) {
       final transaction = Transaction(
-        id: syncIdInt(),
-        reference: syncId(),
+        lastTouched: DateTime.now(),
+        id: randomNumber(),
+        reference: randomString(),
         action: AppActions.create,
-        transactionNumber: syncId(),
+        transactionNumber: randomString(),
         status: pendingStatus,
         transactionType: transactionType,
         subTotal: 0,
@@ -291,7 +293,6 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Stream<List<Transaction>> getCompletedTransactions() {
     Stream<List<Transaction>> completedTransactions = isar.transactions
-        .where()
         .filter()
         .statusEqualTo(completeStatus)
         .sortByCreatedAtDesc()
@@ -634,6 +635,7 @@ class IsarAPI<M> implements IsarApiInterface {
         int variantId = await isar.variants.put(variation);
         final stockId = DateTime.now().millisecondsSinceEpoch;
         final stock = Stock(
+            lastTouched: DateTime.now(),
             branchId: ProxyService.box.getBranchId()!,
             variantId: variantId,
             action: 'create',
@@ -873,7 +875,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
     product.description = 'description';
     product.color = '#5A2328';
-    product.id = syncIdInt();
+    product.id = randomNumber();
     product.businessId = ProxyService.box.getBusinessId()!;
     product.branchId = ProxyService.box.getBranchId()!;
 
@@ -894,6 +896,7 @@ class IsarAPI<M> implements IsarApiInterface {
     await isar.writeTxn(() async {
       return await isar.variants.put(
         Variant(
+            lastTouched: DateTime.now(),
             name: 'Regular',
             sku: 'sku',
             action: 'create',
@@ -903,7 +906,7 @@ class IsarAPI<M> implements IsarApiInterface {
             branchId: ProxyService.box.getBranchId()!,
             supplyPrice: 0.0,
             retailPrice: 0.0,
-            id: syncIdInt(),
+            id: randomNumber(),
             isTaxExempted: false)
           ..name = 'Regular'
           ..productId = kProduct.id!
@@ -949,7 +952,8 @@ class IsarAPI<M> implements IsarApiInterface {
         await isar.variants.where().productIdEqualTo(kProduct!.id!).findFirst();
 
     Stock stock = Stock(
-        id: syncIdInt(),
+        lastTouched: DateTime.now(),
+        id: randomNumber(),
         action: 'create',
         branchId: branchId,
         variantId: variant!.id!,
@@ -1224,6 +1228,7 @@ class IsarAPI<M> implements IsarApiInterface {
     if (product == null) {
       Product newProduct = await createProduct(
           product: Product(
+              lastTouched: DateTime.now(),
               name: "Custom Amount",
               action: 'create',
               businessId: businessId,
@@ -1270,6 +1275,7 @@ class IsarAPI<M> implements IsarApiInterface {
       variation = await isar.writeTxn(() async {
         int id = await isar.variants.put(
           Variant(
+              lastTouched: DateTime.now(),
               name: 'Custom Amount',
               sku: 'sku',
               action: 'create',
@@ -1279,7 +1285,7 @@ class IsarAPI<M> implements IsarApiInterface {
               branchId: ProxyService.box.getBranchId()!,
               supplyPrice: 0.0,
               retailPrice: 0.0,
-              id: syncIdInt(),
+              id: randomNumber(),
               isTaxExempted: false)
             ..name = 'Regular'
             ..productId = product.id!
@@ -1323,7 +1329,8 @@ class IsarAPI<M> implements IsarApiInterface {
       });
       // add its stock
       Stock stock = Stock(
-          id: syncIdInt(),
+          lastTouched: DateTime.now(),
+          id: randomNumber(),
           action: 'create',
           branchId: branchId,
           variantId: variation!.id!,
@@ -1571,7 +1578,7 @@ class IsarAPI<M> implements IsarApiInterface {
         'defaultApp': ProxyService.box.getDefaultApp(),
         'deviceName': Platform.operatingSystem,
         'deviceVersion': Platform.operatingSystemVersion,
-        'linkingCode': syncIdInt().toString()
+        'linkingCode': randomNumber().toString()
       });
     }
 
@@ -1954,6 +1961,7 @@ class IsarAPI<M> implements IsarApiInterface {
       isar.writeTxn(() async {
         for (String colorName in data.colors!) {
           await isar.pColors.put(PColor(
+              lastTouched: DateTime.now(),
               action: AppActions.create,
               name: colorName,
               active: color.active,
@@ -2026,6 +2034,18 @@ class IsarAPI<M> implements IsarApiInterface {
     if (data is EBM) {
       await isar.writeTxn(() async {
         await isar.eBMs.put(data);
+        return Future.value(null);
+      });
+    }
+    if (data is Transaction) {
+      await isar.writeTxn(() async {
+        await isar.transactions.put(data);
+        return Future.value(null);
+      });
+    }
+    if (data is TransactionItem) {
+      await isar.writeTxn(() async {
+        await isar.transactionItems.put(data);
         return Future.value(null);
       });
     }
@@ -2625,11 +2645,11 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Stream<Social> socialsStream({required int businessId}) {
-    log("socialsStream called", name: "${businessId}");
+  Stream<Social> socialsStream({required int branchId}) {
+    log("socialsStream called", name: "${branchId}");
     return isar.socials
         .filter()
-        .businessIdEqualTo(businessId)
+        .branchIdEqualTo(branchId)
         .and()
         .isAccountSetEqualTo(true)
         .build()
@@ -2663,10 +2683,10 @@ class IsarAPI<M> implements IsarApiInterface {
   /// this will give us enough confidence that we can authenticate social api as there is
   /// probably one account set which means we can get bearer token if we authenticate with service
   @override
-  Future<List<Social>> activesocialAccounts({required int businessId}) async {
+  Future<List<Social>> activesocialAccounts({required int branchId}) async {
     return await isar.socials
         .filter()
-        .businessIdEqualTo(businessId)
+        .branchIdEqualTo(branchId)
         .and()
         .isAccountSetEqualTo(true)
         .findAll();
@@ -3109,7 +3129,8 @@ class IsarAPI<M> implements IsarApiInterface {
   Future<Stock?> addStockToVariant({required Variant variant}) async {
     int branchId = ProxyService.box.getBranchId()!;
     Stock stock = Stock(
-        id: syncIdInt(),
+        lastTouched: DateTime.now(),
+        id: randomNumber(),
         action: 'create',
         branchId: branchId,
         variantId: variant.id!,
