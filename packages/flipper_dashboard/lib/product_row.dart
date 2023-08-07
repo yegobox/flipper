@@ -214,11 +214,18 @@ class ProductRow extends StatelessWidget {
                           style: TextStyle(color: Colors.black),
                         );
                       } else {
-                        // Here, we can use the 'stocks' list directly (assuming it is already fetched).
-                        return Text(
-                          'RWF ' + stocks.first!.retailPrice.toString(),
-                          style: const TextStyle(color: Colors.black),
-                        );
+                        if (stocks.isNotEmpty &&
+                            stocks.first!.retailPrice != null) {
+                          return Text(
+                            'RWF ' + stocks.first!.retailPrice.toString(),
+                            style: const TextStyle(color: Colors.black),
+                          );
+                        } else {
+                          return const Text(
+                            'RWF 0',
+                            style: TextStyle(color: Colors.black),
+                          );
+                        }
                       }
                     },
                   ),

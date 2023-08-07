@@ -8,11 +8,15 @@ import 'package:flutter/foundation.dart';
 import 'package:pocketbase/pocketbase.dart';
 import 'dart:io';
 
+import 'package:sentry_flutter/sentry_flutter.dart';
+
 abstract class RemoteInterface {
   Future<List<RecordModel>> getCollection({required String collectionName});
   Future<RecordModel?> create(
       {required Map<String, dynamic> collection,
       required String collectionName});
+  Future<void> hardDelete(
+      {required String remoteId, required String collectionId});
   Future<RecordModel?> update(
       {required Map<String, dynamic> data,
       required String collectionName,
@@ -187,6 +191,7 @@ class RemoteService implements RemoteInterface {
           } while (page <= totalPages);
         } catch (e) {
           log(e.toString(), name: 'on Pull ${collectionName}');
+          Sentry.captureException(e);
         }
       }
     } on ClientException {
@@ -443,5 +448,11 @@ class RemoteService implements RemoteInterface {
         await ProxyService.isar.update(data: remoteTransactionItem);
       }
     }
+  }
+
+  @override
+  Future<void> hardDelete(
+      {required String remoteId, required String collectionId}) async {
+    await pb.collection(collectionId).delete(remoteId);
   }
 }

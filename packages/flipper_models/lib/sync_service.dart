@@ -21,7 +21,7 @@ class SynchronizationService<M extends IJsonSerializable>
     implements SyncApiInterface<M> {
   @override
   Future<void> push() async {
-    await dirtyData();
+    await localChanges();
   }
 
   Future<Map<String, dynamic>?> _push(M model) async {
@@ -105,7 +105,7 @@ class SynchronizationService<M extends IJsonSerializable>
   }
 
   @override
-  Future<void> dirtyData() async {
+  Future<void> localChanges() async {
     final data = await ProxyService.isar.getUnSyncedData();
 
     for (Transaction transaction in data.transactions) {
@@ -190,7 +190,7 @@ class SynchronizationService<M extends IJsonSerializable>
       int oldId = device.id!;
       if (record != null && record.isNotEmpty) {
         Device dev = Device.fromJson(record);
-        dev.remoteId = record['id'];
+        dev.remoteId ??= record['id'];
 
         /// keep the local ID unchanged to avoid complication
         dev.id = oldId;

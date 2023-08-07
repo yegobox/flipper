@@ -101,12 +101,16 @@ class LogOut extends StackedView<LogoutModel> {
                             'deviceVersion': device.deviceVersion,
                             'linkingCode': device.linkingCode,
                           });
-                          // delete device
-                          ProxyService.isar.delete(
-                            endPoint: 'device',
-                            id: device.id!,
-                          );
-                          // close the dialog
+                          await ProxyService.remote
+                              .hardDelete(
+                                  remoteId: device.remoteId!,
+                                  collectionId: 'devices')
+                              .then((value) {
+                            ProxyService.isar.delete(
+                              endPoint: 'device',
+                              id: device.id!,
+                            );
+                          });
                           completer(DialogResponse(confirmed: true));
                         }
                       } else {
