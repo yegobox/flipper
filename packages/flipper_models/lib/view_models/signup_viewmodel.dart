@@ -104,18 +104,19 @@ class SignupViewModel extends ReactiveViewModel {
                   ProxyService.box.getUserPhone()!.replaceAll("+", ""));
         }
         Business? business = await ProxyService.isar
-            .getBusinessById(id: jTenants.first.businesses.first.id!);
+            .getBusinessById(id: jTenants.first.businesses.first.id);
 
         List<Branch> branches =
-            await ProxyService.isar.branches(businessId: business!.id!);
-        ProxyService.box.write(key: 'branchId', value: branches[0].id!);
+            await ProxyService.isar.branches(businessId: business!.id);
+        ProxyService.box.write(key: 'branchId', value: branches[0].id);
 
         appService.appInit();
         final Category category = Category(
             active: true,
             focused: true,
             name: "NONE",
-            branchId: branches[0].id!);
+            id: randomString(),
+            branchId: branches[0].id);
         await ProxyService.isar.create<Category>(data: category);
         //get default colors for this branch
         final List<String> colors = [
@@ -130,7 +131,7 @@ class SignupViewModel extends ReactiveViewModel {
         ];
 
         final PColor color = PColor(
-            id: randomNumber(),
+            id: randomString(),
             colors: colors,
             active: false,
             lastTouched: DateTime.now(),
@@ -140,14 +141,8 @@ class SignupViewModel extends ReactiveViewModel {
 
         await ProxyService.isar.create<PColor>(data: color);
         //now create default units for this branch
-        final units = IUnit()
-          ..name = 'Per Kilogram (kg)'
-          ..value = 'kg'
-          ..active = false
-          ..id = DateTime.now().millisecondsSinceEpoch
-          ..units = mockUnits
-          ..branchId = branches[0].id!;
-        await ProxyService.isar.addUnits(data: units);
+
+        await ProxyService.isar.addUnits(units: mockUnits);
 
         //now create a default custom product
         ProxyService.forceDateEntry.dataBootstrapper();

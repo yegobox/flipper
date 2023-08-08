@@ -18,7 +18,7 @@ class Token extends IJsonSerializable {
     required this.validUntil,
     this.deletedAt,
   });
-  Id id = Isar.autoIncrement;
+  late String id;
   String type;
   String token;
   DateTime validFrom;

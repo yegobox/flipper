@@ -17,7 +17,7 @@ enum Role { admin, agent, moderator, user }
 
 class LBusiness {
   LBusiness(
-      {this.id = 0,
+      {required this.id,
       required this.name,
       this.currency,
       this.fcategoryId = 1,
@@ -51,7 +51,7 @@ class LBusiness {
       this.fullName,
       this.role});
 
-  int id;
+  late String id;
   String name;
   String? currency;
   int? fcategoryId;

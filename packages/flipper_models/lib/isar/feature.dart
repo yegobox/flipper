@@ -4,9 +4,9 @@ part 'feature.g.dart';
 
 @Collection()
 class Feature {
-  Feature({this.id = 0, required this.name});
+  Feature({required this.id, required this.name});
 
-  Id id = Isar.autoIncrement;
+  late String id;
   late String name;
 
   factory Feature.fromMap(Map<String, dynamic> json) => Feature(

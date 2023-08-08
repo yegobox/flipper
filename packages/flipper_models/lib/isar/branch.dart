@@ -13,7 +13,7 @@ class Branch extends IJsonSerializable {
   Branch({
     required this.isDefault,
     required this.action,
-    this.id,
+    required this.id,
     this.active,
     this.description,
     this.name,
@@ -24,7 +24,7 @@ class Branch extends IJsonSerializable {
     this.deletedAt,
   });
 
-  Id? id = Isar.autoIncrement;
+  late int id;
   bool? active;
 
   String? description;
@@ -37,10 +37,9 @@ class Branch extends IJsonSerializable {
 
   @JsonKey(includeIfNull: true)
   DateTime? lastTouched;
-  @Index()
-  String? remoteId;
+
   String action;
-  int? localId;
+
   @Index()
   DateTime? deletedAt;
   factory Branch.fromRecord(RecordModel record) =>
@@ -49,24 +48,18 @@ class Branch extends IJsonSerializable {
   factory Branch.fromJson(Map<String, dynamic> json) {
     /// assign remoteId to the value of id because this method is used to encode
     /// data from remote server and id from remote server is considered remoteId on local
-    json['remoteId'] ??= json['id'].toString();
+
     json['lastTouched'] =
         json['lastTouched'].toString().isEmpty || json['lastTouched'] == null
             ? DateTime.now().toIso8601String()
             : DateTime.parse(json['lastTouched'] ?? DateTime.now())
                 .toIso8601String();
-    json['id'] = json['localId'];
+
     // this line ony added in both business and branch as they are not part of sync schemd
     json['action'] = AppActions.create;
     return _$BranchFromJson(json);
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = _$BranchToJson(this);
-    if (id != null) {
-      data['localId'] = id;
-    }
-    return data;
-  }
+  Map<String, dynamic> toJson() => _$BranchToJson(this);
 }

@@ -1,12 +1,12 @@
 // ignore_for_file: implementation_imports
-import 'dart:io';
-import 'package:isar/isar.dart';
+// import 'dart:io';
+// import 'package:isar/isar.dart';
 import 'package:meta/meta.dart';
-import 'package:path/path.dart' as path;
+// import 'package:path/path.dart' as path;
 import 'dart:math';
 import 'package:test/test.dart';
 
-import 'sync_async_helper.dart';
+// import 'sync_async_helper.dart';
 
 const bool kIsWeb = identical(0, 0.0);
 
@@ -40,7 +40,7 @@ var testCount = 0;
 Future<void> _prepareTest() async {
   if (!kIsWeb) {
     try {
-      await Isar.initializeIsarCore(download: true);
+      // await Isar.initialize(download: true);
     } catch (e) {
       // ignore. maybe this is an instrumentation test
     }
@@ -84,22 +84,22 @@ String getRandomName() {
   return '${random}_tmp';
 }
 
-String? testTempPath;
-Future<Isar> openTempIsar(List<CollectionSchema<dynamic>> schemas,
-    {String? name}) async {
-  await _prepareTest();
-  if (!kIsWeb && testTempPath == null) {
-    final dartToolDir = path.join(Directory.current.path, '.dart_tool');
-    testTempPath = path.join(dartToolDir, 'test', 'tmp');
-    await Directory(testTempPath!).create(recursive: true);
-  }
+// String? testTempPath;
+// Future<Isar> openTempIsar(List<CollectionSchema<dynamic>> schemas,
+//     {String? name}) async {
+//   await _prepareTest();
+//   if (!kIsWeb && testTempPath == null) {
+//     final dartToolDir = path.join(Directory.current.path, '.dart_tool');
+//     testTempPath = path.join(dartToolDir, 'test', 'tmp');
+//     await Directory(testTempPath!).create(recursive: true);
+//   }
 
-  return await tOpen(
-    schemas: schemas,
-    name: name ?? getRandomName(),
-    directory: kIsWeb ? '' : testTempPath!,
-  );
-}
+//   return await tOpen(
+//     schemas: schemas,
+//     name: name ?? getRandomName(),
+//     directory: kIsWeb ? '' : testTempPath!,
+//   );
+// }
 
 bool doubleListEquals(List<double?>? l1, List<double?>? l2) {
   if (l1?.length != l2?.length) {
@@ -121,20 +121,20 @@ bool doubleListEquals(List<double?>? l1, List<double?>? l2) {
   return true;
 }
 
-Matcher isIsarError([String? contains]) {
-  return allOf(
-    isA<IsarError>(),
-    predicate(
-      (IsarError e) =>
-          contains == null ||
-          e.toString().toLowerCase().contains(contains.toLowerCase()),
-    ),
-  );
-}
+// Matcher isIsarError([String? contains]) {
+//   return allOf(
+//     isA<IsarError>(),
+//     predicate(
+//       (IsarError e) =>
+//           contains == null ||
+//           e.toString().toLowerCase().contains(contains.toLowerCase()),
+//     ),
+//   );
+// }
 
-Matcher throwsIsarError([String? contains]) {
-  return throwsA(isIsarError(contains));
-}
+// Matcher throwsIsarError([String? contains]) {
+//   // return throwsA(isIsarError(contains));
+// }
 
 bool listEquals<T>(List<T>? a, List<T>? b) {
   if (a == null) {

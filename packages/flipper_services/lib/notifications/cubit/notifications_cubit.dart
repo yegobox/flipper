@@ -5,7 +5,6 @@ import 'dart:math';
 import 'package:flipper_models/isar/conversation.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'
     hide RepeatInterval;
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -169,7 +168,7 @@ class NotificationsCubit {
     dueDateFormatted = DateFormat.yMMMMd().add_jm().format(createdAt);
 
     final notification = Notification(
-      id: conversation.id!,
+      id: conversation.id.codeUnitAt(0),
       title: conversation.body,
       body: dueDateFormatted,
       payload: jsonEncode(conversation.toJson()),
@@ -218,7 +217,7 @@ class NotificationsCubit {
   /// Snooze a task's notification.
   Future<void> snoozeTask(Conversation task) async {
     // log.v('Snoozing notification for task: ${task.id}');
-    await cancelNotification(task.id!);
+    await cancelNotification(task.id.codeUnitAt(0));
     const snoozeDuration = Duration(minutes: 10);
     final snoozeTime = DateTime.now().add(snoozeDuration);
     // final updatedTask = task.copyWith(dueDate: snoozeTime);
@@ -432,7 +431,7 @@ class NotificationsCubit {
     localNotification.onClick = () {
       _notificationCallback(NotificationResponse(
         notificationResponseType: NotificationResponseType.selectedNotification,
-        id: conversation.id,
+        id: conversation.id.codeUnitAt(0),
         payload: jsonEncode(conversation.toJson()),
       ));
     };

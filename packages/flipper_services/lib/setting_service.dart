@@ -1,3 +1,4 @@
+import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flutter/material.dart';
@@ -49,6 +50,7 @@ class SettingsService with ListenableServiceMixin {
         kMap[key] = value;
       });
       Setting setting = Setting(
+        id: randomString(),
         email: kMap['email'] ?? '',
         userId: userId,
         hasPin: kMap['hasPin'] ?? '',

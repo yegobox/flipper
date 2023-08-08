@@ -13,7 +13,7 @@ on:
   push:
     branches: [main]
 # name: Deploy to Firebase Hosting on PR
-# "on": pull_request
+  "on": pull_request
 jobs:
   build_and_preview:
     if: "${{ github.event.pull_request.head.repo.full_name == github.repository }}"

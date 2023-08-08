@@ -9,8 +9,8 @@ part 'product.g.dart';
 @JsonSerializable()
 @Collection()
 class Product extends IJsonSerializable {
-  Id? id;
-  @Index(caseSensitive: true)
+  late String id;
+  @Index()
   late String name;
   String? description;
   String? taxId;
@@ -38,10 +38,9 @@ class Product extends IJsonSerializable {
 
   @JsonKey(includeIfNull: true)
   DateTime? lastTouched;
-  @Index()
-  String? remoteId;
+
   String action;
-  int? localId;
+
   @Index()
   DateTime? deletedAt;
 
@@ -51,7 +50,7 @@ class Product extends IJsonSerializable {
     required this.businessId,
     required this.branchId,
     required this.action,
-    this.id,
+    required this.id,
     this.description,
     this.taxId,
     this.supplierId,
@@ -65,7 +64,6 @@ class Product extends IJsonSerializable {
     this.bindedToTenantId,
     this.isFavorite,
     required this.lastTouched,
-    this.remoteId,
     this.deletedAt,
   });
 
@@ -76,22 +74,16 @@ class Product extends IJsonSerializable {
             (json['deletedAt'] is String && json['deletedAt'].isEmpty)
         ? null
         : json['deletedAt'];
-    json['remoteId'] ??= json['id'].toString();
+
     json['lastTouched'] =
         json['lastTouched'].toString().isEmpty || json['lastTouched'] == null
             ? DateTime.now().toIso8601String()
             : DateTime.parse(json['lastTouched'] ?? DateTime.now())
                 .toIso8601String();
-    json['id'] = json['localId'];
+   
     return _$ProductFromJson(json);
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = _$ProductToJson(this);
-    if (id != null) {
-      data['localId'] = id;
-    }
-    return data;
-  }
+  Map<String, dynamic> toJson() =>_$ProductToJson(this);
 }

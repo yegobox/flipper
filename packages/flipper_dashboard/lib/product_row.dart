@@ -70,7 +70,7 @@ class ProductRow extends StatelessWidget {
           width: double.infinity,
         ),
         Slidable(
-          key: Key('slidable-${product.id!}'),
+          key: Key('slidable-${product.id}'),
           child: InkWell(
             onTap: () {
               log("tap recognized");
@@ -111,7 +111,7 @@ class ProductRow extends StatelessWidget {
                           ),
                           onPressed: () => {
                             model.addFavorite(
-                                favIndex: favIndex!, productId: product.id!),
+                                favIndex: favIndex!, productId: product.id),
                             model.rebuildUi(),
                             Navigator.of(context).pop(),
                             Navigator.of(context).pop(),
@@ -205,7 +205,7 @@ class ProductRow extends StatelessWidget {
                   width: 80,
                   child: StreamBuilder<List<Variant>>(
                     stream: ProxyService.isar
-                        .geVariantStreamByProductId(productId: product.id!),
+                        .geVariantStreamByProductId(productId: product.id),
                     builder: (context, snapshot) {
                       if (snapshot.data?.isNotEmpty == true &&
                           snapshot.data!.length > 1) {
@@ -236,14 +236,14 @@ class ProductRow extends StatelessWidget {
           startActionPane: ActionPane(
             // A motion is a widget used to control how the pane animates.
             motion: ScrollMotion(
-              key: Key('dismissable-${product.id!}'),
+              key: Key('dismissable-${product.id}'),
             ),
             // All actions are defined in the children parameter.
             children: [
               // A SlidableAction can have an icon and/or a label.
               SlidableAction(
                 onPressed: (_) {
-                  delete(product.id!);
+                  delete(product.id);
                 },
                 backgroundColor: const Color(0xFFFE4A49),
                 foregroundColor: Colors.white,
@@ -252,7 +252,7 @@ class ProductRow extends StatelessWidget {
               ),
               SlidableAction(
                 onPressed: (_) {
-                  edit(product.id!);
+                  edit(product.id);
                 },
                 backgroundColor: Colors.blue,
                 foregroundColor: Colors.white,
@@ -276,14 +276,14 @@ class ProductRow extends StatelessWidget {
           endActionPane: ActionPane(
             // A motion is a widget used to control how the pane animates.
             motion: ScrollMotion(
-              key: Key('dismissable-${product.id!}'),
+              key: Key('dismissable-${product.id}'),
             ),
             // All actions are defined in the children parameter.
             children: [
               // A SlidableAction can have an icon and/or a label.
               SlidableAction(
                 onPressed: (_) {
-                  edit(product.id!);
+                  edit(product.id);
                 },
                 backgroundColor: Colors.blue,
                 foregroundColor: Colors.white,

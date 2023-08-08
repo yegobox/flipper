@@ -1,6 +1,5 @@
 library flipper_models;
 
-import 'package:flipper_models/isar/random.dart';
 import 'package:isar/isar.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pocketbase/pocketbase.dart';
@@ -10,21 +9,20 @@ part 'favorite.g.dart';
 @JsonSerializable()
 @Collection()
 class Favorite extends IJsonSerializable {
-  Id? id = randomNumber();
+  late int id;
 
   @Index(unique: true)
   int? favIndex;
 
-  int? productId;
+  String? productId;
   int? branchId;
 
   @JsonKey(includeIfNull: true)
   DateTime? lastTouched;
-  @Index()
-  String? remoteId;
+
   String action;
   // only for accor when fetching from remove
-  int? localId;
+
   @Index()
   DateTime? deletedAt;
   Favorite({
@@ -38,16 +36,9 @@ class Favorite extends IJsonSerializable {
       Favorite.fromJson(record.toJson());
 
   factory Favorite.fromJson(Map<String, dynamic> json) {
-    json.remove('id');
     return _$FavoriteFromJson(json);
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = _$FavoriteToJson(this);
-    if (id != null) {
-      data['localId'] = id;
-    }
-    return data;
-  }
+  Map<String, dynamic> toJson() => _$FavoriteToJson(this);
 }

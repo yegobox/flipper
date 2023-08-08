@@ -8,7 +8,7 @@ class AddCustomerButton extends StatelessWidget {
   AddCustomerButton({Key? key, required this.transactionId}) : super(key: key);
   final _routerService = locator<RouterService>();
 
-  final int transactionId;
+  final String transactionId;
   @override
   Widget build(BuildContext context) {
     return Padding(

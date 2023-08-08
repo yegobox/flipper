@@ -1,3 +1,4 @@
+import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/locator.dart';
@@ -52,17 +53,18 @@ final variationMock = Variant(
     name: 'Regular',
     lastTouched: DateTime.now(),
     sku: 'sku',
-    productId: 2,
+    id:randomString(),
+    productId: '2',
     unit: 'Per Item',
     productName: 'Custom Amount',
     branchId: 11,
     supplyPrice: 0.0,
     retailPrice: 0.0,
     isTaxExempted: false)
-  ..id = DateTime.now().millisecondsSinceEpoch
+  ..id =randomString()
   ..name = 'Regular'
   ..sku = 'sku'
-  ..productId = 2
+  ..productId = '2'
   ..unit = 'Per Item'
   ..productName = 'Custom Amount'
   ..branchId = 11
@@ -75,26 +77,28 @@ final variationMock = Variant(
 final stockMock = Stock(
     lastTouched: DateTime.now(),
     branchId: 11,
-    variantId: 1,
+    id:randomString(),
+    variantId: '1',
     currentStock: 0.0,
-    productId: 2,
+    productId: '2',
     action: 'create')
-  ..id = DateTime.now().millisecondsSinceEpoch
+  ..id =randomString()
   ..branchId = 11
-  ..variantId = 1
+  ..variantId = '1'
   ..lowStock = 0.0
   ..currentStock = 0.0
   ..supplyPrice = 0.0
   ..retailPrice = 0.0
   ..canTrackingStock = false
   ..showLowStockAlert = false
-  ..productId = 2
+  ..productId = '2'
   ..active = false;
 
 // transaction mock
 Transaction? TransactionFMock = Transaction(
   lastTouched: DateTime.now(),
   action: AppActions.create,
+  id:randomString(),
   reference: Uuid().v1(),
   transactionNumber: Uuid().v1(),
   status: "pending",
@@ -111,6 +115,7 @@ Transaction? TransactionFMock = Transaction(
 final AppService _appService = locator<AppService>();
 
 final customProductMock = Product(
+  id:randomString(),
     action: 'create',
     lastTouched: DateTime.now(),
     name: "temp",
@@ -129,6 +134,7 @@ final customProductMock = Product(
   ..createdAt = DateTime.now().toIso8601String();
 
 final productMock = Product(
+  id:randomString(),
     lastTouched: DateTime.now(),
     action: 'create',
     name: "temp",
@@ -148,7 +154,7 @@ final productMock = Product(
 
 final branchMock = Branch(
   action: AppActions.create,
-  id: DateTime.now().millisecondsSinceEpoch,
+  id:randomNumber(),
   active: false,
   description: 'desc',
   businessId: 10,

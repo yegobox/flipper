@@ -29,6 +29,7 @@ class ForceDataEntryService {
     if (products.isEmpty) {
       await ProxyService.isar.createProduct(
           product: Product(
+              id: randomString(),
               name: "Custom Amount",
               action: 'create',
               lastTouched: DateTime.now(),
@@ -51,7 +52,7 @@ class ForceDataEntryService {
     ];
 
     final PColor color = PColor(
-        id: randomNumber(),
+        id: randomString(),
         colors: colors,
         branchId: branchId,
         lastTouched: DateTime.now(),
@@ -66,16 +67,8 @@ class ForceDataEntryService {
     }
     List<IUnit> kUnits = await ProxyService.isar.units(branchId: branchid);
 
-    //now create default units for this branch
-    final units = IUnit()
-      ..name = 'Per Kilogram (kg)'
-      ..value = 'kg'
-      ..active = false
-      ..id = DateTime.now().millisecondsSinceEpoch
-      ..units = mockUnits
-      ..branchId = branchId;
     if (kUnits.isEmpty) {
-      await ProxyService.isar.addUnits(data: units);
+      await ProxyService.isar.addUnits(units: mockUnits);
     }
   }
 }

@@ -17,21 +17,20 @@ class EBM extends IJsonSerializable {
     required this.branchId,
     this.taxServerUrl,
   });
-  Id? id = Isar.autoIncrement;
+  late String id;
   String bhfId;
   int tinNumber;
   String dvcSrlNo;
-  String userId;
+  int userId;
   String? taxServerUrl;
   int businessId;
   int branchId;
 
   @JsonKey(includeIfNull: true)
   DateTime? lastTouched;
-  @Index()
-  String? remoteId;
+
   String action;
-  int? localId;
+
   @Index()
   DateTime? deletedAt;
   factory EBM.fromRecord(RecordModel record) => EBM.fromJson(record.toJson());
@@ -43,22 +42,18 @@ class EBM extends IJsonSerializable {
             (json['deletedAt'] is String && json['deletedAt'].isEmpty)
         ? null
         : json['deletedAt'];
-    json['remoteId'] ??= json['id'].toString();
+
     json['lastTouched'] =
         json['lastTouched'].toString().isEmpty || json['lastTouched'] == null
             ? DateTime.now().toIso8601String()
             : DateTime.parse(json['lastTouched'] ?? DateTime.now())
                 .toIso8601String();
-    json['id'] = json['localId'];
+
     return _$EBMFromJson(json);
   }
 
   @override
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = _$EBMToJson(this);
-    if (id != null) {
-      data['localId'] = id;
-    }
-    return data;
+    return _$EBMToJson(this);
   }
 }

@@ -182,7 +182,7 @@ class _TransactionDetailState extends State<TransactionDetail> {
         onViewModelReady: (model) async {
           List<TransactionItem> items = await ProxyService.isar
               .transactionItems(
-                  transactionId: widget.transaction.id!,
+                  transactionId: widget.transaction.id,
                   doneWithTransaction: true);
 
           model.completedTransactionItemsList = items;
@@ -383,10 +383,10 @@ class _TransactionDetailState extends State<TransactionDetail> {
         });
   }
 
-  Future<void> refund(int id, HomeViewModel model) async {
+  Future<void> refund(String id, HomeViewModel model) async {
     ProxyService.isar.refund(itemId: id);
     List<TransactionItem> items = await ProxyService.isar.transactionItems(
-        transactionId: widget.transaction.id!, doneWithTransaction: false);
+        transactionId: widget.transaction.id, doneWithTransaction: false);
 
     model.completedTransactionItemsList = items;
   }

@@ -45,14 +45,14 @@ class ProductViewModel extends TenantViewModel {
   /// Create a temporal product to use during this session of product creation
   /// the same product will be use if it is still temp product
   String kProductName = 'null';
-  Future<Product> getTempOrCreateProduct({int? productId}) async {
+  Future<Product> getTempOrCreateProduct({String? productId}) async {
     if (productId != null) {
       inUpdateProcess = true;
       Product? product = await ProxyService.isar.getProduct(id: productId);
       productService.setCurrentProduct(product: product!);
       kProductName = product.name;
 
-      productService.variantsProduct(productId: product.id!);
+      productService.variantsProduct(productId: product.id);
       notifyListeners();
       return product;
     }
@@ -64,7 +64,7 @@ class ProductViewModel extends TenantViewModel {
     if (isTemp == null) {
       Product product = await ProxyService.isar.createProduct(
           product: Product(
-              id: randomNumber(),
+              id: randomString(),
               name: "temp",
               action: 'create',
               lastTouched: DateTime.now(),
@@ -75,7 +75,7 @@ class ProductViewModel extends TenantViewModel {
             ..color = "#e74c3c"
             ..branchId = branchId
             ..businessId = businessId);
-      await productService.variantsProduct(productId: product.id!);
+      await productService.variantsProduct(productId: product.id);
 
       productService.setCurrentProduct(product: product);
       kProductName = product.name;
@@ -83,7 +83,7 @@ class ProductViewModel extends TenantViewModel {
       return product;
     }
     productService.setCurrentProduct(product: isTemp);
-    await productService.variantsProduct(productId: isTemp.id!);
+    await productService.variantsProduct(productId: isTemp.id);
     rebuildUi();
     return isTemp;
   }
@@ -121,7 +121,7 @@ class ProductViewModel extends TenantViewModel {
         active: true,
         focused: false,
         branchId: branchId!,
-        id: randomNumber());
+        id: randomString());
 
     await ProxyService.isar.create(data: category);
     app.loadCategories();
@@ -174,7 +174,7 @@ class ProductViewModel extends TenantViewModel {
       product.unit = unit.name;
       ProxyService.isar.update(data: product);
       final Product? uProduct =
-          await ProxyService.isar.getProduct(id: product.id!!);
+          await ProxyService.isar.getProduct(id: product.id!);
       productService.setCurrentProduct(product: uProduct!);
     }
     if (type == 'variant') {
@@ -186,7 +186,7 @@ class ProductViewModel extends TenantViewModel {
     app.loadUnits();
   }
 
-  void updateStock({required int variantId}) async {
+  void updateStock({required String variantId}) async {
     if (_stockValue != null) {
       Stock? stock =
           await ProxyService.isar.stockByVariantId(variantId: variantId);
@@ -197,9 +197,9 @@ class ProductViewModel extends TenantViewModel {
       if (await ProxyService.isar.isTaxEnabled()) {
         ProxyService.tax.saveStock(stock: stock);
       }
-      productService.variantsProduct(productId: product.id!!);
+      productService.variantsProduct(productId: product.id!);
     }
-    productService.variantsProduct(productId: product.id!!);
+    productService.variantsProduct(productId: product.id!);
   }
 
   double? _stockValue;
@@ -209,7 +209,7 @@ class ProductViewModel extends TenantViewModel {
     rebuildUi();
   }
 
-  void deleteVariant({required int id}) async {
+  void deleteVariant({required String id}) async {
     Variant? variant = await ProxyService.isar.variant(variantId: id);
     // can not delete regular variant every product should have a regular variant.
     if (variant!.name != 'Regular') {
@@ -223,14 +223,14 @@ class ProductViewModel extends TenantViewModel {
     int branchId = ProxyService.box.getBranchId()!;
     for (PColor c in colors) {
       if (c.active) {
-        final PColor? _color = await ProxyService.isar.getColor(id: c.id!);
+        final PColor? _color = await ProxyService.isar.getColor(id: c.id);
         _color!.active = false;
         _color.branchId = branchId;
         await ProxyService.isar.update(data: _color);
       }
     }
 
-    final PColor? _color = await ProxyService.isar.getColor(id: color.id!);
+    final PColor? _color = await ProxyService.isar.getColor(id: color.id);
 
     _color!.active = true;
     _color.branchId = branchId;
@@ -263,14 +263,14 @@ class ProductViewModel extends TenantViewModel {
   }
 
   void navigateAddVariation(
-      {required int productId, required BuildContext context}) {
+      {required String productId, required BuildContext context}) {
     _routerService.navigateTo(AddVariationRoute(productId: productId));
   }
 
   /// When called should check the related product's variant and set the retail and or supply price
   /// of related stock
   Future<void> updateRegularVariant(
-      {double? supplyPrice, double? retailPrice, int? productId}) async {
+      {double? supplyPrice, double? retailPrice, String? productId}) async {
     Product? product = await ProxyService.isar.getProduct(id: productId!);
     if (supplyPrice != null) {
       for (Variant variation in variants!) {
@@ -281,8 +281,8 @@ class ProductViewModel extends TenantViewModel {
               inUpdateProcess ? AppActions.update : AppActions.create;
           variation.productId = variation.productId;
           ProxyService.isar.update(data: variation);
-          Stock? stock = await ProxyService.isar
-              .stockByVariantId(variantId: variation.id!);
+          Stock? stock =
+              await ProxyService.isar.stockByVariantId(variantId: variation.id);
 
           if (stock != null) {
             stock.supplyPrice = supplyPrice;
@@ -304,8 +304,8 @@ class ProductViewModel extends TenantViewModel {
               inUpdateProcess ? AppActions.update : AppActions.create;
           variation.productName = product!.name;
           ProxyService.isar.update(data: variation);
-          Stock? stock = await ProxyService.isar
-              .stockByVariantId(variantId: variation.id!);
+          Stock? stock =
+              await ProxyService.isar.stockByVariantId(variantId: variation.id);
 
           if (stock != null) {
             stock.retailPrice = retailPrice;
@@ -316,7 +316,7 @@ class ProductViewModel extends TenantViewModel {
         }
       }
     }
-    productService.variantsProduct(productId: product!.id!);
+    productService.variantsProduct(productId: product!.id);
   }
 
   /// Add a product into the system
@@ -333,12 +333,12 @@ class ProductViewModel extends TenantViewModel {
 
     final response = await ProxyService.isar.update(data: mproduct);
     List<Variant> variants =
-        await ProxyService.isar.getVariantByProductId(productId: mproduct.id!);
+        await ProxyService.isar.getVariantByProductId(productId: mproduct.id);
 
     for (Variant variant in variants) {
       variant.productName = productName;
       variant.prc = variant.retailPrice;
-      variant.productId = mproduct.id!;
+      variant.productId = mproduct.id;
       variant.pkgUnitCd = "NT";
       variant.action = inUpdateProcess ? AppActions.update : AppActions.create;
       await ProxyService.isar.update(data: variant);
@@ -352,7 +352,7 @@ class ProductViewModel extends TenantViewModel {
 
   /// Add a product into the favorites
   Future<int> addFavorite(
-      {required int favIndex, required int productId}) async {
+      {required int favIndex, required String productId}) async {
     final favorite = Favorite(
       favIndex: favIndex,
       productId: productId,
@@ -366,23 +366,23 @@ class ProductViewModel extends TenantViewModel {
     return res;
   }
 
-  void deleteProduct({required int productId}) async {
+  void deleteProduct({required String productId}) async {
     //get variants->delete
     int branchId = ProxyService.box.getBranchId()!;
     List<Variant> variations = await ProxyService.isar
         .variants(branchId: branchId, productId: productId);
     for (Variant variation in variations) {
-      await ProxyService.isar.delete(id: variation.id!, endPoint: 'variant');
+      await ProxyService.isar.delete(id: variation.id, endPoint: 'variant');
       //get stock->delete
       Stock? stock =
-          await ProxyService.isar.stockByVariantId(variantId: variation.id!);
+          await ProxyService.isar.stockByVariantId(variantId: variation.id);
       if (stock != null) {
-        await ProxyService.isar.delete(id: stock.id!, endPoint: 'stock');
+        await ProxyService.isar.delete(id: stock.id, endPoint: 'stock');
       }
       Favorite? fav =
           await ProxyService.isar.getFavoriteByProdId(prodId: productId);
       if (fav != null) {
-        await ProxyService.isar.deleteFavoriteByIndex(favIndex: fav.id!);
+        await ProxyService.isar.deleteFavoriteByIndex(favIndex: fav.id);
       }
     }
     //then delete the product
@@ -392,7 +392,7 @@ class ProductViewModel extends TenantViewModel {
   void updateExpiryDate(DateTime date) async {
     product.expiryDate = date.toIso8601String();
     ProxyService.isar.update(data: product);
-    Product? cProduct = await ProxyService.isar.getProduct(id: product.id!);
+    Product? cProduct = await ProxyService.isar.getProduct(id: product.id);
     productService.setCurrentProduct(product: cProduct!);
     rebuildUi();
   }
@@ -414,7 +414,7 @@ class ProductViewModel extends TenantViewModel {
 
     if (transaction != null) {
       List<TransactionItem> transactionItems = await ProxyService.isar
-          .getTransactionItemsByTransactionId(transactionId: transaction.id!);
+          .getTransactionItemsByTransactionId(transactionId: transaction.id);
       for (TransactionItem item in transactionItems) {
         if (item.price.toInt() <= discount.amount! && item.discount == null) {
           item.discount = item.price;
@@ -433,7 +433,7 @@ class ProductViewModel extends TenantViewModel {
   }
 
   Future<void> bindTenant(
-      {required int tenantId, required int productId}) async {
+      {required int tenantId, required String productId}) async {
     try {
       await ProxyService.isar
           .bindProduct(productId: productId, tenantId: tenantId);

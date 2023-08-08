@@ -9,7 +9,7 @@ part 'color.g.dart';
 @JsonSerializable()
 @Collection()
 class PColor extends IJsonSerializable {
-  Id? id;
+  late String id;
   late String? name;
   List<String>? colors;
   late int? branchId;
@@ -17,28 +17,24 @@ class PColor extends IJsonSerializable {
 
   @JsonKey(includeIfNull: true)
   DateTime? lastTouched;
-  @Index()
-  String? remoteId;
+
   String action;
-  int? localId;
+
   @Index()
   DateTime? deletedAt;
   PColor({
-    this.id,
+    required this.id,
     required this.name,
     this.colors,
     required this.branchId,
     required this.active,
     required this.lastTouched,
-    this.remoteId,
     required this.action,
-    this.localId,
     this.deletedAt,
   });
   factory PColor.fromRecord(RecordModel record) =>
       PColor.fromJson(record.toJson());
   factory PColor.fromJson(Map<String, dynamic> json) {
-    json.remove('id');
     return _$PColorFromJson(json);
   }
 

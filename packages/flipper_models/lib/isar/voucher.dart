@@ -3,11 +3,20 @@ part 'voucher.g.dart';
 
 @Collection()
 class Voucher {
-  Id id = Isar.autoIncrement;
-  late int value;
-  late int interval;
-  late bool used;
-  late int createdAt;
-  late int usedAt;
-  late String descriptor;
+  Voucher({
+    required this.id,
+    this.value,
+    this.interval,
+    this.used,
+    this.createdAt,
+    this.usedAt,
+    this.descriptor,
+  });
+  late String id;
+  int? value;
+  int? interval;
+  bool? used;
+  int? createdAt;
+  int? usedAt;
+  String? descriptor;
 }

@@ -19,7 +19,7 @@ import 'package:stacked_services/stacked_services.dart';
 
 class ProductView extends StatefulWidget {
   final int? favIndex;
-  final List<int> existingFavs;
+  final List<String> existingFavs;
 
   ProductView.normalMode({Key? key})
       : favIndex = null,
@@ -153,7 +153,7 @@ class _ProductViewState extends State<ProductView> {
                         return Container(
                           child: FutureBuilder<List<Stock?>>(
                               future: model.productService
-                                  .loadStockByProductId(productId: product.id!),
+                                  .loadStockByProductId(productId: product.id),
                               builder: (BuildContext context, stocks) {
                                 return ProductRow(
                                   color: product.color,

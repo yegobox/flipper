@@ -1,21 +1,23 @@
+import 'package:flipper_models/isar/random.dart';
+
 import 'variant.dart';
 
 final variationMock = Variant(
+    id: randomString(),
     name: 'Regular',
     sku: 'sku',
     action: 'create',
     lastTouched: DateTime.now(),
-    productId: 2,
+    productId: '2',
     unit: 'Per Item',
     productName: 'Custom Amount',
     branchId: 11,
     supplyPrice: 0.0,
     retailPrice: 0.0,
     isTaxExempted: false)
-  ..id = DateTime.now().millisecondsSinceEpoch
   ..name = 'Regular'
   ..sku = 'sku'
-  ..productId = 2
+  ..productId = '2'
   ..unit = 'Per Item'
   ..productName = 'Custom Amount'
   ..branchId = 11

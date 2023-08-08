@@ -36,11 +36,11 @@ class ListCategories extends StatelessWidget {
                   categories[i].name,
                   style: const TextStyle(color: Colors.black),
                 ),
-                trailing: Radio<int>(
-                  value: categories[i].id!,
+                trailing: Radio<String>(
+                  value: categories[i].id,
                   //This radio button is considered selected if its value matches the groupValue.
                   groupValue:
-                      categories[i].focused == true ? categories[i].id : 0,
+                      categories[i].focused == true ? categories[i].id : '0',
                   onChanged: (value) {
                     model.updateCategory(category: categories[i]);
                   },

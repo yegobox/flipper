@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 
+import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar_models.dart' as isar;
 import 'package:flipper_services/constants.dart';
 import 'package:pocketbase/pocketbase.dart';
@@ -23,6 +24,7 @@ class AppService with ListenableServiceMixin {
   List<Category> get categories => _categories.value;
 
   final _business = ReactiveValue<isar.Business>(isar.Business(
+    id: randomNumber(),
     isDefault: false,
     action: AppActions.create,
   ));
@@ -157,8 +159,7 @@ class AppService with ListenableServiceMixin {
         await ProxyService.isar.businesses(userId: userId);
     if (businesses.isEmpty) {
       try {
-        Business b = await ProxyService.isar
-            .getOnlineBusiness(userId: userId.toString());
+        Business b = await ProxyService.isar.getOnlineBusiness(userId: userId);
         businesses.add(b);
       } catch (e) {
         rethrow;
@@ -199,13 +200,13 @@ class AppService with ListenableServiceMixin {
         .tenants(businessId: ProxyService.box.getBusinessId()!);
     if (tenants.isEmpty) {
       await ProxyService.isar
-          .tenantsFromOnline(businessId: businesses.first.id!);
+          .tenantsFromOnline(businessId: businesses.first.id);
     }
   }
 
   Future<bool> setActiveBranch({required isar.Business businesses}) async {
     List<isar.Branch> branches =
-        await ProxyService.isar.branches(businessId: businesses.id!);
+        await ProxyService.isar.branches(businessId: businesses.id);
 
     bool defaultBranch = false;
     for (Branch branch in branches) {
@@ -228,8 +229,9 @@ class AppService with ListenableServiceMixin {
   }
 
   Future<void> loadCounters(isar.Business business) async {
-    if (await ProxyService.isar.size(object: Counter()) == 0) {
-      await ProxyService.isar.loadCounterFromOnline(businessId: business.id!);
+    if (await ProxyService.isar.size(object: Counter(id: randomString())) ==
+        0) {
+      await ProxyService.isar.loadCounterFromOnline(businessId: business.id);
     }
   }
 

@@ -23,7 +23,7 @@ import 'package:intl/intl.dart';
 
 class AddProductView extends StatefulWidget {
   const AddProductView({Key? key, this.productId}) : super(key: key);
-  final int? productId;
+  final String? productId;
 
   @override
   _AddProductViewState createState() => _AddProductViewState();
@@ -182,12 +182,12 @@ class _AddProductViewState extends State<AddProductView> {
                 await model.updateRegularVariant(
                     retailPrice:
                         double.parse(productForm.retailPriceController.text),
-                    productId: model.product.id!);
+                    productId: model.product.id);
                 await model.updateRegularVariant(
                     supplyPrice: double.tryParse(
                             productForm.supplyPriceController.text) ??
                         0.0,
-                    productId: model.product.id!);
+                    productId: model.product.id);
 
                 _routerService.clearStackAndShow(FlipperAppRoute());
               },
@@ -266,7 +266,7 @@ class _AddProductViewState extends State<AddProductView> {
                               model.lockButton(false);
                               await model.updateRegularVariant(
                                   retailPrice: parsedValue,
-                                  productId: model.product.id!);
+                                  productId: model.product.id);
                             } else {
                               model.lockButton(true);
                             }
@@ -285,7 +285,7 @@ class _AddProductViewState extends State<AddProductView> {
                             if (parsedValue != null) {
                               await model.updateRegularVariant(
                                   supplyPrice: parsedValue,
-                                  productId: model.product.id!);
+                                  productId: model.product.id);
                             } else {
                               return '.';
                             }
@@ -375,7 +375,7 @@ class _AddProductViewState extends State<AddProductView> {
                             onPressed: () {
                               model.navigateAddVariation(
                                   context: context,
-                                  productId: model.product.id!!);
+                                  productId: model.product.id!);
                             },
                           ),
                         ),

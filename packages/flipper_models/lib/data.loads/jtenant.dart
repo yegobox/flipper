@@ -23,7 +23,7 @@ class JTenant {
     required this.userId,
   });
 
-  int id;
+  late int id;
   String name;
   String phoneNumber;
   String email;

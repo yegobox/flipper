@@ -9,33 +9,30 @@ part 'stock.g.dart';
 @JsonSerializable()
 @Collection()
 class Stock extends IJsonSerializable {
-  Id? id;
+  late String id;
   @Index()
   late int branchId;
-  @Index(composite: [CompositeIndex('branchId')])
-  late int variantId;
+  @Index(composite: ['branchId'])
+  late String variantId;
   double? lowStock;
   late double currentStock;
 
   bool? canTrackingStock;
   bool? showLowStockAlert;
   @Index()
-  late int productId;
+  late String productId;
   bool? active;
   // the value of stock is currentStock * retailPrice
   double? value;
   // RRA fields
   double? rsdQty;
-  @Index()
+
   double? supplyPrice;
-  @Index()
   double? retailPrice;
 
   @JsonKey(includeIfNull: true)
   DateTime? lastTouched;
-  @Index()
-  String? remoteId;
-  int? localId;
+
   String action;
   @Index()
   DateTime? deletedAt;
@@ -45,7 +42,7 @@ class Stock extends IJsonSerializable {
     required this.currentStock,
     required this.productId,
     required this.action,
-    this.id,
+    required this.id,
     this.lowStock,
     this.supplyPrice,
     this.retailPrice,
@@ -55,8 +52,6 @@ class Stock extends IJsonSerializable {
     this.value,
     this.rsdQty,
     required this.lastTouched,
-    this.remoteId,
-    this.localId,
     this.deletedAt,
   });
 
@@ -69,22 +64,14 @@ class Stock extends IJsonSerializable {
         ? null
         : json['deletedAt'];
 
-    json['remoteId'] ??= json['id'].toString();
     json['lastTouched'] =
         json['lastTouched'].toString().isEmpty || json['lastTouched'] == null
             ? DateTime.now().toIso8601String()
             : DateTime.parse(json['lastTouched'] ?? DateTime.now())
                 .toIso8601String();
 
-    json['id'] = json['localId'];
     return _$StockFromJson(json);
   }
   @override
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = _$StockToJson(this);
-    if (id != null) {
-      data['localId'] = id;
-    }
-    return data;
-  }
+  Map<String, dynamic> toJson() => _$StockToJson(this);
 }

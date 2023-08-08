@@ -10,14 +10,14 @@ part 'pin.g.dart';
 class Pin extends IJsonSerializable {
   Pin({
     required this.action,
-    this.id,
+    required this.id,
     required this.userId,
     required this.phoneNumber,
     required this.pin,
     required this.branchId,
     required this.businessId,
   });
-  Id? id;
+  late String id;
   late String userId;
   late String phoneNumber;
   late int pin;
@@ -26,25 +26,17 @@ class Pin extends IJsonSerializable {
 
   @JsonKey(includeIfNull: true)
   DateTime? lastTouched;
-  @Index()
-  String? remoteId;
+
   String action;
-  int? localId;
+
   @Index()
   DateTime? deletedAt;
 
   factory Pin.fromRecord(RecordModel record) => Pin.fromJson(record.toJson());
   factory Pin.fromJson(Map<String, dynamic> json) {
-    json.remove('id');
     return _$PinFromJson(json);
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = _$PinToJson(this);
-    if (id != null) {
-      data['localId'] = id;
-    }
-    return data;
-  }
+  Map<String, dynamic> toJson() => _$PinToJson(this);
 }

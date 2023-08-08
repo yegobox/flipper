@@ -7,7 +7,7 @@ part 'customer.g.dart';
 @JsonSerializable()
 @Collection()
 class Customer extends IJsonSerializable {
-  Id? id;
+  late String id;
   late String name;
   late String email;
   late String phone;
@@ -16,7 +16,7 @@ class Customer extends IJsonSerializable {
   DateTime? updatedAt;
   String? tinNumber;
   Customer({
-    this.id,
+    required this.id,
     required this.name,
     required this.email,
     required this.phone,
@@ -29,17 +29,15 @@ class Customer extends IJsonSerializable {
 
   @JsonKey(includeIfNull: true)
   DateTime? lastTouched;
-  @Index()
-  String? remoteId;
+
   String action;
-  int? localId;
+
   @Index()
   DateTime? deletedAt;
 
   factory Customer.fromRecord(RecordModel record) =>
       Customer.fromJson(record.toJson());
   factory Customer.fromJson(Map<String, dynamic> json) {
-    json.remove('id');
     return _$CustomerFromJson(json);
   }
 

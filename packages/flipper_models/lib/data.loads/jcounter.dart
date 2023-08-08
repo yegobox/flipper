@@ -18,7 +18,7 @@ class JCounter {
     required this.curRcptNo,
   });
 
-  int id;
+  late String id;
   int businessId;
   int branchId;
   String receiptType;

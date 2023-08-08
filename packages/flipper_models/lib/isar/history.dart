@@ -15,24 +15,25 @@ part 'history.g.dart';
 @JsonSerializable()
 @Collection()
 class History extends IJsonSerializable {
-  Id? id;
+  late String id;
   late int modelId;
 
   @JsonKey(includeIfNull: true)
   DateTime? lastTouched;
-  @Index()
-  String? remoteId;
+
   String action;
-  int? localId;
+
   late DateTime createdAt;
 
   History(
-      {required this.modelId, required this.createdAt, required this.action});
+      {required this.id,
+      required this.modelId,
+      required this.createdAt,
+      required this.action});
 
   factory History.fromRecord(RecordModel record) =>
       History.fromJson(record.toJson());
   factory History.fromJson(Map<String, dynamic> json) {
-    json.remove('id');
     return _$HistoryFromJson(json);
   }
 

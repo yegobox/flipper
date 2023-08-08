@@ -5,8 +5,8 @@ part 'counter.g.dart';
 
 @Collection()
 class Counter {
-  Counter({this.id, this.backed = false});
-  Id? id = Isar.autoIncrement;
+  Counter({required this.id, this.backed = false});
+  late String id;
   late int businessId;
   late int branchId;
   late String receiptType;

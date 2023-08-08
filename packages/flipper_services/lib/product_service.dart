@@ -35,7 +35,9 @@ class ProductService with ListenableServiceMixin {
 
   List<Product> get nonFavoriteProducts => _products.value
       .where((element) =>
-          element.name != 'temp' && element.name != 'Custom Amount' && element.id != 1)
+          element.name != 'temp' &&
+          element.name != 'Custom Amount' &&
+          element.id != 1)
       .toList();
   set nonFavoriteProducts(List<Product> value) {
     _products.value = value;
@@ -56,7 +58,7 @@ class ProductService with ListenableServiceMixin {
   final _variants = ReactiveValue<dynamic>(null);
   List<Variant>? get variants => _variants.value;
 
-  Future<void> variantsProduct({required int productId}) async {
+  Future<void> variantsProduct({required String productId}) async {
     _variants.value = await ProxyService.isar
         .variants(branchId: branchId!, productId: productId);
     notifyListeners();
@@ -94,7 +96,7 @@ class ProductService with ListenableServiceMixin {
 
   List<Stock?> _stocks = [];
   List<Stock?> get stocks => _stocks;
-  Future<List<Stock?>> loadStockByProductId({required int productId}) async {
+  Future<List<Stock?>> loadStockByProductId({required String productId}) async {
     _stocks = await ProxyService.isar.stocks(productId: productId);
     return stocks;
   }

@@ -93,8 +93,8 @@ class _PaymentConfirmationState extends State<PaymentConfirmation> {
                       child: StreamBuilder<Customer?>(
                         stream: ProxyService.isar.getCustomerByTransactionId(
                             id: model.kTransaction == null
-                                ? 0
-                                : model.kTransaction!.id!),
+                                ? '0'
+                                : model.kTransaction!.id),
                         builder: (context, snapshot) {
                           return Column(
                             children: [
@@ -121,7 +121,7 @@ class _PaymentConfirmationState extends State<PaymentConfirmation> {
                                                       .transactionItems(
                                                 doneWithTransaction: false,
                                                 transactionId:
-                                                    widget.transaction.id!,
+                                                    widget.transaction.id,
                                               );
                                               model.printReceipt(
                                                   items: items,
@@ -303,7 +303,7 @@ class _PaymentConfirmationState extends State<PaymentConfirmation> {
             Business? business = await ProxyService.isar.getBusiness();
             List<TransactionItem> items = await ProxyService.isar
                 .transactionItems(
-                    transactionId: widget.transaction.id!,
+                    transactionId: widget.transaction.id,
                     doneWithTransaction: false);
 
             final bool isDone = await model.generateRRAReceipt(

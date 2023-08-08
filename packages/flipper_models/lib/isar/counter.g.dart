@@ -3,470 +3,551 @@
 part of 'counter.dart';
 
 // **************************************************************************
-// IsarCollectionGenerator
+// _IsarCollectionGenerator
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+// ignore_for_file: duplicate_ignore, invalid_use_of_protected_member, lines_longer_than_80_chars, constant_identifier_names, avoid_js_rounded_ints, no_leading_underscores_for_local_identifiers, require_trailing_commas, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_in_if_null_operators, library_private_types_in_public_api, prefer_const_constructors
+// ignore_for_file: type=lint
 
 extension GetCounterCollection on Isar {
-  IsarCollection<Counter> get counters => this.collection();
+  IsarCollection<String, Counter> get counters => this.collection();
 }
 
-const CounterSchema = CollectionSchema(
-  name: r'Counter',
-  id: -8560901831524329398,
-  properties: {
-    r'backed': PropertySchema(
-      id: 0,
-      name: r'backed',
-      type: IsarType.bool,
-    ),
-    r'branchId': PropertySchema(
-      id: 1,
-      name: r'branchId',
-      type: IsarType.long,
-    ),
-    r'businessId': PropertySchema(
-      id: 2,
-      name: r'businessId',
-      type: IsarType.long,
-    ),
-    r'curRcptNo': PropertySchema(
-      id: 3,
-      name: r'curRcptNo',
-      type: IsarType.long,
-    ),
-    r'receiptType': PropertySchema(
-      id: 4,
-      name: r'receiptType',
-      type: IsarType.string,
-    ),
-    r'totRcptNo': PropertySchema(
-      id: 5,
-      name: r'totRcptNo',
-      type: IsarType.long,
-    )
-  },
-  estimateSize: _counterEstimateSize,
-  serialize: _counterSerialize,
-  deserialize: _counterDeserialize,
-  deserializeProp: _counterDeserializeProp,
-  idName: r'id',
-  indexes: {},
-  links: {},
-  embeddedSchemas: {},
-  getId: _counterGetId,
-  getLinks: _counterGetLinks,
-  attach: _counterAttach,
-  version: '3.1.0+1',
+const CounterSchema = IsarCollectionSchema(
+  schema:
+      '{"name":"Counter","idName":"id","properties":[{"name":"id","type":"String"},{"name":"businessId","type":"Long"},{"name":"branchId","type":"Long"},{"name":"receiptType","type":"String"},{"name":"totRcptNo","type":"Long"},{"name":"curRcptNo","type":"Long"},{"name":"backed","type":"Bool"}]}',
+  converter: IsarObjectConverter<String, Counter>(
+    serialize: serializeCounter,
+    deserialize: deserializeCounter,
+    deserializeProperty: deserializeCounterProp,
+  ),
+  embeddedSchemas: [],
+  //hash: -6108976399483748557,
 );
 
-int _counterEstimateSize(
-  Counter object,
-  List<int> offsets,
-  Map<Type, List<int>> allOffsets,
-) {
-  var bytesCount = offsets.last;
-  bytesCount += 3 + object.receiptType.length * 3;
-  return bytesCount;
+@isarProtected
+int serializeCounter(IsarWriter writer, Counter object) {
+  IsarCore.writeString(writer, 1, object.id);
+  IsarCore.writeLong(writer, 2, object.businessId);
+  IsarCore.writeLong(writer, 3, object.branchId);
+  IsarCore.writeString(writer, 4, object.receiptType);
+  IsarCore.writeLong(writer, 5, object.totRcptNo);
+  IsarCore.writeLong(writer, 6, object.curRcptNo);
+  {
+    final value = object.backed;
+    if (value == null) {
+      IsarCore.writeNull(writer, 7);
+    } else {
+      IsarCore.writeBool(writer, 7, value);
+    }
+  }
+  return Isar.fastHash(object.id);
 }
 
-void _counterSerialize(
-  Counter object,
-  IsarWriter writer,
-  List<int> offsets,
-  Map<Type, List<int>> allOffsets,
-) {
-  writer.writeBool(offsets[0], object.backed);
-  writer.writeLong(offsets[1], object.branchId);
-  writer.writeLong(offsets[2], object.businessId);
-  writer.writeLong(offsets[3], object.curRcptNo);
-  writer.writeString(offsets[4], object.receiptType);
-  writer.writeLong(offsets[5], object.totRcptNo);
-}
-
-Counter _counterDeserialize(
-  Id id,
-  IsarReader reader,
-  List<int> offsets,
-  Map<Type, List<int>> allOffsets,
-) {
+@isarProtected
+Counter deserializeCounter(IsarReader reader) {
+  final String _id;
+  _id = IsarCore.readString(reader, 1) ?? '';
+  final bool? _backed;
+  _backed = IsarCore.readBool(reader, 7);
   final object = Counter(
-    backed: reader.readBoolOrNull(offsets[0]),
-    id: id,
+    id: _id,
+    backed: _backed,
   );
-  object.branchId = reader.readLong(offsets[1]);
-  object.businessId = reader.readLong(offsets[2]);
-  object.curRcptNo = reader.readLong(offsets[3]);
-  object.receiptType = reader.readString(offsets[4]);
-  object.totRcptNo = reader.readLong(offsets[5]);
+  object.businessId = IsarCore.readLong(reader, 2);
+  object.branchId = IsarCore.readLong(reader, 3);
+  object.receiptType = IsarCore.readString(reader, 4) ?? '';
+  object.totRcptNo = IsarCore.readLong(reader, 5);
+  object.curRcptNo = IsarCore.readLong(reader, 6);
   return object;
 }
 
-P _counterDeserializeProp<P>(
-  IsarReader reader,
-  int propertyId,
-  int offset,
-  Map<Type, List<int>> allOffsets,
-) {
-  switch (propertyId) {
-    case 0:
-      return (reader.readBoolOrNull(offset)) as P;
+@isarProtected
+dynamic deserializeCounterProp(IsarReader reader, int property) {
+  switch (property) {
     case 1:
-      return (reader.readLong(offset)) as P;
+      return IsarCore.readString(reader, 1) ?? '';
     case 2:
-      return (reader.readLong(offset)) as P;
+      return IsarCore.readLong(reader, 2);
     case 3:
-      return (reader.readLong(offset)) as P;
+      return IsarCore.readLong(reader, 3);
     case 4:
-      return (reader.readString(offset)) as P;
+      return IsarCore.readString(reader, 4) ?? '';
     case 5:
-      return (reader.readLong(offset)) as P;
+      return IsarCore.readLong(reader, 5);
+    case 6:
+      return IsarCore.readLong(reader, 6);
+    case 7:
+      return IsarCore.readBool(reader, 7);
     default:
-      throw IsarError('Unknown property with id $propertyId');
+      throw ArgumentError('Unknown property: $property');
   }
 }
 
-Id _counterGetId(Counter object) {
-  return object.id ?? Isar.autoIncrement;
+sealed class _CounterUpdate {
+  bool call({
+    required String id,
+    int? businessId,
+    int? branchId,
+    String? receiptType,
+    int? totRcptNo,
+    int? curRcptNo,
+    bool? backed,
+  });
 }
 
-List<IsarLinkBase<dynamic>> _counterGetLinks(Counter object) {
-  return [];
-}
+class _CounterUpdateImpl implements _CounterUpdate {
+  const _CounterUpdateImpl(this.collection);
 
-void _counterAttach(IsarCollection<dynamic> col, Id id, Counter object) {
-  object.id = id;
-}
+  final IsarCollection<String, Counter> collection;
 
-extension CounterQueryWhereSort on QueryBuilder<Counter, Counter, QWhere> {
-  QueryBuilder<Counter, Counter, QAfterWhere> anyId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(const IdWhereClause.any());
-    });
-  }
-}
-
-extension CounterQueryWhere on QueryBuilder<Counter, Counter, QWhereClause> {
-  QueryBuilder<Counter, Counter, QAfterWhereClause> idEqualTo(Id id) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: id,
-        upper: id,
-      ));
-    });
-  }
-
-  QueryBuilder<Counter, Counter, QAfterWhereClause> idNotEqualTo(Id id) {
-    return QueryBuilder.apply(this, (query) {
-      if (query.whereSort == Sort.asc) {
-        return query
-            .addWhereClause(
-              IdWhereClause.lessThan(upper: id, includeUpper: false),
-            )
-            .addWhereClause(
-              IdWhereClause.greaterThan(lower: id, includeLower: false),
-            );
-      } else {
-        return query
-            .addWhereClause(
-              IdWhereClause.greaterThan(lower: id, includeLower: false),
-            )
-            .addWhereClause(
-              IdWhereClause.lessThan(upper: id, includeUpper: false),
-            );
-      }
-    });
-  }
-
-  QueryBuilder<Counter, Counter, QAfterWhereClause> idGreaterThan(Id id,
-      {bool include = false}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        IdWhereClause.greaterThan(lower: id, includeLower: include),
-      );
-    });
-  }
-
-  QueryBuilder<Counter, Counter, QAfterWhereClause> idLessThan(Id id,
-      {bool include = false}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        IdWhereClause.lessThan(upper: id, includeUpper: include),
-      );
-    });
-  }
-
-  QueryBuilder<Counter, Counter, QAfterWhereClause> idBetween(
-    Id lowerId,
-    Id upperId, {
-    bool includeLower = true,
-    bool includeUpper = true,
+  @override
+  bool call({
+    required String id,
+    Object? businessId = ignore,
+    Object? branchId = ignore,
+    Object? receiptType = ignore,
+    Object? totRcptNo = ignore,
+    Object? curRcptNo = ignore,
+    Object? backed = ignore,
   }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: lowerId,
-        includeLower: includeLower,
-        upper: upperId,
-        includeUpper: includeUpper,
-      ));
+    return collection.updateProperties([
+          id
+        ], {
+          if (businessId != ignore) 2: businessId as int?,
+          if (branchId != ignore) 3: branchId as int?,
+          if (receiptType != ignore) 4: receiptType as String?,
+          if (totRcptNo != ignore) 5: totRcptNo as int?,
+          if (curRcptNo != ignore) 6: curRcptNo as int?,
+          if (backed != ignore) 7: backed as bool?,
+        }) >
+        0;
+  }
+}
+
+sealed class _CounterUpdateAll {
+  int call({
+    required List<String> id,
+    int? businessId,
+    int? branchId,
+    String? receiptType,
+    int? totRcptNo,
+    int? curRcptNo,
+    bool? backed,
+  });
+}
+
+class _CounterUpdateAllImpl implements _CounterUpdateAll {
+  const _CounterUpdateAllImpl(this.collection);
+
+  final IsarCollection<String, Counter> collection;
+
+  @override
+  int call({
+    required List<String> id,
+    Object? businessId = ignore,
+    Object? branchId = ignore,
+    Object? receiptType = ignore,
+    Object? totRcptNo = ignore,
+    Object? curRcptNo = ignore,
+    Object? backed = ignore,
+  }) {
+    return collection.updateProperties(id, {
+      if (businessId != ignore) 2: businessId as int?,
+      if (branchId != ignore) 3: branchId as int?,
+      if (receiptType != ignore) 4: receiptType as String?,
+      if (totRcptNo != ignore) 5: totRcptNo as int?,
+      if (curRcptNo != ignore) 6: curRcptNo as int?,
+      if (backed != ignore) 7: backed as bool?,
     });
   }
+}
+
+extension CounterUpdate on IsarCollection<String, Counter> {
+  _CounterUpdate get update => _CounterUpdateImpl(this);
+
+  _CounterUpdateAll get updateAll => _CounterUpdateAllImpl(this);
+}
+
+sealed class _CounterQueryUpdate {
+  int call({
+    int? businessId,
+    int? branchId,
+    String? receiptType,
+    int? totRcptNo,
+    int? curRcptNo,
+    bool? backed,
+  });
+}
+
+class _CounterQueryUpdateImpl implements _CounterQueryUpdate {
+  const _CounterQueryUpdateImpl(this.query, {this.limit});
+
+  final IsarQuery<Counter> query;
+  final int? limit;
+
+  @override
+  int call({
+    Object? businessId = ignore,
+    Object? branchId = ignore,
+    Object? receiptType = ignore,
+    Object? totRcptNo = ignore,
+    Object? curRcptNo = ignore,
+    Object? backed = ignore,
+  }) {
+    return query.updateProperties(limit: limit, {
+      if (businessId != ignore) 2: businessId as int?,
+      if (branchId != ignore) 3: branchId as int?,
+      if (receiptType != ignore) 4: receiptType as String?,
+      if (totRcptNo != ignore) 5: totRcptNo as int?,
+      if (curRcptNo != ignore) 6: curRcptNo as int?,
+      if (backed != ignore) 7: backed as bool?,
+    });
+  }
+}
+
+extension CounterQueryUpdate on IsarQuery<Counter> {
+  _CounterQueryUpdate get updateFirst =>
+      _CounterQueryUpdateImpl(this, limit: 1);
+
+  _CounterQueryUpdate get updateAll => _CounterQueryUpdateImpl(this);
 }
 
 extension CounterQueryFilter
     on QueryBuilder<Counter, Counter, QFilterCondition> {
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> backedIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'backed',
-      ));
-    });
-  }
-
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> backedIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'backed',
-      ));
-    });
-  }
-
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> backedEqualTo(
-      bool? value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'backed',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> branchIdEqualTo(
-      int value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'branchId',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> branchIdGreaterThan(
-    int value, {
-    bool include = false,
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> idEqualTo(
+    String value, {
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'branchId',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 1,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> branchIdLessThan(
-    int value, {
-    bool include = false,
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> idGreaterThan(
+    String value, {
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'branchId',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        GreaterCondition(
+          property: 1,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> branchIdBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> idGreaterThanOrEqualTo(
+    String value, {
+    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'branchId',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(
+          property: 1,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> idLessThan(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessCondition(
+          property: 1,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> idLessThanOrEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(
+          property: 1,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> idBetween(
+    String lower,
+    String upper, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        BetweenCondition(
+          property: 1,
+          lower: lower,
+          upper: upper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> idStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        StartsWithCondition(
+          property: 1,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> idEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EndsWithCondition(
+          property: 1,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> idContains(String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        ContainsCondition(
+          property: 1,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> idMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        MatchesCondition(
+          property: 1,
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> idIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const EqualCondition(
+          property: 1,
+          value: '',
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> idIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const GreaterCondition(
+          property: 1,
+          value: '',
+        ),
+      );
     });
   }
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition> businessIdEqualTo(
-      int value) {
+    int value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'businessId',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 2,
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition> businessIdGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
+    int value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'businessId',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        GreaterCondition(
+          property: 2,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition>
+      businessIdGreaterThanOrEqualTo(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(
+          property: 2,
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition> businessIdLessThan(
-    int value, {
-    bool include = false,
-  }) {
+    int value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'businessId',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        LessCondition(
+          property: 2,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition>
+      businessIdLessThanOrEqualTo(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(
+          property: 2,
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition> businessIdBetween(
     int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
+    int upper,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'businessId',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        BetweenCondition(
+          property: 2,
+          lower: lower,
+          upper: upper,
+        ),
+      );
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> curRcptNoEqualTo(
-      int value) {
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> branchIdEqualTo(
+    int value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'curRcptNo',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 3,
+          value: value,
+        ),
+      );
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> curRcptNoGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> branchIdGreaterThan(
+    int value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'curRcptNo',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        GreaterCondition(
+          property: 3,
+          value: value,
+        ),
+      );
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> curRcptNoLessThan(
-    int value, {
-    bool include = false,
-  }) {
+  QueryBuilder<Counter, Counter, QAfterFilterCondition>
+      branchIdGreaterThanOrEqualTo(
+    int value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'curRcptNo',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(
+          property: 3,
+          value: value,
+        ),
+      );
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> curRcptNoBetween(
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> branchIdLessThan(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessCondition(
+          property: 3,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition>
+      branchIdLessThanOrEqualTo(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(
+          property: 3,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> branchIdBetween(
     int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
+    int upper,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'curRcptNo',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> idIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'id',
-      ));
-    });
-  }
-
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> idIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'id',
-      ));
-    });
-  }
-
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> idEqualTo(Id? value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'id',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> idGreaterThan(
-    Id? value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> idLessThan(
-    Id? value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> idBetween(
-    Id? lower,
-    Id? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'id',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        BetweenCondition(
+          property: 3,
+          lower: lower,
+          upper: upper,
+        ),
+      );
     });
   }
 
@@ -475,60 +556,92 @@ extension CounterQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'receiptType',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 4,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition> receiptTypeGreaterThan(
     String value, {
-    bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'receiptType',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        GreaterCondition(
+          property: 4,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition>
+      receiptTypeGreaterThanOrEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(
+          property: 4,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition> receiptTypeLessThan(
     String value, {
-    bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'receiptType',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        LessCondition(
+          property: 4,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition>
+      receiptTypeLessThanOrEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(
+          property: 4,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition> receiptTypeBetween(
     String lower,
     String upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'receiptType',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        BetweenCondition(
+          property: 4,
+          lower: lower,
+          upper: upper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -537,11 +650,13 @@ extension CounterQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'receiptType',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        StartsWithCondition(
+          property: 4,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -550,11 +665,13 @@ extension CounterQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'receiptType',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        EndsWithCondition(
+          property: 4,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -562,11 +679,13 @@ extension CounterQueryFilter
       String value,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'receiptType',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        ContainsCondition(
+          property: 4,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -574,83 +693,225 @@ extension CounterQueryFilter
       String pattern,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'receiptType',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        MatchesCondition(
+          property: 4,
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition> receiptTypeIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'receiptType',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        const EqualCondition(
+          property: 4,
+          value: '',
+        ),
+      );
     });
   }
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition>
       receiptTypeIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'receiptType',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        const GreaterCondition(
+          property: 4,
+          value: '',
+        ),
+      );
     });
   }
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition> totRcptNoEqualTo(
-      int value) {
+    int value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'totRcptNo',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 5,
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition> totRcptNoGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
+    int value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'totRcptNo',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        GreaterCondition(
+          property: 5,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition>
+      totRcptNoGreaterThanOrEqualTo(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(
+          property: 5,
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition> totRcptNoLessThan(
-    int value, {
-    bool include = false,
-  }) {
+    int value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'totRcptNo',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        LessCondition(
+          property: 5,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition>
+      totRcptNoLessThanOrEqualTo(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(
+          property: 5,
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition> totRcptNoBetween(
     int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
+    int upper,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'totRcptNo',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        BetweenCondition(
+          property: 5,
+          lower: lower,
+          upper: upper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> curRcptNoEqualTo(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 6,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> curRcptNoGreaterThan(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterCondition(
+          property: 6,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition>
+      curRcptNoGreaterThanOrEqualTo(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(
+          property: 6,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> curRcptNoLessThan(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessCondition(
+          property: 6,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition>
+      curRcptNoLessThanOrEqualTo(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(
+          property: 6,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> curRcptNoBetween(
+    int lower,
+    int upper,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        BetweenCondition(
+          property: 6,
+          lower: lower,
+          upper: upper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> backedIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 7));
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> backedIsNotNull() {
+    return QueryBuilder.apply(not(), (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 7));
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> backedEqualTo(
+    bool? value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 7,
+          value: value,
+        ),
+      );
     });
   }
 }
@@ -658,251 +919,370 @@ extension CounterQueryFilter
 extension CounterQueryObject
     on QueryBuilder<Counter, Counter, QFilterCondition> {}
 
-extension CounterQueryLinks
-    on QueryBuilder<Counter, Counter, QFilterCondition> {}
-
 extension CounterQuerySortBy on QueryBuilder<Counter, Counter, QSortBy> {
-  QueryBuilder<Counter, Counter, QAfterSortBy> sortByBacked() {
+  QueryBuilder<Counter, Counter, QAfterSortBy> sortById(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'backed', Sort.asc);
+      return query.addSortBy(
+        1,
+        caseSensitive: caseSensitive,
+      );
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> sortByBackedDesc() {
+  QueryBuilder<Counter, Counter, QAfterSortBy> sortByIdDesc(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'backed', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Counter, Counter, QAfterSortBy> sortByBranchId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'branchId', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Counter, Counter, QAfterSortBy> sortByBranchIdDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'branchId', Sort.desc);
+      return query.addSortBy(
+        1,
+        sort: Sort.desc,
+        caseSensitive: caseSensitive,
+      );
     });
   }
 
   QueryBuilder<Counter, Counter, QAfterSortBy> sortByBusinessId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'businessId', Sort.asc);
+      return query.addSortBy(2);
     });
   }
 
   QueryBuilder<Counter, Counter, QAfterSortBy> sortByBusinessIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'businessId', Sort.desc);
+      return query.addSortBy(2, sort: Sort.desc);
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> sortByCurRcptNo() {
+  QueryBuilder<Counter, Counter, QAfterSortBy> sortByBranchId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'curRcptNo', Sort.asc);
+      return query.addSortBy(3);
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> sortByCurRcptNoDesc() {
+  QueryBuilder<Counter, Counter, QAfterSortBy> sortByBranchIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'curRcptNo', Sort.desc);
+      return query.addSortBy(3, sort: Sort.desc);
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> sortByReceiptType() {
+  QueryBuilder<Counter, Counter, QAfterSortBy> sortByReceiptType(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'receiptType', Sort.asc);
+      return query.addSortBy(
+        4,
+        caseSensitive: caseSensitive,
+      );
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> sortByReceiptTypeDesc() {
+  QueryBuilder<Counter, Counter, QAfterSortBy> sortByReceiptTypeDesc(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'receiptType', Sort.desc);
+      return query.addSortBy(
+        4,
+        sort: Sort.desc,
+        caseSensitive: caseSensitive,
+      );
     });
   }
 
   QueryBuilder<Counter, Counter, QAfterSortBy> sortByTotRcptNo() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'totRcptNo', Sort.asc);
+      return query.addSortBy(5);
     });
   }
 
   QueryBuilder<Counter, Counter, QAfterSortBy> sortByTotRcptNoDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'totRcptNo', Sort.desc);
+      return query.addSortBy(5, sort: Sort.desc);
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterSortBy> sortByCurRcptNo() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(6);
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterSortBy> sortByCurRcptNoDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(6, sort: Sort.desc);
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterSortBy> sortByBacked() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(7);
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterSortBy> sortByBackedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(7, sort: Sort.desc);
     });
   }
 }
 
 extension CounterQuerySortThenBy
     on QueryBuilder<Counter, Counter, QSortThenBy> {
-  QueryBuilder<Counter, Counter, QAfterSortBy> thenByBacked() {
+  QueryBuilder<Counter, Counter, QAfterSortBy> thenById(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'backed', Sort.asc);
+      return query.addSortBy(1, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> thenByBackedDesc() {
+  QueryBuilder<Counter, Counter, QAfterSortBy> thenByIdDesc(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'backed', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Counter, Counter, QAfterSortBy> thenByBranchId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'branchId', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Counter, Counter, QAfterSortBy> thenByBranchIdDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'branchId', Sort.desc);
+      return query.addSortBy(1, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<Counter, Counter, QAfterSortBy> thenByBusinessId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'businessId', Sort.asc);
+      return query.addSortBy(2);
     });
   }
 
   QueryBuilder<Counter, Counter, QAfterSortBy> thenByBusinessIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'businessId', Sort.desc);
+      return query.addSortBy(2, sort: Sort.desc);
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> thenByCurRcptNo() {
+  QueryBuilder<Counter, Counter, QAfterSortBy> thenByBranchId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'curRcptNo', Sort.asc);
+      return query.addSortBy(3);
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> thenByCurRcptNoDesc() {
+  QueryBuilder<Counter, Counter, QAfterSortBy> thenByBranchIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'curRcptNo', Sort.desc);
+      return query.addSortBy(3, sort: Sort.desc);
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> thenById() {
+  QueryBuilder<Counter, Counter, QAfterSortBy> thenByReceiptType(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'id', Sort.asc);
+      return query.addSortBy(4, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> thenByIdDesc() {
+  QueryBuilder<Counter, Counter, QAfterSortBy> thenByReceiptTypeDesc(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'id', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Counter, Counter, QAfterSortBy> thenByReceiptType() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'receiptType', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Counter, Counter, QAfterSortBy> thenByReceiptTypeDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'receiptType', Sort.desc);
+      return query.addSortBy(4, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<Counter, Counter, QAfterSortBy> thenByTotRcptNo() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'totRcptNo', Sort.asc);
+      return query.addSortBy(5);
     });
   }
 
   QueryBuilder<Counter, Counter, QAfterSortBy> thenByTotRcptNoDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'totRcptNo', Sort.desc);
+      return query.addSortBy(5, sort: Sort.desc);
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterSortBy> thenByCurRcptNo() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(6);
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterSortBy> thenByCurRcptNoDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(6, sort: Sort.desc);
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterSortBy> thenByBacked() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(7);
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterSortBy> thenByBackedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(7, sort: Sort.desc);
     });
   }
 }
 
 extension CounterQueryWhereDistinct
     on QueryBuilder<Counter, Counter, QDistinct> {
-  QueryBuilder<Counter, Counter, QDistinct> distinctByBacked() {
+  QueryBuilder<Counter, Counter, QAfterDistinct> distinctByBusinessId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'backed');
+      return query.addDistinctBy(2);
     });
   }
 
-  QueryBuilder<Counter, Counter, QDistinct> distinctByBranchId() {
+  QueryBuilder<Counter, Counter, QAfterDistinct> distinctByBranchId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'branchId');
+      return query.addDistinctBy(3);
     });
   }
 
-  QueryBuilder<Counter, Counter, QDistinct> distinctByBusinessId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'businessId');
-    });
-  }
-
-  QueryBuilder<Counter, Counter, QDistinct> distinctByCurRcptNo() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'curRcptNo');
-    });
-  }
-
-  QueryBuilder<Counter, Counter, QDistinct> distinctByReceiptType(
+  QueryBuilder<Counter, Counter, QAfterDistinct> distinctByReceiptType(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'receiptType', caseSensitive: caseSensitive);
+      return query.addDistinctBy(4, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Counter, Counter, QDistinct> distinctByTotRcptNo() {
+  QueryBuilder<Counter, Counter, QAfterDistinct> distinctByTotRcptNo() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'totRcptNo');
+      return query.addDistinctBy(5);
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterDistinct> distinctByCurRcptNo() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(6);
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterDistinct> distinctByBacked() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(7);
     });
   }
 }
 
-extension CounterQueryProperty
-    on QueryBuilder<Counter, Counter, QQueryProperty> {
-  QueryBuilder<Counter, int, QQueryOperations> idProperty() {
+extension CounterQueryProperty1 on QueryBuilder<Counter, Counter, QProperty> {
+  QueryBuilder<Counter, String, QAfterProperty> idProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'id');
+      return query.addProperty(1);
     });
   }
 
-  QueryBuilder<Counter, bool?, QQueryOperations> backedProperty() {
+  QueryBuilder<Counter, int, QAfterProperty> businessIdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'backed');
+      return query.addProperty(2);
     });
   }
 
-  QueryBuilder<Counter, int, QQueryOperations> branchIdProperty() {
+  QueryBuilder<Counter, int, QAfterProperty> branchIdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'branchId');
+      return query.addProperty(3);
     });
   }
 
-  QueryBuilder<Counter, int, QQueryOperations> businessIdProperty() {
+  QueryBuilder<Counter, String, QAfterProperty> receiptTypeProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'businessId');
+      return query.addProperty(4);
     });
   }
 
-  QueryBuilder<Counter, int, QQueryOperations> curRcptNoProperty() {
+  QueryBuilder<Counter, int, QAfterProperty> totRcptNoProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'curRcptNo');
+      return query.addProperty(5);
     });
   }
 
-  QueryBuilder<Counter, String, QQueryOperations> receiptTypeProperty() {
+  QueryBuilder<Counter, int, QAfterProperty> curRcptNoProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'receiptType');
+      return query.addProperty(6);
     });
   }
 
-  QueryBuilder<Counter, int, QQueryOperations> totRcptNoProperty() {
+  QueryBuilder<Counter, bool?, QAfterProperty> backedProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'totRcptNo');
+      return query.addProperty(7);
+    });
+  }
+}
+
+extension CounterQueryProperty2<R> on QueryBuilder<Counter, R, QAfterProperty> {
+  QueryBuilder<Counter, (R, String), QAfterProperty> idProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(1);
+    });
+  }
+
+  QueryBuilder<Counter, (R, int), QAfterProperty> businessIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(2);
+    });
+  }
+
+  QueryBuilder<Counter, (R, int), QAfterProperty> branchIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(3);
+    });
+  }
+
+  QueryBuilder<Counter, (R, String), QAfterProperty> receiptTypeProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(4);
+    });
+  }
+
+  QueryBuilder<Counter, (R, int), QAfterProperty> totRcptNoProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(5);
+    });
+  }
+
+  QueryBuilder<Counter, (R, int), QAfterProperty> curRcptNoProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(6);
+    });
+  }
+
+  QueryBuilder<Counter, (R, bool?), QAfterProperty> backedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(7);
+    });
+  }
+}
+
+extension CounterQueryProperty3<R1, R2>
+    on QueryBuilder<Counter, (R1, R2), QAfterProperty> {
+  QueryBuilder<Counter, (R1, R2, String), QOperations> idProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(1);
+    });
+  }
+
+  QueryBuilder<Counter, (R1, R2, int), QOperations> businessIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(2);
+    });
+  }
+
+  QueryBuilder<Counter, (R1, R2, int), QOperations> branchIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(3);
+    });
+  }
+
+  QueryBuilder<Counter, (R1, R2, String), QOperations> receiptTypeProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(4);
+    });
+  }
+
+  QueryBuilder<Counter, (R1, R2, int), QOperations> totRcptNoProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(5);
+    });
+  }
+
+  QueryBuilder<Counter, (R1, R2, int), QOperations> curRcptNoProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(6);
+    });
+  }
+
+  QueryBuilder<Counter, (R1, R2, bool?), QOperations> backedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(7);
     });
   }
 }

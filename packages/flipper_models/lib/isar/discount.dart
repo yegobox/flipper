@@ -7,9 +7,12 @@ part 'discount.g.dart';
 @Collection()
 class Discount {
   Discount(
-      {this.id = 0, required this.name, this.amount, required this.branchId});
+      {required this.id,
+      required this.name,
+      this.amount,
+      required this.branchId});
 
-  Id id = Isar.autoIncrement;
+  late String id;
   late String name;
 
   /// this is to get ready when there will be option for percentage instead of amount!

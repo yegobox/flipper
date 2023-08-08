@@ -11,7 +11,7 @@ part 'profile.g.dart';
 @Collection()
 class Profile extends IJsonSerializable {
   Profile({
-    this.id = 0,
+    required this.id,
     required this.name,
     required this.email,
     required this.phone,
@@ -32,7 +32,7 @@ class Profile extends IJsonSerializable {
     this.deletedAt,
   });
 
-  Id id = Isar.autoIncrement;
+  late String id;
   String? name;
   String? email;
   String? phone;

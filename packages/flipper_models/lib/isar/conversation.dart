@@ -10,8 +10,7 @@ part 'conversation.g.dart';
 @JsonSerializable()
 @Collection()
 class Conversation extends IJsonSerializable {
-  @JsonKey(includeToJson: false, includeFromJson: false)
-  Id? id;
+  late String id;
   @JsonKey(defaultValue: 'Awesome Richie')
   String userName;
   String body;

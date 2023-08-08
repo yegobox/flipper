@@ -149,12 +149,7 @@ class RWTax implements TaxApi {
       itemsList.add(item.toJson());
     }
 
-    // generate 10 random number that can't be repeated
-    var random = math.Random();
-    var randomNumber = '';
-    for (var i = 0; i < 10; i++) {
-      randomNumber += random.nextInt(10).toString();
-    }
+  
     double totalMinusExemptedProducts = 0;
     for (var item in items) {
       if (!item.isTaxExempted) {
@@ -188,12 +183,7 @@ class RWTax implements TaxApi {
     request.body = json.encode({
       "tin": business!.tinNumber,
       "bhfId": business.bhfId,
-      "invcNo": randomNumber.substring(0, 8) +
-          "" +
-          (transaction.id! / 2 < 5
-                  ? transaction.id!.toString()
-                  : transaction.id!.toString().substring(0, 2))
-              .toString(),
+      "invcNo": transaction.id.substring(0, 10),
       "orgInvcNo": 0,
       "custTin": customer == null ? "" : customer.tinNumber,
       "custNm": customer == null ? "" : customer.name,
@@ -226,10 +216,10 @@ class RWTax implements TaxApi {
       "totAmt": totalMinusExemptedProducts,
       "prchrAcptcYn": "N",
       "remark": null,
-      "regrId": transaction.id!,
-      "regrNm": transaction.id!,
-      "modrId": transaction.id!,
-      "modrNm": transaction.id! + transaction.branchId,
+      "regrId": transaction.id,
+      "regrNm": transaction.id,
+      "modrId": transaction.id,
+      "modrNm": transaction.id,
       "receipt": {
         "curRcptNo": counter.curRcptNo,
         "totRcptNo": counter.totRcptNo,
@@ -238,10 +228,10 @@ class RWTax implements TaxApi {
         "rptNo": date,
         "rcptPbctDt": date,
         "intrlData": itemPrefix +
-            transaction.id!.toString() +
+            transaction.id.toString() +
             DateTime.now().microsecondsSinceEpoch.toString().substring(0, 10),
         "rcptSign": itemPrefix +
-            transaction.id!.toString() +
+            transaction.id.toString() +
             DateTime.now().microsecondsSinceEpoch.toString().substring(0, 11),
         "jrnl": "",
         "trdeNm": business.name,

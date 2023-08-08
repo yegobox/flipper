@@ -38,19 +38,19 @@ class CashbookViewModel extends ProductViewModel {
     yield* res;
   }
 
-  Future<int> deleteTransactionByIndex(int transactionIndex) async {
+  Future<String> deleteTransactionByIndex(String transactionIndex) async {
     Transaction? target = await getTransactionByIndex(transactionIndex);
     await ProxyService.isar
         .deleteTransactionByIndex(transactionIndex: transactionIndex);
     notifyListeners();
     ProxyService.sync.push();
     if (target != null) {
-      return target.id!;
+      return target.id;
     }
-    return 403;
+    return '403';
   }
 
-  Future<Transaction?> getTransactionByIndex(int transactionIndex) async {
+  Future<Transaction?> getTransactionByIndex(String transactionIndex) async {
     Transaction? res =
         await ProxyService.isar.getTransactionById(id: transactionIndex);
     return res;

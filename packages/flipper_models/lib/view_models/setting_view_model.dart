@@ -174,11 +174,11 @@ class SettingViewModel extends HomeViewModel {
         ProxyService.billing.addPoints(points: voucher.value, userId: userId);
         List<Feature> features = [];
         ProxyService.billing.updateSubscription(
-          descriptor: voucher.descriptor,
+          descriptor: voucher.descriptor!,
           userId: userId,
           features: features,
-          interval: voucher.interval,
-          amount: voucher.value.toDouble(),
+          interval: voucher.interval!,
+          amount: voucher.value!.toDouble(),
         );
         _isProceeding = false;
         notifyListeners();

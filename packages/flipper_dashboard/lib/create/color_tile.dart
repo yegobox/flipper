@@ -164,7 +164,7 @@ class ColorTile extends StatelessWidget {
                         ),
                         onPressed: () async {
                           model.browsePictureFromGallery(
-                              id: model.product.id!,
+                              id: model.product.id,
                               callBack: (e) {},
                               urlType: URLTYPE.PRODUCT);
                         },
@@ -200,7 +200,7 @@ class ColorTile extends StatelessWidget {
                         onPressed: () {
                           model.takePicture(
                             urlType: URLTYPE.PRODUCT,
-                            productId: model.product.id!!,
+                            productId: model.product.id!,
                             callBack: (int res) {
                               if (res == 500) {
                                 showSimpleNotification(

@@ -5,9 +5,9 @@ part 'points.g.dart';
 
 @Collection()
 class Pointss {
-  Pointss({this.id = 0, required this.value, required this.userId});
+  Pointss({required this.id, required this.value, required this.userId});
 
-  Id id = Isar.autoIncrement;
+  late String id;
   int value;
   @Index()
   short userId;

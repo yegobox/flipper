@@ -17,21 +17,19 @@ class ListUnits extends StatelessWidget {
         GestureDetector(
           onTap: () {
             model.saveFocusedUnit(
-                newUnit: model.units[i], id: model.product.id!!, type: type);
+                newUnit: model.units[i], id: model.product.id!, type: type);
           },
           child: ListTile(
             title: Text(
               model.units[i].name,
               style: const TextStyle(color: Colors.black),
             ),
-            trailing: Radio<int>(
+            trailing: Radio<String>(
               value: model.units[i].id,
-              groupValue: model.units[i].active ? model.units[i].id : 0,
+              groupValue: model.units[i].active ? model.units[i].id : '0',
               onChanged: (value) {
                 model.saveFocusedUnit(
-                    newUnit: model.units[i],
-                    id: model.product.id!!,
-                    type: type);
+                    newUnit: model.units[i], id: model.product.id!, type: type);
               },
             ),
           ),

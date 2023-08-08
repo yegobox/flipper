@@ -13,7 +13,7 @@ class UploadViewModel extends ProductViewModel {
 
   final appService = loc.locator<AppService>();
   void browsePictureFromGallery(
-      {required int id,
+      {required dynamic id,
       required Function(String) callBack,
       required URLTYPE urlType}) {
     uploader.clearUploads();
@@ -37,7 +37,8 @@ class UploadViewModel extends ProductViewModel {
         if (urlType == URLTYPE.BUSINESS) {
           final UploadResponse uploadResponse =
               uploadResponseFromJson(result.response!);
-          Business? business = await ProxyService.isar.getBusinessById(id: id);
+          Business? business = await ProxyService.isar
+              .getBusinessById(id: ProxyService.box.getBusinessId()!);
           business!.imageUrl = uploadResponse.url;
           ProxyService.isar.update(data: business);
           updateBusinessProfile(url: uploadResponse.url);
@@ -54,7 +55,7 @@ class UploadViewModel extends ProductViewModel {
   }
 
   void takePicture(
-      {required int productId,
+      {required String productId,
       required Function callBack,
       required URLTYPE urlType}) {
     ProxyService.upload

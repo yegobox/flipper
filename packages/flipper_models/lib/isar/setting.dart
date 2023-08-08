@@ -8,7 +8,7 @@ part 'setting.g.dart';
 @Collection()
 class Setting extends IJsonSerializable {
   Setting({
-    this.id = 0,
+    required this.id,
     required this.email,
     required this.hasPin,
     required this.userId,
@@ -29,8 +29,7 @@ class Setting extends IJsonSerializable {
     this.deletedAt,
   });
 
-  @JsonKey(includeToJson: false, includeFromJson: false)
-  Id id = Isar.autoIncrement;
+  late String id;
   String? email;
   String? hasPin;
   @Index()

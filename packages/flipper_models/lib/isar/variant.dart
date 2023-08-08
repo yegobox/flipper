@@ -1,6 +1,3 @@
-// To parse this JSON data, do
-//
-//     final variation = variationFromJson(jsonString);
 library flipper_models;
 
 import 'package:flipper_models/sync_service.dart';
@@ -13,12 +10,12 @@ part 'variant.g.dart';
 @JsonSerializable()
 @Collection()
 class Variant extends IJsonSerializable {
-  Id? id;
-  @Index(caseSensitive: true)
+  late String id;
+  @Index()
   late String name;
   late String sku;
   @Index()
-  late int productId;
+  late String productId;
   late String unit;
   late String productName;
   late int branchId;
@@ -80,16 +77,15 @@ class Variant extends IJsonSerializable {
 
   @JsonKey(includeIfNull: true)
   DateTime? lastTouched;
-  @Index()
+
   late double supplyPrice;
-  @Index()
+
   late double retailPrice;
-  @Index()
-  String? remoteId;
+
   String action;
 
   // only for accor when fetching from remove
-  int? localId;
+
   @Index()
   DateTime? deletedAt;
   Variant({
@@ -103,7 +99,7 @@ class Variant extends IJsonSerializable {
     required this.retailPrice,
     required this.isTaxExempted,
     required this.action,
-    this.id,
+    required this.id,
     this.taxName,
     this.taxPercentage,
     this.itemSeq,
@@ -137,7 +133,6 @@ class Variant extends IJsonSerializable {
     this.modrNm,
     this.rsdQty,
     required this.lastTouched,
-    this.remoteId,
     this.deletedAt,
   });
 
@@ -149,22 +144,16 @@ class Variant extends IJsonSerializable {
             (json['deletedAt'] is String && json['deletedAt'].isEmpty)
         ? null
         : json['deletedAt'];
-    json['remoteId'] ??= json['id'].toString();
+
     json['lastTouched'] =
         json['lastTouched'].toString().isEmpty || json['lastTouched'] == null
             ? DateTime.now().toIso8601String()
             : DateTime.parse(json['lastTouched'] ?? DateTime.now())
                 .toIso8601String();
-    json['id'] = json['localId'];
+
     return _$VariantFromJson(json);
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = _$VariantToJson(this);
-    if (id != null) {
-      data['localId'] = id;
-    }
-    return data;
-  }
+  Map<String, dynamic> toJson() => _$VariantToJson(this);
 }

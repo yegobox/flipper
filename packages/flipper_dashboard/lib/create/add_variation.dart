@@ -1,3 +1,4 @@
+import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/create/section_select_unit.dart';
@@ -12,7 +13,7 @@ import 'divider.dart';
 
 class AddVariation extends StatefulWidget {
   const AddVariation({Key? key, required this.productId}) : super(key: key);
-  final int productId;
+  final String productId;
   static final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
@@ -56,14 +57,16 @@ class _AddVariationState extends State<AddVariation> {
                         .toString()
                         .substring(0, 5);
                 if (AddVariation._formKey.currentState!.validate()) {
-                  final variantId = DateTime.now().millisecondsSinceEpoch;
+                  final variantId = randomString();
+                  String id = randomString();
                   List<Variant> variations = [];
                   Variant data = Variant(
+                      id: id,
                       name: nameController.text,
                       sku: sku,
                       lastTouched: DateTime.now(),
                       action: "create",
-                      productId: model.product.id!,
+                      productId: model.product.id,
                       unit: model.productService.currentUnit!,
                       productName: nameController.text,
                       branchId: ProxyService.box.getBranchId()!,
@@ -74,7 +77,7 @@ class _AddVariationState extends State<AddVariation> {
                     ..sku = sku
                     ..retailPrice = double.parse(retailController.text)
                     ..supplyPrice = double.parse(costController.text)
-                    ..productId = model.product.id!
+                    ..productId = model.product.id
                     ..unit = model.productService.currentUnit!
                     ..isTaxExempted = isTaxExempted
                     ..productName = model.product.productName
@@ -120,7 +123,7 @@ class _AddVariationState extends State<AddVariation> {
                     ),
                   );
                   model.productService
-                      .variantsProduct(productId: model.product.id!!);
+                      .variantsProduct(productId: model.product.id!);
                   _routerService.pop();
                 }
               },

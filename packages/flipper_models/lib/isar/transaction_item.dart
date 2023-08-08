@@ -7,12 +7,12 @@ part 'transaction_item.g.dart';
 @JsonSerializable()
 @Collection()
 class TransactionItem extends IJsonSerializable {
-  Id? id;
+  late String id;
   late String name;
   @Index()
-  late int transactionId;
-  @Index(composite: [CompositeIndex('transactionId')])
-  late int variantId;
+  late String transactionId;
+  @Index(composite: ['transactionId'])
+  late String variantId;
   // quantity
   late double qty;
   late double price;
@@ -95,7 +95,7 @@ class TransactionItem extends IJsonSerializable {
   @Index()
   DateTime? deletedAt;
   TransactionItem({
-    this.id,
+    required this.id,
     required this.action,
     required this.name,
     required this.transactionId,
@@ -147,10 +147,9 @@ class TransactionItem extends IJsonSerializable {
     required this.lastTouched,
     this.deletedAt,
   });
-  @Index()
-  String? remoteId;
+
   String action;
-  int? localId;
+
   int branchId;
 
   factory TransactionItem.fromRecord(RecordModel record) =>
@@ -161,22 +160,16 @@ class TransactionItem extends IJsonSerializable {
             (json['deletedAt'] is String && json['deletedAt'].isEmpty)
         ? null
         : json['deletedAt'];
-    json['remoteId'] ??= json['id'].toString();
+
     json['lastTouched'] =
         json['lastTouched'].toString().isEmpty || json['lastTouched'] == null
             ? DateTime.now().toIso8601String()
             : DateTime.parse(json['lastTouched'] ?? DateTime.now())
                 .toIso8601String();
-    json['id'] = json['localId'];
+
     return _$TransactionItemFromJson(json);
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = _$TransactionItemToJson(this);
-    if (id != null) {
-      data['localId'] = id;
-    }
-    return data;
-  }
+  Map<String, dynamic> toJson() =>_$TransactionItemToJson(this);
 }
