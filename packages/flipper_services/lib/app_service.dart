@@ -4,7 +4,6 @@ import 'dart:developer';
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar_models.dart' as isar;
 import 'package:flipper_services/constants.dart';
-import 'package:pocketbase/pocketbase.dart';
 import 'package:stacked/stacked.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flipper_models/isar_models.dart';

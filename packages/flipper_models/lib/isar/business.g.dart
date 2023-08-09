@@ -16,14 +16,14 @@ extension GetBusinessCollection on Isar {
 
 const BusinessSchema = IsarCollectionSchema(
   schema:
-      '{"name":"Business","idName":"id","properties":[{"name":"name","type":"String"},{"name":"currency","type":"String"},{"name":"categoryId","type":"String"},{"name":"latitude","type":"String"},{"name":"longitude","type":"String"},{"name":"userId","type":"Long"},{"name":"timeZone","type":"String"},{"name":"channels","type":"StringList"},{"name":"country","type":"String"},{"name":"businessUrl","type":"String"},{"name":"hexColor","type":"String"},{"name":"imageUrl","type":"String"},{"name":"type","type":"String"},{"name":"active","type":"Bool"},{"name":"chatUid","type":"String"},{"name":"metadata","type":"String"},{"name":"role","type":"String"},{"name":"lastSeen","type":"Long"},{"name":"firstName","type":"String"},{"name":"lastName","type":"String"},{"name":"createdAt","type":"String"},{"name":"deviceToken","type":"String"},{"name":"backUpEnabled","type":"Bool"},{"name":"subscriptionPlan","type":"String"},{"name":"nextBillingDate","type":"String"},{"name":"previousBillingDate","type":"String"},{"name":"isLastSubscriptionPaymentSucceeded","type":"Bool"},{"name":"backupFileId","type":"String"},{"name":"email","type":"String"},{"name":"lastDbBackup","type":"String"},{"name":"fullName","type":"String"},{"name":"tinNumber","type":"Long"},{"name":"bhfId","type":"String"},{"name":"dvcSrlNo","type":"String"},{"name":"adrs","type":"String"},{"name":"taxEnabled","type":"Bool"},{"name":"taxServerUrl","type":"String"},{"name":"isDefault","type":"Bool"},{"name":"businessTypeId","type":"Long"},{"name":"lastTouched","type":"DateTime"},{"name":"action","type":"String"},{"name":"deletedAt","type":"DateTime"}]}',
+      '{"name":"Business","idName":"id","properties":[{"name":"name","type":"String"},{"name":"currency","type":"String"},{"name":"categoryId","type":"String"},{"name":"latitude","type":"String"},{"name":"longitude","type":"String"},{"name":"userId","type":"String"},{"name":"timeZone","type":"String"},{"name":"channels","type":"StringList"},{"name":"country","type":"String"},{"name":"businessUrl","type":"String"},{"name":"hexColor","type":"String"},{"name":"imageUrl","type":"String"},{"name":"type","type":"String"},{"name":"active","type":"Bool"},{"name":"chatUid","type":"String"},{"name":"metadata","type":"String"},{"name":"role","type":"String"},{"name":"lastSeen","type":"Long"},{"name":"firstName","type":"String"},{"name":"lastName","type":"String"},{"name":"createdAt","type":"String"},{"name":"deviceToken","type":"String"},{"name":"backUpEnabled","type":"Bool"},{"name":"subscriptionPlan","type":"String"},{"name":"nextBillingDate","type":"String"},{"name":"previousBillingDate","type":"String"},{"name":"isLastSubscriptionPaymentSucceeded","type":"Bool"},{"name":"backupFileId","type":"String"},{"name":"email","type":"String"},{"name":"lastDbBackup","type":"String"},{"name":"fullName","type":"String"},{"name":"tinNumber","type":"Long"},{"name":"bhfId","type":"String"},{"name":"dvcSrlNo","type":"String"},{"name":"adrs","type":"String"},{"name":"taxEnabled","type":"Bool"},{"name":"taxServerUrl","type":"String"},{"name":"isDefault","type":"Bool"},{"name":"businessTypeId","type":"Long"},{"name":"lastTouched","type":"DateTime"},{"name":"action","type":"String"},{"name":"deletedAt","type":"DateTime"}]}',
   converter: IsarObjectConverter<int, Business>(
     serialize: serializeBusiness,
     deserialize: deserializeBusiness,
     deserializeProperty: deserializeBusinessProp,
   ),
   embeddedSchemas: [],
-  //hash: -3842499089421071628,
+  //hash: 1159616403437995225,
 );
 
 @isarProtected
@@ -68,7 +68,14 @@ int serializeBusiness(IsarWriter writer, Business object) {
       IsarCore.writeString(writer, 5, value);
     }
   }
-  IsarCore.writeLong(writer, 6, object.userId ?? -9223372036854775808);
+  {
+    final value = object.userId;
+    if (value == null) {
+      IsarCore.writeNull(writer, 6);
+    } else {
+      IsarCore.writeString(writer, 6, value);
+    }
+  }
   {
     final value = object.timeZone;
     if (value == null) {
@@ -341,15 +348,8 @@ Business deserializeBusiness(IsarReader reader) {
   _latitude = IsarCore.readString(reader, 4);
   final String? _longitude;
   _longitude = IsarCore.readString(reader, 5);
-  final int? _userId;
-  {
-    final value = IsarCore.readLong(reader, 6);
-    if (value == -9223372036854775808) {
-      _userId = null;
-    } else {
-      _userId = value;
-    }
-  }
+  final String? _userId;
+  _userId = IsarCore.readString(reader, 6);
   final String? _timeZone;
   _timeZone = IsarCore.readString(reader, 7);
   final List<String>? _channels;
@@ -552,14 +552,7 @@ dynamic deserializeBusinessProp(IsarReader reader, int property) {
     case 5:
       return IsarCore.readString(reader, 5);
     case 6:
-      {
-        final value = IsarCore.readLong(reader, 6);
-        if (value == -9223372036854775808) {
-          return null;
-        } else {
-          return value;
-        }
-      }
+      return IsarCore.readString(reader, 6);
     case 7:
       return IsarCore.readString(reader, 7);
     case 8:
@@ -715,7 +708,7 @@ sealed class _BusinessUpdate {
     String? categoryId,
     String? latitude,
     String? longitude,
-    int? userId,
+    String? userId,
     String? timeZone,
     String? country,
     String? businessUrl,
@@ -812,7 +805,7 @@ class _BusinessUpdateImpl implements _BusinessUpdate {
           if (categoryId != ignore) 3: categoryId as String?,
           if (latitude != ignore) 4: latitude as String?,
           if (longitude != ignore) 5: longitude as String?,
-          if (userId != ignore) 6: userId as int?,
+          if (userId != ignore) 6: userId as String?,
           if (timeZone != ignore) 7: timeZone as String?,
           if (country != ignore) 9: country as String?,
           if (businessUrl != ignore) 10: businessUrl as String?,
@@ -862,7 +855,7 @@ sealed class _BusinessUpdateAll {
     String? categoryId,
     String? latitude,
     String? longitude,
-    int? userId,
+    String? userId,
     String? timeZone,
     String? country,
     String? businessUrl,
@@ -957,7 +950,7 @@ class _BusinessUpdateAllImpl implements _BusinessUpdateAll {
       if (categoryId != ignore) 3: categoryId as String?,
       if (latitude != ignore) 4: latitude as String?,
       if (longitude != ignore) 5: longitude as String?,
-      if (userId != ignore) 6: userId as int?,
+      if (userId != ignore) 6: userId as String?,
       if (timeZone != ignore) 7: timeZone as String?,
       if (country != ignore) 9: country as String?,
       if (businessUrl != ignore) 10: businessUrl as String?,
@@ -1011,7 +1004,7 @@ sealed class _BusinessQueryUpdate {
     String? categoryId,
     String? latitude,
     String? longitude,
-    int? userId,
+    String? userId,
     String? timeZone,
     String? country,
     String? businessUrl,
@@ -1106,7 +1099,7 @@ class _BusinessQueryUpdateImpl implements _BusinessQueryUpdate {
       if (categoryId != ignore) 3: categoryId as String?,
       if (latitude != ignore) 4: latitude as String?,
       if (longitude != ignore) 5: longitude as String?,
-      if (userId != ignore) 6: userId as int?,
+      if (userId != ignore) 6: userId as String?,
       if (timeZone != ignore) 7: timeZone as String?,
       if (country != ignore) 9: country as String?,
       if (businessUrl != ignore) 10: businessUrl as String?,
@@ -2182,26 +2175,30 @@ extension BusinessQueryFilter
   }
 
   QueryBuilder<Business, Business, QAfterFilterCondition> userIdEqualTo(
-    int? value,
-  ) {
+    String? value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         EqualCondition(
           property: 6,
           value: value,
+          caseSensitive: caseSensitive,
         ),
       );
     });
   }
 
   QueryBuilder<Business, Business, QAfterFilterCondition> userIdGreaterThan(
-    int? value,
-  ) {
+    String? value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterCondition(
           property: 6,
           value: value,
+          caseSensitive: caseSensitive,
         ),
       );
     });
@@ -2209,26 +2206,30 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition>
       userIdGreaterThanOrEqualTo(
-    int? value,
-  ) {
+    String? value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterOrEqualCondition(
           property: 6,
           value: value,
+          caseSensitive: caseSensitive,
         ),
       );
     });
   }
 
   QueryBuilder<Business, Business, QAfterFilterCondition> userIdLessThan(
-    int? value,
-  ) {
+    String? value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessCondition(
           property: 6,
           value: value,
+          caseSensitive: caseSensitive,
         ),
       );
     });
@@ -2236,28 +2237,112 @@ extension BusinessQueryFilter
 
   QueryBuilder<Business, Business, QAfterFilterCondition>
       userIdLessThanOrEqualTo(
-    int? value,
-  ) {
+    String? value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessOrEqualCondition(
           property: 6,
           value: value,
+          caseSensitive: caseSensitive,
         ),
       );
     });
   }
 
   QueryBuilder<Business, Business, QAfterFilterCondition> userIdBetween(
-    int? lower,
-    int? upper,
-  ) {
+    String? lower,
+    String? upper, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         BetweenCondition(
           property: 6,
           lower: lower,
           upper: upper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> userIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        StartsWithCondition(
+          property: 6,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> userIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EndsWithCondition(
+          property: 6,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> userIdContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        ContainsCondition(
+          property: 6,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> userIdMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        MatchesCondition(
+          property: 6,
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> userIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const EqualCondition(
+          property: 6,
+          value: '',
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> userIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const GreaterCondition(
+          property: 6,
+          value: '',
         ),
       );
     });
@@ -7880,15 +7965,24 @@ extension BusinessQuerySortBy on QueryBuilder<Business, Business, QSortBy> {
     });
   }
 
-  QueryBuilder<Business, Business, QAfterSortBy> sortByUserId() {
+  QueryBuilder<Business, Business, QAfterSortBy> sortByUserId(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(6);
+      return query.addSortBy(
+        6,
+        caseSensitive: caseSensitive,
+      );
     });
   }
 
-  QueryBuilder<Business, Business, QAfterSortBy> sortByUserIdDesc() {
+  QueryBuilder<Business, Business, QAfterSortBy> sortByUserIdDesc(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(6, sort: Sort.desc);
+      return query.addSortBy(
+        6,
+        sort: Sort.desc,
+        caseSensitive: caseSensitive,
+      );
     });
   }
 
@@ -8624,15 +8718,17 @@ extension BusinessQuerySortThenBy
     });
   }
 
-  QueryBuilder<Business, Business, QAfterSortBy> thenByUserId() {
+  QueryBuilder<Business, Business, QAfterSortBy> thenByUserId(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(6);
+      return query.addSortBy(6, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Business, Business, QAfterSortBy> thenByUserIdDesc() {
+  QueryBuilder<Business, Business, QAfterSortBy> thenByUserIdDesc(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(6, sort: Sort.desc);
+      return query.addSortBy(6, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
 
@@ -9146,9 +9242,10 @@ extension BusinessQueryWhereDistinct
     });
   }
 
-  QueryBuilder<Business, Business, QAfterDistinct> distinctByUserId() {
+  QueryBuilder<Business, Business, QAfterDistinct> distinctByUserId(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(6);
+      return query.addDistinctBy(6, caseSensitive: caseSensitive);
     });
   }
 
@@ -9433,7 +9530,7 @@ extension BusinessQueryProperty1
     });
   }
 
-  QueryBuilder<Business, int?, QAfterProperty> userIdProperty() {
+  QueryBuilder<Business, String?, QAfterProperty> userIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(6);
     });
@@ -9696,7 +9793,7 @@ extension BusinessQueryProperty2<R>
     });
   }
 
-  QueryBuilder<Business, (R, int?), QAfterProperty> userIdProperty() {
+  QueryBuilder<Business, (R, String?), QAfterProperty> userIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(6);
     });
@@ -9962,7 +10059,7 @@ extension BusinessQueryProperty3<R1, R2>
     });
   }
 
-  QueryBuilder<Business, (R1, R2, int?), QOperations> userIdProperty() {
+  QueryBuilder<Business, (R1, R2, String?), QOperations> userIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(6);
     });
@@ -10205,7 +10302,7 @@ Business _$BusinessFromJson(Map<String, dynamic> json) => Business(
       categoryId: json['categoryId'] as String? ?? "1",
       latitude: json['latitude'] as String?,
       longitude: json['longitude'] as String?,
-      userId: json['userId'] as int?,
+      userId: json['userId'] as String?,
       timeZone: json['timeZone'] as String?,
       channels: (json['channels'] as List<dynamic>?)
           ?.map((e) => e as String)
