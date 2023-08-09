@@ -5,16 +5,40 @@ name: Deploy to Firebase Hosting on merge
 'on':
   push:
     branches:
-      - dev
+      - main
 jobs:
-  build_and_deploy:
+  build_and_preview:
+    if: "${{ github.event.pull_request.head.repo.full_name == github.repository }}"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - run: npm ci && npm run build
+      - uses: actions/setup-java@v2
+        with:
+          distribution: "zulu"
+          java-version: "11" #defines the java version
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.10.5' #firebase_auth_desktop is broken with  3.10.6
+          channel: stable
+      - run: git submodule update --init
+
+      - run: dart pub global activate melos 2.9.0
+      - name: "Run Melos bootstrap"
+        run: melos bootstrap
+      - name: Configure Missing files
+        run: |
+          echo "$INDEX" >> web/index.html
+          echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
+          echo "$FIREBASEOPTIONS" >> lib/firebase_options.dart
+        env:
+          INDEX: ${{ secrets.INDEX }}
+          CONFIGDART: ${{ secrets.CONFIGDART }}
+          FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+      - name: "Build Web App"
+        run: flutter build web
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_YEGOBOX_2EE43 }}'
-          channelId: live
           projectId: yegobox-2ee43
+          channelId: live
