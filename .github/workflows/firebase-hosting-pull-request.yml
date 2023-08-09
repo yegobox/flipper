@@ -35,7 +35,12 @@ jobs:
         run: flutter build web
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
-          repoToken: "${{ secrets.GITHUB_TOKEN }}"
-          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_YEGOBOX_2EE43 }}"
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_YEGOBOX_2EE43 }}'
           projectId: yegobox-2ee43
+        # with:
+        #   repoToken: "${{ secrets.GITHUB_TOKEN }}"
+        #   firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_YEGOBOX_2EE43 }}"
+        #   projectId: yegobox-2ee43
+          # channelId: live
           # entryPoint: "."

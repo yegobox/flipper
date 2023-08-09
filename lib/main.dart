@@ -12,8 +12,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/notifications/cubit/notifications_cubit.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:google_fonts/google_fonts.dart';
-import 'package:newrelic_mobile/config.dart';
-import 'package:newrelic_mobile/newrelic_mobile.dart';
+
 import 'package:overlay_support/overlay_support.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:flipper_services/locator.dart';
@@ -25,6 +24,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+
+import 'newRelic.dart' if (dart.library.html) 'newRelic_web.dart';
 
 Future<void> onDidReceiveBackgroundNotificationResponse(
   NotificationResponse notificationResponse,
@@ -70,21 +71,8 @@ void main() async {
         FirebaseCrashlytics.instance.recordFlutterError(details);
       };
     }
-    if (isAndroid && foundation.kReleaseMode) {
-      const appToken = "AAbbd887ce4300ef17e2e403be632d198c86f486a0-NRMA";
-      Config config = Config(
-          accessToken: appToken,
-          analyticsEventEnabled: true,
-          networkErrorRequestEnabled: true,
-          networkRequestEnabled: true,
-          crashReportingEnabled: true,
-          interactionTracingEnabled: true,
-          httpResponseBodyCaptureEnabled: true,
-          loggingEnabled: true,
-          webViewInstrumentation: true,
-          printStatementAsEventsEnabled: true,
-          httpInstrumentationEnabled: true);
-      await NewrelicMobile.instance.startAgent(config);
+    if (isAndroid && foundation.kReleaseMode && !isWeb) {
+      NewRelic.initialize();
     }
     if (foundation.kReleaseMode) {
       await SentryFlutter.init(
@@ -119,7 +107,7 @@ void main() async {
     setupBottomSheetUi();
 
     ///Will switch to localNotification when it support windows
-    if (isAndroid || isIos) {
+    if (isAndroid || isIos && !isWeb) {
       await NotificationsCubit.initialize(
         flutterLocalNotificationsPlugin: FlutterLocalNotificationsPlugin(),
       );

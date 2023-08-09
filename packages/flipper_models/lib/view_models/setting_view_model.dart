@@ -148,7 +148,7 @@ class SettingViewModel extends HomeViewModel {
         /// the
         Business? business = await ProxyService.isar.getBusiness();
         ProxyService.isar
-            .enableAttendance(businessId: business!.id!, email: setting.email!);
+            .enableAttendance(businessId: business!.id, email: setting.email!);
       }
     } else {
       callback(2);

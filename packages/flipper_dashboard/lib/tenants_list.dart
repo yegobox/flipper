@@ -49,8 +49,8 @@ class ListTenants extends StatelessWidget {
                           onPressed: () async {
                             log(tenants[index].id.toString());
                             await model.bindTenant(
-                                tenantId: tenants[index].id!,
-                                productId: product.id!);
+                                tenantId: tenants[index].id,
+                                productId: product.id);
                             showToast(
                                 context, 'Binded to ${tenants[index].name}');
                           },

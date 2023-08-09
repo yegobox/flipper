@@ -133,7 +133,7 @@ class Customers extends StatelessWidget {
                                       SlidableAction(
                                         onPressed: (_) {
                                           model.deleteCustomer(
-                                              snapshot.data!.id!, (message) {
+                                              snapshot.data!.id, (message) {
                                             ScaffoldMessenger.of(context)
                                                 .showSnackBar(
                                               SnackBar(
