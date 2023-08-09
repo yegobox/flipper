@@ -38,3 +38,4 @@ jobs:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
           firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_YEGOBOX_2EE43 }}"
           projectId: yegobox-2ee43
+          # entryPoint: "."

@@ -11,34 +11,33 @@ part of 'permission.dart';
 // ignore_for_file: type=lint
 
 extension GetPermissionCollection on Isar {
-  IsarCollection<String, Permission> get permissions => this.collection();
+  IsarCollection<int, Permission> get permissions => this.collection();
 }
 
 const PermissionSchema = IsarCollectionSchema(
   schema:
-      '{"name":"Permission","idName":"id","properties":[{"name":"id","type":"String"},{"name":"name","type":"String"}]}',
-  converter: IsarObjectConverter<String, Permission>(
+      '{"name":"Permission","idName":"id","properties":[{"name":"name","type":"String"}]}',
+  converter: IsarObjectConverter<int, Permission>(
     serialize: serializePermission,
     deserialize: deserializePermission,
     deserializeProperty: deserializePermissionProp,
   ),
   embeddedSchemas: [],
-  //hash: -4360203682150728693,
+  //hash: 2300501100308215144,
 );
 
 @isarProtected
 int serializePermission(IsarWriter writer, Permission object) {
-  IsarCore.writeString(writer, 1, object.id);
-  IsarCore.writeString(writer, 2, object.name);
-  return Isar.fastHash(object.id);
+  IsarCore.writeString(writer, 1, object.name);
+  return object.id;
 }
 
 @isarProtected
 Permission deserializePermission(IsarReader reader) {
-  final String _id;
-  _id = IsarCore.readString(reader, 1) ?? '';
+  final int _id;
+  _id = IsarCore.readId(reader);
   final String _name;
-  _name = IsarCore.readString(reader, 2) ?? '';
+  _name = IsarCore.readString(reader, 1) ?? '';
   final object = Permission(
     id: _id,
     name: _name,
@@ -49,10 +48,10 @@ Permission deserializePermission(IsarReader reader) {
 @isarProtected
 dynamic deserializePermissionProp(IsarReader reader, int property) {
   switch (property) {
+    case 0:
+      return IsarCore.readId(reader);
     case 1:
       return IsarCore.readString(reader, 1) ?? '';
-    case 2:
-      return IsarCore.readString(reader, 2) ?? '';
     default:
       throw ArgumentError('Unknown property: $property');
   }
@@ -60,7 +59,7 @@ dynamic deserializePermissionProp(IsarReader reader, int property) {
 
 sealed class _PermissionUpdate {
   bool call({
-    required String id,
+    required int id,
     String? name,
   });
 }
@@ -68,17 +67,17 @@ sealed class _PermissionUpdate {
 class _PermissionUpdateImpl implements _PermissionUpdate {
   const _PermissionUpdateImpl(this.collection);
 
-  final IsarCollection<String, Permission> collection;
+  final IsarCollection<int, Permission> collection;
 
   @override
   bool call({
-    required String id,
+    required int id,
     Object? name = ignore,
   }) {
     return collection.updateProperties([
           id
         ], {
-          if (name != ignore) 2: name as String?,
+          if (name != ignore) 1: name as String?,
         }) >
         0;
   }
@@ -86,7 +85,7 @@ class _PermissionUpdateImpl implements _PermissionUpdate {
 
 sealed class _PermissionUpdateAll {
   int call({
-    required List<String> id,
+    required List<int> id,
     String? name,
   });
 }
@@ -94,20 +93,20 @@ sealed class _PermissionUpdateAll {
 class _PermissionUpdateAllImpl implements _PermissionUpdateAll {
   const _PermissionUpdateAllImpl(this.collection);
 
-  final IsarCollection<String, Permission> collection;
+  final IsarCollection<int, Permission> collection;
 
   @override
   int call({
-    required List<String> id,
+    required List<int> id,
     Object? name = ignore,
   }) {
     return collection.updateProperties(id, {
-      if (name != ignore) 2: name as String?,
+      if (name != ignore) 1: name as String?,
     });
   }
 }
 
-extension PermissionUpdate on IsarCollection<String, Permission> {
+extension PermissionUpdate on IsarCollection<int, Permission> {
   _PermissionUpdate get update => _PermissionUpdateImpl(this);
 
   _PermissionUpdateAll get updateAll => _PermissionUpdateAllImpl(this);
@@ -130,7 +129,7 @@ class _PermissionQueryUpdateImpl implements _PermissionQueryUpdate {
     Object? name = ignore,
   }) {
     return query.updateProperties(limit: limit, {
-      if (name != ignore) 2: name as String?,
+      if (name != ignore) 1: name as String?,
     });
   }
 }
@@ -145,30 +144,26 @@ extension PermissionQueryUpdate on IsarQuery<Permission> {
 extension PermissionQueryFilter
     on QueryBuilder<Permission, Permission, QFilterCondition> {
   QueryBuilder<Permission, Permission, QAfterFilterCondition> idEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+    int value,
+  ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         EqualCondition(
-          property: 1,
+          property: 0,
           value: value,
-          caseSensitive: caseSensitive,
         ),
       );
     });
   }
 
   QueryBuilder<Permission, Permission, QAfterFilterCondition> idGreaterThan(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+    int value,
+  ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterCondition(
-          property: 1,
+          property: 0,
           value: value,
-          caseSensitive: caseSensitive,
         ),
       );
     });
@@ -176,30 +171,26 @@ extension PermissionQueryFilter
 
   QueryBuilder<Permission, Permission, QAfterFilterCondition>
       idGreaterThanOrEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+    int value,
+  ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterOrEqualCondition(
-          property: 1,
+          property: 0,
           value: value,
-          caseSensitive: caseSensitive,
         ),
       );
     });
   }
 
   QueryBuilder<Permission, Permission, QAfterFilterCondition> idLessThan(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+    int value,
+  ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessCondition(
-          property: 1,
+          property: 0,
           value: value,
-          caseSensitive: caseSensitive,
         ),
       );
     });
@@ -207,112 +198,28 @@ extension PermissionQueryFilter
 
   QueryBuilder<Permission, Permission, QAfterFilterCondition>
       idLessThanOrEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+    int value,
+  ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessOrEqualCondition(
-          property: 1,
+          property: 0,
           value: value,
-          caseSensitive: caseSensitive,
         ),
       );
     });
   }
 
   QueryBuilder<Permission, Permission, QAfterFilterCondition> idBetween(
-    String lower,
-    String upper, {
-    bool caseSensitive = true,
-  }) {
+    int lower,
+    int upper,
+  ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         BetweenCondition(
-          property: 1,
+          property: 0,
           lower: lower,
           upper: upper,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Permission, Permission, QAfterFilterCondition> idStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        StartsWithCondition(
-          property: 1,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Permission, Permission, QAfterFilterCondition> idEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EndsWithCondition(
-          property: 1,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Permission, Permission, QAfterFilterCondition> idContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        ContainsCondition(
-          property: 1,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Permission, Permission, QAfterFilterCondition> idMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        MatchesCondition(
-          property: 1,
-          wildcard: pattern,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Permission, Permission, QAfterFilterCondition> idIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const EqualCondition(
-          property: 1,
-          value: '',
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Permission, Permission, QAfterFilterCondition> idIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const GreaterCondition(
-          property: 1,
-          value: '',
         ),
       );
     });
@@ -325,7 +232,7 @@ extension PermissionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         EqualCondition(
-          property: 2,
+          property: 1,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -340,7 +247,7 @@ extension PermissionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterCondition(
-          property: 2,
+          property: 1,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -356,7 +263,7 @@ extension PermissionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterOrEqualCondition(
-          property: 2,
+          property: 1,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -371,7 +278,7 @@ extension PermissionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessCondition(
-          property: 2,
+          property: 1,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -387,7 +294,7 @@ extension PermissionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessOrEqualCondition(
-          property: 2,
+          property: 1,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -403,7 +310,7 @@ extension PermissionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         BetweenCondition(
-          property: 2,
+          property: 1,
           lower: lower,
           upper: upper,
           caseSensitive: caseSensitive,
@@ -419,7 +326,7 @@ extension PermissionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         StartsWithCondition(
-          property: 2,
+          property: 1,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -434,7 +341,7 @@ extension PermissionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         EndsWithCondition(
-          property: 2,
+          property: 1,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -448,7 +355,7 @@ extension PermissionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         ContainsCondition(
-          property: 2,
+          property: 1,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -462,7 +369,7 @@ extension PermissionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         MatchesCondition(
-          property: 2,
+          property: 1,
           wildcard: pattern,
           caseSensitive: caseSensitive,
         ),
@@ -474,7 +381,7 @@ extension PermissionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const EqualCondition(
-          property: 2,
+          property: 1,
           value: '',
         ),
       );
@@ -485,7 +392,7 @@ extension PermissionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const GreaterCondition(
-          property: 2,
+          property: 1,
           value: '',
         ),
       );
@@ -498,24 +405,15 @@ extension PermissionQueryObject
 
 extension PermissionQuerySortBy
     on QueryBuilder<Permission, Permission, QSortBy> {
-  QueryBuilder<Permission, Permission, QAfterSortBy> sortById(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Permission, Permission, QAfterSortBy> sortById() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(
-        1,
-        caseSensitive: caseSensitive,
-      );
+      return query.addSortBy(0);
     });
   }
 
-  QueryBuilder<Permission, Permission, QAfterSortBy> sortByIdDesc(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Permission, Permission, QAfterSortBy> sortByIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(
-        1,
-        sort: Sort.desc,
-        caseSensitive: caseSensitive,
-      );
+      return query.addSortBy(0, sort: Sort.desc);
     });
   }
 
@@ -523,7 +421,7 @@ extension PermissionQuerySortBy
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
-        2,
+        1,
         caseSensitive: caseSensitive,
       );
     });
@@ -533,7 +431,7 @@ extension PermissionQuerySortBy
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
-        2,
+        1,
         sort: Sort.desc,
         caseSensitive: caseSensitive,
       );
@@ -543,31 +441,29 @@ extension PermissionQuerySortBy
 
 extension PermissionQuerySortThenBy
     on QueryBuilder<Permission, Permission, QSortThenBy> {
-  QueryBuilder<Permission, Permission, QAfterSortBy> thenById(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Permission, Permission, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(1, caseSensitive: caseSensitive);
+      return query.addSortBy(0);
     });
   }
 
-  QueryBuilder<Permission, Permission, QAfterSortBy> thenByIdDesc(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Permission, Permission, QAfterSortBy> thenByIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(1, sort: Sort.desc, caseSensitive: caseSensitive);
+      return query.addSortBy(0, sort: Sort.desc);
     });
   }
 
   QueryBuilder<Permission, Permission, QAfterSortBy> thenByName(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(2, caseSensitive: caseSensitive);
+      return query.addSortBy(1, caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<Permission, Permission, QAfterSortBy> thenByNameDesc(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(2, sort: Sort.desc, caseSensitive: caseSensitive);
+      return query.addSortBy(1, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
 }
@@ -577,52 +473,52 @@ extension PermissionQueryWhereDistinct
   QueryBuilder<Permission, Permission, QAfterDistinct> distinctByName(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(2, caseSensitive: caseSensitive);
+      return query.addDistinctBy(1, caseSensitive: caseSensitive);
     });
   }
 }
 
 extension PermissionQueryProperty1
     on QueryBuilder<Permission, Permission, QProperty> {
-  QueryBuilder<Permission, String, QAfterProperty> idProperty() {
+  QueryBuilder<Permission, int, QAfterProperty> idProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(1);
+      return query.addProperty(0);
     });
   }
 
   QueryBuilder<Permission, String, QAfterProperty> nameProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(2);
+      return query.addProperty(1);
     });
   }
 }
 
 extension PermissionQueryProperty2<R>
     on QueryBuilder<Permission, R, QAfterProperty> {
-  QueryBuilder<Permission, (R, String), QAfterProperty> idProperty() {
+  QueryBuilder<Permission, (R, int), QAfterProperty> idProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(1);
+      return query.addProperty(0);
     });
   }
 
   QueryBuilder<Permission, (R, String), QAfterProperty> nameProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(2);
+      return query.addProperty(1);
     });
   }
 }
 
 extension PermissionQueryProperty3<R1, R2>
     on QueryBuilder<Permission, (R1, R2), QAfterProperty> {
-  QueryBuilder<Permission, (R1, R2, String), QOperations> idProperty() {
+  QueryBuilder<Permission, (R1, R2, int), QOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(1);
+      return query.addProperty(0);
     });
   }
 
   QueryBuilder<Permission, (R1, R2, String), QOperations> nameProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(2);
+      return query.addProperty(1);
     });
   }
 }
@@ -632,7 +528,7 @@ extension PermissionQueryProperty3<R1, R2>
 // **************************************************************************
 
 Permission _$PermissionFromJson(Map<String, dynamic> json) => Permission(
-      id: json['id'] as String,
+      id: json['id'] as int,
       name: json['name'] as String,
     );
 

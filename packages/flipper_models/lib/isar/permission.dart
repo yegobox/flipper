@@ -12,7 +12,7 @@ class Permission {
     required this.id,
     required this.name,
   });
-  late String id;
+  late int id;
   late String name;
 
   factory Permission.fromRecord(RecordModel record) =>
