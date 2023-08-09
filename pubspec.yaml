@@ -12,7 +12,7 @@ description: A super app for africans
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundatversion:
-version: 1.170.434850002562+1691526328
+version: 1.170.438233078821+1691549966
 #......
 # The packages below are just refrences for what packages being used
 # so not referenced in the app! check each package for more real package used
@@ -99,6 +99,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   build_runner: ^2.4.4
+  flutter_assets_generator: ^0.0.8
 flutter_launcher_icons:
   android: true
   ios: true
