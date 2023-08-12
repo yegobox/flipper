@@ -24,13 +24,8 @@ class IsarAPI<M> implements IsarApiInterface {
   SocialsHttpClient socialsHttpClient = SocialsHttpClient(http.Client());
   late String apihub;
   late String commApi;
-<<<<<<< HEAD
   late Isar db;
   Future<IsarApiInterface> getInstance({Isar? isa}) async {
-=======
-  late Isar iisar;
-  Future<IsarApiInterface> getInstance({Isar? db}) async {
->>>>>>> 9246017abd65498cb2ea26262e59178d29d9807d
     final appDocDir = await getApplicationDocumentsDirectory();
     if (foundation.kDebugMode && !isAndroid) {
       apihub = "https://uat-apihub.yegobox.com";
@@ -43,13 +38,8 @@ class IsarAPI<M> implements IsarApiInterface {
       apihub = "https://apihub.yegobox.com";
       commApi = "https://ers84w6ehl.execute-api.us-east-1.amazonaws.com/api";
     }
-<<<<<<< HEAD
     if (isa == null) {
       db = await Isar.open(
-=======
-    if (db == null) {
-      iisar = await Isar.open(
->>>>>>> 9246017abd65498cb2ea26262e59178d29d9807d
         // compactOnLaunch:
         // CompactCondition(minBytes: 100, minFileSize: 100, minRatio: 2.0),
         schemas: [
@@ -88,11 +78,7 @@ class IsarAPI<M> implements IsarApiInterface {
         engine: foundation.kIsWeb ? IsarEngine.sqlite : IsarEngine.isar,
       );
     } else {
-<<<<<<< HEAD
       db = isa;
-=======
-      iisar = db;
->>>>>>> 9246017abd65498cb2ea26262e59178d29d9807d
     }
     return this;
   }
