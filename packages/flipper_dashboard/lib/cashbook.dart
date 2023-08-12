@@ -303,7 +303,7 @@ class _CashbookState extends State<Cashbook> {
                 areValueColumnsVisible: !widget.newTransactionPressed,
               );
             } else {
-              return CircularProgressIndicator();
+              return SizedBox.shrink();
             }
           } else if (snapshot.hasError) {
             log(snapshot.error.toString());

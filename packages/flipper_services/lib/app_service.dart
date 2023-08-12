@@ -126,6 +126,7 @@ class AppService with ListenableServiceMixin {
 
     final businessId = ProxyService.box.getBusinessId()!;
     final data = Token(
+      id: randomString(),
       businessId: businessId,
       token: token.body.token,
       validFrom: token.body.validFrom,
@@ -228,7 +229,7 @@ class AppService with ListenableServiceMixin {
   }
 
   Future<void> loadCounters(isar.Business business) async {
-    if (await ProxyService.isar.size(object: Counter(id: randomString())) ==
+    if (await ProxyService.isar.size(object: Counter(id: randomNumber())) ==
         0) {
       await ProxyService.isar.loadCounterFromOnline(businessId: business.id);
     }

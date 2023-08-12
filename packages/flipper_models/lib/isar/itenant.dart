@@ -23,7 +23,7 @@ class ITenant extends IJsonSerializable {
   late int id;
   String name;
   String phoneNumber;
-  String email;
+  String? email;
   bool nfcEnabled;
   int businessId;
   int userId;

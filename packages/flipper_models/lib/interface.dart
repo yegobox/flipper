@@ -4,7 +4,7 @@ import 'package:flipper_services/constants.dart';
 
 abstract class IsarApiInterface {
   Future<List<Product>> products({required int branchId});
-  Future<List<JTenant>> signup({required Map business});
+  Future<List<Tenant>> signup({required Map business});
   Future<Transaction?> pendingTransaction({required int branchId});
   Future<IUser> login(
       {required String userPhone, required bool skipDefaultAppSetup});
@@ -107,7 +107,7 @@ abstract class IsarApiInterface {
   Future<Customer?> addCustomer(
       {required Map customer, required String transactionId});
   Future assingTransactionToCustomer(
-      {required String customerId, required String transactionId});
+      {required int customerId, required String transactionId});
   Stream<Customer?> getCustomer({required String key});
   Stream<Customer?> getCustomerByTransactionId({required String id});
 
@@ -124,7 +124,7 @@ abstract class IsarApiInterface {
   Future<List<double>> getTransactionsAmountsSum({required String period});
   Future<List<double>> getLocalTransactionsAmountsSum({required String period});
   Stream<List<Transaction>> getTransactionsByCustomerId(
-      {required String customerId});
+      {required int customerId});
   Future<int> deleteTransactionByIndex({required String transactionIndex});
 
   Future<List<Variant>> getVariantByProductId({required String productId});
@@ -142,11 +142,6 @@ abstract class IsarApiInterface {
   //analytics
   int lifeTimeCustomersForbranch({required String branchId});
 
-  Future<List<Transaction>> weeklyTransactionsReport({
-    required DateTime weekStartDate,
-    required DateTime weekEndDate,
-    required int branchId,
-  });
   //save discount
   Future<void> saveDiscount(
       {required int branchId, required name, double? amount});
@@ -185,7 +180,7 @@ abstract class IsarApiInterface {
 
   Future<Profile?> profile({required int businessId});
   Future<Profile?> updateProfile({required Profile profile});
-  Future<JTenant> saveTenant(String phoneNumber, String name,
+  Future<Tenant> saveTenant(String phoneNumber, String name,
       {required Business business, required Branch branch});
   Pointss addPoint({required int userId, required int point});
   Future<Subscription?> addUpdateSubscription({
@@ -230,7 +225,6 @@ abstract class IsarApiInterface {
   Future<Counter?> nRSCounter({required int branchId});
   Future<Counter?> tSCounter({required int branchId});
   Future<Counter?> pSCounter({required int branchId});
-  Future<List<Counter>> unSyncedCounters({required int branchId});
   Future<void> loadCounterFromOnline({required int businessId});
 
   String dbPath();

@@ -22,6 +22,7 @@ Tenant _$TenantFromJson(Map<String, dynamic> json) => Tenant(
           .toList(),
       businessId: json['businessId'] as int,
       nfcEnabled: json['nfcEnabled'] as bool,
+      userId: json['userId'] as int,
     );
 
 Map<String, dynamic> _$TenantToJson(Tenant instance) => <String, dynamic>{
@@ -34,4 +35,5 @@ Map<String, dynamic> _$TenantToJson(Tenant instance) => <String, dynamic>{
       'businesses': instance.businesses,
       'businessId': instance.businessId,
       'nfcEnabled': instance.nfcEnabled,
+      'userId': instance.userId,
     };

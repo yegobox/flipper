@@ -7,7 +7,7 @@ part 'customer.g.dart';
 @JsonSerializable()
 @Collection()
 class Customer extends IJsonSerializable {
-  late String id;
+  late int id;
   late String name;
   late String email;
   late String phone;
@@ -42,11 +42,5 @@ class Customer extends IJsonSerializable {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = _$CustomerToJson(this);
-    if (id != null) {
-      data['localId'] = id;
-    }
-    return data;
-  }
+  Map<String, dynamic> toJson() => _$CustomerToJson(this);
 }

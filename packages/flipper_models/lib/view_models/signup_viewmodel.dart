@@ -79,7 +79,7 @@ class SignupViewModel extends ReactiveViewModel {
 
       String? referralCode = ProxyService.box.read(key: 'referralCode');
 
-      List<JTenant> jTenants = await ProxyService.isar.signup(business: {
+      List<Tenant> tenants = await ProxyService.isar.signup(business: {
         'name': kName,
         'latitude': latitude,
         'longitude': longitude,
@@ -94,7 +94,7 @@ class SignupViewModel extends ReactiveViewModel {
         'fullName': kFullName,
         'country': kCountry
       });
-      if (jTenants.isNotEmpty) {
+      if (tenants.isNotEmpty) {
         /// we have socials as choosen app then register on social
         if (businessType.id == 2) {
           // it is customer support then register on socials as well
@@ -104,7 +104,7 @@ class SignupViewModel extends ReactiveViewModel {
                   ProxyService.box.getUserPhone()!.replaceAll("+", ""));
         }
         Business? business = await ProxyService.isar
-            .getBusinessById(id: jTenants.first.businesses.first.id);
+            .getBusinessById(id: tenants.first.businesses.first.id);
 
         List<Branch> branches =
             await ProxyService.isar.branches(businessId: business!.id);

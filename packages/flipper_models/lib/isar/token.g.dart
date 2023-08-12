@@ -49,6 +49,8 @@ int serializeToken(IsarWriter writer, Token object) {
 
 @isarProtected
 Token deserializeToken(IsarReader reader) {
+  final String _id;
+  _id = IsarCore.readString(reader, 1) ?? '';
   final String _type;
   _type = IsarCore.readString(reader, 2) ?? '';
   final String _token;
@@ -88,6 +90,7 @@ Token deserializeToken(IsarReader reader) {
     }
   }
   final object = Token(
+    id: _id,
     type: _type,
     token: _token,
     validFrom: _validFrom,
@@ -95,7 +98,6 @@ Token deserializeToken(IsarReader reader) {
     businessId: _businessId,
     deletedAt: _deletedAt,
   );
-  object.id = IsarCore.readString(reader, 1) ?? '';
   {
     final value = IsarCore.readLong(reader, 7);
     if (value == -9223372036854775808) {
@@ -1919,6 +1921,7 @@ extension TokenQueryProperty3<R1, R2>
 // **************************************************************************
 
 Token _$TokenFromJson(Map<String, dynamic> json) => Token(
+      id: json['id'] as String,
       type: json['type'] as String,
       token: json['token'] as String,
       businessId: json['businessId'] as int,
@@ -1929,7 +1932,6 @@ Token _$TokenFromJson(Map<String, dynamic> json) => Token(
           : DateTime.parse(json['deletedAt'] as String),
     )
       ..action = json['action'] as String
-      ..id = json['id'] as String
       ..lastTouched = json['lastTouched'] == null
           ? null
           : DateTime.parse(json['lastTouched'] as String);

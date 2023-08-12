@@ -19,7 +19,6 @@ export 'isar/tenant.dart';
 export 'isar/itenant.dart';
 export 'isar/iuser.dart';
 export 'isar/counter.dart';
-export 'data.loads/jtenant.dart';
 export 'isar/subscription.dart';
 export 'isar/stock.dart';
 export 'isar/spenn.dart';

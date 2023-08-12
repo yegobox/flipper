@@ -30,7 +30,14 @@ const ITenantSchema = IsarCollectionSchema(
 int serializeITenant(IsarWriter writer, ITenant object) {
   IsarCore.writeString(writer, 1, object.name);
   IsarCore.writeString(writer, 2, object.phoneNumber);
-  IsarCore.writeString(writer, 3, object.email);
+  {
+    final value = object.email;
+    if (value == null) {
+      IsarCore.writeNull(writer, 3);
+    } else {
+      IsarCore.writeString(writer, 3, value);
+    }
+  }
   IsarCore.writeBool(writer, 4, object.nfcEnabled);
   IsarCore.writeLong(writer, 5, object.businessId);
   IsarCore.writeLong(writer, 6, object.userId);
@@ -61,8 +68,8 @@ ITenant deserializeITenant(IsarReader reader) {
   _name = IsarCore.readString(reader, 1) ?? '';
   final String _phoneNumber;
   _phoneNumber = IsarCore.readString(reader, 2) ?? '';
-  final String _email;
-  _email = IsarCore.readString(reader, 3) ?? '';
+  final String? _email;
+  _email = IsarCore.readString(reader, 3);
   final bool _nfcEnabled;
   _nfcEnabled = IsarCore.readBool(reader, 4);
   final int _businessId;
@@ -113,7 +120,7 @@ dynamic deserializeITenantProp(IsarReader reader, int property) {
     case 2:
       return IsarCore.readString(reader, 2) ?? '';
     case 3:
-      return IsarCore.readString(reader, 3) ?? '';
+      return IsarCore.readString(reader, 3);
     case 4:
       return IsarCore.readBool(reader, 4);
     case 5:
@@ -744,8 +751,20 @@ extension ITenantQueryFilter
     });
   }
 
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> emailIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 3));
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> emailIsNotNull() {
+    return QueryBuilder.apply(not(), (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 3));
+    });
+  }
+
   QueryBuilder<ITenant, ITenant, QAfterFilterCondition> emailEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -760,7 +779,7 @@ extension ITenantQueryFilter
   }
 
   QueryBuilder<ITenant, ITenant, QAfterFilterCondition> emailGreaterThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -776,7 +795,7 @@ extension ITenantQueryFilter
 
   QueryBuilder<ITenant, ITenant, QAfterFilterCondition>
       emailGreaterThanOrEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -791,7 +810,7 @@ extension ITenantQueryFilter
   }
 
   QueryBuilder<ITenant, ITenant, QAfterFilterCondition> emailLessThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -806,7 +825,7 @@ extension ITenantQueryFilter
   }
 
   QueryBuilder<ITenant, ITenant, QAfterFilterCondition> emailLessThanOrEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -821,8 +840,8 @@ extension ITenantQueryFilter
   }
 
   QueryBuilder<ITenant, ITenant, QAfterFilterCondition> emailBetween(
-    String lower,
-    String upper, {
+    String? lower,
+    String? upper, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -2055,7 +2074,7 @@ extension ITenantQueryProperty1 on QueryBuilder<ITenant, ITenant, QProperty> {
     });
   }
 
-  QueryBuilder<ITenant, String, QAfterProperty> emailProperty() {
+  QueryBuilder<ITenant, String?, QAfterProperty> emailProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(3);
     });
@@ -2123,7 +2142,7 @@ extension ITenantQueryProperty2<R> on QueryBuilder<ITenant, R, QAfterProperty> {
     });
   }
 
-  QueryBuilder<ITenant, (R, String), QAfterProperty> emailProperty() {
+  QueryBuilder<ITenant, (R, String?), QAfterProperty> emailProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(3);
     });
@@ -2192,7 +2211,7 @@ extension ITenantQueryProperty3<R1, R2>
     });
   }
 
-  QueryBuilder<ITenant, (R1, R2, String), QOperations> emailProperty() {
+  QueryBuilder<ITenant, (R1, R2, String?), QOperations> emailProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(3);
     });
@@ -2250,7 +2269,7 @@ ITenant _$ITenantFromJson(Map<String, dynamic> json) => ITenant(
       id: json['id'] as int,
       name: json['name'] as String,
       phoneNumber: json['phoneNumber'] as String,
-      email: json['email'] as String,
+      email: json['email'] as String?,
       nfcEnabled: json['nfcEnabled'] as bool,
       businessId: json['businessId'] as int,
       userId: json['userId'] as int,

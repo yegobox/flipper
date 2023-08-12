@@ -39,11 +39,5 @@ class PColor extends IJsonSerializable {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = _$PColorToJson(this);
-    if (id != null) {
-      data['localId'] = id;
-    }
-    return data;
-  }
+  Map<String, dynamic> toJson() => _$PColorToJson(this);
 }

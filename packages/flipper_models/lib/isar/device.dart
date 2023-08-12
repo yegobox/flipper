@@ -60,9 +60,7 @@ class Device extends IJsonSerializable {
   @override
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = _$DeviceToJson(this);
-    if (id != null) {
-      data['localId'] = id;
-    }
+    if (id != null) {}
     return data;
   }
 }

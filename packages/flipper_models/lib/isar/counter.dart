@@ -1,29 +1,43 @@
 library flipper_models;
 
+import 'dart:convert';
 import 'package:isar/isar.dart';
+import 'package:json_annotation/json_annotation.dart';
+
 part 'counter.g.dart';
 
+@JsonSerializable()
 @Collection()
 class Counter {
-  Counter({required this.id, this.backed = false});
-  late String id;
-  late int businessId;
-  late int branchId;
-  late String receiptType;
-  late int totRcptNo;
-  late int curRcptNo;
+  int id;
+  int? businessId;
+  int? branchId;
+  String? receiptType;
+  int? totRcptNo;
+  int? curRcptNo;
+  @JsonKey(includeIfNull: true)
+  DateTime? lastTouched;
 
-  /// this means that the server and the app has same counter
-  /// otherwise the receipt could be generated until next sync with server is completed
-  bool? backed;
+  Counter({
+    this.id = 0,
+    this.businessId,
+    this.branchId,
+    this.receiptType,
+    this.totRcptNo,
+    this.curRcptNo,
+    this.lastTouched,
+  });
 
-  Map<String, dynamic> toJson() => {
-        "id": id.toString(),
-        "businessId": businessId,
-        "receiptType": receiptType,
-        "branchId": branchId,
-        "totRcptNo": totRcptNo,
-        "curRcptNo": curRcptNo,
-        "backed": backed
-      };
+  factory Counter.fromRawJson(String str) => Counter.fromJson(json.decode(str));
+
+  String toRawJson() => json.encode(toJson());
+
+  factory Counter.fromJson(Map<String, dynamic> json) =>
+      _$CounterFromJson(json);
+
+  Map<String, dynamic> toJson() => _$CounterToJson(this);
+
+  static List<Counter> fromJsonList(List<dynamic> jsonList) {
+    return jsonList.map((item) => Counter.fromJson(item)).toList();
+  }
 }

@@ -40,9 +40,7 @@ class History extends IJsonSerializable {
   @override
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = _$HistoryToJson(this);
-    if (id != null) {
-      data['localId'] = id;
-    }
+    if (id != null) {}
     return data;
   }
 }

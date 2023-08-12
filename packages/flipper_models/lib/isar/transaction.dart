@@ -8,7 +8,7 @@ part 'transaction.g.dart';
 @JsonSerializable()
 @Collection()
 class Transaction extends IJsonSerializable {
-  // @JsonKey(name: 'localId')
+  
   late String id;
   late String reference;
   late String transactionNumber;
@@ -27,7 +27,7 @@ class Transaction extends IJsonSerializable {
   String? receiptType;
   String? updatedAt;
 
-  String? customerId;
+  int? customerId;
   String? note;
 
   @JsonKey(includeIfNull: true)
@@ -83,11 +83,11 @@ class Transaction extends IJsonSerializable {
   @override
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = _$TransactionToJson(this);
+
     
-      data['localId'] = id;
-      data['businessPhoneNumber'] = ProxyService.box.getUserPhone();
-      data['businessId'] = ProxyService.box.getBusinessId();
-    
+    data['businessPhoneNumber'] = ProxyService.box.getUserPhone();
+    data['businessId'] = ProxyService.box.getBusinessId();
+
     return data;
   }
 }

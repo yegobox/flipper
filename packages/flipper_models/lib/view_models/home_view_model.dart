@@ -583,7 +583,7 @@ class HomeViewModel extends ReactiveViewModel {
   }
 
   Future<void> assignToSale(
-      {required String customerId, required String transactionId}) async {
+      {required int customerId, required String transactionId}) async {
     ProxyService.isar.assingTransactionToCustomer(
         customerId: customerId, transactionId: transactionId);
   }
@@ -793,10 +793,11 @@ class HomeViewModel extends ReactiveViewModel {
       required Function callback}) async {
     // use local counter as long as it is marked as synced.
     Counter counter = await getCounter(receiptType);
-    if (counter.backed != null && !counter.backed!) {
-      callback("The counter is not up to date");
-      return false;
-    }
+    // TODO: re-implement the logic to make sure counter is up to date
+    // if (counter.backed != null && !counter.backed!) {
+    //   callback("The counter is not up to date");
+    //   return false;
+    // }
     Customer? customer =
         await ProxyService.isar.nGetCustomerByTransactionId(id: transaction.id);
     ReceiptSignature? receiptSignature = await ProxyService.tax.createReceipt(
@@ -834,7 +835,6 @@ class HomeViewModel extends ReactiveViewModel {
     ProxyService.isar.update(
         data: counter
           ..totRcptNo = receiptSignature.data.totRcptNo + 1
-          ..backed = false
           ..curRcptNo = receiptSignature.data.rcptNo + 1);
     receiptReady = true;
     notifyListeners();
@@ -913,7 +913,7 @@ class HomeViewModel extends ReactiveViewModel {
   Customer? get customer => app.customer;
   // check if the customer is attached to the transaction then can't be deleted
   // transaction need to be deleted or completed first.
-  void deleteCustomer(String id, Function callback) {
+  void deleteCustomer(int id, Function callback) {
     if (kTransaction!.customerId == null) {
       ProxyService.isar.delete(id: id, endPoint: 'customer');
     } else {

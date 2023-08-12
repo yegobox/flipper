@@ -3,22 +3,21 @@ import 'dart:convert';
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_services/proxy.dart';
 
-import 'data.loads/jcounter.dart';
 import 'isar_api.dart';
 import 'isar_models.dart';
 import 'package:http/http.dart' as http;
 
 class FakeApi extends IsarAPI implements IsarApiInterface {
   @override
-  Future<List<JTenant>> signup({required Map business}) async {
+  Future<List<Tenant>> signup({required Map business}) async {
     // Simulating a successful API response
     final http.Response response = http.Response(
         '[{"messageId": 1, "userName": "Tenant 1", "businessId": 1642645, "nfcEnabled": true, "email": "tenant1@example.com", "phoneNumber": "${business['phoneNumber']}", "permissions":[{"messageId": 205, "userName":"admin"}], "branches":[{"messageId": 232,"active": true,"channels": null,"description": "desc","userName": "Test001","businessId": 1642645,"longitude": "0","latitude": "0","table": "branches","createdAt": "2/22/2021","updatedAt": null,"isDefault": true,"tenants": [],"default": true}], "businesses":[{"messageId": 1642645,"userName": "Test001","currency": null,"categoryId": null,"latitude": "293.98","longitude": "-344.49","userId": "1651165831880765","typeId": null,"timeZone": null,"channels": null,"table": null,"country": "Rwanda","businessUrl": null,"hexColor": null,"imageUrl": null,"type": "business","referredBy": "Richie","createdAt": "2/22/2021","updatedAt": null,"metadata": null,"role": null,"lastSeen": 0,"firstName": null,"lastName": null,"reported": null,"phoneNumber": "+250783054873","deviceToken": null,"chatUid": null,"backUpEnabled": false,"subscriptionPlan": null,"nextBillingDate": null,"previousBillingDate": null,"isLastSubscriptionPaymentSucceeded": false,"backupFileId": null,"email": null,"lastDbBackup": null,"fullName": "Richie","referralCode": null,"authId": null,"tinNumber": 12222,"dvcSrlNo": "warvsdcoriongatetest","bhfId": "00","adrs": null,"taxEnabled": false,"isDefault": true,"default": true,"lastSubscriptionPaymentSucceeded": false}]}]',
         200);
 
     if (response.statusCode == 200) {
-      for (JTenant tenant in jListTenantFromJson(response.body)) {
-        JTenant jTenant = tenant;
+      for (Tenant tenant in Tenant.fromJsonList(response.body)) {
+        Tenant jTenant = tenant;
         ITenant iTenant = ITenant(
             id: jTenant.id,
             name: jTenant.name,
@@ -29,20 +28,20 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
             phoneNumber: jTenant.phoneNumber);
 
         // Simulating a successful write transaction to a local database
-        await iisar.write((isar) async {
+        await db.write((isar) async {
           return isar.business.putAll(jTenant.businesses);
         });
-        await iisar.write((isar) async {
+        await db.write((isar) async {
           isar.branchs.putAll(jTenant.branches);
         });
-        await iisar.write((isar) async {
+        await db.write((isar) async {
           return isar.permissions.putAll(jTenant.permissions);
         });
-        await iisar.write((isar) async {
+        await db.write((isar) async {
           return isar.iTenants.put(iTenant);
         });
       }
-      return jListTenantFromJson(response.body);
+      return Tenant.fromJsonList(response.body);
     } else {
       // Simulating an internal server error
       throw InternalServerError(term: "internal server error");
@@ -172,11 +171,11 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
       if (IUser.fromRawJson(response.body).tenants.isEmpty) {
         throw TenantNotFoundException(term: "No tenant added to the user");
       }
-      iisar.write((isar) async {
+      db.write((isar) async {
         isar.business
             .putAll(IUser.fromRawJson(response.body).tenants.first.businesses);
       });
-      await iisar.write((isar) async {
+      await db.write((isar) async {
         isar.branchs
             .putAll(IUser.fromRawJson(response.body).tenants.first.branches);
       });
@@ -276,8 +275,8 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
     ];
     final response = http.Response(jsonEncode(responseJson), 200);
     if (response.statusCode == 200) {
-      for (JTenant tenant in jListTenantFromJson(response.body)) {
-        JTenant jTenant = tenant;
+      for (Tenant tenant in Tenant.fromJsonList(response.body)) {
+        Tenant jTenant = tenant;
         ITenant iTenant = ITenant(
             id: jTenant.id,
             name: jTenant.name,
@@ -287,19 +286,16 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
             email: jTenant.email,
             phoneNumber: jTenant.phoneNumber);
 
-        iisar.write((isar) async {
+        db.write((isar) async {
           isar.business.putAll(jTenant.businesses);
           isar.branchs.putAll(jTenant.branches);
           isar.permissions.putAll(jTenant.permissions);
         });
-        iisar.write((isar) async {
+        db.write((isar) async {
           isar.iTenants.put(iTenant);
         });
       }
-      return await iisar.iTenants
-          .where()
-          .businessIdEqualTo(businessId)
-          .findAll();
+      return await db.iTenants.where().businessIdEqualTo(businessId).findAll();
     }
     throw InternalServerException(term: "we got unexpected response");
   }
@@ -350,17 +346,18 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
     ];
     final response = http.Response(jsonEncode(responseJson), 200);
     if (response.statusCode == 200) {
-      List<JCounter> counters = jCounterFromJson(response.body);
-      for (JCounter jCounter in counters) {
-        await iisar.write((isar) async {
-          isar.counters.put(Counter(id: randomString())
-            ..branchId = jCounter.branchId
-            ..businessId = jCounter.businessId
-            ..receiptType = jCounter.receiptType
-            ..id = jCounter.id
-            ..backed = true
-            ..totRcptNo = jCounter.totRcptNo
-            ..curRcptNo = jCounter.curRcptNo);
+      final List<dynamic> jsonResponse = json.decode(response.body);
+      List<Counter> counters = Counter.fromJsonList(jsonResponse);
+      for (Counter counter in counters) {
+        await db.write((isar) async {
+          isar.counters.put(Counter(
+            id: counter.id,
+            branchId: counter.branchId,
+            businessId: counter.branchId,
+            receiptType: counter.receiptType,
+            totRcptNo: counter.totRcptNo,
+            curRcptNo: counter.curRcptNo,
+          ));
         });
       }
     } else {
@@ -374,54 +371,54 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
     if (data is Product) {
       Product product = data;
 
-      await iisar.write((isar) async {
+      await db.write((isar) async {
         isar.products.put(product);
       });
     }
     if (data is Variant) {
       Variant variant = data;
-      await iisar.write((isar) async {
+      await db.write((isar) async {
         isar.variants.put(variant);
       });
     }
     if (data is Stock) {
       Stock stock = data;
-      await iisar.write((isar) async {
+      await db.write((isar) async {
         isar.stocks.put(stock);
       });
     }
     if (data is Transaction) {
       final transaction = data;
-      await iisar.write((isar) async {
+      await db.write((isar) async {
         isar.transactions.put(transaction);
       });
     }
     if (data is Category) {
       final transaction = data;
-      await iisar.write((isar) async {
+      await db.write((isar) async {
         isar.categorys.put(transaction);
       });
     }
     if (data is IUnit) {
       final unit = data;
-      await iisar.write((isar) async {
+      await db.write((isar) async {
         isar.iUnits.put(unit);
       });
     }
     if (data is PColor) {
       final color = data;
-      await iisar.write((isar) async {
+      await db.write((isar) async {
         isar.pColors.put(color);
       });
     }
     if (data is TransactionItem) {
-      await iisar.write((isar) async {
+      await db.write((isar) async {
         isar.transactionItems.put(data);
       });
     }
     if (data is EBM) {
       final ebm = data;
-      await iisar.write((isar) async {
+      await db.write((isar) async {
         ProxyService.box.write(key: "serverUrl", value: ebm.taxServerUrl);
         Business? business =
             await isar.business.where().userIdEqualTo(ebm.userId).findFirst();
@@ -436,13 +433,14 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
     }
     if (data is Token) {
       final token = data;
-      await iisar.write((isar) async {
+      await db.write((isar) async {
         Token? ttoken = await isar.tokens
             .where()
             .businessIdEqualTo(token.businessId)
             .findFirst();
         if (ttoken == null) {
           ttoken = Token(
+              id: randomString(),
               businessId: token.businessId,
               token: token.token,
               type: token.type,
@@ -461,28 +459,28 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
     }
     if (data is Business) {
       final business = data;
-      await iisar.write((isar) async {
+      await db.write((isar) async {
         isar.business.put(business);
       });
     }
     if (data is Branch) {
-      iisar.write((isar) async {
+      db.write((isar) async {
         isar.branchs.put(data);
       });
     }
     if (data is Counter) {
-      await iisar.write((isar) async {
-        return isar.counters.put(data..backed = false);
+      await db.write((isar) async {
+        return isar.counters.put(data);
       });
     }
     if (data is Branch) {
-      iisar.write((isar) async {
+      db.write((isar) async {
         isar.branchs.put(data);
       });
     }
     if (data is Drawers) {
       final drawer = data;
-      await iisar.write((isar) async {
+      await db.write((isar) async {
         isar.drawers.put(drawer);
       });
     }

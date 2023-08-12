@@ -11,6 +11,7 @@ part 'token.g.dart';
 @Collection()
 class Token extends IJsonSerializable {
   Token({
+    required this.id,
     required this.type,
     required this.token,
     required this.businessId,

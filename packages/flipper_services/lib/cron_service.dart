@@ -60,11 +60,12 @@ class CronService {
     Timer.periodic(Duration(minutes: kDebugMode ? 1 : 10), (Timer t) async {
       /// get unsynced counter and send them online for houseKeping.
       if (ProxyService.box.getBranchId() != null) {
-        List<Counter> counters = await ProxyService.isar
-            .unSyncedCounters(branchId: ProxyService.box.getBranchId()!);
-        for (Counter counter in counters) {
-          ProxyService.isar.update(data: counter..backed = true);
-        }
+        // TODO: counters...
+        // List<Counter> counters = await ProxyService.isar
+        // .unSyncedCounters(branchId: ProxyService.box.getBranchId()!);
+        // for (Counter counter in counters) {
+        //   ProxyService.isar.update(data: counter..backed = true);
+        // }
       }
     });
   }
