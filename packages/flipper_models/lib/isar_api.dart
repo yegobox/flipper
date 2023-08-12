@@ -28,9 +28,14 @@ class IsarAPI<M> implements IsarApiInterface {
   late Isar db;
   Future<IsarApiInterface> getInstance({Isar? isa}) async {
 =======
+<<<<<<< HEAD
+  late Isar db;
+  Future<IsarApiInterface> getInstance({Isar? isa}) async {
+=======
   late Isar iisar;
   Future<IsarApiInterface> getInstance({Isar? db}) async {
 >>>>>>> 9246017abd65498cb2ea26262e59178d29d9807d
+>>>>>>> 2fb99d530506d95d8dc95882705dd496b0c99680
     final appDocDir = await getApplicationDocumentsDirectory();
     if (foundation.kDebugMode && !isAndroid) {
       apihub = "https://uat-apihub.yegobox.com";
@@ -47,9 +52,14 @@ class IsarAPI<M> implements IsarApiInterface {
     if (isa == null) {
       db = await Isar.open(
 =======
+<<<<<<< HEAD
+    if (isa == null) {
+      db = await Isar.open(
+=======
     if (db == null) {
       iisar = await Isar.open(
 >>>>>>> 9246017abd65498cb2ea26262e59178d29d9807d
+>>>>>>> 2fb99d530506d95d8dc95882705dd496b0c99680
         // compactOnLaunch:
         // CompactCondition(minBytes: 100, minFileSize: 100, minRatio: 2.0),
         schemas: [
@@ -91,8 +101,12 @@ class IsarAPI<M> implements IsarApiInterface {
 <<<<<<< HEAD
       db = isa;
 =======
+<<<<<<< HEAD
+      db = isa;
+=======
       iisar = db;
 >>>>>>> 9246017abd65498cb2ea26262e59178d29d9807d
+>>>>>>> 2fb99d530506d95d8dc95882705dd496b0c99680
     }
     return this;
   }
