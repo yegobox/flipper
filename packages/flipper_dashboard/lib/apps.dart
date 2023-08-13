@@ -19,16 +19,6 @@ class Apps extends StatefulWidget {
   final bool isBigScreen;
   final HomeViewModel model;
 
-  String transactionPeriod = "Today";
-  List<String> transactionPeriodOptions = [
-    "Today",
-    "This Week",
-    "This Month",
-    "This Year"
-  ];
-
-  String profitType = "Net Profit";
-  List<String> profitTypeOptions = ["Net Profit", "Gross Profit"];
   Apps({
     Key? key,
     required final TextEditingController controller,
@@ -46,6 +36,16 @@ class Apps extends StatefulWidget {
 
 class _AppsState extends State<Apps> {
   final _routerService = locator<RouterService>();
+  String transactionPeriod = "Today";
+  List<String> transactionPeriodOptions = [
+    "Today",
+    "This Week",
+    "This Month",
+    "This Year"
+  ];
+
+  String profitType = "Net Profit";
+  List<String> profitTypeOptions = ["Net Profit", "Gross Profit"];
   Widget _buildCustomPaintWithIcon(
       {dynamic iconData, required Color color, required String page}) {
     return GestureDetector(
@@ -151,20 +151,20 @@ class _AppsState extends State<Apps> {
             ListTile(
               contentPadding: EdgeInsets.only(left: 30, right: 0),
               leading: ReusableDropdown(
-                options: widget.transactionPeriodOptions,
-                selectedOption: widget.transactionPeriod,
+                options: transactionPeriodOptions,
+                selectedOption: transactionPeriod,
                 onChanged: (String? newPeriod) {
                   setState(() {
-                    widget.transactionPeriod = newPeriod!;
+                    transactionPeriod = newPeriod!;
                   });
                 },
               ),
               trailing: ReusableDropdown(
-                options: widget.profitTypeOptions,
-                selectedOption: widget.profitType,
+                options: profitTypeOptions,
+                selectedOption: profitType,
                 onChanged: (String? newProfitType) {
                   setState(() {
-                    widget.profitType = newProfitType!;
+                    profitType = newProfitType!;
                   });
                 },
               ),
@@ -248,20 +248,20 @@ class _AppsState extends State<Apps> {
             dataOnGreenSide: 0,
             dataOnRedSide: 0,
             startPadding: 0,
-            profitType: widget.profitType,
+            profitType: profitType,
           );
         } else {
           final transactions = snapshot.data!;
           DateTime oldDate;
           DateTime temporaryDate;
 
-          if (widget.transactionPeriod == 'Today') {
+          if (transactionPeriod == 'Today') {
             DateTime tempToday = DateTime.now();
             oldDate = DateTime(tempToday.year, tempToday.month, tempToday.day);
-          } else if (widget.transactionPeriod == 'This Week') {
+          } else if (transactionPeriod == 'This Week') {
             oldDate = DateTime.now().subtract(Duration(days: 7));
             oldDate = DateTime(oldDate.year, oldDate.month, oldDate.day);
-          } else if (widget.transactionPeriod == 'This Month') {
+          } else if (transactionPeriod == 'This Month') {
             oldDate = DateTime.now().subtract(Duration(days: 30));
             oldDate = DateTime(oldDate.year, oldDate.month, oldDate.day);
           } else {
@@ -290,7 +290,7 @@ class _AppsState extends State<Apps> {
             dataOnGreenSide: sum_cash_in,
             dataOnRedSide: sum_cash_out,
             startPadding: 0,
-            profitType: widget.profitType,
+            profitType: profitType,
           );
         }
       },
@@ -299,8 +299,8 @@ class _AppsState extends State<Apps> {
 
   Widget PeriodDropDown() {
     return DropdownButton<String>(
-      value: widget.transactionPeriod,
-      items: widget.transactionPeriodOptions
+      value: transactionPeriod,
+      items: transactionPeriodOptions
           .map<DropdownMenuItem<String>>((String value) {
         return DropdownMenuItem<String>(
           value: value,
@@ -311,7 +311,7 @@ class _AppsState extends State<Apps> {
       }).toList(),
       onChanged: (String? newPeriod) {
         setState(() {
-          widget.transactionPeriod = newPeriod!;
+          transactionPeriod = newPeriod!;
         });
       },
     );

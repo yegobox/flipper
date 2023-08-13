@@ -124,7 +124,6 @@ class IsarAPI<M> implements IsarApiInterface {
         .and()
         .lastTouchedIsNull()
         .sortByCreatedAtDesc()
-        .build()
         .watch(fireImmediately: true)
         .asyncMap((event) => event.first));
   }
@@ -139,7 +138,6 @@ class IsarAPI<M> implements IsarApiInterface {
         .statusEqualTo(pendingStatus)
         .and()
         .branchIdEqualTo(branchId)
-        .build()
         .watch(fireImmediately: true));
   }
 
@@ -151,7 +149,6 @@ class IsarAPI<M> implements IsarApiInterface {
         .statusEqualTo(pendingStatus)
         .and()
         .branchIdEqualTo(branchId)
-        .build()
         .watch(fireImmediately: true)
         .asyncMap((event) => event.last));
   }
@@ -273,8 +270,11 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Stream<List<Transaction>> getTransactions() {
-    Stream<List<Transaction>> transactions = db.read((isar) =>
-        isar.transactions.where().build().watch(fireImmediately: true));
+    int branchId = ProxyService.box.getBranchId()!;
+    Stream<List<Transaction>> transactions = db.read((isar) => isar.transactions
+        .where()
+        .branchIdEqualTo(branchId)
+        .watch(fireImmediately: true));
 
     return transactions;
   }
@@ -285,21 +285,16 @@ class IsarAPI<M> implements IsarApiInterface {
     Stream<List<Transaction>> transactions = db.read((isar) => isar.transactions
         .where()
         .branchIdEqualTo(branchId)
-        .build()
         .watch(fireImmediately: true));
     return transactions;
   }
 
   @override
   Stream<List<Transaction>> getCompletedTransactions() {
-    Stream<List<Transaction>> completedTransactions = db.read((isar) => isar
-        .transactions
+    return db.read((isar) => isar.transactions
         .where()
         .statusEqualTo(completeStatus)
-        .sortByCreatedAtDesc()
-        .build()
         .watch(fireImmediately: true));
-    return completedTransactions;
   }
 
   @override
@@ -314,7 +309,6 @@ class IsarAPI<M> implements IsarApiInterface {
         .or()
         .transactionTypeEqualTo('custom')
         .branchIdEqualTo(branchId)
-        .build()
         .watch(fireImmediately: true);
     return localCashInTransactions;
   }
@@ -329,7 +323,6 @@ class IsarAPI<M> implements IsarApiInterface {
         .transactionTypeEqualTo('Sale')
         .or()
         .transactionTypeEqualTo('custom')
-        .build()
         .watch(fireImmediately: true);
     return cashInTransactions;
   }
@@ -342,7 +335,6 @@ class IsarAPI<M> implements IsarApiInterface {
         .statusEqualTo(completeStatus)
         .transactionTypeEqualTo('Cash Out')
         .branchIdEqualTo(branchId)
-        .build()
         .watch(fireImmediately: true);
     return localCashOutTransactions;
   }
@@ -353,7 +345,6 @@ class IsarAPI<M> implements IsarApiInterface {
         .where()
         .statusEqualTo(completeStatus)
         .transactionTypeEqualTo('Cash Out')
-        .build()
         .watch(fireImmediately: true);
     return cashOutTransactions;
   }
@@ -512,7 +503,6 @@ class IsarAPI<M> implements IsarApiInterface {
         .where()
         .favIndexEqualTo(favIndex)
         .deletedAtIsNull()
-        .build()
         .watch(fireImmediately: true)
         .asyncMap((event) => event.first);
   }
@@ -526,7 +516,6 @@ class IsarAPI<M> implements IsarApiInterface {
     return db.products
         .where()
         .idEqualTo(prodIndex)
-        .build()
         .watch(fireImmediately: true)
         .asyncMap((event) => event.first);
   }
@@ -861,7 +850,6 @@ class IsarAPI<M> implements IsarApiInterface {
         .businessIdEqualTo(businessId)
         .and()
         .nameEqualTo('Custom Amount')
-        .build()
         .findFirst();
   }
 
@@ -1366,7 +1354,6 @@ class IsarAPI<M> implements IsarApiInterface {
         .phoneEqualTo(key)
         .and()
         .deletedAtIsNull()
-        .build()
         .watch(fireImmediately: true)
         .asyncMap((event) => event.first);
   }
@@ -1809,7 +1796,6 @@ class IsarAPI<M> implements IsarApiInterface {
     return db.discounts
         .where()
         .branchIdEqualTo(branchId)
-        .build()
         .watch(fireImmediately: true);
   }
 
@@ -1933,7 +1919,6 @@ class IsarAPI<M> implements IsarApiInterface {
           .statusEqualTo(parkedStatus)
           .and()
           .branchIdEqualTo(ProxyService.box.getBranchId()!)
-          .build()
           .findAll();
     });
   }
@@ -1946,7 +1931,6 @@ class IsarAPI<M> implements IsarApiInterface {
         .statusEqualTo(parkedStatus)
         .and()
         .branchIdEqualTo(ProxyService.box.getBranchId()!)
-        .build()
         .watch(fireImmediately: true);
   }
 
@@ -2591,7 +2575,6 @@ class IsarAPI<M> implements IsarApiInterface {
         .and()
         .statusEqualTo(status)
         .sortByCreatedAtDesc()
-        .build()
         .watch(fireImmediately: true);
   }
 
@@ -2619,7 +2602,6 @@ class IsarAPI<M> implements IsarApiInterface {
         .branchIdEqualTo(branchId)
         .and()
         .isAccountSetEqualTo(true)
-        .build()
         .watch(fireImmediately: true)
         .asyncMap((event) => event.first));
   }
@@ -2672,7 +2654,6 @@ class IsarAPI<M> implements IsarApiInterface {
         .and()
         .deliveredEqualTo(true)
         .sortByCreatedAtDesc()
-        .build()
         .watch(fireImmediately: true)
         .map((event) {
       final uniqueUserNames = <String>{};
@@ -2706,7 +2687,6 @@ class IsarAPI<M> implements IsarApiInterface {
           .fromNumberEqualTo(phone)
           .and()
           .deliveredEqualTo(true)
-          .build()
           .watch(fireImmediately: true)
           .asyncMap((event) {
         final uniqueUserNames = <String>{};
@@ -2730,7 +2710,6 @@ class IsarAPI<M> implements IsarApiInterface {
       return db.conversations
           .where()
           .conversationIdEqualTo(conversationId)
-          .build()
           .watch(fireImmediately: true);
     }
   }
@@ -2741,7 +2720,6 @@ class IsarAPI<M> implements IsarApiInterface {
     return await db.conversations
         .where()
         .deliveredEqualTo(false)
-        .build()
         .findAllAsync();
   }
 
@@ -2820,7 +2798,6 @@ class IsarAPI<M> implements IsarApiInterface {
         .typeEqualTo(tokenType)
         .and()
         .businessIdEqualTo(businessId)
-        .build()
         .findFirst());
 
     if (token == null) {
@@ -2925,15 +2902,14 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<Device?> getDevice({required String phone}) async {
     // get device from isar with linking code and return it
-    return db.read(
-        (isar) => isar.devices.where().phoneEqualTo(phone).build().findFirst());
+    return db
+        .read((isar) => isar.devices.where().phoneEqualTo(phone).findFirst());
   }
 
   @override
   Future<Device?> getDeviceById({required String id}) async {
     // get device from isar with linking code and return it
-    return db
-        .read((isar) => isar.devices.where().idEqualTo(id).build().findFirst());
+    return db.read((isar) => isar.devices.where().idEqualTo(id).findFirst());
   }
 
   @override
@@ -2942,7 +2918,6 @@ class IsarAPI<M> implements IsarApiInterface {
     return db.read((isar) => isar.devices
         .where()
         .businessIdEqualTo(businessId)
-        .build()
         .watch(fireImmediately: true));
   }
 
@@ -2953,7 +2928,6 @@ class IsarAPI<M> implements IsarApiInterface {
         .businessIdEqualTo(businessId)
         .and()
         .pubNubPublishedEqualTo(false)
-        .build()
         .findAll());
   }
 
@@ -2962,14 +2936,13 @@ class IsarAPI<M> implements IsarApiInterface {
     return db.read((isar) => isar.business
         .where()
         .idEqualTo(businessId)
-        .build()
         .watch(fireImmediately: true)
         .asyncMap((event) => event.first));
   }
 
   @override
   Future<ITenant?> getTenantBYUserId({required int userId}) async {
-    return await db.iTenants.where().userIdEqualTo(userId).build().findFirst();
+    return await db.iTenants.where().userIdEqualTo(userId).findFirst();
   }
 
   /// Loads conversations from the server for a given business ID.
