@@ -370,6 +370,12 @@ class HomeViewModel extends ReactiveViewModel {
     rebuildUi();
   }
 
+  List<Transaction> transactions = [];
+  void updateTransactionsList({required List<Transaction> newTransactions}) {
+    transactions.addAll(newTransactions);
+    // rebuildUi();
+  }
+
   Future<bool> saveCashBookTransaction(
       {required String cbTransactionType}) async {
     Transaction cbTransaction = kTransaction!;
@@ -387,8 +393,10 @@ class HomeViewModel extends ReactiveViewModel {
       item.doneWithTransaction = true;
       await ProxyService.isar.update(data: item);
     }
-
-    ProxyService.isar.update(data: cbTransaction);
+    List<Transaction> tr = [];
+    tr.add(cbTransaction);
+    await ProxyService.isar.update(data: cbTransaction);
+    updateTransactionsList(newTransactions: tr);
     notifyListeners();
     return Future<bool>.value(true);
   }

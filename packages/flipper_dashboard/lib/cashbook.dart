@@ -40,6 +40,7 @@ class _CashbookState extends State<Cashbook> {
 
   List<double> cashInAndOut = [1, 1];
   List<int> transactionIds = [];
+
   final _routerService = locator<RouterService>();
   @override
   void initState() {
@@ -51,7 +52,11 @@ class _CashbookState extends State<Cashbook> {
     return ViewModelBuilder<HomeViewModel>.reactive(
       fireOnViewModelReadyOnce: true,
       viewModelBuilder: () => HomeViewModel(),
-      onViewModelReady: (model) async {},
+      onViewModelReady: (model) async {
+        List<Transaction> _transactions = await ProxyService.isar
+            .completedTransactions(branchId: ProxyService.box.getBranchId()!);
+        model.updateTransactionsList(newTransactions: _transactions);
+      },
       builder: (context, model, child) {
         return Scaffold(
           appBar: CustomAppBar(
@@ -89,7 +94,11 @@ class _CashbookState extends State<Cashbook> {
                 ),
                 Padding(
                   padding: const EdgeInsets.only(top: 70.0),
-                  child: _buildGaugeOrList(context, model, 'gauge'),
+                  child: _buildGaugeOrList(
+                    context: context,
+                    model: model,
+                    widgetType: 'gauge',
+                  ),
                 ),
                 Expanded(
                     child: newTransactionPressed == false
@@ -102,8 +111,10 @@ class _CashbookState extends State<Cashbook> {
                                       fontWeight: FontWeight.w600)),
                               SizedBox(height: 5),
                               Expanded(
-                                child:
-                                    _buildGaugeOrList(context, model, 'list'),
+                                child: _buildGaugeOrList(
+                                    context: context,
+                                    model: model,
+                                    widgetType: 'list'),
                               ),
                               Row(
                                 mainAxisAlignment:
@@ -235,7 +246,7 @@ class _CashbookState extends State<Cashbook> {
                                   SizedBox(width: 10),
                                   SvgPicture.asset(
                                     // color:Colors.blue,
-                                    'assets/flipper_keypad.svg',
+                                    'assets/flipper_keypad_blue.svg',
                                     package: 'flipper_dashboard',
                                   ),
                                   if (newTransactionType == 'Cash In')
@@ -277,14 +288,16 @@ class _CashbookState extends State<Cashbook> {
   }
 
   Widget _buildGaugeOrList(
-      BuildContext context, HomeViewModel model, String widgetType) {
+      {required BuildContext context,
+      required HomeViewModel model,
+      required String widgetType}) {
     return StreamBuilder<List<Transaction>>(
       initialData: null,
       stream: ProxyService.isar.getCompletedTransactions(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          log("waiting");
+        if (model.transactions.isEmpty) {
           if (widgetType == 'gauge') {
+            log("waiting with no data");
             return SemiCircleGauge(
               dataOnGreenSide: 0,
               dataOnRedSide: 0,
@@ -295,14 +308,7 @@ class _CashbookState extends State<Cashbook> {
           } else {
             return SizedBox.shrink();
           }
-        } else if (snapshot.hasError) {
-          log(snapshot.error.toString());
-          return Text('Error: ${snapshot.error}');
-        } else if (!snapshot.hasData) {
-          log('No transactions');
-          return Text('No records for ' + transactionPeriod.toLowerCase());
         } else {
-          final transactions = snapshot.data!;
           DateTime oldDate;
           DateTime temporaryDate;
 
@@ -321,7 +327,7 @@ class _CashbookState extends State<Cashbook> {
           }
 
           List<Transaction> filteredTransactions = [];
-          for (final transaction in transactions) {
+          for (final transaction in model.transactions) {
             temporaryDate = DateTime.parse(transaction.createdAt);
             if (temporaryDate.isAfter(oldDate)) {
               filteredTransactions.add(transaction);

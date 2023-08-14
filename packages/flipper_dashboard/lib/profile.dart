@@ -128,69 +128,74 @@ class PDesktop extends StatelessWidget {
       stream: ProxyService.isar
           .businessStream(businessId: widget.tenant.businessId),
       builder: (context, snapshot) {
-        final data = snapshot.data;
-        final hasImage = data?.imageUrl != null;
+        // final data = snapshot.data;
+        // final hasImage = data?.imageUrl != null;
 
         Widget buildContent() {
           return PopupMenuButton<String>(
-            onSelected: (value) async {
-              if (value == 'logOut') {
-                log('logout selected');
-                await ProxyService.isar.logOut();
-                routeService.clearStackAndShow(LoginViewRoute());
-              }
-            },
-            itemBuilder: (BuildContext context) => [
-              PopupMenuItem<String>(
-                value: 'logOut',
-                child: Text(
-                  'Log out',
-                  style: primaryTextStyle,
-                ),
-              ),
-            ],
-            child: hasImage
-                ? SizedBox(
-                    width: isDesktopOrWeb ? 50 : 100,
-                    height: isDesktopOrWeb ? 50 : 100,
-                    child: Container(
-                      width: isDesktopOrWeb ? 50 : 100,
-                      height: isDesktopOrWeb ? 50 : 100,
-                      decoration: BoxDecoration(
-                        color: Colors.pink,
-                        borderRadius: BorderRadius.circular(45),
-                        border: Border.all(
-                          color: Colors.pink,
-                          width: 2.0,
-                        ),
-                      ),
-                      child: ClipOval(
-                        child: CachedNetworkImage(
-                          imageUrl: data == null
-                              ? 'https://yegobox-flipper.s3.eu-west-2.amazonaws.com/lRsBL.png'
-                              : data.imageUrl == null
-                                  ? 'https://yegobox-flipper.s3.eu-west-2.amazonaws.com/lRsBL.png'
-                                  : data.imageUrl!,
-                          placeholder: (context, url) => GmailLikeLetter(
-                            tenant: widget.tenant,
-                            size: widget.size,
-                          ),
-                          errorWidget: (context, url, error) => GmailLikeLetter(
-                            tenant: widget.tenant,
-                            size: widget.size,
-                          ),
-                          width: 100,
-                          height: 100,
-                          fit: BoxFit.cover,
-                        ),
+              onSelected: (value) async {
+                if (value == 'logOut') {
+                  log('logout selected');
+                  await ProxyService.isar.logOut();
+                  routeService.clearStackAndShow(LoginViewRoute());
+                }
+              },
+              itemBuilder: (BuildContext context) => [
+                    PopupMenuItem<String>(
+                      value: 'logOut',
+                      child: Text(
+                        'Log out',
+                        style: primaryTextStyle,
                       ),
                     ),
-                  )
-                : GmailLikeLetter(
-                    tenant: widget.tenant,
-                    size: widget.size,
-                  ),
-          );
+                  ],
+              child: GmailLikeLetter(
+                tenant: widget.tenant,
+                size: widget.size,
+              )
+              // TODO: re-enable bellow coded once showing profile pic on client is fully supported
+              // child: hasImage
+              //     ? SizedBox(
+              //         width: isDesktopOrWeb ? 50 : 100,
+              //         height: isDesktopOrWeb ? 50 : 100,
+              //         child: Container(
+              //           width: isDesktopOrWeb ? 50 : 100,
+              //           height: isDesktopOrWeb ? 50 : 100,
+              //           decoration: BoxDecoration(
+              //             color: Colors.pink,
+              //             borderRadius: BorderRadius.circular(45),
+              //             border: Border.all(
+              //               color: Colors.pink,
+              //               width: 2.0,
+              //             ),
+              //           ),
+              //           child: ClipOval(
+              //             child: CachedNetworkImage(
+              //               imageUrl: data == null
+              //                   ? 'https://yegobox-flipper.s3.eu-west-2.amazonaws.com/lRsBL.png'
+              //                   : data.imageUrl == null
+              //                       ? 'https://yegobox-flipper.s3.eu-west-2.amazonaws.com/lRsBL.png'
+              //                       : data.imageUrl!,
+              //               placeholder: (context, url) => GmailLikeLetter(
+              //                 tenant: widget.tenant,
+              //                 size: widget.size,
+              //               ),
+              //               errorWidget: (context, url, error) => GmailLikeLetter(
+              //                 tenant: widget.tenant,
+              //                 size: widget.size,
+              //               ),
+              //               width: 100,
+              //               height: 100,
+              //               fit: BoxFit.cover,
+              //             ),
+              //           ),
+              //         ),
+              //       )
+              //     : GmailLikeLetter(
+              //         tenant: widget.tenant,
+              //         size: widget.size,
+              //       ),
+              );
         }
 
         return buildContent();
