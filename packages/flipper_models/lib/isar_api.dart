@@ -863,7 +863,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
     product.description = 'description';
     product.color = '#5A2328';
-    product.id = randomString();
+    product.id = id;
     product.businessId = ProxyService.box.getBusinessId()!;
     product.branchId = ProxyService.box.getBranchId()!;
 
@@ -876,7 +876,7 @@ class IsarAPI<M> implements IsarApiInterface {
         return existingProduct;
       }
     }
-    db.write((isar) {
+    await db.writeAsync((isar) async {
       isar.products.put(product);
     });
     Product? kProduct = db.products.get(id);
@@ -1787,7 +1787,7 @@ class IsarAPI<M> implements IsarApiInterface {
         .where()
         .branchIdEqualTo(branchId)
         .deletedAtIsNull()
-        .sortByLastTouchedDesc()
+        // .sortByLastTouchedDesc()
         .watch(fireImmediately: true);
   }
 
@@ -2557,7 +2557,6 @@ class IsarAPI<M> implements IsarApiInterface {
       {required int branchId, String? status = completeStatus}) async {
     return db.transactions
         .where()
-        // .statusBranchIdEqualTo(status!, branchId)
         .statusEqualTo(status!)
         .and()
         .branchIdEqualTo(branchId)

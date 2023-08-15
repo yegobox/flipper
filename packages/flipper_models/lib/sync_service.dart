@@ -18,7 +18,9 @@ class SynchronizationService<M extends IJsonSerializable>
     implements SyncApiInterface<M> {
   @override
   Future<void> push() async {
-    await localChanges();
+    try {
+      await localChanges();
+    } catch (e) {}
   }
 
   Future<Map<String, dynamic>?> _push(M model) async {
