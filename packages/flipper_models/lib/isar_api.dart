@@ -509,7 +509,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<Product?> getProduct({required String id}) async {
-    return db.products.get(id);
+    return await db.readAsync((isar) => isar.products.get(id));
   }
 
   Stream<Product> getProductStream({required String prodIndex}) {
@@ -1528,11 +1528,8 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<Product?> isTempProductExist({required int branchId}) async {
-    return db.read((isar) => db.products
-        .where()
-        .nameContains("temp")
-        // .branchIdEqualTo(branchId)
-        .findFirst());
+    return await db.readAsync(
+        (isar) => isar.products.where().nameContains("temp").findFirst());
   }
 
   @override
@@ -1776,6 +1773,7 @@ class IsarAPI<M> implements IsarApiInterface {
     return db.variants
         .where()
         .productIdEqualTo(productId)
+        .and()
         .deletedAtIsNull()
         .sortByLastTouchedDesc()
         .watch(fireImmediately: true);
@@ -1786,8 +1784,8 @@ class IsarAPI<M> implements IsarApiInterface {
     return db.products
         .where()
         .branchIdEqualTo(branchId)
+        .and()
         .deletedAtIsNull()
-        // .sortByLastTouchedDesc()
         .watch(fireImmediately: true);
   }
 
@@ -2258,7 +2256,8 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<List<Variant>> variants(
       {required int branchId, required String productId}) async {
-    return db.variants.where().productIdEqualTo(productId).findAll();
+    return await db.readAsync(
+        (isar) => isar.variants.where().productIdEqualTo(productId).findAll());
   }
 
   List<DateTime> getWeeksForRange(DateTime start, DateTime end) {

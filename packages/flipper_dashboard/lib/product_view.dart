@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flipper_dashboard/discount_row.dart';
 import 'package:flipper_dashboard/product_row.dart';
 import 'package:flipper_dashboard/profile.dart';
@@ -172,6 +174,8 @@ class _ProductViewState extends State<ProductView> {
                                   },
                                   addToMenu: (productId) {},
                                   delete: (productId) {
+                                    log("about deleting product ${productId}",
+                                        name: 'delete');
                                     model.deleteProduct(productId: productId);
                                   },
                                   enableNfc: (product) {
