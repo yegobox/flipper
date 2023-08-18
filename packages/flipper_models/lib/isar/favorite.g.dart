@@ -14,16 +14,54 @@ extension GetFavoriteCollection on Isar {
   IsarCollection<int, Favorite> get favorites => this.collection();
 }
 
-const FavoriteSchema = IsarCollectionSchema(
-  schema:
-      '{"name":"Favorite","idName":"id","properties":[{"name":"favIndex","type":"Long"},{"name":"productId","type":"String"},{"name":"branchId","type":"Long"},{"name":"lastTouched","type":"DateTime"},{"name":"action","type":"String"},{"name":"deletedAt","type":"DateTime"}]}',
+const FavoriteSchema = IsarGeneratedSchema(
+  schema: IsarSchema(
+    name: 'Favorite',
+    idName: 'id',
+    embedded: false,
+    properties: [
+      IsarPropertySchema(
+        name: 'favIndex',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'productId',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'branchId',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'lastTouched',
+        type: IsarType.dateTime,
+      ),
+      IsarPropertySchema(
+        name: 'action',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'deletedAt',
+        type: IsarType.dateTime,
+      ),
+    ],
+    indexes: [
+      IsarIndexSchema(
+        name: 'favIndex',
+        properties: [
+          "favIndex",
+        ],
+        unique: true,
+        hash: false,
+      ),
+    ],
+  ),
   converter: IsarObjectConverter<int, Favorite>(
     serialize: serializeFavorite,
     deserialize: deserializeFavorite,
     deserializeProperty: deserializeFavoriteProp,
   ),
   embeddedSchemas: [],
-  //hash: -5573199498280201908,
 );
 
 @isarProtected
@@ -280,6 +318,45 @@ extension FavoriteQueryUpdate on IsarQuery<Favorite> {
       _FavoriteQueryUpdateImpl(this, limit: 1);
 
   _FavoriteQueryUpdate get updateAll => _FavoriteQueryUpdateImpl(this);
+}
+
+class _FavoriteQueryBuilderUpdateImpl implements _FavoriteQueryUpdate {
+  const _FavoriteQueryBuilderUpdateImpl(this.query, {this.limit});
+
+  final QueryBuilder<Favorite, Favorite, QOperations> query;
+  final int? limit;
+
+  @override
+  int call({
+    Object? favIndex = ignore,
+    Object? productId = ignore,
+    Object? branchId = ignore,
+    Object? lastTouched = ignore,
+    Object? action = ignore,
+    Object? deletedAt = ignore,
+  }) {
+    final q = query.build();
+    try {
+      return q.updateProperties(limit: limit, {
+        if (favIndex != ignore) 1: favIndex as int?,
+        if (productId != ignore) 2: productId as String?,
+        if (branchId != ignore) 3: branchId as int?,
+        if (lastTouched != ignore) 4: lastTouched as DateTime?,
+        if (action != ignore) 5: action as String?,
+        if (deletedAt != ignore) 6: deletedAt as DateTime?,
+      });
+    } finally {
+      q.close();
+    }
+  }
+}
+
+extension FavoriteQueryBuilderUpdate
+    on QueryBuilder<Favorite, Favorite, QOperations> {
+  _FavoriteQueryUpdate get updateFirst =>
+      _FavoriteQueryBuilderUpdateImpl(this, limit: 1);
+
+  _FavoriteQueryUpdate get updateAll => _FavoriteQueryBuilderUpdateImpl(this);
 }
 
 extension FavoriteQueryFilter

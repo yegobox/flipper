@@ -36,6 +36,7 @@ class ForceDataEntryService {
               businessId: businessId,
               color: "#e74c3c",
               branchId: branchId)
+            ..name = "Custom Amount"
             ..color = "#e74c3c"
             ..branchId = branchId
             ..businessId = businessId);

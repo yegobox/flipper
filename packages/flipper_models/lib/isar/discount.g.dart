@@ -14,16 +14,46 @@ extension GetDiscountCollection on Isar {
   IsarCollection<String, Discount> get discounts => this.collection();
 }
 
-const DiscountSchema = IsarCollectionSchema(
-  schema:
-      '{"name":"Discount","idName":"id","properties":[{"name":"id","type":"String"},{"name":"name","type":"String"},{"name":"amount","type":"Double"},{"name":"branchId","type":"Long"}]}',
+const DiscountSchema = IsarGeneratedSchema(
+  schema: IsarSchema(
+    name: 'Discount',
+    idName: 'id',
+    embedded: false,
+    properties: [
+      IsarPropertySchema(
+        name: 'id',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'name',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'amount',
+        type: IsarType.double,
+      ),
+      IsarPropertySchema(
+        name: 'branchId',
+        type: IsarType.long,
+      ),
+    ],
+    indexes: [
+      IsarIndexSchema(
+        name: 'branchId',
+        properties: [
+          "branchId",
+        ],
+        unique: false,
+        hash: false,
+      ),
+    ],
+  ),
   converter: IsarObjectConverter<String, Discount>(
     serialize: serializeDiscount,
     deserialize: deserializeDiscount,
     deserializeProperty: deserializeDiscountProp,
   ),
   embeddedSchemas: [],
-  //hash: 6967274366918688023,
 );
 
 @isarProtected
@@ -184,6 +214,39 @@ extension DiscountQueryUpdate on IsarQuery<Discount> {
       _DiscountQueryUpdateImpl(this, limit: 1);
 
   _DiscountQueryUpdate get updateAll => _DiscountQueryUpdateImpl(this);
+}
+
+class _DiscountQueryBuilderUpdateImpl implements _DiscountQueryUpdate {
+  const _DiscountQueryBuilderUpdateImpl(this.query, {this.limit});
+
+  final QueryBuilder<Discount, Discount, QOperations> query;
+  final int? limit;
+
+  @override
+  int call({
+    Object? name = ignore,
+    Object? amount = ignore,
+    Object? branchId = ignore,
+  }) {
+    final q = query.build();
+    try {
+      return q.updateProperties(limit: limit, {
+        if (name != ignore) 2: name as String?,
+        if (amount != ignore) 3: amount as double?,
+        if (branchId != ignore) 4: branchId as int?,
+      });
+    } finally {
+      q.close();
+    }
+  }
+}
+
+extension DiscountQueryBuilderUpdate
+    on QueryBuilder<Discount, Discount, QOperations> {
+  _DiscountQueryUpdate get updateFirst =>
+      _DiscountQueryBuilderUpdateImpl(this, limit: 1);
+
+  _DiscountQueryUpdate get updateAll => _DiscountQueryBuilderUpdateImpl(this);
 }
 
 extension DiscountQueryFilter

@@ -14,16 +14,106 @@ extension GetTransactionCollection on Isar {
   IsarCollection<String, Transaction> get transactions => this.collection();
 }
 
-const TransactionSchema = IsarCollectionSchema(
-  schema:
-      '{"name":"Transaction","idName":"id","properties":[{"name":"id","type":"String"},{"name":"reference","type":"String"},{"name":"transactionNumber","type":"String"},{"name":"branchId","type":"Long"},{"name":"status","type":"String"},{"name":"transactionType","type":"String"},{"name":"subTotal","type":"Double"},{"name":"paymentType","type":"String"},{"name":"cashReceived","type":"Double"},{"name":"customerChangeDue","type":"Double"},{"name":"createdAt","type":"String"},{"name":"receiptType","type":"String"},{"name":"updatedAt","type":"String"},{"name":"customerId","type":"Long"},{"name":"note","type":"String"},{"name":"lastTouched","type":"DateTime"},{"name":"action","type":"String"},{"name":"ticketName","type":"String"},{"name":"deletedAt","type":"DateTime"}]}',
+const TransactionSchema = IsarGeneratedSchema(
+  schema: IsarSchema(
+    name: 'Transaction',
+    idName: 'id',
+    embedded: false,
+    properties: [
+      IsarPropertySchema(
+        name: 'id',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'reference',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'transactionNumber',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'branchId',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'status',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'transactionType',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'subTotal',
+        type: IsarType.double,
+      ),
+      IsarPropertySchema(
+        name: 'paymentType',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'cashReceived',
+        type: IsarType.double,
+      ),
+      IsarPropertySchema(
+        name: 'customerChangeDue',
+        type: IsarType.double,
+      ),
+      IsarPropertySchema(
+        name: 'createdAt',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'receiptType',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'updatedAt',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'customerId',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'note',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'lastTouched',
+        type: IsarType.dateTime,
+      ),
+      IsarPropertySchema(
+        name: 'action',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'ticketName',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'deletedAt',
+        type: IsarType.dateTime,
+      ),
+    ],
+    indexes: [
+      IsarIndexSchema(
+        name: 'branchId',
+        properties: [
+          "branchId",
+        ],
+        unique: false,
+        hash: false,
+      ),
+    ],
+  ),
   converter: IsarObjectConverter<String, Transaction>(
     serialize: serializeTransaction,
     deserialize: deserializeTransaction,
     deserializeProperty: deserializeTransactionProp,
   ),
   embeddedSchemas: [],
-  //hash: -409276210827986643,
 );
 
 @isarProtected
@@ -474,6 +564,70 @@ extension TransactionQueryUpdate on IsarQuery<Transaction> {
       _TransactionQueryUpdateImpl(this, limit: 1);
 
   _TransactionQueryUpdate get updateAll => _TransactionQueryUpdateImpl(this);
+}
+
+class _TransactionQueryBuilderUpdateImpl implements _TransactionQueryUpdate {
+  const _TransactionQueryBuilderUpdateImpl(this.query, {this.limit});
+
+  final QueryBuilder<Transaction, Transaction, QOperations> query;
+  final int? limit;
+
+  @override
+  int call({
+    Object? reference = ignore,
+    Object? transactionNumber = ignore,
+    Object? branchId = ignore,
+    Object? status = ignore,
+    Object? transactionType = ignore,
+    Object? subTotal = ignore,
+    Object? paymentType = ignore,
+    Object? cashReceived = ignore,
+    Object? customerChangeDue = ignore,
+    Object? createdAt = ignore,
+    Object? receiptType = ignore,
+    Object? updatedAt = ignore,
+    Object? customerId = ignore,
+    Object? note = ignore,
+    Object? lastTouched = ignore,
+    Object? action = ignore,
+    Object? ticketName = ignore,
+    Object? deletedAt = ignore,
+  }) {
+    final q = query.build();
+    try {
+      return q.updateProperties(limit: limit, {
+        if (reference != ignore) 2: reference as String?,
+        if (transactionNumber != ignore) 3: transactionNumber as String?,
+        if (branchId != ignore) 4: branchId as int?,
+        if (status != ignore) 5: status as String?,
+        if (transactionType != ignore) 6: transactionType as String?,
+        if (subTotal != ignore) 7: subTotal as double?,
+        if (paymentType != ignore) 8: paymentType as String?,
+        if (cashReceived != ignore) 9: cashReceived as double?,
+        if (customerChangeDue != ignore) 10: customerChangeDue as double?,
+        if (createdAt != ignore) 11: createdAt as String?,
+        if (receiptType != ignore) 12: receiptType as String?,
+        if (updatedAt != ignore) 13: updatedAt as String?,
+        if (customerId != ignore) 14: customerId as int?,
+        if (note != ignore) 15: note as String?,
+        if (lastTouched != ignore) 16: lastTouched as DateTime?,
+        if (action != ignore) 17: action as String?,
+        if (ticketName != ignore) 18: ticketName as String?,
+        if (deletedAt != ignore) 19: deletedAt as DateTime?,
+      });
+    } finally {
+      q.close();
+    }
+  }
+}
+
+extension TransactionQueryBuilderUpdate
+    on QueryBuilder<Transaction, Transaction, QOperations> {
+  _TransactionQueryUpdate get updateFirst =>
+      _TransactionQueryBuilderUpdateImpl(this, limit: 1);
+
+  _TransactionQueryUpdate get updateAll =>
+      _TransactionQueryBuilderUpdateImpl(this);
 }
 
 extension TransactionQueryFilter

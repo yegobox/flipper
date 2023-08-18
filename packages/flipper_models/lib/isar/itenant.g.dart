@@ -14,16 +14,61 @@ extension GetITenantCollection on Isar {
   IsarCollection<int, ITenant> get iTenants => this.collection();
 }
 
-const ITenantSchema = IsarCollectionSchema(
-  schema:
-      '{"name":"ITenant","idName":"id","properties":[{"name":"name","type":"String"},{"name":"phoneNumber","type":"String"},{"name":"email","type":"String"},{"name":"nfcEnabled","type":"Bool"},{"name":"businessId","type":"Long"},{"name":"userId","type":"Long"},{"name":"imageUrl","type":"String"},{"name":"lastTouched","type":"DateTime"},{"name":"deletedAt","type":"DateTime"},{"name":"action","type":"String"}]}',
+const ITenantSchema = IsarGeneratedSchema(
+  schema: IsarSchema(
+    name: 'ITenant',
+    idName: 'id',
+    embedded: false,
+    properties: [
+      IsarPropertySchema(
+        name: 'name',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'phoneNumber',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'email',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'nfcEnabled',
+        type: IsarType.bool,
+      ),
+      IsarPropertySchema(
+        name: 'businessId',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'userId',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'imageUrl',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'lastTouched',
+        type: IsarType.dateTime,
+      ),
+      IsarPropertySchema(
+        name: 'deletedAt',
+        type: IsarType.dateTime,
+      ),
+      IsarPropertySchema(
+        name: 'action',
+        type: IsarType.string,
+      ),
+    ],
+    indexes: [],
+  ),
   converter: IsarObjectConverter<int, ITenant>(
     serialize: serializeITenant,
     deserialize: deserializeITenant,
     deserializeProperty: deserializeITenantProp,
   ),
   embeddedSchemas: [],
-  //hash: 5220020705402786141,
 );
 
 @isarProtected
@@ -319,6 +364,53 @@ extension ITenantQueryUpdate on IsarQuery<ITenant> {
       _ITenantQueryUpdateImpl(this, limit: 1);
 
   _ITenantQueryUpdate get updateAll => _ITenantQueryUpdateImpl(this);
+}
+
+class _ITenantQueryBuilderUpdateImpl implements _ITenantQueryUpdate {
+  const _ITenantQueryBuilderUpdateImpl(this.query, {this.limit});
+
+  final QueryBuilder<ITenant, ITenant, QOperations> query;
+  final int? limit;
+
+  @override
+  int call({
+    Object? name = ignore,
+    Object? phoneNumber = ignore,
+    Object? email = ignore,
+    Object? nfcEnabled = ignore,
+    Object? businessId = ignore,
+    Object? userId = ignore,
+    Object? imageUrl = ignore,
+    Object? lastTouched = ignore,
+    Object? deletedAt = ignore,
+    Object? action = ignore,
+  }) {
+    final q = query.build();
+    try {
+      return q.updateProperties(limit: limit, {
+        if (name != ignore) 1: name as String?,
+        if (phoneNumber != ignore) 2: phoneNumber as String?,
+        if (email != ignore) 3: email as String?,
+        if (nfcEnabled != ignore) 4: nfcEnabled as bool?,
+        if (businessId != ignore) 5: businessId as int?,
+        if (userId != ignore) 6: userId as int?,
+        if (imageUrl != ignore) 7: imageUrl as String?,
+        if (lastTouched != ignore) 8: lastTouched as DateTime?,
+        if (deletedAt != ignore) 9: deletedAt as DateTime?,
+        if (action != ignore) 10: action as String?,
+      });
+    } finally {
+      q.close();
+    }
+  }
+}
+
+extension ITenantQueryBuilderUpdate
+    on QueryBuilder<ITenant, ITenant, QOperations> {
+  _ITenantQueryUpdate get updateFirst =>
+      _ITenantQueryBuilderUpdateImpl(this, limit: 1);
+
+  _ITenantQueryUpdate get updateAll => _ITenantQueryBuilderUpdateImpl(this);
 }
 
 extension ITenantQueryFilter

@@ -14,16 +14,42 @@ extension GetPointssCollection on Isar {
   IsarCollection<String, Pointss> get pointss => this.collection();
 }
 
-const PointssSchema = IsarCollectionSchema(
-  schema:
-      '{"name":"Pointss","idName":"id","properties":[{"name":"id","type":"String"},{"name":"value","type":"Long"},{"name":"userId","type":"Int"}]}',
+const PointssSchema = IsarGeneratedSchema(
+  schema: IsarSchema(
+    name: 'Pointss',
+    idName: 'id',
+    embedded: false,
+    properties: [
+      IsarPropertySchema(
+        name: 'id',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'value',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'userId',
+        type: IsarType.int,
+      ),
+    ],
+    indexes: [
+      IsarIndexSchema(
+        name: 'userId',
+        properties: [
+          "userId",
+        ],
+        unique: false,
+        hash: false,
+      ),
+    ],
+  ),
   converter: IsarObjectConverter<String, Pointss>(
     serialize: serializePointss,
     deserialize: deserializePointss,
     deserializeProperty: deserializePointssProp,
   ),
   embeddedSchemas: [],
-  //hash: 5965548525944701425,
 );
 
 @isarProtected
@@ -155,6 +181,37 @@ extension PointssQueryUpdate on IsarQuery<Pointss> {
       _PointssQueryUpdateImpl(this, limit: 1);
 
   _PointssQueryUpdate get updateAll => _PointssQueryUpdateImpl(this);
+}
+
+class _PointssQueryBuilderUpdateImpl implements _PointssQueryUpdate {
+  const _PointssQueryBuilderUpdateImpl(this.query, {this.limit});
+
+  final QueryBuilder<Pointss, Pointss, QOperations> query;
+  final int? limit;
+
+  @override
+  int call({
+    Object? value = ignore,
+    Object? userId = ignore,
+  }) {
+    final q = query.build();
+    try {
+      return q.updateProperties(limit: limit, {
+        if (value != ignore) 2: value as int?,
+        if (userId != ignore) 3: userId as int?,
+      });
+    } finally {
+      q.close();
+    }
+  }
+}
+
+extension PointssQueryBuilderUpdate
+    on QueryBuilder<Pointss, Pointss, QOperations> {
+  _PointssQueryUpdate get updateFirst =>
+      _PointssQueryBuilderUpdateImpl(this, limit: 1);
+
+  _PointssQueryUpdate get updateAll => _PointssQueryBuilderUpdateImpl(this);
 }
 
 extension PointssQueryFilter

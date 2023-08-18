@@ -24,18 +24,8 @@ class IsarAPI<M> implements IsarApiInterface {
   SocialsHttpClient socialsHttpClient = SocialsHttpClient(http.Client());
   late String apihub;
   late String commApi;
-<<<<<<< HEAD
   late Isar db;
   Future<IsarApiInterface> getInstance({Isar? isa}) async {
-=======
-<<<<<<< HEAD
-  late Isar db;
-  Future<IsarApiInterface> getInstance({Isar? isa}) async {
-=======
-  late Isar iisar;
-  Future<IsarApiInterface> getInstance({Isar? db}) async {
->>>>>>> 9246017abd65498cb2ea26262e59178d29d9807d
->>>>>>> 2fb99d530506d95d8dc95882705dd496b0c99680
     final appDocDir = await getApplicationDocumentsDirectory();
     if (foundation.kDebugMode && !isAndroid) {
       apihub = "https://uat-apihub.yegobox.com";
@@ -48,18 +38,8 @@ class IsarAPI<M> implements IsarApiInterface {
       apihub = "https://apihub.yegobox.com";
       commApi = "https://ers84w6ehl.execute-api.us-east-1.amazonaws.com/api";
     }
-<<<<<<< HEAD
     if (isa == null) {
       db = await Isar.open(
-=======
-<<<<<<< HEAD
-    if (isa == null) {
-      db = await Isar.open(
-=======
-    if (db == null) {
-      iisar = await Isar.open(
->>>>>>> 9246017abd65498cb2ea26262e59178d29d9807d
->>>>>>> 2fb99d530506d95d8dc95882705dd496b0c99680
         // compactOnLaunch:
         // CompactCondition(minBytes: 100, minFileSize: 100, minRatio: 2.0),
         schemas: [
@@ -98,15 +78,7 @@ class IsarAPI<M> implements IsarApiInterface {
         engine: foundation.kIsWeb ? IsarEngine.sqlite : IsarEngine.isar,
       );
     } else {
-<<<<<<< HEAD
       db = isa;
-=======
-<<<<<<< HEAD
-      db = isa;
-=======
-      iisar = db;
->>>>>>> 9246017abd65498cb2ea26262e59178d29d9807d
->>>>>>> 2fb99d530506d95d8dc95882705dd496b0c99680
     }
     return this;
   }
@@ -142,49 +114,6 @@ class IsarAPI<M> implements IsarApiInterface {
   /// those change will stay on local, so I need to work on them as well.
 
   @override
-  Stream<Transaction?> completedTransactionsStream(
-      {required String status, required int branchId}) {
-    return db.read((isar) => isar.transactions
-        .where()
-        .statusEqualTo(postPonedStatus)
-        .statusEqualTo(status)
-        .branchIdEqualTo(branchId)
-        .and()
-        .lastTouchedIsNull()
-        .sortByCreatedAtDesc()
-        .build()
-        .watch(fireImmediately: true)
-        .asyncMap((event) => event.first));
-  }
-
-  @override
-  Stream<List<Transaction>> pendingTransactionStreams() {
-    // int? currentTransactionId = ProxyService.box.currentTransactionId();
-    // return isar.transactions.watchObject(currentTransactionId ?? 0, fireImmediately: true);
-    int branchId = ProxyService.box.getBranchId()!;
-    return db.read((isar) => isar.transactions
-        .where()
-        .statusEqualTo(pendingStatus)
-        .and()
-        .branchIdEqualTo(branchId)
-        .build()
-        .watch(fireImmediately: true));
-  }
-
-  @override
-  Stream<Transaction?> pendingTransactionStream() {
-    int branchId = ProxyService.box.getBranchId()!;
-    return db.read((isar) => isar.transactions
-        .where()
-        .statusEqualTo(pendingStatus)
-        .and()
-        .branchIdEqualTo(branchId)
-        .build()
-        .watch(fireImmediately: true)
-        .asyncMap((event) => event.last));
-  }
-
-  @override
   Future<Transaction> manageTransaction({
     String transactionType = 'custom',
   }) async {
@@ -201,7 +130,7 @@ class IsarAPI<M> implements IsarApiInterface {
         reference: randomString(),
         action: AppActions.create,
         transactionNumber: randomString(),
-        status: pendingStatus,
+        status: PENDING,
         transactionType: transactionType,
         subTotal: 0,
         cashReceived: 0,
@@ -240,7 +169,7 @@ class IsarAPI<M> implements IsarApiInterface {
         reference: randomString(),
         action: AppActions.create,
         transactionNumber: randomString(),
-        status: pendingStatus,
+        status: PENDING,
         transactionType: transactionType,
         subTotal: 0,
         cashReceived: 0,
@@ -274,12 +203,13 @@ class IsarAPI<M> implements IsarApiInterface {
   // get point where userId = userId from db
   @override
   Pointss addPoint({required int userId, required int point}) {
-    return db.pointss.where().userIdEqualTo(userId).findFirst()!;
+    return db.read(
+        (isar) => isar.pointss.where().userIdEqualTo(userId).findFirst()!);
   }
 
   @override
   Future<Transaction?> getTransactionById({required String id}) async {
-    return db.transactions.get(id);
+    return db.read((isar) => isar.transactions.get(id));
   }
 
   //Delete a favorite
@@ -290,100 +220,6 @@ class IsarAPI<M> implements IsarApiInterface {
       isar.transactions.delete(transactionIndex);
     });
     return Future.value(200);
-  }
-
-  @override
-  Stream<List<Transaction>> getTransactionsByCustomerId(
-      {required int customerId}) async* {
-    yield* db.read((isar) =>
-        isar.transactions.where().customerIdEqualTo(customerId).watch());
-  }
-
-  @override
-  Stream<List<Transaction>> getTransactions() {
-    Stream<List<Transaction>> transactions = db.read((isar) =>
-        isar.transactions.where().build().watch(fireImmediately: true));
-
-    return transactions;
-  }
-
-  @override
-  Stream<List<Transaction>> getLocalTransactionsStream() {
-    final branchId = ProxyService.box.getBranchId()!;
-    Stream<List<Transaction>> transactions = db.read((isar) => isar.transactions
-        .where()
-        .branchIdEqualTo(branchId)
-        .build()
-        .watch(fireImmediately: true));
-    return transactions;
-  }
-
-  @override
-  Stream<List<Transaction>> getCompletedTransactions() {
-    Stream<List<Transaction>> completedTransactions = db.read((isar) => isar
-        .transactions
-        .where()
-        .statusEqualTo(completeStatus)
-        .sortByCreatedAtDesc()
-        .build()
-        .watch(fireImmediately: true));
-    return completedTransactions;
-  }
-
-  @override
-  Stream<List<Transaction>> getLocalCashInTransactions() {
-    final branchId = ProxyService.box.getBranchId()!;
-    Stream<List<Transaction>> localCashInTransactions = db.transactions
-        .where()
-        .statusEqualTo(completeStatus)
-        .transactionTypeEqualTo('Cash In')
-        .or()
-        .transactionTypeEqualTo('Sale')
-        .or()
-        .transactionTypeEqualTo('custom')
-        .branchIdEqualTo(branchId)
-        .build()
-        .watch(fireImmediately: true);
-    return localCashInTransactions;
-  }
-
-  @override
-  Stream<List<Transaction>> getCashInTransactions() {
-    Stream<List<Transaction>> cashInTransactions = db.transactions
-        .where()
-        .statusEqualTo(completeStatus)
-        .transactionTypeEqualTo('Cash In')
-        .or()
-        .transactionTypeEqualTo('Sale')
-        .or()
-        .transactionTypeEqualTo('custom')
-        .build()
-        .watch(fireImmediately: true);
-    return cashInTransactions;
-  }
-
-  @override
-  Stream<List<Transaction>> getLocalCashOutTransactions() {
-    final branchId = ProxyService.box.getBranchId()!;
-    Stream<List<Transaction>> localCashOutTransactions = db.transactions
-        .where()
-        .statusEqualTo(completeStatus)
-        .transactionTypeEqualTo('Cash Out')
-        .branchIdEqualTo(branchId)
-        .build()
-        .watch(fireImmediately: true);
-    return localCashOutTransactions;
-  }
-
-  @override
-  Stream<List<Transaction>> getCashOutTransactions() {
-    Stream<List<Transaction>> cashOutTransactions = db.transactions
-        .where()
-        .statusEqualTo(completeStatus)
-        .transactionTypeEqualTo('Cash Out')
-        .build()
-        .watch(fireImmediately: true);
-    return cashOutTransactions;
   }
 
   @override
@@ -406,15 +242,15 @@ class IsarAPI<M> implements IsarApiInterface {
     List<double> cashInOut = [];
     double In = 0;
     double Out = 0;
-    List<Transaction> cashIn = db.transactions
+    List<Transaction> cashIn = db.read((isar) => isar.transactions
         .where()
-        .statusEqualTo(completeStatus)
+        .statusEqualTo(COMPLETE)
         .transactionTypeEqualTo('Cash In')
         .or()
         .transactionTypeEqualTo('Sale')
         .or()
         .transactionTypeEqualTo('custom')
-        .findAll();
+        .findAll());
 
     for (final transaction in cashIn) {
       temporaryDate = DateTime.parse(transaction.createdAt);
@@ -426,7 +262,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
     List<Transaction> cashOut = db.transactions
         .where()
-        .statusEqualTo(completeStatus)
+        .statusEqualTo(COMPLETE)
         .transactionTypeEqualTo('Cash Out')
         .findAll();
     for (final transaction in cashOut) {
@@ -461,16 +297,16 @@ class IsarAPI<M> implements IsarApiInterface {
     List<double> cashInOut = [];
     double In = 0;
     double Out = 0;
-    List<Transaction> cashIn = db.transactions
+    List<Transaction> cashIn = db.read((isar) => isar.transactions
         .where()
-        .statusEqualTo(completeStatus)
+        .statusEqualTo(COMPLETE)
         .transactionTypeEqualTo('Cash In')
         .or()
         .transactionTypeEqualTo('Sale')
         .or()
         .transactionTypeEqualTo('custom')
         .branchIdEqualTo(branchId)
-        .findAll();
+        .findAll());
     for (final transaction in cashIn) {
       temporaryDate = DateTime.parse(transaction.createdAt);
       if (temporaryDate.isAfter(oldDate)) {
@@ -481,7 +317,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
     List<Transaction> cashOut = db.transactions
         .where()
-        .statusEqualTo(completeStatus)
+        .statusEqualTo(COMPLETE)
         .transactionTypeEqualTo('Cash Out')
         .findAll();
     for (final transaction in cashOut) {
@@ -497,8 +333,8 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<int> addFavorite({required Favorite data}) async {
-    Favorite? fav =
-        db.favorites.where().favIndexEqualTo(data.favIndex!).findFirst();
+    Favorite? fav = db.read((isar) =>
+        isar.favorites.where().favIndexEqualTo(data.favIndex!).findFirst());
     if (fav == null) {
       db.write((db) {
         db.favorites.put(data);
@@ -515,54 +351,36 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<List<Favorite>> getFavorites() async {
-    List<Favorite> favorites = db.favorites.where().findAll();
+    List<Favorite> favorites =
+        db.read((isar) => isar.favorites.where().findAll());
     return favorites;
   }
 
   @override
   Future<Favorite?> getFavoriteById({required int favId}) async {
     //Get a favorite
-    Favorite? favorite = db.favorites.where().idEqualTo(favId).findFirst();
+    Favorite? favorite =
+        db.read((isar) => isar.favorites.where().idEqualTo(favId).findFirst());
     return favorite;
   }
 
   @override
   Future<Favorite?> getFavoriteByIndex({required int favIndex}) async {
     //Get a favorite
-    Favorite? favorite =
-        db.favorites.where().favIndexEqualTo(favIndex).findFirst();
+    Favorite? favorite = db.read(
+        (isar) => isar.favorites.where().favIndexEqualTo(favIndex).findFirst());
     return favorite;
   }
 
   @override
-  Stream<Favorite?> getFavoriteByIndexStream({required int favIndex}) {
-    return db.favorites
-        .where()
-        .favIndexEqualTo(favIndex)
-        .deletedAtIsNull()
-        .build()
-        .watch(fireImmediately: true)
-        .asyncMap((event) => event.first);
-  }
-
-  @override
   Future<Product?> getProduct({required String id}) async {
-    return db.products.get(id);
-  }
-
-  Stream<Product> getProductStream({required String prodIndex}) {
-    return db.products
-        .where()
-        .idEqualTo(prodIndex)
-        .build()
-        .watch(fireImmediately: true)
-        .asyncMap((event) => event.first);
+    return db.read((isar) => isar.products.get(id));
   }
 
   @override
   Future<Favorite?> getFavoriteByProdId({required String prodId}) async {
-    Favorite? favorite =
-        db.favorites.where().productIdEqualTo(prodId).findFirst();
+    Favorite? favorite = db.read(
+        (isar) => isar.favorites.where().productIdEqualTo(prodId).findFirst());
     return favorite;
   }
 
@@ -712,7 +530,8 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<List<Branch>> branches({required int businessId}) async {
     // if in local db we have no branch fetch it from online
-    return db.branchs.where().businessIdEqualTo(businessId).findAll();
+    return db.read(
+        (isar) => isar.branchs.where().businessIdEqualTo(businessId).findAll());
   }
 
   @override
@@ -762,7 +581,7 @@ class IsarAPI<M> implements IsarApiInterface {
       {required double cashReceived,
       required Transaction transaction,
       required String paymentType}) async {
-    transaction.status = completeStatus;
+    transaction.status = COMPLETE;
 
     List<TransactionItem> items = await transactionItems(
         transactionId: transaction.id, doneWithTransaction: false);
@@ -791,21 +610,23 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<List<PColor>> colors({required int branchId}) async {
-    return db.write((isar) {
-      return isar.pColors.where().branchIdEqualTo(branchId).findAll();
-    });
+    return db.read(
+        (isar) => isar.pColors.where().branchIdEqualTo(branchId).findAll());
   }
 
   @override
   void consumePoints({required int userId, required int points}) async {
-    // get Points where userId = userId from db
-    // and update this Points with new points
-    Pointss? po = db.pointss.where().userIdEqualTo(userId).findFirst();
-    //po ??= Points(userId: userId, points: 0, value: 0);
-    // save po to db
-    po!.value = po.value - points;
+    // Retrieve user's points from the database
+    Pointss? userPoints = db.read(
+      (isar) => isar.pointss.where().userIdEqualTo(userId).findFirst(),
+    );
+
+    // Deduct the consumed points from the user's total points
+    userPoints!.value -= points;
+
+    // Update the modified points back to the database
     db.write((isar) {
-      isar.pointss.put(po);
+      isar.pointss.put(userPoints);
     });
   }
 
@@ -827,12 +648,6 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Stream<List<Business>> contacts() {
-    // TODO: implement contacts
-    throw UnimplementedError();
-  }
-
-  @override
   Future<void> createGoogleSheetDoc({required String email}) async {
     // TODOre-work on this until it work 100%;
     Business? business = await getBusiness();
@@ -849,7 +664,8 @@ class IsarAPI<M> implements IsarApiInterface {
     String id = ProxyService.box.getUserId()!.toString();
     //get existing pin where userId =1
     // if pin is null then create new pin
-    Pin? pin = db.pins.where().userIdEqualTo(id).findFirst();
+    Pin? pin =
+        db.read((isar) => isar.pins.where().userIdEqualTo(id).findFirst());
     if (pin != null) {
       return pin;
     }
@@ -884,13 +700,12 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   Future<Product?> isCustomProductExist({required int businessId}) async {
-    return db.products
+    return db.read((isar) => isar.products
         .where()
         .businessIdEqualTo(businessId)
         .and()
         .nameEqualTo('Custom Amount')
-        .build()
-        .findFirst();
+        .findFirst());
   }
 
   @override
@@ -903,7 +718,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
     product.description = 'description';
     product.color = '#5A2328';
-    product.id = randomString();
+    product.id = id;
     product.businessId = ProxyService.box.getBusinessId()!;
     product.branchId = ProxyService.box.getBranchId()!;
 
@@ -916,12 +731,12 @@ class IsarAPI<M> implements IsarApiInterface {
         return existingProduct;
       }
     }
-    db.write((isar) {
+    await db.writeAsync((isar) {
       isar.products.put(product);
     });
-    Product? kProduct = db.products.get(id);
+    Product? kProduct = await db.readAsync((isar) => isar.products.get(id));
     // save variants in isar Db with the above productId
-    db.write((isar) {
+    await db.writeAsync((isar) {
       isar.variants.put(
         Variant(
             lastTouched: DateTime.now(),
@@ -976,8 +791,8 @@ class IsarAPI<M> implements IsarApiInterface {
       );
     });
 
-    Variant? variant =
-        db.variants.where().productIdEqualTo(kProduct!.id).findFirst();
+    Variant? variant = await db.readAsync((isar) =>
+        isar.variants.where().productIdEqualTo(kProduct!.id).findFirst());
 
     Stock stock = Stock(
         lastTouched: DateTime.now(),
@@ -986,7 +801,7 @@ class IsarAPI<M> implements IsarApiInterface {
         branchId: branchId,
         variantId: variant!.id,
         currentStock: 0.0,
-        productId: kProduct.id)
+        productId: kProduct!.id)
       ..canTrackingStock = false
       ..showLowStockAlert = false
       ..currentStock = 0.0
@@ -1200,14 +1015,13 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Business?> getBusiness() async {
-    int? userId = ProxyService.box.getUserId();
-    return db.business.where().userIdEqualTo(userId).findFirst();
-  }
-
-  @override
-  Future<Business?> getBusinessById({required int id}) async {
-    return db.business.get(id);
+  Future<Business?> getBusiness({int? businessId}) async {
+    if (businessId != null) {
+      return db.read((isar) => isar.business.get(businessId));
+    } else {
+      int? userId = ProxyService.box.getUserId();
+      return db.business.where().userIdEqualTo(userId).findFirst();
+    }
   }
 
   @override
@@ -1384,34 +1198,6 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Stream<Customer?> getCustomer({required String key}) {
-    return db.customers
-        .where()
-        .nameEqualTo(key)
-        .or()
-        .emailEqualTo(key)
-        .or()
-        .phoneEqualTo(key)
-        .and()
-        .deletedAtIsNull()
-        .build()
-        .watch(fireImmediately: true)
-        .asyncMap((event) => event.first);
-  }
-
-  @override
-  Stream<Customer?> getCustomerByTransactionId({required String id}) {
-    Transaction? tr = db.transactions.get(id);
-    return db.customers
-        .where()
-        .idEqualTo(tr!.customerId!)
-        .deletedAtIsNull()
-        .sortByLastTouchedDesc()
-        .watch(fireImmediately: true)
-        .asyncMap((event) => event.first);
-  }
-
-  @override
   Future<Customer?> nGetCustomerByTransactionId({required String id}) async {
     Transaction? transaction = db.transactions.get(id);
     if (transaction == null) {
@@ -1423,7 +1209,8 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<List<Discount>> getDiscounts({required int branchId}) async {
-    return db.discounts.where().branchIdEqualTo(branchId).findAll();
+    return db.read(
+        (isar) => isar.discounts.where().branchIdEqualTo(branchId).findAll());
   }
 
   // get list of Business from isar where userId = userId
@@ -1569,11 +1356,8 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<Product?> isTempProductExist({required int branchId}) async {
-    return db.read((isar) => db.products
-        .where()
-        .nameContains("temp")
-        // .branchIdEqualTo(branchId)
-        .findFirst());
+    return await db.readAsync(
+        (isar) => isar.products.where().nameContains("temp").findFirst());
   }
 
   @override
@@ -1803,49 +1587,18 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<Transaction?> pendingTransaction({required int branchId}) async {
-    return db.transactions
+    return db.read((isar) => isar.transactions
         .where()
-        .statusEqualTo(pendingStatus)
+        .statusEqualTo(PENDING)
         .and()
         .branchIdEqualTo(branchId)
-        .findFirst();
-  }
-
-  @override
-  Stream<List<Variant>> geVariantStreamByProductId(
-      {required String productId}) {
-    return db.variants
-        .where()
-        .productIdEqualTo(productId)
-        .deletedAtIsNull()
-        .sortByLastTouchedDesc()
-        .watch(fireImmediately: true);
-  }
-
-  @override
-  Stream<List<Product>> productStreams({required int branchId}) {
-    return db.products
-        .where()
-        .branchIdEqualTo(branchId)
-        .deletedAtIsNull()
-        .sortByLastTouchedDesc()
-        .watch(fireImmediately: true);
-  }
-
-  @override
-  Stream<List<Discount>> discountStreams({required int branchId}) {
-    return db.discounts
-        .where()
-        .branchIdEqualTo(branchId)
-        .build()
-        .watch(fireImmediately: true);
+        .findFirst());
   }
 
   @override
   Future<Profile?> profile({required int businessId}) async {
-    return db.write((isar) {
-      return isar.profiles.where().businessIdEqualTo(businessId).findFirst();
-    });
+    return db.write((isar) =>
+        isar.profiles.where().businessIdEqualTo(businessId).findFirst());
   }
 
   @override
@@ -1903,30 +1656,18 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<Stock?> stockByVariantId({required String variantId}) async {
     int branchId = ProxyService.box.getBranchId()!;
-    return db.stocks
+    return db.read((isar) => isar.stocks
         .where()
         .variantIdEqualTo(variantId)
         .and()
         .branchIdEqualTo(branchId)
-        .findFirst();
-  }
-
-  @override
-  Stream<Stock> stockByVariantIdStream({required String variantId}) {
-    return db.stocks
-        .where()
-        .variantIdEqualTo(variantId)
-        .and()
-        .branchIdEqualTo(ProxyService.box.getBranchId()!)
-        .watch(fireImmediately: true)
-        .asyncMap((event) => event.first);
+        .findFirst());
   }
 
   @override
   Future<List<Stock?>> stocks({required String productId}) async {
-    return db.write((isar) {
-      return isar.stocks.where().productIdEqualTo(productId).findAll();
-    });
+    return db.read(
+        (isar) => isar.stocks.where().productIdEqualTo(productId).findAll());
   }
 
   @override
@@ -1955,34 +1696,18 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<List<Transaction>> tickets() async {
-    return db.write((isar) {
-      return isar.transactions
-          .where()
-          .statusEqualTo(parkedStatus)
-          .and()
-          .branchIdEqualTo(ProxyService.box.getBranchId()!)
-          .build()
-          .findAll();
-    });
-  }
-
-  @override
-  Stream<List<Transaction>> ticketsStreams() {
-    log(ProxyService.box.getBranchId()!.toString(), name: "ticketsStreams()");
-    return db.transactions
+    return db.read((isar) => isar.transactions
         .where()
-        .statusEqualTo(parkedStatus)
+        .statusEqualTo(PARKED)
         .and()
         .branchIdEqualTo(ProxyService.box.getBranchId()!)
-        .build()
-        .watch(fireImmediately: true);
+        .findAll());
   }
 
   @override
   Future<List<IUnit>> units({required int branchId}) async {
-    return db.write((isar) {
-      return isar.iUnits.where().branchIdEqualTo(branchId).findAll();
-    });
+    return db.read(
+        (isar) => isar.iUnits.where().branchIdEqualTo(branchId).findAll());
   }
 
   @override
@@ -2289,20 +2014,15 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Stream<List<Business>> users() {
-    // TODO: implement users
-    throw UnimplementedError();
-  }
-
-  @override
   Future<Variant?> variant({required String variantId}) async {
-    return db.variants.get(variantId);
+    return db.read((isar) => isar.variants.get(variantId));
   }
 
   @override
   Future<List<Variant>> variants(
       {required int branchId, required String productId}) async {
-    return db.variants.where().productIdEqualTo(productId).findAll();
+    return db.read(
+        (isar) => isar.variants.where().productIdEqualTo(productId).findAll());
   }
 
   List<DateTime> getWeeksForRange(DateTime start, DateTime end) {
@@ -2324,27 +2044,20 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<List<Product>> productsFuture({required int branchId}) async {
-    return await db.products.where().branchIdEqualTo(branchId).findAllAsync();
+    return db.read(
+        (isar) => isar.products.where().branchIdEqualTo(branchId).findAll());
   }
 
   @override
   Future<List<Category>> categories({required int branchId}) async {
     // get all categories from isar db
-    return await db.categorys.where().branchIdEqualTo(branchId).findAllAsync();
-  }
-
-  @override
-  Stream<List<Category>> categoriesStream({required int branchId}) {
-    log(branchId.toString(), name: "load stream of categoris");
-    return db.categorys
-        .where()
-        .branchIdEqualTo(branchId)
-        .watch(fireImmediately: true);
+    return db.read(
+        (isar) => isar.categorys.where().branchIdEqualTo(branchId).findAll());
   }
 
   @override
   Future<Variant?> getVariantById({required String id}) async {
-    return db.variants.get(id);
+    return db.read((isar) => isar.variants.get(id));
   }
 
   @override
@@ -2373,20 +2086,18 @@ class IsarAPI<M> implements IsarApiInterface {
     db.write((isar) {
       isar.receipts.put(receipt);
     });
-    return db.receipts.get(receipt.id);
+    return db.read((isar) => isar.receipts.get(receipt.id));
   }
 
   @override
   Future<Receipt?> getReceipt({required String transactionId}) async {
-    return await db.receipts
-        .where()
-        .transactionIdEqualTo(transactionId)
-        .findFirstAsync();
+    return db.read((isar) =>
+        isar.receipts.where().transactionIdEqualTo(transactionId).findFirst());
   }
 
   @override
   Future<void> refund({required String itemId}) async {
-    return await db.write((isar) {
+    return db.write((isar) {
       TransactionItem? item = isar.transactionItems.get(itemId);
       item!.isRefunded = true;
       isar.transactionItems.put(item);
@@ -2395,55 +2106,56 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<bool> isDrawerOpen({required int cashierId}) async {
-    Drawers? drawer = db.drawers
+    Drawers? drawer = db.read((isar) => isar.drawers
         .where()
         .openEqualTo(true)
         .and()
         .cashierIdEqualTo(cashierId)
-        .findFirst();
+        .findFirst());
     return drawer != null;
   }
 
   @override
   Future<Drawers?> getDrawer({required int cashierId}) async {
-    Drawers? drawer = db.drawers
+    return db.read((isar) => isar.drawers
         .where()
         .openEqualTo(true)
         .and()
         .cashierIdEqualTo(cashierId)
-        .findFirst();
-    return drawer;
+        .findFirst());
   }
 
   @override
   Future<Drawers?> openDrawer({required Drawers drawer}) async {
     // save drawer object in isar db
-    return db.write((isar) {
-      isar.drawers.put(drawer..id = randomString());
-      return isar.drawers.get(drawer.id);
+    String id = randomString();
+    await db.writeAsync((isar) {
+      isar.drawers.put(drawer..id = id);
     });
+    return db.read((isar) => isar.drawers.get(id));
   }
 
   @override
   Future<int> size<T>({required T object}) async {
     if (object is Product) {
-      return db.products.getSize(includeIndexes: true);
+      return db.read((isar) => isar.products.getSize(includeIndexes: true));
     }
     if (object is Variant) {
-      return db.variants.getSize(includeIndexes: true);
+      return db.read((isar) => isar.variants.getSize(includeIndexes: true));
     }
     if (object is Stock) {
-      return db.stocks.getSize(includeIndexes: true);
+      return db.read((isar) => isar.stocks.getSize(includeIndexes: true));
     }
     if (object is Counter) {
-      return db.counters.getSize(includeIndexes: true);
+      return db.read((isar) => isar.counters.getSize(includeIndexes: true));
     }
     return 0;
   }
 
   @override
   Future<List<ITenant>> tenants({required int businessId}) async {
-    return db.iTenants.where().businessIdEqualTo(businessId).findAll();
+    return db.read((isar) =>
+        isar.iTenants.where().businessIdEqualTo(businessId).findAll());
   }
 
   @override
@@ -2472,69 +2184,72 @@ class IsarAPI<M> implements IsarApiInterface {
           isar.iTenants.put(iTenant);
         });
       }
-      return db.iTenants.where().businessIdEqualTo(businessId).findAll();
+      return db.read((isar) =>
+          isar.iTenants.where().businessIdEqualTo(businessId).findAll());
     }
     throw InternalServerException(term: "we got unexpected response");
   }
 
   @override
   Future<Branch?> defaultBranch() async {
-    return db.branchs.where().isDefaultEqualTo(true).findFirst();
+    return db.read(
+        (isar) => isar.branchs.where().isDefaultEqualTo(true).findFirst());
   }
 
   @override
   Future<Business?> defaultBusiness() async {
-    return db.business.where().isDefaultEqualTo(true).findFirst();
+    return db.read(
+        (isar) => isar.business.where().isDefaultEqualTo(true).findFirst());
   }
 
   @override
   Future<Counter?> cSCounter({required int branchId}) async {
-    return db.counters
+    return db.read((isar) => isar.counters
         .where()
         .branchIdEqualTo(branchId)
         .and()
         .receiptTypeEqualTo(ReceiptType.cs)
-        .findFirst();
+        .findFirst());
   }
 
   @override
   Future<Counter?> nRSCounter({required int branchId}) async {
-    return db.counters
+    return db.read((isar) => isar.counters
         .where()
         .branchIdEqualTo(branchId)
         .and()
         .receiptTypeEqualTo(ReceiptType.nr)
-        .findFirst();
+        .findFirst());
   }
 
   @override
   Future<Counter?> nSCounter({required int branchId}) async {
-    return db.counters
+    return db.read((isar) => isar.counters
         .where()
         .branchIdEqualTo(branchId)
         .and()
         .receiptTypeEqualTo("ns")
-        .findFirst();
+        .findFirst());
   }
 
   @override
   Future<Counter?> pSCounter({required int branchId}) async {
-    return db.counters
+    return db.read((isar) => isar.counters
         .where()
         .branchIdEqualTo(branchId)
         .and()
         .receiptTypeEqualTo(ReceiptType.ps)
-        .findFirst();
+        .findFirst());
   }
 
   @override
   Future<Counter?> tSCounter({required int branchId}) async {
-    return db.counters
+    return db.read((isar) => isar.counters
         .where()
         .branchIdEqualTo(branchId)
         .and()
         .receiptTypeEqualTo(ReceiptType.ts)
-        .findFirst();
+        .findFirst());
   }
 
   @override
@@ -2565,7 +2280,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   String dbPath() {
-    return db.directory;
+    return db.read((isar) => isar.directory);
   }
   // You can either directly export the entire database file with the isar.copyToFile() method, or you can use collection.where().exportJson() to export a query result to json
   // @override
@@ -2576,7 +2291,7 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<bool> bindProduct(
       {required String productId, required int tenantId}) async {
-    final product = await db.products.get(productId);
+    final product = await db.read((isar) => db.products.get(productId));
     product!.nfcEnabled = true;
     product.bindedToTenantId = tenantId;
     db.write((isar) {
@@ -2592,35 +2307,21 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<List<Product>> products({required int branchId}) async {
-    return await db.products.where().branchIdEqualTo(branchId).findAllAsync();
+    return db.read(
+        (isar) => isar.products.where().branchIdEqualTo(branchId).findAll());
   }
 
 // https://pub.dev/packages/excel
   @override
   Future<List<Transaction>> completedTransactions(
-      {required int branchId, String? status = completeStatus}) async {
+      {required int branchId, String? status = COMPLETE}) async {
     return db.transactions
         .where()
-        // .statusBranchIdEqualTo(status!, branchId)
         .statusEqualTo(status!)
         .and()
         .branchIdEqualTo(branchId)
         .sortByCreatedAtDesc()
         .findAll();
-  }
-
-  @override
-  Stream<List<Transaction>> localCompletedTransactions() {
-    String status = completeStatus;
-    int branchId = ProxyService.box.getBranchId()!;
-    return db.transactions
-        .where()
-        .branchIdEqualTo(branchId)
-        .and()
-        .statusEqualTo(status)
-        .sortByCreatedAtDesc()
-        .build()
-        .watch(fireImmediately: true);
   }
 
   /// Do not call this function in production
@@ -2637,19 +2338,6 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<Stock?> getStockById({required String id}) async {
     return db.read((isar) => isar.stocks.get(id));
-  }
-
-  @override
-  Stream<Social> socialsStream({required int branchId}) {
-    log("socialsStream called", name: "${branchId}");
-    return db.read((isar) => db.socials
-        .where()
-        .branchIdEqualTo(branchId)
-        .and()
-        .isAccountSetEqualTo(true)
-        .build()
-        .watch(fireImmediately: true)
-        .asyncMap((event) => event.first));
   }
 
   /// sincd this type does not change no point of getting it from the server
@@ -2687,90 +2375,11 @@ class IsarAPI<M> implements IsarApiInterface {
         .findAll());
   }
 
-  @override
-  Stream<List<Conversation>> getTop5RecentConversations() {
-    if (ProxyService.box.getUserPhone() == null) return Stream.empty();
-    final phone = ProxyService.box.getUserPhone()!.replaceAll("+", "");
-    log(phone, name: "top5Conversations");
-    return db.conversations
-        .where()
-        .toNumberEqualTo(phone)
-        .or()
-        .fromNumberEqualTo(phone)
-        .and()
-        .deliveredEqualTo(true)
-        .sortByCreatedAtDesc()
-        .build()
-        .watch(fireImmediately: true)
-        .map((event) {
-      final uniqueUserNames = <String>{};
-      final uniqueConversations = <Conversation>[];
-
-      for (final message in event) {
-        if (!uniqueUserNames.contains(message.userName)) {
-          uniqueUserNames.add(message.userName);
-          uniqueConversations.add(message);
-        }
-      }
-
-      // Sort conversations by creation date in descending transaction
-      uniqueConversations.sort((a, b) => b.createdAt!.compareTo(a.createdAt!));
-
-      // Return the top 5 recent conversations
-      return uniqueConversations.take(5).toList();
-    });
-  }
-
-  @override
-  Stream<List<Conversation>> conversations({String? conversationId}) {
-    if (conversationId == null && ProxyService.box.getUserPhone() != null) {
-      // get all conversations addressed to me or from me
-      String phone = ProxyService.box.getUserPhone()!.replaceAll("+", "");
-      log(phone, name: "LoadInitialList of conversations");
-      return db.conversations
-          .where()
-          .toNumberEqualTo(phone)
-          .or()
-          .fromNumberEqualTo(phone)
-          .and()
-          .deliveredEqualTo(true)
-          .build()
-          .watch(fireImmediately: true)
-          .asyncMap((event) {
-        final uniqueUserNames = <String>{};
-
-        // Create a list to store the unique conversations
-        final uniqueConversations = <Conversation>[];
-
-        // Loop through each message in the responseJson
-        for (final message in event) {
-          // Check if the username of the message is already in the set
-          if (!uniqueUserNames.contains(message.userName)) {
-            // If not, add the username to the set and add the message to the uniqueConversations list
-            uniqueUserNames.add(message.userName);
-            uniqueConversations.add(message);
-          }
-        }
-        // Return the list of unique conversations
-        return uniqueConversations;
-      });
-    } else {
-      return db.conversations
-          .where()
-          .conversationIdEqualTo(conversationId)
-          .build()
-          .watch(fireImmediately: true);
-    }
-  }
-
   final appService = loc.locator<AppService>();
   @override
   Future<List<Conversation>> getScheduleMessages() async {
-    return await db.conversations
-        .where()
-        .deliveredEqualTo(false)
-        .build()
-        .findAllAsync();
+    return db.read(
+        (isar) => isar.conversations.where().deliveredEqualTo(false).findAll());
   }
 
   @override
@@ -2796,7 +2405,7 @@ class IsarAPI<M> implements IsarApiInterface {
         message.phoneNumberId = conversation.phoneNumberId;
         message.businessPhoneNumber =
             ProxyService.box.getUserPhone()!.replaceAll("+", "");
-        db.write((isar) {
+        await db.writeAsync((isar) {
           isar.conversations.put(message);
         });
       } else {
@@ -2848,7 +2457,6 @@ class IsarAPI<M> implements IsarApiInterface {
         .typeEqualTo(tokenType)
         .and()
         .businessIdEqualTo(businessId)
-        .build()
         .findFirst());
 
     if (token == null) {
@@ -2953,25 +2561,14 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<Device?> getDevice({required String phone}) async {
     // get device from isar with linking code and return it
-    return db.read(
-        (isar) => isar.devices.where().phoneEqualTo(phone).build().findFirst());
+    return db
+        .read((isar) => isar.devices.where().phoneEqualTo(phone).findFirst());
   }
 
   @override
   Future<Device?> getDeviceById({required String id}) async {
     // get device from isar with linking code and return it
-    return db
-        .read((isar) => isar.devices.where().idEqualTo(id).build().findFirst());
-  }
-
-  @override
-  Stream<List<Device>> getDevices({required int businessId}) {
-    // get device from isar with linking code and return it
-    return db.read((isar) => isar.devices
-        .where()
-        .businessIdEqualTo(businessId)
-        .build()
-        .watch(fireImmediately: true));
+    return db.read((isar) => isar.devices.where().idEqualTo(id).findFirst());
   }
 
   @override
@@ -2981,23 +2578,12 @@ class IsarAPI<M> implements IsarApiInterface {
         .businessIdEqualTo(businessId)
         .and()
         .pubNubPublishedEqualTo(false)
-        .build()
         .findAll());
   }
 
   @override
-  Stream<Business> businessStream({required int businessId}) {
-    return db.read((isar) => isar.business
-        .where()
-        .idEqualTo(businessId)
-        .build()
-        .watch(fireImmediately: true)
-        .asyncMap((event) => event.first));
-  }
-
-  @override
   Future<ITenant?> getTenantBYUserId({required int userId}) async {
-    return await db.iTenants.where().userIdEqualTo(userId).build().findFirst();
+    return await db.iTenants.where().userIdEqualTo(userId).findFirst();
   }
 
   /// Loads conversations from the server for a given business ID.
@@ -3105,21 +2691,6 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Stream<List<TransactionItem>> transactionItemsStream() {
-    return pendingTransactionStream().asyncMap((transaction) async {
-      if (transaction != null) {
-        final items = db.read((isar) => db.transactionItems
-            .where()
-            .transactionIdEqualTo(transaction.id)
-            .findAll());
-        return items;
-      } else {
-        return <TransactionItem>[];
-      }
-    });
-  }
-
-  @override
   Future<Stock?> addStockToVariant({required Variant variant}) async {
     int branchId = ProxyService.box.getBranchId()!;
     Stock stock = Stock(
@@ -3183,7 +2754,8 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<EBM?> getEbmByBranchId({required int branchId}) async {
-    return db.eBMs.where().branchIdEqualTo(branchId).findFirst();
+    return db
+        .read((isar) => db.eBMs.where().branchIdEqualTo(branchId).findFirst());
   }
 
   @override
@@ -3197,99 +2769,348 @@ class IsarAPI<M> implements IsarApiInterface {
         List<Transaction> transactions,
         List<TransactionItem> transactionItems
       })> getUnSyncedData() async {
-    List<Stock> stocks = db.stocks
-        .where()
-        .lastTouchedIsNull()
-        .or()
-        .actionEqualTo(AppActions.update)
-        .or()
-        .actionEqualTo(AppActions.create)
-        .or()
-        .actionEqualTo(AppActions.deleted)
-        .and()
-        .actionIsNotEmpty()
-        .and()
-        .branchIdEqualTo(ProxyService.box.getBranchId()!)
-        .findAll();
-    List<Variant> variants = db.variants
-        .where()
-        .lastTouchedIsNull()
-        .or()
-        .actionEqualTo(AppActions.update)
-        .or()
-        .actionEqualTo(AppActions.create)
-        .or()
-        .actionEqualTo(AppActions.deleted)
-        .and()
-        .branchIdEqualTo(ProxyService.box.getBranchId()!)
-        .findAll();
-    List<Product> products = db.products
-        .where()
-        .lastTouchedIsNull()
-        .or()
-        .actionEqualTo(AppActions.update)
-        .or()
-        .actionEqualTo(AppActions.create)
-        .or()
-        .actionEqualTo(AppActions.deleted)
-        .and()
-        .branchIdEqualTo(ProxyService.box.getBranchId()!)
-        .findAll();
-    List<Favorite> favorites = db.favorites
-        .where()
-        .lastTouchedIsNull()
-        .or()
-        .actionEqualTo(AppActions.update)
-        .or()
-        .actionEqualTo(AppActions.create)
-        .or()
-        .actionEqualTo(AppActions.deleted)
-        .and()
-        .branchIdEqualTo(ProxyService.box.getBranchId()!)
-        .findAll();
-    List<Device> devices = db.devices
-        .where()
-        .lastTouchedIsNull()
-        .or()
-        .actionEqualTo(AppActions.update)
-        .or()
-        .actionEqualTo(AppActions.create)
-        .or()
-        .actionEqualTo(AppActions.deleted)
-        .and()
-        .branchIdEqualTo(ProxyService.box.getBranchId()!)
-        .findAll();
-    List<Transaction> transactions = db.transactions
-        .where()
-        .statusEqualTo(completeStatus)
-        .lastTouchedIsNull()
-        .or()
-        .actionEqualTo(AppActions.update)
-        .or()
-        .actionEqualTo(AppActions.create)
-        .or()
-        .actionEqualTo(AppActions.deleted)
-        .and()
-        .branchIdEqualTo(ProxyService.box.getBranchId()!)
-        .findAll();
-    List<TransactionItem> transactionItems = db.transactionItems
-        .where()
-        .lastTouchedIsNull()
-        .or()
-        .actionEqualTo(AppActions.update)
-        .or()
-        .actionEqualTo(AppActions.create)
-        .or()
-        .actionEqualTo(AppActions.deleted)
-        .findAll();
-    return (
-      stocks: stocks,
-      variants: variants,
-      products: products,
-      favorites: favorites,
-      devices: devices,
-      transactions: transactions,
-      transactionItems: transactionItems
-    );
+    return db.read((isar) {
+      final List<Stock> stocks = isar.stocks
+          .where()
+          .lastTouchedIsNull()
+          .or()
+          .actionEqualTo(AppActions.update)
+          .or()
+          .actionEqualTo(AppActions.create)
+          .or()
+          .actionEqualTo(AppActions.deleted)
+          .and()
+          .actionIsNotEmpty()
+          .and()
+          .branchIdEqualTo(ProxyService.box.getBranchId()!)
+          .findAll();
+      final List<Variant> variants = isar.variants
+          .where()
+          .lastTouchedIsNull()
+          .or()
+          .actionEqualTo(AppActions.update)
+          .or()
+          .actionEqualTo(AppActions.create)
+          .or()
+          .actionEqualTo(AppActions.deleted)
+          .and()
+          .branchIdEqualTo(ProxyService.box.getBranchId()!)
+          .findAll();
+      final List<Product> products = isar.products
+          .where()
+          .lastTouchedIsNull()
+          .or()
+          .actionEqualTo(AppActions.update)
+          .or()
+          .actionEqualTo(AppActions.create)
+          .or()
+          .actionEqualTo(AppActions.deleted)
+          .and()
+          .branchIdEqualTo(ProxyService.box.getBranchId()!)
+          .findAll();
+      final List<Favorite> favorites = isar.favorites
+          .where()
+          .lastTouchedIsNull()
+          .or()
+          .actionEqualTo(AppActions.update)
+          .or()
+          .actionEqualTo(AppActions.create)
+          .or()
+          .actionEqualTo(AppActions.deleted)
+          .and()
+          .branchIdEqualTo(ProxyService.box.getBranchId()!)
+          .findAll();
+      final List<Device> devices = isar.devices
+          .where()
+          .lastTouchedIsNull()
+          .or()
+          .actionEqualTo(AppActions.update)
+          .or()
+          .actionEqualTo(AppActions.create)
+          .or()
+          .actionEqualTo(AppActions.deleted)
+          .and()
+          .branchIdEqualTo(ProxyService.box.getBranchId()!)
+          .findAll();
+      final List<Transaction> transactions = isar.transactions
+          .where()
+          .statusEqualTo(COMPLETE)
+          .lastTouchedIsNull()
+          .or()
+          .actionEqualTo(AppActions.update)
+          .or()
+          .actionEqualTo(AppActions.create)
+          .or()
+          .actionEqualTo(AppActions.deleted)
+          .and()
+          .branchIdEqualTo(ProxyService.box.getBranchId()!)
+          .findAll();
+      final List<TransactionItem> transactionItems = isar.transactionItems
+          .where()
+          .lastTouchedIsNull()
+          .or()
+          .actionEqualTo(AppActions.update)
+          .or()
+          .actionEqualTo(AppActions.create)
+          .or()
+          .actionEqualTo(AppActions.deleted)
+          .findAll();
+      return (
+        stocks: stocks,
+        variants: variants,
+        products: products,
+        favorites: favorites,
+        devices: devices,
+        transactions: transactions,
+        transactionItems: transactionItems
+      );
+    });
   }
+
+  /// App Streams should not be overused... streams should be defined between these comments
+  @override
+  Stream<Social> socialsStream({required int branchId}) {
+    log("socialsStream called", name: "${branchId}");
+    return db.read((isar) => db.socials
+        .where()
+        .branchIdEqualTo(branchId)
+        .and()
+        .isAccountSetEqualTo(true)
+        .watch(fireImmediately: true)
+        .asyncMap((event) => event.first));
+  }
+
+  @override
+  Stream<List<Transaction>> transactionsStreams({
+    String? status,
+    String? transactionType,
+    int? branchId,
+    bool isCashOut = false,
+    bool includePending = false,
+  }) {
+    final isarQuery = db.transactions.where().statusEqualTo(status ?? COMPLETE);
+
+    if (isCashOut) {
+      isarQuery.and().transactionTypeEqualTo('Cash Out');
+    } else {
+      isarQuery
+          .and()
+          .transactionTypeEqualTo('Cash In')
+          .or()
+          .transactionTypeEqualTo('Sale')
+          .or()
+          .transactionTypeEqualTo('custom');
+    }
+
+    if (branchId != null) {
+      isarQuery.and().branchIdEqualTo(branchId);
+    } else {
+      branchId = ProxyService.box.getBranchId()!;
+      isarQuery.and().branchIdEqualTo(branchId);
+    }
+
+    Stream<List<Transaction>> transactionsStream =
+        db.read((isar) => isarQuery.watch(fireImmediately: true));
+    return transactionsStream;
+  }
+
+  @override
+  Stream<List<TransactionItem>> transactionItemsStream() {
+    return transactionsStreams().asyncMap((transactions) async {
+      final List<TransactionItem> allItems = [];
+
+      for (final transaction in transactions) {
+        final items = await db.read((isar) => db.transactionItems
+            .where()
+            .transactionIdEqualTo(transaction.id)
+            .findAll());
+        allItems.addAll(items);
+      }
+
+      return allItems.isNotEmpty ? allItems : <TransactionItem>[];
+    });
+  }
+
+  @override
+  Stream<List<Transaction>> getTransactionsByCustomerId(
+      {required int customerId}) async* {
+    yield* db.read((isar) =>
+        isar.transactions.where().customerIdEqualTo(customerId).watch());
+  }
+
+  @override
+  Future<List<Device>> getDevices({required int businessId}) async {
+    // get device from isar with linking code and return it
+    return db.read(
+        (isar) => isar.devices.where().businessIdEqualTo(businessId).findAll());
+  }
+
+  @override
+  Stream<List<Conversation>> getTop5RecentConversations() {
+    if (ProxyService.box.getUserPhone() == null) return Stream.empty();
+    final phone = ProxyService.box.getUserPhone()!.replaceAll("+", "");
+    log(phone, name: "top5Conversations");
+
+    return db.read((isar) {
+      return isar.conversations
+          .where()
+          .toNumberEqualTo(phone)
+          .or()
+          .fromNumberEqualTo(phone)
+          .and()
+          .deliveredEqualTo(true)
+          .sortByCreatedAtDesc()
+          .watch(fireImmediately: true)
+          .map((event) {
+        final uniqueUserNames = <String>{};
+        final uniqueConversations = <Conversation>[];
+
+        for (final message in event) {
+          if (!uniqueUserNames.contains(message.userName)) {
+            uniqueUserNames.add(message.userName);
+            uniqueConversations.add(message);
+          }
+        }
+
+        // Sort conversations by creation date in descending order
+        uniqueConversations
+            .sort((a, b) => b.createdAt!.compareTo(a.createdAt!));
+
+        // Return the top 5 recent conversations
+        return uniqueConversations.take(5).toList();
+      });
+    });
+  }
+
+  @override
+  Stream<List<Conversation>> conversations({String? conversationId}) {
+    if (conversationId == null && ProxyService.box.getUserPhone() != null) {
+      // get all conversations addressed to me or from me
+      String phone = ProxyService.box.getUserPhone()!.replaceAll("+", "");
+      log(phone, name: "LoadInitialList of conversations");
+      return db.read((isar) {
+        return isar.conversations
+            .where()
+            .toNumberEqualTo(phone)
+            .or()
+            .fromNumberEqualTo(phone)
+            .and()
+            .deliveredEqualTo(true)
+            .watch(fireImmediately: true)
+            .asyncMap((event) {
+          final uniqueUserNames = <String>{};
+          final uniqueConversations = <Conversation>[];
+
+          for (final message in event) {
+            if (!uniqueUserNames.contains(message.userName)) {
+              uniqueUserNames.add(message.userName);
+              uniqueConversations.add(message);
+            }
+          }
+
+          return uniqueConversations;
+        });
+      });
+    } else {
+      return db.read((isar) {
+        return isar.conversations
+            .where()
+            .conversationIdEqualTo(conversationId)
+            .watch(fireImmediately: true);
+      });
+    }
+  }
+
+  @override
+  Stream<List<Transaction>> ticketsStreams() {
+    log(ProxyService.box.getBranchId()!.toString(), name: "ticketsStreams()");
+    return db.read((isar) => isar.transactions
+        .where()
+        .statusEqualTo(PARKED)
+        .and()
+        .branchIdEqualTo(ProxyService.box.getBranchId()!)
+        .watch(fireImmediately: true));
+  }
+
+  @override
+  Stream<Stock> stockByVariantIdStream({required String variantId}) {
+    return db.read((isar) => isar.stocks
+        .where()
+        .variantIdEqualTo(variantId)
+        .and()
+        .branchIdEqualTo(ProxyService.box.getBranchId()!)
+        .watch(fireImmediately: true)
+        .asyncMap((event) => event.first));
+  }
+
+  @override
+  Stream<Favorite?> getFavoriteByIndexStream({required int favIndex}) {
+    return db.favorites
+        .where()
+        .favIndexEqualTo(favIndex)
+        .deletedAtIsNull()
+        .watch(fireImmediately: true)
+        .asyncMap((event) => event.first);
+  }
+
+  @override
+  Stream<List<Variant>> geVariantStreamByProductId(
+      {required String productId}) {
+    return db.variants
+        .where()
+        .productIdEqualTo(productId)
+        .and()
+        .deletedAtIsNull()
+        .sortByLastTouchedDesc()
+        .watch(fireImmediately: true);
+  }
+
+  @override
+  Stream<List<Product>> productStreams({String? prodIndex}) {
+    int branchId = ProxyService.box.getBranchId()!;
+    if (prodIndex == null) {
+      return db.read((isar) => isar.products
+          .where()
+          .branchIdEqualTo(branchId)
+          .and()
+          .deletedAtIsNull()
+          .watch(fireImmediately: true));
+    } else {
+      return db.read((isar) => isar.products
+          .where()
+          .branchIdEqualTo(branchId)
+          .and()
+          .deletedAtIsNull()
+          .idEqualTo(prodIndex)
+          .watch(fireImmediately: true));
+    }
+  }
+
+  @override
+  Stream<Customer?> getCustomer({String? key, String? transactionId}) {
+    if (transactionId != null) {
+      Transaction? tr = db.transactions.get(transactionId);
+      return db.read((isar) => isar.customers
+          .where()
+          .idEqualTo(tr!.customerId!)
+          .deletedAtIsNull()
+          .sortByLastTouchedDesc()
+          .watch(fireImmediately: true)
+          .asyncMap((event) => event.first));
+    } else {
+      return db.read((isar) => db.customers
+          .where()
+          .nameEqualTo(key!)
+          .or()
+          .emailEqualTo(key)
+          .or()
+          .phoneEqualTo(key)
+          .and()
+          .deletedAtIsNull()
+          .watch(fireImmediately: true)
+          .asyncMap((event) => event.first));
+    }
+  }
+
+  /// End of streams
 }

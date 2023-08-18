@@ -24,7 +24,7 @@ class ColorTile extends StatelessWidget {
               _routerService.pop();
             },
             title: 'Edit product Tiles',
-            icon: Icons.keyboard_backspace,
+            icon: Icons.close,
             multi: 3,
             bottomSpacer: 52,
           ),
@@ -47,8 +47,8 @@ class ColorTile extends StatelessWidget {
                             child: Theme(
                               data: Theme.of(context)
                                   .copyWith(splashColor: Colors.transparent),
-                              child: model.product == null ||
-                                      model.product.imageUrl == null
+                              child: (model.product?.imageUrl == null ||
+                                      model.product!.imageUrl!.isEmpty)
                                   ? TextField(
                                       maxLines: 4,
                                       autofocus: false,
@@ -57,8 +57,7 @@ class ColorTile extends StatelessWidget {
                                           color: Color(0xFFbdc6cf)),
                                       decoration: InputDecoration(
                                         filled: true,
-                                        fillColor:
-                                            HexColor(model.app.currentColor),
+                                        fillColor: HexColor(model.currentColor),
                                         focusedBorder: const OutlineInputBorder(
                                           borderSide:
                                               BorderSide(color: Colors.white),
@@ -71,7 +70,7 @@ class ColorTile extends StatelessWidget {
                                       ),
                                     )
                                   : CachedNetworkImage(
-                                      imageUrl: model.product.imageUrl!,
+                                      imageUrl: model.product!.imageUrl!,
                                       imageBuilder: (context, imageProvider) =>
                                           Container(
                                         decoration: BoxDecoration(
@@ -164,7 +163,7 @@ class ColorTile extends StatelessWidget {
                         ),
                         onPressed: () async {
                           model.browsePictureFromGallery(
-                              id: model.product.id,
+                              id: model.product?.id,
                               callBack: (e) {},
                               urlType: URLTYPE.PRODUCT);
                         },
@@ -200,7 +199,7 @@ class ColorTile extends StatelessWidget {
                         onPressed: () {
                           model.takePicture(
                             urlType: URLTYPE.PRODUCT,
-                            productId: model.product.id!,
+                            productId: model.product!.id,
                             callBack: (int res) {
                               if (res == 500) {
                                 showSimpleNotification(

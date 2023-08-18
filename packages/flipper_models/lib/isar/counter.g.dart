@@ -14,16 +14,45 @@ extension GetCounterCollection on Isar {
   IsarCollection<int, Counter> get counters => this.collection();
 }
 
-const CounterSchema = IsarCollectionSchema(
-  schema:
-      '{"name":"Counter","idName":"id","properties":[{"name":"businessId","type":"Long"},{"name":"branchId","type":"Long"},{"name":"receiptType","type":"String"},{"name":"totRcptNo","type":"Long"},{"name":"curRcptNo","type":"Long"},{"name":"lastTouched","type":"DateTime"}]}',
+const CounterSchema = IsarGeneratedSchema(
+  schema: IsarSchema(
+    name: 'Counter',
+    idName: 'id',
+    embedded: false,
+    properties: [
+      IsarPropertySchema(
+        name: 'businessId',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'branchId',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'receiptType',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'totRcptNo',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'curRcptNo',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'lastTouched',
+        type: IsarType.dateTime,
+      ),
+    ],
+    indexes: [],
+  ),
   converter: IsarObjectConverter<int, Counter>(
     serialize: serializeCounter,
     deserialize: deserializeCounter,
     deserializeProperty: deserializeCounterProp,
   ),
   embeddedSchemas: [],
-  //hash: -4870337827216197999,
 );
 
 @isarProtected
@@ -297,6 +326,45 @@ extension CounterQueryUpdate on IsarQuery<Counter> {
       _CounterQueryUpdateImpl(this, limit: 1);
 
   _CounterQueryUpdate get updateAll => _CounterQueryUpdateImpl(this);
+}
+
+class _CounterQueryBuilderUpdateImpl implements _CounterQueryUpdate {
+  const _CounterQueryBuilderUpdateImpl(this.query, {this.limit});
+
+  final QueryBuilder<Counter, Counter, QOperations> query;
+  final int? limit;
+
+  @override
+  int call({
+    Object? businessId = ignore,
+    Object? branchId = ignore,
+    Object? receiptType = ignore,
+    Object? totRcptNo = ignore,
+    Object? curRcptNo = ignore,
+    Object? lastTouched = ignore,
+  }) {
+    final q = query.build();
+    try {
+      return q.updateProperties(limit: limit, {
+        if (businessId != ignore) 1: businessId as int?,
+        if (branchId != ignore) 2: branchId as int?,
+        if (receiptType != ignore) 3: receiptType as String?,
+        if (totRcptNo != ignore) 4: totRcptNo as int?,
+        if (curRcptNo != ignore) 5: curRcptNo as int?,
+        if (lastTouched != ignore) 6: lastTouched as DateTime?,
+      });
+    } finally {
+      q.close();
+    }
+  }
+}
+
+extension CounterQueryBuilderUpdate
+    on QueryBuilder<Counter, Counter, QOperations> {
+  _CounterQueryUpdate get updateFirst =>
+      _CounterQueryBuilderUpdateImpl(this, limit: 1);
+
+  _CounterQueryUpdate get updateAll => _CounterQueryBuilderUpdateImpl(this);
 }
 
 extension CounterQueryFilter

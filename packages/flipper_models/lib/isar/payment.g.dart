@@ -14,16 +14,61 @@ extension GetPaymentCollection on Isar {
   IsarCollection<String, Payment> get payments => this.collection();
 }
 
-const PaymentSchema = IsarCollectionSchema(
-  schema:
-      '{"name":"Payment","idName":"id","properties":[{"name":"id","type":"String"},{"name":"amount","type":"Long"},{"name":"interval","type":"Long"},{"name":"userId","type":"Long"},{"name":"createdAt","type":"Long"},{"name":"paymentType","type":"String"},{"name":"requestGuid","type":"String"},{"name":"note","type":"String"},{"name":"itemName","type":"String"},{"name":"phoneNumber","type":"String"}]}',
+const PaymentSchema = IsarGeneratedSchema(
+  schema: IsarSchema(
+    name: 'Payment',
+    idName: 'id',
+    embedded: false,
+    properties: [
+      IsarPropertySchema(
+        name: 'id',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'amount',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'interval',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'userId',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'createdAt',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'paymentType',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'requestGuid',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'note',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'itemName',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'phoneNumber',
+        type: IsarType.string,
+      ),
+    ],
+    indexes: [],
+  ),
   converter: IsarObjectConverter<String, Payment>(
     serialize: serializePayment,
     deserialize: deserializePayment,
     deserializeProperty: deserializePaymentProp,
   ),
   embeddedSchemas: [],
-  //hash: -5005133615524678788,
 );
 
 @isarProtected
@@ -260,6 +305,51 @@ extension PaymentQueryUpdate on IsarQuery<Payment> {
       _PaymentQueryUpdateImpl(this, limit: 1);
 
   _PaymentQueryUpdate get updateAll => _PaymentQueryUpdateImpl(this);
+}
+
+class _PaymentQueryBuilderUpdateImpl implements _PaymentQueryUpdate {
+  const _PaymentQueryBuilderUpdateImpl(this.query, {this.limit});
+
+  final QueryBuilder<Payment, Payment, QOperations> query;
+  final int? limit;
+
+  @override
+  int call({
+    Object? amount = ignore,
+    Object? interval = ignore,
+    Object? userId = ignore,
+    Object? createdAt = ignore,
+    Object? paymentType = ignore,
+    Object? requestGuid = ignore,
+    Object? note = ignore,
+    Object? itemName = ignore,
+    Object? phoneNumber = ignore,
+  }) {
+    final q = query.build();
+    try {
+      return q.updateProperties(limit: limit, {
+        if (amount != ignore) 2: amount as int?,
+        if (interval != ignore) 3: interval as int?,
+        if (userId != ignore) 4: userId as int?,
+        if (createdAt != ignore) 5: createdAt as int?,
+        if (paymentType != ignore) 6: paymentType as String?,
+        if (requestGuid != ignore) 7: requestGuid as String?,
+        if (note != ignore) 8: note as String?,
+        if (itemName != ignore) 9: itemName as String?,
+        if (phoneNumber != ignore) 10: phoneNumber as String?,
+      });
+    } finally {
+      q.close();
+    }
+  }
+}
+
+extension PaymentQueryBuilderUpdate
+    on QueryBuilder<Payment, Payment, QOperations> {
+  _PaymentQueryUpdate get updateFirst =>
+      _PaymentQueryBuilderUpdateImpl(this, limit: 1);
+
+  _PaymentQueryUpdate get updateAll => _PaymentQueryBuilderUpdateImpl(this);
 }
 
 extension PaymentQueryFilter

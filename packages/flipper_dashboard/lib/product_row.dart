@@ -248,7 +248,7 @@ class ProductRow extends StatelessWidget {
                 backgroundColor: const Color(0xFFFE4A49),
                 foregroundColor: Colors.white,
                 icon: FluentIcons.delete_20_regular,
-                label: 'Delete',
+                label: '',
               ),
               SlidableAction(
                 onPressed: (_) {
@@ -257,7 +257,7 @@ class ProductRow extends StatelessWidget {
                 backgroundColor: Colors.blue,
                 foregroundColor: Colors.white,
                 icon: FluentIcons.edit_24_regular,
-                label: 'Edit',
+                label: '',
               ),
               SlidableAction(
                 onPressed: (_) {
@@ -269,7 +269,7 @@ class ProductRow extends StatelessWidget {
                         : Colors.red,
                 foregroundColor: Colors.white,
                 icon: Icons.nfc,
-                label: 'NFC',
+                label: '',
               )
             ],
           ),
@@ -288,7 +288,7 @@ class ProductRow extends StatelessWidget {
                 backgroundColor: Colors.blue,
                 foregroundColor: Colors.white,
                 icon: FluentIcons.edit_24_regular,
-                label: 'Edit',
+                label: '',
               )
             ],
           ),

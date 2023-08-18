@@ -14,16 +14,50 @@ extension GetIUnitCollection on Isar {
   IsarCollection<String, IUnit> get iUnits => this.collection();
 }
 
-const IUnitSchema = IsarCollectionSchema(
-  schema:
-      '{"name":"IUnit","idName":"id","properties":[{"name":"id","type":"String"},{"name":"branchId","type":"Long"},{"name":"name","type":"String"},{"name":"value","type":"String"},{"name":"active","type":"Bool"}]}',
+const IUnitSchema = IsarGeneratedSchema(
+  schema: IsarSchema(
+    name: 'IUnit',
+    idName: 'id',
+    embedded: false,
+    properties: [
+      IsarPropertySchema(
+        name: 'id',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'branchId',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'name',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'value',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'active',
+        type: IsarType.bool,
+      ),
+    ],
+    indexes: [
+      IsarIndexSchema(
+        name: 'branchId',
+        properties: [
+          "branchId",
+        ],
+        unique: false,
+        hash: false,
+      ),
+    ],
+  ),
   converter: IsarObjectConverter<String, IUnit>(
     serialize: serializeIUnit,
     deserialize: deserializeIUnit,
     deserializeProperty: deserializeIUnitProp,
   ),
   embeddedSchemas: [],
-  //hash: 1326191661211678137,
 );
 
 @isarProtected
@@ -173,6 +207,40 @@ extension IUnitQueryUpdate on IsarQuery<IUnit> {
   _IUnitQueryUpdate get updateFirst => _IUnitQueryUpdateImpl(this, limit: 1);
 
   _IUnitQueryUpdate get updateAll => _IUnitQueryUpdateImpl(this);
+}
+
+class _IUnitQueryBuilderUpdateImpl implements _IUnitQueryUpdate {
+  const _IUnitQueryBuilderUpdateImpl(this.query, {this.limit});
+
+  final QueryBuilder<IUnit, IUnit, QOperations> query;
+  final int? limit;
+
+  @override
+  int call({
+    Object? branchId = ignore,
+    Object? name = ignore,
+    Object? value = ignore,
+    Object? active = ignore,
+  }) {
+    final q = query.build();
+    try {
+      return q.updateProperties(limit: limit, {
+        if (branchId != ignore) 2: branchId as int?,
+        if (name != ignore) 3: name as String?,
+        if (value != ignore) 4: value as String?,
+        if (active != ignore) 5: active as bool?,
+      });
+    } finally {
+      q.close();
+    }
+  }
+}
+
+extension IUnitQueryBuilderUpdate on QueryBuilder<IUnit, IUnit, QOperations> {
+  _IUnitQueryUpdate get updateFirst =>
+      _IUnitQueryBuilderUpdateImpl(this, limit: 1);
+
+  _IUnitQueryUpdate get updateAll => _IUnitQueryBuilderUpdateImpl(this);
 }
 
 extension IUnitQueryFilter on QueryBuilder<IUnit, IUnit, QFilterCondition> {

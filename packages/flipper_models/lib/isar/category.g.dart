@@ -14,16 +14,62 @@ extension GetCategoryCollection on Isar {
   IsarCollection<String, Category> get categorys => this.collection();
 }
 
-const CategorySchema = IsarCollectionSchema(
-  schema:
-      '{"name":"Category","idName":"id","properties":[{"name":"id","type":"String"},{"name":"active","type":"Bool"},{"name":"focused","type":"Bool"},{"name":"name","type":"String"},{"name":"branchId","type":"Long"},{"name":"deletedAt","type":"DateTime"},{"name":"lastTouched","type":"DateTime"},{"name":"action","type":"String"}]}',
+const CategorySchema = IsarGeneratedSchema(
+  schema: IsarSchema(
+    name: 'Category',
+    idName: 'id',
+    embedded: false,
+    properties: [
+      IsarPropertySchema(
+        name: 'id',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'active',
+        type: IsarType.bool,
+      ),
+      IsarPropertySchema(
+        name: 'focused',
+        type: IsarType.bool,
+      ),
+      IsarPropertySchema(
+        name: 'name',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'branchId',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'deletedAt',
+        type: IsarType.dateTime,
+      ),
+      IsarPropertySchema(
+        name: 'lastTouched',
+        type: IsarType.dateTime,
+      ),
+      IsarPropertySchema(
+        name: 'action',
+        type: IsarType.string,
+      ),
+    ],
+    indexes: [
+      IsarIndexSchema(
+        name: 'branchId',
+        properties: [
+          "branchId",
+        ],
+        unique: false,
+        hash: false,
+      ),
+    ],
+  ),
   converter: IsarObjectConverter<String, Category>(
     serialize: serializeCategory,
     deserialize: deserializeCategory,
     deserializeProperty: deserializeCategoryProp,
   ),
   embeddedSchemas: [],
-  //hash: -7509070866821184121,
 );
 
 @isarProtected
@@ -261,6 +307,47 @@ extension CategoryQueryUpdate on IsarQuery<Category> {
       _CategoryQueryUpdateImpl(this, limit: 1);
 
   _CategoryQueryUpdate get updateAll => _CategoryQueryUpdateImpl(this);
+}
+
+class _CategoryQueryBuilderUpdateImpl implements _CategoryQueryUpdate {
+  const _CategoryQueryBuilderUpdateImpl(this.query, {this.limit});
+
+  final QueryBuilder<Category, Category, QOperations> query;
+  final int? limit;
+
+  @override
+  int call({
+    Object? active = ignore,
+    Object? focused = ignore,
+    Object? name = ignore,
+    Object? branchId = ignore,
+    Object? deletedAt = ignore,
+    Object? lastTouched = ignore,
+    Object? action = ignore,
+  }) {
+    final q = query.build();
+    try {
+      return q.updateProperties(limit: limit, {
+        if (active != ignore) 2: active as bool?,
+        if (focused != ignore) 3: focused as bool?,
+        if (name != ignore) 4: name as String?,
+        if (branchId != ignore) 5: branchId as int?,
+        if (deletedAt != ignore) 6: deletedAt as DateTime?,
+        if (lastTouched != ignore) 7: lastTouched as DateTime?,
+        if (action != ignore) 8: action as String?,
+      });
+    } finally {
+      q.close();
+    }
+  }
+}
+
+extension CategoryQueryBuilderUpdate
+    on QueryBuilder<Category, Category, QOperations> {
+  _CategoryQueryUpdate get updateFirst =>
+      _CategoryQueryBuilderUpdateImpl(this, limit: 1);
+
+  _CategoryQueryUpdate get updateAll => _CategoryQueryBuilderUpdateImpl(this);
 }
 
 extension CategoryQueryFilter

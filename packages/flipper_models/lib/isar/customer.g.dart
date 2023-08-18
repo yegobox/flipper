@@ -14,16 +14,61 @@ extension GetCustomerCollection on Isar {
   IsarCollection<int, Customer> get customers => this.collection();
 }
 
-const CustomerSchema = IsarCollectionSchema(
-  schema:
-      '{"name":"Customer","idName":"id","properties":[{"name":"name","type":"String"},{"name":"email","type":"String"},{"name":"phone","type":"String"},{"name":"address","type":"String"},{"name":"branchId","type":"Long"},{"name":"updatedAt","type":"DateTime"},{"name":"tinNumber","type":"String"},{"name":"lastTouched","type":"DateTime"},{"name":"action","type":"String"},{"name":"deletedAt","type":"DateTime"}]}',
+const CustomerSchema = IsarGeneratedSchema(
+  schema: IsarSchema(
+    name: 'Customer',
+    idName: 'id',
+    embedded: false,
+    properties: [
+      IsarPropertySchema(
+        name: 'name',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'email',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'phone',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'address',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'branchId',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'updatedAt',
+        type: IsarType.dateTime,
+      ),
+      IsarPropertySchema(
+        name: 'tinNumber',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'lastTouched',
+        type: IsarType.dateTime,
+      ),
+      IsarPropertySchema(
+        name: 'action',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'deletedAt',
+        type: IsarType.dateTime,
+      ),
+    ],
+    indexes: [],
+  ),
   converter: IsarObjectConverter<int, Customer>(
     serialize: serializeCustomer,
     deserialize: deserializeCustomer,
     deserializeProperty: deserializeCustomerProp,
   ),
   embeddedSchemas: [],
-  //hash: -6609236661135379619,
 );
 
 @isarProtected
@@ -338,6 +383,53 @@ extension CustomerQueryUpdate on IsarQuery<Customer> {
       _CustomerQueryUpdateImpl(this, limit: 1);
 
   _CustomerQueryUpdate get updateAll => _CustomerQueryUpdateImpl(this);
+}
+
+class _CustomerQueryBuilderUpdateImpl implements _CustomerQueryUpdate {
+  const _CustomerQueryBuilderUpdateImpl(this.query, {this.limit});
+
+  final QueryBuilder<Customer, Customer, QOperations> query;
+  final int? limit;
+
+  @override
+  int call({
+    Object? name = ignore,
+    Object? email = ignore,
+    Object? phone = ignore,
+    Object? address = ignore,
+    Object? branchId = ignore,
+    Object? updatedAt = ignore,
+    Object? tinNumber = ignore,
+    Object? lastTouched = ignore,
+    Object? action = ignore,
+    Object? deletedAt = ignore,
+  }) {
+    final q = query.build();
+    try {
+      return q.updateProperties(limit: limit, {
+        if (name != ignore) 1: name as String?,
+        if (email != ignore) 2: email as String?,
+        if (phone != ignore) 3: phone as String?,
+        if (address != ignore) 4: address as String?,
+        if (branchId != ignore) 5: branchId as int?,
+        if (updatedAt != ignore) 6: updatedAt as DateTime?,
+        if (tinNumber != ignore) 7: tinNumber as String?,
+        if (lastTouched != ignore) 8: lastTouched as DateTime?,
+        if (action != ignore) 9: action as String?,
+        if (deletedAt != ignore) 10: deletedAt as DateTime?,
+      });
+    } finally {
+      q.close();
+    }
+  }
+}
+
+extension CustomerQueryBuilderUpdate
+    on QueryBuilder<Customer, Customer, QOperations> {
+  _CustomerQueryUpdate get updateFirst =>
+      _CustomerQueryBuilderUpdateImpl(this, limit: 1);
+
+  _CustomerQueryUpdate get updateAll => _CustomerQueryBuilderUpdateImpl(this);
 }
 
 extension CustomerQueryFilter

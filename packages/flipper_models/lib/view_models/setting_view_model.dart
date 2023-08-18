@@ -18,7 +18,7 @@ class SettingViewModel extends HomeViewModel {
   Business? get business => _business;
   getBusiness() async {
     _business = await ProxyService.isar
-        .getBusinessById(id: ProxyService.box.getBusinessId()!);
+        .getBusiness(businessId: ProxyService.box.getBusinessId()!);
     notifyListeners();
   }
 

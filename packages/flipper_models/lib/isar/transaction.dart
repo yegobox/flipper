@@ -8,13 +8,11 @@ part 'transaction.g.dart';
 @JsonSerializable()
 @Collection()
 class Transaction extends IJsonSerializable {
-  
   late String id;
   late String reference;
   late String transactionNumber;
   @Index()
   late int branchId;
-  @Index(composite: ['branchId'])
   late String status;
   late String transactionType;
   late double subTotal;
@@ -84,7 +82,6 @@ class Transaction extends IJsonSerializable {
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = _$TransactionToJson(this);
 
-    
     data['businessPhoneNumber'] = ProxyService.box.getUserPhone();
     data['businessId'] = ProxyService.box.getBusinessId();
 

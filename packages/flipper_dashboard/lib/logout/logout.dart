@@ -113,6 +113,9 @@ class LogOut extends StackedView<LogoutModel> {
                           completer(DialogResponse(confirmed: true));
                         }
                       } else {
+                        //this is mobile client we can safely logout without deleting devices
+                        await ProxyService.isar.logOut();
+                        viewModel.runStartupLogic(refreshCredentials: true);
                         completer(DialogResponse(confirmed: true));
                       }
                     },

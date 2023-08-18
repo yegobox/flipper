@@ -333,7 +333,7 @@ class _TransactionsState extends State<Transactions> {
   Widget buildList(BuildContext context, HomeViewModel model) {
     return StreamBuilder<List<Transaction>>(
       initialData: null,
-      stream: ProxyService.isar.localCompletedTransactions(),
+      stream: ProxyService.isar.transactionsStreams(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return CircularProgressIndicator();

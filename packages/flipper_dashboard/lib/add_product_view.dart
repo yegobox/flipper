@@ -129,10 +129,12 @@ class _AddProductViewState extends State<AddProductView> {
         }
         await model.getTempOrCreateProduct(productId: widget.productId);
         model.loadCategories();
-        model.loadColors();
+        await model.loadColors();
         model.loadUnits();
         //start locking the save button
-        model.setName(name: ' ');
+        widget.productId == null
+            ? model.setName(name: ' ')
+            : model.product?.name;
 
         /// get the regular variant then get it's price to fill in the form when we are in edit mode!
         /// normal this is a List of variants where match the productId and take where we have the regular variant
@@ -182,12 +184,12 @@ class _AddProductViewState extends State<AddProductView> {
                 await model.updateRegularVariant(
                     retailPrice:
                         double.parse(productForm.retailPriceController.text),
-                    productId: model.product.id);
+                    productId: model.product?.id);
                 await model.updateRegularVariant(
                     supplyPrice: double.tryParse(
                             productForm.supplyPriceController.text) ??
                         0.0,
-                    productId: model.product.id);
+                    productId: model.product?.id);
 
                 _routerService.clearStackAndShow(FlipperAppRoute());
               },
@@ -206,7 +208,7 @@ class _AddProductViewState extends State<AddProductView> {
                       model.product == null
                           ? const SizedBox.shrink()
                           : ColorAndImagePlaceHolder(
-                              currentColor: model.app.currentColor,
+                              currentColor: model.currentColor,
                               product: model.product,
                             ),
                       Text(
@@ -251,7 +253,7 @@ class _AddProductViewState extends State<AddProductView> {
                       model.product == null
                           ? const SizedBox.shrink()
                           : SectionSelectUnit(
-                              product: model.product,
+                              product: model.product!,
                               type: 'product',
                             ),
                       verticalSpaceSmall,
@@ -266,7 +268,7 @@ class _AddProductViewState extends State<AddProductView> {
                               model.lockButton(false);
                               await model.updateRegularVariant(
                                   retailPrice: parsedValue,
-                                  productId: model.product.id);
+                                  productId: model.product?.id);
                             } else {
                               model.lockButton(true);
                             }
@@ -285,7 +287,7 @@ class _AddProductViewState extends State<AddProductView> {
                             if (parsedValue != null) {
                               await model.updateRegularVariant(
                                   supplyPrice: parsedValue,
-                                  productId: model.product.id);
+                                  productId: model.product?.id);
                             } else {
                               return '.';
                             }
@@ -301,11 +303,11 @@ class _AddProductViewState extends State<AddProductView> {
                             child: Text(
                                 (model.product == null ||
                                         (model.product != null &&
-                                            model.product.expiryDate == null))
+                                            model.product!.expiryDate == null))
                                     ? 'Expiry Date'
                                     : 'Expires at ' +
                                         formatter.format(DateTime.tryParse(
-                                                model.product.expiryDate) ??
+                                                model.product!.expiryDate!) ??
                                             DateTime.now()),
                                 style: GoogleFonts.poppins(
                                   fontSize: 16.0,
@@ -375,7 +377,7 @@ class _AddProductViewState extends State<AddProductView> {
                             onPressed: () {
                               model.navigateAddVariation(
                                   context: context,
-                                  productId: model.product.id!);
+                                  productId: model.product!.id);
                             },
                           ),
                         ),

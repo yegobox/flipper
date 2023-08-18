@@ -14,16 +14,58 @@ extension GetSubscriptionCollection on Isar {
   IsarCollection<String, Subscription> get subscriptions => this.collection();
 }
 
-const SubscriptionSchema = IsarCollectionSchema(
-  schema:
-      '{"name":"Subscription","idName":"id","properties":[{"name":"id","type":"String"},{"name":"interval","type":"Long"},{"name":"lastBillingDate","type":"String"},{"name":"nextBillingDate","type":"String"},{"name":"userId","type":"Long"},{"name":"recurring","type":"Double"},{"name":"descriptor","type":"String"}]}',
+const SubscriptionSchema = IsarGeneratedSchema(
+  schema: IsarSchema(
+    name: 'Subscription',
+    idName: 'id',
+    embedded: false,
+    properties: [
+      IsarPropertySchema(
+        name: 'id',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'interval',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'lastBillingDate',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'nextBillingDate',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'userId',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'recurring',
+        type: IsarType.double,
+      ),
+      IsarPropertySchema(
+        name: 'descriptor',
+        type: IsarType.string,
+      ),
+    ],
+    indexes: [
+      IsarIndexSchema(
+        name: 'userId',
+        properties: [
+          "userId",
+        ],
+        unique: false,
+        hash: false,
+      ),
+    ],
+  ),
   converter: IsarObjectConverter<String, Subscription>(
     serialize: serializeSubscription,
     deserialize: deserializeSubscription,
     deserializeProperty: deserializeSubscriptionProp,
   ),
   embeddedSchemas: [],
-  //hash: -3434171635547654198,
 );
 
 @isarProtected
@@ -215,6 +257,46 @@ extension SubscriptionQueryUpdate on IsarQuery<Subscription> {
       _SubscriptionQueryUpdateImpl(this, limit: 1);
 
   _SubscriptionQueryUpdate get updateAll => _SubscriptionQueryUpdateImpl(this);
+}
+
+class _SubscriptionQueryBuilderUpdateImpl implements _SubscriptionQueryUpdate {
+  const _SubscriptionQueryBuilderUpdateImpl(this.query, {this.limit});
+
+  final QueryBuilder<Subscription, Subscription, QOperations> query;
+  final int? limit;
+
+  @override
+  int call({
+    Object? interval = ignore,
+    Object? lastBillingDate = ignore,
+    Object? nextBillingDate = ignore,
+    Object? userId = ignore,
+    Object? recurring = ignore,
+    Object? descriptor = ignore,
+  }) {
+    final q = query.build();
+    try {
+      return q.updateProperties(limit: limit, {
+        if (interval != ignore) 2: interval as int?,
+        if (lastBillingDate != ignore) 3: lastBillingDate as String?,
+        if (nextBillingDate != ignore) 4: nextBillingDate as String?,
+        if (userId != ignore) 5: userId as int?,
+        if (recurring != ignore) 6: recurring as double?,
+        if (descriptor != ignore) 7: descriptor as String?,
+      });
+    } finally {
+      q.close();
+    }
+  }
+}
+
+extension SubscriptionQueryBuilderUpdate
+    on QueryBuilder<Subscription, Subscription, QOperations> {
+  _SubscriptionQueryUpdate get updateFirst =>
+      _SubscriptionQueryBuilderUpdateImpl(this, limit: 1);
+
+  _SubscriptionQueryUpdate get updateAll =>
+      _SubscriptionQueryBuilderUpdateImpl(this);
 }
 
 extension SubscriptionQueryFilter

@@ -66,7 +66,7 @@ class _AddVariationState extends State<AddVariation> {
                       sku: sku,
                       lastTouched: DateTime.now(),
                       action: "create",
-                      productId: model.product.id,
+                      productId: model.product!.id,
                       unit: model.productService.currentUnit!,
                       productName: nameController.text,
                       branchId: ProxyService.box.getBranchId()!,
@@ -77,10 +77,10 @@ class _AddVariationState extends State<AddVariation> {
                     ..sku = sku
                     ..retailPrice = double.parse(retailController.text)
                     ..supplyPrice = double.parse(costController.text)
-                    ..productId = model.product.id
+                    ..productId = model.product!.id
                     ..unit = model.productService.currentUnit!
                     ..isTaxExempted = isTaxExempted
-                    ..productName = model.product.productName
+                    ..productName = model.product!.name
                     ..branchId = model.productService.branchId!
                     ..id = variantId
                     ..branchId = ProxyService.box.getBranchId()!
@@ -122,8 +122,7 @@ class _AddVariationState extends State<AddVariation> {
                       costController.text,
                     ),
                   );
-                  model.productService
-                      .variantsProduct(productId: model.product.id!);
+                  model.variantsProduct(productId: model.product!.id);
                   _routerService.pop();
                 }
               },
@@ -143,7 +142,7 @@ class _AddVariationState extends State<AddVariation> {
                           height: 20,
                         ),
                         SectionSelectUnit(
-                            product: model.product, type: 'variation'),
+                            product: model.product!, type: 'variation'),
                         Padding(
                           padding: const EdgeInsets.only(left: 18, right: 18),
                           child: SizedBox(
@@ -235,6 +234,13 @@ class _AddVariationState extends State<AddVariation> {
           );
         },
         viewModelBuilder: () => ProductViewModel());
+  }
+
+  bool isNumeric(String? s) {
+    if (s == null) {
+      return false;
+    }
+    return double.tryParse(s) != null;
   }
 
   Widget buildCostPriceWidget({required BuildContext context}) {

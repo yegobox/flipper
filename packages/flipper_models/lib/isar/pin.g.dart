@@ -14,16 +14,57 @@ extension GetPinCollection on Isar {
   IsarCollection<String, Pin> get pins => this.collection();
 }
 
-const PinSchema = IsarCollectionSchema(
-  schema:
-      '{"name":"Pin","idName":"id","properties":[{"name":"id","type":"String"},{"name":"userId","type":"String"},{"name":"phoneNumber","type":"String"},{"name":"pin","type":"Long"},{"name":"branchId","type":"Long"},{"name":"businessId","type":"Long"},{"name":"lastTouched","type":"DateTime"},{"name":"action","type":"String"},{"name":"deletedAt","type":"DateTime"}]}',
+const PinSchema = IsarGeneratedSchema(
+  schema: IsarSchema(
+    name: 'Pin',
+    idName: 'id',
+    embedded: false,
+    properties: [
+      IsarPropertySchema(
+        name: 'id',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'userId',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'phoneNumber',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'pin',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'branchId',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'businessId',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'lastTouched',
+        type: IsarType.dateTime,
+      ),
+      IsarPropertySchema(
+        name: 'action',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'deletedAt',
+        type: IsarType.dateTime,
+      ),
+    ],
+    indexes: [],
+  ),
   converter: IsarObjectConverter<String, Pin>(
     serialize: serializePin,
     deserialize: deserializePin,
     deserializeProperty: deserializePinProp,
   ),
   embeddedSchemas: [],
-  //hash: -5501529209039009659,
 );
 
 @isarProtected
@@ -277,6 +318,47 @@ extension PinQueryUpdate on IsarQuery<Pin> {
   _PinQueryUpdate get updateFirst => _PinQueryUpdateImpl(this, limit: 1);
 
   _PinQueryUpdate get updateAll => _PinQueryUpdateImpl(this);
+}
+
+class _PinQueryBuilderUpdateImpl implements _PinQueryUpdate {
+  const _PinQueryBuilderUpdateImpl(this.query, {this.limit});
+
+  final QueryBuilder<Pin, Pin, QOperations> query;
+  final int? limit;
+
+  @override
+  int call({
+    Object? userId = ignore,
+    Object? phoneNumber = ignore,
+    Object? pin = ignore,
+    Object? branchId = ignore,
+    Object? businessId = ignore,
+    Object? lastTouched = ignore,
+    Object? action = ignore,
+    Object? deletedAt = ignore,
+  }) {
+    final q = query.build();
+    try {
+      return q.updateProperties(limit: limit, {
+        if (userId != ignore) 2: userId as String?,
+        if (phoneNumber != ignore) 3: phoneNumber as String?,
+        if (pin != ignore) 4: pin as int?,
+        if (branchId != ignore) 5: branchId as int?,
+        if (businessId != ignore) 6: businessId as int?,
+        if (lastTouched != ignore) 7: lastTouched as DateTime?,
+        if (action != ignore) 8: action as String?,
+        if (deletedAt != ignore) 9: deletedAt as DateTime?,
+      });
+    } finally {
+      q.close();
+    }
+  }
+}
+
+extension PinQueryBuilderUpdate on QueryBuilder<Pin, Pin, QOperations> {
+  _PinQueryUpdate get updateFirst => _PinQueryBuilderUpdateImpl(this, limit: 1);
+
+  _PinQueryUpdate get updateAll => _PinQueryBuilderUpdateImpl(this);
 }
 
 extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {

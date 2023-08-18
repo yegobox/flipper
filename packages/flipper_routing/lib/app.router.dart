@@ -517,8 +517,6 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         child: _i2.Cashbook(
           key: args.key,
           isBigScreen: args.isBigScreen,
-          newTransactionPressed: args.newTransactionPressed,
-          newTransactionType: args.newTransactionType,
         ),
         opaque: true,
         barrierDismissible: false,
@@ -1966,16 +1964,12 @@ class CashbookRoute extends _i3.PageRouteInfo<CashbookArgs> {
   CashbookRoute({
     _i4.Key? key,
     required bool isBigScreen,
-    bool newTransactionPressed = false,
-    String newTransactionType = 'none',
   }) : super(
           CashbookRoute.name,
           path: '/Cashbook',
           args: CashbookArgs(
             key: key,
             isBigScreen: isBigScreen,
-            newTransactionPressed: newTransactionPressed,
-            newTransactionType: newTransactionType,
           ),
         );
 
@@ -1986,21 +1980,15 @@ class CashbookArgs {
   const CashbookArgs({
     this.key,
     required this.isBigScreen,
-    this.newTransactionPressed = false,
-    this.newTransactionType = 'none',
   });
 
   final _i4.Key? key;
 
   final bool isBigScreen;
 
-  final bool newTransactionPressed;
-
-  final String newTransactionType;
-
   @override
   String toString() {
-    return 'CashbookArgs{key: $key, isBigScreen: $isBigScreen, newTransactionPressed: $newTransactionPressed, newTransactionType: $newTransactionType}';
+    return 'CashbookArgs{key: $key, isBigScreen: $isBigScreen}';
   }
 }
 

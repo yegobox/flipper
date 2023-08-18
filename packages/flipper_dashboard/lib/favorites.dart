@@ -325,13 +325,13 @@ class _FavoritesState extends State<Favorites> {
           final favorite = snapshot.data!;
           String prodId = favorite.productId!;
 
-          return StreamBuilder<Product?>(
-            stream: ProxyService.isar.getProductStream(prodIndex: prodId),
+          return StreamBuilder<List<Product>>(
+            stream: ProxyService.isar.productStreams(prodIndex: prodId),
             builder: (context, snapshot) {
               if (snapshot.hasError) {
                 return Text('Error: ${snapshot.error}');
               } else if (snapshot.hasData) {
-                Product favProduct = snapshot.data!;
+                Product favProduct = snapshot.data!.first;
                 return _favoritePopulated(adjustedIndex, favProduct, model);
               } else {
                 return SizedBox.shrink();

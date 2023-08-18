@@ -14,16 +14,86 @@ extension GetReceiptCollection on Isar {
   IsarCollection<String, Receipt> get receipts => this.collection();
 }
 
-const ReceiptSchema = IsarCollectionSchema(
-  schema:
-      '{"name":"Receipt","idName":"id","properties":[{"name":"id","type":"String"},{"name":"resultCd","type":"String"},{"name":"resultMsg","type":"String"},{"name":"resultDt","type":"String"},{"name":"rcptNo","type":"Long"},{"name":"intrlData","type":"String"},{"name":"rcptSign","type":"String"},{"name":"totRcptNo","type":"Long"},{"name":"vsdcRcptPbctDate","type":"String"},{"name":"sdcId","type":"String"},{"name":"mrcNo","type":"String"},{"name":"qrCode","type":"String"},{"name":"receiptType","type":"String"},{"name":"transactionId","type":"String"}]}',
+const ReceiptSchema = IsarGeneratedSchema(
+  schema: IsarSchema(
+    name: 'Receipt',
+    idName: 'id',
+    embedded: false,
+    properties: [
+      IsarPropertySchema(
+        name: 'id',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'resultCd',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'resultMsg',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'resultDt',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'rcptNo',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'intrlData',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'rcptSign',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'totRcptNo',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'vsdcRcptPbctDate',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'sdcId',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'mrcNo',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'qrCode',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'receiptType',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'transactionId',
+        type: IsarType.string,
+      ),
+    ],
+    indexes: [
+      IsarIndexSchema(
+        name: 'transactionId',
+        properties: [
+          "transactionId",
+        ],
+        unique: false,
+        hash: false,
+      ),
+    ],
+  ),
   converter: IsarObjectConverter<String, Receipt>(
     serialize: serializeReceipt,
     deserialize: deserializeReceipt,
     deserializeProperty: deserializeReceiptProp,
   ),
   embeddedSchemas: [],
-  //hash: 2504088866305445769,
 );
 
 @isarProtected
@@ -291,6 +361,59 @@ extension ReceiptQueryUpdate on IsarQuery<Receipt> {
       _ReceiptQueryUpdateImpl(this, limit: 1);
 
   _ReceiptQueryUpdate get updateAll => _ReceiptQueryUpdateImpl(this);
+}
+
+class _ReceiptQueryBuilderUpdateImpl implements _ReceiptQueryUpdate {
+  const _ReceiptQueryBuilderUpdateImpl(this.query, {this.limit});
+
+  final QueryBuilder<Receipt, Receipt, QOperations> query;
+  final int? limit;
+
+  @override
+  int call({
+    Object? resultCd = ignore,
+    Object? resultMsg = ignore,
+    Object? resultDt = ignore,
+    Object? rcptNo = ignore,
+    Object? intrlData = ignore,
+    Object? rcptSign = ignore,
+    Object? totRcptNo = ignore,
+    Object? vsdcRcptPbctDate = ignore,
+    Object? sdcId = ignore,
+    Object? mrcNo = ignore,
+    Object? qrCode = ignore,
+    Object? receiptType = ignore,
+    Object? transactionId = ignore,
+  }) {
+    final q = query.build();
+    try {
+      return q.updateProperties(limit: limit, {
+        if (resultCd != ignore) 2: resultCd as String?,
+        if (resultMsg != ignore) 3: resultMsg as String?,
+        if (resultDt != ignore) 4: resultDt as String?,
+        if (rcptNo != ignore) 5: rcptNo as int?,
+        if (intrlData != ignore) 6: intrlData as String?,
+        if (rcptSign != ignore) 7: rcptSign as String?,
+        if (totRcptNo != ignore) 8: totRcptNo as int?,
+        if (vsdcRcptPbctDate != ignore) 9: vsdcRcptPbctDate as String?,
+        if (sdcId != ignore) 10: sdcId as String?,
+        if (mrcNo != ignore) 11: mrcNo as String?,
+        if (qrCode != ignore) 12: qrCode as String?,
+        if (receiptType != ignore) 13: receiptType as String?,
+        if (transactionId != ignore) 14: transactionId as String?,
+      });
+    } finally {
+      q.close();
+    }
+  }
+}
+
+extension ReceiptQueryBuilderUpdate
+    on QueryBuilder<Receipt, Receipt, QOperations> {
+  _ReceiptQueryUpdate get updateFirst =>
+      _ReceiptQueryBuilderUpdateImpl(this, limit: 1);
+
+  _ReceiptQueryUpdate get updateAll => _ReceiptQueryBuilderUpdateImpl(this);
 }
 
 extension ReceiptQueryFilter

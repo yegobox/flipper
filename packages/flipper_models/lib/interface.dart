@@ -13,17 +13,17 @@ abstract class IsarApiInterface {
   Future<List<Branch>> branches({required int businessId});
   Future<List<Stock?>> stocks({required String productId});
   Stream<Stock> stockByVariantIdStream({required String variantId});
-  Stream<Transaction?> completedTransactionsStream(
-      {required String status, required int branchId});
-  Stream<List<Product>> productStreams({required int branchId});
-  Stream<Business> businessStream({required int businessId});
-  Stream<List<Discount>> discountStreams({required int branchId});
+  Stream<List<Transaction>> transactionsStreams({
+    String? status,
+    String? transactionType,
+    int? branchId,
+    bool isCashOut = false,
+    bool includePending = false,
+  });
+  Stream<List<Product>> productStreams({String? prodIndex});
   Future<Stock?> stockByVariantId({required String variantId});
   Future<List<PColor>> colors({required int branchId});
   Future<List<Category>> categories({required int branchId});
-  Stream<List<Category>> categoriesStream({required int branchId});
-  Stream<Transaction?> pendingTransactionStream();
-  Stream<List<Transaction>> pendingTransactionStreams();
   Future<List<IUnit>> units({required int branchId});
   Future<T?> create<T>({required T data});
   Future<T?> update<T>({required T data});
@@ -72,9 +72,8 @@ abstract class IsarApiInterface {
       {required String transactionType});
 
   Future<List<Transaction>> completedTransactions(
-      {required int branchId, String? status = completeStatus});
+      {required int branchId, String? status = COMPLETE});
   Future<TransactionItem?> getTransactionItemById({required String id});
-  Stream<List<Transaction>> localCompletedTransactions();
 
   Future<Variant?> getCustomVariant();
   Future<Spenn> spennPayment({required double amount, required phoneNumber});
@@ -97,30 +96,21 @@ abstract class IsarApiInterface {
   /// we only care about name, this deliver from our core mission that
   /// we want to make communication easy for business and users i.e customers
   ///
-  Stream<List<Business>> users();
   //the method is not different from users, but users is for streaming users being added
   //to connected devices, while this method is for getting all users using List<Business>
-  Stream<List<Business>> contacts();
+
   Future<List<Business>> getContacts();
 
-  Future<Business?> getBusiness();
+  Future<Business?> getBusiness({int? businessId});
   Future<Customer?> addCustomer(
       {required Map customer, required String transactionId});
   Future assingTransactionToCustomer(
       {required int customerId, required String transactionId});
-  Stream<Customer?> getCustomer({required String key});
-  Stream<Customer?> getCustomerByTransactionId({required String id});
+  Stream<Customer?> getCustomer({String? key, String? transactionId});
 
   Future<Transaction?> getTransactionById({required String id});
   Future<List<Transaction>> tickets();
   Stream<List<Transaction>> ticketsStreams();
-  Stream<List<Transaction>> getTransactions();
-  Stream<List<Transaction>> getLocalTransactionsStream();
-  Stream<List<Transaction>> getCompletedTransactions();
-  Stream<List<Transaction>> getCashInTransactions();
-  Stream<List<Transaction>> getLocalCashInTransactions();
-  Stream<List<Transaction>> getCashOutTransactions();
-  Stream<List<Transaction>> getLocalCashOutTransactions();
   Future<List<double>> getTransactionsAmountsSum({required String period});
   Future<List<double>> getLocalTransactionsAmountsSum({required String period});
   Stream<List<Transaction>> getTransactionsByCustomerId(
@@ -131,13 +121,11 @@ abstract class IsarApiInterface {
 
   Future<int> sendReport({required List<TransactionItem> transactionItems});
   Future<void> createGoogleSheetDoc({required String email});
-  Future<Business?> getBusinessById({required int id});
   Future<TransactionItem?> getTransactionItemByVariantId(
       {required String variantId, required String? transactionId});
   Future<List<TransactionItem>> getTransactionItemsByTransactionId(
       {required String? transactionId});
   //abstract method to update business
-  // Future<void> updateBusiness({required int id, required Map business});
 
   //analytics
   int lifeTimeCustomersForbranch({required String branchId});
@@ -151,9 +139,6 @@ abstract class IsarApiInterface {
   Future<void> addTransactionItem(
       {required Transaction transaction, required TransactionItem item});
 
-  // Conversation createConversation({required Conversation conversation});
-
-  // Conversation? getConversationByContactId({required int contactId});
   void emptySentMessageQueue();
   bool suggestRestore();
 
@@ -260,7 +245,7 @@ abstract class IsarApiInterface {
 
   Future<Device?> getDevice({required String phone});
   Future<Device?> getDeviceById({required String id});
-  Stream<List<Device>> getDevices({required int businessId});
+  Future<List<Device>> getDevices({required int businessId});
   Future<List<Device>> unpublishedDevices({required int businessId});
   Future<void> loadConversations(
       {required int businessId, int? pageSize = 10, String? pk, String? sk});
@@ -270,7 +255,6 @@ abstract class IsarApiInterface {
   Future<List<Social>> activesocialAccounts({required int branchId});
 
   Future<Stock?> addStockToVariant({required Variant variant});
-  Stream<Product> getProductStream({required String prodIndex});
   Stream<List<Variant>> geVariantStreamByProductId({required String productId});
 
   Future<
