@@ -112,36 +112,23 @@ class ProductViewModel extends TenantViewModel {
       notifyListeners();
       return product;
     }
-    int branchId = ProxyService.box.getBranchId()!;
-    int businessId = ProxyService.box.getBusinessId()!;
-    Product? isTemp =
-        await ProxyService.isar.isTempProductExist(branchId: branchId);
 
-    if (isTemp == null) {
-      Product product = await ProxyService.isar.createProduct(
-          product: Product(
-              id: randomString(),
-              name: "temp",
-              action: 'create',
-              lastTouched: DateTime.now(),
-              businessId: businessId,
-              color: "#e74c3c",
-              branchId: branchId)
-            ..name = "temp"
-            ..color = "#e74c3c"
-            ..branchId = branchId
-            ..businessId = businessId);
-      await variantsProduct(productId: product.id);
+    /// create a temp product or return it if it exists
+    Product product = await ProxyService.isar.createProduct(
+        product: Product(
+            id: randomString(),
+            name: TEMP_PRODUCT,
+            action: AppActions.create,
+            lastTouched: DateTime.now(),
+            businessId: ProxyService.box.getBusinessId()!,
+            color: COLOR,
+            branchId: ProxyService.box.getBranchId()!));
+    await variantsProduct(productId: product.id);
 
-      setCurrentProduct(product: product);
-      kProductName = product.name;
-      rebuildUi();
-      return product;
-    }
-    setCurrentProduct(product: isTemp);
-    await variantsProduct(productId: isTemp.id);
+    setCurrentProduct(product: product);
+    kProductName = product.name;
     rebuildUi();
-    return isTemp;
+    return product;
   }
 
   void setName({String? name}) {
